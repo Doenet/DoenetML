@@ -15,8 +15,8 @@ const readOnlyProxyHandler = {
                     f(
                         x !== null && typeof x === "object"
                             ? new Proxy(x, readOnlyProxyHandler)
-                            : x
-                    )
+                            : x,
+                    ),
                 );
         }
         let result = obj[prop];

@@ -38,7 +38,7 @@ describe("Match partial validation tests", function () {
   </answer></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -52,13 +52,13 @@ describe("Match partial validation tests", function () {
             let mathinputAnchor = cesc2("#" + mathinputName) + " textarea";
             let mathinputSubmitAnchor = cesc2("#" + mathinputName + "_submit");
             let mathinputCorrectAnchor = cesc2(
-                "#" + mathinputName + "_correct"
+                "#" + mathinputName + "_correct",
             );
             let mathinputPartialAnchor = cesc2(
-                "#" + mathinputName + "_partial"
+                "#" + mathinputName + "_partial",
             );
             let mathinputIncorrectAnchor = cesc2(
-                "#" + mathinputName + "_incorrect"
+                "#" + mathinputName + "_incorrect",
             );
 
             let mathinput2Name =
@@ -66,16 +66,16 @@ describe("Match partial validation tests", function () {
                     .componentName;
             let mathinput2Anchor = cesc2("#" + mathinput2Name) + " textarea";
             let mathinput2SubmitAnchor = cesc2(
-                "#" + mathinput2Name + "_submit"
+                "#" + mathinput2Name + "_submit",
             );
             let mathinput2CorrectAnchor = cesc2(
-                "#" + mathinput2Name + "_correct"
+                "#" + mathinput2Name + "_correct",
             );
             let mathinput2PartialAnchor = cesc2(
-                "#" + mathinput2Name + "_partial"
+                "#" + mathinput2Name + "_partial",
             );
             let mathinput2IncorrectAnchor = cesc2(
-                "#" + mathinput2Name + "_incorrect"
+                "#" + mathinput2Name + "_incorrect",
             );
 
             let mathinput3Name =
@@ -83,16 +83,16 @@ describe("Match partial validation tests", function () {
                     .componentName;
             let mathinput3Anchor = cesc2("#" + mathinput3Name) + " textarea";
             let mathinput3SubmitAnchor = cesc2(
-                "#" + mathinput3Name + "_submit"
+                "#" + mathinput3Name + "_submit",
             );
             let mathinput3CorrectAnchor = cesc2(
-                "#" + mathinput3Name + "_correct"
+                "#" + mathinput3Name + "_correct",
             );
             let mathinput3PartialAnchor = cesc2(
-                "#" + mathinput3Name + "_partial"
+                "#" + mathinput3Name + "_partial",
             );
             let mathinput3IncorrectAnchor = cesc2(
-                "#" + mathinput3Name + "_incorrect"
+                "#" + mathinput3Name + "_incorrect",
             );
 
             let mathinput4Name =
@@ -100,16 +100,16 @@ describe("Match partial validation tests", function () {
                     .componentName;
             let mathinput4Anchor = cesc2("#" + mathinput4Name) + " textarea";
             let mathinput4SubmitAnchor = cesc2(
-                "#" + mathinput4Name + "_submit"
+                "#" + mathinput4Name + "_submit",
             );
             let mathinput4CorrectAnchor = cesc2(
-                "#" + mathinput4Name + "_correct"
+                "#" + mathinput4Name + "_correct",
             );
             let mathinput4PartialAnchor = cesc2(
-                "#" + mathinput4Name + "_partial"
+                "#" + mathinput4Name + "_partial",
             );
             let mathinput4IncorrectAnchor = cesc2(
-                "#" + mathinput4Name + "_incorrect"
+                "#" + mathinput4Name + "_incorrect",
             );
 
             let mathinput5Name =
@@ -117,16 +117,16 @@ describe("Match partial validation tests", function () {
                     .componentName;
             let mathinput5Anchor = cesc2("#" + mathinput5Name) + " textarea";
             let mathinput5SubmitAnchor = cesc2(
-                "#" + mathinput5Name + "_submit"
+                "#" + mathinput5Name + "_submit",
             );
             let mathinput5CorrectAnchor = cesc2(
-                "#" + mathinput5Name + "_correct"
+                "#" + mathinput5Name + "_correct",
             );
             let mathinput5PartialAnchor = cesc2(
-                "#" + mathinput5Name + "_partial"
+                "#" + mathinput5Name + "_partial",
             );
             let mathinput5IncorrectAnchor = cesc2(
-                "#" + mathinput5Name + "_incorrect"
+                "#" + mathinput5Name + "_incorrect",
             );
 
             cy.get(mathinputSubmitAnchor).should("be.visible");
@@ -150,19 +150,19 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer5"].stateValues.creditAchieved
+                    stateVariables["/_answer5"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -172,31 +172,31 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputCorrectAnchor).should("be.visible");
             cy.get(mathinput2Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(1,2,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2CorrectAnchor).should("be.visible");
             cy.get(mathinput3Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(1,2,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3CorrectAnchor).should("be.visible");
             cy.get(mathinput4Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(1,2,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4CorrectAnchor).should("be.visible");
             cy.get(mathinput5Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(1,2,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput5SubmitAnchor).click();
             cy.get(mathinput5CorrectAnchor).should("be.visible");
@@ -204,19 +204,19 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer5"].stateValues.creditAchieved
+                    stateVariables["/_answer5"].stateValues.creditAchieved,
                 ).eq(1);
             });
 
@@ -226,7 +226,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "67 %");
@@ -235,7 +235,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2PartialAnchor).should("have.text", "33 %");
@@ -244,7 +244,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3PartialAnchor).should("have.text", "67 %");
@@ -253,7 +253,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
@@ -262,7 +262,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput5SubmitAnchor).click();
             cy.get(mathinput5IncorrectAnchor).should("be.visible");
@@ -270,19 +270,19 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(2 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).closeTo(1 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).closeTo(2 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer5"].stateValues.creditAchieved
+                    stateVariables["/_answer5"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -298,7 +298,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2IncorrectAnchor).should("be.visible");
@@ -307,7 +307,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3PartialAnchor).should("have.text", "33 %");
@@ -316,7 +316,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
@@ -325,7 +325,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput5SubmitAnchor).click();
             cy.get(mathinput5IncorrectAnchor).should("be.visible");
@@ -333,19 +333,19 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(1 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).closeTo(1 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer5"].stateValues.creditAchieved
+                    stateVariables["/_answer5"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -361,7 +361,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2PartialAnchor).should("have.text", "33 %");
@@ -370,7 +370,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3PartialAnchor).should("have.text", "33 %");
@@ -379,7 +379,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
@@ -388,7 +388,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput5SubmitAnchor).click();
             cy.get(mathinput5IncorrectAnchor).should("be.visible");
@@ -396,50 +396,50 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(1 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).closeTo(1 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).closeTo(1 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer5"].stateValues.creditAchieved
+                    stateVariables["/_answer5"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
             cy.log("extra component");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}(1,2,a,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "75 %");
             cy.get(mathinput2Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(1,2,a,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2PartialAnchor).should("have.text", "50 %");
             cy.get(mathinput3Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(1,2,a,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3PartialAnchor).should("have.text", "75 %");
             cy.get(mathinput4Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(1,2,a,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
             cy.get(mathinput5Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(1,2,a,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput5SubmitAnchor).click();
             cy.get(mathinput5IncorrectAnchor).should("be.visible");
@@ -447,50 +447,50 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(3 / 4, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).closeTo(1 / 2, 1e-14);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).closeTo(3 / 4, 1e-14);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer5"].stateValues.creditAchieved
+                    stateVariables["/_answer5"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
             cy.log("two extra components");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}(0,1,2,a,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "60 %");
             cy.get(mathinput2Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(0,1,2,a,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2IncorrectAnchor).should("be.visible");
             cy.get(mathinput3Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(0,1,2,a,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3PartialAnchor).should("have.text", "60 %");
             cy.get(mathinput4Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(0,1,2,a,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
             cy.get(mathinput5Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(0,1,2,a,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput5SubmitAnchor).click();
             cy.get(mathinput5IncorrectAnchor).should("be.visible");
@@ -498,19 +498,19 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(3 / 5, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).closeTo(3 / 5, 1e-14);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer5"].stateValues.creditAchieved
+                    stateVariables["/_answer5"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -520,7 +520,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputIncorrectAnchor).should("be.visible");
@@ -529,7 +529,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2IncorrectAnchor).should("be.visible");
@@ -538,7 +538,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3IncorrectAnchor).should("be.visible");
@@ -547,7 +547,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
@@ -556,7 +556,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput5SubmitAnchor).click();
             cy.get(mathinput5IncorrectAnchor).should("be.visible");
@@ -564,19 +564,19 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer5"].stateValues.creditAchieved
+                    stateVariables["/_answer5"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -586,31 +586,31 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "67 %");
             cy.get(mathinput2Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(3,1,2)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2IncorrectAnchor).should("be.visible");
             cy.get(mathinput3Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(3,1,2)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3CorrectAnchor).should("be.visible");
             cy.get(mathinput4Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(3,1,2)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
             cy.get(mathinput5Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(3,1,2)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput5SubmitAnchor).click();
             cy.get(mathinput5CorrectAnchor).should("be.visible");
@@ -618,19 +618,19 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(2 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer5"].stateValues.creditAchieved
+                    stateVariables["/_answer5"].stateValues.creditAchieved,
                 ).eq(1);
             });
 
@@ -640,31 +640,31 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "33 %");
             cy.get(mathinput2Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(3,2,1)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2PartialAnchor).should("have.text", "33 %");
             cy.get(mathinput3Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(3,2,1)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3CorrectAnchor).should("be.visible");
             cy.get(mathinput4Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(3,2,1)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
             cy.get(mathinput5Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(3,2,1)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput5SubmitAnchor).click();
             cy.get(mathinput5CorrectAnchor).should("be.visible");
@@ -672,50 +672,50 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(1 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).closeTo(1 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer5"].stateValues.creditAchieved
+                    stateVariables["/_answer5"].stateValues.creditAchieved,
                 ).eq(1);
             });
 
             cy.log("add component");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}(3,2,1,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "50 %");
             cy.get(mathinput2Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(3,2,1,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2PartialAnchor).should("have.text", "25 %");
             cy.get(mathinput3Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(3,2,1,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3PartialAnchor).should("have.text", "75 %");
             cy.get(mathinput4Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(3,2,1,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
             cy.get(mathinput5Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(3,2,1,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput5SubmitAnchor).click();
             cy.get(mathinput5IncorrectAnchor).should("be.visible");
@@ -723,50 +723,50 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(2 / 4, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).closeTo(1 / 4, 1e-14);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).closeTo(3 / 4, 1e-14);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer5"].stateValues.creditAchieved
+                    stateVariables["/_answer5"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
             cy.log("add another component");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}(3,a,2,1,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "40 %");
             cy.get(mathinput2Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(3,a,2,1,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2IncorrectAnchor).should("be.visible");
             cy.get(mathinput3Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(3,a,2,1,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3PartialAnchor).should("have.text", "60 %");
             cy.get(mathinput4Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(3,a,2,1,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
             cy.get(mathinput5Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(3,a,2,1,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput5SubmitAnchor).click();
             cy.get(mathinput5IncorrectAnchor).should("be.visible");
@@ -774,50 +774,50 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(2 / 5, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).closeTo(3 / 5, 1e-14);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer5"].stateValues.creditAchieved
+                    stateVariables["/_answer5"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
             cy.log("add one more component");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}(1,3,a,2,1,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "50 %");
             cy.get(mathinput2Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(1,3,a,2,1,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2PartialAnchor).should("have.text", "17 %");
             cy.get(mathinput3Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(1,3,a,2,1,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3PartialAnchor).should("have.text", "50 %");
             cy.get(mathinput4Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(1,3,a,2,1,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
             cy.get(mathinput5Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(1,3,a,2,1,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput5SubmitAnchor).click();
             cy.get(mathinput5IncorrectAnchor).should("be.visible");
@@ -825,19 +825,19 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(3 / 6, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).closeTo(1 / 6, 1e-14);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).closeTo(3 / 6, 1e-14);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer5"].stateValues.creditAchieved
+                    stateVariables["/_answer5"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -847,7 +847,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "33 %");
@@ -856,7 +856,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2IncorrectAnchor).should("be.visible");
@@ -865,7 +865,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3PartialAnchor).should("have.text", "67 %");
@@ -874,7 +874,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
@@ -883,7 +883,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput5SubmitAnchor).click();
             cy.get(mathinput5IncorrectAnchor).should("be.visible");
@@ -891,19 +891,19 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(1 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).closeTo(2 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer5"].stateValues.creditAchieved
+                    stateVariables["/_answer5"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -913,31 +913,31 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "33 %");
             cy.get(mathinput2Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(3,1,1)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2IncorrectAnchor).should("be.visible");
             cy.get(mathinput3Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(3,1,1)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3PartialAnchor).should("have.text", "67 %");
             cy.get(mathinput4Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(3,1,1)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
             cy.get(mathinput5Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(3,1,1)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput5SubmitAnchor).click();
             cy.get(mathinput5IncorrectAnchor).should("be.visible");
@@ -945,19 +945,19 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(1 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).closeTo(2 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer5"].stateValues.creditAchieved
+                    stateVariables["/_answer5"].stateValues.creditAchieved,
                 ).eq(0);
             });
         });
@@ -986,7 +986,7 @@ describe("Match partial validation tests", function () {
   </answer></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1000,13 +1000,13 @@ describe("Match partial validation tests", function () {
             let mathinputAnchor = cesc2("#" + mathinputName) + " textarea";
             let mathinputSubmitAnchor = cesc2("#" + mathinputName + "_submit");
             let mathinputCorrectAnchor = cesc2(
-                "#" + mathinputName + "_correct"
+                "#" + mathinputName + "_correct",
             );
             let mathinputPartialAnchor = cesc2(
-                "#" + mathinputName + "_partial"
+                "#" + mathinputName + "_partial",
             );
             let mathinputIncorrectAnchor = cesc2(
-                "#" + mathinputName + "_incorrect"
+                "#" + mathinputName + "_incorrect",
             );
 
             let mathinput2Name =
@@ -1014,16 +1014,16 @@ describe("Match partial validation tests", function () {
                     .componentName;
             let mathinput2Anchor = cesc2("#" + mathinput2Name) + " textarea";
             let mathinput2SubmitAnchor = cesc2(
-                "#" + mathinput2Name + "_submit"
+                "#" + mathinput2Name + "_submit",
             );
             let mathinput2CorrectAnchor = cesc2(
-                "#" + mathinput2Name + "_correct"
+                "#" + mathinput2Name + "_correct",
             );
             let mathinput2PartialAnchor = cesc2(
-                "#" + mathinput2Name + "_partial"
+                "#" + mathinput2Name + "_partial",
             );
             let mathinput2IncorrectAnchor = cesc2(
-                "#" + mathinput2Name + "_incorrect"
+                "#" + mathinput2Name + "_incorrect",
             );
 
             let mathinput3Name =
@@ -1031,16 +1031,16 @@ describe("Match partial validation tests", function () {
                     .componentName;
             let mathinput3Anchor = cesc2("#" + mathinput3Name) + " textarea";
             let mathinput3SubmitAnchor = cesc2(
-                "#" + mathinput3Name + "_submit"
+                "#" + mathinput3Name + "_submit",
             );
             let mathinput3CorrectAnchor = cesc2(
-                "#" + mathinput3Name + "_correct"
+                "#" + mathinput3Name + "_correct",
             );
             let mathinput3PartialAnchor = cesc2(
-                "#" + mathinput3Name + "_partial"
+                "#" + mathinput3Name + "_partial",
             );
             let mathinput3IncorrectAnchor = cesc2(
-                "#" + mathinput3Name + "_incorrect"
+                "#" + mathinput3Name + "_incorrect",
             );
 
             let mathinput4Name =
@@ -1048,16 +1048,16 @@ describe("Match partial validation tests", function () {
                     .componentName;
             let mathinput4Anchor = cesc2("#" + mathinput4Name) + " textarea";
             let mathinput4SubmitAnchor = cesc2(
-                "#" + mathinput4Name + "_submit"
+                "#" + mathinput4Name + "_submit",
             );
             let mathinput4CorrectAnchor = cesc2(
-                "#" + mathinput4Name + "_correct"
+                "#" + mathinput4Name + "_correct",
             );
             let mathinput4PartialAnchor = cesc2(
-                "#" + mathinput4Name + "_partial"
+                "#" + mathinput4Name + "_partial",
             );
             let mathinput4IncorrectAnchor = cesc2(
-                "#" + mathinput4Name + "_incorrect"
+                "#" + mathinput4Name + "_incorrect",
             );
 
             cy.get(mathinputSubmitAnchor).should("be.visible");
@@ -1078,16 +1078,16 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -1108,16 +1108,16 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(1);
             });
 
@@ -1127,7 +1127,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "67 %");
@@ -1136,7 +1136,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2PartialAnchor).should("have.text", "67 %");
@@ -1145,7 +1145,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3IncorrectAnchor).should("be.visible");
@@ -1154,7 +1154,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
@@ -1162,13 +1162,13 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(2 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).closeTo(2 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -1184,7 +1184,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2PartialAnchor).should("have.text", "33 %");
@@ -1193,7 +1193,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3IncorrectAnchor).should("be.visible");
@@ -1202,7 +1202,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
@@ -1210,16 +1210,16 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(1 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).closeTo(1 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -1229,25 +1229,25 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "75 %");
             cy.get(mathinput2Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}1,2,a,3",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2PartialAnchor).should("have.text", "75 %");
             cy.get(mathinput3Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}1,2,a,3",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3IncorrectAnchor).should("be.visible");
             cy.get(mathinput4Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}1,2,a,3",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
@@ -1255,41 +1255,41 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(3 / 4, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).closeTo(3 / 4, 1e-14);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
             cy.log("two extra components");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}0,1,2,a,3",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "60 %");
             cy.get(mathinput2Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}0,1,2,a,3",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2PartialAnchor).should("have.text", "60 %");
             cy.get(mathinput3Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}0,1,2,a,3",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3IncorrectAnchor).should("be.visible");
             cy.get(mathinput4Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}0,1,2,a,3",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
@@ -1297,16 +1297,16 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(3 / 5, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).closeTo(3 / 5, 1e-14);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -1316,25 +1316,25 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputIncorrectAnchor).should("be.visible");
             cy.get(mathinput2Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(1,2,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2IncorrectAnchor).should("be.visible");
             cy.get(mathinput3Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(1,2,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3IncorrectAnchor).should("be.visible");
             cy.get(mathinput4Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(1,2,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
@@ -1342,16 +1342,16 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -1361,7 +1361,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "67 %");
@@ -1370,7 +1370,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2CorrectAnchor).should("be.visible");
@@ -1379,7 +1379,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3IncorrectAnchor).should("be.visible");
@@ -1388,7 +1388,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4CorrectAnchor).should("be.visible");
@@ -1396,16 +1396,16 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(2 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(1);
             });
 
@@ -1415,7 +1415,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "33 %");
@@ -1424,7 +1424,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2CorrectAnchor).should("be.visible");
@@ -1433,7 +1433,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3IncorrectAnchor).should("be.visible");
@@ -1442,7 +1442,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4CorrectAnchor).should("be.visible");
@@ -1450,16 +1450,16 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(1 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(1);
             });
 
@@ -1469,25 +1469,25 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "50 %");
             cy.get(mathinput2Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}3,2,1,3",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2PartialAnchor).should("have.text", "75 %");
             cy.get(mathinput3Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}3,2,1,3",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3IncorrectAnchor).should("be.visible");
             cy.get(mathinput4Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}3,2,1,3",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
@@ -1495,41 +1495,41 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(2 / 4, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).closeTo(3 / 4, 1e-14);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
             cy.log("add another component");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}3,a,2,1,3",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "40 %");
             cy.get(mathinput2Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}3,a,2,1,3",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2PartialAnchor).should("have.text", "60 %");
             cy.get(mathinput3Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}3,a,2,1,3",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3IncorrectAnchor).should("be.visible");
             cy.get(mathinput4Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}3,a,2,1,3",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
@@ -1537,41 +1537,41 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(2 / 5, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).closeTo(3 / 5, 1e-14);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
             cy.log("add one more component");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}1,3,a,2,1,3",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "50 %");
             cy.get(mathinput2Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}1,3,a,2,1,3",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2PartialAnchor).should("have.text", "50 %");
             cy.get(mathinput3Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}1,3,a,2,1,3",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3IncorrectAnchor).should("be.visible");
             cy.get(mathinput4Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}1,3,a,2,1,3",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
@@ -1579,16 +1579,16 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(3 / 6, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).closeTo(3 / 6, 1e-14);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -1598,7 +1598,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "33 %");
@@ -1607,7 +1607,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2PartialAnchor).should("have.text", "67 %");
@@ -1616,7 +1616,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3IncorrectAnchor).should("be.visible");
@@ -1625,7 +1625,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
@@ -1633,16 +1633,16 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(1 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).closeTo(2 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -1652,7 +1652,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "33 %");
@@ -1661,7 +1661,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2PartialAnchor).should("have.text", "67 %");
@@ -1670,7 +1670,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3IncorrectAnchor).should("be.visible");
@@ -1679,7 +1679,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
@@ -1687,16 +1687,16 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(1 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).closeTo(2 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
             });
         });
@@ -1725,7 +1725,7 @@ describe("Match partial validation tests", function () {
   </answer></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1739,13 +1739,13 @@ describe("Match partial validation tests", function () {
             let mathinputAnchor = cesc2("#" + mathinputName) + " textarea";
             let mathinputSubmitAnchor = cesc2("#" + mathinputName + "_submit");
             let mathinputCorrectAnchor = cesc2(
-                "#" + mathinputName + "_correct"
+                "#" + mathinputName + "_correct",
             );
             let mathinputPartialAnchor = cesc2(
-                "#" + mathinputName + "_partial"
+                "#" + mathinputName + "_partial",
             );
             let mathinputIncorrectAnchor = cesc2(
-                "#" + mathinputName + "_incorrect"
+                "#" + mathinputName + "_incorrect",
             );
 
             let mathinput2Name =
@@ -1753,16 +1753,16 @@ describe("Match partial validation tests", function () {
                     .componentName;
             let mathinput2Anchor = cesc2("#" + mathinput2Name) + " textarea";
             let mathinput2SubmitAnchor = cesc2(
-                "#" + mathinput2Name + "_submit"
+                "#" + mathinput2Name + "_submit",
             );
             let mathinput2CorrectAnchor = cesc2(
-                "#" + mathinput2Name + "_correct"
+                "#" + mathinput2Name + "_correct",
             );
             let mathinput2PartialAnchor = cesc2(
-                "#" + mathinput2Name + "_partial"
+                "#" + mathinput2Name + "_partial",
             );
             let mathinput2IncorrectAnchor = cesc2(
-                "#" + mathinput2Name + "_incorrect"
+                "#" + mathinput2Name + "_incorrect",
             );
 
             let mathinput3Name =
@@ -1770,16 +1770,16 @@ describe("Match partial validation tests", function () {
                     .componentName;
             let mathinput3Anchor = cesc2("#" + mathinput3Name) + " textarea";
             let mathinput3SubmitAnchor = cesc2(
-                "#" + mathinput3Name + "_submit"
+                "#" + mathinput3Name + "_submit",
             );
             let mathinput3CorrectAnchor = cesc2(
-                "#" + mathinput3Name + "_correct"
+                "#" + mathinput3Name + "_correct",
             );
             let mathinput3PartialAnchor = cesc2(
-                "#" + mathinput3Name + "_partial"
+                "#" + mathinput3Name + "_partial",
             );
             let mathinput3IncorrectAnchor = cesc2(
-                "#" + mathinput3Name + "_incorrect"
+                "#" + mathinput3Name + "_incorrect",
             );
 
             let mathinput4Name =
@@ -1787,16 +1787,16 @@ describe("Match partial validation tests", function () {
                     .componentName;
             let mathinput4Anchor = cesc2("#" + mathinput4Name) + " textarea";
             let mathinput4SubmitAnchor = cesc2(
-                "#" + mathinput4Name + "_submit"
+                "#" + mathinput4Name + "_submit",
             );
             let mathinput4CorrectAnchor = cesc2(
-                "#" + mathinput4Name + "_correct"
+                "#" + mathinput4Name + "_correct",
             );
             let mathinput4PartialAnchor = cesc2(
-                "#" + mathinput4Name + "_partial"
+                "#" + mathinput4Name + "_partial",
             );
             let mathinput4IncorrectAnchor = cesc2(
-                "#" + mathinput4Name + "_incorrect"
+                "#" + mathinput4Name + "_incorrect",
             );
 
             cy.get(mathinputSubmitAnchor).should("be.visible");
@@ -1817,16 +1817,16 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -1847,16 +1847,16 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(1);
             });
 
@@ -1866,7 +1866,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "67 %");
@@ -1875,7 +1875,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2PartialAnchor).should("have.text", "67 %");
@@ -1884,7 +1884,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3IncorrectAnchor).should("be.visible");
@@ -1893,7 +1893,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
@@ -1901,16 +1901,16 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(2 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).closeTo(2 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -1926,7 +1926,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2PartialAnchor).should("have.text", "33 %");
@@ -1935,7 +1935,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3IncorrectAnchor).should("be.visible");
@@ -1944,7 +1944,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
@@ -1952,41 +1952,41 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(1 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).closeTo(1 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
             cy.log("extra component");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}[1,2,a,3]",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "75 %");
             cy.get(mathinput2Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}[1,2,a,3]",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2PartialAnchor).should("have.text", "75 %");
             cy.get(mathinput3Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}[1,2,a,3]",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3IncorrectAnchor).should("be.visible");
             cy.get(mathinput4Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}[1,2,a,3]",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
@@ -1994,41 +1994,41 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(3 / 4, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).closeTo(3 / 4, 1e-14);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
             cy.log("two extra components");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}[0,1,2,a,3]",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "60 %");
             cy.get(mathinput2Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}[0,1,2,a,3]",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2PartialAnchor).should("have.text", "60 %");
             cy.get(mathinput3Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}[0,1,2,a,3]",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3IncorrectAnchor).should("be.visible");
             cy.get(mathinput4Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}[0,1,2,a,3]",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
@@ -2036,16 +2036,16 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(3 / 5, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).closeTo(3 / 5, 1e-14);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -2055,7 +2055,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputIncorrectAnchor).should("be.visible");
@@ -2064,7 +2064,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2IncorrectAnchor).should("be.visible");
@@ -2073,7 +2073,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3IncorrectAnchor).should("be.visible");
@@ -2082,7 +2082,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
@@ -2090,16 +2090,16 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -2109,25 +2109,25 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "67 %");
             cy.get(mathinput2Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}[3,1,2]",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2CorrectAnchor).should("be.visible");
             cy.get(mathinput3Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}[3,1,2]",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3IncorrectAnchor).should("be.visible");
             cy.get(mathinput4Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}[3,1,2]",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4CorrectAnchor).should("be.visible");
@@ -2135,16 +2135,16 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(2 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(1);
             });
 
@@ -2154,25 +2154,25 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "33 %");
             cy.get(mathinput2Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}[3,2,1]",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2CorrectAnchor).should("be.visible");
             cy.get(mathinput3Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}[3,2,1]",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3IncorrectAnchor).should("be.visible");
             cy.get(mathinput4Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}[3,2,1]",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4CorrectAnchor).should("be.visible");
@@ -2180,41 +2180,41 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(1 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(1);
             });
 
             cy.log("add component");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}[3,2,1,3]",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "50 %");
             cy.get(mathinput2Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}[3,2,1,3]",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2PartialAnchor).should("have.text", "75 %");
             cy.get(mathinput3Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}[3,2,1,3]",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3IncorrectAnchor).should("be.visible");
             cy.get(mathinput4Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}[3,2,1,3]",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
@@ -2222,41 +2222,41 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(2 / 4, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).closeTo(3 / 4, 1e-14);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
             cy.log("add another component");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}[3,a,2,1,3]",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "40 %");
             cy.get(mathinput2Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}[3,a,2,1,3]",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2PartialAnchor).should("have.text", "60 %");
             cy.get(mathinput3Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}[3,a,2,1,3]",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3IncorrectAnchor).should("be.visible");
             cy.get(mathinput4Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}[3,a,2,1,3]",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
@@ -2264,41 +2264,41 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(2 / 5, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).closeTo(3 / 5, 1e-14);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
             cy.log("add one more component");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}[1,3,a,2,1,3]",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "50 %");
             cy.get(mathinput2Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}[1,3,a,2,1,3]",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2PartialAnchor).should("have.text", "50 %");
             cy.get(mathinput3Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}[1,3,a,2,1,3]",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3IncorrectAnchor).should("be.visible");
             cy.get(mathinput4Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}[1,3,a,2,1,3]",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
@@ -2306,16 +2306,16 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(3 / 6, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).closeTo(3 / 6, 1e-14);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -2325,7 +2325,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "33 %");
@@ -2334,7 +2334,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2PartialAnchor).should("have.text", "67 %");
@@ -2343,7 +2343,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3IncorrectAnchor).should("be.visible");
@@ -2352,7 +2352,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
@@ -2360,16 +2360,16 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(1 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).closeTo(2 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -2379,25 +2379,25 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "33 %");
             cy.get(mathinput2Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}[3,1,1]",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2PartialAnchor).should("have.text", "67 %");
             cy.get(mathinput3Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}[3,1,1]",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3IncorrectAnchor).should("be.visible");
             cy.get(mathinput4Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}[3,1,1]",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
@@ -2405,16 +2405,16 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(1 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).closeTo(2 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
             });
         });
@@ -2444,7 +2444,7 @@ describe("Match partial validation tests", function () {
   </answer></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2458,13 +2458,13 @@ describe("Match partial validation tests", function () {
             let mathinputAnchor = cesc2("#" + mathinputName) + " textarea";
             let mathinputSubmitAnchor = cesc2("#" + mathinputName + "_submit");
             let mathinputCorrectAnchor = cesc2(
-                "#" + mathinputName + "_correct"
+                "#" + mathinputName + "_correct",
             );
             let mathinputPartialAnchor = cesc2(
-                "#" + mathinputName + "_partial"
+                "#" + mathinputName + "_partial",
             );
             let mathinputIncorrectAnchor = cesc2(
-                "#" + mathinputName + "_incorrect"
+                "#" + mathinputName + "_incorrect",
             );
 
             let mathinput2Name =
@@ -2472,16 +2472,16 @@ describe("Match partial validation tests", function () {
                     .componentName;
             let mathinput2Anchor = cesc2("#" + mathinput2Name) + " textarea";
             let mathinput2SubmitAnchor = cesc2(
-                "#" + mathinput2Name + "_submit"
+                "#" + mathinput2Name + "_submit",
             );
             let mathinput2CorrectAnchor = cesc2(
-                "#" + mathinput2Name + "_correct"
+                "#" + mathinput2Name + "_correct",
             );
             let mathinput2PartialAnchor = cesc2(
-                "#" + mathinput2Name + "_partial"
+                "#" + mathinput2Name + "_partial",
             );
             let mathinput2IncorrectAnchor = cesc2(
-                "#" + mathinput2Name + "_incorrect"
+                "#" + mathinput2Name + "_incorrect",
             );
 
             let mathinput3Name =
@@ -2489,16 +2489,16 @@ describe("Match partial validation tests", function () {
                     .componentName;
             let mathinput3Anchor = cesc2("#" + mathinput3Name) + " textarea";
             let mathinput3SubmitAnchor = cesc2(
-                "#" + mathinput3Name + "_submit"
+                "#" + mathinput3Name + "_submit",
             );
             let mathinput3CorrectAnchor = cesc2(
-                "#" + mathinput3Name + "_correct"
+                "#" + mathinput3Name + "_correct",
             );
             let mathinput3PartialAnchor = cesc2(
-                "#" + mathinput3Name + "_partial"
+                "#" + mathinput3Name + "_partial",
             );
             let mathinput3IncorrectAnchor = cesc2(
-                "#" + mathinput3Name + "_incorrect"
+                "#" + mathinput3Name + "_incorrect",
             );
 
             let mathinput4Name =
@@ -2506,16 +2506,16 @@ describe("Match partial validation tests", function () {
                     .componentName;
             let mathinput4Anchor = cesc2("#" + mathinput4Name) + " textarea";
             let mathinput4SubmitAnchor = cesc2(
-                "#" + mathinput4Name + "_submit"
+                "#" + mathinput4Name + "_submit",
             );
             let mathinput4CorrectAnchor = cesc2(
-                "#" + mathinput4Name + "_correct"
+                "#" + mathinput4Name + "_correct",
             );
             let mathinput4PartialAnchor = cesc2(
-                "#" + mathinput4Name + "_partial"
+                "#" + mathinput4Name + "_partial",
             );
             let mathinput4IncorrectAnchor = cesc2(
-                "#" + mathinput4Name + "_incorrect"
+                "#" + mathinput4Name + "_incorrect",
             );
 
             cy.get(mathinputSubmitAnchor).should("be.visible");
@@ -2536,16 +2536,16 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -2566,16 +2566,16 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(1);
             });
 
@@ -2585,7 +2585,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "67 %");
@@ -2594,7 +2594,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2PartialAnchor).should("have.text", "67 %");
@@ -2603,7 +2603,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3IncorrectAnchor).should("be.visible");
@@ -2612,7 +2612,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
@@ -2620,16 +2620,16 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(2 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).closeTo(2 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -2645,7 +2645,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2PartialAnchor).should("have.text", "33 %");
@@ -2654,7 +2654,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3IncorrectAnchor).should("be.visible");
@@ -2663,7 +2663,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
@@ -2671,41 +2671,41 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(1 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).closeTo(1 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
             cy.log("extra component");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}(1,2,a,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "75 %");
             cy.get(mathinput2Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(1,2,a,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2PartialAnchor).should("have.text", "75 %");
             cy.get(mathinput3Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(1,2,a,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3IncorrectAnchor).should("be.visible");
             cy.get(mathinput4Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(1,2,a,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
@@ -2713,41 +2713,41 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(3 / 4, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).closeTo(3 / 4, 1e-14);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
             cy.log("two extra components");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}(0,1,2,a,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "60 %");
             cy.get(mathinput2Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(0,1,2,a,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2PartialAnchor).should("have.text", "60 %");
             cy.get(mathinput3Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(0,1,2,a,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3IncorrectAnchor).should("be.visible");
             cy.get(mathinput4Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(0,1,2,a,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
@@ -2755,16 +2755,16 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(3 / 5, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).closeTo(3 / 5, 1e-14);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -2774,7 +2774,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputIncorrectAnchor).should("be.visible");
@@ -2783,7 +2783,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2IncorrectAnchor).should("be.visible");
@@ -2792,7 +2792,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3IncorrectAnchor).should("be.visible");
@@ -2801,7 +2801,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
@@ -2809,16 +2809,16 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -2828,25 +2828,25 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "67 %");
             cy.get(mathinput2Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(3,1,2)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2CorrectAnchor).should("be.visible");
             cy.get(mathinput3Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(3,1,2)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3IncorrectAnchor).should("be.visible");
             cy.get(mathinput4Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(3,1,2)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4CorrectAnchor).should("be.visible");
@@ -2854,16 +2854,16 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(2 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(1);
             });
 
@@ -2873,25 +2873,25 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "33 %");
             cy.get(mathinput2Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(3,2,1)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2CorrectAnchor).should("be.visible");
             cy.get(mathinput3Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(3,2,1)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3IncorrectAnchor).should("be.visible");
             cy.get(mathinput4Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(3,2,1)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4CorrectAnchor).should("be.visible");
@@ -2899,41 +2899,41 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(1 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(1);
             });
 
             cy.log("add component");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}(3,2,1,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "50 %");
             cy.get(mathinput2Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(3,2,1,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2PartialAnchor).should("have.text", "75 %");
             cy.get(mathinput3Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(3,2,1,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3IncorrectAnchor).should("be.visible");
             cy.get(mathinput4Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(3,2,1,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
@@ -2941,41 +2941,41 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(2 / 4, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).closeTo(3 / 4, 1e-14);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
             cy.log("add another component");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}(3,a,2,1,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "40 %");
             cy.get(mathinput2Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(3,a,2,1,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2PartialAnchor).should("have.text", "60 %");
             cy.get(mathinput3Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(3,a,2,1,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3IncorrectAnchor).should("be.visible");
             cy.get(mathinput4Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(3,a,2,1,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
@@ -2983,41 +2983,41 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(2 / 5, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).closeTo(3 / 5, 1e-14);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
             cy.log("add one more component");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}(1,3,a,2,1,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "50 %");
             cy.get(mathinput2Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(1,3,a,2,1,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2PartialAnchor).should("have.text", "50 %");
             cy.get(mathinput3Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(1,3,a,2,1,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3IncorrectAnchor).should("be.visible");
             cy.get(mathinput4Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(1,3,a,2,1,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
@@ -3025,16 +3025,16 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(3 / 6, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).closeTo(3 / 6, 1e-14);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -3044,7 +3044,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "33 %");
@@ -3053,7 +3053,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2PartialAnchor).should("have.text", "67 %");
@@ -3062,7 +3062,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3IncorrectAnchor).should("be.visible");
@@ -3071,7 +3071,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
@@ -3079,16 +3079,16 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(1 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).closeTo(2 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -3098,25 +3098,25 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "33 %");
             cy.get(mathinput2Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(3,1,1)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2PartialAnchor).should("have.text", "67 %");
             cy.get(mathinput3Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(3,1,1)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3IncorrectAnchor).should("be.visible");
             cy.get(mathinput4Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(3,1,1)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
@@ -3124,16 +3124,16 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(1 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).closeTo(2 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
             });
         });
@@ -3163,7 +3163,7 @@ describe("Match partial validation tests", function () {
   </answer></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3177,13 +3177,13 @@ describe("Match partial validation tests", function () {
             let mathinputAnchor = cesc2("#" + mathinputName) + " textarea";
             let mathinputSubmitAnchor = cesc2("#" + mathinputName + "_submit");
             let mathinputCorrectAnchor = cesc2(
-                "#" + mathinputName + "_correct"
+                "#" + mathinputName + "_correct",
             );
             let mathinputPartialAnchor = cesc2(
-                "#" + mathinputName + "_partial"
+                "#" + mathinputName + "_partial",
             );
             let mathinputIncorrectAnchor = cesc2(
-                "#" + mathinputName + "_incorrect"
+                "#" + mathinputName + "_incorrect",
             );
 
             let mathinput2Name =
@@ -3191,16 +3191,16 @@ describe("Match partial validation tests", function () {
                     .componentName;
             let mathinput2Anchor = cesc2("#" + mathinput2Name) + " textarea";
             let mathinput2SubmitAnchor = cesc2(
-                "#" + mathinput2Name + "_submit"
+                "#" + mathinput2Name + "_submit",
             );
             let mathinput2CorrectAnchor = cesc2(
-                "#" + mathinput2Name + "_correct"
+                "#" + mathinput2Name + "_correct",
             );
             let mathinput2PartialAnchor = cesc2(
-                "#" + mathinput2Name + "_partial"
+                "#" + mathinput2Name + "_partial",
             );
             let mathinput2IncorrectAnchor = cesc2(
-                "#" + mathinput2Name + "_incorrect"
+                "#" + mathinput2Name + "_incorrect",
             );
 
             let mathinput3Name =
@@ -3208,16 +3208,16 @@ describe("Match partial validation tests", function () {
                     .componentName;
             let mathinput3Anchor = cesc2("#" + mathinput3Name) + " textarea";
             let mathinput3SubmitAnchor = cesc2(
-                "#" + mathinput3Name + "_submit"
+                "#" + mathinput3Name + "_submit",
             );
             let mathinput3CorrectAnchor = cesc2(
-                "#" + mathinput3Name + "_correct"
+                "#" + mathinput3Name + "_correct",
             );
             let mathinput3PartialAnchor = cesc2(
-                "#" + mathinput3Name + "_partial"
+                "#" + mathinput3Name + "_partial",
             );
             let mathinput3IncorrectAnchor = cesc2(
-                "#" + mathinput3Name + "_incorrect"
+                "#" + mathinput3Name + "_incorrect",
             );
 
             let mathinput4Name =
@@ -3225,16 +3225,16 @@ describe("Match partial validation tests", function () {
                     .componentName;
             let mathinput4Anchor = cesc2("#" + mathinput4Name) + " textarea";
             let mathinput4SubmitAnchor = cesc2(
-                "#" + mathinput4Name + "_submit"
+                "#" + mathinput4Name + "_submit",
             );
             let mathinput4CorrectAnchor = cesc2(
-                "#" + mathinput4Name + "_correct"
+                "#" + mathinput4Name + "_correct",
             );
             let mathinput4PartialAnchor = cesc2(
-                "#" + mathinput4Name + "_partial"
+                "#" + mathinput4Name + "_partial",
             );
             let mathinput4IncorrectAnchor = cesc2(
-                "#" + mathinput4Name + "_incorrect"
+                "#" + mathinput4Name + "_incorrect",
             );
 
             cy.get(mathinputSubmitAnchor).should("be.visible");
@@ -3255,16 +3255,16 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -3285,16 +3285,16 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(1);
             });
 
@@ -3304,7 +3304,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "67 %");
@@ -3313,7 +3313,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2PartialAnchor).should("have.text", "67 %");
@@ -3322,7 +3322,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3IncorrectAnchor).should("be.visible");
@@ -3331,7 +3331,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
@@ -3339,16 +3339,16 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(2 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).closeTo(2 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -3364,7 +3364,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2PartialAnchor).should("have.text", "33 %");
@@ -3373,7 +3373,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3IncorrectAnchor).should("be.visible");
@@ -3382,7 +3382,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
@@ -3390,41 +3390,41 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(1 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).closeTo(1 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
             cy.log("extra component");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}(1,2,a,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "75 %");
             cy.get(mathinput2Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(1,2,a,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2PartialAnchor).should("have.text", "75 %");
             cy.get(mathinput3Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(1,2,a,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3IncorrectAnchor).should("be.visible");
             cy.get(mathinput4Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(1,2,a,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
@@ -3432,41 +3432,41 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(3 / 4, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).closeTo(3 / 4, 1e-14);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
             cy.log("two extra components");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}(0,1,2,a,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "60 %");
             cy.get(mathinput2Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(0,1,2,a,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2PartialAnchor).should("have.text", "60 %");
             cy.get(mathinput3Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(0,1,2,a,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3IncorrectAnchor).should("be.visible");
             cy.get(mathinput4Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(0,1,2,a,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
@@ -3474,16 +3474,16 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(3 / 5, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).closeTo(3 / 5, 1e-14);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -3493,7 +3493,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputIncorrectAnchor).should("be.visible");
@@ -3502,7 +3502,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2IncorrectAnchor).should("be.visible");
@@ -3511,7 +3511,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3IncorrectAnchor).should("be.visible");
@@ -3520,7 +3520,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
@@ -3528,16 +3528,16 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -3547,25 +3547,25 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "67 %");
             cy.get(mathinput2Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(3,1,2)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2CorrectAnchor).should("be.visible");
             cy.get(mathinput3Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(3,1,2)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3IncorrectAnchor).should("be.visible");
             cy.get(mathinput4Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(3,1,2)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4CorrectAnchor).should("be.visible");
@@ -3573,16 +3573,16 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(2 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(1);
             });
 
@@ -3592,25 +3592,25 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "33 %");
             cy.get(mathinput2Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(3,2,1)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2CorrectAnchor).should("be.visible");
             cy.get(mathinput3Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(3,2,1)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3IncorrectAnchor).should("be.visible");
             cy.get(mathinput4Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(3,2,1)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4CorrectAnchor).should("be.visible");
@@ -3618,41 +3618,41 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(1 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(1);
             });
 
             cy.log("add component");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}(3,2,1,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "50 %");
             cy.get(mathinput2Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(3,2,1,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2PartialAnchor).should("have.text", "75 %");
             cy.get(mathinput3Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(3,2,1,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3IncorrectAnchor).should("be.visible");
             cy.get(mathinput4Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(3,2,1,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
@@ -3660,41 +3660,41 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(2 / 4, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).closeTo(3 / 4, 1e-14);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
             cy.log("add another component");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}(3,a,2,1,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "40 %");
             cy.get(mathinput2Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(3,a,2,1,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2PartialAnchor).should("have.text", "60 %");
             cy.get(mathinput3Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(3,a,2,1,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3IncorrectAnchor).should("be.visible");
             cy.get(mathinput4Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(3,a,2,1,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
@@ -3702,41 +3702,41 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(2 / 5, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).closeTo(3 / 5, 1e-14);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
             cy.log("add one more component");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}(1,3,a,2,1,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "50 %");
             cy.get(mathinput2Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(1,3,a,2,1,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2PartialAnchor).should("have.text", "50 %");
             cy.get(mathinput3Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(1,3,a,2,1,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3IncorrectAnchor).should("be.visible");
             cy.get(mathinput4Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(1,3,a,2,1,3)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
@@ -3744,16 +3744,16 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(3 / 6, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).closeTo(3 / 6, 1e-14);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -3763,7 +3763,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "33 %");
@@ -3772,7 +3772,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2PartialAnchor).should("have.text", "67 %");
@@ -3781,7 +3781,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3IncorrectAnchor).should("be.visible");
@@ -3790,7 +3790,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
@@ -3798,16 +3798,16 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(1 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).closeTo(2 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -3817,25 +3817,25 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "33 %");
             cy.get(mathinput2Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(3,1,1)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2PartialAnchor).should("have.text", "67 %");
             cy.get(mathinput3Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(3,1,1)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3IncorrectAnchor).should("be.visible");
             cy.get(mathinput4Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}(3,1,1)",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
@@ -3843,16 +3843,16 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(1 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).closeTo(2 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
             });
         });
@@ -3873,7 +3873,7 @@ describe("Match partial validation tests", function () {
   </answer></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3887,13 +3887,13 @@ describe("Match partial validation tests", function () {
             let mathinputAnchor = cesc2("#" + mathinputName) + " textarea";
             let mathinputSubmitAnchor = cesc2("#" + mathinputName + "_submit");
             let mathinputCorrectAnchor = cesc2(
-                "#" + mathinputName + "_correct"
+                "#" + mathinputName + "_correct",
             );
             let mathinputPartialAnchor = cesc2(
-                "#" + mathinputName + "_partial"
+                "#" + mathinputName + "_partial",
             );
             let mathinputIncorrectAnchor = cesc2(
-                "#" + mathinputName + "_incorrect"
+                "#" + mathinputName + "_incorrect",
             );
 
             let mathinput2Name =
@@ -3901,16 +3901,16 @@ describe("Match partial validation tests", function () {
                     .componentName;
             let mathinput2Anchor = cesc2("#" + mathinput2Name) + " textarea";
             let mathinput2SubmitAnchor = cesc2(
-                "#" + mathinput2Name + "_submit"
+                "#" + mathinput2Name + "_submit",
             );
             let mathinput2CorrectAnchor = cesc2(
-                "#" + mathinput2Name + "_correct"
+                "#" + mathinput2Name + "_correct",
             );
             let mathinput2PartialAnchor = cesc2(
-                "#" + mathinput2Name + "_partial"
+                "#" + mathinput2Name + "_partial",
             );
             let mathinput2IncorrectAnchor = cesc2(
-                "#" + mathinput2Name + "_incorrect"
+                "#" + mathinput2Name + "_incorrect",
             );
 
             cy.get(mathinputSubmitAnchor).should("be.visible");
@@ -3925,10 +3925,10 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -3949,23 +3949,23 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(1);
             });
 
             cy.log("Permute components");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}{{}3,2,1}",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputCorrectAnchor).should("be.visible");
             cy.get(mathinput2Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}{{}3,2,1}",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2CorrectAnchor).should("be.visible");
@@ -3973,23 +3973,23 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(1);
             });
 
             cy.log("Extra component");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}{{}3,a,2,1}",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "75 %");
             cy.get(mathinput2Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}{{}3,a,2,1}",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2IncorrectAnchor).should("be.visible");
@@ -3997,23 +3997,23 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(3 / 4, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
             cy.log("Another component");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}{{}3,a,2,b,1}",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "60 %");
             cy.get(mathinput2Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}{{}3,a,2,b,1}",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2IncorrectAnchor).should("be.visible");
@@ -4021,23 +4021,23 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(3 / 5, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
             cy.log("Duplicate components");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}{{}3,2,3,1,1}",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputCorrectAnchor).should("be.visible");
             cy.get(mathinput2Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}{{}3,2,3,1,1}",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2CorrectAnchor).should("be.visible");
@@ -4045,23 +4045,23 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(1);
             });
 
             cy.log("Add component");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}{{}3,2,3,a,1,1}",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "75 %");
             cy.get(mathinput2Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}{{}3,2,3,a,1,1}",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2IncorrectAnchor).should("be.visible");
@@ -4069,10 +4069,10 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(3 / 4, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -4082,7 +4082,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputIncorrectAnchor).should("be.visible");
@@ -4091,7 +4091,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2IncorrectAnchor).should("be.visible");
@@ -4099,10 +4099,10 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -4118,7 +4118,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2IncorrectAnchor).should("be.visible");
@@ -4126,10 +4126,10 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(1 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -4139,13 +4139,13 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "67 %");
             cy.get(mathinput2Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}{{}2,1}",
-                { force: true, delay: 0 }
+                { force: true, delay: 0 },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2IncorrectAnchor).should("be.visible");
@@ -4153,10 +4153,10 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(2 / 3, 1e-14);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(0);
             });
         });
@@ -4202,7 +4202,7 @@ describe("Match partial validation tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4216,13 +4216,13 @@ describe("Match partial validation tests", function () {
             let mathinputAnchor = cesc2("#" + mathinputName) + " textarea";
             let mathinputSubmitAnchor = cesc2("#" + mathinputName + "_submit");
             let mathinputCorrectAnchor = cesc2(
-                "#" + mathinputName + "_correct"
+                "#" + mathinputName + "_correct",
             );
             let mathinputPartialAnchor = cesc2(
-                "#" + mathinputName + "_partial"
+                "#" + mathinputName + "_partial",
             );
             let mathinputIncorrectAnchor = cesc2(
-                "#" + mathinputName + "_incorrect"
+                "#" + mathinputName + "_incorrect",
             );
 
             let mathinput2Name =
@@ -4230,16 +4230,16 @@ describe("Match partial validation tests", function () {
                     .componentName;
             let mathinput2Anchor = cesc2("#" + mathinput2Name) + " textarea";
             let mathinput2SubmitAnchor = cesc2(
-                "#" + mathinput2Name + "_submit"
+                "#" + mathinput2Name + "_submit",
             );
             let mathinput2CorrectAnchor = cesc2(
-                "#" + mathinput2Name + "_correct"
+                "#" + mathinput2Name + "_correct",
             );
             let mathinput2PartialAnchor = cesc2(
-                "#" + mathinput2Name + "_partial"
+                "#" + mathinput2Name + "_partial",
             );
             let mathinput2IncorrectAnchor = cesc2(
-                "#" + mathinput2Name + "_incorrect"
+                "#" + mathinput2Name + "_incorrect",
             );
 
             let mathinput3Name =
@@ -4247,16 +4247,16 @@ describe("Match partial validation tests", function () {
                     .componentName;
             let mathinput3Anchor = cesc2("#" + mathinput3Name) + " textarea";
             let mathinput3SubmitAnchor = cesc2(
-                "#" + mathinput3Name + "_submit"
+                "#" + mathinput3Name + "_submit",
             );
             let mathinput3CorrectAnchor = cesc2(
-                "#" + mathinput3Name + "_correct"
+                "#" + mathinput3Name + "_correct",
             );
             let mathinput3PartialAnchor = cesc2(
-                "#" + mathinput3Name + "_partial"
+                "#" + mathinput3Name + "_partial",
             );
             let mathinput3IncorrectAnchor = cesc2(
-                "#" + mathinput3Name + "_incorrect"
+                "#" + mathinput3Name + "_incorrect",
             );
 
             let mathinput4Name =
@@ -4264,16 +4264,16 @@ describe("Match partial validation tests", function () {
                     .componentName;
             let mathinput4Anchor = cesc2("#" + mathinput4Name) + " textarea";
             let mathinput4SubmitAnchor = cesc2(
-                "#" + mathinput4Name + "_submit"
+                "#" + mathinput4Name + "_submit",
             );
             let mathinput4CorrectAnchor = cesc2(
-                "#" + mathinput4Name + "_correct"
+                "#" + mathinput4Name + "_correct",
             );
             let mathinput4PartialAnchor = cesc2(
-                "#" + mathinput4Name + "_partial"
+                "#" + mathinput4Name + "_partial",
             );
             let mathinput4IncorrectAnchor = cesc2(
-                "#" + mathinput4Name + "_incorrect"
+                "#" + mathinput4Name + "_incorrect",
             );
 
             let mathinput5Name =
@@ -4281,16 +4281,16 @@ describe("Match partial validation tests", function () {
                     .componentName;
             let mathinput5Anchor = cesc2("#" + mathinput5Name) + " textarea";
             let mathinput5SubmitAnchor = cesc2(
-                "#" + mathinput5Name + "_submit"
+                "#" + mathinput5Name + "_submit",
             );
             let mathinput5CorrectAnchor = cesc2(
-                "#" + mathinput5Name + "_correct"
+                "#" + mathinput5Name + "_correct",
             );
             let mathinput5PartialAnchor = cesc2(
-                "#" + mathinput5Name + "_partial"
+                "#" + mathinput5Name + "_partial",
             );
             let mathinput5IncorrectAnchor = cesc2(
-                "#" + mathinput5Name + "_incorrect"
+                "#" + mathinput5Name + "_incorrect",
             );
 
             let mathinput6Name =
@@ -4298,16 +4298,16 @@ describe("Match partial validation tests", function () {
                     .componentName;
             let mathinput6Anchor = cesc2("#" + mathinput6Name) + " textarea";
             let mathinput6SubmitAnchor = cesc2(
-                "#" + mathinput6Name + "_submit"
+                "#" + mathinput6Name + "_submit",
             );
             let mathinput6CorrectAnchor = cesc2(
-                "#" + mathinput6Name + "_correct"
+                "#" + mathinput6Name + "_correct",
             );
             let mathinput6PartialAnchor = cesc2(
-                "#" + mathinput6Name + "_partial"
+                "#" + mathinput6Name + "_partial",
             );
             let mathinput6IncorrectAnchor = cesc2(
-                "#" + mathinput6Name + "_incorrect"
+                "#" + mathinput6Name + "_incorrect",
             );
 
             let mathinput7Name =
@@ -4315,16 +4315,16 @@ describe("Match partial validation tests", function () {
                     .componentName;
             let mathinput7Anchor = cesc2("#" + mathinput7Name) + " textarea";
             let mathinput7SubmitAnchor = cesc2(
-                "#" + mathinput7Name + "_submit"
+                "#" + mathinput7Name + "_submit",
             );
             let mathinput7CorrectAnchor = cesc2(
-                "#" + mathinput7Name + "_correct"
+                "#" + mathinput7Name + "_correct",
             );
             let mathinput7PartialAnchor = cesc2(
-                "#" + mathinput7Name + "_partial"
+                "#" + mathinput7Name + "_partial",
             );
             let mathinput7IncorrectAnchor = cesc2(
-                "#" + mathinput7Name + "_incorrect"
+                "#" + mathinput7Name + "_incorrect",
             );
 
             let mathinput8Name =
@@ -4332,16 +4332,16 @@ describe("Match partial validation tests", function () {
                     .componentName;
             let mathinput8Anchor = cesc2("#" + mathinput8Name) + " textarea";
             let mathinput8SubmitAnchor = cesc2(
-                "#" + mathinput8Name + "_submit"
+                "#" + mathinput8Name + "_submit",
             );
             let mathinput8CorrectAnchor = cesc2(
-                "#" + mathinput8Name + "_correct"
+                "#" + mathinput8Name + "_correct",
             );
             let mathinput8PartialAnchor = cesc2(
-                "#" + mathinput8Name + "_partial"
+                "#" + mathinput8Name + "_partial",
             );
             let mathinput8IncorrectAnchor = cesc2(
-                "#" + mathinput8Name + "_incorrect"
+                "#" + mathinput8Name + "_incorrect",
             );
 
             cy.get(mathinputSubmitAnchor).should("be.visible");
@@ -4374,28 +4374,28 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer5"].stateValues.creditAchieved
+                    stateVariables["/_answer5"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer6"].stateValues.creditAchieved
+                    stateVariables["/_answer6"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer7"].stateValues.creditAchieved
+                    stateVariables["/_answer7"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer8"].stateValues.creditAchieved
+                    stateVariables["/_answer8"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -4428,28 +4428,28 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer5"].stateValues.creditAchieved
+                    stateVariables["/_answer5"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer6"].stateValues.creditAchieved
+                    stateVariables["/_answer6"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer7"].stateValues.creditAchieved
+                    stateVariables["/_answer7"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer8"].stateValues.creditAchieved
+                    stateVariables["/_answer8"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -4459,7 +4459,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputCorrectAnchor).should("be.visible");
@@ -4468,7 +4468,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2CorrectAnchor).should("be.visible");
@@ -4477,7 +4477,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3IncorrectAnchor).should("be.visible");
@@ -4486,7 +4486,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
@@ -4495,7 +4495,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput5SubmitAnchor).click();
             cy.get(mathinput5IncorrectAnchor).should("be.visible");
@@ -4504,7 +4504,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput6SubmitAnchor).click();
             cy.get(mathinput6IncorrectAnchor).should("be.visible");
@@ -4513,7 +4513,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput7SubmitAnchor).click();
             cy.get(mathinput7IncorrectAnchor).should("be.visible");
@@ -4522,7 +4522,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput8SubmitAnchor).click();
             cy.get(mathinput8IncorrectAnchor).should("be.visible");
@@ -4530,28 +4530,28 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer5"].stateValues.creditAchieved
+                    stateVariables["/_answer5"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer6"].stateValues.creditAchieved
+                    stateVariables["/_answer6"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer7"].stateValues.creditAchieved
+                    stateVariables["/_answer7"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer8"].stateValues.creditAchieved
+                    stateVariables["/_answer8"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -4561,7 +4561,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "50 %");
@@ -4570,7 +4570,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2IncorrectAnchor).should("be.visible");
@@ -4578,10 +4578,10 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0.5);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -4591,7 +4591,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputIncorrectAnchor).should("be.visible");
@@ -4600,7 +4600,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2IncorrectAnchor).should("be.visible");
@@ -4608,10 +4608,10 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -4621,7 +4621,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputIncorrectAnchor).should("be.visible");
@@ -4630,7 +4630,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2IncorrectAnchor).should("be.visible");
@@ -4639,7 +4639,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3CorrectAnchor).should("be.visible");
@@ -4648,7 +4648,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4CorrectAnchor).should("be.visible");
@@ -4657,7 +4657,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput5SubmitAnchor).click();
             cy.get(mathinput5IncorrectAnchor).should("be.visible");
@@ -4666,7 +4666,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput6SubmitAnchor).click();
             cy.get(mathinput6IncorrectAnchor).should("be.visible");
@@ -4675,7 +4675,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput7SubmitAnchor).click();
             cy.get(mathinput7IncorrectAnchor).should("be.visible");
@@ -4684,7 +4684,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput8SubmitAnchor).click();
             cy.get(mathinput8IncorrectAnchor).should("be.visible");
@@ -4692,28 +4692,28 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer5"].stateValues.creditAchieved
+                    stateVariables["/_answer5"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer6"].stateValues.creditAchieved
+                    stateVariables["/_answer6"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer7"].stateValues.creditAchieved
+                    stateVariables["/_answer7"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer8"].stateValues.creditAchieved
+                    stateVariables["/_answer8"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -4723,7 +4723,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3PartialAnchor).should("have.text", "50 %");
@@ -4732,7 +4732,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
@@ -4740,10 +4740,10 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0.5);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -4753,7 +4753,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3IncorrectAnchor).should("be.visible");
@@ -4762,7 +4762,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
@@ -4770,10 +4770,10 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -4783,7 +4783,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputIncorrectAnchor).should("be.visible");
@@ -4792,7 +4792,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2IncorrectAnchor).should("be.visible");
@@ -4801,7 +4801,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3IncorrectAnchor).should("be.visible");
@@ -4810,7 +4810,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
@@ -4819,7 +4819,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput5SubmitAnchor).click();
             cy.get(mathinput5CorrectAnchor).should("be.visible");
@@ -4828,7 +4828,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput6SubmitAnchor).click();
             cy.get(mathinput6CorrectAnchor).should("be.visible");
@@ -4837,7 +4837,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput7SubmitAnchor).click();
             cy.get(mathinput7IncorrectAnchor).should("be.visible");
@@ -4846,7 +4846,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput8SubmitAnchor).click();
             cy.get(mathinput8IncorrectAnchor).should("be.visible");
@@ -4854,28 +4854,28 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer5"].stateValues.creditAchieved
+                    stateVariables["/_answer5"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer6"].stateValues.creditAchieved
+                    stateVariables["/_answer6"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer7"].stateValues.creditAchieved
+                    stateVariables["/_answer7"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer8"].stateValues.creditAchieved
+                    stateVariables["/_answer8"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -4885,7 +4885,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput5SubmitAnchor).click();
             cy.get(mathinput5PartialAnchor).should("have.text", "50 %");
@@ -4894,7 +4894,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput6SubmitAnchor).click();
             cy.get(mathinput6IncorrectAnchor).should("be.visible");
@@ -4902,10 +4902,10 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer5"].stateValues.creditAchieved
+                    stateVariables["/_answer5"].stateValues.creditAchieved,
                 ).eq(0.5);
                 expect(
-                    stateVariables["/_answer6"].stateValues.creditAchieved
+                    stateVariables["/_answer6"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -4915,7 +4915,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput5SubmitAnchor).click();
             cy.get(mathinput5IncorrectAnchor).should("be.visible");
@@ -4924,7 +4924,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput6SubmitAnchor).click();
             cy.get(mathinput6IncorrectAnchor).should("be.visible");
@@ -4932,10 +4932,10 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer5"].stateValues.creditAchieved
+                    stateVariables["/_answer5"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer6"].stateValues.creditAchieved
+                    stateVariables["/_answer6"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -4945,7 +4945,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputIncorrectAnchor).should("be.visible");
@@ -4954,7 +4954,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2IncorrectAnchor).should("be.visible");
@@ -4963,7 +4963,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput3SubmitAnchor).click();
             cy.get(mathinput3IncorrectAnchor).should("be.visible");
@@ -4972,7 +4972,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput4SubmitAnchor).click();
             cy.get(mathinput4IncorrectAnchor).should("be.visible");
@@ -4981,7 +4981,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput5SubmitAnchor).click();
             cy.get(mathinput5IncorrectAnchor).should("be.visible");
@@ -4990,7 +4990,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput6SubmitAnchor).click();
             cy.get(mathinput6IncorrectAnchor).should("be.visible");
@@ -4999,7 +4999,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput7SubmitAnchor).click();
             cy.get(mathinput7CorrectAnchor).should("be.visible");
@@ -5008,7 +5008,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput8SubmitAnchor).click();
             cy.get(mathinput8CorrectAnchor).should("be.visible");
@@ -5016,28 +5016,28 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer5"].stateValues.creditAchieved
+                    stateVariables["/_answer5"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer6"].stateValues.creditAchieved
+                    stateVariables["/_answer6"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer7"].stateValues.creditAchieved
+                    stateVariables["/_answer7"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer8"].stateValues.creditAchieved
+                    stateVariables["/_answer8"].stateValues.creditAchieved,
                 ).eq(1);
             });
 
@@ -5047,7 +5047,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput7SubmitAnchor).click();
             cy.get(mathinput7PartialAnchor).should("have.text", "50 %");
@@ -5056,7 +5056,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput8SubmitAnchor).click();
             cy.get(mathinput8IncorrectAnchor).should("be.visible");
@@ -5064,10 +5064,10 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer7"].stateValues.creditAchieved
+                    stateVariables["/_answer7"].stateValues.creditAchieved,
                 ).eq(0.5);
                 expect(
-                    stateVariables["/_answer8"].stateValues.creditAchieved
+                    stateVariables["/_answer8"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -5077,7 +5077,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput7SubmitAnchor).click();
             cy.get(mathinput7IncorrectAnchor).should("be.visible");
@@ -5086,7 +5086,7 @@ describe("Match partial validation tests", function () {
                 {
                     force: true,
                     delay: 0,
-                }
+                },
             );
             cy.get(mathinput8SubmitAnchor).click();
             cy.get(mathinput8IncorrectAnchor).should("be.visible");
@@ -5094,10 +5094,10 @@ describe("Match partial validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer7"].stateValues.creditAchieved
+                    stateVariables["/_answer7"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer8"].stateValues.creditAchieved
+                    stateVariables["/_answer8"].stateValues.creditAchieved,
                 ).eq(0);
             });
         });
@@ -5186,7 +5186,7 @@ describe("Match partial validation tests", function () {
   </section>
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5288,15 +5288,15 @@ describe("Match partial validation tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/a"].stateValues.creditAchieved).closeTo(
                 2 / 3,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/b"].stateValues.creditAchieved).closeTo(
                 1 / 3,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/c"].stateValues.creditAchieved).closeTo(
                 2 / 3,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/d"].stateValues.creditAchieved).eq(0);
             expect(stateVariables["/e"].stateValues.creditAchieved).eq(0);
@@ -5334,7 +5334,7 @@ describe("Match partial validation tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/a"].stateValues.creditAchieved).closeTo(
                 2 / 3,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/b"].stateValues.creditAchieved).eq(0);
             expect(stateVariables["/c"].stateValues.creditAchieved).eq(1);
@@ -5374,11 +5374,11 @@ describe("Match partial validation tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/a"].stateValues.creditAchieved).closeTo(
                 1 / 3,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/b"].stateValues.creditAchieved).closeTo(
                 1 / 3,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/c"].stateValues.creditAchieved).eq(1);
             expect(stateVariables["/d"].stateValues.creditAchieved).eq(0);
@@ -5413,12 +5413,12 @@ describe("Match partial validation tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/a"].stateValues.creditAchieved).closeTo(
                 1 / 3,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/b"].stateValues.creditAchieved).eq(0);
             expect(stateVariables["/c"].stateValues.creditAchieved).closeTo(
                 2 / 3,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/d"].stateValues.creditAchieved).eq(0);
             expect(stateVariables["/e"].stateValues.creditAchieved).eq(0);
@@ -5452,12 +5452,12 @@ describe("Match partial validation tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/a"].stateValues.creditAchieved).closeTo(
                 1 / 3,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/b"].stateValues.creditAchieved).eq(0);
             expect(stateVariables["/c"].stateValues.creditAchieved).closeTo(
                 2 / 3,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/d"].stateValues.creditAchieved).eq(0);
             expect(stateVariables["/e"].stateValues.creditAchieved).eq(0);
@@ -5499,22 +5499,22 @@ describe("Match partial validation tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/a"].stateValues.creditAchieved).closeTo(
                 2 / 3,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/b"].stateValues.creditAchieved).closeTo(
                 2 / 3,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/c"].stateValues.creditAchieved).closeTo(
                 2 / 3,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/d"].stateValues.creditAchieved).eq(0);
             expect(stateVariables["/e"].stateValues.creditAchieved).eq(0);
         });
 
         cy.log(
-            "extra component, in right order, but only one in right position"
+            "extra component, in right order, but only one in right position",
         );
         cy.get(cesc("#\\/z") + " textarea").type("{end}{backspace}y", {
             force: true,
@@ -5547,15 +5547,15 @@ describe("Match partial validation tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/a"].stateValues.creditAchieved).closeTo(
                 2 / 3,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/b"].stateValues.creditAchieved).closeTo(
                 1 / 3,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/c"].stateValues.creditAchieved).closeTo(
                 2 / 3,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/d"].stateValues.creditAchieved).eq(0);
             expect(stateVariables["/e"].stateValues.creditAchieved).eq(0);
@@ -5645,7 +5645,7 @@ describe("Match partial validation tests", function () {
   </section>
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5732,15 +5732,15 @@ describe("Match partial validation tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/a"].stateValues.creditAchieved).closeTo(
                 2 / 3,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/b"].stateValues.creditAchieved).closeTo(
                 1 / 3,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/c"].stateValues.creditAchieved).closeTo(
                 2 / 3,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/d"].stateValues.creditAchieved).eq(0);
             expect(stateVariables["/e"].stateValues.creditAchieved).eq(0);
@@ -5769,7 +5769,7 @@ describe("Match partial validation tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/a"].stateValues.creditAchieved).closeTo(
                 2 / 3,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/b"].stateValues.creditAchieved).eq(0);
             expect(stateVariables["/c"].stateValues.creditAchieved).eq(1);
@@ -5803,11 +5803,11 @@ describe("Match partial validation tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/a"].stateValues.creditAchieved).closeTo(
                 1 / 3,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/b"].stateValues.creditAchieved).closeTo(
                 1 / 3,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/c"].stateValues.creditAchieved).eq(1);
             expect(stateVariables["/d"].stateValues.creditAchieved).eq(0);
@@ -5839,12 +5839,12 @@ describe("Match partial validation tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/a"].stateValues.creditAchieved).closeTo(
                 1 / 3,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/b"].stateValues.creditAchieved).eq(0);
             expect(stateVariables["/c"].stateValues.creditAchieved).closeTo(
                 2 / 3,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/d"].stateValues.creditAchieved).eq(0);
             expect(stateVariables["/e"].stateValues.creditAchieved).eq(0);
@@ -5875,12 +5875,12 @@ describe("Match partial validation tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/a"].stateValues.creditAchieved).closeTo(
                 1 / 3,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/b"].stateValues.creditAchieved).eq(0);
             expect(stateVariables["/c"].stateValues.creditAchieved).closeTo(
                 2 / 3,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/d"].stateValues.creditAchieved).eq(0);
             expect(stateVariables["/e"].stateValues.creditAchieved).eq(0);
@@ -5916,22 +5916,22 @@ describe("Match partial validation tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/a"].stateValues.creditAchieved).closeTo(
                 2 / 3,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/b"].stateValues.creditAchieved).closeTo(
                 2 / 3,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/c"].stateValues.creditAchieved).closeTo(
                 2 / 3,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/d"].stateValues.creditAchieved).eq(0);
             expect(stateVariables["/e"].stateValues.creditAchieved).eq(0);
         });
 
         cy.log(
-            "extra component, in right order, but only one in right position"
+            "extra component, in right order, but only one in right position",
         );
         cy.get(cesc("#\\/z_input")).clear().type("y");
         cy.get(cesc("#\\/a_submit")).click();
@@ -5961,15 +5961,15 @@ describe("Match partial validation tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/a"].stateValues.creditAchieved).closeTo(
                 2 / 3,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/b"].stateValues.creditAchieved).closeTo(
                 1 / 3,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/c"].stateValues.creditAchieved).closeTo(
                 2 / 3,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/d"].stateValues.creditAchieved).eq(0);
             expect(stateVariables["/e"].stateValues.creditAchieved).eq(0);
@@ -6059,7 +6059,7 @@ describe("Match partial validation tests", function () {
   </section>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6123,15 +6123,15 @@ describe("Match partial validation tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/a"].stateValues.creditAchieved).closeTo(
                 2 / 3,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/b"].stateValues.creditAchieved).closeTo(
                 2 / 3,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/c"].stateValues.creditAchieved).closeTo(
                 2 / 3,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/d"].stateValues.creditAchieved).eq(0);
             expect(stateVariables["/e"].stateValues.creditAchieved).eq(0);
@@ -6163,11 +6163,11 @@ describe("Match partial validation tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/a"].stateValues.creditAchieved).closeTo(
                 2 / 3,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/b"].stateValues.creditAchieved).closeTo(
                 1 / 3,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/c"].stateValues.creditAchieved).eq(1);
             expect(stateVariables["/d"].stateValues.creditAchieved).eq(0);
@@ -6200,12 +6200,12 @@ describe("Match partial validation tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/a"].stateValues.creditAchieved).closeTo(
                 1 / 3,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/b"].stateValues.creditAchieved).eq(0);
             expect(stateVariables["/c"].stateValues.creditAchieved).closeTo(
                 2 / 3,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/d"].stateValues.creditAchieved).eq(0);
             expect(stateVariables["/e"].stateValues.creditAchieved).eq(0);
@@ -6241,15 +6241,15 @@ describe("Match partial validation tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/a"].stateValues.creditAchieved).closeTo(
                 1 / 3,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/b"].stateValues.creditAchieved).closeTo(
                 1 / 3,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/c"].stateValues.creditAchieved).closeTo(
                 1 / 3,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/d"].stateValues.creditAchieved).eq(0);
             expect(stateVariables["/e"].stateValues.creditAchieved).eq(0);
@@ -6287,7 +6287,7 @@ describe("Match partial validation tests", function () {
   </answer></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6310,7 +6310,7 @@ describe("Match partial validation tests", function () {
         cy.log("scalar in first tuple");
         cy.get(cesc("#\\/m1") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}2{enter}",
-            { force: true, delay: 0 }
+            { force: true, delay: 0 },
         );
         cy.get(cesc("#\\/partial_submit")).click();
         cy.get(cesc("#\\/partial_partial"))
@@ -6324,7 +6324,7 @@ describe("Match partial validation tests", function () {
         cy.log("scalar in second tuple");
         cy.get(cesc("#\\/m2") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}3{enter}",
-            { force: true, delay: 0 }
+            { force: true, delay: 0 },
         );
         cy.get(cesc("#\\/partial_submit")).click();
         cy.get(cesc("#\\/partial_partial"))
@@ -6338,11 +6338,11 @@ describe("Match partial validation tests", function () {
         cy.log("permute order in first tuple");
         cy.get(cesc("#\\/m1") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}(2,1){enter}",
-            { force: true, delay: 0 }
+            { force: true, delay: 0 },
         );
         cy.get(cesc("#\\/m2") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}(3,4){enter}",
-            { force: true, delay: 0 }
+            { force: true, delay: 0 },
         );
         cy.get(cesc("#\\/partial_submit")).click();
         cy.get(cesc("#\\/partial_partial"))
@@ -6356,7 +6356,7 @@ describe("Match partial validation tests", function () {
         cy.log("permute order also in second tuple");
         cy.get(cesc("#\\/m2") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}(4,3){enter}",
-            { force: true, delay: 0 }
+            { force: true, delay: 0 },
         );
         cy.get(cesc("#\\/partial_submit")).click();
         cy.get(cesc("#\\/partial_partial"))
@@ -6370,7 +6370,7 @@ describe("Match partial validation tests", function () {
         cy.log("correct order in first tuple");
         cy.get(cesc("#\\/m1") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}(1,2){enter}",
-            { force: true, delay: 0 }
+            { force: true, delay: 0 },
         );
         cy.get(cesc("#\\/partial_submit")).click();
         cy.get(cesc("#\\/partial_correct")).should("be.visible");
@@ -6409,7 +6409,7 @@ describe("Match partial validation tests", function () {
   </answer></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6432,7 +6432,7 @@ describe("Match partial validation tests", function () {
         cy.log("scalar in first tuple");
         cy.get(cesc("#\\/m1") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}2{enter}",
-            { force: true, delay: 0 }
+            { force: true, delay: 0 },
         );
         cy.get(cesc("#\\/partial_submit")).click();
         cy.get(cesc("#\\/partial_partial"))
@@ -6446,7 +6446,7 @@ describe("Match partial validation tests", function () {
         cy.log("scalar in second tuple");
         cy.get(cesc("#\\/m2") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}3{enter}",
-            { force: true, delay: 0 }
+            { force: true, delay: 0 },
         );
         cy.get(cesc("#\\/partial_submit")).click();
         cy.get(cesc("#\\/partial_partial"))
@@ -6460,11 +6460,11 @@ describe("Match partial validation tests", function () {
         cy.log("permute order in first tuple");
         cy.get(cesc("#\\/m1") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}(2,1){enter}",
-            { force: true, delay: 0 }
+            { force: true, delay: 0 },
         );
         cy.get(cesc("#\\/m2") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}(3,4){enter}",
-            { force: true, delay: 0 }
+            { force: true, delay: 0 },
         );
         cy.get(cesc("#\\/partial_submit")).click();
         cy.get(cesc("#\\/partial_partial"))
@@ -6478,7 +6478,7 @@ describe("Match partial validation tests", function () {
         cy.log("permute order also in second tuple");
         cy.get(cesc("#\\/m2") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}(4,3){enter}",
-            { force: true, delay: 0 }
+            { force: true, delay: 0 },
         );
         cy.get(cesc("#\\/partial_submit")).click();
         cy.get(cesc("#\\/partial_partial"))
@@ -6488,7 +6488,7 @@ describe("Match partial validation tests", function () {
             });
         cy.get(cesc("#\\/m2") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}(4,3){enter}",
-            { force: true, delay: 0 }
+            { force: true, delay: 0 },
         );
         cy.get(cesc("#\\/strict_submit")).click();
         cy.get(cesc("#\\/strict_incorrect")).should("be.visible");
@@ -6496,7 +6496,7 @@ describe("Match partial validation tests", function () {
         cy.log("correct order in first tuple");
         cy.get(cesc("#\\/m1") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}(1,2){enter}",
-            { force: true, delay: 0 }
+            { force: true, delay: 0 },
         );
         cy.get(cesc("#\\/partial_submit")).click();
         cy.get(cesc("#\\/partial_correct")).should("be.visible");
@@ -6534,7 +6534,7 @@ describe("Match partial validation tests", function () {
   </answer></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6557,7 +6557,7 @@ describe("Match partial validation tests", function () {
         cy.log("scalar in first tuple");
         cy.get(cesc("#\\/m1") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}2{enter}",
-            { force: true, delay: 0 }
+            { force: true, delay: 0 },
         );
         cy.get(cesc("#\\/partial_submit")).click();
         cy.get(cesc("#\\/partial_partial"))
@@ -6571,7 +6571,7 @@ describe("Match partial validation tests", function () {
         cy.log("scalar in second tuple");
         cy.get(cesc("#\\/m2") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}3{enter}",
-            { force: true, delay: 0 }
+            { force: true, delay: 0 },
         );
         cy.get(cesc("#\\/partial_submit")).click();
         cy.get(cesc("#\\/partial_partial"))
@@ -6585,11 +6585,11 @@ describe("Match partial validation tests", function () {
         cy.log("permute order in first tuple");
         cy.get(cesc("#\\/m1") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}(2,1){enter}",
-            { force: true, delay: 0 }
+            { force: true, delay: 0 },
         );
         cy.get(cesc("#\\/m2") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}(3,4){enter}",
-            { force: true, delay: 0 }
+            { force: true, delay: 0 },
         );
         cy.get(cesc("#\\/partial_submit")).click();
         cy.get(cesc("#\\/partial_partial"))
@@ -6603,7 +6603,7 @@ describe("Match partial validation tests", function () {
         cy.log("permute order also in second tuple");
         cy.get(cesc("#\\/m2") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}(4,3){enter}",
-            { force: true, delay: 0 }
+            { force: true, delay: 0 },
         );
         cy.get(cesc("#\\/partial_submit")).click();
         cy.get(cesc("#\\/partial_partial"))
@@ -6613,7 +6613,7 @@ describe("Match partial validation tests", function () {
             });
         cy.get(cesc("#\\/m2") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}(4,3){enter}",
-            { force: true, delay: 0 }
+            { force: true, delay: 0 },
         );
         cy.get(cesc("#\\/strict_submit")).click();
         cy.get(cesc("#\\/strict_incorrect")).should("be.visible");
@@ -6621,7 +6621,7 @@ describe("Match partial validation tests", function () {
         cy.log("correct order in first tuple");
         cy.get(cesc("#\\/m1") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}(1,2){enter}",
-            { force: true, delay: 0 }
+            { force: true, delay: 0 },
         );
         cy.get(cesc("#\\/partial_submit")).click();
         cy.get(cesc("#\\/partial_correct")).should("be.visible");
@@ -6661,7 +6661,7 @@ describe("Match partial validation tests", function () {
   </answer></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6684,7 +6684,7 @@ describe("Match partial validation tests", function () {
         cy.log("scalar in first tuple");
         cy.get(cesc("#\\/m1") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}2{enter}",
-            { force: true, delay: 0 }
+            { force: true, delay: 0 },
         );
         cy.get(cesc("#\\/partial_submit")).click();
         cy.get(cesc("#\\/partial_partial"))
@@ -6698,7 +6698,7 @@ describe("Match partial validation tests", function () {
         cy.log("scalar in second tuple");
         cy.get(cesc("#\\/m2") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}3{enter}",
-            { force: true, delay: 0 }
+            { force: true, delay: 0 },
         );
         cy.get(cesc("#\\/partial_submit")).click();
         cy.get(cesc("#\\/partial_partial"))
@@ -6712,11 +6712,11 @@ describe("Match partial validation tests", function () {
         cy.log("permute order in first tuple");
         cy.get(cesc("#\\/m1") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}(2,1){enter}",
-            { force: true, delay: 0 }
+            { force: true, delay: 0 },
         );
         cy.get(cesc("#\\/m2") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}(3,4){enter}",
-            { force: true, delay: 0 }
+            { force: true, delay: 0 },
         );
         cy.get(cesc("#\\/partial_submit")).click();
         cy.get(cesc("#\\/partial_partial"))
@@ -6730,7 +6730,7 @@ describe("Match partial validation tests", function () {
         cy.log("permute order also in second tuple");
         cy.get(cesc("#\\/m2") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}(4,3){enter}",
-            { force: true, delay: 0 }
+            { force: true, delay: 0 },
         );
         cy.get(cesc("#\\/partial_submit")).click();
         cy.get(cesc("#\\/partial_partial"))
@@ -6740,7 +6740,7 @@ describe("Match partial validation tests", function () {
             });
         cy.get(cesc("#\\/m2") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}(4,3){enter}",
-            { force: true, delay: 0 }
+            { force: true, delay: 0 },
         );
         cy.get(cesc("#\\/strict_submit")).click();
         cy.get(cesc("#\\/strict_incorrect")).should("be.visible");
@@ -6748,7 +6748,7 @@ describe("Match partial validation tests", function () {
         cy.log("correct order in first tuple");
         cy.get(cesc("#\\/m1") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}(1,2){enter}",
-            { force: true, delay: 0 }
+            { force: true, delay: 0 },
         );
         cy.get(cesc("#\\/partial_submit")).click();
         cy.get(cesc("#\\/partial_correct")).should("be.visible");
@@ -6787,7 +6787,7 @@ describe("Match partial validation tests", function () {
   </answer></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6810,7 +6810,7 @@ describe("Match partial validation tests", function () {
         cy.log("scalar in first tuple");
         cy.get(cesc("#\\/m1") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}2{enter}",
-            { force: true, delay: 0 }
+            { force: true, delay: 0 },
         );
         cy.get(cesc("#\\/partial_submit")).click();
         cy.get(cesc("#\\/partial_partial"))
@@ -6824,7 +6824,7 @@ describe("Match partial validation tests", function () {
         cy.log("scalar in second tuple");
         cy.get(cesc("#\\/m2") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}3{enter}",
-            { force: true, delay: 0 }
+            { force: true, delay: 0 },
         );
         cy.get(cesc("#\\/partial_submit")).click();
         cy.get(cesc("#\\/partial_partial"))
@@ -6838,11 +6838,11 @@ describe("Match partial validation tests", function () {
         cy.log("permute order in first tuple");
         cy.get(cesc("#\\/m1") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}(2,1){enter}",
-            { force: true, delay: 0 }
+            { force: true, delay: 0 },
         );
         cy.get(cesc("#\\/m2") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}(3,4){enter}",
-            { force: true, delay: 0 }
+            { force: true, delay: 0 },
         );
         cy.get(cesc("#\\/partial_submit")).click();
         cy.get(cesc("#\\/partial_partial"))
@@ -6856,7 +6856,7 @@ describe("Match partial validation tests", function () {
         cy.log("permute order also in second tuple");
         cy.get(cesc("#\\/m2") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}(4,3){enter}",
-            { force: true, delay: 0 }
+            { force: true, delay: 0 },
         );
         cy.get(cesc("#\\/partial_submit")).click();
         cy.get(cesc("#\\/partial_partial"))
@@ -6870,7 +6870,7 @@ describe("Match partial validation tests", function () {
         cy.log("correct order in first tuple");
         cy.get(cesc("#\\/m1") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}(1,2){enter}",
-            { force: true, delay: 0 }
+            { force: true, delay: 0 },
         );
         cy.get(cesc("#\\/partial_submit")).click();
         cy.get(cesc("#\\/partial_partial"))
@@ -6913,7 +6913,7 @@ describe("Match partial validation tests", function () {
   </answer></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6936,7 +6936,7 @@ describe("Match partial validation tests", function () {
         cy.log("scalar in first tuple");
         cy.get(cesc("#\\/m1") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}2{enter}",
-            { force: true, delay: 0 }
+            { force: true, delay: 0 },
         );
         cy.get(cesc("#\\/partial_submit")).click();
         cy.get(cesc("#\\/partial_partial"))
@@ -6950,7 +6950,7 @@ describe("Match partial validation tests", function () {
         cy.log("scalar in second tuple");
         cy.get(cesc("#\\/m2") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}3{enter}",
-            { force: true, delay: 0 }
+            { force: true, delay: 0 },
         );
         cy.get(cesc("#\\/partial_submit")).click();
         cy.get(cesc("#\\/partial_partial"))
@@ -6964,11 +6964,11 @@ describe("Match partial validation tests", function () {
         cy.log("permute order in first tuple");
         cy.get(cesc("#\\/m1") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}(2,1){enter}",
-            { force: true, delay: 0 }
+            { force: true, delay: 0 },
         );
         cy.get(cesc("#\\/m2") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}(3,4){enter}",
-            { force: true, delay: 0 }
+            { force: true, delay: 0 },
         );
         cy.get(cesc("#\\/partial_submit")).click();
         cy.get(cesc("#\\/partial_partial"))
@@ -6982,7 +6982,7 @@ describe("Match partial validation tests", function () {
         cy.log("permute order also in second tuple");
         cy.get(cesc("#\\/m2") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}(4,3){enter}",
-            { force: true, delay: 0 }
+            { force: true, delay: 0 },
         );
         cy.get(cesc("#\\/partial_submit")).click();
         cy.get(cesc("#\\/partial_partial"))
@@ -6992,7 +6992,7 @@ describe("Match partial validation tests", function () {
             });
         cy.get(cesc("#\\/m2") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}(4,3){enter}",
-            { force: true, delay: 0 }
+            { force: true, delay: 0 },
         );
         cy.get(cesc("#\\/strict_submit")).click();
         cy.get(cesc("#\\/strict_incorrect")).should("be.visible");
@@ -7000,7 +7000,7 @@ describe("Match partial validation tests", function () {
         cy.log("correct order in first tuple");
         cy.get(cesc("#\\/m1") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}(1,2){enter}",
-            { force: true, delay: 0 }
+            { force: true, delay: 0 },
         );
         cy.get(cesc("#\\/partial_submit")).click();
         cy.get(cesc("#\\/partial_correct")).should("be.visible");
@@ -7055,7 +7055,7 @@ describe("Match partial validation tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -7173,7 +7173,7 @@ describe("Match partial validation tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -7266,7 +7266,7 @@ describe("Match partial validation tests", function () {
   </p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -7305,7 +7305,7 @@ describe("Match partial validation tests", function () {
         cy.log("Submit second tuple");
         cy.get(cesc("#\\/mi") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}(3,4){enter}",
-            { force: true, delay: 0 }
+            { force: true, delay: 0 },
         );
         cy.get(cesc("#\\/ans1_submit")).click();
         cy.get(cesc("#\\/ans2_submit")).click();
@@ -7348,7 +7348,7 @@ describe("Match partial validation tests", function () {
   </p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -7387,7 +7387,7 @@ describe("Match partial validation tests", function () {
         cy.log("Submit second tuple");
         cy.get(cesc("#\\/mi") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}(3,4){enter}",
-            { force: true, delay: 0 }
+            { force: true, delay: 0 },
         );
         cy.get(cesc("#\\/ans1_submit")).click();
         cy.get(cesc("#\\/ans2_submit")).click();
@@ -7430,7 +7430,7 @@ describe("Match partial validation tests", function () {
   </p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -7469,7 +7469,7 @@ describe("Match partial validation tests", function () {
         cy.log("Submit second tuple");
         cy.get(cesc("#\\/mi") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}(3,4){enter}",
-            { force: true, delay: 0 }
+            { force: true, delay: 0 },
         );
         cy.get(cesc("#\\/ans1_submit")).click();
         cy.get(cesc("#\\/ans2_submit")).click();
@@ -7488,7 +7488,7 @@ describe("Match partial validation tests", function () {
         cy.log("Submit first as altvector");
         cy.get(cesc("#\\/mi") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}\\langle 1,2\\rangle{enter}",
-            { force: true, delay: 0 }
+            { force: true, delay: 0 },
         );
         cy.get(cesc("#\\/ans1_submit")).click();
         cy.get(cesc("#\\/ans2_submit")).click();
@@ -7507,7 +7507,7 @@ describe("Match partial validation tests", function () {
         cy.log("Submit both as alt vectors");
         cy.get(cesc("#\\/mi") + " textarea").type(
             "{end},\\langle 3,4\\rangle{enter}",
-            { force: true, delay: 0 }
+            { force: true, delay: 0 },
         );
         cy.get(cesc("#\\/ans1_submit")).click();
         cy.get(cesc("#\\/ans2_submit")).click();
@@ -7542,7 +7542,7 @@ describe("Match partial validation tests", function () {
   </p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -7581,7 +7581,7 @@ describe("Match partial validation tests", function () {
         cy.log("Submit second tuple");
         cy.get(cesc("#\\/mi") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}(3,4){enter}",
-            { force: true, delay: 0 }
+            { force: true, delay: 0 },
         );
         cy.get(cesc("#\\/ans1_submit")).click();
         cy.get(cesc("#\\/ans2_submit")).click();
@@ -7600,7 +7600,7 @@ describe("Match partial validation tests", function () {
         cy.log("Submit first as altvector");
         cy.get(cesc("#\\/mi") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}\\langle 1,2\\rangle{enter}",
-            { force: true, delay: 0 }
+            { force: true, delay: 0 },
         );
         cy.get(cesc("#\\/ans1_submit")).click();
         cy.get(cesc("#\\/ans2_submit")).click();
@@ -7619,7 +7619,7 @@ describe("Match partial validation tests", function () {
         cy.log("Submit both as altvectors");
         cy.get(cesc("#\\/mi") + " textarea").type(
             "{end},\\langle 3,4\\rangle{enter}",
-            { force: true, delay: 0 }
+            { force: true, delay: 0 },
         );
         cy.get(cesc("#\\/ans1_submit")).click();
         cy.get(cesc("#\\/ans2_submit")).click();
@@ -7654,7 +7654,7 @@ describe("Match partial validation tests", function () {
   </p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -7693,7 +7693,7 @@ describe("Match partial validation tests", function () {
         cy.log("Submit second interval");
         cy.get(cesc("#\\/mi") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}(3,4]{enter}",
-            { force: true, delay: 0 }
+            { force: true, delay: 0 },
         );
         cy.get(cesc("#\\/ans1_submit")).click();
         cy.get(cesc("#\\/ans2_submit")).click();
@@ -7736,7 +7736,7 @@ describe("Match partial validation tests", function () {
   </p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -7775,7 +7775,7 @@ describe("Match partial validation tests", function () {
         cy.log("Submit second array");
         cy.get(cesc("#\\/mi") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}[3,4]{enter}",
-            { force: true, delay: 0 }
+            { force: true, delay: 0 },
         );
         cy.get(cesc("#\\/ans1_submit")).click();
         cy.get(cesc("#\\/ans2_submit")).click();
@@ -7818,7 +7818,7 @@ describe("Match partial validation tests", function () {
   </p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -7838,7 +7838,7 @@ describe("Match partial validation tests", function () {
         cy.log("Submit tuple with incorrect entry");
         cy.get(cesc("#\\/mi") + " textarea").type(
             "{end}{leftArrow}{backSpace}3{enter}",
-            { force: true, delay: 0 }
+            { force: true, delay: 0 },
         );
         cy.get(cesc("#\\/ans1_submit")).click();
         cy.get(cesc("#\\/ans2_submit")).click();

@@ -42,7 +42,7 @@ describe("Equilibriumline Tag Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 

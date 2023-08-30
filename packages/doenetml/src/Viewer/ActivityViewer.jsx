@@ -367,14 +367,14 @@ export function ActivityViewer({
             if (updateAttemptNumber) {
                 sendAlert(
                     `Reverted activity as attempt number changed on other device`,
-                    "info"
+                    "info",
                 );
                 updateAttemptNumber(newAttemptNumber);
             } else {
                 // what do we do in this case?
                 setIsInErrorState?.(true);
                 setErrMsg(
-                    "how to reset attempt number when not given updateAttemptNumber function?"
+                    "how to reset attempt number when not given updateAttemptNumber function?",
                 );
             }
         } else if (newCid !== cid) {
@@ -406,7 +406,7 @@ export function ActivityViewer({
             if (lastCidFromProps && cid !== lastCidFromProps) {
                 setIsInErrorState?.(true);
                 setErrMsg(
-                    `activity definition did not match specified cid: ${lastCidFromProps}`
+                    `activity definition did not match specified cid: ${lastCidFromProps}`,
                 );
                 return;
             }
@@ -418,12 +418,12 @@ export function ActivityViewer({
             try {
                 doenetML.current = await retrieveTextFileForCid(
                     lastCidFromProps,
-                    "doenet"
+                    "doenet",
                 );
             } catch (e) {
                 setIsInErrorState?.(true);
                 setErrMsg(
-                    `activity definition not found for cid: ${lastCidFromProps}`
+                    `activity definition not found for cid: ${lastCidFromProps}`,
                 );
                 return;
             }
@@ -444,7 +444,7 @@ export function ActivityViewer({
                 ) {
                     Object.assign(
                         err.doenetMLrange,
-                        getLineCharRange(err.doenetMLrange, doenetMLNewlines)
+                        getLineCharRange(err.doenetMLrange, doenetMLNewlines),
                     );
                 }
             }
@@ -467,7 +467,7 @@ export function ActivityViewer({
 
             try {
                 localInfo = await idb_get(
-                    `${activityId}|${attemptNumber}|${cid}`
+                    `${activityId}|${attemptNumber}|${cid}`,
                 );
             } catch (e) {
                 // ignore error
@@ -478,9 +478,8 @@ export function ActivityViewer({
                     // attempt to save local info to database,
                     // reseting data to that from database if it has changed since last save
 
-                    let result = await saveLoadedLocalStateToDatabase(
-                        localInfo
-                    );
+                    let result =
+                        await saveLoadedLocalStateToDatabase(localInfo);
 
                     if (result.changedOnDevice) {
                         if (Number(result.newAttemptNumber) !== attemptNumber) {
@@ -488,7 +487,7 @@ export function ActivityViewer({
                                 changedOnDevice: result.changedOnDevice,
                                 newCid: result.newCid,
                                 newAttemptNumber: Number(
-                                    result.newAttemptNumber
+                                    result.newAttemptNumber,
                                 ),
                             });
                             return;
@@ -527,7 +526,7 @@ export function ActivityViewer({
 
                 activityInfo.current = newActivityInfo;
                 activityInfoString.current = JSON.stringify(
-                    activityInfo.current
+                    activityInfo.current,
                 );
 
                 loadedState = true;
@@ -560,7 +559,7 @@ export function ActivityViewer({
                         if (flags.allowLoadState) {
                             setIsInErrorState?.(true);
                             setErrMsg(
-                                `Error loading activity state: ${resp.data.message}`
+                                `Error loading activity state: ${resp.data.message}`,
                             );
                             return;
                         } else {
@@ -601,7 +600,7 @@ export function ActivityViewer({
 
                 activityInfo.current = newActivityInfo;
                 activityInfoString.current = JSON.stringify(
-                    activityInfo.current
+                    activityInfo.current,
                 );
             } else {
                 // get initial state and info
@@ -630,8 +629,8 @@ export function ActivityViewer({
                                 err.doenetMLrange,
                                 getLineCharRange(
                                     err.doenetMLrange,
-                                    doenetMLNewlines
-                                )
+                                    doenetMLNewlines,
+                                ),
                             );
                         }
                     }
@@ -651,7 +650,7 @@ export function ActivityViewer({
 
                 activityInfo.current = results.activityInfo;
                 activityInfoString.current = JSON.stringify(
-                    activityInfo.current
+                    activityInfo.current,
                 );
             }
         }
@@ -665,7 +664,7 @@ export function ActivityViewer({
         }
 
         let serverSaveId = await idb_get(
-            `${activityId}|${attemptNumber}|${cid}|ServerSaveId`
+            `${activityId}|${attemptNumber}|${cid}|ServerSaveId`,
         );
 
         let activityStateToBeSavedToDatabase = {
@@ -685,11 +684,11 @@ export function ActivityViewer({
         try {
             console.log(
                 "first one saveActivityState activityStateToBeSavedToDatabase",
-                activityStateToBeSavedToDatabase
+                activityStateToBeSavedToDatabase,
             );
             resp = await axios.post(
                 apiURLs.saveActivityState,
-                activityStateToBeSavedToDatabase
+                activityStateToBeSavedToDatabase,
             );
         } catch (e) {
             // since this is initial load, don't show error message
@@ -709,7 +708,7 @@ export function ActivityViewer({
 
         await idb_set(
             `${activityId}|${attemptNumber}|${cid}|ServerSaveId`,
-            data.saveId
+            data.saveId,
         );
 
         if (data.stateOverwritten) {
@@ -722,7 +721,7 @@ export function ActivityViewer({
 
             await idb_set(
                 `${activityId}|${data.attemptNumber}|${data.cid}`,
-                newLocalInfo
+                newLocalInfo,
             );
 
             return {
@@ -767,7 +766,7 @@ export function ActivityViewer({
                     activityState: { currentPage: currentPageRef.current },
                     saveId,
                     variantIndex: variantIndexRef.current,
-                }
+                },
             );
         }
 
@@ -839,19 +838,19 @@ export function ActivityViewer({
         try {
             console.log(
                 "activity state params",
-                activityStateToBeSavedToDatabase.current
+                activityStateToBeSavedToDatabase.current,
             );
             resp = await axios.post(
                 apiURLs.saveActivityState,
-                activityStateToBeSavedToDatabase.current
+                activityStateToBeSavedToDatabase.current,
             );
         } catch (e) {
             console.log(
-                `sending sendAlert: Error synchronizing data.  Changes not saved to the server.`
+                `sending sendAlert: Error synchronizing data.  Changes not saved to the server.`,
             );
             sendAlert(
                 "Error synchronizing data.  Changes not saved to the server.",
-                "error"
+                "error",
             );
             return;
         }
@@ -860,11 +859,11 @@ export function ActivityViewer({
 
         if (resp.status === null) {
             console.log(
-                `sending sendAlert: Error synchronizing data.  Changes not saved to the server.  Are you connected to the internet?`
+                `sending sendAlert: Error synchronizing data.  Changes not saved to the server.  Are you connected to the internet?`,
             );
             sendAlert(
                 "Error synchronizing data.  Changes not saved to the server.  Are you connected to the internet?",
-                "error"
+                "error",
             );
             return;
         }
@@ -882,7 +881,7 @@ export function ActivityViewer({
         if (flags.allowLocalState) {
             await idb_set(
                 `${activityId}|${attemptNumberRef.current}|${cidRef.current}|ServerSaveId`,
-                data.saveId
+                data.saveId,
             );
         }
 
@@ -922,18 +921,18 @@ export function ActivityViewer({
                 if (resp.status === null) {
                     sendAlert(
                         `Could not initialize assignment tables.  Are you connected to the internet?`,
-                        "error"
+                        "error",
                     );
                 } else if (!resp.data.success) {
                     sendAlert(
                         `Could not initialize assignment tables: ${resp.data.message}.`,
-                        "error"
+                        "error",
                     );
                 }
             } catch (e) {
                 sendAlert(
                     `Could not initialize assignment tables: ${e.message}.`,
-                    "error"
+                    "error",
                 );
             }
         }
@@ -1075,7 +1074,7 @@ export function ActivityViewer({
                 terminatePromises.push(
                     new Promise((resolve, reject) => {
                         resolveTerminatePromise = resolve;
-                    })
+                    }),
                 );
 
                 coreWorker.onmessage = function (e) {
@@ -1282,7 +1281,7 @@ export function ActivityViewer({
             if (results) {
                 if (results.loadedFromInitialState) {
                     await initializeUserAssignmentTables(
-                        results.newItemWeights
+                        results.newItemWeights,
                     );
                 }
                 setStage("continue");
@@ -1430,7 +1429,7 @@ export function ActivityViewer({
             pages.push(
                 <div key={`page${ind + 1}`} id={`page${ind + 1}`}>
                     {pageViewer}
-                </div>
+                </div>,
             );
         }
     }
@@ -1584,7 +1583,7 @@ export function ActivityViewer({
     let activityErrors = null;
     if (errorsActivitySpecific.current.length > 0) {
         const errorsToDisplay = errorsActivitySpecific.current.filter(
-            (x) => x.displayInActivity
+            (x) => x.displayInActivity,
         );
         let errorStyle = {
             backgroundColor: "#ff9999",

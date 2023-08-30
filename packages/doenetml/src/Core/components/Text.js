@@ -270,7 +270,7 @@ export default class Text extends InlineComponent {
                         {
                             setDependency: "math",
                             desiredValue: me.fromAst(
-                                Number(desiredStateVariableValues.number)
+                                Number(desiredStateVariableValues.number),
                             ),
                         },
                     ],

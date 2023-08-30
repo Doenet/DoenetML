@@ -69,7 +69,7 @@ export default React.memo(function RegionBetweenCurveXAxis(props) {
         return board.create(
             "integral",
             [SVs.boundaryValues, curveJXG.current],
-            jsxAttributes
+            jsxAttributes,
         );
     }
 
@@ -107,11 +107,11 @@ export default React.memo(function RegionBetweenCurveXAxis(props) {
             let [y1, y2] = SVs.boundaryValues.map(f);
             integralJXG.current.curveLeft.coords.setCoordinates(
                 JXG.COORDS_BY_USER,
-                [x1, y1]
+                [x1, y1],
             );
             integralJXG.current.curveRight.coords.setCoordinates(
                 JXG.COORDS_BY_USER,
-                [x2, y2]
+                [x2, y2],
             );
 
             let layer = 10 * SVs.layer + 7;

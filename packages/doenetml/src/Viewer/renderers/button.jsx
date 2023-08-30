@@ -8,7 +8,7 @@ import { getPositionFromAnchorByCoordinate } from "../../Core/utils/graphical";
 export default React.memo(function ButtonComponent(props) {
     let { name, id, SVs, actions, callAction } = useDoenetRenderer(
         props,
-        false
+        false,
     );
 
     ButtonComponent.ignoreActionsWithoutCore = (actionName) =>
@@ -88,7 +88,7 @@ export default React.memo(function ButtonComponent(props) {
         jsxButtonAttributes.anchor = newAnchorPointJXG;
 
         let { anchorx, anchory } = getPositionFromAnchorByCoordinate(
-            SVs.positionFromAnchor
+            SVs.positionFromAnchor,
         );
 
         jsxButtonAttributes.anchorx = anchorx;
@@ -103,7 +103,7 @@ export default React.memo(function ButtonComponent(props) {
                 label,
                 () => callAction({ action: actions[SVs.clickAction] }),
             ],
-            jsxButtonAttributes
+            jsxButtonAttributes,
         );
 
         newButtonJXG.isDraggable = !fixLocation.current;
@@ -217,11 +217,11 @@ export default React.memo(function ButtonComponent(props) {
 
             calculatedX.current = Math.min(
                 xmaxAdjusted,
-                Math.max(xminAdjusted, calculatedX.current)
+                Math.max(xminAdjusted, calculatedX.current),
             );
             calculatedY.current = Math.min(
                 ymaxAdjusted,
-                Math.max(yminAdjusted, calculatedY.current)
+                Math.max(yminAdjusted, calculatedY.current),
             );
 
             callAction({
@@ -236,11 +236,11 @@ export default React.memo(function ButtonComponent(props) {
 
             newButtonJXG.relativeCoords.setCoordinates(
                 JXG.COORDS_BY_USER,
-                [0, 0]
+                [0, 0],
             );
             newAnchorPointJXG.coords.setCoordinates(
                 JXG.COORDS_BY_USER,
-                lastPositionFromCore.current
+                lastPositionFromCore.current,
             );
         });
 
@@ -308,11 +308,11 @@ export default React.memo(function ButtonComponent(props) {
         } else {
             buttonJXG.current.relativeCoords.setCoordinates(
                 JXG.COORDS_BY_USER,
-                [0, 0]
+                [0, 0],
             );
             anchorPointJXG.current.coords.setCoordinates(
                 JXG.COORDS_BY_USER,
-                anchorCoords
+                anchorCoords,
             );
 
             buttonJXG.current.setText(label);
@@ -350,7 +350,7 @@ export default React.memo(function ButtonComponent(props) {
 
             if (SVs.positionFromAnchor !== previousPositionFromAnchor.current) {
                 let { anchorx, anchory } = getPositionFromAnchorByCoordinate(
-                    SVs.positionFromAnchor
+                    SVs.positionFromAnchor,
                 );
                 buttonJXG.current.visProp.anchorx = anchorx;
                 buttonJXG.current.visProp.anchory = anchory;

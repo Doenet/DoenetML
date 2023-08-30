@@ -23,7 +23,7 @@ describe("Pluralize Tag Tests", function () {
     <p><pluralize>1 bus</pluralize></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -52,7 +52,7 @@ describe("Pluralize Tag Tests", function () {
     <p><pluralize>only</pluralize></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -81,7 +81,7 @@ describe("Pluralize Tag Tests", function () {
       <p><pluralize pluralForm="cheetahs">1 bus</pluralize></p>
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -110,7 +110,7 @@ describe("Pluralize Tag Tests", function () {
     <p><pluralize pluralForm="cheetahs">only</pluralize></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -139,7 +139,7 @@ describe("Pluralize Tag Tests", function () {
     <p><pluralize basedOnNumber="3">1 bus</pluralize></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -174,7 +174,7 @@ describe("Pluralize Tag Tests", function () {
     <p><pluralize basedOnNumber="1">only</pluralize></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -201,17 +201,17 @@ describe("Pluralize Tag Tests", function () {
     <p><pluralize>one hundred green plane flew through one big sky, rather than six shiny sky</pluralize></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get(cesc("#\\/_p1")).should(
             "have.text",
-            "one dog three cats two squirrels or 1 cat plus 7 geese"
+            "one dog three cats two squirrels or 1 cat plus 7 geese",
         );
         cy.get(cesc("#\\/_p2")).should(
             "have.text",
-            "one hundred green planes flew through one big sky, rather than six shiny skies"
+            "one hundred green planes flew through one big sky, rather than six shiny skies",
         );
     });
 
@@ -226,49 +226,49 @@ describe("Pluralize Tag Tests", function () {
     <p><pluralize>I have $ngeese.value goose even if one doesn't have $nteeth.value tooth</pluralize></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get(cesc("#\\/_p3")).should(
             "have.text",
-            `I have 1 goose even if one doesn't have 1 tooth`
+            `I have 1 goose even if one doesn't have 1 tooth`,
         );
 
         cy.get(cesc("#\\/ngeese_input")).clear().type("three{enter}");
         cy.get(cesc("#\\/_p3")).should(
             "have.text",
-            `I have three geese even if one doesn't have 1 tooth`
+            `I have three geese even if one doesn't have 1 tooth`,
         );
 
         cy.get(cesc("#\\/nteeth_input")).clear().type("0{enter}");
         cy.get(cesc("#\\/_p3")).should(
             "have.text",
-            `I have three geese even if one doesn't have 0 teeth`
+            `I have three geese even if one doesn't have 0 teeth`,
         );
 
         cy.get(cesc("#\\/nteeth_input")).clear().type("one{enter}");
         cy.get(cesc("#\\/_p3")).should(
             "have.text",
-            `I have three geese even if one doesn't have one tooth`
+            `I have three geese even if one doesn't have one tooth`,
         );
 
         cy.get(cesc("#\\/nteeth_input")).clear().type("one thousand{enter}");
         cy.get(cesc("#\\/_p3")).should(
             "have.text",
-            `I have three geese even if one doesn't have one thousand teeth`
+            `I have three geese even if one doesn't have one thousand teeth`,
         );
 
         cy.get(cesc("#\\/ngeese_input")).clear().type("-1{enter}");
         cy.get(cesc("#\\/_p3")).should(
             "have.text",
-            `I have -1 geese even if one doesn't have one thousand teeth`
+            `I have -1 geese even if one doesn't have one thousand teeth`,
         );
 
         cy.get(cesc("#\\/ngeese_input")).clear().type("-2{enter}");
         cy.get(cesc("#\\/_p3")).should(
             "have.text",
-            `I have -2 geese even if one doesn't have one thousand teeth`
+            `I have -2 geese even if one doesn't have one thousand teeth`,
         );
     });
 });

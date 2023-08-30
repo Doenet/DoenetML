@@ -30,7 +30,7 @@ describe("Group Tag Tests", function () {
     <group copySource="g1" assignNames="animalp4 (plantp7 animalp5 (plantp8) (plantp9)) (plantp10 animalp6 (plantp11) (plantp12))" />
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -125,7 +125,7 @@ describe("Group Tag Tests", function () {
     
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -206,7 +206,7 @@ describe("Group Tag Tests", function () {
     $to.value{assignNames="to2"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -222,7 +222,7 @@ describe("Group Tag Tests", function () {
             "{end}{backspace}1{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/count2")).should("contain.text", "1");
 
@@ -245,7 +245,7 @@ describe("Group Tag Tests", function () {
             "{end}{backspace}0{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/count2")).should("contain.text", "0");
         for (let i = 1; i <= 6; i++) {
@@ -257,7 +257,7 @@ describe("Group Tag Tests", function () {
             "{end}{backspace}2{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/count2")).should("contain.text", "2");
 
@@ -287,7 +287,7 @@ describe("Group Tag Tests", function () {
             "{end}{backspace}3{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/to") + " textarea").type("{end}{backspace}5{enter}", {
             force: true,
@@ -320,7 +320,7 @@ describe("Group Tag Tests", function () {
             "{end}{backspace}0{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/count2")).should("contain.text", "0");
         for (let i = 1; i <= 6; i++) {
@@ -332,7 +332,7 @@ describe("Group Tag Tests", function () {
             "{end}{backspace}3{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/count2")).should("contain.text", "3");
 
@@ -396,7 +396,7 @@ describe("Group Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -425,13 +425,13 @@ describe("Group Tag Tests", function () {
             "{end}{backspace}u{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/var2") + " textarea").type(
             "{end}{backspace}v{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/var2b")).should("contain.text", "v");
 
@@ -480,7 +480,7 @@ describe("Group Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -535,7 +535,7 @@ describe("Group Tag Tests", function () {
         // Do we need to figure out how to make third point immobile again?
         // cy.log(`can't move third point as depends on fixed second point`)
         cy.log(
-            `for now, can move third point as depends on directly on xs of first point`
+            `for now, can move third point as depends on directly on xs of first point`,
         );
         cy.window().then(async (win) => {
             await win.callAction1({
@@ -584,7 +584,7 @@ describe("Group Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -669,7 +669,7 @@ describe("Group Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 

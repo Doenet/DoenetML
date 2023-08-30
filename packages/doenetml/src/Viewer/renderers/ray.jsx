@@ -169,11 +169,11 @@ export default React.memo(function Ray(props) {
 
             rayJXG.current.point1.coords.setCoordinates(
                 JXG.COORDS_BY_USER,
-                lastEndpointFromCore.current
+                lastEndpointFromCore.current,
             );
             rayJXG.current.point2.coords.setCoordinates(
                 JXG.COORDS_BY_USER,
-                lastThroughpointFromCore.current
+                lastThroughpointFromCore.current,
             );
         });
 
@@ -306,11 +306,11 @@ export default React.memo(function Ray(props) {
 
             rayJXG.current.point1.coords.setCoordinates(
                 JXG.COORDS_BY_USER,
-                SVs.numericalEndpoint
+                SVs.numericalEndpoint,
             );
             rayJXG.current.point2.coords.setCoordinates(
                 JXG.COORDS_BY_USER,
-                SVs.numericalThroughpoint
+                SVs.numericalThroughpoint,
             );
 
             let visible = !SVs.hidden;

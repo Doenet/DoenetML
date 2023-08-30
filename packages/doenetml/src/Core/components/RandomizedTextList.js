@@ -110,7 +110,7 @@ export default class TextList extends InlineComponent {
                 let texts = [];
 
                 let childNames = dependencyValues.textAndTextListChildren.map(
-                    (x) => x.componentName
+                    (x) => x.componentName,
                 );
                 for (let childName of dependencyValues.childrenToRender) {
                     let index = childNames.indexOf(childName);
@@ -184,7 +184,7 @@ export default class TextList extends InlineComponent {
                 for (let child of dependencyValues.textAndTextListChildren) {
                     if (child.stateValues.childrenToRender) {
                         childrenToRender.push(
-                            ...child.stateValues.childrenToRender
+                            ...child.stateValues.childrenToRender,
                         );
                     } else {
                         childrenToRender.push(child.componentName);
@@ -211,7 +211,7 @@ export default class TextList extends InlineComponent {
                 }
 
                 let numChildren = Math.ceil(
-                    dependencyValues.selectRng() * childrenToRender.length
+                    dependencyValues.selectRng() * childrenToRender.length,
                 );
                 console.log(`numChildren: ${numChildren}`);
                 childrenToRender = childrenToRender.slice(0, numChildren);

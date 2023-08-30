@@ -25,7 +25,7 @@ export function returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens({
                     if (
                         componentInfoObjects.componentIsSpecifiedType(
                             comp,
-                            componentType
+                            componentType,
                         )
                     ) {
                         newChildren.push(comp);

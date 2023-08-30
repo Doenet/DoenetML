@@ -81,7 +81,7 @@ export default React.memo(function Figure(props) {
                 (el.style.fontFamily || "inherit") +
                 "; " +
                 "font-size:" +
-                (el.style.fontSize || "inherit")
+                (el.style.fontSize || "inherit"),
         );
         temp.innerHTML = "A";
 
@@ -98,7 +98,7 @@ export default React.memo(function Figure(props) {
         var el = document.getElementById(id + "_caption");
         var divHeight = el.offsetHeight;
         var lineHeight = getLineHeight(
-            document.getElementById(id + "_caption")
+            document.getElementById(id + "_caption"),
         );
         var lines = Math.round(divHeight / lineHeight);
         return lines;

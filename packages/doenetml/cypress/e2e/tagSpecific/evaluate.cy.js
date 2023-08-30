@@ -60,7 +60,7 @@ describe("Evaluate Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -151,7 +151,7 @@ describe("Evaluate Tag Tests", function () {
                 stateVariables["/result_symbolic2"].activeChildren[0]
                     .componentName;
             expect(
-                stateVariables[result_symbolic2_name].stateValues.value
+                stateVariables[result_symbolic2_name].stateValues.value,
             ).eqls(["apply", "sin", 0]);
             expect(stateVariables["/result_symbolic3"].stateValues.value).eqls([
                 "apply",
@@ -163,22 +163,22 @@ describe("Evaluate Tag Tests", function () {
                 stateVariables["/result_numeric2"].activeChildren[0]
                     .componentName;
             expect(stateVariables[result_numeric2_name].stateValues.value).eq(
-                0
+                0,
             );
             expect(stateVariables["/result_numeric3"].stateValues.value).eq(0);
             expect(
-                stateVariables["/result_force_symbolic"].stateValues.value
+                stateVariables["/result_force_symbolic"].stateValues.value,
             ).eqls(["apply", "sin", 0]);
             expect(
                 stateVariables["/result_force_symbolic_numeric"].stateValues
-                    .value
+                    .value,
             ).eqls(["apply", "sin", 0]);
             expect(
-                stateVariables["/result_force_numeric"].stateValues.value
+                stateVariables["/result_force_numeric"].stateValues.value,
             ).eq(0);
             expect(
                 stateVariables["/result_force_numeric_symbolic"].stateValues
-                    .value
+                    .value,
             ).eq(0);
         });
 
@@ -187,7 +187,7 @@ describe("Evaluate Tag Tests", function () {
             "{end}{backspace}pi{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/result_symbolic")).should("contain.text", "sin(π)");
         cy.get(cesc("#\\/result_symbolic"))
@@ -269,7 +269,7 @@ describe("Evaluate Tag Tests", function () {
                 "pi",
             ]);
             expect(
-                stateVariables[result_symbolic2_name].stateValues.value
+                stateVariables[result_symbolic2_name].stateValues.value,
             ).eqls(["apply", "sin", "pi"]);
             expect(stateVariables["/result_symbolic3"].stateValues.value).eqls([
                 "apply",
@@ -278,34 +278,34 @@ describe("Evaluate Tag Tests", function () {
             ]);
             expect(stateVariables["/result_numeric"].stateValues.value).closeTo(
                 0,
-                1e-10
+                1e-10,
             );
             expect(
-                stateVariables[result_numeric2_name].stateValues.value
+                stateVariables[result_numeric2_name].stateValues.value,
             ).closeTo(0, 1e-10);
             expect(
-                stateVariables["/result_numeric3"].stateValues.value
+                stateVariables["/result_numeric3"].stateValues.value,
             ).closeTo(0, 1e-10);
             expect(
-                stateVariables["/result_force_symbolic"].stateValues.value
+                stateVariables["/result_force_symbolic"].stateValues.value,
             ).eqls(["apply", "sin", "pi"]);
             expect(
                 stateVariables["/result_force_symbolic_numeric"].stateValues
-                    .value
+                    .value,
             ).eqls(["apply", "sin", "pi"]);
             expect(
-                stateVariables["/result_force_numeric"].stateValues.value
+                stateVariables["/result_force_numeric"].stateValues.value,
             ).closeTo(0, 1e-10);
             expect(
                 stateVariables["/result_force_numeric_symbolic"].stateValues
-                    .value
+                    .value,
             ).closeTo(0, 1e-10);
         });
 
         cy.log("change variable");
         cy.get(cesc("#\\/variable") + " textarea").type(
             "{end}{backspace}y{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/result_symbolic")).should("contain.text", "sin(x)");
         cy.get(cesc("#\\/result_symbolic"))
@@ -387,7 +387,7 @@ describe("Evaluate Tag Tests", function () {
                 "x",
             ]);
             expect(
-                stateVariables[result_symbolic2_name].stateValues.value
+                stateVariables[result_symbolic2_name].stateValues.value,
             ).eqls(["apply", "sin", "x"]);
             expect(stateVariables["/result_symbolic3"].stateValues.value).eqls([
                 "apply",
@@ -396,29 +396,29 @@ describe("Evaluate Tag Tests", function () {
             ]);
             assert.isNaN(stateVariables["/result_numeric"].stateValues.value);
             assert.isNaN(
-                stateVariables[result_numeric2_name].stateValues.value
+                stateVariables[result_numeric2_name].stateValues.value,
             );
             assert.isNaN(stateVariables["/result_numeric3"].stateValues.value);
             expect(
-                stateVariables["/result_force_symbolic"].stateValues.value
+                stateVariables["/result_force_symbolic"].stateValues.value,
             ).eqls(["apply", "sin", "x"]);
             expect(
                 stateVariables["/result_force_symbolic_numeric"].stateValues
-                    .value
+                    .value,
             ).eqls(["apply", "sin", "x"]);
             assert.isNaN(
-                stateVariables["/result_force_numeric"].stateValues.value
+                stateVariables["/result_force_numeric"].stateValues.value,
             );
             assert.isNaN(
                 stateVariables["/result_force_numeric_symbolic"].stateValues
-                    .value
+                    .value,
             );
         });
 
         cy.log("change formula to match variable");
         cy.get(cesc("#\\/formula") + " textarea").type(
             "{end}{backspace}{backspace}y{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/result_symbolic")).should("contain.text", "sin(π)");
         cy.get(cesc("#\\/result_symbolic"))
@@ -500,7 +500,7 @@ describe("Evaluate Tag Tests", function () {
                 "pi",
             ]);
             expect(
-                stateVariables[result_symbolic2_name].stateValues.value
+                stateVariables[result_symbolic2_name].stateValues.value,
             ).eqls(["apply", "sin", "pi"]);
             expect(stateVariables["/result_symbolic3"].stateValues.value).eqls([
                 "apply",
@@ -509,27 +509,27 @@ describe("Evaluate Tag Tests", function () {
             ]);
             expect(stateVariables["/result_numeric"].stateValues.value).closeTo(
                 0,
-                1e-10
+                1e-10,
             );
             expect(
-                stateVariables[result_numeric2_name].stateValues.value
+                stateVariables[result_numeric2_name].stateValues.value,
             ).closeTo(0, 1e-10);
             expect(
-                stateVariables["/result_numeric3"].stateValues.value
+                stateVariables["/result_numeric3"].stateValues.value,
             ).closeTo(0, 1e-10);
             expect(
-                stateVariables["/result_force_symbolic"].stateValues.value
+                stateVariables["/result_force_symbolic"].stateValues.value,
             ).eqls(["apply", "sin", "pi"]);
             expect(
                 stateVariables["/result_force_symbolic_numeric"].stateValues
-                    .value
+                    .value,
             ).eqls(["apply", "sin", "pi"]);
             expect(
-                stateVariables["/result_force_numeric"].stateValues.value
+                stateVariables["/result_force_numeric"].stateValues.value,
             ).closeTo(0, 1e-10);
             expect(
                 stateVariables["/result_force_numeric_symbolic"].stateValues
-                    .value
+                    .value,
             ).closeTo(0, 1e-10);
         });
     });
@@ -550,7 +550,7 @@ describe("Evaluate Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -569,7 +569,7 @@ describe("Evaluate Tag Tests", function () {
         cy.log("change function");
         cy.get(cesc("#\\/fformula") + " textarea").type(
             "{end}{backspace}{backspace}bx^2{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/result")).should("contain.text", "f(u)=f(3v)=9bv2");
         cy.get(cesc("#\\/result"))
@@ -583,7 +583,7 @@ describe("Evaluate Tag Tests", function () {
         cy.log("change u");
         cy.get(cesc("#\\/u") + " textarea").type(
             "{end}{backspace}{backspace}cq^2{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/result")).should("contain.text", "f(u)=f(cq2)=bc2q4");
         cy.get(cesc("#\\/result"))
@@ -610,11 +610,11 @@ describe("Evaluate Tag Tests", function () {
         cy.log("change function to match variable");
         cy.get(cesc("#\\/fformula") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}ay+by^2{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/result")).should(
             "contain.text",
-            "f(u)=f(cq2)=acq2+bc2q4"
+            "f(u)=f(cq2)=acq2+bc2q4",
         );
         cy.get(cesc("#\\/result"))
             .find(".mjx-mrow")
@@ -643,7 +643,7 @@ describe("Evaluate Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -752,7 +752,7 @@ describe("Evaluate Tag Tests", function () {
   </p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1047,7 +1047,7 @@ describe("Evaluate Tag Tests", function () {
             "{end}{backspace}pi{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/ef2")).should("contain.text", "0");
@@ -1057,7 +1057,7 @@ describe("Evaluate Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().slice(0, 5)).eq(
-                    Math.sin(Math.PI).toString().slice(0, 5)
+                    Math.sin(Math.PI).toString().slice(0, 5),
                 );
             });
         cy.get(cesc("#\\/ef2"))
@@ -1080,7 +1080,7 @@ describe("Evaluate Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().slice(0, 3)).eq(
-                    Math.sin(Math.PI).toString().slice(0, 3)
+                    Math.sin(Math.PI).toString().slice(0, 3),
                 );
             });
         cy.get(cesc("#\\/ef1a"))
@@ -1089,7 +1089,7 @@ describe("Evaluate Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().slice(0, 5)).eq(
-                    Math.sin(Math.PI).toString().slice(0, 5)
+                    Math.sin(Math.PI).toString().slice(0, 5),
                 );
             });
         cy.get(cesc("#\\/ef2a"))
@@ -1112,7 +1112,7 @@ describe("Evaluate Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().slice(0, 3)).eq(
-                    Math.sin(Math.PI).toString().slice(0, 3)
+                    Math.sin(Math.PI).toString().slice(0, 3),
                 );
             });
 
@@ -1122,7 +1122,7 @@ describe("Evaluate Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().slice(0, 6)).eq(
-                    Math.sin(Math.PI).toString().slice(0, 6)
+                    Math.sin(Math.PI).toString().slice(0, 6),
                 );
             });
         cy.get(cesc("#\\/ef2dg6"))
@@ -1131,7 +1131,7 @@ describe("Evaluate Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().slice(0, 6)).eq(
-                    Math.sin(Math.PI).toString().slice(0, 6)
+                    Math.sin(Math.PI).toString().slice(0, 6),
                 );
             });
         cy.get(cesc("#\\/ef3dg6"))
@@ -1147,7 +1147,7 @@ describe("Evaluate Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().slice(0, 6)).eq(
-                    Math.sin(Math.PI).toString().slice(0, 6)
+                    Math.sin(Math.PI).toString().slice(0, 6),
                 );
             });
         cy.get(cesc("#\\/ef1dg6a"))
@@ -1156,7 +1156,7 @@ describe("Evaluate Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().slice(0, 6)).eq(
-                    Math.sin(Math.PI).toString().slice(0, 6)
+                    Math.sin(Math.PI).toString().slice(0, 6),
                 );
             });
         cy.get(cesc("#\\/ef2dg6a"))
@@ -1165,7 +1165,7 @@ describe("Evaluate Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().slice(0, 6)).eq(
-                    Math.sin(Math.PI).toString().slice(0, 6)
+                    Math.sin(Math.PI).toString().slice(0, 6),
                 );
             });
         cy.get(cesc("#\\/ef3dg6a"))
@@ -1181,7 +1181,7 @@ describe("Evaluate Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().slice(0, 6)).eq(
-                    Math.sin(Math.PI).toString().slice(0, 6)
+                    Math.sin(Math.PI).toString().slice(0, 6),
                 );
             });
 
@@ -1305,7 +1305,7 @@ describe("Evaluate Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().slice(0, 6)).eq(
-                    Math.sin(Math.PI).toString().slice(0, 6)
+                    Math.sin(Math.PI).toString().slice(0, 6),
                 );
             });
         cy.get(cesc("#\\/ef2m"))
@@ -1328,7 +1328,7 @@ describe("Evaluate Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().slice(0, 3)).eq(
-                    Math.sin(Math.PI).toString().slice(0, 3)
+                    Math.sin(Math.PI).toString().slice(0, 3),
                 );
             });
         cy.get(cesc("#\\/ef1ma"))
@@ -1337,7 +1337,7 @@ describe("Evaluate Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().slice(0, 6)).eq(
-                    Math.sin(Math.PI).toString().slice(0, 6)
+                    Math.sin(Math.PI).toString().slice(0, 6),
                 );
             });
         cy.get(cesc("#\\/ef2ma"))
@@ -1360,7 +1360,7 @@ describe("Evaluate Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().slice(0, 3)).eq(
-                    Math.sin(Math.PI).toString().slice(0, 3)
+                    Math.sin(Math.PI).toString().slice(0, 3),
                 );
             });
     });
@@ -1449,7 +1449,7 @@ describe("Evaluate Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1864,7 +1864,7 @@ describe("Evaluate Tag Tests", function () {
             "{end}{backspace}pi{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/ef2")).should("contain.text", "0");
@@ -1874,7 +1874,7 @@ describe("Evaluate Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().slice(0, 6)).eq(
-                    Math.sin(Math.PI).toString().slice(0, 6)
+                    Math.sin(Math.PI).toString().slice(0, 6),
                 );
             });
         cy.get(cesc("#\\/ef2"))
@@ -1897,7 +1897,7 @@ describe("Evaluate Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().slice(0, 3)).eq(
-                    Math.sin(Math.PI).toString().slice(0, 3)
+                    Math.sin(Math.PI).toString().slice(0, 3),
                 );
             });
 
@@ -1907,7 +1907,7 @@ describe("Evaluate Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().slice(0, 6)).eq(
-                    Math.sin(Math.PI).toString().slice(0, 6)
+                    Math.sin(Math.PI).toString().slice(0, 6),
                 );
             });
         cy.get(cesc("#\\/ef2dg6"))
@@ -1916,7 +1916,7 @@ describe("Evaluate Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().slice(0, 6)).eq(
-                    Math.sin(Math.PI).toString().slice(0, 6)
+                    Math.sin(Math.PI).toString().slice(0, 6),
                 );
             });
         cy.get(cesc("#\\/ef3dg6"))
@@ -1932,7 +1932,7 @@ describe("Evaluate Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().slice(0, 6)).eq(
-                    Math.sin(Math.PI).toString().slice(0, 6)
+                    Math.sin(Math.PI).toString().slice(0, 6),
                 );
             });
 
@@ -1942,7 +1942,7 @@ describe("Evaluate Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().slice(0, 6)).eq(
-                    Math.sin(Math.PI).toString().slice(0, 6)
+                    Math.sin(Math.PI).toString().slice(0, 6),
                 );
             });
         cy.get(cesc("#\\/ef2dg6a"))
@@ -1951,7 +1951,7 @@ describe("Evaluate Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().slice(0, 6)).eq(
-                    Math.sin(Math.PI).toString().slice(0, 6)
+                    Math.sin(Math.PI).toString().slice(0, 6),
                 );
             });
         cy.get(cesc("#\\/ef3dg6a"))
@@ -1967,7 +1967,7 @@ describe("Evaluate Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().slice(0, 6)).eq(
-                    Math.sin(Math.PI).toString().slice(0, 6)
+                    Math.sin(Math.PI).toString().slice(0, 6),
                 );
             });
 
@@ -1977,7 +1977,7 @@ describe("Evaluate Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().slice(0, 6)).eq(
-                    Math.sin(Math.PI).toString().slice(0, 6)
+                    Math.sin(Math.PI).toString().slice(0, 6),
                 );
             });
         cy.get(cesc("#\\/ef2dg6b"))
@@ -1986,7 +1986,7 @@ describe("Evaluate Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().slice(0, 6)).eq(
-                    Math.sin(Math.PI).toString().slice(0, 6)
+                    Math.sin(Math.PI).toString().slice(0, 6),
                 );
             });
         cy.get(cesc("#\\/ef3dg6b"))
@@ -2002,7 +2002,7 @@ describe("Evaluate Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().slice(0, 6)).eq(
-                    Math.sin(Math.PI).toString().slice(0, 6)
+                    Math.sin(Math.PI).toString().slice(0, 6),
                 );
             });
 
@@ -2012,7 +2012,7 @@ describe("Evaluate Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().slice(0, 6)).eq(
-                    Math.sin(Math.PI).toString().slice(0, 6)
+                    Math.sin(Math.PI).toString().slice(0, 6),
                 );
             });
         cy.get(cesc("#\\/ef2dg6c"))
@@ -2021,7 +2021,7 @@ describe("Evaluate Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().slice(0, 6)).eq(
-                    Math.sin(Math.PI).toString().slice(0, 6)
+                    Math.sin(Math.PI).toString().slice(0, 6),
                 );
             });
         cy.get(cesc("#\\/ef3dg6c"))
@@ -2037,7 +2037,7 @@ describe("Evaluate Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().slice(0, 6)).eq(
-                    Math.sin(Math.PI).toString().slice(0, 6)
+                    Math.sin(Math.PI).toString().slice(0, 6),
                 );
             });
 
@@ -2163,7 +2163,7 @@ describe("Evaluate Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().slice(0, 8)).eq(
-                    Math.sin(Math.PI).toString().slice(0, 8)
+                    Math.sin(Math.PI).toString().slice(0, 8),
                 );
             });
         cy.get(cesc("#\\/ef2dg8"))
@@ -2172,7 +2172,7 @@ describe("Evaluate Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().slice(0, 8)).eq(
-                    Math.sin(Math.PI).toString().slice(0, 8)
+                    Math.sin(Math.PI).toString().slice(0, 8),
                 );
             });
         cy.get(cesc("#\\/ef3dg8"))
@@ -2188,7 +2188,7 @@ describe("Evaluate Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().slice(0, 8)).eq(
-                    Math.sin(Math.PI).toString().slice(0, 8)
+                    Math.sin(Math.PI).toString().slice(0, 8),
                 );
             });
 
@@ -2285,7 +2285,7 @@ describe("Evaluate Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().slice(0, 3)).eq(
-                    Math.sin(Math.PI).toString().slice(0, 3)
+                    Math.sin(Math.PI).toString().slice(0, 3),
                 );
             });
         cy.get(cesc("#\\/ef2dsz0a"))
@@ -2301,7 +2301,7 @@ describe("Evaluate Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().slice(0, 3)).eq(
-                    Math.sin(Math.PI).toString().slice(0, 3)
+                    Math.sin(Math.PI).toString().slice(0, 3),
                 );
             });
         cy.get(cesc("#\\/ef4dsz0a"))
@@ -2310,7 +2310,7 @@ describe("Evaluate Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().slice(0, 3)).eq(
-                    Math.sin(Math.PI).toString().slice(0, 3)
+                    Math.sin(Math.PI).toString().slice(0, 3),
                 );
             });
     });
@@ -2384,7 +2384,7 @@ describe("Evaluate Tag Tests", function () {
   </p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2679,7 +2679,7 @@ describe("Evaluate Tag Tests", function () {
             "{end}{backspace}pi{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/ef2")).should("contain.text", "0");
@@ -2689,7 +2689,7 @@ describe("Evaluate Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().slice(0, 5)).eq(
-                    Math.sin(Math.PI).toString().slice(0, 5)
+                    Math.sin(Math.PI).toString().slice(0, 5),
                 );
             });
         cy.get(cesc("#\\/ef2"))
@@ -2712,7 +2712,7 @@ describe("Evaluate Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().slice(0, 3)).eq(
-                    Math.sin(Math.PI).toString().slice(0, 3)
+                    Math.sin(Math.PI).toString().slice(0, 3),
                 );
             });
         cy.get(cesc("#\\/ef1a"))
@@ -2721,7 +2721,7 @@ describe("Evaluate Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().slice(0, 5)).eq(
-                    Math.sin(Math.PI).toString().slice(0, 5)
+                    Math.sin(Math.PI).toString().slice(0, 5),
                 );
             });
         cy.get(cesc("#\\/ef2a"))
@@ -2744,7 +2744,7 @@ describe("Evaluate Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().slice(0, 3)).eq(
-                    Math.sin(Math.PI).toString().slice(0, 3)
+                    Math.sin(Math.PI).toString().slice(0, 3),
                 );
             });
 
@@ -2754,7 +2754,7 @@ describe("Evaluate Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().slice(0, 6)).eq(
-                    Math.sin(Math.PI).toString().slice(0, 6)
+                    Math.sin(Math.PI).toString().slice(0, 6),
                 );
             });
         cy.get(cesc("#\\/ef2dg6"))
@@ -2763,7 +2763,7 @@ describe("Evaluate Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().slice(0, 6)).eq(
-                    Math.sin(Math.PI).toString().slice(0, 6)
+                    Math.sin(Math.PI).toString().slice(0, 6),
                 );
             });
         cy.get(cesc("#\\/ef3dg6"))
@@ -2779,7 +2779,7 @@ describe("Evaluate Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().slice(0, 6)).eq(
-                    Math.sin(Math.PI).toString().slice(0, 6)
+                    Math.sin(Math.PI).toString().slice(0, 6),
                 );
             });
         cy.get(cesc("#\\/ef1dg6a"))
@@ -2788,7 +2788,7 @@ describe("Evaluate Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().slice(0, 6)).eq(
-                    Math.sin(Math.PI).toString().slice(0, 6)
+                    Math.sin(Math.PI).toString().slice(0, 6),
                 );
             });
         cy.get(cesc("#\\/ef2dg6a"))
@@ -2797,7 +2797,7 @@ describe("Evaluate Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().slice(0, 6)).eq(
-                    Math.sin(Math.PI).toString().slice(0, 6)
+                    Math.sin(Math.PI).toString().slice(0, 6),
                 );
             });
         cy.get(cesc("#\\/ef3dg6a"))
@@ -2813,7 +2813,7 @@ describe("Evaluate Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().slice(0, 6)).eq(
-                    Math.sin(Math.PI).toString().slice(0, 6)
+                    Math.sin(Math.PI).toString().slice(0, 6),
                 );
             });
 
@@ -2937,7 +2937,7 @@ describe("Evaluate Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().slice(0, 5)).eq(
-                    Math.sin(Math.PI).toString().slice(0, 5)
+                    Math.sin(Math.PI).toString().slice(0, 5),
                 );
             });
         cy.get(cesc("#\\/ef2m"))
@@ -2960,7 +2960,7 @@ describe("Evaluate Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().slice(0, 3)).eq(
-                    Math.sin(Math.PI).toString().slice(0, 3)
+                    Math.sin(Math.PI).toString().slice(0, 3),
                 );
             });
         cy.get(cesc("#\\/ef1ma"))
@@ -2969,7 +2969,7 @@ describe("Evaluate Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().slice(0, 5)).eq(
-                    Math.sin(Math.PI).toString().slice(0, 5)
+                    Math.sin(Math.PI).toString().slice(0, 5),
                 );
             });
         cy.get(cesc("#\\/ef2ma"))
@@ -2992,7 +2992,7 @@ describe("Evaluate Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().slice(0, 3)).eq(
-                    Math.sin(Math.PI).toString().slice(0, 3)
+                    Math.sin(Math.PI).toString().slice(0, 3),
                 );
             });
     });
@@ -3041,7 +3041,7 @@ describe("Evaluate Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3118,7 +3118,7 @@ describe("Evaluate Tag Tests", function () {
                 stateVariables["/result_symbolic2"].activeChildren[0]
                     .componentName;
             expect(
-                stateVariables[result_symbolic2_name].stateValues.value
+                stateVariables[result_symbolic2_name].stateValues.value,
             ).eqls(["apply", "sin", ["+", 0, 0]]);
             expect(stateVariables["/result_symbolic3"].stateValues.value).eqls([
                 "apply",
@@ -3130,16 +3130,16 @@ describe("Evaluate Tag Tests", function () {
                 stateVariables["/result_numeric2"].activeChildren[0]
                     .componentName;
             expect(stateVariables[result_numeric2_name].stateValues.value).eq(
-                0
+                0,
             );
             expect(stateVariables["/result_numeric3"].stateValues.value).eq(0);
             expect(
                 stateVariables["/result_force_symbolic_numeric"].stateValues
-                    .value
+                    .value,
             ).eqls(["apply", "sin", ["+", 0, 0]]);
             expect(
                 stateVariables["/result_force_numeric_symbolic"].stateValues
-                    .value
+                    .value,
             ).eq(0);
         });
 
@@ -3148,11 +3148,11 @@ describe("Evaluate Tag Tests", function () {
             "{end}{backspace}pi{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/input2") + " textarea").type(
             "{end}{backspace}2pi{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/result_symbolic")).should("contain.text", "sin(π+2π)");
         cy.get(cesc("#\\/result_symbolic"))
@@ -3220,7 +3220,7 @@ describe("Evaluate Tag Tests", function () {
                 ["+", "pi", ["*", 2, "pi"]],
             ]);
             expect(
-                stateVariables[result_symbolic2_name].stateValues.value
+                stateVariables[result_symbolic2_name].stateValues.value,
             ).eqls(["apply", "sin", ["+", "pi", ["*", 2, "pi"]]]);
             expect(stateVariables["/result_symbolic3"].stateValues.value).eqls([
                 "apply",
@@ -3229,32 +3229,32 @@ describe("Evaluate Tag Tests", function () {
             ]);
             expect(stateVariables["/result_numeric"].stateValues.value).closeTo(
                 0,
-                1e-10
+                1e-10,
             );
             expect(
-                stateVariables[result_numeric2_name].stateValues.value
+                stateVariables[result_numeric2_name].stateValues.value,
             ).closeTo(0, 1e-10);
             expect(
-                stateVariables["/result_numeric3"].stateValues.value
+                stateVariables["/result_numeric3"].stateValues.value,
             ).closeTo(0, 1e-10);
             expect(
                 stateVariables["/result_force_symbolic_numeric"].stateValues
-                    .value
+                    .value,
             ).eqls(["apply", "sin", ["+", "pi", ["*", 2, "pi"]]]);
             expect(
                 stateVariables["/result_force_numeric_symbolic"].stateValues
-                    .value
+                    .value,
             ).closeTo(0, 1e-10);
         });
 
         cy.log("change variable");
         cy.get(cesc("#\\/variable1") + " textarea").type(
             "{end}{backspace}u{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/variable2") + " textarea").type(
             "{end}{backspace}v{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/result_symbolic")).should("contain.text", "sin(x+y)");
         cy.get(cesc("#\\/result_symbolic"))
@@ -3322,7 +3322,7 @@ describe("Evaluate Tag Tests", function () {
                 ["+", "x", "y"],
             ]);
             expect(
-                stateVariables[result_symbolic2_name].stateValues.value
+                stateVariables[result_symbolic2_name].stateValues.value,
             ).eqls(["apply", "sin", ["+", "x", "y"]]);
             expect(stateVariables["/result_symbolic3"].stateValues.value).eqls([
                 "apply",
@@ -3331,23 +3331,23 @@ describe("Evaluate Tag Tests", function () {
             ]);
             assert.isNaN(stateVariables["/result_numeric"].stateValues.value);
             assert.isNaN(
-                stateVariables[result_numeric2_name].stateValues.value
+                stateVariables[result_numeric2_name].stateValues.value,
             );
             assert.isNaN(stateVariables["/result_numeric3"].stateValues.value);
             expect(
                 stateVariables["/result_force_symbolic_numeric"].stateValues
-                    .value
+                    .value,
             ).eqls(["apply", "sin", ["+", "x", "y"]]);
             assert.isNaN(
                 stateVariables["/result_force_numeric_symbolic"].stateValues
-                    .value
+                    .value,
             );
         });
 
         cy.log("change formula to use new variables");
         cy.get(cesc("#\\/formula") + " textarea").type(
             "{end}{leftarrow}{backspace}{backspace}{backspace}u+v{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/result_symbolic")).should("contain.text", "sin(π+2π)");
         cy.get(cesc("#\\/result_symbolic"))
@@ -3415,7 +3415,7 @@ describe("Evaluate Tag Tests", function () {
                 ["+", "pi", ["*", 2, "pi"]],
             ]);
             expect(
-                stateVariables[result_symbolic2_name].stateValues.value
+                stateVariables[result_symbolic2_name].stateValues.value,
             ).eqls(["apply", "sin", ["+", "pi", ["*", 2, "pi"]]]);
             expect(stateVariables["/result_symbolic3"].stateValues.value).eqls([
                 "apply",
@@ -3424,21 +3424,21 @@ describe("Evaluate Tag Tests", function () {
             ]);
             expect(stateVariables["/result_numeric"].stateValues.value).closeTo(
                 0,
-                1e-10
+                1e-10,
             );
             expect(
-                stateVariables[result_numeric2_name].stateValues.value
+                stateVariables[result_numeric2_name].stateValues.value,
             ).closeTo(0, 1e-10);
             expect(
-                stateVariables["/result_numeric3"].stateValues.value
+                stateVariables["/result_numeric3"].stateValues.value,
             ).closeTo(0, 1e-10);
             expect(
                 stateVariables["/result_force_symbolic_numeric"].stateValues
-                    .value
+                    .value,
             ).eqls(["apply", "sin", ["+", "pi", ["*", 2, "pi"]]]);
             expect(
                 stateVariables["/result_force_numeric_symbolic"].stateValues
-                    .value
+                    .value,
             ).closeTo(0, 1e-10);
         });
     });
@@ -3465,7 +3465,7 @@ describe("Evaluate Tag Tests", function () {
   <p>Evaluate 3: $result1{name="result3"}</p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3506,7 +3506,7 @@ describe("Evaluate Tag Tests", function () {
         cy.log("evaluate at (pi, pi/2)");
         cy.get(cesc("#\\/input") + " textarea").type(
             "{end}{leftArrow}{backspace}{backspace}{backspace}pi,pi/2{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/result1")).should("contain.text", "−1");
@@ -3577,7 +3577,7 @@ describe("Evaluate Tag Tests", function () {
             "{end}{leftArrow},3{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/result1")).should("contain.text", "−1");
@@ -3646,7 +3646,7 @@ describe("Evaluate Tag Tests", function () {
         cy.log("add fourth variable to formula");
         cy.get(cesc("#\\/formula") + " textarea").type(
             "{end}{leftArrow}/w{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/result1")).should("contain.text", "3sin(π+π2w)");
@@ -3695,7 +3695,7 @@ describe("Evaluate Tag Tests", function () {
             "{end}{leftArrow},3{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/result1")).should("contain.text", "＿");
@@ -3842,7 +3842,7 @@ describe("Evaluate Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4000,7 +4000,7 @@ describe("Evaluate Tag Tests", function () {
             expect(
                 stateVariables[
                     stateVariables["/result1b"].activeChildren[0].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eqls(["/", 4, 27]);
             expect(stateVariables["/result2a"].stateValues.value).eqls([
                 "/",
@@ -4010,7 +4010,7 @@ describe("Evaluate Tag Tests", function () {
             expect(
                 stateVariables[
                     stateVariables["/result2b"].activeChildren[0].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eqls(["/", 4, 27]);
             expect(stateVariables["/result3a"].stateValues.value).eqls([
                 "/",
@@ -4020,7 +4020,7 @@ describe("Evaluate Tag Tests", function () {
             expect(
                 stateVariables[
                     stateVariables["/result3b"].activeChildren[0].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eqls(["/", 4, 27]);
             expect(stateVariables["/result4a"].stateValues.value).eqls([
                 "/",
@@ -4030,12 +4030,12 @@ describe("Evaluate Tag Tests", function () {
             expect(
                 stateVariables[
                     stateVariables["/result4b"].activeChildren[0].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eqls(["/", 4, 27]);
             expect(
                 stateVariables[
                     stateVariables["/result4c"].activeChildren[0].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eqls(["/", 4, 27]);
             expect(stateVariables["/result5a"].stateValues.value).eqls([
                 "/",
@@ -4045,12 +4045,12 @@ describe("Evaluate Tag Tests", function () {
             expect(
                 stateVariables[
                     stateVariables["/result5b"].activeChildren[0].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eqls(["/", 4, 27]);
             expect(
                 stateVariables[
                     stateVariables["/result5c"].activeChildren[0].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eqls(["/", 4, 27]);
             expect(stateVariables["/result5d"].stateValues.value).eqls([
                 "/",
@@ -4065,12 +4065,12 @@ describe("Evaluate Tag Tests", function () {
             expect(
                 stateVariables[
                     stateVariables["/result6b"].activeChildren[0].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eqls(["/", 4, 27]);
             expect(
                 stateVariables[
                     stateVariables["/result6c"].activeChildren[0].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eqls(["/", 4, 27]);
             expect(stateVariables["/result7a"].stateValues.value).eqls([
                 "/",
@@ -4080,12 +4080,12 @@ describe("Evaluate Tag Tests", function () {
             expect(
                 stateVariables[
                     stateVariables["/result7b"].activeChildren[0].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eqls(["/", 4, 27]);
             expect(
                 stateVariables[
                     stateVariables["/result7c"].activeChildren[0].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eqls(["/", 4, 27]);
             expect(stateVariables["/result7d"].stateValues.value).eqls([
                 "/",
@@ -4097,11 +4097,11 @@ describe("Evaluate Tag Tests", function () {
         cy.log(`change inputs, use altvector`);
         cy.get(cesc("#\\/input1") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}\\langle -3,5\\rangle{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/input2Orig") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}-3,5",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/input4a") + " textarea").type("{end}{backspace}-3", {
             force: true,
@@ -4224,7 +4224,7 @@ describe("Evaluate Tag Tests", function () {
                     stateVariables[
                         stateVariables["/result1b"].activeChildren[0]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eqls(["/", 9, 125]);
                 expect(stateVariables["/result2a"].stateValues.value).eqls([
                     "/",
@@ -4235,7 +4235,7 @@ describe("Evaluate Tag Tests", function () {
                     stateVariables[
                         stateVariables["/result2b"].activeChildren[0]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eqls(["/", 9, 125]);
                 expect(stateVariables["/result3a"].stateValues.value).eqls([
                     "/",
@@ -4246,7 +4246,7 @@ describe("Evaluate Tag Tests", function () {
                     stateVariables[
                         stateVariables["/result3b"].activeChildren[0]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eqls(["/", 9, 125]);
                 expect(stateVariables["/result4a"].stateValues.value).eqls([
                     "/",
@@ -4257,13 +4257,13 @@ describe("Evaluate Tag Tests", function () {
                     stateVariables[
                         stateVariables["/result4b"].activeChildren[0]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eqls(["/", 9, 125]);
                 expect(
                     stateVariables[
                         stateVariables["/result4c"].activeChildren[0]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eqls(["/", 9, 125]);
                 expect(stateVariables["/result5a"].stateValues.value).eqls([
                     "/",
@@ -4274,13 +4274,13 @@ describe("Evaluate Tag Tests", function () {
                     stateVariables[
                         stateVariables["/result5b"].activeChildren[0]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eqls(["/", 9, 125]);
                 expect(
                     stateVariables[
                         stateVariables["/result5c"].activeChildren[0]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eqls(["/", 9, 125]);
                 expect(stateVariables["/result5d"].stateValues.value).eqls([
                     "/",
@@ -4335,7 +4335,7 @@ describe("Evaluate Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4412,7 +4412,7 @@ describe("Evaluate Tag Tests", function () {
                 stateVariables["/result_symbolic2"].activeChildren[0]
                     .componentName;
             expect(
-                stateVariables[result_symbolic2_name].stateValues.value
+                stateVariables[result_symbolic2_name].stateValues.value,
             ).eqls(["vector", ["apply", "sin", 0], ["apply", "cos", 0]]);
             expect(stateVariables["/result_symbolic3"].stateValues.value).eqls([
                 "vector",
@@ -4428,7 +4428,7 @@ describe("Evaluate Tag Tests", function () {
                 stateVariables["/result_numeric2"].activeChildren[0]
                     .componentName;
             expect(stateVariables[result_numeric2_name].stateValues.value).eqls(
-                ["vector", 0, 1]
+                ["vector", 0, 1],
             );
             expect(stateVariables["/result_numeric3"].stateValues.value).eqls([
                 "vector",
@@ -4437,11 +4437,11 @@ describe("Evaluate Tag Tests", function () {
             ]);
             expect(
                 stateVariables["/result_force_symbolic_numeric"].stateValues
-                    .value
+                    .value,
             ).eqls(["vector", ["apply", "sin", 0], ["apply", "cos", 0]]);
             expect(
                 stateVariables["/result_force_numeric_symbolic"].stateValues
-                    .value
+                    .value,
             ).eqls(["vector", 0, 1]);
         });
 
@@ -4450,16 +4450,16 @@ describe("Evaluate Tag Tests", function () {
             "{end}{backspace}pi{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/input2") + " textarea").type(
             "{end}{backspace}2pi{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/result_symbolic")).should(
             "contain.text",
-            "(sin(π+2π),cos(π−2π))"
+            "(sin(π+2π),cos(π−2π))",
         );
         cy.get(cesc("#\\/result_symbolic"))
             .find(".mjx-mrow")
@@ -4526,7 +4526,7 @@ describe("Evaluate Tag Tests", function () {
                 ["apply", "cos", ["+", "pi", ["*", -2, "pi"]]],
             ]);
             expect(
-                stateVariables[result_symbolic2_name].stateValues.value
+                stateVariables[result_symbolic2_name].stateValues.value,
             ).eqls([
                 "vector",
                 ["apply", "sin", ["+", "pi", ["*", 2, "pi"]]],
@@ -4539,25 +4539,25 @@ describe("Evaluate Tag Tests", function () {
             ]);
             expect(
                 stateVariables["/result_numeric"].stateValues.value.map((x) =>
-                    typeof x === "number" && me.math.round(x, 10) === 0 ? 0 : x
-                )
+                    typeof x === "number" && me.math.round(x, 10) === 0 ? 0 : x,
+                ),
             ).eqls(["vector", 0, -1]);
             expect(
                 stateVariables[result_numeric2_name].stateValues.value.map(
                     (x) =>
                         typeof x === "number" && me.math.round(x, 10) === 0
                             ? 0
-                            : x
-                )
+                            : x,
+                ),
             ).eqls(["vector", 0, -1]);
             expect(
                 stateVariables["/result_numeric3"].stateValues.value.map((x) =>
-                    typeof x === "number" && me.math.round(x, 10) === 0 ? 0 : x
-                )
+                    typeof x === "number" && me.math.round(x, 10) === 0 ? 0 : x,
+                ),
             ).eqls(["vector", 0, -1]);
             expect(
                 stateVariables["/result_force_symbolic_numeric"].stateValues
-                    .value
+                    .value,
             ).eqls([
                 "vector",
                 ["apply", "sin", ["+", "pi", ["*", 2, "pi"]]],
@@ -4567,23 +4567,23 @@ describe("Evaluate Tag Tests", function () {
                 stateVariables[
                     "/result_force_numeric_symbolic"
                 ].stateValues.value.map((x) =>
-                    typeof x === "number" && me.math.round(x, 10) === 0 ? 0 : x
-                )
+                    typeof x === "number" && me.math.round(x, 10) === 0 ? 0 : x,
+                ),
             ).eqls(["vector", 0, -1]);
         });
 
         cy.log("change variable");
         cy.get(cesc("#\\/variable1") + " textarea").type(
             "{end}{backspace}u{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/variable2") + " textarea").type(
             "{end}{backspace}v{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/result_symbolic")).should(
             "contain.text",
-            "(sin(x+y),cos(x−y))"
+            "(sin(x+y),cos(x−y))",
         );
         cy.get(cesc("#\\/result_symbolic"))
             .find(".mjx-mrow")
@@ -4650,7 +4650,7 @@ describe("Evaluate Tag Tests", function () {
                 ["apply", "cos", ["+", "x", ["-", "y"]]],
             ]);
             expect(
-                stateVariables[result_symbolic2_name].stateValues.value
+                stateVariables[result_symbolic2_name].stateValues.value,
             ).eqls([
                 "vector",
                 ["apply", "sin", ["+", "x", "y"]],
@@ -4662,26 +4662,26 @@ describe("Evaluate Tag Tests", function () {
                 ["apply", "cos", ["+", "x", ["-", "y"]]],
             ]);
             assert.isNaN(
-                stateVariables["/result_numeric"].stateValues.value[1]
+                stateVariables["/result_numeric"].stateValues.value[1],
             );
             assert.isNaN(
-                stateVariables["/result_numeric"].stateValues.value[2]
+                stateVariables["/result_numeric"].stateValues.value[2],
             );
             assert.isNaN(
-                stateVariables[result_numeric2_name].stateValues.value[1]
+                stateVariables[result_numeric2_name].stateValues.value[1],
             );
             assert.isNaN(
-                stateVariables[result_numeric2_name].stateValues.value[2]
+                stateVariables[result_numeric2_name].stateValues.value[2],
             );
             assert.isNaN(
-                stateVariables["/result_numeric3"].stateValues.value[1]
+                stateVariables["/result_numeric3"].stateValues.value[1],
             );
             assert.isNaN(
-                stateVariables["/result_numeric3"].stateValues.value[2]
+                stateVariables["/result_numeric3"].stateValues.value[2],
             );
             expect(
                 stateVariables["/result_force_symbolic_numeric"].stateValues
-                    .value
+                    .value,
             ).eqls([
                 "vector",
                 ["apply", "sin", ["+", "x", "y"]],
@@ -4689,22 +4689,22 @@ describe("Evaluate Tag Tests", function () {
             ]);
             assert.isNaN(
                 stateVariables["/result_force_numeric_symbolic"].stateValues
-                    .value[1]
+                    .value[1],
             );
             assert.isNaN(
                 stateVariables["/result_force_numeric_symbolic"].stateValues
-                    .value[2]
+                    .value[2],
             );
         });
 
         cy.log("change formula to use new variables");
         cy.get(cesc("#\\/formula") + " textarea").type(
             "{end}{leftArrow}{leftArrow}{backspace}{backspace}{backspace}u-v{leftArrow}{leftArrow}{leftArrow}{leftArrow}{leftArrow}{leftArrow}{leftArrow}{leftArrow}{leftArrow}{backspace}{backspace}{backspace}u+v{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/result_symbolic")).should(
             "contain.text",
-            "(sin(π+2π),cos(π−2π))"
+            "(sin(π+2π),cos(π−2π))",
         );
 
         cy.get(cesc("#\\/result_symbolic"))
@@ -4772,7 +4772,7 @@ describe("Evaluate Tag Tests", function () {
                 ["apply", "cos", ["+", "pi", ["*", -2, "pi"]]],
             ]);
             expect(
-                stateVariables[result_symbolic2_name].stateValues.value
+                stateVariables[result_symbolic2_name].stateValues.value,
             ).eqls([
                 "vector",
                 ["apply", "sin", ["+", "pi", ["*", 2, "pi"]]],
@@ -4785,25 +4785,25 @@ describe("Evaluate Tag Tests", function () {
             ]);
             expect(
                 stateVariables["/result_numeric"].stateValues.value.map((x) =>
-                    typeof x === "number" && me.math.round(x, 10) === 0 ? 0 : x
-                )
+                    typeof x === "number" && me.math.round(x, 10) === 0 ? 0 : x,
+                ),
             ).eqls(["vector", 0, -1]);
             expect(
                 stateVariables[result_numeric2_name].stateValues.value.map(
                     (x) =>
                         typeof x === "number" && me.math.round(x, 10) === 0
                             ? 0
-                            : x
-                )
+                            : x,
+                ),
             ).eqls(["vector", 0, -1]);
             expect(
                 stateVariables["/result_numeric3"].stateValues.value.map((x) =>
-                    typeof x === "number" && me.math.round(x, 10) === 0 ? 0 : x
-                )
+                    typeof x === "number" && me.math.round(x, 10) === 0 ? 0 : x,
+                ),
             ).eqls(["vector", 0, -1]);
             expect(
                 stateVariables["/result_force_symbolic_numeric"].stateValues
-                    .value
+                    .value,
             ).eqls([
                 "vector",
                 ["apply", "sin", ["+", "pi", ["*", 2, "pi"]]],
@@ -4813,8 +4813,8 @@ describe("Evaluate Tag Tests", function () {
                 stateVariables[
                     "/result_force_numeric_symbolic"
                 ].stateValues.value.map((x) =>
-                    typeof x === "number" && me.math.round(x, 10) === 0 ? 0 : x
-                )
+                    typeof x === "number" && me.math.round(x, 10) === 0 ? 0 : x,
+                ),
             ).eqls(["vector", 0, -1]);
         });
     });
@@ -4841,7 +4841,7 @@ describe("Evaluate Tag Tests", function () {
   <p>Evaluate 3: $result1{name="result3"}</p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4896,7 +4896,7 @@ describe("Evaluate Tag Tests", function () {
         cy.log("evaluate at (7,3)");
         cy.get(cesc("#\\/input") + " textarea").type(
             "{end}{leftArrow}{backspace}{backspace}{backspace}7,3{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/result1")).should("contain.text", "(10,4)");
@@ -4983,7 +4983,7 @@ describe("Evaluate Tag Tests", function () {
             "{end}{leftArrow},2{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/result1")).should("contain.text", "(10,4)");
@@ -5032,7 +5032,7 @@ describe("Evaluate Tag Tests", function () {
         cy.log("change formula to use all variables");
         cy.get(cesc("#\\/formula") + " textarea").type(
             "{rightArrow}z{end}{leftArrow}z{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/result1")).should("contain.text", "(17,1)");
@@ -5188,7 +5188,7 @@ describe("Evaluate Tag Tests", function () {
             "{end}{leftArrow},5{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/result1")).should("contain.text", "＿");
@@ -5289,7 +5289,7 @@ describe("Evaluate Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5341,7 +5341,7 @@ describe("Evaluate Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5383,7 +5383,7 @@ describe("Evaluate Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5498,7 +5498,7 @@ describe("Evaluate Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5806,7 +5806,7 @@ describe("Evaluate Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5986,7 +5986,7 @@ describe("Evaluate Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6055,7 +6055,7 @@ describe("Evaluate Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6153,16 +6153,16 @@ describe("Evaluate Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             let f1 = createFunctionFromDefinition(
-                stateVariables["/f1"].stateValues.fDefinitions[0]
+                stateVariables["/f1"].stateValues.fDefinitions[0],
             );
             let f2 = createFunctionFromDefinition(
-                stateVariables["/f2"].stateValues.fDefinitions[0]
+                stateVariables["/f2"].stateValues.fDefinitions[0],
             );
             let f3 = createFunctionFromDefinition(
-                stateVariables["/f3"].stateValues.fDefinitions[0]
+                stateVariables["/f3"].stateValues.fDefinitions[0],
             );
             let f4 = createFunctionFromDefinition(
-                stateVariables["/f4"].stateValues.fDefinitions[0]
+                stateVariables["/f4"].stateValues.fDefinitions[0],
             );
 
             expect(f1(-Math.PI)).eqls(NaN);
@@ -6213,7 +6213,7 @@ describe("Evaluate Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6390,7 +6390,7 @@ describe("Evaluate Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6656,16 +6656,16 @@ describe("Evaluate Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             let f1 = createFunctionFromDefinition(
-                stateVariables["/f1"].stateValues.fDefinitions[0]
+                stateVariables["/f1"].stateValues.fDefinitions[0],
             );
             let f2 = createFunctionFromDefinition(
-                stateVariables["/f2"].stateValues.fDefinitions[0]
+                stateVariables["/f2"].stateValues.fDefinitions[0],
             );
             let f3 = createFunctionFromDefinition(
-                stateVariables["/f3"].stateValues.fDefinitions[0]
+                stateVariables["/f3"].stateValues.fDefinitions[0],
             );
             let f4 = createFunctionFromDefinition(
-                stateVariables["/f4"].stateValues.fDefinitions[0]
+                stateVariables["/f4"].stateValues.fDefinitions[0],
             );
 
             expect(f1(-Math.PI, -Math.PI)).eqls(NaN);
@@ -6792,7 +6792,7 @@ describe("Evaluate Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -7280,7 +7280,7 @@ describe("Evaluate Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -7434,7 +7434,7 @@ describe("Evaluate Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -7732,7 +7732,7 @@ describe("Evaluate Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -7974,28 +7974,28 @@ describe("Evaluate Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             let f = createFunctionFromDefinition(
-                stateVariables["/f"].stateValues.fDefinitions[0]
+                stateVariables["/f"].stateValues.fDefinitions[0],
             );
             let fa = createFunctionFromDefinition(
-                stateVariables["/fa"].stateValues.fDefinitions[0]
+                stateVariables["/fa"].stateValues.fDefinitions[0],
             );
             let fxp1 = createFunctionFromDefinition(
-                stateVariables["/fxp1"].stateValues.fDefinitions[0]
+                stateVariables["/fxp1"].stateValues.fDefinitions[0],
             );
             let fp1 = createFunctionFromDefinition(
-                stateVariables["/fp1"].stateValues.fDefinitions[0]
+                stateVariables["/fp1"].stateValues.fDefinitions[0],
             );
             let fp1a = createFunctionFromDefinition(
-                stateVariables["/fp1a"].stateValues.fDefinitions[0]
+                stateVariables["/fp1a"].stateValues.fDefinitions[0],
             );
             let fxp1p1 = createFunctionFromDefinition(
-                stateVariables["/fxp1p1"].stateValues.fDefinitions[0]
+                stateVariables["/fxp1p1"].stateValues.fDefinitions[0],
             );
             let fm = createFunctionFromDefinition(
-                stateVariables["/fm"].stateValues.fDefinitions[0]
+                stateVariables["/fm"].stateValues.fDefinitions[0],
             );
             let fp1m = createFunctionFromDefinition(
-                stateVariables["/fp1m"].stateValues.fDefinitions[0]
+                stateVariables["/fp1m"].stateValues.fDefinitions[0],
             );
 
             expect(f(0)).eqls(NaN);
@@ -8100,7 +8100,7 @@ describe("Evaluate Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -8398,7 +8398,7 @@ describe("Evaluate Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -8640,28 +8640,28 @@ describe("Evaluate Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             let f = createFunctionFromDefinition(
-                stateVariables["/f"].stateValues.fDefinitions[0]
+                stateVariables["/f"].stateValues.fDefinitions[0],
             );
             let fa = createFunctionFromDefinition(
-                stateVariables["/fa"].stateValues.fDefinitions[0]
+                stateVariables["/fa"].stateValues.fDefinitions[0],
             );
             let fxp1 = createFunctionFromDefinition(
-                stateVariables["/fxp1"].stateValues.fDefinitions[0]
+                stateVariables["/fxp1"].stateValues.fDefinitions[0],
             );
             let fp1 = createFunctionFromDefinition(
-                stateVariables["/fp1"].stateValues.fDefinitions[0]
+                stateVariables["/fp1"].stateValues.fDefinitions[0],
             );
             let fp1a = createFunctionFromDefinition(
-                stateVariables["/fp1a"].stateValues.fDefinitions[0]
+                stateVariables["/fp1a"].stateValues.fDefinitions[0],
             );
             let fxp1p1 = createFunctionFromDefinition(
-                stateVariables["/fxp1p1"].stateValues.fDefinitions[0]
+                stateVariables["/fxp1p1"].stateValues.fDefinitions[0],
             );
             let fm = createFunctionFromDefinition(
-                stateVariables["/fm"].stateValues.fDefinitions[0]
+                stateVariables["/fm"].stateValues.fDefinitions[0],
             );
             let fp1m = createFunctionFromDefinition(
-                stateVariables["/fp1m"].stateValues.fDefinitions[0]
+                stateVariables["/fp1m"].stateValues.fDefinitions[0],
             );
 
             // Note: function from definition is numeric even for f itself, so returns NaNs
@@ -8725,7 +8725,7 @@ describe("Evaluate Tag Tests", function () {
   <p name="pha">$$ha(2)</p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -8850,7 +8850,7 @@ describe("Evaluate Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -9034,22 +9034,22 @@ describe("Evaluate Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             let f = createFunctionFromDefinition(
-                stateVariables["/f"].stateValues.fDefinitions[0]
+                stateVariables["/f"].stateValues.fDefinitions[0],
             );
             let fa = createFunctionFromDefinition(
-                stateVariables["/fa"].stateValues.fDefinitions[0]
+                stateVariables["/fa"].stateValues.fDefinitions[0],
             );
             let fxp1 = createFunctionFromDefinition(
-                stateVariables["/fxp1"].stateValues.fDefinitions[0]
+                stateVariables["/fxp1"].stateValues.fDefinitions[0],
             );
             let fp1 = createFunctionFromDefinition(
-                stateVariables["/fp1"].stateValues.fDefinitions[0]
+                stateVariables["/fp1"].stateValues.fDefinitions[0],
             );
             let fp1a = createFunctionFromDefinition(
-                stateVariables["/fp1a"].stateValues.fDefinitions[0]
+                stateVariables["/fp1a"].stateValues.fDefinitions[0],
             );
             let fxp1p1 = createFunctionFromDefinition(
-                stateVariables["/fxp1p1"].stateValues.fDefinitions[0]
+                stateVariables["/fxp1p1"].stateValues.fDefinitions[0],
             );
 
             expect(f(3)).eqls(0);

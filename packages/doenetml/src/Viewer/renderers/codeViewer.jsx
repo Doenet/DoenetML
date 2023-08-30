@@ -11,7 +11,7 @@ import { RxUpdate } from "react-icons/rx";
 export default React.memo(function CodeViewer(props) {
     let { name, id, SVs, children, actions, callAction } = useDoenetRenderer(
         props,
-        false
+        false,
     );
 
     const [variants, setVariants] = useState({

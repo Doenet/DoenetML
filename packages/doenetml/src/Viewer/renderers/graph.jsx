@@ -97,14 +97,14 @@ export default React.memo(function Graph(props) {
                 let xscale = Math.abs(xmax - xmin);
                 let yscale = Math.abs(ymax - ymin);
                 let diffs = newBoundingbox.map((v, i) =>
-                    Math.abs(v - previousBoundingbox.current[i])
+                    Math.abs(v - previousBoundingbox.current[i]),
                 );
                 if (
                     Math.max(
                         diffs[0] / xscale,
                         diffs[1] / yscale,
                         diffs[2] / xscale,
-                        diffs[3] / yscale
+                        diffs[3] / yscale,
                     ) > 1e-12
                 ) {
                     previousBoundingbox.current = newBoundingbox;
@@ -523,7 +523,7 @@ export default React.memo(function Graph(props) {
                 [0, 0],
                 [0, 1],
             ],
-            yaxisOptions
+            yaxisOptions,
         );
 
         // change default ticks function to decreasing starting tick size
@@ -532,7 +532,7 @@ export default React.memo(function Graph(props) {
 
             b = this.getLowerAndUpperBounds(
                 this.getZeroCoordinates(),
-                "ticksdistance"
+                "ticksdistance",
             );
             dist = b.upper - b.lower;
 
@@ -551,7 +551,7 @@ export default React.memo(function Graph(props) {
         // don't have access to Mat and Type)
         yaxis.current.defaultTicks.generateEquidistantTicks = function (
             coordsZero,
-            bounds
+            bounds,
         ) {
             var tickPosition,
                 eps2 = 1e-6,
@@ -573,7 +573,7 @@ export default React.memo(function Graph(props) {
                 ticksDelta = this.adjustTickDistance(
                     ticksDelta,
                     coordsZero,
-                    deltas
+                    deltas,
                 );
 
                 // Only change from JSXgraph function:
@@ -607,7 +607,7 @@ export default React.memo(function Graph(props) {
                         coordsZero,
                         tickPosition,
                         ticksDelta,
-                        deltas
+                        deltas,
                     );
                 }
                 tickPosition += ticksDelta;
@@ -627,7 +627,7 @@ export default React.memo(function Graph(props) {
                         coordsZero,
                         tickPosition,
                         ticksDelta,
-                        deltas
+                        deltas,
                     );
                 }
                 tickPosition -= ticksDelta;
@@ -718,7 +718,7 @@ export default React.memo(function Graph(props) {
                 [0, 0],
                 [1, 0],
             ],
-            xaxisOptions
+            xaxisOptions,
         );
 
         // change default ticks function to decreasing starting tick size
@@ -727,7 +727,7 @@ export default React.memo(function Graph(props) {
 
             b = this.getLowerAndUpperBounds(
                 this.getZeroCoordinates(),
-                "ticksdistance"
+                "ticksdistance",
             );
             dist = b.upper - b.lower;
 
@@ -746,7 +746,7 @@ export default React.memo(function Graph(props) {
         // don't have access to Mat and Type)
         xaxis.current.defaultTicks.generateEquidistantTicks = function (
             coordsZero,
-            bounds
+            bounds,
         ) {
             // First change from JSXgraph: increase minTickDistance for larger numbers
             this.minTicksDistance =
@@ -754,7 +754,7 @@ export default React.memo(function Graph(props) {
                 Math.max(
                     2.5,
                     Math.log10(Math.abs(bounds.lower)),
-                    Math.log10(Math.abs(bounds.upper))
+                    Math.log10(Math.abs(bounds.upper)),
                 );
 
             var tickPosition,
@@ -777,7 +777,7 @@ export default React.memo(function Graph(props) {
                 ticksDelta = this.adjustTickDistance(
                     ticksDelta,
                     coordsZero,
-                    deltas
+                    deltas,
                 );
 
                 // Second change from JSXgraph function:
@@ -811,7 +811,7 @@ export default React.memo(function Graph(props) {
                         coordsZero,
                         tickPosition,
                         ticksDelta,
-                        deltas
+                        deltas,
                     );
                 }
                 tickPosition += ticksDelta;
@@ -831,7 +831,7 @@ export default React.memo(function Graph(props) {
                         coordsZero,
                         tickPosition,
                         ticksDelta,
-                        deltas
+                        deltas,
                     );
                 }
                 tickPosition -= ticksDelta;
@@ -849,7 +849,7 @@ export default React.memo(function Graph(props) {
     function addNavigationButtons() {
         // not sure why getElementById doesn't work
         let navigationBar = document.querySelector(
-            "#" + cesc(id) + `_navigationbar`
+            "#" + cesc(id) + `_navigationbar`,
         );
 
         // code modified from abstract.js and env.js of JSXGraph
@@ -885,7 +885,7 @@ export default React.memo(function Graph(props) {
             navigationBar.appendChild(button);
             button.setAttribute(
                 "style",
-                "color: var(--canvastext); opacity: 0.7"
+                "color: var(--canvastext); opacity: 0.7",
             );
             let text_node = document.createTextNode(label);
             button.appendChild(text_node);
@@ -906,7 +906,7 @@ export default React.memo(function Graph(props) {
                     handler.bind(board)();
                     return false;
                 },
-                board
+                board,
             );
             // prevent the click from bubbling down to the board
             addEvent(button, "mouseup", cancelbubble);
@@ -929,7 +929,7 @@ export default React.memo(function Graph(props) {
     function removeNavigationButtons() {
         for (let i = 7; i >= 1; i--) {
             let button = document.querySelector(
-                "#" + cesc(id) + `_navigationbar > :first-child`
+                "#" + cesc(id) + `_navigationbar > :first-child`,
             );
             button.remove();
         }

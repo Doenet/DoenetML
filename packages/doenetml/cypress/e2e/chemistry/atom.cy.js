@@ -42,7 +42,7 @@ describe("Atom Tests", function () {
   
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -75,7 +75,7 @@ describe("Atom Tests", function () {
             "{end}{backspace}2{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/name")).should("have.text", "Helium");
@@ -111,7 +111,7 @@ describe("Atom Tests", function () {
         cy.get(cesc("#\\/group")).should("have.text", "2");
         cy.get(cesc("#\\/groupName")).should(
             "have.text",
-            "Alkaline Earth Metal"
+            "Alkaline Earth Metal",
         );
         cy.get(cesc("#\\/atomicMass")).should("have.text", "24.305");
         cy.get(cesc("#\\/pahseAtSTP")).should("have.text", "Solid");
@@ -129,13 +129,13 @@ describe("Atom Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).eq(
-                    "1s22s22p63s2"
+                    "1s22s22p63s2",
                 );
             });
 
         cy.get(cesc("#\\/aNum") + " textarea").type(
             "{home}{rightArrow}{backspace}5{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/name")).should("have.text", "Tellurium");
@@ -159,7 +159,7 @@ describe("Atom Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).eq(
-                    "1s22s22p63s23p63d104s24p64d105s25p4"
+                    "1s22s22p63s23p63d104s24p64d105s25p4",
                 );
             });
     });
@@ -186,7 +186,7 @@ describe("Atom Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load

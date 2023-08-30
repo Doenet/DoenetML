@@ -21,7 +21,7 @@ describe("Triangle Tag Tests", function () {
   </graph>
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -47,11 +47,11 @@ describe("Triangle Tag Tests", function () {
 
                 for (let i = 0; i < 3; i++) {
                     expect(
-                        stateVariables["/_triangle1"].stateValues.vertices[i]
+                        stateVariables["/_triangle1"].stateValues.vertices[i],
                     ).eqls([pxs[i], pys[i]]);
                     expect(
                         stateVariables[vertices[i].componentName].stateValues
-                            .coords
+                            .coords,
                     ).eqls(["vector", pxs[i], pys[i]]);
                 }
             });
@@ -73,13 +73,13 @@ describe("Triangle Tag Tests", function () {
                         me
                             .fromAst(
                                 stateVariables["/_triangle1"].stateValues
-                                    .vertices[i][0]
+                                    .vertices[i][0],
                             )
                             .add(moveX).tree,
                         me
                             .fromAst(
                                 stateVariables["/_triangle1"].stateValues
-                                    .vertices[i][1]
+                                    .vertices[i][1],
                             )
                             .add(moveY).tree,
                     ]);
@@ -108,11 +108,11 @@ describe("Triangle Tag Tests", function () {
                         expect(
                             stateVariables["/_triangle1"].stateValues.vertices[
                                 i
-                            ]
+                            ],
                         ).eqls([pxs[i], pys[i]]);
                         expect(
                             stateVariables[vertices[i].componentName]
-                                .stateValues.coords
+                                .stateValues.coords,
                         ).eqls(["vector", pxs[i], pys[i]]);
                     }
                 });
@@ -140,11 +140,11 @@ describe("Triangle Tag Tests", function () {
                         expect(
                             stateVariables["/_triangle1"].stateValues.vertices[
                                 i
-                            ]
+                            ],
                         ).eqls([pxs[i], pys[i]]);
                         expect(
                             stateVariables[vertices[i].componentName]
-                                .stateValues.coords
+                                .stateValues.coords,
                         ).eqls(["vector", pxs[i], pys[i]]);
                     }
                 });
@@ -166,7 +166,7 @@ describe("Triangle Tag Tests", function () {
   </graph>
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -192,11 +192,11 @@ describe("Triangle Tag Tests", function () {
 
                 for (let i = 0; i < 3; i++) {
                     expect(
-                        stateVariables["/_triangle1"].stateValues.vertices[i]
+                        stateVariables["/_triangle1"].stateValues.vertices[i],
                     ).eqls([pxs[i], pys[i]]);
                     expect(
                         stateVariables[vertices[i].componentName].stateValues
-                            .coords
+                            .coords,
                     ).eqls(["vector", pxs[i], pys[i]]);
                 }
             });
@@ -218,13 +218,13 @@ describe("Triangle Tag Tests", function () {
                         me
                             .fromAst(
                                 stateVariables["/_triangle1"].stateValues
-                                    .vertices[i][0]
+                                    .vertices[i][0],
                             )
                             .add(moveX).tree,
                         me
                             .fromAst(
                                 stateVariables["/_triangle1"].stateValues
-                                    .vertices[i][1]
+                                    .vertices[i][1],
                             )
                             .add(moveY).tree,
                     ]);
@@ -252,11 +252,11 @@ describe("Triangle Tag Tests", function () {
                         expect(
                             stateVariables["/_triangle1"].stateValues.vertices[
                                 i
-                            ]
+                            ],
                         ).eqls([pxs[i], pys[i]]);
                         expect(
                             stateVariables[vertices[i].componentName]
-                                .stateValues.coords
+                                .stateValues.coords,
                         ).eqls(["vector", pxs[i], pys[i]]);
                     }
                 });
@@ -284,11 +284,11 @@ describe("Triangle Tag Tests", function () {
                         expect(
                             stateVariables["/_triangle1"].stateValues.vertices[
                                 i
-                            ]
+                            ],
                         ).eqls([pxs[i], pys[i]]);
                         expect(
                             stateVariables[vertices[i].componentName]
-                                .stateValues.coords
+                                .stateValues.coords,
                         ).eqls(["vector", pxs[i], pys[i]]);
                     }
                 });
@@ -310,7 +310,7 @@ describe("Triangle Tag Tests", function () {
   </graph>
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -336,11 +336,11 @@ describe("Triangle Tag Tests", function () {
 
                 for (let i = 0; i < 3; i++) {
                     expect(
-                        stateVariables["/_triangle1"].stateValues.vertices[i]
+                        stateVariables["/_triangle1"].stateValues.vertices[i],
                     ).eqls([pxs[i], pys[i]]);
                     expect(
                         stateVariables[vertices[i].componentName].stateValues
-                            .coords
+                            .coords,
                     ).eqls(["vector", pxs[i], pys[i]]);
                 }
             });
@@ -362,13 +362,13 @@ describe("Triangle Tag Tests", function () {
                         me
                             .fromAst(
                                 stateVariables["/_triangle1"].stateValues
-                                    .vertices[i][0]
+                                    .vertices[i][0],
                             )
                             .add(moveX).tree,
                         me
                             .fromAst(
                                 stateVariables["/_triangle1"].stateValues
-                                    .vertices[i][1]
+                                    .vertices[i][1],
                             )
                             .add(moveY).tree,
                     ]);
@@ -396,11 +396,11 @@ describe("Triangle Tag Tests", function () {
                         expect(
                             stateVariables["/_triangle1"].stateValues.vertices[
                                 i
-                            ]
+                            ],
                         ).eqls([pxs[i], pys[i]]);
                         expect(
                             stateVariables[vertices[i].componentName]
-                                .stateValues.coords
+                                .stateValues.coords,
                         ).eqls(["vector", pxs[i], pys[i]]);
                     }
                 });
@@ -428,11 +428,11 @@ describe("Triangle Tag Tests", function () {
                         expect(
                             stateVariables["/_triangle1"].stateValues.vertices[
                                 i
-                            ]
+                            ],
                         ).eqls([pxs[i], pys[i]]);
                         expect(
                             stateVariables[vertices[i].componentName]
-                                .stateValues.coords
+                                .stateValues.coords,
                         ).eqls(["vector", pxs[i], pys[i]]);
                     }
                 });
@@ -454,7 +454,7 @@ describe("Triangle Tag Tests", function () {
   </graph>
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -480,11 +480,11 @@ describe("Triangle Tag Tests", function () {
 
                 for (let i = 0; i < 3; i++) {
                     expect(
-                        stateVariables["/_triangle1"].stateValues.vertices[i]
+                        stateVariables["/_triangle1"].stateValues.vertices[i],
                     ).eqls([pxs[i], pys[i]]);
                     expect(
                         stateVariables[vertices[i].componentName].stateValues
-                            .coords
+                            .coords,
                     ).eqls(["vector", pxs[i], pys[i]]);
                 }
             });
@@ -506,13 +506,13 @@ describe("Triangle Tag Tests", function () {
                         me
                             .fromAst(
                                 stateVariables["/_triangle1"].stateValues
-                                    .vertices[i][0]
+                                    .vertices[i][0],
                             )
                             .add(moveX).tree,
                         me
                             .fromAst(
                                 stateVariables["/_triangle1"].stateValues
-                                    .vertices[i][1]
+                                    .vertices[i][1],
                             )
                             .add(moveY).tree,
                     ]);
@@ -540,11 +540,11 @@ describe("Triangle Tag Tests", function () {
                         expect(
                             stateVariables["/_triangle1"].stateValues.vertices[
                                 i
-                            ]
+                            ],
                         ).eqls([pxs[i], pys[i]]);
                         expect(
                             stateVariables[vertices[i].componentName]
-                                .stateValues.coords
+                                .stateValues.coords,
                         ).eqls(["vector", pxs[i], pys[i]]);
                     }
                 });
@@ -572,11 +572,11 @@ describe("Triangle Tag Tests", function () {
                         expect(
                             stateVariables["/_triangle1"].stateValues.vertices[
                                 i
-                            ]
+                            ],
                         ).eqls([pxs[i], pys[i]]);
                         expect(
                             stateVariables[vertices[i].componentName]
-                                .stateValues.coords
+                                .stateValues.coords,
                         ).eqls(["vector", pxs[i], pys[i]]);
                     }
                 });
@@ -598,7 +598,7 @@ describe("Triangle Tag Tests", function () {
   </graph>
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -624,11 +624,11 @@ describe("Triangle Tag Tests", function () {
 
                 for (let i = 0; i < 3; i++) {
                     expect(
-                        stateVariables["/_triangle1"].stateValues.vertices[i]
+                        stateVariables["/_triangle1"].stateValues.vertices[i],
                     ).eqls([pxs[i], pys[i]]);
                     expect(
                         stateVariables[vertices[i].componentName].stateValues
-                            .coords
+                            .coords,
                     ).eqls(["vector", pxs[i], pys[i]]);
                 }
             });
@@ -650,13 +650,13 @@ describe("Triangle Tag Tests", function () {
                         me
                             .fromAst(
                                 stateVariables["/_triangle1"].stateValues
-                                    .vertices[i][0]
+                                    .vertices[i][0],
                             )
                             .add(moveX).tree,
                         me
                             .fromAst(
                                 stateVariables["/_triangle1"].stateValues
-                                    .vertices[i][1]
+                                    .vertices[i][1],
                             )
                             .add(moveY).tree,
                     ]);
@@ -684,11 +684,11 @@ describe("Triangle Tag Tests", function () {
                         expect(
                             stateVariables["/_triangle1"].stateValues.vertices[
                                 i
-                            ]
+                            ],
                         ).eqls([pxs[i], pys[i]]);
                         expect(
                             stateVariables[vertices[i].componentName]
-                                .stateValues.coords
+                                .stateValues.coords,
                         ).eqls(["vector", pxs[i], pys[i]]);
                     }
                 });
@@ -716,11 +716,11 @@ describe("Triangle Tag Tests", function () {
                         expect(
                             stateVariables["/_triangle1"].stateValues.vertices[
                                 i
-                            ]
+                            ],
                         ).eqls([pxs[i], pys[i]]);
                         expect(
                             stateVariables[vertices[i].componentName]
-                                .stateValues.coords
+                                .stateValues.coords,
                         ).eqls(["vector", pxs[i], pys[i]]);
                     }
                 });
@@ -755,7 +755,7 @@ describe("Triangle Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -803,31 +803,31 @@ describe("Triangle Tag Tests", function () {
             ];
 
             expect(
-                stateVariables["/g1/t1"].stateValues.vertices.map((y) => y)
+                stateVariables["/g1/t1"].stateValues.vertices.map((y) => y),
             ).eqls(v1s);
             expect(
-                stateVariables["/g2/t1"].stateValues.vertices.map((y) => y)
+                stateVariables["/g2/t1"].stateValues.vertices.map((y) => y),
             ).eqls(v1s);
 
             expect(
-                stateVariables["/g1/t2"].stateValues.vertices.map((y) => y)
+                stateVariables["/g1/t2"].stateValues.vertices.map((y) => y),
             ).eqls(v2s);
             expect(
-                stateVariables["/g2/t2"].stateValues.vertices.map((y) => y)
+                stateVariables["/g2/t2"].stateValues.vertices.map((y) => y),
             ).eqls(v2s);
 
             expect(
-                stateVariables["/g1/t3"].stateValues.vertices.map((y) => y)
+                stateVariables["/g1/t3"].stateValues.vertices.map((y) => y),
             ).eqls(v3s);
             expect(
-                stateVariables["/g2/t3"].stateValues.vertices.map((y) => y)
+                stateVariables["/g2/t3"].stateValues.vertices.map((y) => y),
             ).eqls(v3s);
 
             expect(
-                stateVariables["/g1/t4"].stateValues.vertices.map((y) => y)
+                stateVariables["/g1/t4"].stateValues.vertices.map((y) => y),
             ).eqls(v4s);
             expect(
-                stateVariables["/g2/t4"].stateValues.vertices.map((y) => y)
+                stateVariables["/g2/t4"].stateValues.vertices.map((y) => y),
             ).eqls(v4s);
         }
 
@@ -1285,7 +1285,7 @@ describe("Triangle Tag Tests", function () {
   </graph>
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -1372,11 +1372,11 @@ describe("Triangle Tag Tests", function () {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     5,
-                    1e-14
+                    1e-14,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     1,
-                    1e-14
+                    1e-14,
                 );
             });
         });
@@ -1392,11 +1392,11 @@ describe("Triangle Tag Tests", function () {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     2,
-                    1e-14
+                    1e-14,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     4,
-                    1e-14
+                    1e-14,
                 );
             });
         });
@@ -1412,11 +1412,11 @@ describe("Triangle Tag Tests", function () {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     0,
-                    1e-14
+                    1e-14,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     3,
-                    1e-14
+                    1e-14,
                 );
             });
         });
@@ -1441,7 +1441,7 @@ describe("Triangle Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -1492,22 +1492,22 @@ describe("Triangle Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_triangle1"].stateValues.vertices[0]
+                    stateVariables["/_triangle1"].stateValues.vertices[0],
                 ).eqls([x1, y1]);
                 expect(
-                    stateVariables["/_triangle1"].stateValues.vertices[1]
+                    stateVariables["/_triangle1"].stateValues.vertices[1],
                 ).eqls([x2, y2]);
                 expect(
-                    stateVariables["/_triangle1"].stateValues.vertices[2]
+                    stateVariables["/_triangle1"].stateValues.vertices[2],
                 ).eqls([x3, y3]);
                 expect(
-                    stateVariables["/_triangle2"].stateValues.vertices[0]
+                    stateVariables["/_triangle2"].stateValues.vertices[0],
                 ).eqls([y1, x1]);
                 expect(
-                    stateVariables["/_triangle2"].stateValues.vertices[1]
+                    stateVariables["/_triangle2"].stateValues.vertices[1],
                 ).eqls([y2, x2]);
                 expect(
-                    stateVariables["/_triangle2"].stateValues.vertices[2]
+                    stateVariables["/_triangle2"].stateValues.vertices[2],
                 ).eqls([y3, x3]);
             });
         });
@@ -1536,22 +1536,22 @@ describe("Triangle Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_triangle1"].stateValues.vertices[0]
+                    stateVariables["/_triangle1"].stateValues.vertices[0],
                 ).eqls([x1, y1]);
                 expect(
-                    stateVariables["/_triangle1"].stateValues.vertices[1]
+                    stateVariables["/_triangle1"].stateValues.vertices[1],
                 ).eqls([x2, y2]);
                 expect(
-                    stateVariables["/_triangle1"].stateValues.vertices[2]
+                    stateVariables["/_triangle1"].stateValues.vertices[2],
                 ).eqls([x3, y3]);
                 expect(
-                    stateVariables["/_triangle2"].stateValues.vertices[0]
+                    stateVariables["/_triangle2"].stateValues.vertices[0],
                 ).eqls([y1, x1]);
                 expect(
-                    stateVariables["/_triangle2"].stateValues.vertices[1]
+                    stateVariables["/_triangle2"].stateValues.vertices[1],
                 ).eqls([y2, x2]);
                 expect(
-                    stateVariables["/_triangle2"].stateValues.vertices[2]
+                    stateVariables["/_triangle2"].stateValues.vertices[2],
                 ).eqls([y3, x3]);
             });
         });
@@ -1576,7 +1576,7 @@ describe("Triangle Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -1628,22 +1628,22 @@ describe("Triangle Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_triangle1"].stateValues.vertices[0]
+                    stateVariables["/_triangle1"].stateValues.vertices[0],
                 ).eqls([x1, y1]);
                 expect(
-                    stateVariables["/_triangle1"].stateValues.vertices[1]
+                    stateVariables["/_triangle1"].stateValues.vertices[1],
                 ).eqls([x2, y2]);
                 expect(
-                    stateVariables["/_triangle1"].stateValues.vertices[2]
+                    stateVariables["/_triangle1"].stateValues.vertices[2],
                 ).eqls([x3, y3]);
                 expect(
-                    stateVariables["/_triangle2"].stateValues.vertices[0]
+                    stateVariables["/_triangle2"].stateValues.vertices[0],
                 ).eqls([y1, x1]);
                 expect(
-                    stateVariables["/_triangle2"].stateValues.vertices[1]
+                    stateVariables["/_triangle2"].stateValues.vertices[1],
                 ).eqls([y2, x2]);
                 expect(
-                    stateVariables["/_triangle2"].stateValues.vertices[2]
+                    stateVariables["/_triangle2"].stateValues.vertices[2],
                 ).eqls([y3, x3]);
             });
         });
@@ -1672,22 +1672,22 @@ describe("Triangle Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_triangle1"].stateValues.vertices[0]
+                    stateVariables["/_triangle1"].stateValues.vertices[0],
                 ).eqls([x1, y1]);
                 expect(
-                    stateVariables["/_triangle1"].stateValues.vertices[1]
+                    stateVariables["/_triangle1"].stateValues.vertices[1],
                 ).eqls([x2, y2]);
                 expect(
-                    stateVariables["/_triangle1"].stateValues.vertices[2]
+                    stateVariables["/_triangle1"].stateValues.vertices[2],
                 ).eqls([x3, y3]);
                 expect(
-                    stateVariables["/_triangle2"].stateValues.vertices[0]
+                    stateVariables["/_triangle2"].stateValues.vertices[0],
                 ).eqls([y1, x1]);
                 expect(
-                    stateVariables["/_triangle2"].stateValues.vertices[1]
+                    stateVariables["/_triangle2"].stateValues.vertices[1],
                 ).eqls([y2, x2]);
                 expect(
-                    stateVariables["/_triangle2"].stateValues.vertices[2]
+                    stateVariables["/_triangle2"].stateValues.vertices[2],
                 ).eqls([y3, x3]);
             });
         });
@@ -1710,7 +1710,7 @@ describe("Triangle Tag Tests", function () {
   </graph>
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -1738,13 +1738,13 @@ describe("Triangle Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_triangle1"].stateValues.vertices[0]
+                    stateVariables["/_triangle1"].stateValues.vertices[0],
                 ).eqls([-1, 4]);
                 expect(
-                    stateVariables["/_triangle1"].stateValues.vertices[1]
+                    stateVariables["/_triangle1"].stateValues.vertices[1],
                 ).eqls([4, -1]);
                 expect(
-                    stateVariables["/_triangle1"].stateValues.vertices[2]
+                    stateVariables["/_triangle1"].stateValues.vertices[2],
                 ).eqls([-5, 2]);
             });
         });
@@ -1759,13 +1759,13 @@ describe("Triangle Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_triangle1"].stateValues.vertices[0]
+                    stateVariables["/_triangle1"].stateValues.vertices[0],
                 ).eqls([-8, 7]);
                 expect(
-                    stateVariables["/_triangle1"].stateValues.vertices[1]
+                    stateVariables["/_triangle1"].stateValues.vertices[1],
                 ).eqls([7, -8]);
                 expect(
-                    stateVariables["/_triangle1"].stateValues.vertices[2]
+                    stateVariables["/_triangle1"].stateValues.vertices[2],
                 ).eqls([-5, 2]);
             });
         });
@@ -1780,13 +1780,13 @@ describe("Triangle Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_triangle1"].stateValues.vertices[0]
+                    stateVariables["/_triangle1"].stateValues.vertices[0],
                 ).eqls([-8, 7]);
                 expect(
-                    stateVariables["/_triangle1"].stateValues.vertices[1]
+                    stateVariables["/_triangle1"].stateValues.vertices[1],
                 ).eqls([7, -8]);
                 expect(
-                    stateVariables["/_triangle1"].stateValues.vertices[2]
+                    stateVariables["/_triangle1"].stateValues.vertices[2],
                 ).eqls([0, 6]);
             });
         });
@@ -1803,7 +1803,7 @@ describe("Triangle Tag Tests", function () {
   </graph>
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -1831,13 +1831,13 @@ describe("Triangle Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_triangle1"].stateValues.vertices[0]
+                    stateVariables["/_triangle1"].stateValues.vertices[0],
                 ).eqls([-1, 4]);
                 expect(
-                    stateVariables["/_triangle1"].stateValues.vertices[1]
+                    stateVariables["/_triangle1"].stateValues.vertices[1],
                 ).eqls([4, -1]);
                 expect(
-                    stateVariables["/_triangle1"].stateValues.vertices[2]
+                    stateVariables["/_triangle1"].stateValues.vertices[2],
                 ).eqls([-5, 2]);
             });
         });
@@ -1852,13 +1852,13 @@ describe("Triangle Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_triangle1"].stateValues.vertices[0]
+                    stateVariables["/_triangle1"].stateValues.vertices[0],
                 ).eqls([-8, 7]);
                 expect(
-                    stateVariables["/_triangle1"].stateValues.vertices[1]
+                    stateVariables["/_triangle1"].stateValues.vertices[1],
                 ).eqls([7, -8]);
                 expect(
-                    stateVariables["/_triangle1"].stateValues.vertices[2]
+                    stateVariables["/_triangle1"].stateValues.vertices[2],
                 ).eqls([-5, 2]);
             });
         });
@@ -1873,13 +1873,13 @@ describe("Triangle Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_triangle1"].stateValues.vertices[0]
+                    stateVariables["/_triangle1"].stateValues.vertices[0],
                 ).eqls([-8, 7]);
                 expect(
-                    stateVariables["/_triangle1"].stateValues.vertices[1]
+                    stateVariables["/_triangle1"].stateValues.vertices[1],
                 ).eqls([7, -8]);
                 expect(
-                    stateVariables["/_triangle1"].stateValues.vertices[2]
+                    stateVariables["/_triangle1"].stateValues.vertices[2],
                 ).eqls([0, 6]);
             });
         });
@@ -1896,7 +1896,7 @@ describe("Triangle Tag Tests", function () {
   </graph>
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -1924,13 +1924,13 @@ describe("Triangle Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_triangle1"].stateValues.vertices[0]
+                    stateVariables["/_triangle1"].stateValues.vertices[0],
                 ).eqls([-1, 4]);
                 expect(
-                    stateVariables["/_triangle1"].stateValues.vertices[1]
+                    stateVariables["/_triangle1"].stateValues.vertices[1],
                 ).eqls([4, -1]);
                 expect(
-                    stateVariables["/_triangle1"].stateValues.vertices[2]
+                    stateVariables["/_triangle1"].stateValues.vertices[2],
                 ).eqls([0, 0]);
             });
         });
@@ -1945,13 +1945,13 @@ describe("Triangle Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_triangle1"].stateValues.vertices[0]
+                    stateVariables["/_triangle1"].stateValues.vertices[0],
                 ).eqls([-8, 7]);
                 expect(
-                    stateVariables["/_triangle1"].stateValues.vertices[1]
+                    stateVariables["/_triangle1"].stateValues.vertices[1],
                 ).eqls([7, -8]);
                 expect(
-                    stateVariables["/_triangle1"].stateValues.vertices[2]
+                    stateVariables["/_triangle1"].stateValues.vertices[2],
                 ).eqls([0, 0]);
             });
         });
@@ -1966,13 +1966,13 @@ describe("Triangle Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_triangle1"].stateValues.vertices[0]
+                    stateVariables["/_triangle1"].stateValues.vertices[0],
                 ).eqls([-8, 7]);
                 expect(
-                    stateVariables["/_triangle1"].stateValues.vertices[1]
+                    stateVariables["/_triangle1"].stateValues.vertices[1],
                 ).eqls([7, -8]);
                 expect(
-                    stateVariables["/_triangle1"].stateValues.vertices[2]
+                    stateVariables["/_triangle1"].stateValues.vertices[2],
                 ).eqls([0, 6]);
             });
         });
@@ -1990,7 +1990,7 @@ describe("Triangle Tag Tests", function () {
   <p>Perimeter: <number copySource="t.perimeter" name="perimeter" /></p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2000,7 +2000,7 @@ describe("Triangle Tag Tests", function () {
         cy.get(cesc2("#/area")).should("have.text", `${area}`);
         cy.get(cesc2("#/perimeter")).should(
             "have.text",
-            `${Math.round(perimeter * 100) / 100}`
+            `${Math.round(perimeter * 100) / 100}`,
         );
 
         cy.window().then(async (win) => {
@@ -2016,7 +2016,7 @@ describe("Triangle Tag Tests", function () {
             cy.get(cesc2("#/area")).should("have.text", `${area}`);
             cy.get(cesc2("#/perimeter")).should(
                 "have.text",
-                `${Math.round(perimeter * 100) / 100}`
+                `${Math.round(perimeter * 100) / 100}`,
             );
         });
     });

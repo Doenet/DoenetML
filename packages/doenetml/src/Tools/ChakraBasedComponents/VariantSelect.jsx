@@ -39,7 +39,7 @@ export default function VariantSelect({
     }, [index, syncIndex, array]);
 
     const filteredArray = array.filter((string) =>
-        inputValue === "" ? true : string.includes(inputValue)
+        inputValue === "" ? true : string.includes(inputValue),
     );
     return (
         <>

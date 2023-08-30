@@ -35,7 +35,7 @@ describe("Circle Tag Tests", function () {
     $graph3{name="graph4"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -45,38 +45,38 @@ describe("Circle Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_circle1"].stateValues.center).eqls([0, 0]);
             expect(
-                stateVariables["/_circle1"].stateValues.numericalCenter
+                stateVariables["/_circle1"].stateValues.numericalCenter,
             ).eqls([0, 0]);
             expect(stateVariables["/_circle1"].stateValues.radius).eq(1);
             expect(stateVariables["/_circle1"].stateValues.numericalRadius).eq(
-                1
+                1,
             );
             expect(stateVariables["/graph3/circle"].stateValues.center).eqls([
                 0, 0,
             ]);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalCenter
+                stateVariables["/graph3/circle"].stateValues.numericalCenter,
             ).eqls([0, 0]);
             expect(
-                await stateVariables["/graph3/circle"].stateValues.radius
+                await stateVariables["/graph3/circle"].stateValues.radius,
             ).eq(1);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalRadius
+                stateVariables["/graph3/circle"].stateValues.numericalRadius,
             ).eq(1);
             expect(stateVariables["/graph4/circle"].stateValues.center).eqls([
                 0, 0,
             ]);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalCenter
+                stateVariables["/graph4/circle"].stateValues.numericalCenter,
             ).eqls([0, 0]);
             expect(
-                await stateVariables["/graph4/circle"].stateValues.radius
+                await stateVariables["/graph4/circle"].stateValues.radius,
             ).eq(1);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalRadius
+                stateVariables["/graph4/circle"].stateValues.numericalRadius,
             ).eq(1);
             expect((await stateVariables["/centerPoint"].stateValues.xs)[0]).eq(
-                0
+                0,
             );
             expect(stateVariables["/centerPoint"].stateValues.xs[1]).eq(0);
             expect(stateVariables["/radiusNumber"].stateValues.value).eq(1);
@@ -98,38 +98,38 @@ describe("Circle Tag Tests", function () {
 
             expect(stateVariables["/_circle1"].stateValues.center).eqls([2, 3]);
             expect(
-                stateVariables["/_circle1"].stateValues.numericalCenter
+                stateVariables["/_circle1"].stateValues.numericalCenter,
             ).eqls([2, 3]);
             expect(stateVariables["/_circle1"].stateValues.radius).eq(1);
             expect(stateVariables["/_circle1"].stateValues.numericalRadius).eq(
-                1
+                1,
             );
             expect(stateVariables["/graph3/circle"].stateValues.center).eqls([
                 2, 3,
             ]);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalCenter
+                stateVariables["/graph3/circle"].stateValues.numericalCenter,
             ).eqls([2, 3]);
             expect(
-                await stateVariables["/graph3/circle"].stateValues.radius
+                await stateVariables["/graph3/circle"].stateValues.radius,
             ).eq(1);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalRadius
+                stateVariables["/graph3/circle"].stateValues.numericalRadius,
             ).eq(1);
             expect(stateVariables["/graph4/circle"].stateValues.center).eqls([
                 2, 3,
             ]);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalCenter
+                stateVariables["/graph4/circle"].stateValues.numericalCenter,
             ).eqls([2, 3]);
             expect(
-                await stateVariables["/graph4/circle"].stateValues.radius
+                await stateVariables["/graph4/circle"].stateValues.radius,
             ).eq(1);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalRadius
+                stateVariables["/graph4/circle"].stateValues.numericalRadius,
             ).eq(1);
             expect((await stateVariables["/centerPoint"].stateValues.xs)[0]).eq(
-                2
+                2,
             );
             expect(stateVariables["/centerPoint"].stateValues.xs[1]).eq(3);
             expect(stateVariables["/radiusNumber"].stateValues.value).eq(1);
@@ -151,38 +151,38 @@ describe("Circle Tag Tests", function () {
 
             expect(stateVariables["/_circle1"].stateValues.center).eqls([2, 3]);
             expect(
-                stateVariables["/_circle1"].stateValues.numericalCenter
+                stateVariables["/_circle1"].stateValues.numericalCenter,
             ).eqls([2, 3]);
             expect(stateVariables["/_circle1"].stateValues.radius).eq(5);
             expect(stateVariables["/_circle1"].stateValues.numericalRadius).eq(
-                5
+                5,
             );
             expect(stateVariables["/graph3/circle"].stateValues.center).eqls([
                 2, 3,
             ]);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalCenter
+                stateVariables["/graph3/circle"].stateValues.numericalCenter,
             ).eqls([2, 3]);
             expect(
-                await stateVariables["/graph3/circle"].stateValues.radius
+                await stateVariables["/graph3/circle"].stateValues.radius,
             ).eq(5);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalRadius
+                stateVariables["/graph3/circle"].stateValues.numericalRadius,
             ).eq(5);
             expect(stateVariables["/graph4/circle"].stateValues.center).eqls([
                 2, 3,
             ]);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalCenter
+                stateVariables["/graph4/circle"].stateValues.numericalCenter,
             ).eqls([2, 3]);
             expect(
-                await stateVariables["/graph4/circle"].stateValues.radius
+                await stateVariables["/graph4/circle"].stateValues.radius,
             ).eq(5);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalRadius
+                stateVariables["/graph4/circle"].stateValues.numericalRadius,
             ).eq(5);
             expect((await stateVariables["/centerPoint"].stateValues.xs)[0]).eq(
-                2
+                2,
             );
             expect(stateVariables["/centerPoint"].stateValues.xs[1]).eq(3);
             expect(stateVariables["/radiusNumber"].stateValues.value).eq(5);
@@ -205,38 +205,38 @@ describe("Circle Tag Tests", function () {
                 -6, -2,
             ]);
             expect(
-                stateVariables["/_circle1"].stateValues.numericalCenter
+                stateVariables["/_circle1"].stateValues.numericalCenter,
             ).eqls([-6, -2]);
             expect(stateVariables["/_circle1"].stateValues.radius).eq(5);
             expect(stateVariables["/_circle1"].stateValues.numericalRadius).eq(
-                5
+                5,
             );
             expect(stateVariables["/graph3/circle"].stateValues.center).eqls([
                 -6, -2,
             ]);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalCenter
+                stateVariables["/graph3/circle"].stateValues.numericalCenter,
             ).eqls([-6, -2]);
             expect(
-                await stateVariables["/graph3/circle"].stateValues.radius
+                await stateVariables["/graph3/circle"].stateValues.radius,
             ).eq(5);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalRadius
+                stateVariables["/graph3/circle"].stateValues.numericalRadius,
             ).eq(5);
             expect(stateVariables["/graph4/circle"].stateValues.center).eqls([
                 -6, -2,
             ]);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalCenter
+                stateVariables["/graph4/circle"].stateValues.numericalCenter,
             ).eqls([-6, -2]);
             expect(
-                await stateVariables["/graph4/circle"].stateValues.radius
+                await stateVariables["/graph4/circle"].stateValues.radius,
             ).eq(5);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalRadius
+                stateVariables["/graph4/circle"].stateValues.numericalRadius,
             ).eq(5);
             expect((await stateVariables["/centerPoint"].stateValues.xs)[0]).eq(
-                -6
+                -6,
             );
             expect(stateVariables["/centerPoint"].stateValues.xs[1]).eq(-2);
             expect(stateVariables["/radiusNumber"].stateValues.value).eq(5);
@@ -259,38 +259,38 @@ describe("Circle Tag Tests", function () {
                 -7, 9,
             ]);
             expect(
-                stateVariables["/_circle1"].stateValues.numericalCenter
+                stateVariables["/_circle1"].stateValues.numericalCenter,
             ).eqls([-7, 9]);
             expect(stateVariables["/_circle1"].stateValues.radius).eq(5);
             expect(stateVariables["/_circle1"].stateValues.numericalRadius).eq(
-                5
+                5,
             );
             expect(stateVariables["/graph3/circle"].stateValues.center).eqls([
                 -7, 9,
             ]);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalCenter
+                stateVariables["/graph3/circle"].stateValues.numericalCenter,
             ).eqls([-7, 9]);
             expect(
-                await stateVariables["/graph3/circle"].stateValues.radius
+                await stateVariables["/graph3/circle"].stateValues.radius,
             ).eq(5);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalRadius
+                stateVariables["/graph3/circle"].stateValues.numericalRadius,
             ).eq(5);
             expect(stateVariables["/graph4/circle"].stateValues.center).eqls([
                 -7, 9,
             ]);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalCenter
+                stateVariables["/graph4/circle"].stateValues.numericalCenter,
             ).eqls([-7, 9]);
             expect(
-                await stateVariables["/graph4/circle"].stateValues.radius
+                await stateVariables["/graph4/circle"].stateValues.radius,
             ).eq(5);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalRadius
+                stateVariables["/graph4/circle"].stateValues.numericalRadius,
             ).eq(5);
             expect((await stateVariables["/centerPoint"].stateValues.xs)[0]).eq(
-                -7
+                -7,
             );
             expect(stateVariables["/centerPoint"].stateValues.xs[1]).eq(9);
             expect(stateVariables["/radiusNumber"].stateValues.value).eq(5);
@@ -313,38 +313,38 @@ describe("Circle Tag Tests", function () {
                 6, -8,
             ]);
             expect(
-                stateVariables["/_circle1"].stateValues.numericalCenter
+                stateVariables["/_circle1"].stateValues.numericalCenter,
             ).eqls([6, -8]);
             expect(stateVariables["/_circle1"].stateValues.radius).eq(5);
             expect(stateVariables["/_circle1"].stateValues.numericalRadius).eq(
-                5
+                5,
             );
             expect(stateVariables["/graph3/circle"].stateValues.center).eqls([
                 6, -8,
             ]);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalCenter
+                stateVariables["/graph3/circle"].stateValues.numericalCenter,
             ).eqls([6, -8]);
             expect(
-                await stateVariables["/graph3/circle"].stateValues.radius
+                await stateVariables["/graph3/circle"].stateValues.radius,
             ).eq(5);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalRadius
+                stateVariables["/graph3/circle"].stateValues.numericalRadius,
             ).eq(5);
             expect(stateVariables["/graph4/circle"].stateValues.center).eqls([
                 6, -8,
             ]);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalCenter
+                stateVariables["/graph4/circle"].stateValues.numericalCenter,
             ).eqls([6, -8]);
             expect(
-                await stateVariables["/graph4/circle"].stateValues.radius
+                await stateVariables["/graph4/circle"].stateValues.radius,
             ).eq(5);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalRadius
+                stateVariables["/graph4/circle"].stateValues.numericalRadius,
             ).eq(5);
             expect((await stateVariables["/centerPoint"].stateValues.xs)[0]).eq(
-                6
+                6,
             );
             expect(stateVariables["/centerPoint"].stateValues.xs[1]).eq(-8);
             expect(stateVariables["/radiusNumber"].stateValues.value).eq(5);
@@ -373,7 +373,7 @@ describe("Circle Tag Tests", function () {
     $graph3{name="graph4"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -385,40 +385,40 @@ describe("Circle Tag Tests", function () {
                 -1, 3,
             ]);
             expect(
-                stateVariables["/_circle1"].stateValues.numericalCenter
+                stateVariables["/_circle1"].stateValues.numericalCenter,
             ).eqls([-1, 3]);
             expect(stateVariables["/_circle1"].stateValues.radius).eq(1);
             expect(stateVariables["/_circle1"].stateValues.numericalRadius).eq(
-                1
+                1,
             );
             expect(stateVariables["/graph3/circle"].stateValues.center).eqls([
                 -1, 3,
             ]);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalCenter
+                stateVariables["/graph3/circle"].stateValues.numericalCenter,
             ).eqls([-1, 3]);
             expect(
-                await stateVariables["/graph3/circle"].stateValues.radius
+                await stateVariables["/graph3/circle"].stateValues.radius,
             ).eq(1);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalRadius
+                stateVariables["/graph3/circle"].stateValues.numericalRadius,
             ).eq(1);
             expect(stateVariables["/graph4/circle"].stateValues.center).eqls([
                 -1, 3,
             ]);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalCenter
+                stateVariables["/graph4/circle"].stateValues.numericalCenter,
             ).eqls([-1, 3]);
             expect(
-                await stateVariables["/graph4/circle"].stateValues.radius
+                await stateVariables["/graph4/circle"].stateValues.radius,
             ).eq(1);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalRadius
+                stateVariables["/graph4/circle"].stateValues.numericalRadius,
             ).eq(1);
             expect((await stateVariables["/center"].stateValues.xs)[0]).eq(-1);
             expect(stateVariables["/center"].stateValues.xs[1]).eq(3);
             expect((await stateVariables["/centerPoint"].stateValues.xs)[0]).eq(
-                -1
+                -1,
             );
             expect(stateVariables["/centerPoint"].stateValues.xs[1]).eq(3);
             expect(stateVariables["/radiusNumber"].stateValues.value).eq(1);
@@ -440,40 +440,40 @@ describe("Circle Tag Tests", function () {
 
             expect(stateVariables["/_circle1"].stateValues.center).eqls([2, 4]);
             expect(
-                stateVariables["/_circle1"].stateValues.numericalCenter
+                stateVariables["/_circle1"].stateValues.numericalCenter,
             ).eqls([2, 4]);
             expect(stateVariables["/_circle1"].stateValues.radius).eq(1);
             expect(stateVariables["/_circle1"].stateValues.numericalRadius).eq(
-                1
+                1,
             );
             expect(stateVariables["/graph3/circle"].stateValues.center).eqls([
                 2, 4,
             ]);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalCenter
+                stateVariables["/graph3/circle"].stateValues.numericalCenter,
             ).eqls([2, 4]);
             expect(
-                await stateVariables["/graph3/circle"].stateValues.radius
+                await stateVariables["/graph3/circle"].stateValues.radius,
             ).eq(1);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalRadius
+                stateVariables["/graph3/circle"].stateValues.numericalRadius,
             ).eq(1);
             expect(stateVariables["/graph4/circle"].stateValues.center).eqls([
                 2, 4,
             ]);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalCenter
+                stateVariables["/graph4/circle"].stateValues.numericalCenter,
             ).eqls([2, 4]);
             expect(
-                await stateVariables["/graph4/circle"].stateValues.radius
+                await stateVariables["/graph4/circle"].stateValues.radius,
             ).eq(1);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalRadius
+                stateVariables["/graph4/circle"].stateValues.numericalRadius,
             ).eq(1);
             expect((await stateVariables["/center"].stateValues.xs)[0]).eq(2);
             expect(stateVariables["/center"].stateValues.xs[1]).eq(4);
             expect((await stateVariables["/centerPoint"].stateValues.xs)[0]).eq(
-                2
+                2,
             );
             expect(stateVariables["/centerPoint"].stateValues.xs[1]).eq(4);
             expect(stateVariables["/radiusNumber"].stateValues.value).eq(1);
@@ -494,40 +494,40 @@ describe("Circle Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_circle1"].stateValues.center).eqls([2, 4]);
             expect(
-                stateVariables["/_circle1"].stateValues.numericalCenter
+                stateVariables["/_circle1"].stateValues.numericalCenter,
             ).eqls([2, 4]);
             expect(stateVariables["/_circle1"].stateValues.radius).eq(5);
             expect(stateVariables["/_circle1"].stateValues.numericalRadius).eq(
-                5
+                5,
             );
             expect(stateVariables["/graph3/circle"].stateValues.center).eqls([
                 2, 4,
             ]);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalCenter
+                stateVariables["/graph3/circle"].stateValues.numericalCenter,
             ).eqls([2, 4]);
             expect(
-                await stateVariables["/graph3/circle"].stateValues.radius
+                await stateVariables["/graph3/circle"].stateValues.radius,
             ).eq(5);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalRadius
+                stateVariables["/graph3/circle"].stateValues.numericalRadius,
             ).eq(5);
             expect(stateVariables["/graph4/circle"].stateValues.center).eqls([
                 2, 4,
             ]);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalCenter
+                stateVariables["/graph4/circle"].stateValues.numericalCenter,
             ).eqls([2, 4]);
             expect(
-                await stateVariables["/graph4/circle"].stateValues.radius
+                await stateVariables["/graph4/circle"].stateValues.radius,
             ).eq(5);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalRadius
+                stateVariables["/graph4/circle"].stateValues.numericalRadius,
             ).eq(5);
             expect((await stateVariables["/center"].stateValues.xs)[0]).eq(2);
             expect(stateVariables["/center"].stateValues.xs[1]).eq(4);
             expect((await stateVariables["/centerPoint"].stateValues.xs)[0]).eq(
-                2
+                2,
             );
             expect(stateVariables["/centerPoint"].stateValues.xs[1]).eq(4);
             expect(stateVariables["/radiusNumber"].stateValues.value).eq(5);
@@ -550,40 +550,40 @@ describe("Circle Tag Tests", function () {
                 -6, -2,
             ]);
             expect(
-                stateVariables["/_circle1"].stateValues.numericalCenter
+                stateVariables["/_circle1"].stateValues.numericalCenter,
             ).eqls([-6, -2]);
             expect(stateVariables["/_circle1"].stateValues.radius).eq(5);
             expect(stateVariables["/_circle1"].stateValues.numericalRadius).eq(
-                5
+                5,
             );
             expect(stateVariables["/graph3/circle"].stateValues.center).eqls([
                 -6, -2,
             ]);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalCenter
+                stateVariables["/graph3/circle"].stateValues.numericalCenter,
             ).eqls([-6, -2]);
             expect(
-                await stateVariables["/graph3/circle"].stateValues.radius
+                await stateVariables["/graph3/circle"].stateValues.radius,
             ).eq(5);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalRadius
+                stateVariables["/graph3/circle"].stateValues.numericalRadius,
             ).eq(5);
             expect(stateVariables["/graph4/circle"].stateValues.center).eqls([
                 -6, -2,
             ]);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalCenter
+                stateVariables["/graph4/circle"].stateValues.numericalCenter,
             ).eqls([-6, -2]);
             expect(
-                await stateVariables["/graph4/circle"].stateValues.radius
+                await stateVariables["/graph4/circle"].stateValues.radius,
             ).eq(5);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalRadius
+                stateVariables["/graph4/circle"].stateValues.numericalRadius,
             ).eq(5);
             expect((await stateVariables["/center"].stateValues.xs)[0]).eq(-6);
             expect(stateVariables["/center"].stateValues.xs[1]).eq(-2);
             expect((await stateVariables["/centerPoint"].stateValues.xs)[0]).eq(
-                -6
+                -6,
             );
             expect(stateVariables["/centerPoint"].stateValues.xs[1]).eq(-2);
             expect(stateVariables["/radiusNumber"].stateValues.value).eq(5);
@@ -606,40 +606,40 @@ describe("Circle Tag Tests", function () {
                 -7, 8,
             ]);
             expect(
-                stateVariables["/_circle1"].stateValues.numericalCenter
+                stateVariables["/_circle1"].stateValues.numericalCenter,
             ).eqls([-7, 8]);
             expect(stateVariables["/_circle1"].stateValues.radius).eq(5);
             expect(stateVariables["/_circle1"].stateValues.numericalRadius).eq(
-                5
+                5,
             );
             expect(stateVariables["/graph3/circle"].stateValues.center).eqls([
                 -7, 8,
             ]);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalCenter
+                stateVariables["/graph3/circle"].stateValues.numericalCenter,
             ).eqls([-7, 8]);
             expect(
-                await stateVariables["/graph3/circle"].stateValues.radius
+                await stateVariables["/graph3/circle"].stateValues.radius,
             ).eq(5);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalRadius
+                stateVariables["/graph3/circle"].stateValues.numericalRadius,
             ).eq(5);
             expect(stateVariables["/graph4/circle"].stateValues.center).eqls([
                 -7, 8,
             ]);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalCenter
+                stateVariables["/graph4/circle"].stateValues.numericalCenter,
             ).eqls([-7, 8]);
             expect(
-                await stateVariables["/graph4/circle"].stateValues.radius
+                await stateVariables["/graph4/circle"].stateValues.radius,
             ).eq(5);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalRadius
+                stateVariables["/graph4/circle"].stateValues.numericalRadius,
             ).eq(5);
             expect((await stateVariables["/center"].stateValues.xs)[0]).eq(-7);
             expect(stateVariables["/center"].stateValues.xs[1]).eq(8);
             expect((await stateVariables["/centerPoint"].stateValues.xs)[0]).eq(
-                -7
+                -7,
             );
             expect(stateVariables["/centerPoint"].stateValues.xs[1]).eq(8);
             expect(stateVariables["/radiusNumber"].stateValues.value).eq(5);
@@ -662,40 +662,40 @@ describe("Circle Tag Tests", function () {
                 9, -10,
             ]);
             expect(
-                stateVariables["/_circle1"].stateValues.numericalCenter
+                stateVariables["/_circle1"].stateValues.numericalCenter,
             ).eqls([9, -10]);
             expect(stateVariables["/_circle1"].stateValues.radius).eq(5);
             expect(stateVariables["/_circle1"].stateValues.numericalRadius).eq(
-                5
+                5,
             );
             expect(stateVariables["/graph3/circle"].stateValues.center).eqls([
                 9, -10,
             ]);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalCenter
+                stateVariables["/graph3/circle"].stateValues.numericalCenter,
             ).eqls([9, -10]);
             expect(
-                await stateVariables["/graph3/circle"].stateValues.radius
+                await stateVariables["/graph3/circle"].stateValues.radius,
             ).eq(5);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalRadius
+                stateVariables["/graph3/circle"].stateValues.numericalRadius,
             ).eq(5);
             expect(stateVariables["/graph4/circle"].stateValues.center).eqls([
                 9, -10,
             ]);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalCenter
+                stateVariables["/graph4/circle"].stateValues.numericalCenter,
             ).eqls([9, -10]);
             expect(
-                await stateVariables["/graph4/circle"].stateValues.radius
+                await stateVariables["/graph4/circle"].stateValues.radius,
             ).eq(5);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalRadius
+                stateVariables["/graph4/circle"].stateValues.numericalRadius,
             ).eq(5);
             expect((await stateVariables["/center"].stateValues.xs)[0]).eq(9);
             expect(stateVariables["/center"].stateValues.xs[1]).eq(-10);
             expect((await stateVariables["/centerPoint"].stateValues.xs)[0]).eq(
-                9
+                9,
             );
             expect(stateVariables["/centerPoint"].stateValues.xs[1]).eq(-10);
             expect(stateVariables["/radiusNumber"].stateValues.value).eq(5);
@@ -718,40 +718,40 @@ describe("Circle Tag Tests", function () {
                 -3, -4,
             ]);
             expect(
-                stateVariables["/_circle1"].stateValues.numericalCenter
+                stateVariables["/_circle1"].stateValues.numericalCenter,
             ).eqls([-3, -4]);
             expect(stateVariables["/_circle1"].stateValues.radius).eq(5);
             expect(stateVariables["/_circle1"].stateValues.numericalRadius).eq(
-                5
+                5,
             );
             expect(stateVariables["/graph3/circle"].stateValues.center).eqls([
                 -3, -4,
             ]);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalCenter
+                stateVariables["/graph3/circle"].stateValues.numericalCenter,
             ).eqls([-3, -4]);
             expect(
-                await stateVariables["/graph3/circle"].stateValues.radius
+                await stateVariables["/graph3/circle"].stateValues.radius,
             ).eq(5);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalRadius
+                stateVariables["/graph3/circle"].stateValues.numericalRadius,
             ).eq(5);
             expect(stateVariables["/graph4/circle"].stateValues.center).eqls([
                 -3, -4,
             ]);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalCenter
+                stateVariables["/graph4/circle"].stateValues.numericalCenter,
             ).eqls([-3, -4]);
             expect(
-                await stateVariables["/graph4/circle"].stateValues.radius
+                await stateVariables["/graph4/circle"].stateValues.radius,
             ).eq(5);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalRadius
+                stateVariables["/graph4/circle"].stateValues.numericalRadius,
             ).eq(5);
             expect((await stateVariables["/center"].stateValues.xs)[0]).eq(-3);
             expect(stateVariables["/center"].stateValues.xs[1]).eq(-4);
             expect((await stateVariables["/centerPoint"].stateValues.xs)[0]).eq(
-                -3
+                -3,
             );
             expect(stateVariables["/centerPoint"].stateValues.xs[1]).eq(-4);
             expect(stateVariables["/radiusNumber"].stateValues.value).eq(5);
@@ -781,7 +781,7 @@ describe("Circle Tag Tests", function () {
     $graph3{name="graph4"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -794,49 +794,49 @@ describe("Circle Tag Tests", function () {
                 r = 2;
             expect(stateVariables["/_circle1"].stateValues.center).eqls([x, y]);
             expect(
-                stateVariables["/_circle1"].stateValues.numericalCenter
+                stateVariables["/_circle1"].stateValues.numericalCenter,
             ).eqls([x, y]);
             expect(stateVariables["/_circle1"].stateValues.radius).eq(r);
             expect(stateVariables["/_circle1"].stateValues.numericalRadius).eq(
-                r
+                r,
             );
             expect(stateVariables["/graph3/circle"].stateValues.center).eqls([
                 x,
                 y,
             ]);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalCenter
+                stateVariables["/graph3/circle"].stateValues.numericalCenter,
             ).eqls([x, y]);
             expect(
-                await stateVariables["/graph3/circle"].stateValues.radius
+                await stateVariables["/graph3/circle"].stateValues.radius,
             ).eq(r);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalRadius
+                stateVariables["/graph3/circle"].stateValues.numericalRadius,
             ).eq(r);
             expect(stateVariables["/graph4/circle"].stateValues.center).eqls([
                 x,
                 y,
             ]);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalCenter
+                stateVariables["/graph4/circle"].stateValues.numericalCenter,
             ).eqls([x, y]);
             expect(
-                await stateVariables["/graph4/circle"].stateValues.radius
+                await stateVariables["/graph4/circle"].stateValues.radius,
             ).eq(r);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalRadius
+                stateVariables["/graph4/circle"].stateValues.numericalRadius,
             ).eq(r);
             expect(stateVariables["/_point1"].stateValues.xs[0]).eq(r);
             expect(stateVariables["/_point1"].stateValues.xs[1]).eq(0);
             expect((await stateVariables["/centerPoint"].stateValues.xs)[0]).eq(
-                x
+                x,
             );
             expect(stateVariables["/centerPoint"].stateValues.xs[1]).eq(y);
             expect(stateVariables["/radiusNumber"].stateValues.value).eq(r);
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(x)},${nInDOM(y)})`
+                `(${nInDOM(x)},${nInDOM(y)})`,
             );
             cy.get(cesc("#\\/radiusNumber")).should("contain.text", nInDOM(r));
         });
@@ -854,7 +854,7 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(x)},${nInDOM(y)})`
+                `(${nInDOM(x)},${nInDOM(y)})`,
             );
             cy.get(cesc("#\\/radiusNumber")).should("contain.text", nInDOM(r));
 
@@ -865,40 +865,44 @@ describe("Circle Tag Tests", function () {
                     y,
                 ]);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter
+                    stateVariables["/_circle1"].stateValues.numericalCenter,
                 ).eqls([x, y]);
                 expect(stateVariables["/_circle1"].stateValues.radius).eq(r);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).eq(r);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center
+                    stateVariables["/graph3/circle"].stateValues.center,
                 ).eqls([x, y]);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalCenter
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalCenter,
                 ).eqls([x, y]);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).eq(r);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).eq(r);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center
+                    stateVariables["/graph4/circle"].stateValues.center,
                 ).eqls([x, y]);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalCenter
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalCenter,
                 ).eqls([x, y]);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).eq(r);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).eq(r);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).eq(r);
                 expect(stateVariables["/_point1"].stateValues.xs[1]).eq(0);
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).eq(x);
                 expect(stateVariables["/centerPoint"].stateValues.xs[1]).eq(y);
                 expect(stateVariables["/radiusNumber"].stateValues.value).eq(r);
@@ -917,7 +921,7 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(x)},${nInDOM(y)})`
+                `(${nInDOM(x)},${nInDOM(y)})`,
             );
             cy.get(cesc("#\\/radiusNumber")).should("contain.text", nInDOM(r));
 
@@ -928,40 +932,44 @@ describe("Circle Tag Tests", function () {
                     y,
                 ]);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter
+                    stateVariables["/_circle1"].stateValues.numericalCenter,
                 ).eqls([x, y]);
                 expect(stateVariables["/_circle1"].stateValues.radius).eq(r);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).eq(r);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center
+                    stateVariables["/graph3/circle"].stateValues.center,
                 ).eqls([x, y]);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalCenter
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalCenter,
                 ).eqls([x, y]);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).eq(r);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).eq(r);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center
+                    stateVariables["/graph4/circle"].stateValues.center,
                 ).eqls([x, y]);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalCenter
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalCenter,
                 ).eqls([x, y]);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).eq(r);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).eq(r);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).eq(r);
                 expect(stateVariables["/_point1"].stateValues.xs[1]).eq(0);
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).eq(x);
                 expect(stateVariables["/centerPoint"].stateValues.xs[1]).eq(y);
                 expect(stateVariables["/radiusNumber"].stateValues.value).eq(r);
@@ -980,7 +988,7 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(x)},${nInDOM(y)})`
+                `(${nInDOM(x)},${nInDOM(y)})`,
             );
             cy.get(cesc("#\\/radiusNumber")).should("contain.text", nInDOM(r));
 
@@ -991,40 +999,44 @@ describe("Circle Tag Tests", function () {
                     y,
                 ]);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter
+                    stateVariables["/_circle1"].stateValues.numericalCenter,
                 ).eqls([x, y]);
                 expect(stateVariables["/_circle1"].stateValues.radius).eq(r);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).eq(r);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center
+                    stateVariables["/graph3/circle"].stateValues.center,
                 ).eqls([x, y]);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalCenter
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalCenter,
                 ).eqls([x, y]);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).eq(r);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).eq(r);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center
+                    stateVariables["/graph4/circle"].stateValues.center,
                 ).eqls([x, y]);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalCenter
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalCenter,
                 ).eqls([x, y]);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).eq(r);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).eq(r);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).eq(r);
                 expect(stateVariables["/_point1"].stateValues.xs[1]).eq(0);
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).eq(x);
                 expect(stateVariables["/centerPoint"].stateValues.xs[1]).eq(y);
                 expect(stateVariables["/radiusNumber"].stateValues.value).eq(r);
@@ -1044,7 +1056,7 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(x)},${nInDOM(y)})`
+                `(${nInDOM(x)},${nInDOM(y)})`,
             );
             cy.get(cesc("#\\/radiusNumber")).should("contain.text", nInDOM(r));
 
@@ -1055,40 +1067,44 @@ describe("Circle Tag Tests", function () {
                     y,
                 ]);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter
+                    stateVariables["/_circle1"].stateValues.numericalCenter,
                 ).eqls([x, y]);
                 expect(stateVariables["/_circle1"].stateValues.radius).eq(r);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).eq(r);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center
+                    stateVariables["/graph3/circle"].stateValues.center,
                 ).eqls([x, y]);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalCenter
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalCenter,
                 ).eqls([x, y]);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).eq(r);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).eq(r);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center
+                    stateVariables["/graph4/circle"].stateValues.center,
                 ).eqls([x, y]);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalCenter
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalCenter,
                 ).eqls([x, y]);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).eq(r);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).eq(r);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).eq(r);
                 expect(stateVariables["/_point1"].stateValues.xs[1]).eq(0);
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).eq(x);
                 expect(stateVariables["/centerPoint"].stateValues.xs[1]).eq(y);
                 expect(stateVariables["/radiusNumber"].stateValues.value).eq(r);
@@ -1107,7 +1123,7 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(x)},${nInDOM(y)})`
+                `(${nInDOM(x)},${nInDOM(y)})`,
             );
             cy.get(cesc("#\\/radiusNumber")).should("contain.text", nInDOM(r));
 
@@ -1118,40 +1134,44 @@ describe("Circle Tag Tests", function () {
                     y,
                 ]);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter
+                    stateVariables["/_circle1"].stateValues.numericalCenter,
                 ).eqls([x, y]);
                 expect(stateVariables["/_circle1"].stateValues.radius).eq(r);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).eq(r);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center
+                    stateVariables["/graph3/circle"].stateValues.center,
                 ).eqls([x, y]);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalCenter
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalCenter,
                 ).eqls([x, y]);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).eq(r);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).eq(r);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center
+                    stateVariables["/graph4/circle"].stateValues.center,
                 ).eqls([x, y]);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalCenter
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalCenter,
                 ).eqls([x, y]);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).eq(r);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).eq(r);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).eq(r);
                 expect(stateVariables["/_point1"].stateValues.xs[1]).eq(0);
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).eq(x);
                 expect(stateVariables["/centerPoint"].stateValues.xs[1]).eq(y);
                 expect(stateVariables["/radiusNumber"].stateValues.value).eq(r);
@@ -1170,7 +1190,7 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(x)},${nInDOM(y)})`
+                `(${nInDOM(x)},${nInDOM(y)})`,
             );
             cy.get(cesc("#\\/radiusNumber")).should("contain.text", nInDOM(r));
 
@@ -1181,40 +1201,44 @@ describe("Circle Tag Tests", function () {
                     y,
                 ]);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter
+                    stateVariables["/_circle1"].stateValues.numericalCenter,
                 ).eqls([x, y]);
                 expect(stateVariables["/_circle1"].stateValues.radius).eq(r);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).eq(r);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center
+                    stateVariables["/graph3/circle"].stateValues.center,
                 ).eqls([x, y]);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalCenter
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalCenter,
                 ).eqls([x, y]);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).eq(r);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).eq(r);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center
+                    stateVariables["/graph4/circle"].stateValues.center,
                 ).eqls([x, y]);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalCenter
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalCenter,
                 ).eqls([x, y]);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).eq(r);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).eq(r);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).eq(r);
                 expect(stateVariables["/_point1"].stateValues.xs[1]).eq(0);
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).eq(x);
                 expect(stateVariables["/centerPoint"].stateValues.xs[1]).eq(y);
                 expect(stateVariables["/radiusNumber"].stateValues.value).eq(r);
@@ -1244,7 +1268,7 @@ describe("Circle Tag Tests", function () {
     $graph3{name="graph4"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1262,42 +1286,42 @@ describe("Circle Tag Tests", function () {
                 cny,
             ]);
             expect(
-                stateVariables["/_circle1"].stateValues.numericalCenter
+                stateVariables["/_circle1"].stateValues.numericalCenter,
             ).eqls([cnx, cny]);
             expect(stateVariables["/_circle1"].stateValues.radius).eq(r);
             expect(stateVariables["/_circle1"].stateValues.numericalRadius).eq(
-                r
+                r,
             );
             expect(stateVariables["/graph3/circle"].stateValues.center).eqls([
                 cnx,
                 cny,
             ]);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalCenter
+                stateVariables["/graph3/circle"].stateValues.numericalCenter,
             ).eqls([cnx, cny]);
             expect(
-                await stateVariables["/graph3/circle"].stateValues.radius
+                await stateVariables["/graph3/circle"].stateValues.radius,
             ).eq(r);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalRadius
+                stateVariables["/graph3/circle"].stateValues.numericalRadius,
             ).eq(r);
             expect(stateVariables["/graph4/circle"].stateValues.center).eqls([
                 cnx,
                 cny,
             ]);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalCenter
+                stateVariables["/graph4/circle"].stateValues.numericalCenter,
             ).eqls([cnx, cny]);
             expect(
-                await stateVariables["/graph4/circle"].stateValues.radius
+                await stateVariables["/graph4/circle"].stateValues.radius,
             ).eq(r);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalRadius
+                stateVariables["/graph4/circle"].stateValues.numericalRadius,
             ).eq(r);
             expect(stateVariables["/_point1"].stateValues.xs[0]).eq(tx);
             expect(stateVariables["/_point1"].stateValues.xs[1]).eq(ty);
             expect((await stateVariables["/centerPoint"].stateValues.xs)[0]).eq(
-                cnx
+                cnx,
             );
             expect(stateVariables["/centerPoint"].stateValues.xs[1]).eq(cny);
             expect(stateVariables["/_point2"].stateValues.xs[0]).eq(r);
@@ -1305,7 +1329,7 @@ describe("Circle Tag Tests", function () {
             expect(stateVariables["/radiusNumber"].stateValues.value).eq(r);
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(cnx)},${nInDOM(cny)})`
+                `(${nInDOM(cnx)},${nInDOM(cny)})`,
             );
             cy.get(cesc("#\\/radiusNumber")).should("contain.text", nInDOM(r));
         });
@@ -1324,7 +1348,7 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(cnx)},${nInDOM(cny)})`
+                `(${nInDOM(cnx)},${nInDOM(cny)})`,
             );
             cy.get(cesc("#\\/radiusNumber")).should("contain.text", nInDOM(r));
 
@@ -1335,43 +1359,47 @@ describe("Circle Tag Tests", function () {
                     cny,
                 ]);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter
+                    stateVariables["/_circle1"].stateValues.numericalCenter,
                 ).eqls([cnx, cny]);
                 expect(stateVariables["/_circle1"].stateValues.radius).eq(r);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).eq(r);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center
+                    stateVariables["/graph3/circle"].stateValues.center,
                 ).eqls([cnx, cny]);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalCenter
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalCenter,
                 ).eqls([cnx, cny]);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).eq(r);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).eq(r);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center
+                    stateVariables["/graph4/circle"].stateValues.center,
                 ).eqls([cnx, cny]);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalCenter
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalCenter,
                 ).eqls([cnx, cny]);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).eq(r);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).eq(r);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).eq(tx);
                 expect(stateVariables["/_point1"].stateValues.xs[1]).eq(ty);
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).eq(cnx);
                 expect(stateVariables["/centerPoint"].stateValues.xs[1]).eq(
-                    cny
+                    cny,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).eq(r);
                 expect(stateVariables["/_point2"].stateValues.xs[1]).eq(0);
@@ -1393,7 +1421,7 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(cnx)},${nInDOM(cny)})`
+                `(${nInDOM(cnx)},${nInDOM(cny)})`,
             );
             cy.get(cesc("#\\/radiusNumber")).should("contain.text", nInDOM(r));
 
@@ -1404,43 +1432,47 @@ describe("Circle Tag Tests", function () {
                     cny,
                 ]);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter
+                    stateVariables["/_circle1"].stateValues.numericalCenter,
                 ).eqls([cnx, cny]);
                 expect(stateVariables["/_circle1"].stateValues.radius).eq(r);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).eq(r);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center
+                    stateVariables["/graph3/circle"].stateValues.center,
                 ).eqls([cnx, cny]);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalCenter
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalCenter,
                 ).eqls([cnx, cny]);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).eq(r);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).eq(r);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center
+                    stateVariables["/graph4/circle"].stateValues.center,
                 ).eqls([cnx, cny]);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalCenter
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalCenter,
                 ).eqls([cnx, cny]);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).eq(r);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).eq(r);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).eq(tx);
                 expect(stateVariables["/_point1"].stateValues.xs[1]).eq(ty);
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).eq(cnx);
                 expect(stateVariables["/centerPoint"].stateValues.xs[1]).eq(
-                    cny
+                    cny,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).eq(r);
                 expect(stateVariables["/_point2"].stateValues.xs[1]).eq(0);
@@ -1462,7 +1494,7 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(cnx)},${nInDOM(cny)})`
+                `(${nInDOM(cnx)},${nInDOM(cny)})`,
             );
             cy.get(cesc("#\\/radiusNumber")).should("contain.text", nInDOM(r));
 
@@ -1473,43 +1505,47 @@ describe("Circle Tag Tests", function () {
                     cny,
                 ]);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter
+                    stateVariables["/_circle1"].stateValues.numericalCenter,
                 ).eqls([cnx, cny]);
                 expect(stateVariables["/_circle1"].stateValues.radius).eq(r);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).eq(r);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center
+                    stateVariables["/graph3/circle"].stateValues.center,
                 ).eqls([cnx, cny]);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalCenter
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalCenter,
                 ).eqls([cnx, cny]);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).eq(r);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).eq(r);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center
+                    stateVariables["/graph4/circle"].stateValues.center,
                 ).eqls([cnx, cny]);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalCenter
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalCenter,
                 ).eqls([cnx, cny]);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).eq(r);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).eq(r);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).eq(tx);
                 expect(stateVariables["/_point1"].stateValues.xs[1]).eq(ty);
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).eq(cnx);
                 expect(stateVariables["/centerPoint"].stateValues.xs[1]).eq(
-                    cny
+                    cny,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).eq(r);
                 expect(stateVariables["/_point2"].stateValues.xs[1]).eq(0);
@@ -1531,7 +1567,7 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(cnx)},${nInDOM(cny)})`
+                `(${nInDOM(cnx)},${nInDOM(cny)})`,
             );
             cy.get(cesc("#\\/radiusNumber")).should("contain.text", nInDOM(r));
 
@@ -1542,43 +1578,47 @@ describe("Circle Tag Tests", function () {
                     cny,
                 ]);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter
+                    stateVariables["/_circle1"].stateValues.numericalCenter,
                 ).eqls([cnx, cny]);
                 expect(stateVariables["/_circle1"].stateValues.radius).eq(r);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).eq(r);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center
+                    stateVariables["/graph3/circle"].stateValues.center,
                 ).eqls([cnx, cny]);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalCenter
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalCenter,
                 ).eqls([cnx, cny]);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).eq(r);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).eq(r);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center
+                    stateVariables["/graph4/circle"].stateValues.center,
                 ).eqls([cnx, cny]);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalCenter
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalCenter,
                 ).eqls([cnx, cny]);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).eq(r);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).eq(r);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).eq(tx);
                 expect(stateVariables["/_point1"].stateValues.xs[1]).eq(ty);
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).eq(cnx);
                 expect(stateVariables["/centerPoint"].stateValues.xs[1]).eq(
-                    cny
+                    cny,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).eq(r);
                 expect(stateVariables["/_point2"].stateValues.xs[1]).eq(0);
@@ -1601,7 +1641,7 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(cnx)},${nInDOM(cny)})`
+                `(${nInDOM(cnx)},${nInDOM(cny)})`,
             );
             cy.get(cesc("#\\/radiusNumber")).should("contain.text", nInDOM(r));
 
@@ -1612,43 +1652,47 @@ describe("Circle Tag Tests", function () {
                     cny,
                 ]);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter
+                    stateVariables["/_circle1"].stateValues.numericalCenter,
                 ).eqls([cnx, cny]);
                 expect(stateVariables["/_circle1"].stateValues.radius).eq(r);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).eq(r);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center
+                    stateVariables["/graph3/circle"].stateValues.center,
                 ).eqls([cnx, cny]);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalCenter
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalCenter,
                 ).eqls([cnx, cny]);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).eq(r);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).eq(r);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center
+                    stateVariables["/graph4/circle"].stateValues.center,
                 ).eqls([cnx, cny]);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalCenter
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalCenter,
                 ).eqls([cnx, cny]);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).eq(r);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).eq(r);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).eq(tx);
                 expect(stateVariables["/_point1"].stateValues.xs[1]).eq(ty);
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).eq(cnx);
                 expect(stateVariables["/centerPoint"].stateValues.xs[1]).eq(
-                    cny
+                    cny,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).eq(r);
                 expect(stateVariables["/_point2"].stateValues.xs[1]).eq(0);
@@ -1670,7 +1714,7 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(cnx)},${nInDOM(cny)})`
+                `(${nInDOM(cnx)},${nInDOM(cny)})`,
             );
             cy.get(cesc("#\\/radiusNumber")).should("contain.text", nInDOM(r));
 
@@ -1681,43 +1725,47 @@ describe("Circle Tag Tests", function () {
                     cny,
                 ]);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter
+                    stateVariables["/_circle1"].stateValues.numericalCenter,
                 ).eqls([cnx, cny]);
                 expect(stateVariables["/_circle1"].stateValues.radius).eq(r);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).eq(r);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center
+                    stateVariables["/graph3/circle"].stateValues.center,
                 ).eqls([cnx, cny]);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalCenter
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalCenter,
                 ).eqls([cnx, cny]);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).eq(r);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).eq(r);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center
+                    stateVariables["/graph4/circle"].stateValues.center,
                 ).eqls([cnx, cny]);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalCenter
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalCenter,
                 ).eqls([cnx, cny]);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).eq(r);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).eq(r);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).eq(tx);
                 expect(stateVariables["/_point1"].stateValues.xs[1]).eq(ty);
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).eq(cnx);
                 expect(stateVariables["/centerPoint"].stateValues.xs[1]).eq(
-                    cny
+                    cny,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).eq(r);
                 expect(stateVariables["/_point2"].stateValues.xs[1]).eq(0);
@@ -1739,7 +1787,7 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(cnx)},${nInDOM(cny)})`
+                `(${nInDOM(cnx)},${nInDOM(cny)})`,
             );
             cy.get(cesc("#\\/radiusNumber")).should("contain.text", nInDOM(r));
 
@@ -1750,43 +1798,47 @@ describe("Circle Tag Tests", function () {
                     cny,
                 ]);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter
+                    stateVariables["/_circle1"].stateValues.numericalCenter,
                 ).eqls([cnx, cny]);
                 expect(stateVariables["/_circle1"].stateValues.radius).eq(r);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).eq(r);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center
+                    stateVariables["/graph3/circle"].stateValues.center,
                 ).eqls([cnx, cny]);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalCenter
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalCenter,
                 ).eqls([cnx, cny]);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).eq(r);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).eq(r);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center
+                    stateVariables["/graph4/circle"].stateValues.center,
                 ).eqls([cnx, cny]);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalCenter
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalCenter,
                 ).eqls([cnx, cny]);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).eq(r);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).eq(r);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).eq(tx);
                 expect(stateVariables["/_point1"].stateValues.xs[1]).eq(ty);
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).eq(cnx);
                 expect(stateVariables["/centerPoint"].stateValues.xs[1]).eq(
-                    cny
+                    cny,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).eq(r);
                 expect(stateVariables["/_point2"].stateValues.xs[1]).eq(0);
@@ -1808,7 +1860,7 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(cnx)},${nInDOM(cny)})`
+                `(${nInDOM(cnx)},${nInDOM(cny)})`,
             );
             cy.get(cesc("#\\/radiusNumber")).should("contain.text", nInDOM(r));
 
@@ -1819,43 +1871,47 @@ describe("Circle Tag Tests", function () {
                     cny,
                 ]);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter
+                    stateVariables["/_circle1"].stateValues.numericalCenter,
                 ).eqls([cnx, cny]);
                 expect(stateVariables["/_circle1"].stateValues.radius).eq(r);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).eq(r);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center
+                    stateVariables["/graph3/circle"].stateValues.center,
                 ).eqls([cnx, cny]);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalCenter
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalCenter,
                 ).eqls([cnx, cny]);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).eq(r);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).eq(r);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center
+                    stateVariables["/graph4/circle"].stateValues.center,
                 ).eqls([cnx, cny]);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalCenter
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalCenter,
                 ).eqls([cnx, cny]);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).eq(r);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).eq(r);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).eq(tx);
                 expect(stateVariables["/_point1"].stateValues.xs[1]).eq(ty);
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).eq(cnx);
                 expect(stateVariables["/centerPoint"].stateValues.xs[1]).eq(
-                    cny
+                    cny,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).eq(r);
                 expect(stateVariables["/_point2"].stateValues.xs[1]).eq(0);
@@ -1886,7 +1942,7 @@ describe("Circle Tag Tests", function () {
     $graph3{name="graph4"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1904,95 +1960,95 @@ describe("Circle Tag Tests", function () {
                 cny = (t1y + t2y) / 2;
             expect(stateVariables["/_circle1"].stateValues.center[0]).closeTo(
                 cnx,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_circle1"].stateValues.center[1]).closeTo(
                 cny,
-                1e-12
+                1e-12,
             );
             expect(
-                stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                stateVariables["/_circle1"].stateValues.numericalCenter[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                stateVariables["/_circle1"].stateValues.numericalCenter[1],
             ).closeTo(cny, 1e-12);
             expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                 r,
-                1e-12
+                1e-12,
             );
             expect(
-                stateVariables["/_circle1"].stateValues.numericalRadius
+                stateVariables["/_circle1"].stateValues.numericalRadius,
             ).closeTo(r, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.center[0]
+                stateVariables["/graph3/circle"].stateValues.center[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.center[1]
+                stateVariables["/graph3/circle"].stateValues.center[1],
             ).closeTo(cny, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalCenter[0]
+                stateVariables["/graph3/circle"].stateValues.numericalCenter[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalCenter[1]
+                stateVariables["/graph3/circle"].stateValues.numericalCenter[1],
             ).closeTo(cny, 1e-12);
             expect(
-                await stateVariables["/graph3/circle"].stateValues.radius
+                await stateVariables["/graph3/circle"].stateValues.radius,
             ).closeTo(r, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalRadius
+                stateVariables["/graph3/circle"].stateValues.numericalRadius,
             ).closeTo(r, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.center[0]
+                stateVariables["/graph4/circle"].stateValues.center[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.center[1]
+                stateVariables["/graph4/circle"].stateValues.center[1],
             ).closeTo(cny, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalCenter[0]
+                stateVariables["/graph4/circle"].stateValues.numericalCenter[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalCenter[1]
+                stateVariables["/graph4/circle"].stateValues.numericalCenter[1],
             ).closeTo(cny, 1e-12);
             expect(
-                await stateVariables["/graph4/circle"].stateValues.radius
+                await stateVariables["/graph4/circle"].stateValues.radius,
             ).closeTo(r, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalRadius
+                stateVariables["/graph4/circle"].stateValues.numericalRadius,
             ).closeTo(r, 1e-12);
             expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                 t1x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                 t1y,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                 t2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                 t2y,
-                1e-12
+                1e-12,
             );
             expect(
-                (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                (await stateVariables["/centerPoint"].stateValues.xs)[0],
             ).closeTo(cnx, 1e-12);
             expect(stateVariables["/centerPoint"].stateValues.xs[1]).closeTo(
                 cny,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/radiusNumber"].stateValues.value).closeTo(
                 r,
-                1e-12
+                1e-12,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(cnx)},${nInDOM(cny)})`
+                `(${nInDOM(cnx)},${nInDOM(cny)})`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
         });
 
@@ -2013,98 +2069,100 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(cnx)},${nInDOM(cny)})`
+                `(${nInDOM(cnx)},${nInDOM(cny)})`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -2126,98 +2184,100 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(cnx)},${nInDOM(cny)})`
+                `(${nInDOM(cnx)},${nInDOM(cny)})`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -2238,98 +2298,100 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(cnx)},${nInDOM(cny)})`
+                `(${nInDOM(cnx)},${nInDOM(cny)})`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -2351,98 +2413,100 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(cnx)},${nInDOM(cny)})`
+                `(${nInDOM(cnx)},${nInDOM(cny)})`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -2464,98 +2528,100 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(cnx)},${nInDOM(cny)})`
+                `(${nInDOM(cnx)},${nInDOM(cny)})`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -2577,98 +2643,100 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(cnx)},${nInDOM(cny)})`
+                `(${nInDOM(cnx)},${nInDOM(cny)})`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -2698,98 +2766,100 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(cnx)},${nInDOM(cny)})`
+                `(${nInDOM(cnx)},${nInDOM(cny)})`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -2819,98 +2889,100 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(cnx)},${nInDOM(cny)})`
+                `(${nInDOM(cnx)},${nInDOM(cny)})`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -2938,7 +3010,7 @@ describe("Circle Tag Tests", function () {
     $graph3{name="graph4"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2956,95 +3028,95 @@ describe("Circle Tag Tests", function () {
                 cny = (t1y + t2y) / 2;
             expect(stateVariables["/_circle1"].stateValues.center[0]).closeTo(
                 cnx,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_circle1"].stateValues.center[1]).closeTo(
                 cny,
-                1e-12
+                1e-12,
             );
             expect(
-                stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                stateVariables["/_circle1"].stateValues.numericalCenter[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                stateVariables["/_circle1"].stateValues.numericalCenter[1],
             ).closeTo(cny, 1e-12);
             expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                 r,
-                1e-12
+                1e-12,
             );
             expect(
-                stateVariables["/_circle1"].stateValues.numericalRadius
+                stateVariables["/_circle1"].stateValues.numericalRadius,
             ).closeTo(r, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.center[0]
+                stateVariables["/graph3/circle"].stateValues.center[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.center[1]
+                stateVariables["/graph3/circle"].stateValues.center[1],
             ).closeTo(cny, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalCenter[0]
+                stateVariables["/graph3/circle"].stateValues.numericalCenter[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalCenter[1]
+                stateVariables["/graph3/circle"].stateValues.numericalCenter[1],
             ).closeTo(cny, 1e-12);
             expect(
-                await stateVariables["/graph3/circle"].stateValues.radius
+                await stateVariables["/graph3/circle"].stateValues.radius,
             ).closeTo(r, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalRadius
+                stateVariables["/graph3/circle"].stateValues.numericalRadius,
             ).closeTo(r, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.center[0]
+                stateVariables["/graph4/circle"].stateValues.center[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.center[1]
+                stateVariables["/graph4/circle"].stateValues.center[1],
             ).closeTo(cny, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalCenter[0]
+                stateVariables["/graph4/circle"].stateValues.numericalCenter[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalCenter[1]
+                stateVariables["/graph4/circle"].stateValues.numericalCenter[1],
             ).closeTo(cny, 1e-12);
             expect(
-                await stateVariables["/graph4/circle"].stateValues.radius
+                await stateVariables["/graph4/circle"].stateValues.radius,
             ).closeTo(r, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalRadius
+                stateVariables["/graph4/circle"].stateValues.numericalRadius,
             ).closeTo(r, 1e-12);
             expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                 t1x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                 t1y,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                 t2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                 t2y,
-                1e-12
+                1e-12,
             );
             expect(
-                (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                (await stateVariables["/centerPoint"].stateValues.xs)[0],
             ).closeTo(cnx, 1e-12);
             expect(stateVariables["/centerPoint"].stateValues.xs[1]).closeTo(
                 cny,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/radiusNumber"].stateValues.value).closeTo(
                 r,
-                1e-12
+                1e-12,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(cnx)},${nInDOM(cny)})`
+                `(${nInDOM(cnx)},${nInDOM(cny)})`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
         });
 
@@ -3065,98 +3137,100 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(cnx)},${nInDOM(cny)})`
+                `(${nInDOM(cnx)},${nInDOM(cny)})`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -3178,98 +3252,100 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(cnx)},${nInDOM(cny)})`
+                `(${nInDOM(cnx)},${nInDOM(cny)})`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -3291,98 +3367,100 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(cnx)},${nInDOM(cny)})`
+                `(${nInDOM(cnx)},${nInDOM(cny)})`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -3404,98 +3482,100 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(cnx)},${nInDOM(cny)})`
+                `(${nInDOM(cnx)},${nInDOM(cny)})`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -3517,98 +3597,100 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(cnx)},${nInDOM(cny)})`
+                `(${nInDOM(cnx)},${nInDOM(cny)})`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -3630,98 +3712,100 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(cnx)},${nInDOM(cny)})`
+                `(${nInDOM(cnx)},${nInDOM(cny)})`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -3751,98 +3835,100 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(cnx)},${nInDOM(cny)})`
+                `(${nInDOM(cnx)},${nInDOM(cny)})`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -3873,98 +3959,100 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(cnx)},${nInDOM(cny)})`
+                `(${nInDOM(cnx)},${nInDOM(cny)})`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -3993,7 +4081,7 @@ describe("Circle Tag Tests", function () {
     $graph3{name="graph4"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4017,105 +4105,105 @@ describe("Circle Tag Tests", function () {
 
             expect(stateVariables["/_circle1"].stateValues.center[0]).closeTo(
                 cnx,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_circle1"].stateValues.center[1]).closeTo(
                 cny,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                 r,
-                1e-12
+                1e-12,
             );
 
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalCenter[0]
+                stateVariables["/graph3/circle"].stateValues.numericalCenter[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalCenter[1]
+                stateVariables["/graph3/circle"].stateValues.numericalCenter[1],
             ).closeTo(cny, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalRadius
+                stateVariables["/graph3/circle"].stateValues.numericalRadius,
             ).closeTo(r, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.center[0]
+                stateVariables["/graph3/circle"].stateValues.center[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.center[1]
+                stateVariables["/graph3/circle"].stateValues.center[1],
             ).closeTo(cny, 1e-12);
             expect(
-                await stateVariables["/graph3/circle"].stateValues.radius
+                await stateVariables["/graph3/circle"].stateValues.radius,
             ).closeTo(r, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalCenter[0]
+                stateVariables["/graph4/circle"].stateValues.numericalCenter[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalCenter[1]
+                stateVariables["/graph4/circle"].stateValues.numericalCenter[1],
             ).closeTo(cny, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalRadius
+                stateVariables["/graph4/circle"].stateValues.numericalRadius,
             ).closeTo(r, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.center[0]
+                stateVariables["/graph4/circle"].stateValues.center[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.center[1]
+                stateVariables["/graph4/circle"].stateValues.center[1],
             ).closeTo(cny, 1e-12);
             expect(
-                await stateVariables["/graph4/circle"].stateValues.radius
+                await stateVariables["/graph4/circle"].stateValues.radius,
             ).closeTo(r, 1e-12);
 
             expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                 t1x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                 t1y,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                 t2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                 t2y,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                 t3x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                 t3y,
-                1e-12
+                1e-12,
             );
             expect(
-                (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                (await stateVariables["/centerPoint"].stateValues.xs)[0],
             ).closeTo(cnx, 1e-12);
             expect(stateVariables["/centerPoint"].stateValues.xs[1]).closeTo(
                 cny,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/radiusNumber"].stateValues.value).closeTo(
                 r,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/diam"].stateValues.value).closeTo(
                 2 * r,
-                1e-12
+                1e-12,
             );
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
         });
 
@@ -4147,114 +4235,116 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     t3x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     t3y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/diam"].stateValues.value).closeTo(
                     2 * r,
-                    1e-12
+                    1e-12,
                 );
             });
         });
@@ -4277,145 +4367,147 @@ describe("Circle Tag Tests", function () {
                 expect(
                     Number.isFinite(
                         stateVariables["/_circle1"].stateValues
-                            .numericalCenter[0]
-                    )
+                            .numericalCenter[0],
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
                         stateVariables["/_circle1"].stateValues
-                            .numericalCenter[1]
-                    )
+                            .numericalCenter[1],
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
-                        stateVariables["/_circle1"].stateValues.numericalRadius
-                    )
+                        stateVariables["/_circle1"].stateValues.numericalRadius,
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
-                        stateVariables["/_circle1"].stateValues.center[0]
-                    )
+                        stateVariables["/_circle1"].stateValues.center[0],
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
-                        stateVariables["/_circle1"].stateValues.center[1]
-                    )
+                        stateVariables["/_circle1"].stateValues.center[1],
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
-                        stateVariables["/_circle1"].stateValues.radius
-                    )
-                ).false;
-                expect(
-                    Number.isFinite(
-                        stateVariables["/graph3/circle"].stateValues
-                            .numericalCenter[0]
-                    )
+                        stateVariables["/_circle1"].stateValues.radius,
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
                         stateVariables["/graph3/circle"].stateValues
-                            .numericalCenter[1]
-                    )
+                            .numericalCenter[0],
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
                         stateVariables["/graph3/circle"].stateValues
-                            .numericalRadius
-                    )
+                            .numericalCenter[1],
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
-                        stateVariables["/graph3/circle"].stateValues.center[0]
-                    )
+                        stateVariables["/graph3/circle"].stateValues
+                            .numericalRadius,
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
-                        stateVariables["/graph3/circle"].stateValues.center[1]
-                    )
+                        stateVariables["/graph3/circle"].stateValues.center[0],
+                    ),
+                ).false;
+                expect(
+                    Number.isFinite(
+                        stateVariables["/graph3/circle"].stateValues.center[1],
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
                         await stateVariables["/graph3/circle"].stateValues
-                            .radius
-                    )
+                            .radius,
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
                         stateVariables["/graph4/circle"].stateValues
-                            .numericalCenter[0]
-                    )
+                            .numericalCenter[0],
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
                         stateVariables["/graph4/circle"].stateValues
-                            .numericalCenter[1]
-                    )
+                            .numericalCenter[1],
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
                         stateVariables["/graph4/circle"].stateValues
-                            .numericalRadius
-                    )
+                            .numericalRadius,
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
-                        stateVariables["/graph4/circle"].stateValues.center[0]
-                    )
+                        stateVariables["/graph4/circle"].stateValues.center[0],
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
-                        stateVariables["/graph4/circle"].stateValues.center[1]
-                    )
+                        stateVariables["/graph4/circle"].stateValues.center[1],
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
                         await stateVariables["/graph4/circle"].stateValues
-                            .radius
-                    )
+                            .radius,
+                    ),
                 ).false;
 
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     t3x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     t3y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
                     Number.isFinite(
-                        (await stateVariables["/centerPoint"].stateValues.xs)[0]
-                    )
+                        (
+                            await stateVariables["/centerPoint"].stateValues.xs
+                        )[0],
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
-                        stateVariables["/centerPoint"].stateValues.xs[1]
-                    )
+                        stateVariables["/centerPoint"].stateValues.xs[1],
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
-                        stateVariables["/radiusNumber"].stateValues.value
-                    )
+                        stateVariables["/radiusNumber"].stateValues.value,
+                    ),
                 ).false;
                 expect(
-                    Number.isFinite(stateVariables["/diam"].stateValues.value)
+                    Number.isFinite(stateVariables["/diam"].stateValues.value),
                 ).false;
             });
         });
@@ -4444,104 +4536,106 @@ describe("Circle Tag Tests", function () {
 
                 cy.get(cesc("#\\/centerPoint2")).should(
                     "contain.text",
-                    `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                    `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
                 );
                 cy.get(cesc("#\\/centerPoint2")).should(
                     "contain.text",
-                    `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                    `${nInDOM(Math.trunc(cny * 100) / 100)}`,
                 );
                 cy.get(cesc("#\\/radiusNumber")).should(
                     "contain.text",
-                    nInDOM(Math.trunc(r * 100) / 100)
+                    nInDOM(Math.trunc(r * 100) / 100),
                 );
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
 
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     t3x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     t3y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/diam"].stateValues.value).closeTo(
                     2 * r,
-                    1e-12
+                    1e-12,
                 );
             });
         });
@@ -4570,104 +4664,106 @@ describe("Circle Tag Tests", function () {
 
                 cy.get(cesc("#\\/centerPoint2")).should(
                     "contain.text",
-                    `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                    `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
                 );
                 cy.get(cesc("#\\/centerPoint2")).should(
                     "contain.text",
-                    `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                    `${nInDOM(Math.trunc(cny * 100) / 100)}`,
                 );
                 cy.get(cesc("#\\/radiusNumber")).should(
                     "contain.text",
-                    nInDOM(Math.trunc(r * 100) / 100)
+                    nInDOM(Math.trunc(r * 100) / 100),
                 );
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
 
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     t3x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     t3y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/diam"].stateValues.value).closeTo(
                     2 * r,
-                    1e-12
+                    1e-12,
                 );
             });
         });
@@ -4695,115 +4791,117 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     t3x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     t3y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/diam"].stateValues.value).closeTo(
                     2 * r,
-                    1e-12
+                    1e-12,
                 );
             });
         });
@@ -4825,115 +4923,117 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     t3x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     t3y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/diam"].stateValues.value).closeTo(
                     2 * r,
-                    1e-12
+                    1e-12,
                 );
             });
         });
@@ -4955,115 +5055,117 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     t3x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     t3y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/diam"].stateValues.value).closeTo(
                     2 * r,
-                    1e-12
+                    1e-12,
                 );
             });
         });
@@ -5091,115 +5193,117 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     t3x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     t3y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/diam"].stateValues.value).closeTo(
                     2 * r,
-                    1e-12
+                    1e-12,
                 );
             });
         });
@@ -5234,103 +5338,105 @@ describe("Circle Tag Tests", function () {
 
                 cy.get(cesc("#\\/centerPoint2")).should(
                     "contain.text",
-                    `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                    `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
                 );
                 cy.get(cesc("#\\/centerPoint2")).should(
                     "contain.text",
-                    `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                    `${nInDOM(Math.trunc(cny * 100) / 100)}`,
                 );
                 cy.get(cesc("#\\/radiusNumber")).should(
                     "contain.text",
-                    nInDOM(Math.trunc(r * 100) / 100)
+                    nInDOM(Math.trunc(r * 100) / 100),
                 );
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     t3x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     t3y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/diam"].stateValues.value).closeTo(
                     2 * r,
-                    1e-12
+                    1e-12,
                 );
             });
         });
@@ -5365,115 +5471,117 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     t3x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     t3y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/diam"].stateValues.value).closeTo(
                     2 * r,
-                    1e-12
+                    1e-12,
                 );
             });
         });
@@ -5506,115 +5614,117 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     t3x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     t3y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/diam"].stateValues.value).closeTo(
                     2 * r,
-                    1e-12
+                    1e-12,
                 );
             });
         });
@@ -5649,115 +5759,117 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     t3x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     t3y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/diam"].stateValues.value).closeTo(
                     2 * r,
-                    1e-12
+                    1e-12,
                 );
             });
         });
@@ -5792,115 +5904,117 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     t3x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     t3y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/diam"].stateValues.value).closeTo(
                     2 * r,
-                    1e-12
+                    1e-12,
                 );
             });
         });
@@ -5929,7 +6043,7 @@ describe("Circle Tag Tests", function () {
     $graph3{name="graph4"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5953,104 +6067,104 @@ describe("Circle Tag Tests", function () {
 
             expect(stateVariables["/_circle1"].stateValues.center[0]).closeTo(
                 cnx,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_circle1"].stateValues.center[1]).closeTo(
                 cny,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                 r,
-                1e-12
+                1e-12,
             );
 
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalCenter[0]
+                stateVariables["/graph3/circle"].stateValues.numericalCenter[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalCenter[1]
+                stateVariables["/graph3/circle"].stateValues.numericalCenter[1],
             ).closeTo(cny, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalRadius
+                stateVariables["/graph3/circle"].stateValues.numericalRadius,
             ).closeTo(r, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.center[0]
+                stateVariables["/graph3/circle"].stateValues.center[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.center[1]
+                stateVariables["/graph3/circle"].stateValues.center[1],
             ).closeTo(cny, 1e-12);
             expect(
-                await stateVariables["/graph3/circle"].stateValues.radius
+                await stateVariables["/graph3/circle"].stateValues.radius,
             ).closeTo(r, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalCenter[0]
+                stateVariables["/graph4/circle"].stateValues.numericalCenter[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalCenter[1]
+                stateVariables["/graph4/circle"].stateValues.numericalCenter[1],
             ).closeTo(cny, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalRadius
+                stateVariables["/graph4/circle"].stateValues.numericalRadius,
             ).closeTo(r, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.center[0]
+                stateVariables["/graph4/circle"].stateValues.center[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.center[1]
+                stateVariables["/graph4/circle"].stateValues.center[1],
             ).closeTo(cny, 1e-12);
             expect(
-                await stateVariables["/graph4/circle"].stateValues.radius
+                await stateVariables["/graph4/circle"].stateValues.radius,
             ).closeTo(r, 1e-12);
 
             expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                 t1x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                 t1y,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                 t2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                 t2y,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                 t3x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                 t3y,
-                1e-12
+                1e-12,
             );
             expect(
-                (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                (await stateVariables["/centerPoint"].stateValues.xs)[0],
             ).closeTo(cnx, 1e-12);
             expect(stateVariables["/centerPoint"].stateValues.xs[1]).closeTo(
                 cny,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/radiusNumber"].stateValues.value).closeTo(
                 r,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/diam"].stateValues.value).closeTo(
                 2 * r,
-                1e-12
+                1e-12,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
         });
 
@@ -6082,114 +6196,116 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     t3x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     t3y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/diam"].stateValues.value).closeTo(
                     2 * r,
-                    1e-12
+                    1e-12,
                 );
             });
         });
@@ -6212,145 +6328,147 @@ describe("Circle Tag Tests", function () {
                 expect(
                     Number.isFinite(
                         stateVariables["/_circle1"].stateValues
-                            .numericalCenter[0]
-                    )
+                            .numericalCenter[0],
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
                         stateVariables["/_circle1"].stateValues
-                            .numericalCenter[1]
-                    )
+                            .numericalCenter[1],
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
-                        stateVariables["/_circle1"].stateValues.numericalRadius
-                    )
+                        stateVariables["/_circle1"].stateValues.numericalRadius,
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
-                        stateVariables["/_circle1"].stateValues.center[0]
-                    )
+                        stateVariables["/_circle1"].stateValues.center[0],
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
-                        stateVariables["/_circle1"].stateValues.center[1]
-                    )
+                        stateVariables["/_circle1"].stateValues.center[1],
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
-                        stateVariables["/_circle1"].stateValues.radius
-                    )
-                ).false;
-                expect(
-                    Number.isFinite(
-                        stateVariables["/graph3/circle"].stateValues
-                            .numericalCenter[0]
-                    )
+                        stateVariables["/_circle1"].stateValues.radius,
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
                         stateVariables["/graph3/circle"].stateValues
-                            .numericalCenter[1]
-                    )
+                            .numericalCenter[0],
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
                         stateVariables["/graph3/circle"].stateValues
-                            .numericalRadius
-                    )
+                            .numericalCenter[1],
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
-                        stateVariables["/graph3/circle"].stateValues.center[0]
-                    )
+                        stateVariables["/graph3/circle"].stateValues
+                            .numericalRadius,
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
-                        stateVariables["/graph3/circle"].stateValues.center[1]
-                    )
+                        stateVariables["/graph3/circle"].stateValues.center[0],
+                    ),
+                ).false;
+                expect(
+                    Number.isFinite(
+                        stateVariables["/graph3/circle"].stateValues.center[1],
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
                         await stateVariables["/graph3/circle"].stateValues
-                            .radius
-                    )
+                            .radius,
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
                         stateVariables["/graph4/circle"].stateValues
-                            .numericalCenter[0]
-                    )
+                            .numericalCenter[0],
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
                         stateVariables["/graph4/circle"].stateValues
-                            .numericalCenter[1]
-                    )
+                            .numericalCenter[1],
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
                         stateVariables["/graph4/circle"].stateValues
-                            .numericalRadius
-                    )
+                            .numericalRadius,
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
-                        stateVariables["/graph4/circle"].stateValues.center[0]
-                    )
+                        stateVariables["/graph4/circle"].stateValues.center[0],
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
-                        stateVariables["/graph4/circle"].stateValues.center[1]
-                    )
+                        stateVariables["/graph4/circle"].stateValues.center[1],
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
                         await stateVariables["/graph4/circle"].stateValues
-                            .radius
-                    )
+                            .radius,
+                    ),
                 ).false;
 
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     t3x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     t3y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
                     Number.isFinite(
-                        (await stateVariables["/centerPoint"].stateValues.xs)[0]
-                    )
+                        (
+                            await stateVariables["/centerPoint"].stateValues.xs
+                        )[0],
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
-                        stateVariables["/centerPoint"].stateValues.xs[1]
-                    )
+                        stateVariables["/centerPoint"].stateValues.xs[1],
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
-                        stateVariables["/radiusNumber"].stateValues.value
-                    )
+                        stateVariables["/radiusNumber"].stateValues.value,
+                    ),
                 ).false;
                 expect(
-                    Number.isFinite(stateVariables["/diam"].stateValues.value)
+                    Number.isFinite(stateVariables["/diam"].stateValues.value),
                 ).false;
             });
         });
@@ -6379,104 +6497,106 @@ describe("Circle Tag Tests", function () {
 
                 cy.get(cesc("#\\/centerPoint2")).should(
                     "contain.text",
-                    `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                    `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
                 );
                 cy.get(cesc("#\\/centerPoint2")).should(
                     "contain.text",
-                    `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                    `${nInDOM(Math.trunc(cny * 100) / 100)}`,
                 );
                 cy.get(cesc("#\\/radiusNumber")).should(
                     "contain.text",
-                    nInDOM(Math.trunc(r * 100) / 100)
+                    nInDOM(Math.trunc(r * 100) / 100),
                 );
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
 
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     t3x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     t3y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/diam"].stateValues.value).closeTo(
                     2 * r,
-                    1e-12
+                    1e-12,
                 );
             });
         });
@@ -6505,104 +6625,106 @@ describe("Circle Tag Tests", function () {
 
                 cy.get(cesc("#\\/centerPoint2")).should(
                     "contain.text",
-                    `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                    `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
                 );
                 cy.get(cesc("#\\/centerPoint2")).should(
                     "contain.text",
-                    `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                    `${nInDOM(Math.trunc(cny * 100) / 100)}`,
                 );
                 cy.get(cesc("#\\/radiusNumber")).should(
                     "contain.text",
-                    nInDOM(Math.trunc(r * 100) / 100)
+                    nInDOM(Math.trunc(r * 100) / 100),
                 );
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
 
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     t3x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     t3y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/diam"].stateValues.value).closeTo(
                     2 * r,
-                    1e-12
+                    1e-12,
                 );
             });
         });
@@ -6630,115 +6752,117 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     t3x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     t3y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/diam"].stateValues.value).closeTo(
                     2 * r,
-                    1e-12
+                    1e-12,
                 );
             });
         });
@@ -6760,115 +6884,117 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     t3x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     t3y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/diam"].stateValues.value).closeTo(
                     2 * r,
-                    1e-12
+                    1e-12,
                 );
             });
         });
@@ -6890,115 +7016,117 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     t3x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     t3y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/diam"].stateValues.value).closeTo(
                     2 * r,
-                    1e-12
+                    1e-12,
                 );
             });
         });
@@ -7026,115 +7154,117 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     t3x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     t3y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/diam"].stateValues.value).closeTo(
                     2 * r,
-                    1e-12
+                    1e-12,
                 );
             });
         });
@@ -7169,103 +7299,105 @@ describe("Circle Tag Tests", function () {
 
                 cy.get(cesc("#\\/centerPoint2")).should(
                     "contain.text",
-                    `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                    `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
                 );
                 cy.get(cesc("#\\/centerPoint2")).should(
                     "contain.text",
-                    `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                    `${nInDOM(Math.trunc(cny * 100) / 100)}`,
                 );
                 cy.get(cesc("#\\/radiusNumber")).should(
                     "contain.text",
-                    nInDOM(Math.trunc(r * 100) / 100)
+                    nInDOM(Math.trunc(r * 100) / 100),
                 );
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     t3x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     t3y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/diam"].stateValues.value).closeTo(
                     2 * r,
-                    1e-12
+                    1e-12,
                 );
             });
         });
@@ -7300,115 +7432,117 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     t3x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     t3y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/diam"].stateValues.value).closeTo(
                     2 * r,
-                    1e-12
+                    1e-12,
                 );
             });
         });
@@ -7441,115 +7575,117 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     t3x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     t3y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/diam"].stateValues.value).closeTo(
                     2 * r,
-                    1e-12
+                    1e-12,
                 );
             });
         });
@@ -7584,115 +7720,117 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     t3x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     t3y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/diam"].stateValues.value).closeTo(
                     2 * r,
-                    1e-12
+                    1e-12,
                 );
             });
         });
@@ -7727,115 +7865,117 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     t3x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     t3y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/diam"].stateValues.value).closeTo(
                     2 * r,
-                    1e-12
+                    1e-12,
                 );
             });
         });
@@ -7865,7 +8005,7 @@ describe("Circle Tag Tests", function () {
     $graph3{name="graph4"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -7881,99 +8021,99 @@ describe("Circle Tag Tests", function () {
 
             expect(stateVariables["/_circle1"].stateValues.center[0]).closeTo(
                 cnx,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_circle1"].stateValues.center[1]).closeTo(
                 cny,
-                1e-12
+                1e-12,
             );
             expect(
-                stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                stateVariables["/_circle1"].stateValues.numericalCenter[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                stateVariables["/_circle1"].stateValues.numericalCenter[1],
             ).closeTo(cny, 1e-12);
             expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                 r,
-                1e-12
+                1e-12,
             );
             expect(
-                stateVariables["/_circle1"].stateValues.numericalRadius
+                stateVariables["/_circle1"].stateValues.numericalRadius,
             ).closeTo(r, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.center[0]
+                stateVariables["/graph3/circle"].stateValues.center[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.center[1]
+                stateVariables["/graph3/circle"].stateValues.center[1],
             ).closeTo(cny, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalCenter[0]
+                stateVariables["/graph3/circle"].stateValues.numericalCenter[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalCenter[1]
+                stateVariables["/graph3/circle"].stateValues.numericalCenter[1],
             ).closeTo(cny, 1e-12);
             expect(
-                await stateVariables["/graph3/circle"].stateValues.radius
+                await stateVariables["/graph3/circle"].stateValues.radius,
             ).closeTo(r, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalRadius
+                stateVariables["/graph3/circle"].stateValues.numericalRadius,
             ).closeTo(r, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.center[0]
+                stateVariables["/graph4/circle"].stateValues.center[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.center[1]
+                stateVariables["/graph4/circle"].stateValues.center[1],
             ).closeTo(cny, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalCenter[0]
+                stateVariables["/graph4/circle"].stateValues.numericalCenter[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalCenter[1]
+                stateVariables["/graph4/circle"].stateValues.numericalCenter[1],
             ).closeTo(cny, 1e-12);
             expect(
-                await stateVariables["/graph4/circle"].stateValues.radius
+                await stateVariables["/graph4/circle"].stateValues.radius,
             ).closeTo(r, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalRadius
+                stateVariables["/graph4/circle"].stateValues.numericalRadius,
             ).closeTo(r, 1e-12);
             expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                 r,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                 0,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                 tx,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                 ty,
-                1e-12
+                1e-12,
             );
             expect(
-                (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                (await stateVariables["/centerPoint"].stateValues.xs)[0],
             ).closeTo(cnx, 1e-12);
             expect(stateVariables["/centerPoint"].stateValues.xs[1]).closeTo(
                 cny,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/radiusNumber"].stateValues.value).closeTo(
                 r,
-                1e-12
+                1e-12,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
         });
 
@@ -7991,102 +8131,104 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     0,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     tx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     ty,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -8105,102 +8247,104 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     0,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     tx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     ty,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -8219,102 +8363,104 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     0,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     tx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     ty,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -8333,102 +8479,104 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     0,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     tx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     ty,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -8447,102 +8595,104 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     0,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     tx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     ty,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -8562,102 +8712,104 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     0,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     tx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     ty,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -8687,7 +8839,7 @@ describe("Circle Tag Tests", function () {
     $graph3{name="graph4"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -8709,101 +8861,101 @@ describe("Circle Tag Tests", function () {
 
             expect(stateVariables["/_circle1"].stateValues.center[0]).closeTo(
                 cnx,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_circle1"].stateValues.center[1]).closeTo(
                 cny,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                 r,
-                1e-12
+                1e-12,
             );
             expect(
-                stateVariables["/_circle1"].stateValues.numericalRadius
+                stateVariables["/_circle1"].stateValues.numericalRadius,
             ).closeTo(r, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.center[0]
+                stateVariables["/graph3/circle"].stateValues.center[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.center[1]
+                stateVariables["/graph3/circle"].stateValues.center[1],
             ).closeTo(cny, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalCenter[0]
+                stateVariables["/graph3/circle"].stateValues.numericalCenter[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalCenter[1]
+                stateVariables["/graph3/circle"].stateValues.numericalCenter[1],
             ).closeTo(cny, 1e-12);
             expect(
-                await stateVariables["/graph3/circle"].stateValues.radius
+                await stateVariables["/graph3/circle"].stateValues.radius,
             ).closeTo(r, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalRadius
+                stateVariables["/graph3/circle"].stateValues.numericalRadius,
             ).closeTo(r, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.center[0]
+                stateVariables["/graph4/circle"].stateValues.center[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.center[1]
+                stateVariables["/graph4/circle"].stateValues.center[1],
             ).closeTo(cny, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalCenter[0]
+                stateVariables["/graph4/circle"].stateValues.numericalCenter[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalCenter[1]
+                stateVariables["/graph4/circle"].stateValues.numericalCenter[1],
             ).closeTo(cny, 1e-12);
             expect(
-                await stateVariables["/graph4/circle"].stateValues.radius
+                await stateVariables["/graph4/circle"].stateValues.radius,
             ).closeTo(r, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalRadius
+                stateVariables["/graph4/circle"].stateValues.numericalRadius,
             ).closeTo(r, 1e-12);
             expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                 r,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                 0,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                 t1x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                 t1y,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                 t2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                 t2y,
-                1e-12
+                1e-12,
             );
             expect(
-                (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                (await stateVariables["/centerPoint"].stateValues.xs)[0],
             ).closeTo(cnx, 1e-12);
             expect(stateVariables["/centerPoint"].stateValues.xs[1]).closeTo(
                 cny,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/radiusNumber"].stateValues.value).closeTo(
                 r,
-                1e-12
+                1e-12,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
         });
 
@@ -8838,110 +8990,112 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     0,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -8966,109 +9120,111 @@ describe("Circle Tag Tests", function () {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
                     Number.isFinite(
-                        stateVariables["/_circle1"].stateValues.center[0]
-                    )
+                        stateVariables["/_circle1"].stateValues.center[0],
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
-                        stateVariables["/_circle1"].stateValues.center[1]
-                    )
-                ).false;
-                expect(
-                    Number.isFinite(
-                        stateVariables["/_circle1"].stateValues
-                            .numericalCenter[0]
-                    )
+                        stateVariables["/_circle1"].stateValues.center[1],
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
                         stateVariables["/_circle1"].stateValues
-                            .numericalCenter[1]
-                    )
+                            .numericalCenter[0],
+                    ),
+                ).false;
+                expect(
+                    Number.isFinite(
+                        stateVariables["/_circle1"].stateValues
+                            .numericalCenter[1],
+                    ),
                 ).false;
                 // expect(Number.isFinite((stateVariables['/_circle1'].stateValues.radius))).false;
                 // expect(Number.isFinite(stateVariables['/_circle1'].stateValues.numericalRadius)).false;
                 expect(
                     Number.isFinite(
-                        stateVariables["/graph3/circle"].stateValues.center[0]
-                    )
+                        stateVariables["/graph3/circle"].stateValues.center[0],
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
-                        stateVariables["/graph3/circle"].stateValues.center[1]
-                    )
-                ).false;
-                expect(
-                    Number.isFinite(
-                        stateVariables["/graph3/circle"].stateValues
-                            .numericalCenter[0]
-                    )
+                        stateVariables["/graph3/circle"].stateValues.center[1],
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
                         stateVariables["/graph3/circle"].stateValues
-                            .numericalCenter[1]
-                    )
+                            .numericalCenter[0],
+                    ),
+                ).false;
+                expect(
+                    Number.isFinite(
+                        stateVariables["/graph3/circle"].stateValues
+                            .numericalCenter[1],
+                    ),
                 ).false;
                 // expect(Number.isFinite((await stateVariables["/graph3/circle"].stateValues.radius))).false;
                 // expect(Number.isFinite(stateVariables["/graph3/circle"].stateValues.numericalRadius)).false;
                 expect(
                     Number.isFinite(
-                        stateVariables["/graph4/circle"].stateValues.center[0]
-                    )
+                        stateVariables["/graph4/circle"].stateValues.center[0],
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
-                        stateVariables["/graph4/circle"].stateValues.center[1]
-                    )
-                ).false;
-                expect(
-                    Number.isFinite(
-                        stateVariables["/graph4/circle"].stateValues
-                            .numericalCenter[0]
-                    )
+                        stateVariables["/graph4/circle"].stateValues.center[1],
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
                         stateVariables["/graph4/circle"].stateValues
-                            .numericalCenter[1]
-                    )
+                            .numericalCenter[0],
+                    ),
+                ).false;
+                expect(
+                    Number.isFinite(
+                        stateVariables["/graph4/circle"].stateValues
+                            .numericalCenter[1],
+                    ),
                 ).false;
                 // expect(Number.isFinite((await stateVariables["/graph4/circle"].stateValues.radius))).false;
                 // expect(Number.isFinite(stateVariables["/graph4/circle"].stateValues.numericalRadius)).false;
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     0,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
                     Number.isFinite(
-                        (await stateVariables["/centerPoint"].stateValues.xs)[0]
-                    )
+                        (
+                            await stateVariables["/centerPoint"].stateValues.xs
+                        )[0],
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
-                        stateVariables["/centerPoint"].stateValues.xs[1]
-                    )
+                        stateVariables["/centerPoint"].stateValues.xs[1],
+                    ),
                 ).false;
                 // expect(Number.isFinite(stateVariables["/radiusNumber"].stateValues.value)).false;
             });
@@ -9101,102 +9257,104 @@ describe("Circle Tag Tests", function () {
 
                 cy.get(cesc("#\\/centerPoint2")).should(
                     "contain.text",
-                    `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                    `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
                 );
                 cy.get(cesc("#\\/centerPoint2")).should(
                     "contain.text",
-                    `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                    `${nInDOM(Math.trunc(cny * 100) / 100)}`,
                 );
                 cy.get(cesc("#\\/radiusNumber")).should(
                     "contain.text",
-                    nInDOM(Math.trunc(r * 100) / 100)
+                    nInDOM(Math.trunc(r * 100) / 100),
                 );
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     0,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -9229,109 +9387,111 @@ describe("Circle Tag Tests", function () {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
                     Number.isFinite(
-                        stateVariables["/_circle1"].stateValues.center[0]
-                    )
+                        stateVariables["/_circle1"].stateValues.center[0],
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
-                        stateVariables["/_circle1"].stateValues.center[1]
-                    )
-                ).false;
-                expect(
-                    Number.isFinite(
-                        stateVariables["/_circle1"].stateValues
-                            .numericalCenter[0]
-                    )
+                        stateVariables["/_circle1"].stateValues.center[1],
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
                         stateVariables["/_circle1"].stateValues
-                            .numericalCenter[1]
-                    )
+                            .numericalCenter[0],
+                    ),
+                ).false;
+                expect(
+                    Number.isFinite(
+                        stateVariables["/_circle1"].stateValues
+                            .numericalCenter[1],
+                    ),
                 ).false;
                 // expect(Number.isFinite((stateVariables['/_circle1'].stateValues.radius))).false;
                 // expect(Number.isFinite(stateVariables['/_circle1'].stateValues.numericalRadius)).false;
                 expect(
                     Number.isFinite(
-                        stateVariables["/graph3/circle"].stateValues.center[0]
-                    )
+                        stateVariables["/graph3/circle"].stateValues.center[0],
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
-                        stateVariables["/graph3/circle"].stateValues.center[1]
-                    )
-                ).false;
-                expect(
-                    Number.isFinite(
-                        stateVariables["/graph3/circle"].stateValues
-                            .numericalCenter[0]
-                    )
+                        stateVariables["/graph3/circle"].stateValues.center[1],
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
                         stateVariables["/graph3/circle"].stateValues
-                            .numericalCenter[1]
-                    )
+                            .numericalCenter[0],
+                    ),
+                ).false;
+                expect(
+                    Number.isFinite(
+                        stateVariables["/graph3/circle"].stateValues
+                            .numericalCenter[1],
+                    ),
                 ).false;
                 // expect(Number.isFinite((await stateVariables["/graph3/circle"].stateValues.radius))).false;
                 // expect(Number.isFinite(stateVariables["/graph3/circle"].stateValues.numericalRadius)).false;
                 expect(
                     Number.isFinite(
-                        stateVariables["/graph4/circle"].stateValues.center[0]
-                    )
+                        stateVariables["/graph4/circle"].stateValues.center[0],
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
-                        stateVariables["/graph4/circle"].stateValues.center[1]
-                    )
-                ).false;
-                expect(
-                    Number.isFinite(
-                        stateVariables["/graph4/circle"].stateValues
-                            .numericalCenter[0]
-                    )
+                        stateVariables["/graph4/circle"].stateValues.center[1],
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
                         stateVariables["/graph4/circle"].stateValues
-                            .numericalCenter[1]
-                    )
+                            .numericalCenter[0],
+                    ),
+                ).false;
+                expect(
+                    Number.isFinite(
+                        stateVariables["/graph4/circle"].stateValues
+                            .numericalCenter[1],
+                    ),
                 ).false;
                 // expect(Number.isFinite((await stateVariables["/graph4/circle"].stateValues.radius))).false;
                 // expect(Number.isFinite(stateVariables["/graph4/circle"].stateValues.numericalRadius)).false;
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     0,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
                     Number.isFinite(
-                        (await stateVariables["/centerPoint"].stateValues.xs)[0]
-                    )
+                        (
+                            await stateVariables["/centerPoint"].stateValues.xs
+                        )[0],
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
-                        stateVariables["/centerPoint"].stateValues.xs[1]
-                    )
+                        stateVariables["/centerPoint"].stateValues.xs[1],
+                    ),
                 ).false;
                 // expect(Number.isFinite(stateVariables["/radiusNumber"].stateValues.value)).false;
 
@@ -9344,111 +9504,113 @@ describe("Circle Tag Tests", function () {
 
                 cy.get(cesc("#\\/centerPoint2")).should(
                     "contain.text",
-                    `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                    `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
                 );
                 cy.get(cesc("#\\/centerPoint2")).should(
                     "contain.text",
-                    `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                    `${nInDOM(Math.trunc(cny * 100) / 100)}`,
                 );
                 cy.get(cesc("#\\/radiusNumber")).should(
                     "contain.text",
-                    nInDOM(Math.trunc(r * 100) / 100)
+                    nInDOM(Math.trunc(r * 100) / 100),
                 );
             });
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     0,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
 
                 r = r / 9;
@@ -9466,109 +9628,111 @@ describe("Circle Tag Tests", function () {
 
                 expect(
                     Number.isFinite(
-                        stateVariables["/_circle1"].stateValues.center[0]
-                    )
+                        stateVariables["/_circle1"].stateValues.center[0],
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
-                        stateVariables["/_circle1"].stateValues.center[1]
-                    )
-                ).false;
-                expect(
-                    Number.isFinite(
-                        stateVariables["/_circle1"].stateValues
-                            .numericalCenter[0]
-                    )
+                        stateVariables["/_circle1"].stateValues.center[1],
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
                         stateVariables["/_circle1"].stateValues
-                            .numericalCenter[1]
-                    )
+                            .numericalCenter[0],
+                    ),
+                ).false;
+                expect(
+                    Number.isFinite(
+                        stateVariables["/_circle1"].stateValues
+                            .numericalCenter[1],
+                    ),
                 ).false;
                 // expect(Number.isFinite((stateVariables['/_circle1'].stateValues.radius))).false;
                 // expect(Number.isFinite(stateVariables['/_circle1'].stateValues.numericalRadius)).false;
                 expect(
                     Number.isFinite(
-                        stateVariables["/graph3/circle"].stateValues.center[0]
-                    )
+                        stateVariables["/graph3/circle"].stateValues.center[0],
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
-                        stateVariables["/graph3/circle"].stateValues.center[1]
-                    )
-                ).false;
-                expect(
-                    Number.isFinite(
-                        stateVariables["/graph3/circle"].stateValues
-                            .numericalCenter[0]
-                    )
+                        stateVariables["/graph3/circle"].stateValues.center[1],
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
                         stateVariables["/graph3/circle"].stateValues
-                            .numericalCenter[1]
-                    )
+                            .numericalCenter[0],
+                    ),
+                ).false;
+                expect(
+                    Number.isFinite(
+                        stateVariables["/graph3/circle"].stateValues
+                            .numericalCenter[1],
+                    ),
                 ).false;
                 // expect(Number.isFinite((await stateVariables["/graph3/circle"].stateValues.radius))).false;
                 // expect(Number.isFinite(stateVariables["/graph3/circle"].stateValues.numericalRadius)).false;
                 expect(
                     Number.isFinite(
-                        stateVariables["/graph4/circle"].stateValues.center[0]
-                    )
+                        stateVariables["/graph4/circle"].stateValues.center[0],
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
-                        stateVariables["/graph4/circle"].stateValues.center[1]
-                    )
-                ).false;
-                expect(
-                    Number.isFinite(
-                        stateVariables["/graph4/circle"].stateValues
-                            .numericalCenter[0]
-                    )
+                        stateVariables["/graph4/circle"].stateValues.center[1],
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
                         stateVariables["/graph4/circle"].stateValues
-                            .numericalCenter[1]
-                    )
+                            .numericalCenter[0],
+                    ),
+                ).false;
+                expect(
+                    Number.isFinite(
+                        stateVariables["/graph4/circle"].stateValues
+                            .numericalCenter[1],
+                    ),
                 ).false;
                 // expect(Number.isFinite((await stateVariables["/graph4/circle"].stateValues.radius))).false;
                 // expect(Number.isFinite(stateVariables["/graph4/circle"].stateValues.numericalRadius)).false;
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     0,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
                     Number.isFinite(
-                        (await stateVariables["/centerPoint"].stateValues.xs)[0]
-                    )
+                        (
+                            await stateVariables["/centerPoint"].stateValues.xs
+                        )[0],
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
-                        stateVariables["/centerPoint"].stateValues.xs[1]
-                    )
+                        stateVariables["/centerPoint"].stateValues.xs[1],
+                    ),
                 ).false;
                 // expect(Number.isFinite(stateVariables["/radiusNumber"].stateValues.value)).false;
             });
@@ -9598,110 +9762,112 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     0,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -9738,102 +9904,104 @@ describe("Circle Tag Tests", function () {
 
                 cy.get(cesc("#\\/centerPoint2")).should(
                     "contain.text",
-                    `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                    `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
                 );
                 cy.get(cesc("#\\/centerPoint2")).should(
                     "contain.text",
-                    `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                    `${nInDOM(Math.trunc(cny * 100) / 100)}`,
                 );
                 cy.get(cesc("#\\/radiusNumber")).should(
                     "contain.text",
-                    nInDOM(Math.trunc(r * 100) / 100)
+                    nInDOM(Math.trunc(r * 100) / 100),
                 );
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     0,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -9870,111 +10038,113 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     0,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -10011,110 +10181,112 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     0,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -10151,110 +10323,112 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     0,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -10283,7 +10457,7 @@ describe("Circle Tag Tests", function () {
     $graph3{name="graph4"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -10299,99 +10473,99 @@ describe("Circle Tag Tests", function () {
 
             expect(stateVariables["/_circle1"].stateValues.center[0]).closeTo(
                 cnx,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_circle1"].stateValues.center[1]).closeTo(
                 cny,
-                1e-12
+                1e-12,
             );
             expect(
-                stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                stateVariables["/_circle1"].stateValues.numericalCenter[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                stateVariables["/_circle1"].stateValues.numericalCenter[1],
             ).closeTo(cny, 1e-12);
             expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                 r,
-                1e-12
+                1e-12,
             );
             expect(
-                stateVariables["/_circle1"].stateValues.numericalRadius
+                stateVariables["/_circle1"].stateValues.numericalRadius,
             ).closeTo(r, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.center[0]
+                stateVariables["/graph3/circle"].stateValues.center[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.center[1]
+                stateVariables["/graph3/circle"].stateValues.center[1],
             ).closeTo(cny, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalCenter[0]
+                stateVariables["/graph3/circle"].stateValues.numericalCenter[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalCenter[1]
+                stateVariables["/graph3/circle"].stateValues.numericalCenter[1],
             ).closeTo(cny, 1e-12);
             expect(
-                await stateVariables["/graph3/circle"].stateValues.radius
+                await stateVariables["/graph3/circle"].stateValues.radius,
             ).closeTo(r, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalRadius
+                stateVariables["/graph3/circle"].stateValues.numericalRadius,
             ).closeTo(r, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.center[0]
+                stateVariables["/graph4/circle"].stateValues.center[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.center[1]
+                stateVariables["/graph4/circle"].stateValues.center[1],
             ).closeTo(cny, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalCenter[0]
+                stateVariables["/graph4/circle"].stateValues.numericalCenter[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalCenter[1]
+                stateVariables["/graph4/circle"].stateValues.numericalCenter[1],
             ).closeTo(cny, 1e-12);
             expect(
-                await stateVariables["/graph4/circle"].stateValues.radius
+                await stateVariables["/graph4/circle"].stateValues.radius,
             ).closeTo(r, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalRadius
+                stateVariables["/graph4/circle"].stateValues.numericalRadius,
             ).closeTo(r, 1e-12);
             expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                 cnx,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                 cny,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                 tx,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                 ty,
-                1e-12
+                1e-12,
             );
             expect(
-                (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                (await stateVariables["/centerPoint"].stateValues.xs)[0],
             ).closeTo(cnx, 1e-12);
             expect(stateVariables["/centerPoint"].stateValues.xs[1]).closeTo(
                 cny,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/radiusNumber"].stateValues.value).closeTo(
                 r,
-                1e-12
+                1e-12,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
         });
 
@@ -10417,103 +10591,105 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     cnx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     cny,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     tx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     ty,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -10537,103 +10713,105 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     cnx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     cny,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     tx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     ty,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -10653,103 +10831,105 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     cnx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     cny,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     tx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     ty,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -10771,103 +10951,105 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     cnx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     cny,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     tx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     ty,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -10894,102 +11076,104 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     cnx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     cny,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     tx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     ty,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -11023,102 +11207,104 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     cnx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     cny,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     tx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     ty,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -11153,102 +11339,104 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     cnx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     cny,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     tx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     ty,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -11278,7 +11466,7 @@ describe("Circle Tag Tests", function () {
     $graph3{name="graph4"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -11292,95 +11480,95 @@ describe("Circle Tag Tests", function () {
 
             expect(stateVariables["/_circle1"].stateValues.center[0]).closeTo(
                 cnx,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_circle1"].stateValues.center[1]).closeTo(
                 cny,
-                1e-12
+                1e-12,
             );
             expect(
-                stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                stateVariables["/_circle1"].stateValues.numericalCenter[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                stateVariables["/_circle1"].stateValues.numericalCenter[1],
             ).closeTo(cny, 1e-12);
             expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                 r,
-                1e-12
+                1e-12,
             );
             expect(
-                stateVariables["/_circle1"].stateValues.numericalRadius
+                stateVariables["/_circle1"].stateValues.numericalRadius,
             ).closeTo(r, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.center[0]
+                stateVariables["/graph3/circle"].stateValues.center[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.center[1]
+                stateVariables["/graph3/circle"].stateValues.center[1],
             ).closeTo(cny, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalCenter[0]
+                stateVariables["/graph3/circle"].stateValues.numericalCenter[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalCenter[1]
+                stateVariables["/graph3/circle"].stateValues.numericalCenter[1],
             ).closeTo(cny, 1e-12);
             expect(
-                await stateVariables["/graph3/circle"].stateValues.radius
+                await stateVariables["/graph3/circle"].stateValues.radius,
             ).closeTo(r, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalRadius
+                stateVariables["/graph3/circle"].stateValues.numericalRadius,
             ).closeTo(r, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.center[0]
+                stateVariables["/graph4/circle"].stateValues.center[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.center[1]
+                stateVariables["/graph4/circle"].stateValues.center[1],
             ).closeTo(cny, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalCenter[0]
+                stateVariables["/graph4/circle"].stateValues.numericalCenter[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalCenter[1]
+                stateVariables["/graph4/circle"].stateValues.numericalCenter[1],
             ).closeTo(cny, 1e-12);
             expect(
-                await stateVariables["/graph4/circle"].stateValues.radius
+                await stateVariables["/graph4/circle"].stateValues.radius,
             ).closeTo(r, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalRadius
+                stateVariables["/graph4/circle"].stateValues.numericalRadius,
             ).closeTo(r, 1e-12);
             expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                 r,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                 0,
-                1e-12
+                1e-12,
             );
             expect((await stateVariables["/center"].stateValues.xs)[0]).closeTo(
                 cnx,
-                1e-12
+                1e-12,
             );
             expect((await stateVariables["/center"].stateValues.xs)[1]).closeTo(
                 cny,
-                1e-12
+                1e-12,
             );
             expect(
-                (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                (await stateVariables["/centerPoint"].stateValues.xs)[0],
             ).closeTo(cnx, 1e-12);
             expect(stateVariables["/centerPoint"].stateValues.xs[1]).closeTo(
                 cny,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/radiusNumber"].stateValues.value).closeTo(
                 r,
-                1e-12
+                1e-12,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
         });
 
@@ -11397,11 +11585,11 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should("contain.text", "0");
 
@@ -11409,86 +11597,88 @@ describe("Circle Tag Tests", function () {
                 let stateVariables = await win.returnAllStateVariables1();
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     0,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(0, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(0, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(0, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(0, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(0, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     0,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/center"].stateValues.xs)[0]
+                    (await stateVariables["/center"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    (await stateVariables["/center"].stateValues.xs)[1]
+                    (await stateVariables["/center"].stateValues.xs)[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(0, 1e-12);
             });
         });
@@ -11512,101 +11702,103 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     0,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/center"].stateValues.xs)[0]
+                    (await stateVariables["/center"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    (await stateVariables["/center"].stateValues.xs)[1]
+                    (await stateVariables["/center"].stateValues.xs)[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -11637,7 +11829,7 @@ describe("Circle Tag Tests", function () {
     $_graph1{name="graph2" newNamespace}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -11658,83 +11850,83 @@ describe("Circle Tag Tests", function () {
 
             expect(stateVariables["/_circle1"].stateValues.center[0]).closeTo(
                 cnx,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_circle1"].stateValues.center[1]).closeTo(
                 cny,
-                1e-12
+                1e-12,
             );
             expect(
-                stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                stateVariables["/_circle1"].stateValues.numericalCenter[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                stateVariables["/_circle1"].stateValues.numericalCenter[1],
             ).closeTo(cny, 1e-12);
             expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                 r,
-                1e-12
+                1e-12,
             );
             expect(
-                stateVariables["/_circle1"].stateValues.numericalRadius
+                stateVariables["/_circle1"].stateValues.numericalRadius,
             ).closeTo(r, 1e-12);
             expect(
-                stateVariables["/graph2/_circle1"].stateValues.center[0]
+                stateVariables["/graph2/_circle1"].stateValues.center[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/graph2/_circle1"].stateValues.center[1]
+                stateVariables["/graph2/_circle1"].stateValues.center[1],
             ).closeTo(cny, 1e-12);
             expect(
                 stateVariables["/graph2/_circle1"].stateValues
-                    .numericalCenter[0]
+                    .numericalCenter[0],
             ).closeTo(cnx, 1e-12);
             expect(
                 stateVariables["/graph2/_circle1"].stateValues
-                    .numericalCenter[1]
+                    .numericalCenter[1],
             ).closeTo(cny, 1e-12);
             expect(
-                await stateVariables["/graph2/_circle1"].stateValues.radius
+                await stateVariables["/graph2/_circle1"].stateValues.radius,
             ).closeTo(r, 1e-12);
             expect(
-                stateVariables["/graph2/_circle1"].stateValues.numericalRadius
+                stateVariables["/graph2/_circle1"].stateValues.numericalRadius,
             ).closeTo(r, 1e-12);
             expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                 r,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                 0,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                 cnx,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                 cny,
-                1e-12
+                1e-12,
             );
             expect(
-                (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                (await stateVariables["/centerPoint"].stateValues.xs)[0],
             ).closeTo(cnx, 1e-12);
             expect(stateVariables["/centerPoint"].stateValues.xs[1]).closeTo(
                 cny,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/radiusNumber"].stateValues.value).closeTo(
                 r,
-                1e-12
+                1e-12,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
         });
 
@@ -11752,15 +11944,15 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
@@ -11769,80 +11961,80 @@ describe("Circle Tag Tests", function () {
                 let px = stateVariables["/_point3"].stateValues.xs[0];
                 let py = stateVariables["/_point3"].stateValues.xs[1];
                 let dist = Math.sqrt(
-                    Math.pow(px - cnx, 2) + Math.pow(py - cny, 2)
+                    Math.pow(px - cnx, 2) + Math.pow(py - cny, 2),
                 );
                 expect(dist).closeTo(r, 1e-12);
                 expect(stateVariables["/graph2/_point3"].stateValues.xs[0]).eq(
-                    px
+                    px,
                 );
                 expect(stateVariables["/graph2/_point3"].stateValues.xs[1]).eq(
-                    py
+                    py,
                 );
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph2/_circle1"].stateValues.center[0]
+                    stateVariables["/graph2/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph2/_circle1"].stateValues.center[1]
+                    stateVariables["/graph2/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph2/_circle1"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph2/_circle1"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph2/_circle1"].stateValues.radius
+                    await stateVariables["/graph2/_circle1"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
                     stateVariables["/graph2/_circle1"].stateValues
-                        .numericalRadius
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     0,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     cnx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     cny,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -11861,15 +12053,15 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
@@ -11878,80 +12070,80 @@ describe("Circle Tag Tests", function () {
                 let px = stateVariables["/_point3"].stateValues.xs[0];
                 let py = stateVariables["/_point3"].stateValues.xs[1];
                 let dist = Math.sqrt(
-                    Math.pow(px - cnx, 2) + Math.pow(py - cny, 2)
+                    Math.pow(px - cnx, 2) + Math.pow(py - cny, 2),
                 );
                 expect(dist).closeTo(r, 1e-12);
                 expect(stateVariables["/graph2/_point3"].stateValues.xs[0]).eq(
-                    px
+                    px,
                 );
                 expect(stateVariables["/graph2/_point3"].stateValues.xs[1]).eq(
-                    py
+                    py,
                 );
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph2/_circle1"].stateValues.center[0]
+                    stateVariables["/graph2/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph2/_circle1"].stateValues.center[1]
+                    stateVariables["/graph2/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph2/_circle1"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph2/_circle1"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph2/_circle1"].stateValues.radius
+                    await stateVariables["/graph2/_circle1"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
                     stateVariables["/graph2/_circle1"].stateValues
-                        .numericalRadius
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     0,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     cnx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     cny,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -11970,15 +12162,15 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
@@ -11987,80 +12179,80 @@ describe("Circle Tag Tests", function () {
                 let px = stateVariables["/_point3"].stateValues.xs[0];
                 let py = stateVariables["/_point3"].stateValues.xs[1];
                 let dist = Math.sqrt(
-                    Math.pow(px - cnx, 2) + Math.pow(py - cny, 2)
+                    Math.pow(px - cnx, 2) + Math.pow(py - cny, 2),
                 );
                 expect(dist).closeTo(r, 1e-12);
                 expect(stateVariables["/graph2/_point3"].stateValues.xs[0]).eq(
-                    px
+                    px,
                 );
                 expect(stateVariables["/graph2/_point3"].stateValues.xs[1]).eq(
-                    py
+                    py,
                 );
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph2/_circle1"].stateValues.center[0]
+                    stateVariables["/graph2/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph2/_circle1"].stateValues.center[1]
+                    stateVariables["/graph2/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph2/_circle1"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph2/_circle1"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph2/_circle1"].stateValues.radius
+                    await stateVariables["/graph2/_circle1"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
                     stateVariables["/graph2/_circle1"].stateValues
-                        .numericalRadius
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     0,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     cnx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     cny,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -12079,15 +12271,15 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
@@ -12096,80 +12288,80 @@ describe("Circle Tag Tests", function () {
                 let px = stateVariables["/_point3"].stateValues.xs[0];
                 let py = stateVariables["/_point3"].stateValues.xs[1];
                 let dist = Math.sqrt(
-                    Math.pow(px - cnx, 2) + Math.pow(py - cny, 2)
+                    Math.pow(px - cnx, 2) + Math.pow(py - cny, 2),
                 );
                 expect(dist).closeTo(r, 1e-12);
                 expect(stateVariables["/graph2/_point3"].stateValues.xs[0]).eq(
-                    px
+                    px,
                 );
                 expect(stateVariables["/graph2/_point3"].stateValues.xs[1]).eq(
-                    py
+                    py,
                 );
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph2/_circle1"].stateValues.center[0]
+                    stateVariables["/graph2/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph2/_circle1"].stateValues.center[1]
+                    stateVariables["/graph2/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph2/_circle1"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph2/_circle1"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph2/_circle1"].stateValues.radius
+                    await stateVariables["/graph2/_circle1"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
                     stateVariables["/graph2/_circle1"].stateValues
-                        .numericalRadius
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     0,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     cnx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     cny,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -12188,15 +12380,15 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
@@ -12205,80 +12397,80 @@ describe("Circle Tag Tests", function () {
                 let px = stateVariables["/_point3"].stateValues.xs[0];
                 let py = stateVariables["/_point3"].stateValues.xs[1];
                 let dist = Math.sqrt(
-                    Math.pow(px - cnx, 2) + Math.pow(py - cny, 2)
+                    Math.pow(px - cnx, 2) + Math.pow(py - cny, 2),
                 );
                 expect(dist).closeTo(r, 1e-12);
                 expect(stateVariables["/graph2/_point3"].stateValues.xs[0]).eq(
-                    px
+                    px,
                 );
                 expect(stateVariables["/graph2/_point3"].stateValues.xs[1]).eq(
-                    py
+                    py,
                 );
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph2/_circle1"].stateValues.center[0]
+                    stateVariables["/graph2/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph2/_circle1"].stateValues.center[1]
+                    stateVariables["/graph2/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph2/_circle1"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph2/_circle1"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph2/_circle1"].stateValues.radius
+                    await stateVariables["/graph2/_circle1"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
                     stateVariables["/graph2/_circle1"].stateValues
-                        .numericalRadius
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     0,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     cnx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     cny,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -12307,7 +12499,7 @@ describe("Circle Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -12323,88 +12515,88 @@ describe("Circle Tag Tests", function () {
 
             expect(stateVariables["/_circle1"].stateValues.center[0]).closeTo(
                 cnx,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_circle1"].stateValues.center[1]).closeTo(
                 cny,
-                1e-12
+                1e-12,
             );
             expect(
-                stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                stateVariables["/_circle1"].stateValues.numericalCenter[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                stateVariables["/_circle1"].stateValues.numericalCenter[1],
             ).closeTo(cny, 1e-12);
             expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                 r,
-                1e-12
+                1e-12,
             );
             expect(
-                stateVariables["/_circle1"].stateValues.numericalRadius
+                stateVariables["/_circle1"].stateValues.numericalRadius,
             ).closeTo(r, 1e-12);
             expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                 cnx,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                 cny,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                 tx,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                 ty,
-                1e-12
+                1e-12,
             );
             expect(
-                (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                (await stateVariables["/centerPoint"].stateValues.xs)[0],
             ).closeTo(cnx, 1e-12);
             expect(stateVariables["/centerPoint"].stateValues.xs[1]).closeTo(
                 cny,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                 cny,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                 r,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/circle2"].stateValues.center[0]).closeTo(
                 cnx,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/circle2"].stateValues.center[1]).closeTo(
                 cny,
-                1e-12
+                1e-12,
             );
             expect(
-                stateVariables["/circle2"].stateValues.numericalCenter[0]
+                stateVariables["/circle2"].stateValues.numericalCenter[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/circle2"].stateValues.numericalCenter[1]
+                stateVariables["/circle2"].stateValues.numericalCenter[1],
             ).closeTo(cny, 1e-12);
             expect(await stateVariables["/circle2"].stateValues.radius).closeTo(
                 r,
-                1e-12
+                1e-12,
             );
             expect(
-                stateVariables["/circle2"].stateValues.numericalRadius
+                stateVariables["/circle2"].stateValues.numericalRadius,
             ).closeTo(r, 1e-12);
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
         });
 
@@ -12431,86 +12623,86 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     cnx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     cny,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     tx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     ty,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     cny,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/circle2"].stateValues.center[0]
+                    stateVariables["/circle2"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/circle2"].stateValues.center[1]
+                    stateVariables["/circle2"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/circle2"].stateValues.numericalCenter[0]
+                    stateVariables["/circle2"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/circle2"].stateValues.numericalCenter[1]
+                    stateVariables["/circle2"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/circle2"].stateValues.radius
+                    await stateVariables["/circle2"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/circle2"].stateValues.numericalRadius
+                    stateVariables["/circle2"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -12539,86 +12731,86 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     cnx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     cny,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     tx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     ty,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     cny,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/circle2"].stateValues.center[0]
+                    stateVariables["/circle2"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/circle2"].stateValues.center[1]
+                    stateVariables["/circle2"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/circle2"].stateValues.numericalCenter[0]
+                    stateVariables["/circle2"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/circle2"].stateValues.numericalCenter[1]
+                    stateVariables["/circle2"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/circle2"].stateValues.radius
+                    await stateVariables["/circle2"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/circle2"].stateValues.numericalRadius
+                    stateVariables["/circle2"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -12645,86 +12837,86 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     cnx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     cny,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     tx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     ty,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     cny,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/circle2"].stateValues.center[0]
+                    stateVariables["/circle2"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/circle2"].stateValues.center[1]
+                    stateVariables["/circle2"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/circle2"].stateValues.numericalCenter[0]
+                    stateVariables["/circle2"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/circle2"].stateValues.numericalCenter[1]
+                    stateVariables["/circle2"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/circle2"].stateValues.radius
+                    await stateVariables["/circle2"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/circle2"].stateValues.numericalRadius
+                    stateVariables["/circle2"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -12747,86 +12939,86 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     cnx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     cny,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     tx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     ty,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     cny,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/circle2"].stateValues.center[0]
+                    stateVariables["/circle2"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/circle2"].stateValues.center[1]
+                    stateVariables["/circle2"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/circle2"].stateValues.numericalCenter[0]
+                    stateVariables["/circle2"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/circle2"].stateValues.numericalCenter[1]
+                    stateVariables["/circle2"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/circle2"].stateValues.radius
+                    await stateVariables["/circle2"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/circle2"].stateValues.numericalRadius
+                    stateVariables["/circle2"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -12849,86 +13041,86 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     cnx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     cny,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     tx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     ty,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     cny,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/circle2"].stateValues.center[0]
+                    stateVariables["/circle2"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/circle2"].stateValues.center[1]
+                    stateVariables["/circle2"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/circle2"].stateValues.numericalCenter[0]
+                    stateVariables["/circle2"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/circle2"].stateValues.numericalCenter[1]
+                    stateVariables["/circle2"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/circle2"].stateValues.radius
+                    await stateVariables["/circle2"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/circle2"].stateValues.numericalRadius
+                    stateVariables["/circle2"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -12955,7 +13147,7 @@ describe("Circle Tag Tests", function () {
 
             // first time through, the radius doesn't end up being what specified
             let rActual = Math.sqrt(
-                Math.pow(tx - cnx, 2) + Math.pow(ty - cny, 2)
+                Math.pow(tx - cnx, 2) + Math.pow(ty - cny, 2),
             );
 
             await win.callAction1({
@@ -12966,86 +13158,86 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(rActual * 100) / 100)
+                nInDOM(Math.trunc(rActual * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     rActual,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(rActual, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     cnx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     cny,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     tx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     ty,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     cny,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     rActual,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/circle2"].stateValues.center[0]
+                    stateVariables["/circle2"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/circle2"].stateValues.center[1]
+                    stateVariables["/circle2"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/circle2"].stateValues.numericalCenter[0]
+                    stateVariables["/circle2"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/circle2"].stateValues.numericalCenter[1]
+                    stateVariables["/circle2"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/circle2"].stateValues.radius
+                    await stateVariables["/circle2"].stateValues.radius,
                 ).closeTo(rActual, 1e-12);
                 expect(
-                    stateVariables["/circle2"].stateValues.numericalRadius
+                    stateVariables["/circle2"].stateValues.numericalRadius,
                 ).closeTo(rActual, 1e-12);
 
                 // try it again
@@ -13063,83 +13255,85 @@ describe("Circle Tag Tests", function () {
 
                 cy.get(cesc("#\\/centerPoint2")).should(
                     "contain.text",
-                    `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                    `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
                 );
                 cy.get(cesc("#\\/centerPoint2")).should(
                     "contain.text",
-                    `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                    `${nInDOM(Math.trunc(cny * 100) / 100)}`,
                 );
                 cy.get(cesc("#\\/radiusNumber")).should(
                     "contain.text",
-                    nInDOM(Math.trunc(rActual * 100) / 100)
+                    nInDOM(Math.trunc(rActual * 100) / 100),
                 );
 
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
 
                     expect(
-                        stateVariables["/_circle1"].stateValues.center[0]
+                        stateVariables["/_circle1"].stateValues.center[0],
                     ).closeTo(cnx, 1e-12);
                     expect(
-                        stateVariables["/_circle1"].stateValues.center[1]
+                        stateVariables["/_circle1"].stateValues.center[1],
                     ).closeTo(cny, 1e-12);
                     expect(
                         stateVariables["/_circle1"].stateValues
-                            .numericalCenter[0]
+                            .numericalCenter[0],
                     ).closeTo(cnx, 1e-12);
                     expect(
                         stateVariables["/_circle1"].stateValues
-                            .numericalCenter[1]
+                            .numericalCenter[1],
                     ).closeTo(cny, 1e-12);
                     expect(
-                        stateVariables["/_circle1"].stateValues.radius
+                        stateVariables["/_circle1"].stateValues.radius,
                     ).closeTo(rActual, 1e-12);
                     expect(
-                        stateVariables["/_circle1"].stateValues.numericalRadius
+                        stateVariables["/_circle1"].stateValues.numericalRadius,
                     ).closeTo(rActual, 1e-12);
                     expect(
-                        stateVariables["/_point1"].stateValues.xs[0]
+                        stateVariables["/_point1"].stateValues.xs[0],
                     ).closeTo(cnx, 1e-12);
                     expect(
-                        stateVariables["/_point1"].stateValues.xs[1]
+                        stateVariables["/_point1"].stateValues.xs[1],
                     ).closeTo(cny, 1e-12);
                     expect(
-                        stateVariables["/_point2"].stateValues.xs[0]
+                        stateVariables["/_point2"].stateValues.xs[0],
                     ).closeTo(tx, 1e-12);
                     expect(
-                        stateVariables["/_point2"].stateValues.xs[1]
+                        stateVariables["/_point2"].stateValues.xs[1],
                     ).closeTo(ty, 1e-12);
                     expect(
-                        (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                        (
+                            await stateVariables["/centerPoint"].stateValues.xs
+                        )[0],
                     ).closeTo(cnx, 1e-12);
                     expect(
-                        stateVariables["/centerPoint"].stateValues.xs[1]
+                        stateVariables["/centerPoint"].stateValues.xs[1],
                     ).closeTo(cny, 1e-12);
                     expect(
-                        stateVariables["/_point3"].stateValues.xs[0]
+                        stateVariables["/_point3"].stateValues.xs[0],
                     ).closeTo(cny, 1e-12);
                     expect(
-                        stateVariables["/_point3"].stateValues.xs[1]
+                        stateVariables["/_point3"].stateValues.xs[1],
                     ).closeTo(rActual, 1e-12);
                     expect(
-                        stateVariables["/circle2"].stateValues.center[0]
+                        stateVariables["/circle2"].stateValues.center[0],
                     ).closeTo(cnx, 1e-12);
                     expect(
-                        stateVariables["/circle2"].stateValues.center[1]
+                        stateVariables["/circle2"].stateValues.center[1],
                     ).closeTo(cny, 1e-12);
                     expect(
                         stateVariables["/circle2"].stateValues
-                            .numericalCenter[0]
+                            .numericalCenter[0],
                     ).closeTo(cnx, 1e-12);
                     expect(
                         stateVariables["/circle2"].stateValues
-                            .numericalCenter[1]
+                            .numericalCenter[1],
                     ).closeTo(cny, 1e-12);
                     expect(
-                        await stateVariables["/circle2"].stateValues.radius
+                        await stateVariables["/circle2"].stateValues.radius,
                     ).closeTo(rActual, 1e-12);
                     expect(
-                        stateVariables["/circle2"].stateValues.numericalRadius
+                        stateVariables["/circle2"].stateValues.numericalRadius,
                     ).closeTo(rActual, 1e-12);
                 });
             });
@@ -13177,7 +13371,7 @@ describe("Circle Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -13202,70 +13396,70 @@ describe("Circle Tag Tests", function () {
             // verify triangle vertices are on circle
             expect(Math.sqrt((t1x - circx) ** 2 + (t1y - circy) ** 2)).closeTo(
                 r,
-                1e-12
+                1e-12,
             );
             expect(Math.sqrt((t2x - circx) ** 2 + (t2y - circy) ** 2)).closeTo(
                 r,
-                1e-12
+                1e-12,
             );
             expect(Math.sqrt((t3x - circx) ** 2 + (t3y - circy) ** 2)).closeTo(
                 r,
-                1e-12
+                1e-12,
             );
 
             expect(stateVariables["/t"].stateValues.vertices[0][0]).closeTo(
                 t1x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/t"].stateValues.vertices[0][1]).closeTo(
                 t1y,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/t"].stateValues.vertices[1][0]).closeTo(
                 t2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/t"].stateValues.vertices[1][1]).closeTo(
                 t2y,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/t"].stateValues.vertices[2][0]).closeTo(
                 t3x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/t"].stateValues.vertices[2][1]).closeTo(
                 t3y,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/c"].stateValues.center[0]).closeTo(
                 circx,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/c"].stateValues.center[1]).closeTo(
                 circy,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/c"].stateValues.radius).closeTo(r, 1e-12);
             expect(stateVariables["/x"].stateValues.xs[0]).closeTo(
                 circx,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/y"].stateValues.xs[1]).closeTo(
                 circy,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/r"].stateValues.xs[0]).closeTo(r, 1e-12);
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(circx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(circx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(circy * 100) / 100)}`
+                `${nInDOM(Math.trunc(circy * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
         });
 
@@ -13296,75 +13490,75 @@ describe("Circle Tag Tests", function () {
 
                 cy.get(cesc("#\\/centerPoint2")).should(
                     "contain.text",
-                    `(${nInDOM(Math.trunc(circx * 100) / 100)}`
+                    `(${nInDOM(Math.trunc(circx * 100) / 100)}`,
                 );
                 cy.get(cesc("#\\/centerPoint2")).should(
                     "contain.text",
-                    `${nInDOM(Math.trunc(circy * 100) / 100)}`
+                    `${nInDOM(Math.trunc(circy * 100) / 100)}`,
                 );
                 cy.get(cesc("#\\/radiusNumber")).should(
                     "contain.text",
-                    nInDOM(Math.trunc(r * 100) / 100)
+                    nInDOM(Math.trunc(r * 100) / 100),
                 );
 
                 // verify triangle vertices are on circle
                 expect(
-                    Math.sqrt((t1x - circx) ** 2 + (t1y - circy) ** 2)
+                    Math.sqrt((t1x - circx) ** 2 + (t1y - circy) ** 2),
                 ).closeTo(r, 1e-12);
                 expect(
-                    Math.sqrt((t2x - circx) ** 2 + (t2y - circy) ** 2)
+                    Math.sqrt((t2x - circx) ** 2 + (t2y - circy) ** 2),
                 ).closeTo(r, 1e-12);
                 expect(
-                    Math.sqrt((t3x - circx) ** 2 + (t3y - circy) ** 2)
+                    Math.sqrt((t3x - circx) ** 2 + (t3y - circy) ** 2),
                 ).closeTo(r, 1e-12);
 
                 expect(stateVariables["/t"].stateValues.vertices[0][0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/t"].stateValues.vertices[0][1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/t"].stateValues.vertices[1][0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/t"].stateValues.vertices[1][1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/t"].stateValues.vertices[2][0]).closeTo(
                     t3x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/t"].stateValues.vertices[2][1]).closeTo(
                     t3y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/c"].stateValues.center[0]).closeTo(
                     circx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/c"].stateValues.center[1]).closeTo(
                     circy,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/c"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/x"].stateValues.xs[0]).closeTo(
                     circx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/y"].stateValues.xs[1]).closeTo(
                     circy,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/r"].stateValues.xs[0]).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
             });
         });
@@ -13390,76 +13584,76 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(circx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(circx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(circy * 100) / 100)}`
+                `${nInDOM(Math.trunc(circy * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/c"].stateValues.numericalCenter[0]
+                    stateVariables["/c"].stateValues.numericalCenter[0],
                 ).closeTo(circx, 1e-12);
                 expect(
-                    stateVariables["/c"].stateValues.numericalCenter[1]
+                    stateVariables["/c"].stateValues.numericalCenter[1],
                 ).closeTo(circy, 1e-12);
                 expect(
-                    stateVariables["/c"].stateValues.numericalRadius
+                    stateVariables["/c"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
 
                 expect(stateVariables["/t"].stateValues.vertices[0][0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/t"].stateValues.vertices[0][1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/t"].stateValues.vertices[1][0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/t"].stateValues.vertices[1][1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/t"].stateValues.vertices[2][0]).closeTo(
                     t3x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/t"].stateValues.vertices[2][1]).closeTo(
                     t3y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/c"].stateValues.center[0]).closeTo(
                     circx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/c"].stateValues.center[1]).closeTo(
                     circy,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/c"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/x"].stateValues.xs[0]).closeTo(
                     circx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/y"].stateValues.xs[1]).closeTo(
                     circy,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/r"].stateValues.xs[0]).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
             });
         });
@@ -13480,76 +13674,76 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(circx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(circx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(circy * 100) / 100)}`
+                `${nInDOM(Math.trunc(circy * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/c"].stateValues.numericalCenter[0]
+                    stateVariables["/c"].stateValues.numericalCenter[0],
                 ).closeTo(circx, 1e-12);
                 expect(
-                    stateVariables["/c"].stateValues.numericalCenter[1]
+                    stateVariables["/c"].stateValues.numericalCenter[1],
                 ).closeTo(circy, 1e-12);
                 expect(
-                    stateVariables["/c"].stateValues.numericalRadius
+                    stateVariables["/c"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
 
                 expect(stateVariables["/t"].stateValues.vertices[0][0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/t"].stateValues.vertices[0][1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/t"].stateValues.vertices[1][0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/t"].stateValues.vertices[1][1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/t"].stateValues.vertices[2][0]).closeTo(
                     t3x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/t"].stateValues.vertices[2][1]).closeTo(
                     t3y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/c"].stateValues.center[0]).closeTo(
                     circx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/c"].stateValues.center[1]).closeTo(
                     circy,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/c"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/x"].stateValues.xs[0]).closeTo(
                     circx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/y"].stateValues.xs[1]).closeTo(
                     circy,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/r"].stateValues.xs[0]).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
             });
         });
@@ -13570,76 +13764,76 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(circx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(circx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(circy * 100) / 100)}`
+                `${nInDOM(Math.trunc(circy * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/c"].stateValues.numericalCenter[0]
+                    stateVariables["/c"].stateValues.numericalCenter[0],
                 ).closeTo(circx, 1e-12);
                 expect(
-                    stateVariables["/c"].stateValues.numericalCenter[1]
+                    stateVariables["/c"].stateValues.numericalCenter[1],
                 ).closeTo(circy, 1e-12);
                 expect(
-                    stateVariables["/c"].stateValues.numericalRadius
+                    stateVariables["/c"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
 
                 expect(stateVariables["/t"].stateValues.vertices[0][0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/t"].stateValues.vertices[0][1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/t"].stateValues.vertices[1][0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/t"].stateValues.vertices[1][1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/t"].stateValues.vertices[2][0]).closeTo(
                     t3x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/t"].stateValues.vertices[2][1]).closeTo(
                     t3y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/c"].stateValues.center[0]).closeTo(
                     circx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/c"].stateValues.center[1]).closeTo(
                     circy,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/c"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/x"].stateValues.xs[0]).closeTo(
                     circx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/y"].stateValues.xs[1]).closeTo(
                     circy,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/r"].stateValues.xs[0]).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
             });
         });
@@ -13665,76 +13859,76 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(circx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(circx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(circy * 100) / 100)}`
+                `${nInDOM(Math.trunc(circy * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/c"].stateValues.numericalCenter[0]
+                    stateVariables["/c"].stateValues.numericalCenter[0],
                 ).closeTo(circx, 1e-12);
                 expect(
-                    stateVariables["/c"].stateValues.numericalCenter[1]
+                    stateVariables["/c"].stateValues.numericalCenter[1],
                 ).closeTo(circy, 1e-12);
                 expect(
-                    stateVariables["/c"].stateValues.numericalRadius
+                    stateVariables["/c"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
 
                 expect(stateVariables["/t"].stateValues.vertices[0][0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/t"].stateValues.vertices[0][1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/t"].stateValues.vertices[1][0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/t"].stateValues.vertices[1][1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/t"].stateValues.vertices[2][0]).closeTo(
                     t3x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/t"].stateValues.vertices[2][1]).closeTo(
                     t3y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/c"].stateValues.center[0]).closeTo(
                     circx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/c"].stateValues.center[1]).closeTo(
                     circy,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/c"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/x"].stateValues.xs[0]).closeTo(
                     circx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/y"].stateValues.xs[1]).closeTo(
                     circy,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/r"].stateValues.xs[0]).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
             });
         });
@@ -13749,73 +13943,73 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(circx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(circx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(circy * 100) / 100)}`
+                `${nInDOM(Math.trunc(circy * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should("contain.text", "0");
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/c"].stateValues.numericalCenter[0]
+                    stateVariables["/c"].stateValues.numericalCenter[0],
                 ).closeTo(circx, 1e-12);
                 expect(
-                    stateVariables["/c"].stateValues.numericalCenter[1]
+                    stateVariables["/c"].stateValues.numericalCenter[1],
                 ).closeTo(circy, 1e-12);
                 expect(
-                    stateVariables["/c"].stateValues.numericalRadius
+                    stateVariables["/c"].stateValues.numericalRadius,
                 ).closeTo(0, 1e-12);
 
                 expect(stateVariables["/t"].stateValues.vertices[0][0]).closeTo(
                     circx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/t"].stateValues.vertices[0][1]).closeTo(
                     circy,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/t"].stateValues.vertices[1][0]).closeTo(
                     circx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/t"].stateValues.vertices[1][1]).closeTo(
                     circy,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/t"].stateValues.vertices[2][0]).closeTo(
                     circx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/t"].stateValues.vertices[2][1]).closeTo(
                     circy,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/c"].stateValues.center[0]).closeTo(
                     circx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/c"].stateValues.center[1]).closeTo(
                     circy,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/c"].stateValues.radius).closeTo(
                     0,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/x"].stateValues.xs[0]).closeTo(
                     circx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/y"].stateValues.xs[1]).closeTo(
                     circy,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/r"].stateValues.xs[0]).closeTo(
                     0,
-                    1e-12
+                    1e-12,
                 );
             });
         });
@@ -13841,77 +14035,77 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(circx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(circx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(circy * 100) / 100)}`
+                `${nInDOM(Math.trunc(circy * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
                 expect(
-                    stateVariables["/c"].stateValues.numericalCenter[0]
+                    stateVariables["/c"].stateValues.numericalCenter[0],
                 ).closeTo(circx, 1e-12);
                 expect(
-                    stateVariables["/c"].stateValues.numericalCenter[1]
+                    stateVariables["/c"].stateValues.numericalCenter[1],
                 ).closeTo(circy, 1e-12);
                 expect(
-                    stateVariables["/c"].stateValues.numericalRadius
+                    stateVariables["/c"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
 
                 expect(stateVariables["/t"].stateValues.vertices[0][0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/t"].stateValues.vertices[0][1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/t"].stateValues.vertices[1][0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/t"].stateValues.vertices[1][1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/t"].stateValues.vertices[2][0]).closeTo(
                     t3x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/t"].stateValues.vertices[2][1]).closeTo(
                     t3y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/c"].stateValues.center[0]).closeTo(
                     circx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/c"].stateValues.center[1]).closeTo(
                     circy,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/c"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/x"].stateValues.xs[0]).closeTo(
                     circx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/y"].stateValues.xs[1]).closeTo(
                     circy,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/r"].stateValues.xs[0]).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
             });
         });
@@ -13934,7 +14128,7 @@ describe("Circle Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -13951,7 +14145,7 @@ describe("Circle Tag Tests", function () {
             ]);
             cy.get(cesc("#\\/radiusNumber") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(2)
+                nInDOM(2),
             );
         });
 
@@ -13965,11 +14159,11 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(-3)}`
+                `(${nInDOM(-3)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(5)}`
+                `${nInDOM(5)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should("contain.text", nInDOM(5));
 
@@ -13997,11 +14191,11 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(8)}`
+                `(${nInDOM(8)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(7)}`
+                `${nInDOM(7)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should("contain.text", nInDOM(7));
 
@@ -14028,11 +14222,11 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(3)}`
+                `(${nInDOM(3)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(-2)}`
+                `${nInDOM(-2)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should("contain.text", nInDOM(0));
 
@@ -14060,11 +14254,11 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(1)}`
+                `(${nInDOM(1)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(4)}`
+                `${nInDOM(4)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should("contain.text", nInDOM(4));
 
@@ -14099,7 +14293,7 @@ describe("Circle Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -14116,7 +14310,7 @@ describe("Circle Tag Tests", function () {
             ]);
             cy.get(cesc("#\\/radiusNumber") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(2)
+                nInDOM(2),
             );
         });
 
@@ -14130,11 +14324,11 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(-3)}`
+                `(${nInDOM(-3)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(5)}`
+                `${nInDOM(5)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should("contain.text", nInDOM(5));
 
@@ -14161,11 +14355,11 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(8)}`
+                `(${nInDOM(8)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(7)}`
+                `${nInDOM(7)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should("contain.text", nInDOM(7));
 
@@ -14192,11 +14386,11 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(3)}`
+                `(${nInDOM(3)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(0)}`
+                `${nInDOM(0)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should("contain.text", nInDOM(0));
 
@@ -14223,11 +14417,11 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(1)}`
+                `(${nInDOM(1)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(4)}`
+                `${nInDOM(4)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should("contain.text", nInDOM(4));
 
@@ -14262,7 +14456,7 @@ describe("Circle Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -14280,7 +14474,7 @@ describe("Circle Tag Tests", function () {
             ]);
             cy.get(cesc("#\\/radiusNumber") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(2)
+                nInDOM(2),
             );
         });
 
@@ -14294,11 +14488,11 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(-3)}`
+                `(${nInDOM(-3)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(6)}`
+                `${nInDOM(6)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should("contain.text", nInDOM(3));
 
@@ -14328,11 +14522,11 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(8)}`
+                `(${nInDOM(8)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(4)}`
+                `${nInDOM(4)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should("contain.text", nInDOM(2));
 
@@ -14362,11 +14556,11 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(3)}`
+                `(${nInDOM(3)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(0)}`
+                `${nInDOM(0)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should("contain.text", nInDOM(0));
 
@@ -14396,11 +14590,11 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(1)}`
+                `(${nInDOM(1)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(8)}`
+                `${nInDOM(8)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should("contain.text", nInDOM(4));
 
@@ -14436,7 +14630,7 @@ describe("Circle Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -14453,7 +14647,7 @@ describe("Circle Tag Tests", function () {
             ]);
             cy.get(cesc("#\\/radiusNumber") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(1)
+                nInDOM(1),
             );
         });
 
@@ -14467,11 +14661,11 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(-3)}`
+                `(${nInDOM(-3)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(5)}`
+                `${nInDOM(5)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should("contain.text", nInDOM(5));
 
@@ -14499,11 +14693,11 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(8)}`
+                `(${nInDOM(8)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(7)}`
+                `${nInDOM(7)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should("contain.text", nInDOM(7));
 
@@ -14531,11 +14725,11 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(3)}`
+                `(${nInDOM(3)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(0)}`
+                `${nInDOM(0)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should("contain.text", nInDOM(0));
 
@@ -14563,11 +14757,11 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(1)}`
+                `(${nInDOM(1)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(4)}`
+                `${nInDOM(4)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should("contain.text", nInDOM(4));
 
@@ -14602,7 +14796,7 @@ describe("Circle Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -14619,7 +14813,7 @@ describe("Circle Tag Tests", function () {
             ]);
             cy.get(cesc("#\\/radiusNumber") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(2)
+                nInDOM(2),
             );
         });
 
@@ -14637,15 +14831,15 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(-3)}`
+                `(${nInDOM(-3)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(actualHeight)}`
+                `${nInDOM(actualHeight)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(actualHeight)
+                nInDOM(actualHeight),
             );
 
             cy.window().then(async (win) => {
@@ -14656,7 +14850,7 @@ describe("Circle Tag Tests", function () {
                     actualHeight,
                 ]);
                 expect(stateVariables["/_circle1"].stateValues.radius).eq(
-                    actualHeight
+                    actualHeight,
                 );
                 expect(stateVariables["/centerPoint"].stateValues.coords).eqls([
                     "vector",
@@ -14678,15 +14872,15 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(8)}`
+                `(${nInDOM(8)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(actualHeight)}`
+                `${nInDOM(actualHeight)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(actualHeight)
+                nInDOM(actualHeight),
             );
 
             cy.window().then(async (win) => {
@@ -14696,7 +14890,7 @@ describe("Circle Tag Tests", function () {
                     actualHeight,
                 ]);
                 expect(stateVariables["/_circle1"].stateValues.radius).eq(
-                    actualHeight
+                    actualHeight,
                 );
                 expect(stateVariables["/centerPoint"].stateValues.coords).eqls([
                     "vector",
@@ -14716,11 +14910,11 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(4)}`
+                `(${nInDOM(4)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(0)}`
+                `${nInDOM(0)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should("contain.text", nInDOM(0));
 
@@ -14750,15 +14944,15 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(1)}`
+                `(${nInDOM(1)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(actualHeight)}`
+                `${nInDOM(actualHeight)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(actualHeight)
+                nInDOM(actualHeight),
             );
 
             cy.window().then(async (win) => {
@@ -14768,7 +14962,7 @@ describe("Circle Tag Tests", function () {
                     actualHeight,
                 ]);
                 expect(stateVariables["/_circle1"].stateValues.radius).eq(
-                    actualHeight
+                    actualHeight,
                 );
                 expect(stateVariables["/centerPoint"].stateValues.coords).eqls([
                     "vector",
@@ -14795,7 +14989,7 @@ describe("Circle Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -14812,7 +15006,7 @@ describe("Circle Tag Tests", function () {
             ]);
             cy.get(cesc("#\\/radiusNumber") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(1)
+                nInDOM(1),
             );
         });
 
@@ -14830,15 +15024,15 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(-3)}`
+                `(${nInDOM(-3)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(actualHeight)}`
+                `${nInDOM(actualHeight)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(actualHeight)
+                nInDOM(actualHeight),
             );
 
             cy.window().then(async (win) => {
@@ -14849,7 +15043,7 @@ describe("Circle Tag Tests", function () {
                     actualHeight,
                 ]);
                 expect(stateVariables["/_circle1"].stateValues.radius).eq(
-                    actualHeight
+                    actualHeight,
                 );
                 expect(stateVariables["/centerPoint"].stateValues.coords).eqls([
                     "vector",
@@ -14871,15 +15065,15 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(8)}`
+                `(${nInDOM(8)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(actualHeight)}`
+                `${nInDOM(actualHeight)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(actualHeight)
+                nInDOM(actualHeight),
             );
 
             cy.window().then(async (win) => {
@@ -14889,7 +15083,7 @@ describe("Circle Tag Tests", function () {
                     actualHeight,
                 ]);
                 expect(stateVariables["/_circle1"].stateValues.radius).eq(
-                    actualHeight
+                    actualHeight,
                 );
                 expect(stateVariables["/centerPoint"].stateValues.coords).eqls([
                     "vector",
@@ -14909,11 +15103,11 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(4)}`
+                `(${nInDOM(4)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(0)}`
+                `${nInDOM(0)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should("contain.text", nInDOM(0));
 
@@ -14943,15 +15137,15 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(1)}`
+                `(${nInDOM(1)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(actualHeight)}`
+                `${nInDOM(actualHeight)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(actualHeight)
+                nInDOM(actualHeight),
             );
 
             cy.window().then(async (win) => {
@@ -14961,7 +15155,7 @@ describe("Circle Tag Tests", function () {
                     actualHeight,
                 ]);
                 expect(stateVariables["/_circle1"].stateValues.radius).eq(
-                    actualHeight
+                    actualHeight,
                 );
                 expect(stateVariables["/centerPoint"].stateValues.coords).eqls([
                     "vector",
@@ -14989,7 +15183,7 @@ describe("Circle Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -15006,7 +15200,7 @@ describe("Circle Tag Tests", function () {
             ]);
             cy.get(cesc("#\\/radiusNumber") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(2)
+                nInDOM(2),
             );
         });
 
@@ -15024,15 +15218,15 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(-3)}`
+                `(${nInDOM(-3)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(actualHeight)}`
+                `${nInDOM(actualHeight)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(actualHeight)
+                nInDOM(actualHeight),
             );
 
             cy.window().then(async (win) => {
@@ -15043,7 +15237,7 @@ describe("Circle Tag Tests", function () {
                     actualHeight,
                 ]);
                 expect(stateVariables["/_circle1"].stateValues.radius).eq(
-                    actualHeight
+                    actualHeight,
                 );
                 expect(stateVariables["/centerPoint"].stateValues.coords).eqls([
                     "vector",
@@ -15065,15 +15259,15 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(8)}`
+                `(${nInDOM(8)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(actualHeight)}`
+                `${nInDOM(actualHeight)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(actualHeight)
+                nInDOM(actualHeight),
             );
 
             cy.window().then(async (win) => {
@@ -15083,7 +15277,7 @@ describe("Circle Tag Tests", function () {
                     actualHeight,
                 ]);
                 expect(stateVariables["/_circle1"].stateValues.radius).eq(
-                    actualHeight
+                    actualHeight,
                 );
                 expect(stateVariables["/centerPoint"].stateValues.coords).eqls([
                     "vector",
@@ -15107,11 +15301,11 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(4)}`
+                `(${nInDOM(4)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(actualHeight)}`
+                `${nInDOM(actualHeight)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should("contain.text", nInDOM(0));
 
@@ -15142,15 +15336,15 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(1)}`
+                `(${nInDOM(1)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(actualHeight)}`
+                `${nInDOM(actualHeight)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(actualHeight)
+                nInDOM(actualHeight),
             );
 
             cy.window().then(async (win) => {
@@ -15160,7 +15354,7 @@ describe("Circle Tag Tests", function () {
                     actualHeight,
                 ]);
                 expect(stateVariables["/_circle1"].stateValues.radius).eq(
-                    actualHeight
+                    actualHeight,
                 );
                 expect(stateVariables["/centerPoint"].stateValues.coords).eqls([
                     "vector",
@@ -15187,7 +15381,7 @@ describe("Circle Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -15204,7 +15398,7 @@ describe("Circle Tag Tests", function () {
             ]);
             cy.get(cesc("#\\/radiusNumber") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(2)
+                nInDOM(2),
             );
         });
 
@@ -15234,15 +15428,15 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(-3)}`
+                `(${nInDOM(-3)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(actualHeight)}`
+                `${nInDOM(actualHeight)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(actualHeight)
+                nInDOM(actualHeight),
             );
 
             cy.window().then(async (win) => {
@@ -15253,7 +15447,7 @@ describe("Circle Tag Tests", function () {
                     actualHeight,
                 ]);
                 expect(stateVariables["/_circle1"].stateValues.radius).eq(
-                    actualHeight
+                    actualHeight,
                 );
                 expect(stateVariables["/centerPoint"].stateValues.coords).eqls([
                     "vector",
@@ -15275,15 +15469,15 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(8)}`
+                `(${nInDOM(8)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(actualHeight)}`
+                `${nInDOM(actualHeight)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(actualHeight)
+                nInDOM(actualHeight),
             );
 
             cy.window().then(async (win) => {
@@ -15293,7 +15487,7 @@ describe("Circle Tag Tests", function () {
                     actualHeight,
                 ]);
                 expect(stateVariables["/_circle1"].stateValues.radius).eq(
-                    actualHeight
+                    actualHeight,
                 );
                 expect(stateVariables["/centerPoint"].stateValues.coords).eqls([
                     "vector",
@@ -15321,15 +15515,15 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(4)}`
+                `(${nInDOM(4)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(actualHeight)}`
+                `${nInDOM(actualHeight)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(-actualHeight)
+                nInDOM(-actualHeight),
             );
 
             cy.window().then(async (win) => {
@@ -15339,7 +15533,7 @@ describe("Circle Tag Tests", function () {
                     actualHeight,
                 ]);
                 expect(stateVariables["/_circle1"].stateValues.radius).eq(
-                    -actualHeight
+                    -actualHeight,
                 );
                 expect(stateVariables["/centerPoint"].stateValues.coords).eqls([
                     "vector",
@@ -15361,15 +15555,15 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(1)}`
+                `(${nInDOM(1)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(actualHeight)}`
+                `${nInDOM(actualHeight)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(actualHeight)
+                nInDOM(actualHeight),
             );
 
             cy.window().then(async (win) => {
@@ -15379,7 +15573,7 @@ describe("Circle Tag Tests", function () {
                     actualHeight,
                 ]);
                 expect(stateVariables["/_circle1"].stateValues.radius).eq(
-                    actualHeight
+                    actualHeight,
                 );
                 expect(stateVariables["/centerPoint"].stateValues.coords).eqls([
                     "vector",
@@ -15406,7 +15600,7 @@ describe("Circle Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -15423,7 +15617,7 @@ describe("Circle Tag Tests", function () {
             ]);
             cy.get(cesc("#\\/radiusNumber") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(2)
+                nInDOM(2),
             );
         });
 
@@ -15453,15 +15647,15 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(-3)}`
+                `(${nInDOM(-3)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(actualHeight)}`
+                `${nInDOM(actualHeight)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(actualHeight)
+                nInDOM(actualHeight),
             );
 
             cy.window().then(async (win) => {
@@ -15472,7 +15666,7 @@ describe("Circle Tag Tests", function () {
                     actualHeight,
                 ]);
                 expect(stateVariables["/_circle1"].stateValues.radius).eq(
-                    actualHeight
+                    actualHeight,
                 );
                 expect(stateVariables["/centerPoint"].stateValues.coords).eqls([
                     "vector",
@@ -15494,15 +15688,15 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(8)}`
+                `(${nInDOM(8)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(actualHeight)}`
+                `${nInDOM(actualHeight)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(actualHeight)
+                nInDOM(actualHeight),
             );
 
             cy.window().then(async (win) => {
@@ -15512,7 +15706,7 @@ describe("Circle Tag Tests", function () {
                     actualHeight,
                 ]);
                 expect(stateVariables["/_circle1"].stateValues.radius).eq(
-                    actualHeight
+                    actualHeight,
                 );
                 expect(stateVariables["/centerPoint"].stateValues.coords).eqls([
                     "vector",
@@ -15540,15 +15734,15 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(4)}`
+                `(${nInDOM(4)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(actualHeight)}`
+                `${nInDOM(actualHeight)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(-actualHeight)
+                nInDOM(-actualHeight),
             );
 
             cy.window().then(async (win) => {
@@ -15558,7 +15752,7 @@ describe("Circle Tag Tests", function () {
                     actualHeight,
                 ]);
                 expect(stateVariables["/_circle1"].stateValues.radius).eq(
-                    -actualHeight
+                    -actualHeight,
                 );
                 expect(stateVariables["/centerPoint"].stateValues.coords).eqls([
                     "vector",
@@ -15580,15 +15774,15 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(1)}`
+                `(${nInDOM(1)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(actualHeight)}`
+                `${nInDOM(actualHeight)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(actualHeight)
+                nInDOM(actualHeight),
             );
 
             cy.window().then(async (win) => {
@@ -15598,7 +15792,7 @@ describe("Circle Tag Tests", function () {
                     actualHeight,
                 ]);
                 expect(stateVariables["/_circle1"].stateValues.radius).eq(
-                    actualHeight
+                    actualHeight,
                 );
                 expect(stateVariables["/centerPoint"].stateValues.coords).eqls([
                     "vector",
@@ -15625,7 +15819,7 @@ describe("Circle Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -15642,7 +15836,7 @@ describe("Circle Tag Tests", function () {
             ]);
             cy.get(cesc("#\\/radiusNumber") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(1)
+                nInDOM(1),
             );
         });
 
@@ -15658,11 +15852,11 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(-3)}`
+                `(${nInDOM(-3)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(actualHeight)}`
+                `${nInDOM(actualHeight)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should("contain.text", nInDOM(1));
 
@@ -15694,11 +15888,11 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(8)}`
+                `(${nInDOM(8)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(actualHeight)}`
+                `${nInDOM(actualHeight)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should("contain.text", nInDOM(1));
 
@@ -15740,7 +15934,7 @@ describe("Circle Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -15756,10 +15950,10 @@ describe("Circle Tag Tests", function () {
             let r = Math.abs(t1x - t2x);
             expect(stateVariables["/_circle1"].stateValues.radius).eq(r);
             expect(
-                stateVariables["/_circle1"].stateValues.throughPoints[0]
+                stateVariables["/_circle1"].stateValues.throughPoints[0],
             ).eqls([t1x, t1y]);
             expect(
-                stateVariables["/_circle1"].stateValues.throughPoints[1]
+                stateVariables["/_circle1"].stateValues.throughPoints[1],
             ).eqls([t2x, t2y]);
             expect(await stateVariables["/TP1"].stateValues.coords).eqls([
                 "vector",
@@ -15773,7 +15967,7 @@ describe("Circle Tag Tests", function () {
             ]);
             cy.get(cesc("#\\/radiusNumber") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(r)
+                nInDOM(r),
             );
         });
 
@@ -15801,11 +15995,11 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(newCenter[0])}`
+                `(${nInDOM(newCenter[0])}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(newCenter[1])}`
+                `${nInDOM(newCenter[1])}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should("contain.text", nInDOM(r));
 
@@ -15814,45 +16008,45 @@ describe("Circle Tag Tests", function () {
 
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
 
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[0][0]
+                        .numericalThroughPoints[0][0],
                 ).closeTo(t1x, 1e-12);
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[0][1]
+                        .numericalThroughPoints[0][1],
                 ).closeTo(t1y, 1e-12);
 
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[1][0]
+                        .numericalThroughPoints[1][0],
                 ).closeTo(t2x, 1e-12);
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[1][1]
+                        .numericalThroughPoints[1][1],
                 ).closeTo(t2y, 1e-12);
 
                 expect(
-                    (await stateVariables["/TP1"].stateValues.xs)[0]
+                    (await stateVariables["/TP1"].stateValues.xs)[0],
                 ).closeTo(t1x, 1e-12);
                 expect(
-                    (await stateVariables["/TP1"].stateValues.xs)[1]
+                    (await stateVariables["/TP1"].stateValues.xs)[1],
                 ).closeTo(t1y, 1e-12);
                 expect(
-                    (await stateVariables["/TP2"].stateValues.xs)[0]
+                    (await stateVariables["/TP2"].stateValues.xs)[0],
                 ).closeTo(t2x, 1e-12);
                 expect(
-                    (await stateVariables["/TP2"].stateValues.xs)[1]
+                    (await stateVariables["/TP2"].stateValues.xs)[1],
                 ).closeTo(t2y, 1e-12);
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(newCenter[0], 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(newCenter[1], 1e-12);
             });
         });
@@ -15881,11 +16075,11 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(newCenter[0])}`
+                `(${nInDOM(newCenter[0])}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(newCenter[1])}`
+                `${nInDOM(newCenter[1])}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should("contain.text", nInDOM(r));
 
@@ -15893,45 +16087,45 @@ describe("Circle Tag Tests", function () {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
 
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[0][0]
+                        .numericalThroughPoints[0][0],
                 ).closeTo(t1x, 1e-12);
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[0][1]
+                        .numericalThroughPoints[0][1],
                 ).closeTo(t1y, 1e-12);
 
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[1][0]
+                        .numericalThroughPoints[1][0],
                 ).closeTo(t2x, 1e-12);
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[1][1]
+                        .numericalThroughPoints[1][1],
                 ).closeTo(t2y, 1e-12);
 
                 expect(
-                    (await stateVariables["/TP1"].stateValues.xs)[0]
+                    (await stateVariables["/TP1"].stateValues.xs)[0],
                 ).closeTo(t1x, 1e-12);
                 expect(
-                    (await stateVariables["/TP1"].stateValues.xs)[1]
+                    (await stateVariables["/TP1"].stateValues.xs)[1],
                 ).closeTo(t1y, 1e-12);
                 expect(
-                    (await stateVariables["/TP2"].stateValues.xs)[0]
+                    (await stateVariables["/TP2"].stateValues.xs)[0],
                 ).closeTo(t2x, 1e-12);
                 expect(
-                    (await stateVariables["/TP2"].stateValues.xs)[1]
+                    (await stateVariables["/TP2"].stateValues.xs)[1],
                 ).closeTo(t2y, 1e-12);
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(newCenter[0], 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(newCenter[1], 1e-12);
             });
         });
@@ -15954,38 +16148,38 @@ describe("Circle Tag Tests", function () {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
 
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[0][0]
+                        .numericalThroughPoints[0][0],
                 ).closeTo(t1x, 1e-12);
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[0][1]
+                        .numericalThroughPoints[0][1],
                 ).closeTo(t1y, 1e-12);
 
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[1][0]
+                        .numericalThroughPoints[1][0],
                 ).closeTo(t2x, 1e-12);
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[1][1]
+                        .numericalThroughPoints[1][1],
                 ).closeTo(t2y, 1e-12);
 
                 expect(
-                    (await stateVariables["/TP1"].stateValues.xs)[0]
+                    (await stateVariables["/TP1"].stateValues.xs)[0],
                 ).closeTo(t1x, 1e-12);
                 expect(
-                    (await stateVariables["/TP1"].stateValues.xs)[1]
+                    (await stateVariables["/TP1"].stateValues.xs)[1],
                 ).closeTo(t1y, 1e-12);
                 expect(
-                    (await stateVariables["/TP2"].stateValues.xs)[0]
+                    (await stateVariables["/TP2"].stateValues.xs)[0],
                 ).closeTo(t2x, 1e-12);
                 expect(
-                    (await stateVariables["/TP2"].stateValues.xs)[1]
+                    (await stateVariables["/TP2"].stateValues.xs)[1],
                 ).closeTo(t2y, 1e-12);
             });
         });
@@ -16008,51 +16202,51 @@ describe("Circle Tag Tests", function () {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
 
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[0][0]
+                        .numericalThroughPoints[0][0],
                 ).closeTo(t1x, 1e-12);
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[0][1]
+                        .numericalThroughPoints[0][1],
                 ).closeTo(t1y, 1e-12);
 
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[1][0]
+                        .numericalThroughPoints[1][0],
                 ).closeTo(t2x, 1e-12);
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[1][1]
+                        .numericalThroughPoints[1][1],
                 ).closeTo(t2y, 1e-12);
 
                 expect(
-                    (await stateVariables["/TP1"].stateValues.xs)[0]
+                    (await stateVariables["/TP1"].stateValues.xs)[0],
                 ).closeTo(t1x, 1e-12);
                 expect(
-                    (await stateVariables["/TP1"].stateValues.xs)[1]
+                    (await stateVariables["/TP1"].stateValues.xs)[1],
                 ).closeTo(t1y, 1e-12);
                 expect(
-                    (await stateVariables["/TP2"].stateValues.xs)[0]
+                    (await stateVariables["/TP2"].stateValues.xs)[0],
                 ).closeTo(t2x, 1e-12);
                 expect(
-                    (await stateVariables["/TP2"].stateValues.xs)[1]
+                    (await stateVariables["/TP2"].stateValues.xs)[1],
                 ).closeTo(t2y, 1e-12);
 
                 expect(
                     Number.isFinite(
                         stateVariables["/_circle1"].stateValues
-                            .numericalCenter[0]
-                    )
+                            .numericalCenter[0],
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
                         stateVariables["/_circle1"].stateValues
-                            .numericalCenter[1]
-                    )
+                            .numericalCenter[1],
+                    ),
                 ).false;
             });
         });
@@ -16074,51 +16268,51 @@ describe("Circle Tag Tests", function () {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
 
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[0][0]
+                        .numericalThroughPoints[0][0],
                 ).closeTo(t1x, 1e-12);
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[0][1]
+                        .numericalThroughPoints[0][1],
                 ).closeTo(t1y, 1e-12);
 
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[1][0]
+                        .numericalThroughPoints[1][0],
                 ).closeTo(t2x, 1e-12);
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[1][1]
+                        .numericalThroughPoints[1][1],
                 ).closeTo(t2y, 1e-12);
 
                 expect(
-                    (await stateVariables["/TP1"].stateValues.xs)[0]
+                    (await stateVariables["/TP1"].stateValues.xs)[0],
                 ).closeTo(t1x, 1e-12);
                 expect(
-                    (await stateVariables["/TP1"].stateValues.xs)[1]
+                    (await stateVariables["/TP1"].stateValues.xs)[1],
                 ).closeTo(t1y, 1e-12);
                 expect(
-                    (await stateVariables["/TP2"].stateValues.xs)[0]
+                    (await stateVariables["/TP2"].stateValues.xs)[0],
                 ).closeTo(t2x, 1e-12);
                 expect(
-                    (await stateVariables["/TP2"].stateValues.xs)[1]
+                    (await stateVariables["/TP2"].stateValues.xs)[1],
                 ).closeTo(t2y, 1e-12);
 
                 expect(
                     Number.isFinite(
                         stateVariables["/_circle1"].stateValues
-                            .numericalCenter[0]
-                    )
+                            .numericalCenter[0],
+                    ),
                 ).true;
                 expect(
                     Number.isFinite(
                         stateVariables["/_circle1"].stateValues
-                            .numericalCenter[1]
-                    )
+                            .numericalCenter[1],
+                    ),
                 ).true;
             });
         });
@@ -16144,7 +16338,7 @@ describe("Circle Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -16161,10 +16355,10 @@ describe("Circle Tag Tests", function () {
             let r = t1x;
             expect(stateVariables["/_circle1"].stateValues.radius).eq(r);
             expect(
-                stateVariables["/_circle1"].stateValues.throughPoints[0]
+                stateVariables["/_circle1"].stateValues.throughPoints[0],
             ).eqls([t1x, t1y]);
             expect(
-                stateVariables["/_circle1"].stateValues.throughPoints[1]
+                stateVariables["/_circle1"].stateValues.throughPoints[1],
             ).eqls([t2x, t2y]);
             expect(await stateVariables["/TP1"].stateValues.coords).eqls([
                 "vector",
@@ -16179,7 +16373,7 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/radiusNumber") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(r)
+                nInDOM(r),
             );
         });
 
@@ -16211,51 +16405,51 @@ describe("Circle Tag Tests", function () {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
 
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[0][0]
+                        .numericalThroughPoints[0][0],
                 ).closeTo(t1x, 1e-12);
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[0][1]
+                        .numericalThroughPoints[0][1],
                 ).closeTo(t1y, 1e-12);
 
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[1][0]
+                        .numericalThroughPoints[1][0],
                 ).closeTo(t2x, 1e-12);
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[1][1]
+                        .numericalThroughPoints[1][1],
                 ).closeTo(t2y, 1e-12);
 
                 expect(
-                    (await stateVariables["/TP1"].stateValues.xs)[0]
+                    (await stateVariables["/TP1"].stateValues.xs)[0],
                 ).closeTo(t1x, 1e-12);
                 expect(
-                    (await stateVariables["/TP1"].stateValues.xs)[1]
+                    (await stateVariables["/TP1"].stateValues.xs)[1],
                 ).closeTo(t1y, 1e-12);
                 expect(
-                    (await stateVariables["/TP2"].stateValues.xs)[0]
+                    (await stateVariables["/TP2"].stateValues.xs)[0],
                 ).closeTo(t2x, 1e-12);
                 expect(
-                    (await stateVariables["/TP2"].stateValues.xs)[1]
+                    (await stateVariables["/TP2"].stateValues.xs)[1],
                 ).closeTo(t2y, 1e-12);
 
                 expect(
                     Number.isFinite(
                         stateVariables["/_circle1"].stateValues
-                            .numericalCenter[0]
-                    )
+                            .numericalCenter[0],
+                    ),
                 ).true;
                 expect(
                     Number.isFinite(
                         stateVariables["/_circle1"].stateValues
-                            .numericalCenter[1]
-                    )
+                            .numericalCenter[1],
+                    ),
                 ).true;
             });
         });
@@ -16288,51 +16482,51 @@ describe("Circle Tag Tests", function () {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
 
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[0][0]
+                        .numericalThroughPoints[0][0],
                 ).closeTo(t1x, 1e-12);
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[0][1]
+                        .numericalThroughPoints[0][1],
                 ).closeTo(t1y, 1e-12);
 
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[1][0]
+                        .numericalThroughPoints[1][0],
                 ).closeTo(t2x, 1e-12);
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[1][1]
+                        .numericalThroughPoints[1][1],
                 ).closeTo(t2y, 1e-12);
 
                 expect(
-                    (await stateVariables["/TP1"].stateValues.xs)[0]
+                    (await stateVariables["/TP1"].stateValues.xs)[0],
                 ).closeTo(t1x, 1e-12);
                 expect(
-                    (await stateVariables["/TP1"].stateValues.xs)[1]
+                    (await stateVariables["/TP1"].stateValues.xs)[1],
                 ).closeTo(t1y, 1e-12);
                 expect(
-                    (await stateVariables["/TP2"].stateValues.xs)[0]
+                    (await stateVariables["/TP2"].stateValues.xs)[0],
                 ).closeTo(t2x, 1e-12);
                 expect(
-                    (await stateVariables["/TP2"].stateValues.xs)[1]
+                    (await stateVariables["/TP2"].stateValues.xs)[1],
                 ).closeTo(t2y, 1e-12);
 
                 expect(
                     Number.isFinite(
                         stateVariables["/_circle1"].stateValues
-                            .numericalCenter[0]
-                    )
+                            .numericalCenter[0],
+                    ),
                 ).true;
                 expect(
                     Number.isFinite(
                         stateVariables["/_circle1"].stateValues
-                            .numericalCenter[1]
-                    )
+                            .numericalCenter[1],
+                    ),
                 ).true;
             });
         });
@@ -16356,38 +16550,38 @@ describe("Circle Tag Tests", function () {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
 
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[0][0]
+                        .numericalThroughPoints[0][0],
                 ).closeTo(t1x, 1e-12);
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[0][1]
+                        .numericalThroughPoints[0][1],
                 ).closeTo(t1y, 1e-12);
 
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[1][0]
+                        .numericalThroughPoints[1][0],
                 ).closeTo(t2x, 1e-12);
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[1][1]
+                        .numericalThroughPoints[1][1],
                 ).closeTo(t2y, 1e-12);
 
                 expect(
-                    (await stateVariables["/TP1"].stateValues.xs)[0]
+                    (await stateVariables["/TP1"].stateValues.xs)[0],
                 ).closeTo(t1x, 1e-12);
                 expect(
-                    (await stateVariables["/TP1"].stateValues.xs)[1]
+                    (await stateVariables["/TP1"].stateValues.xs)[1],
                 ).closeTo(t1y, 1e-12);
                 expect(
-                    (await stateVariables["/TP2"].stateValues.xs)[0]
+                    (await stateVariables["/TP2"].stateValues.xs)[0],
                 ).closeTo(t2x, 1e-12);
                 expect(
-                    (await stateVariables["/TP2"].stateValues.xs)[1]
+                    (await stateVariables["/TP2"].stateValues.xs)[1],
                 ).closeTo(t2y, 1e-12);
             });
         });
@@ -16409,51 +16603,51 @@ describe("Circle Tag Tests", function () {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
 
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[0][0]
+                        .numericalThroughPoints[0][0],
                 ).closeTo(t1x, 1e-12);
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[0][1]
+                        .numericalThroughPoints[0][1],
                 ).closeTo(t1y, 1e-12);
 
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[1][0]
+                        .numericalThroughPoints[1][0],
                 ).closeTo(t2x, 1e-12);
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[1][1]
+                        .numericalThroughPoints[1][1],
                 ).closeTo(t2y, 1e-12);
 
                 expect(
-                    (await stateVariables["/TP1"].stateValues.xs)[0]
+                    (await stateVariables["/TP1"].stateValues.xs)[0],
                 ).closeTo(t1x, 1e-12);
                 expect(
-                    (await stateVariables["/TP1"].stateValues.xs)[1]
+                    (await stateVariables["/TP1"].stateValues.xs)[1],
                 ).closeTo(t1y, 1e-12);
                 expect(
-                    (await stateVariables["/TP2"].stateValues.xs)[0]
+                    (await stateVariables["/TP2"].stateValues.xs)[0],
                 ).closeTo(t2x, 1e-12);
                 expect(
-                    (await stateVariables["/TP2"].stateValues.xs)[1]
+                    (await stateVariables["/TP2"].stateValues.xs)[1],
                 ).closeTo(t2y, 1e-12);
 
                 expect(
                     Number.isFinite(
                         stateVariables["/_circle1"].stateValues
-                            .numericalCenter[0]
-                    )
+                            .numericalCenter[0],
+                    ),
                 ).false;
                 expect(
                     Number.isFinite(
                         stateVariables["/_circle1"].stateValues
-                            .numericalCenter[1]
-                    )
+                            .numericalCenter[1],
+                    ),
                 ).false;
             });
         });
@@ -16476,51 +16670,51 @@ describe("Circle Tag Tests", function () {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
 
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[0][0]
+                        .numericalThroughPoints[0][0],
                 ).closeTo(t1x, 1e-12);
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[0][1]
+                        .numericalThroughPoints[0][1],
                 ).closeTo(t1y, 1e-12);
 
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[1][0]
+                        .numericalThroughPoints[1][0],
                 ).closeTo(t2x, 1e-12);
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[1][1]
+                        .numericalThroughPoints[1][1],
                 ).closeTo(t2y, 1e-12);
 
                 expect(
-                    (await stateVariables["/TP1"].stateValues.xs)[0]
+                    (await stateVariables["/TP1"].stateValues.xs)[0],
                 ).closeTo(t1x, 1e-12);
                 expect(
-                    (await stateVariables["/TP1"].stateValues.xs)[1]
+                    (await stateVariables["/TP1"].stateValues.xs)[1],
                 ).closeTo(t1y, 1e-12);
                 expect(
-                    (await stateVariables["/TP2"].stateValues.xs)[0]
+                    (await stateVariables["/TP2"].stateValues.xs)[0],
                 ).closeTo(t2x, 1e-12);
                 expect(
-                    (await stateVariables["/TP2"].stateValues.xs)[1]
+                    (await stateVariables["/TP2"].stateValues.xs)[1],
                 ).closeTo(t2y, 1e-12);
 
                 expect(
                     Number.isFinite(
                         stateVariables["/_circle1"].stateValues
-                            .numericalCenter[0]
-                    )
+                            .numericalCenter[0],
+                    ),
                 ).true;
                 expect(
                     Number.isFinite(
                         stateVariables["/_circle1"].stateValues
-                            .numericalCenter[1]
-                    )
+                            .numericalCenter[1],
+                    ),
                 ).true;
             });
         });
@@ -16543,7 +16737,7 @@ describe("Circle Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -16565,13 +16759,13 @@ describe("Circle Tag Tests", function () {
 
             expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                 r,
-                1e-12
+                1e-12,
             );
             expect(
-                stateVariables["/_circle1"].stateValues.throughPoints[0]
+                stateVariables["/_circle1"].stateValues.throughPoints[0],
             ).eqls([t1x, t1y]);
             expect(
-                stateVariables["/_circle1"].stateValues.throughPoints[1]
+                stateVariables["/_circle1"].stateValues.throughPoints[1],
             ).eqls([t2x, t2y]);
             expect(await stateVariables["/TP1"].stateValues.coords).eqls([
                 "vector",
@@ -16585,15 +16779,15 @@ describe("Circle Tag Tests", function () {
             ]);
 
             expect(
-                stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                stateVariables["/_circle1"].stateValues.numericalCenter[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                stateVariables["/_circle1"].stateValues.numericalCenter[1],
             ).closeTo(cny, 1e-12);
 
             cy.get(cesc("#\\/radiusNumber") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
         });
 
@@ -16622,52 +16816,52 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
 
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[0][0]
+                        .numericalThroughPoints[0][0],
                 ).closeTo(t1x, 1e-12);
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[0][1]
+                        .numericalThroughPoints[0][1],
                 ).closeTo(t1y, 1e-12);
 
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[1][0]
+                        .numericalThroughPoints[1][0],
                 ).closeTo(t2x, 1e-12);
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[1][1]
+                        .numericalThroughPoints[1][1],
                 ).closeTo(t2y, 1e-12);
 
                 expect(
-                    (await stateVariables["/TP1"].stateValues.xs)[0]
+                    (await stateVariables["/TP1"].stateValues.xs)[0],
                 ).closeTo(t1x, 1e-12);
                 expect(
-                    (await stateVariables["/TP1"].stateValues.xs)[1]
+                    (await stateVariables["/TP1"].stateValues.xs)[1],
                 ).closeTo(t1y, 1e-12);
                 expect(
-                    (await stateVariables["/TP2"].stateValues.xs)[0]
+                    (await stateVariables["/TP2"].stateValues.xs)[0],
                 ).closeTo(t2x, 1e-12);
                 expect(
-                    (await stateVariables["/TP2"].stateValues.xs)[1]
+                    (await stateVariables["/TP2"].stateValues.xs)[1],
                 ).closeTo(t2y, 1e-12);
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
             });
         });
@@ -16697,52 +16891,52 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
 
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[0][0]
+                        .numericalThroughPoints[0][0],
                 ).closeTo(t1x, 1e-12);
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[0][1]
+                        .numericalThroughPoints[0][1],
                 ).closeTo(t1y, 1e-12);
 
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[1][0]
+                        .numericalThroughPoints[1][0],
                 ).closeTo(t2x, 1e-12);
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[1][1]
+                        .numericalThroughPoints[1][1],
                 ).closeTo(t2y, 1e-12);
 
                 expect(
-                    (await stateVariables["/TP1"].stateValues.xs)[0]
+                    (await stateVariables["/TP1"].stateValues.xs)[0],
                 ).closeTo(t1x, 1e-12);
                 expect(
-                    (await stateVariables["/TP1"].stateValues.xs)[1]
+                    (await stateVariables["/TP1"].stateValues.xs)[1],
                 ).closeTo(t1y, 1e-12);
                 expect(
-                    (await stateVariables["/TP2"].stateValues.xs)[0]
+                    (await stateVariables["/TP2"].stateValues.xs)[0],
                 ).closeTo(t2x, 1e-12);
                 expect(
-                    (await stateVariables["/TP2"].stateValues.xs)[1]
+                    (await stateVariables["/TP2"].stateValues.xs)[1],
                 ).closeTo(t2y, 1e-12);
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
             });
         });
@@ -16766,7 +16960,7 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
@@ -16774,45 +16968,45 @@ describe("Circle Tag Tests", function () {
 
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
 
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[0][0]
+                        .numericalThroughPoints[0][0],
                 ).closeTo(t1x, 1e-12);
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[0][1]
+                        .numericalThroughPoints[0][1],
                 ).closeTo(t1y, 1e-12);
 
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[1][0]
+                        .numericalThroughPoints[1][0],
                 ).closeTo(t2x, 1e-12);
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[1][1]
+                        .numericalThroughPoints[1][1],
                 ).closeTo(t2y, 1e-12);
 
                 expect(
-                    (await stateVariables["/TP1"].stateValues.xs)[0]
+                    (await stateVariables["/TP1"].stateValues.xs)[0],
                 ).closeTo(t1x, 1e-12);
                 expect(
-                    (await stateVariables["/TP1"].stateValues.xs)[1]
+                    (await stateVariables["/TP1"].stateValues.xs)[1],
                 ).closeTo(t1y, 1e-12);
                 expect(
-                    (await stateVariables["/TP2"].stateValues.xs)[0]
+                    (await stateVariables["/TP2"].stateValues.xs)[0],
                 ).closeTo(t2x, 1e-12);
                 expect(
-                    (await stateVariables["/TP2"].stateValues.xs)[1]
+                    (await stateVariables["/TP2"].stateValues.xs)[1],
                 ).closeTo(t2y, 1e-12);
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
             });
         });
@@ -16836,52 +17030,52 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
 
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[0][0]
+                        .numericalThroughPoints[0][0],
                 ).closeTo(t1x, 1e-12);
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[0][1]
+                        .numericalThroughPoints[0][1],
                 ).closeTo(t1y, 1e-12);
 
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[1][0]
+                        .numericalThroughPoints[1][0],
                 ).closeTo(t2x, 1e-12);
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[1][1]
+                        .numericalThroughPoints[1][1],
                 ).closeTo(t2y, 1e-12);
 
                 expect(
-                    (await stateVariables["/TP1"].stateValues.xs)[0]
+                    (await stateVariables["/TP1"].stateValues.xs)[0],
                 ).closeTo(t1x, 1e-12);
                 expect(
-                    (await stateVariables["/TP1"].stateValues.xs)[1]
+                    (await stateVariables["/TP1"].stateValues.xs)[1],
                 ).closeTo(t1y, 1e-12);
                 expect(
-                    (await stateVariables["/TP2"].stateValues.xs)[0]
+                    (await stateVariables["/TP2"].stateValues.xs)[0],
                 ).closeTo(t2x, 1e-12);
                 expect(
-                    (await stateVariables["/TP2"].stateValues.xs)[1]
+                    (await stateVariables["/TP2"].stateValues.xs)[1],
                 ).closeTo(t2y, 1e-12);
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
             });
         });
@@ -16905,7 +17099,7 @@ describe("Circle Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -16922,16 +17116,16 @@ describe("Circle Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
 
             expect(
-                Number.isFinite(stateVariables["/_circle1"].stateValues.radius)
+                Number.isFinite(stateVariables["/_circle1"].stateValues.radius),
             ).true;
             expect(
-                stateVariables["/_circle1"].stateValues.throughPoints[0]
+                stateVariables["/_circle1"].stateValues.throughPoints[0],
             ).eqls([t1x, t1y]);
             expect(
-                stateVariables["/_circle1"].stateValues.throughPoints[1]
+                stateVariables["/_circle1"].stateValues.throughPoints[1],
             ).eqls([t2x, t2y]);
             expect(
-                stateVariables["/_circle1"].stateValues.throughPoints[2]
+                stateVariables["/_circle1"].stateValues.throughPoints[2],
             ).eqls([t3x, t3y]);
             expect(await stateVariables["/TP1"].stateValues.coords).eqls([
                 "vector",
@@ -16951,20 +17145,20 @@ describe("Circle Tag Tests", function () {
 
             expect(
                 Number.isFinite(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
-                )
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
+                ),
             ).true;
             expect(
                 Number.isFinite(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
-                )
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
+                ),
             ).true;
 
             let r = stateVariables["/_circle1"].stateValues.radius;
 
             cy.get(cesc("#\\/radiusNumber") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
         });
 
@@ -16998,67 +17192,67 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
 
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[0][0]
+                        .numericalThroughPoints[0][0],
                 ).closeTo(t1x, 1e-12);
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[0][1]
+                        .numericalThroughPoints[0][1],
                 ).closeTo(t1y, 1e-12);
 
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[1][0]
+                        .numericalThroughPoints[1][0],
                 ).closeTo(t2x, 1e-12);
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[1][1]
+                        .numericalThroughPoints[1][1],
                 ).closeTo(t2y, 1e-12);
 
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[2][0]
+                        .numericalThroughPoints[2][0],
                 ).closeTo(t3x, 1e-12);
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[2][1]
+                        .numericalThroughPoints[2][1],
                 ).closeTo(t3y, 1e-12);
 
                 expect(
-                    (await stateVariables["/TP1"].stateValues.xs)[0]
+                    (await stateVariables["/TP1"].stateValues.xs)[0],
                 ).closeTo(t1x, 1e-12);
                 expect(
-                    (await stateVariables["/TP1"].stateValues.xs)[1]
+                    (await stateVariables["/TP1"].stateValues.xs)[1],
                 ).closeTo(t1y, 1e-12);
                 expect(
-                    (await stateVariables["/TP2"].stateValues.xs)[0]
+                    (await stateVariables["/TP2"].stateValues.xs)[0],
                 ).closeTo(t2x, 1e-12);
                 expect(
-                    (await stateVariables["/TP2"].stateValues.xs)[1]
+                    (await stateVariables["/TP2"].stateValues.xs)[1],
                 ).closeTo(t2y, 1e-12);
                 expect(
-                    (await stateVariables["/TP3"].stateValues.xs)[0]
+                    (await stateVariables["/TP3"].stateValues.xs)[0],
                 ).closeTo(t3x, 1e-12);
                 expect(
-                    (await stateVariables["/TP3"].stateValues.xs)[1]
+                    (await stateVariables["/TP3"].stateValues.xs)[1],
                 ).closeTo(t3y, 1e-12);
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
             });
         });
@@ -17093,67 +17287,67 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
 
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[0][0]
+                        .numericalThroughPoints[0][0],
                 ).closeTo(t1x, 1e-12);
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[0][1]
+                        .numericalThroughPoints[0][1],
                 ).closeTo(t1y, 1e-12);
 
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[1][0]
+                        .numericalThroughPoints[1][0],
                 ).closeTo(t2x, 1e-12);
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[1][1]
+                        .numericalThroughPoints[1][1],
                 ).closeTo(t2y, 1e-12);
 
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[2][0]
+                        .numericalThroughPoints[2][0],
                 ).closeTo(t3x, 1e-12);
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[2][1]
+                        .numericalThroughPoints[2][1],
                 ).closeTo(t3y, 1e-12);
 
                 expect(
-                    (await stateVariables["/TP1"].stateValues.xs)[0]
+                    (await stateVariables["/TP1"].stateValues.xs)[0],
                 ).closeTo(t1x, 1e-12);
                 expect(
-                    (await stateVariables["/TP1"].stateValues.xs)[1]
+                    (await stateVariables["/TP1"].stateValues.xs)[1],
                 ).closeTo(t1y, 1e-12);
                 expect(
-                    (await stateVariables["/TP2"].stateValues.xs)[0]
+                    (await stateVariables["/TP2"].stateValues.xs)[0],
                 ).closeTo(t2x, 1e-12);
                 expect(
-                    (await stateVariables["/TP2"].stateValues.xs)[1]
+                    (await stateVariables["/TP2"].stateValues.xs)[1],
                 ).closeTo(t2y, 1e-12);
                 expect(
-                    (await stateVariables["/TP3"].stateValues.xs)[0]
+                    (await stateVariables["/TP3"].stateValues.xs)[0],
                 ).closeTo(t3x, 1e-12);
                 expect(
-                    (await stateVariables["/TP3"].stateValues.xs)[1]
+                    (await stateVariables["/TP3"].stateValues.xs)[1],
                 ).closeTo(t3y, 1e-12);
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
             });
         });
@@ -17173,74 +17367,74 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/TP1")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(t1x * 100) / 100)}`
+                `(${nInDOM(Math.trunc(t1x * 100) / 100)}`,
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
                     Number.isFinite(
-                        stateVariables["/_circle1"].stateValues.radius
-                    )
+                        stateVariables["/_circle1"].stateValues.radius,
+                    ),
                 ).true;
 
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[0][0]
+                        .numericalThroughPoints[0][0],
                 ).closeTo(t1x, 1e-12);
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[0][1]
+                        .numericalThroughPoints[0][1],
                 ).closeTo(t1y, 1e-12);
 
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[1][0]
+                        .numericalThroughPoints[1][0],
                 ).closeTo(t2x, 1e-12);
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[1][1]
+                        .numericalThroughPoints[1][1],
                 ).closeTo(t2y, 1e-12);
 
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[2][0]
+                        .numericalThroughPoints[2][0],
                 ).closeTo(t3x, 1e-12);
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[2][1]
+                        .numericalThroughPoints[2][1],
                 ).closeTo(t3y, 1e-12);
 
                 expect(
-                    (await stateVariables["/TP1"].stateValues.xs)[0]
+                    (await stateVariables["/TP1"].stateValues.xs)[0],
                 ).closeTo(t1x, 1e-12);
                 expect(
-                    (await stateVariables["/TP1"].stateValues.xs)[1]
+                    (await stateVariables["/TP1"].stateValues.xs)[1],
                 ).closeTo(t1y, 1e-12);
                 expect(
-                    (await stateVariables["/TP2"].stateValues.xs)[0]
+                    (await stateVariables["/TP2"].stateValues.xs)[0],
                 ).closeTo(t2x, 1e-12);
                 expect(
-                    (await stateVariables["/TP2"].stateValues.xs)[1]
+                    (await stateVariables["/TP2"].stateValues.xs)[1],
                 ).closeTo(t2y, 1e-12);
                 expect(
-                    (await stateVariables["/TP3"].stateValues.xs)[0]
+                    (await stateVariables["/TP3"].stateValues.xs)[0],
                 ).closeTo(t3x, 1e-12);
                 expect(
-                    (await stateVariables["/TP3"].stateValues.xs)[1]
+                    (await stateVariables["/TP3"].stateValues.xs)[1],
                 ).closeTo(t3y, 1e-12);
 
                 expect(
                     Number.isFinite(
                         stateVariables["/_circle1"].stateValues
-                            .numericalCenter[0]
-                    )
+                            .numericalCenter[0],
+                    ),
                 ).true;
                 expect(
                     Number.isFinite(
                         stateVariables["/_circle1"].stateValues
-                            .numericalCenter[1]
-                    )
+                            .numericalCenter[1],
+                    ),
                 ).true;
             });
         });
@@ -17260,74 +17454,74 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/TP1")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(t1x * 100) / 100)}`
+                `(${nInDOM(Math.trunc(t1x * 100) / 100)}`,
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
                     Number.isFinite(
-                        stateVariables["/_circle1"].stateValues.radius
-                    )
+                        stateVariables["/_circle1"].stateValues.radius,
+                    ),
                 ).true;
 
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[0][0]
+                        .numericalThroughPoints[0][0],
                 ).closeTo(t1x, 1e-12);
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[0][1]
+                        .numericalThroughPoints[0][1],
                 ).closeTo(t1y, 1e-12);
 
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[1][0]
+                        .numericalThroughPoints[1][0],
                 ).closeTo(t2x, 1e-12);
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[1][1]
+                        .numericalThroughPoints[1][1],
                 ).closeTo(t2y, 1e-12);
 
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[2][0]
+                        .numericalThroughPoints[2][0],
                 ).closeTo(t3x, 1e-12);
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[2][1]
+                        .numericalThroughPoints[2][1],
                 ).closeTo(t3y, 1e-12);
 
                 expect(
-                    (await stateVariables["/TP1"].stateValues.xs)[0]
+                    (await stateVariables["/TP1"].stateValues.xs)[0],
                 ).closeTo(t1x, 1e-12);
                 expect(
-                    (await stateVariables["/TP1"].stateValues.xs)[1]
+                    (await stateVariables["/TP1"].stateValues.xs)[1],
                 ).closeTo(t1y, 1e-12);
                 expect(
-                    (await stateVariables["/TP2"].stateValues.xs)[0]
+                    (await stateVariables["/TP2"].stateValues.xs)[0],
                 ).closeTo(t2x, 1e-12);
                 expect(
-                    (await stateVariables["/TP2"].stateValues.xs)[1]
+                    (await stateVariables["/TP2"].stateValues.xs)[1],
                 ).closeTo(t2y, 1e-12);
                 expect(
-                    (await stateVariables["/TP3"].stateValues.xs)[0]
+                    (await stateVariables["/TP3"].stateValues.xs)[0],
                 ).closeTo(t3x, 1e-12);
                 expect(
-                    (await stateVariables["/TP3"].stateValues.xs)[1]
+                    (await stateVariables["/TP3"].stateValues.xs)[1],
                 ).closeTo(t3y, 1e-12);
 
                 expect(
                     Number.isFinite(
                         stateVariables["/_circle1"].stateValues
-                            .numericalCenter[0]
-                    )
+                            .numericalCenter[0],
+                    ),
                 ).true;
                 expect(
                     Number.isFinite(
                         stateVariables["/_circle1"].stateValues
-                            .numericalCenter[1]
-                    )
+                            .numericalCenter[1],
+                    ),
                 ).true;
             });
         });
@@ -17347,74 +17541,74 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/TP1")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(t1x * 100) / 100)}`
+                `(${nInDOM(Math.trunc(t1x * 100) / 100)}`,
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
                     Number.isFinite(
-                        stateVariables["/_circle1"].stateValues.radius
-                    )
+                        stateVariables["/_circle1"].stateValues.radius,
+                    ),
                 ).true;
 
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[0][0]
+                        .numericalThroughPoints[0][0],
                 ).closeTo(t1x, 1e-12);
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[0][1]
+                        .numericalThroughPoints[0][1],
                 ).closeTo(t1y, 1e-12);
 
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[1][0]
+                        .numericalThroughPoints[1][0],
                 ).closeTo(t2x, 1e-12);
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[1][1]
+                        .numericalThroughPoints[1][1],
                 ).closeTo(t2y, 1e-12);
 
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[2][0]
+                        .numericalThroughPoints[2][0],
                 ).closeTo(t3x, 1e-12);
                 expect(
                     stateVariables["/_circle1"].stateValues
-                        .numericalThroughPoints[2][1]
+                        .numericalThroughPoints[2][1],
                 ).closeTo(t3y, 1e-12);
 
                 expect(
-                    (await stateVariables["/TP1"].stateValues.xs)[0]
+                    (await stateVariables["/TP1"].stateValues.xs)[0],
                 ).closeTo(t1x, 1e-12);
                 expect(
-                    (await stateVariables["/TP1"].stateValues.xs)[1]
+                    (await stateVariables["/TP1"].stateValues.xs)[1],
                 ).closeTo(t1y, 1e-12);
                 expect(
-                    (await stateVariables["/TP2"].stateValues.xs)[0]
+                    (await stateVariables["/TP2"].stateValues.xs)[0],
                 ).closeTo(t2x, 1e-12);
                 expect(
-                    (await stateVariables["/TP2"].stateValues.xs)[1]
+                    (await stateVariables["/TP2"].stateValues.xs)[1],
                 ).closeTo(t2y, 1e-12);
                 expect(
-                    (await stateVariables["/TP3"].stateValues.xs)[0]
+                    (await stateVariables["/TP3"].stateValues.xs)[0],
                 ).closeTo(t3x, 1e-12);
                 expect(
-                    (await stateVariables["/TP3"].stateValues.xs)[1]
+                    (await stateVariables["/TP3"].stateValues.xs)[1],
                 ).closeTo(t3y, 1e-12);
 
                 expect(
                     Number.isFinite(
                         stateVariables["/_circle1"].stateValues
-                            .numericalCenter[0]
-                    )
+                            .numericalCenter[0],
+                    ),
                 ).true;
                 expect(
                     Number.isFinite(
                         stateVariables["/_circle1"].stateValues
-                            .numericalCenter[1]
-                    )
+                            .numericalCenter[1],
+                    ),
                 ).true;
             });
         });
@@ -17439,7 +17633,7 @@ describe("Circle Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -17449,10 +17643,10 @@ describe("Circle Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
 
             expect(stateVariables["/_circle1"].stateValues.numericalRadius).eq(
-                1
+                1,
             );
             expect(
-                stateVariables["/_circle1"].stateValues.numericalCenter
+                stateVariables["/_circle1"].stateValues.numericalCenter,
             ).eqls([0, 0]);
             expect(stateVariables["/centerPoint"].stateValues.coords).eqls([
                 "vector",
@@ -17466,7 +17660,7 @@ describe("Circle Tag Tests", function () {
             ]);
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(0)},${nInDOM(0)})`
+                `(${nInDOM(0)},${nInDOM(0)})`,
             );
         });
 
@@ -17480,13 +17674,13 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(-7)},${nInDOM(2)})`
+                `(${nInDOM(-7)},${nInDOM(2)})`,
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter
+                    stateVariables["/_circle1"].stateValues.numericalCenter,
                 ).eqls([-7, 2]);
                 expect(stateVariables["/centerPoint"].stateValues.coords).eqls([
                     "vector",
@@ -17511,13 +17705,13 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(-5)},${nInDOM(-3)})`
+                `(${nInDOM(-5)},${nInDOM(-3)})`,
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter
+                    stateVariables["/_circle1"].stateValues.numericalCenter,
                 ).eqls([-5, -3]);
                 expect(stateVariables["/centerPoint"].stateValues.coords).eqls([
                     "vector",
@@ -17542,13 +17736,13 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(1)},${nInDOM(-4)})`
+                `(${nInDOM(1)},${nInDOM(-4)})`,
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter
+                    stateVariables["/_circle1"].stateValues.numericalCenter,
                 ).eqls([1, -4]);
                 expect(stateVariables["/centerPoint"].stateValues.coords).eqls([
                     "vector",
@@ -17582,7 +17776,7 @@ describe("Circle Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -17610,7 +17804,7 @@ describe("Circle Tag Tests", function () {
 
         cy.get(cesc("#\\/centerPoint2")).should(
             "contain.text",
-            `(${nInDOM(2)},${nInDOM(1)})`
+            `(${nInDOM(2)},${nInDOM(1)})`,
         );
 
         cy.window().then(async (win) => {
@@ -17635,22 +17829,22 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(-7)},${nInDOM(2)})`
+                `(${nInDOM(-7)},${nInDOM(2)})`,
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/circ"].stateValues.numericalCenter
+                    stateVariables["/circ"].stateValues.numericalCenter,
                 ).eqls([-7, 2]);
                 expect(stateVariables["/circ"].stateValues.numericalRadius).eq(
-                    1
+                    1,
                 );
                 expect(
-                    stateVariables["/circ2"].stateValues.numericalCenter
+                    stateVariables["/circ2"].stateValues.numericalCenter,
                 ).eqls([-7, 2]);
                 expect(stateVariables["/circ2"].stateValues.numericalRadius).eq(
-                    1
+                    1,
                 );
             });
         });
@@ -17658,12 +17852,12 @@ describe("Circle Tag Tests", function () {
         cy.log("change point for center");
         cy.get(cesc("#\\/c") + " textarea").type(
             "{end}{leftArrow}{backspace}-4{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/centerPoint2")).should(
             "contain.text",
-            `(${nInDOM(-7)},${nInDOM(-4)})`
+            `(${nInDOM(-7)},${nInDOM(-4)})`,
         );
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -17687,21 +17881,21 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(6)},${nInDOM(9)})`
+                `(${nInDOM(6)},${nInDOM(9)})`,
             );
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/circ"].stateValues.numericalCenter
+                    stateVariables["/circ"].stateValues.numericalCenter,
                 ).eqls([6, 9]);
                 expect(stateVariables["/circ"].stateValues.numericalRadius).eq(
-                    1
+                    1,
                 );
                 expect(
-                    stateVariables["/circ2"].stateValues.numericalCenter
+                    stateVariables["/circ2"].stateValues.numericalCenter,
                 ).eqls([6, 9]);
                 expect(stateVariables["/circ2"].stateValues.numericalRadius).eq(
-                    1
+                    1,
                 );
             });
         });
@@ -17709,7 +17903,7 @@ describe("Circle Tag Tests", function () {
         cy.log("center undefined again");
         cy.get(cesc("#\\/c") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/centerPoint2")).should("contain.text", `(＿,＿)`);
@@ -17734,7 +17928,7 @@ describe("Circle Tag Tests", function () {
 
         cy.get(cesc("#\\/centerPoint2")).should(
             "contain.text",
-            `(${nInDOM(5)},${nInDOM(4)})`
+            `(${nInDOM(5)},${nInDOM(4)})`,
         );
 
         cy.window().then(async (win) => {
@@ -17789,7 +17983,7 @@ describe("Circle Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -17798,35 +17992,35 @@ describe("Circle Tag Tests", function () {
         cy.get(cesc("#\\/rc") + " .mq-editable-field").should("have.text", "1");
         cy.get(cesc("#\\/cc") + " .mq-editable-field").should(
             "have.text",
-            "(0,0)"
+            "(0,0)",
         );
         cy.get(cesc("#\\/rc1") + " .mq-editable-field").should(
             "have.text",
-            "1"
+            "1",
         );
         cy.get(cesc("#\\/cc1") + " .mq-editable-field").should(
             "have.text",
-            "(3,4)"
+            "(3,4)",
         );
         cy.get(cesc("#\\/rc2") + " .mq-editable-field").should(
             "have.text",
-            "5"
+            "5",
         );
         cy.get(cesc("#\\/cc2") + " .mq-editable-field").should(
             "have.text",
-            "(3,4)"
+            "(3,4)",
         );
         cy.get(cesc("#\\/src3") + " .mq-editable-field").should(
             "have.text",
-            "3"
+            "3",
         );
         cy.get(cesc("#\\/rc3") + " .mq-editable-field").should(
             "have.text",
-            "3"
+            "3",
         );
         cy.get(cesc("#\\/cc3") + " .mq-editable-field").should(
             "have.text",
-            "(0,0)"
+            "(0,0)",
         );
 
         cy.log("move original circle");
@@ -17841,35 +18035,35 @@ describe("Circle Tag Tests", function () {
         cy.get(cesc("#\\/rc") + " .mq-editable-field").should("have.text", "1");
         cy.get(cesc("#\\/cc") + " .mq-editable-field").should(
             "have.text",
-            "(−1,2)"
+            "(−1,2)",
         );
         cy.get(cesc("#\\/rc1") + " .mq-editable-field").should(
             "have.text",
-            "1"
+            "1",
         );
         cy.get(cesc("#\\/cc1") + " .mq-editable-field").should(
             "have.text",
-            "(3,4)"
+            "(3,4)",
         );
         cy.get(cesc("#\\/rc2") + " .mq-editable-field").should(
             "have.text",
-            "5"
+            "5",
         );
         cy.get(cesc("#\\/cc2") + " .mq-editable-field").should(
             "have.text",
-            "(3,4)"
+            "(3,4)",
         );
         cy.get(cesc("#\\/src3") + " .mq-editable-field").should(
             "have.text",
-            "3"
+            "3",
         );
         cy.get(cesc("#\\/rc3") + " .mq-editable-field").should(
             "have.text",
-            "3"
+            "3",
         );
         cy.get(cesc("#\\/cc3") + " .mq-editable-field").should(
             "have.text",
-            "(−1,2)"
+            "(−1,2)",
         );
 
         cy.window().then(async (win) => {
@@ -17884,47 +18078,47 @@ describe("Circle Tag Tests", function () {
         });
         cy.get(cesc("#\\/cc") + " textarea").type(
             "{end}{leftArrow}{backspace}y{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/rc") + " .mq-editable-field").should(
             "have.text",
-            "1+x"
+            "1+x",
         );
         cy.get(cesc("#\\/cc") + " .mq-editable-field")
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "(−1,y)"
+                    "(−1,y)",
                 );
             });
         cy.get(cesc("#\\/rc1") + " .mq-editable-field").should(
             "have.text",
-            "1+x"
+            "1+x",
         );
         cy.get(cesc("#\\/cc1") + " .mq-editable-field").should(
             "have.text",
-            "(3,4)"
+            "(3,4)",
         );
         cy.get(cesc("#\\/rc2") + " .mq-editable-field").should(
             "have.text",
-            "5"
+            "5",
         );
         cy.get(cesc("#\\/cc2") + " .mq-editable-field").should(
             "have.text",
-            "(3,4)"
+            "(3,4)",
         );
         cy.get(cesc("#\\/src3") + " .mq-editable-field").should(
             "have.text",
-            "3"
+            "3",
         );
         cy.get(cesc("#\\/rc3") + " .mq-editable-field").should(
             "have.text",
-            "3"
+            "3",
         );
         cy.get(cesc("#\\/cc3") + " .mq-editable-field").should(
             "have.text",
-            "(−1,y)"
+            "(−1,y)",
         );
 
         cy.window().then(async (win) => {
@@ -17934,51 +18128,51 @@ describe("Circle Tag Tests", function () {
         });
 
         cy.log(
-            "set radius and center for original circle back to number using other components"
+            "set radius and center for original circle back to number using other components",
         );
         cy.get(cesc("#\\/rc1") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}2{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/cc3") + " textarea").type(
             "{end}{leftArrow}{backspace}{backspace}{backspace}{backspace}4,5{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/rc") + " .mq-editable-field").should("have.text", "2");
         cy.get(cesc("#\\/cc") + " .mq-editable-field").should(
             "have.text",
-            "(4,5)"
+            "(4,5)",
         );
         cy.get(cesc("#\\/rc1") + " .mq-editable-field").should(
             "have.text",
-            "2"
+            "2",
         );
         cy.get(cesc("#\\/cc1") + " .mq-editable-field").should(
             "have.text",
-            "(3,4)"
+            "(3,4)",
         );
         cy.get(cesc("#\\/rc2") + " .mq-editable-field").should(
             "have.text",
-            "5"
+            "5",
         );
         cy.get(cesc("#\\/cc2") + " .mq-editable-field").should(
             "have.text",
-            "(3,4)"
+            "(3,4)",
         );
         cy.get(cesc("#\\/src3") + " .mq-editable-field").should(
             "have.text",
-            "3"
+            "3",
         );
         cy.get(cesc("#\\/rc3") + " .mq-editable-field").should(
             "have.text",
-            "3"
+            "3",
         );
         cy.get(cesc("#\\/cc3") + " .mq-editable-field")
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "(4,5)"
+                    "(4,5)",
                 );
             });
 
@@ -18004,7 +18198,7 @@ describe("Circle Tag Tests", function () {
         cy.get(cesc("#\\/rc") + " .mq-editable-field").should("have.text", "4");
         cy.get(cesc("#\\/cc") + " .mq-editable-field").should(
             "have.text",
-            "(4,5)"
+            "(4,5)",
         );
         cy.get(cesc("#\\/rc1") + " .mq-editable-field")
             .invoke("text")
@@ -18013,27 +18207,27 @@ describe("Circle Tag Tests", function () {
             });
         cy.get(cesc("#\\/cc1") + " .mq-editable-field").should(
             "have.text",
-            "(−5,2)"
+            "(−5,2)",
         );
         cy.get(cesc("#\\/rc2") + " .mq-editable-field").should(
             "have.text",
-            "13"
+            "13",
         );
         cy.get(cesc("#\\/cc2") + " .mq-editable-field").should(
             "have.text",
-            "(−5,2)"
+            "(−5,2)",
         );
         cy.get(cesc("#\\/src3") + " .mq-editable-field").should(
             "have.text",
-            "3"
+            "3",
         );
         cy.get(cesc("#\\/rc3") + " .mq-editable-field").should(
             "have.text",
-            "3"
+            "3",
         );
         cy.get(cesc("#\\/cc3") + " .mq-editable-field").should(
             "have.text",
-            "(4,5)"
+            "(4,5)",
         );
 
         cy.window().then(async (win) => {
@@ -18054,7 +18248,7 @@ describe("Circle Tag Tests", function () {
         cy.get(cesc("#\\/rc") + " .mq-editable-field").should("have.text", "4");
         cy.get(cesc("#\\/cc") + " .mq-editable-field").should(
             "have.text",
-            "(4,5)"
+            "(4,5)",
         );
         cy.get(cesc("#\\/rc1") + " .mq-editable-field")
             .invoke("text")
@@ -18063,27 +18257,27 @@ describe("Circle Tag Tests", function () {
             });
         cy.get(cesc("#\\/cc1") + " .mq-editable-field").should(
             "have.text",
-            "(−5,2)"
+            "(−5,2)",
         );
         cy.get(cesc("#\\/rc2") + " .mq-editable-field").should(
             "have.text",
-            "10"
+            "10",
         );
         cy.get(cesc("#\\/cc2") + " .mq-editable-field").should(
             "have.text",
-            "(−5,2)"
+            "(−5,2)",
         );
         cy.get(cesc("#\\/src3") + " .mq-editable-field").should(
             "have.text",
-            "3"
+            "3",
         );
         cy.get(cesc("#\\/rc3") + " .mq-editable-field").should(
             "have.text",
-            "3"
+            "3",
         );
         cy.get(cesc("#\\/cc3") + " .mq-editable-field").should(
             "have.text",
-            "(4,5)"
+            "(4,5)",
         );
 
         cy.window().then(async (win) => {
@@ -18096,21 +18290,21 @@ describe("Circle Tag Tests", function () {
 
         cy.get(cesc("#\\/rc2") + " textarea").type(
             "{end}{backspace}{backspace}5{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/rc") + " .mq-editable-field").should("have.text", "4");
         cy.get(cesc("#\\/cc") + " .mq-editable-field").should(
             "have.text",
-            "(4,5)"
+            "(4,5)",
         );
         cy.get(cesc("#\\/rc1") + " .mq-editable-field").should(
             "have.text",
-            "4"
+            "4",
         );
         cy.get(cesc("#\\/cc1") + " .mq-editable-field").should(
             "have.text",
-            "(−5,2)"
+            "(−5,2)",
         );
         cy.get(cesc("#\\/rc2") + " .mq-editable-field")
             .invoke("text")
@@ -18119,19 +18313,19 @@ describe("Circle Tag Tests", function () {
             });
         cy.get(cesc("#\\/cc2") + " .mq-editable-field").should(
             "have.text",
-            "(−5,2)"
+            "(−5,2)",
         );
         cy.get(cesc("#\\/src3") + " .mq-editable-field").should(
             "have.text",
-            "3"
+            "3",
         );
         cy.get(cesc("#\\/rc3") + " .mq-editable-field").should(
             "have.text",
-            "3"
+            "3",
         );
         cy.get(cesc("#\\/cc3") + " .mq-editable-field").should(
             "have.text",
-            "(4,5)"
+            "(4,5)",
         );
 
         cy.window().then(async (win) => {
@@ -18144,44 +18338,44 @@ describe("Circle Tag Tests", function () {
 
         cy.get(cesc("#\\/cc2") + " textarea").type(
             "{end}{leftArrow}{backspace}{backspace}{backspace}{backspace}5,-3{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/rc") + " .mq-editable-field").should("have.text", "4");
         cy.get(cesc("#\\/cc") + " .mq-editable-field").should(
             "have.text",
-            "(4,5)"
+            "(4,5)",
         );
         cy.get(cesc("#\\/rc1") + " .mq-editable-field").should(
             "have.text",
-            "4"
+            "4",
         );
         cy.get(cesc("#\\/cc1") + " .mq-editable-field").should(
             "have.text",
-            "(5,−3)"
+            "(5,−3)",
         );
         cy.get(cesc("#\\/rc2") + " .mq-editable-field").should(
             "have.text",
-            "10"
+            "10",
         );
         cy.get(cesc("#\\/cc2") + " .mq-editable-field")
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "(5,−3)"
+                    "(5,−3)",
                 );
             });
         cy.get(cesc("#\\/src3") + " .mq-editable-field").should(
             "have.text",
-            "3"
+            "3",
         );
         cy.get(cesc("#\\/rc3") + " .mq-editable-field").should(
             "have.text",
-            "3"
+            "3",
         );
         cy.get(cesc("#\\/cc3") + " .mq-editable-field").should(
             "have.text",
-            "(4,5)"
+            "(4,5)",
         );
 
         cy.window().then(async (win) => {
@@ -18196,29 +18390,29 @@ describe("Circle Tag Tests", function () {
             "{end}{backspace}9{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/rc") + " .mq-editable-field").should("have.text", "4");
         cy.get(cesc("#\\/cc") + " .mq-editable-field").should(
             "have.text",
-            "(4,5)"
+            "(4,5)",
         );
         cy.get(cesc("#\\/rc1") + " .mq-editable-field").should(
             "have.text",
-            "4"
+            "4",
         );
         cy.get(cesc("#\\/cc1") + " .mq-editable-field").should(
             "have.text",
-            "(5,−3)"
+            "(5,−3)",
         );
         cy.get(cesc("#\\/rc2") + " .mq-editable-field").should(
             "have.text",
-            "10"
+            "10",
         );
         cy.get(cesc("#\\/cc2") + " .mq-editable-field").should(
             "have.text",
-            "(5,−3)"
+            "(5,−3)",
         );
         cy.get(cesc("#\\/src3") + " .mq-editable-field")
             .invoke("text")
@@ -18227,11 +18421,11 @@ describe("Circle Tag Tests", function () {
             });
         cy.get(cesc("#\\/rc3") + " .mq-editable-field").should(
             "have.text",
-            "9"
+            "9",
         );
         cy.get(cesc("#\\/cc3") + " .mq-editable-field").should(
             "have.text",
-            "(4,5)"
+            "(4,5)",
         );
 
         cy.window().then(async (win) => {
@@ -18257,27 +18451,27 @@ describe("Circle Tag Tests", function () {
         cy.get(cesc("#\\/rc") + " .mq-editable-field").should("have.text", "4");
         cy.get(cesc("#\\/cc") + " .mq-editable-field").should(
             "have.text",
-            "(3,8)"
+            "(3,8)",
         );
         cy.get(cesc("#\\/rc1") + " .mq-editable-field").should(
             "have.text",
-            "4"
+            "4",
         );
         cy.get(cesc("#\\/cc1") + " .mq-editable-field").should(
             "have.text",
-            "(5,−3)"
+            "(5,−3)",
         );
         cy.get(cesc("#\\/rc2") + " .mq-editable-field").should(
             "have.text",
-            "10"
+            "10",
         );
         cy.get(cesc("#\\/cc2") + " .mq-editable-field").should(
             "have.text",
-            "(5,−3)"
+            "(5,−3)",
         );
         cy.get(cesc("#\\/src3") + " .mq-editable-field").should(
             "have.text",
-            "9"
+            "9",
         );
         cy.get(cesc("#\\/rc3") + " .mq-editable-field")
             .invoke("text")
@@ -18286,7 +18480,7 @@ describe("Circle Tag Tests", function () {
             });
         cy.get(cesc("#\\/cc3") + " .mq-editable-field").should(
             "have.text",
-            "(3,8)"
+            "(3,8)",
         );
 
         cy.window().then(async (win) => {
@@ -18317,7 +18511,7 @@ describe("Circle Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -18343,16 +18537,16 @@ describe("Circle Tag Tests", function () {
             cy.get(cesc(`#\\/r2`) + ` .mjx-mrow`).should("contain.text", "1");
             cy.get(cesc(`#\\/c`) + ` .mjx-mrow`).should(
                 "contain.text",
-                `(${nInDOM(-7)},${nInDOM(2)})`
+                `(${nInDOM(-7)},${nInDOM(2)})`,
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/circ"].stateValues.numericalCenter
+                    stateVariables["/circ"].stateValues.numericalCenter,
                 ).eqls([-7, 2]);
                 expect(stateVariables["/circ"].stateValues.numericalRadius).eq(
-                    1
+                    1,
                 );
             });
         });
@@ -18363,7 +18557,7 @@ describe("Circle Tag Tests", function () {
         });
         cy.get(cesc(`#\\/r`) + ` .mq-editable-field`).should(
             "contain.text",
-            "3"
+            "3",
         );
         cy.get(cesc(`#\\/r2`) + ` .mjx-mrow`).should("contain.text", "3");
 
@@ -18384,7 +18578,7 @@ describe("Circle Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -18395,7 +18589,7 @@ describe("Circle Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 return stateVariables["/circ"];
-            })
+            }),
         );
 
         cy.window().then(async (win) => {
@@ -18424,7 +18618,7 @@ describe("Circle Tag Tests", function () {
     <p>$_circle1.throughPoint2[$n]{name="x"}</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -18445,13 +18639,13 @@ describe("Circle Tag Tests", function () {
         cy.get(cesc("#\\/n") + " textarea").type("1{enter}", { force: true });
         cy.get(cesc("#\\/P1") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(t1x)},${nInDOM(t1y)})`
+            `(${nInDOM(t1x)},${nInDOM(t1y)})`,
         );
         cy.get(cesc("#\\/P2") + " .mjx-mrow").should("not.exist");
         cy.get(cesc("#\\/P3") + " .mjx-mrow").should("not.exist");
         cy.get(cesc("#\\/x") + " .mjx-mrow").should(
             "contain.text",
-            `${nInDOM(t2x)}`
+            `${nInDOM(t2x)}`,
         );
 
         cy.get(cesc("#\\/n") + " textarea").type("{end}{backspace}2{enter}", {
@@ -18459,13 +18653,13 @@ describe("Circle Tag Tests", function () {
         });
         cy.get(cesc("#\\/P1") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(t2x)},${nInDOM(t2y)})`
+            `(${nInDOM(t2x)},${nInDOM(t2y)})`,
         );
         cy.get(cesc("#\\/P2") + " .mjx-mrow").should("not.exist");
         cy.get(cesc("#\\/P3") + " .mjx-mrow").should("not.exist");
         cy.get(cesc("#\\/x") + " .mjx-mrow").should(
             "contain.text",
-            `${nInDOM(t2y)}`
+            `${nInDOM(t2y)}`,
         );
 
         cy.get(cesc("#\\/n") + " textarea").type("{end}{backspace}3{enter}", {
@@ -18473,7 +18667,7 @@ describe("Circle Tag Tests", function () {
         });
         cy.get(cesc("#\\/P1") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(t3x)},${nInDOM(t3y)})`
+            `(${nInDOM(t3x)},${nInDOM(t3y)})`,
         );
         cy.get(cesc("#\\/P2") + " .mjx-mrow").should("not.exist");
         cy.get(cesc("#\\/P3") + " .mjx-mrow").should("not.exist");
@@ -18546,7 +18740,7 @@ describe("Circle Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -18569,11 +18763,11 @@ describe("Circle Tag Tests", function () {
 
         cy.get(cesc("#\\/st4")).should(
             "have.text",
-            "filled green with red border"
+            "filled green with red border",
         );
         cy.get(cesc("#\\/stn4")).should(
             "have.text",
-            "filled green circle with a red border"
+            "filled green circle with a red border",
         );
         cy.get(cesc("#\\/bst4")).should("have.text", "red");
         cy.get(cesc("#\\/fst4")).should("have.text", "green");
@@ -18585,11 +18779,11 @@ describe("Circle Tag Tests", function () {
 
         cy.get(cesc("#\\/st6")).should(
             "have.text",
-            "filled blue with thick border"
+            "filled blue with thick border",
         );
         cy.get(cesc("#\\/stn6")).should(
             "have.text",
-            "filled blue circle with a thick border"
+            "filled blue circle with a thick border",
         );
         cy.get(cesc("#\\/bst6")).should("have.text", "thick blue");
         cy.get(cesc("#\\/fst6")).should("have.text", "blue");
@@ -18601,11 +18795,11 @@ describe("Circle Tag Tests", function () {
 
         cy.get(cesc("#\\/st8")).should(
             "have.text",
-            "filled green with thin dotted red border"
+            "filled green with thin dotted red border",
         );
         cy.get(cesc("#\\/stn8")).should(
             "have.text",
-            "filled green circle with a thin dotted red border"
+            "filled green circle with a thin dotted red border",
         );
         cy.get(cesc("#\\/bst8")).should("have.text", "thin dotted red");
         cy.get(cesc("#\\/fst8")).should("have.text", "green");
@@ -18638,45 +18832,45 @@ describe("Circle Tag Tests", function () {
     <p name="Cfilldescrip">C has a $C.fillStyleDescription fill.</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get(cesc("#\\/Adescrip")).should(
             "have.text",
-            "Circle A is filled brown with thick border."
+            "Circle A is filled brown with thick border.",
         );
         cy.get(cesc("#\\/Bdescrip")).should(
             "have.text",
-            "B is a filled dark red circle."
+            "B is a filled dark red circle.",
         );
         cy.get(cesc("#\\/Cdescrip")).should(
             "have.text",
-            "C is a filled black circle with a thin border."
+            "C is a filled black circle with a thin border.",
         );
         cy.get(cesc("#\\/Aborderdescrip")).should(
             "have.text",
-            "A has a thick brown border."
+            "A has a thick brown border.",
         );
         cy.get(cesc("#\\/Bborderdescrip")).should(
             "have.text",
-            "B has a dark red border."
+            "B has a dark red border.",
         );
         cy.get(cesc("#\\/Cborderdescrip")).should(
             "have.text",
-            "C has a thin black border."
+            "C has a thin black border.",
         );
         cy.get(cesc("#\\/Afilldescrip")).should(
             "have.text",
-            "A has a brown fill."
+            "A has a brown fill.",
         );
         cy.get(cesc("#\\/Bfilldescrip")).should(
             "have.text",
-            "B has a dark red fill."
+            "B has a dark red fill.",
         );
         cy.get(cesc("#\\/Cfilldescrip")).should(
             "have.text",
-            "C has a black fill."
+            "C has a black fill.",
         );
 
         cy.log("set dark mode");
@@ -18687,39 +18881,39 @@ describe("Circle Tag Tests", function () {
 
         cy.get(cesc("#\\/Adescrip")).should(
             "have.text",
-            "Circle A is filled yellow with thick border."
+            "Circle A is filled yellow with thick border.",
         );
         cy.get(cesc("#\\/Bdescrip")).should(
             "have.text",
-            "B is a filled light red circle."
+            "B is a filled light red circle.",
         );
         cy.get(cesc("#\\/Cdescrip")).should(
             "have.text",
-            "C is a filled white circle with a thin border."
+            "C is a filled white circle with a thin border.",
         );
         cy.get(cesc("#\\/Aborderdescrip")).should(
             "have.text",
-            "A has a thick yellow border."
+            "A has a thick yellow border.",
         );
         cy.get(cesc("#\\/Bborderdescrip")).should(
             "have.text",
-            "B has a light red border."
+            "B has a light red border.",
         );
         cy.get(cesc("#\\/Cborderdescrip")).should(
             "have.text",
-            "C has a thin white border."
+            "C has a thin white border.",
         );
         cy.get(cesc("#\\/Afilldescrip")).should(
             "have.text",
-            "A has a yellow fill."
+            "A has a yellow fill.",
         );
         cy.get(cesc("#\\/Bfilldescrip")).should(
             "have.text",
-            "B has a light red fill."
+            "B has a light red fill.",
         );
         cy.get(cesc("#\\/Cfilldescrip")).should(
             "have.text",
-            "C has a white fill."
+            "C has a white fill.",
         );
     });
 
@@ -18751,7 +18945,7 @@ describe("Circle Tag Tests", function () {
     $graph3{name="graph4"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -18767,99 +18961,99 @@ describe("Circle Tag Tests", function () {
 
             expect(stateVariables["/_circle1"].stateValues.center[0]).closeTo(
                 cnx,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_circle1"].stateValues.center[1]).closeTo(
                 cny,
-                1e-12
+                1e-12,
             );
             expect(
-                stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                stateVariables["/_circle1"].stateValues.numericalCenter[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                stateVariables["/_circle1"].stateValues.numericalCenter[1],
             ).closeTo(cny, 1e-12);
             expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                 r,
-                1e-12
+                1e-12,
             );
             expect(
-                stateVariables["/_circle1"].stateValues.numericalRadius
+                stateVariables["/_circle1"].stateValues.numericalRadius,
             ).closeTo(r, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.center[0]
+                stateVariables["/graph3/circle"].stateValues.center[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.center[1]
+                stateVariables["/graph3/circle"].stateValues.center[1],
             ).closeTo(cny, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalCenter[0]
+                stateVariables["/graph3/circle"].stateValues.numericalCenter[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalCenter[1]
+                stateVariables["/graph3/circle"].stateValues.numericalCenter[1],
             ).closeTo(cny, 1e-12);
             expect(
-                await stateVariables["/graph3/circle"].stateValues.radius
+                await stateVariables["/graph3/circle"].stateValues.radius,
             ).closeTo(r, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalRadius
+                stateVariables["/graph3/circle"].stateValues.numericalRadius,
             ).closeTo(r, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.center[0]
+                stateVariables["/graph4/circle"].stateValues.center[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.center[1]
+                stateVariables["/graph4/circle"].stateValues.center[1],
             ).closeTo(cny, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalCenter[0]
+                stateVariables["/graph4/circle"].stateValues.numericalCenter[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalCenter[1]
+                stateVariables["/graph4/circle"].stateValues.numericalCenter[1],
             ).closeTo(cny, 1e-12);
             expect(
-                await stateVariables["/graph4/circle"].stateValues.radius
+                await stateVariables["/graph4/circle"].stateValues.radius,
             ).closeTo(r, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalRadius
+                stateVariables["/graph4/circle"].stateValues.numericalRadius,
             ).closeTo(r, 1e-12);
             expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                 cnx,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                 cny,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                 tx,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                 ty,
-                1e-12
+                1e-12,
             );
             expect(
-                (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                (await stateVariables["/centerPoint"].stateValues.xs)[0],
             ).closeTo(cnx, 1e-12);
             expect(stateVariables["/centerPoint"].stateValues.xs[1]).closeTo(
                 cny,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/radiusNumber"].stateValues.value).closeTo(
                 r,
-                1e-12
+                1e-12,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
         });
 
@@ -18894,103 +19088,105 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     cnx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     cny,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     tx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     ty,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -19011,103 +19207,105 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     cnx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     cny,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     tx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     ty,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -19128,103 +19326,105 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     cnx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     cny,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     tx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     ty,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -19243,103 +19443,105 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     cnx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     cny,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     tx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     ty,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -19360,102 +19562,104 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     cnx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     cny,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     tx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     ty,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -19487,102 +19691,104 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     cnx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     cny,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     tx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     ty,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -19614,102 +19820,104 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     cnx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     cny,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     tx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     ty,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -19744,7 +19952,7 @@ describe("Circle Tag Tests", function () {
     $graph3{name="graph4"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -19760,99 +19968,99 @@ describe("Circle Tag Tests", function () {
 
             expect(stateVariables["/_circle1"].stateValues.center[0]).closeTo(
                 cnx,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_circle1"].stateValues.center[1]).closeTo(
                 cny,
-                1e-12
+                1e-12,
             );
             expect(
-                stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                stateVariables["/_circle1"].stateValues.numericalCenter[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                stateVariables["/_circle1"].stateValues.numericalCenter[1],
             ).closeTo(cny, 1e-12);
             expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                 r,
-                1e-12
+                1e-12,
             );
             expect(
-                stateVariables["/_circle1"].stateValues.numericalRadius
+                stateVariables["/_circle1"].stateValues.numericalRadius,
             ).closeTo(r, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.center[0]
+                stateVariables["/graph3/circle"].stateValues.center[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.center[1]
+                stateVariables["/graph3/circle"].stateValues.center[1],
             ).closeTo(cny, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalCenter[0]
+                stateVariables["/graph3/circle"].stateValues.numericalCenter[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalCenter[1]
+                stateVariables["/graph3/circle"].stateValues.numericalCenter[1],
             ).closeTo(cny, 1e-12);
             expect(
-                await stateVariables["/graph3/circle"].stateValues.radius
+                await stateVariables["/graph3/circle"].stateValues.radius,
             ).closeTo(r, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalRadius
+                stateVariables["/graph3/circle"].stateValues.numericalRadius,
             ).closeTo(r, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.center[0]
+                stateVariables["/graph4/circle"].stateValues.center[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.center[1]
+                stateVariables["/graph4/circle"].stateValues.center[1],
             ).closeTo(cny, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalCenter[0]
+                stateVariables["/graph4/circle"].stateValues.numericalCenter[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalCenter[1]
+                stateVariables["/graph4/circle"].stateValues.numericalCenter[1],
             ).closeTo(cny, 1e-12);
             expect(
-                await stateVariables["/graph4/circle"].stateValues.radius
+                await stateVariables["/graph4/circle"].stateValues.radius,
             ).closeTo(r, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalRadius
+                stateVariables["/graph4/circle"].stateValues.numericalRadius,
             ).closeTo(r, 1e-12);
             expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                 cnx,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                 cny,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                 tx,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                 ty,
-                1e-12
+                1e-12,
             );
             expect(
-                (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                (await stateVariables["/centerPoint"].stateValues.xs)[0],
             ).closeTo(cnx, 1e-12);
             expect(stateVariables["/centerPoint"].stateValues.xs[1]).closeTo(
                 cny,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/radiusNumber"].stateValues.value).closeTo(
                 r,
-                1e-12
+                1e-12,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
         });
 
@@ -19887,103 +20095,105 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     cnx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     cny,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     tx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     ty,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -20002,103 +20212,105 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     cnx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     cny,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     tx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     ty,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -20117,103 +20329,105 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     cnx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     cny,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     tx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     ty,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -20234,103 +20448,105 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     cnx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     cny,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     tx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     ty,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -20356,102 +20572,104 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     cnx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     cny,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     tx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     ty,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -20486,102 +20704,104 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     cnx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     cny,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     tx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     ty,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -20616,102 +20836,104 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     cnx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     cny,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     tx,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     ty,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -20745,7 +20967,7 @@ describe("Circle Tag Tests", function () {
     $graph3{name="graph4"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -20764,95 +20986,95 @@ describe("Circle Tag Tests", function () {
                 cny = (t1y + t2y) / 2;
             expect(stateVariables["/_circle1"].stateValues.center[0]).closeTo(
                 cnx,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_circle1"].stateValues.center[1]).closeTo(
                 cny,
-                1e-12
+                1e-12,
             );
             expect(
-                stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                stateVariables["/_circle1"].stateValues.numericalCenter[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                stateVariables["/_circle1"].stateValues.numericalCenter[1],
             ).closeTo(cny, 1e-12);
             expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                 r,
-                1e-12
+                1e-12,
             );
             expect(
-                stateVariables["/_circle1"].stateValues.numericalRadius
+                stateVariables["/_circle1"].stateValues.numericalRadius,
             ).closeTo(r, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.center[0]
+                stateVariables["/graph3/circle"].stateValues.center[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.center[1]
+                stateVariables["/graph3/circle"].stateValues.center[1],
             ).closeTo(cny, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalCenter[0]
+                stateVariables["/graph3/circle"].stateValues.numericalCenter[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalCenter[1]
+                stateVariables["/graph3/circle"].stateValues.numericalCenter[1],
             ).closeTo(cny, 1e-12);
             expect(
-                await stateVariables["/graph3/circle"].stateValues.radius
+                await stateVariables["/graph3/circle"].stateValues.radius,
             ).closeTo(r, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalRadius
+                stateVariables["/graph3/circle"].stateValues.numericalRadius,
             ).closeTo(r, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.center[0]
+                stateVariables["/graph4/circle"].stateValues.center[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.center[1]
+                stateVariables["/graph4/circle"].stateValues.center[1],
             ).closeTo(cny, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalCenter[0]
+                stateVariables["/graph4/circle"].stateValues.numericalCenter[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalCenter[1]
+                stateVariables["/graph4/circle"].stateValues.numericalCenter[1],
             ).closeTo(cny, 1e-12);
             expect(
-                await stateVariables["/graph4/circle"].stateValues.radius
+                await stateVariables["/graph4/circle"].stateValues.radius,
             ).closeTo(r, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalRadius
+                stateVariables["/graph4/circle"].stateValues.numericalRadius,
             ).closeTo(r, 1e-12);
             expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                 t1x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                 t1y,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                 t2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                 t2y,
-                1e-12
+                1e-12,
             );
             expect(
-                (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                (await stateVariables["/centerPoint"].stateValues.xs)[0],
             ).closeTo(cnx, 1e-12);
             expect(stateVariables["/centerPoint"].stateValues.xs[1]).closeTo(
                 cny,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/radiusNumber"].stateValues.value).closeTo(
                 r,
-                1e-12
+                1e-12,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(cnx)},${nInDOM(cny)})`
+                `(${nInDOM(cnx)},${nInDOM(cny)})`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
         });
 
@@ -20890,98 +21112,100 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(cnx)},${nInDOM(cny)})`
+                `(${nInDOM(cnx)},${nInDOM(cny)})`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -21005,98 +21229,100 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(cnx)},${nInDOM(cny)})`
+                `(${nInDOM(cnx)},${nInDOM(cny)})`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -21116,98 +21342,100 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(cnx)},${nInDOM(cny)})`
+                `(${nInDOM(cnx)},${nInDOM(cny)})`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -21238,98 +21466,100 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(cnx)},${nInDOM(cny)})`
+                `(${nInDOM(cnx)},${nInDOM(cny)})`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -21364,98 +21594,100 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(cnx)},${nInDOM(cny)})`
+                `(${nInDOM(cnx)},${nInDOM(cny)})`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -21495,98 +21727,100 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(cnx)},${nInDOM(cny)})`
+                `(${nInDOM(cnx)},${nInDOM(cny)})`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -21626,98 +21860,100 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(cnx)},${nInDOM(cny)})`
+                `(${nInDOM(cnx)},${nInDOM(cny)})`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
             });
         });
@@ -21752,7 +21988,7 @@ describe("Circle Tag Tests", function () {
     $graph3{name="graph4"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -21776,105 +22012,105 @@ describe("Circle Tag Tests", function () {
 
             expect(stateVariables["/_circle1"].stateValues.center[0]).closeTo(
                 cnx,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_circle1"].stateValues.center[1]).closeTo(
                 cny,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                 r,
-                1e-12
+                1e-12,
             );
 
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalCenter[0]
+                stateVariables["/graph3/circle"].stateValues.numericalCenter[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalCenter[1]
+                stateVariables["/graph3/circle"].stateValues.numericalCenter[1],
             ).closeTo(cny, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalRadius
+                stateVariables["/graph3/circle"].stateValues.numericalRadius,
             ).closeTo(r, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.center[0]
+                stateVariables["/graph3/circle"].stateValues.center[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.center[1]
+                stateVariables["/graph3/circle"].stateValues.center[1],
             ).closeTo(cny, 1e-12);
             expect(
-                await stateVariables["/graph3/circle"].stateValues.radius
+                await stateVariables["/graph3/circle"].stateValues.radius,
             ).closeTo(r, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalCenter[0]
+                stateVariables["/graph4/circle"].stateValues.numericalCenter[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalCenter[1]
+                stateVariables["/graph4/circle"].stateValues.numericalCenter[1],
             ).closeTo(cny, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalRadius
+                stateVariables["/graph4/circle"].stateValues.numericalRadius,
             ).closeTo(r, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.center[0]
+                stateVariables["/graph4/circle"].stateValues.center[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.center[1]
+                stateVariables["/graph4/circle"].stateValues.center[1],
             ).closeTo(cny, 1e-12);
             expect(
-                await stateVariables["/graph4/circle"].stateValues.radius
+                await stateVariables["/graph4/circle"].stateValues.radius,
             ).closeTo(r, 1e-12);
 
             expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                 t1x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                 t1y,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                 t2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                 t2y,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                 t3x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                 t3y,
-                1e-12
+                1e-12,
             );
             expect(
-                (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                (await stateVariables["/centerPoint"].stateValues.xs)[0],
             ).closeTo(cnx, 1e-12);
             expect(stateVariables["/centerPoint"].stateValues.xs[1]).closeTo(
                 cny,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/radiusNumber"].stateValues.value).closeTo(
                 r,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/diam"].stateValues.value).closeTo(
                 2 * r,
-                1e-12
+                1e-12,
             );
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
         });
 
@@ -21913,114 +22149,116 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     t3x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     t3y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/diam"].stateValues.value).closeTo(
                     2 * r,
-                    1e-12
+                    1e-12,
                 );
             });
         });
@@ -22062,115 +22300,117 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     t3x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     t3y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/diam"].stateValues.value).closeTo(
                     2 * r,
-                    1e-12
+                    1e-12,
                 );
             });
         });
@@ -22215,115 +22455,117 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     t3x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     t3y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/diam"].stateValues.value).closeTo(
                     2 * r,
-                    1e-12
+                    1e-12,
                 );
             });
         });
@@ -22362,7 +22604,7 @@ describe("Circle Tag Tests", function () {
     $graph3{name="graph4"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -22386,105 +22628,105 @@ describe("Circle Tag Tests", function () {
 
             expect(stateVariables["/_circle1"].stateValues.center[0]).closeTo(
                 cnx,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_circle1"].stateValues.center[1]).closeTo(
                 cny,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                 r,
-                1e-12
+                1e-12,
             );
 
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalCenter[0]
+                stateVariables["/graph3/circle"].stateValues.numericalCenter[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalCenter[1]
+                stateVariables["/graph3/circle"].stateValues.numericalCenter[1],
             ).closeTo(cny, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.numericalRadius
+                stateVariables["/graph3/circle"].stateValues.numericalRadius,
             ).closeTo(r, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.center[0]
+                stateVariables["/graph3/circle"].stateValues.center[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/graph3/circle"].stateValues.center[1]
+                stateVariables["/graph3/circle"].stateValues.center[1],
             ).closeTo(cny, 1e-12);
             expect(
-                await stateVariables["/graph3/circle"].stateValues.radius
+                await stateVariables["/graph3/circle"].stateValues.radius,
             ).closeTo(r, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalCenter[0]
+                stateVariables["/graph4/circle"].stateValues.numericalCenter[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalCenter[1]
+                stateVariables["/graph4/circle"].stateValues.numericalCenter[1],
             ).closeTo(cny, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.numericalRadius
+                stateVariables["/graph4/circle"].stateValues.numericalRadius,
             ).closeTo(r, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.center[0]
+                stateVariables["/graph4/circle"].stateValues.center[0],
             ).closeTo(cnx, 1e-12);
             expect(
-                stateVariables["/graph4/circle"].stateValues.center[1]
+                stateVariables["/graph4/circle"].stateValues.center[1],
             ).closeTo(cny, 1e-12);
             expect(
-                await stateVariables["/graph4/circle"].stateValues.radius
+                await stateVariables["/graph4/circle"].stateValues.radius,
             ).closeTo(r, 1e-12);
 
             expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                 t1x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                 t1y,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                 t2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                 t2y,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                 t3x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                 t3y,
-                1e-12
+                1e-12,
             );
             expect(
-                (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                (await stateVariables["/centerPoint"].stateValues.xs)[0],
             ).closeTo(cnx, 1e-12);
             expect(stateVariables["/centerPoint"].stateValues.xs[1]).closeTo(
                 cny,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/radiusNumber"].stateValues.value).closeTo(
                 r,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/diam"].stateValues.value).closeTo(
                 2 * r,
-                1e-12
+                1e-12,
             );
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
         });
 
@@ -22523,114 +22765,116 @@ describe("Circle Tag Tests", function () {
             });
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     t3x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     t3y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/diam"].stateValues.value).closeTo(
                     2 * r,
-                    1e-12
+                    1e-12,
                 );
             });
         });
@@ -22672,115 +22916,117 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     t3x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     t3y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/diam"].stateValues.value).closeTo(
                     2 * r,
-                    1e-12
+                    1e-12,
                 );
             });
         });
@@ -22825,115 +23071,117 @@ describe("Circle Tag Tests", function () {
 
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`
+                `(${nInDOM(Math.trunc(cnx * 100) / 100)}`,
             );
             cy.get(cesc("#\\/centerPoint2")).should(
                 "contain.text",
-                `${nInDOM(Math.trunc(cny * 100) / 100)}`
+                `${nInDOM(Math.trunc(cny * 100) / 100)}`,
             );
             cy.get(cesc("#\\/radiusNumber")).should(
                 "contain.text",
-                nInDOM(Math.trunc(r * 100) / 100)
+                nInDOM(Math.trunc(r * 100) / 100),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[0]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalCenter[1]
+                    stateVariables["/_circle1"].stateValues.numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.numericalRadius
+                    stateVariables["/_circle1"].stateValues.numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[0]
+                    stateVariables["/_circle1"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/_circle1"].stateValues.center[1]
+                    stateVariables["/_circle1"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(stateVariables["/_circle1"].stateValues.radius).closeTo(
                     r,
-                    1e-12
+                    1e-12,
                 );
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph3/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.numericalRadius
+                    stateVariables["/graph3/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[0]
+                    stateVariables["/graph3/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph3/circle"].stateValues.center[1]
+                    stateVariables["/graph3/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph3/circle"].stateValues.radius
+                    await stateVariables["/graph3/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[0]
+                        .numericalCenter[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
                     stateVariables["/graph4/circle"].stateValues
-                        .numericalCenter[1]
+                        .numericalCenter[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.numericalRadius
+                    stateVariables["/graph4/circle"].stateValues
+                        .numericalRadius,
                 ).closeTo(r, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[0]
+                    stateVariables["/graph4/circle"].stateValues.center[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/graph4/circle"].stateValues.center[1]
+                    stateVariables["/graph4/circle"].stateValues.center[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    await stateVariables["/graph4/circle"].stateValues.radius
+                    await stateVariables["/graph4/circle"].stateValues.radius,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     t1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     t1y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     t2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     t2y,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     t3x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     t3y,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    (await stateVariables["/centerPoint"].stateValues.xs)[0]
+                    (await stateVariables["/centerPoint"].stateValues.xs)[0],
                 ).closeTo(cnx, 1e-12);
                 expect(
-                    stateVariables["/centerPoint"].stateValues.xs[1]
+                    stateVariables["/centerPoint"].stateValues.xs[1],
                 ).closeTo(cny, 1e-12);
                 expect(
-                    stateVariables["/radiusNumber"].stateValues.value
+                    stateVariables["/radiusNumber"].stateValues.value,
                 ).closeTo(r, 1e-12);
                 expect(stateVariables["/diam"].stateValues.value).closeTo(
                     2 * r,
-                    1e-12
+                    1e-12,
                 );
             });
         });
@@ -22975,7 +23223,7 @@ describe("Circle Tag Tests", function () {
     <boolean copySource="R3.hideOffGraphIndicator" name="R3h" />
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -23019,7 +23267,7 @@ describe("Circle Tag Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -23061,7 +23309,7 @@ describe("Circle Tag Tests", function () {
 $c7.radius
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -23074,7 +23322,7 @@ $c7.radius
             expect(errorWarnings.warnings.length).eq(8);
 
             expect(errorWarnings.warnings[0].message).contain(
-                "Cannot calculate radius of circle with specified center through more than 1 point"
+                "Cannot calculate radius of circle with specified center through more than 1 point",
             );
             expect(errorWarnings.warnings[0].level).eq(1);
             expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(9);
@@ -23083,7 +23331,7 @@ $c7.radius
             expect(errorWarnings.warnings[0].doenetMLrange.charEnd).eq(57);
 
             expect(errorWarnings.warnings[1].message).contain(
-                "Haven't implemented <circle> through 2 points in case where the points don't have numerical values"
+                "Haven't implemented <circle> through 2 points in case where the points don't have numerical values",
             );
             expect(errorWarnings.warnings[1].level).eq(1);
             expect(errorWarnings.warnings[1].doenetMLrange.lineBegin).eq(3);
@@ -23092,7 +23340,7 @@ $c7.radius
             expect(errorWarnings.warnings[1].doenetMLrange.charEnd).eq(42);
 
             expect(errorWarnings.warnings[2].message).contain(
-                "Cannot calculate circle through more than 3 points"
+                "Cannot calculate circle through more than 3 points",
             );
             expect(errorWarnings.warnings[2].level).eq(1);
             expect(errorWarnings.warnings[2].doenetMLrange.lineBegin).eq(4);
@@ -23101,7 +23349,7 @@ $c7.radius
             expect(errorWarnings.warnings[2].doenetMLrange.charEnd).eq(54);
 
             expect(errorWarnings.warnings[3].message).contain(
-                "Cannot calculate circle with specified radius, center and through points"
+                "Cannot calculate circle with specified radius, center and through points",
             );
             expect(errorWarnings.warnings[3].level).eq(1);
             expect(errorWarnings.warnings[3].doenetMLrange.lineBegin).eq(5);
@@ -23110,7 +23358,7 @@ $c7.radius
             expect(errorWarnings.warnings[3].doenetMLrange.charEnd).eq(62);
 
             expect(errorWarnings.warnings[4].message).contain(
-                "Cannot calculate circle with specified center through more than 1 point"
+                "Cannot calculate circle with specified center through more than 1 point",
             );
             expect(errorWarnings.warnings[4].level).eq(1);
             expect(errorWarnings.warnings[4].doenetMLrange.lineBegin).eq(6);
@@ -23119,7 +23367,7 @@ $c7.radius
             expect(errorWarnings.warnings[4].doenetMLrange.charEnd).eq(57);
 
             expect(errorWarnings.warnings[5].message).contain(
-                "Cannot calculate circle: given that the distance between the two points is 8, the specified radius 1 is too small"
+                "Cannot calculate circle: given that the distance between the two points is 8, the specified radius 1 is too small",
             );
             expect(errorWarnings.warnings[5].level).eq(1);
             expect(errorWarnings.warnings[5].doenetMLrange.lineBegin).eq(7);
@@ -23128,7 +23376,7 @@ $c7.radius
             expect(errorWarnings.warnings[5].doenetMLrange.charEnd).eq(54);
 
             expect(errorWarnings.warnings[6].message).contain(
-                "Cannot create circle through more than two points with a specified radius"
+                "Cannot create circle through more than two points with a specified radius",
             );
             expect(errorWarnings.warnings[6].level).eq(1);
             expect(errorWarnings.warnings[6].doenetMLrange.lineBegin).eq(8);
@@ -23137,7 +23385,7 @@ $c7.radius
             expect(errorWarnings.warnings[6].doenetMLrange.charEnd).eq(60);
 
             expect(errorWarnings.warnings[7].message).contain(
-                "Cannot create circle through more than one point with specified radius when don't have numerical values"
+                "Cannot create circle through more than one point with specified radius when don't have numerical values",
             );
             expect(errorWarnings.warnings[7].level).eq(1);
             expect(errorWarnings.warnings[7].doenetMLrange.lineBegin).eq(10);
@@ -23158,7 +23406,7 @@ $c7.radius
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -23181,7 +23429,7 @@ $c7.radius
     <p>Change radius: <mathinput name="r">$c.radius</mathinput></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 

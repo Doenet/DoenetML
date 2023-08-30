@@ -235,7 +235,7 @@ export default class SubsetOfRealsInput extends BlockComponent {
                             let result = pointsIntervalsFromSubset(sub2);
                             ({ points, intervals } = mergePointsIntervals(
                                 { points, intervals },
-                                result
+                                result,
                             ));
                         }
 
@@ -269,7 +269,7 @@ export default class SubsetOfRealsInput extends BlockComponent {
                 }
 
                 let { points, intervals } = pointsIntervalsFromSubset(
-                    dependencyValues.subsetValue
+                    dependencyValues.subsetValue,
                 );
 
                 let pointsFromSubset = points ? points : [];
@@ -296,7 +296,7 @@ export default class SubsetOfRealsInput extends BlockComponent {
             inverseDefinition({ desiredStateVariableValues }) {
                 if (
                     desiredStateVariableValues.additionalPoints.every(
-                        Number.isFinite
+                        Number.isFinite,
                     )
                 ) {
                     return {
@@ -433,8 +433,8 @@ export default class SubsetOfRealsInput extends BlockComponent {
             Math.round(
                 Math.max(
                     await this.stateValues.xmin,
-                    Math.min(await this.stateValues.xmax, value)
-                ) / dx
+                    Math.min(await this.stateValues.xmax, value),
+                ) / dx,
             ) * dx;
 
         // add point only if not equal to another point
@@ -733,8 +733,8 @@ export default class SubsetOfRealsInput extends BlockComponent {
             pieces.push(
                 new subsets.OpenInterval(
                     roundValue(interval[0]),
-                    roundValue(interval[1])
-                )
+                    roundValue(interval[1]),
+                ),
             );
         }
         for (let point of pointsFromSubset) {
@@ -786,8 +786,8 @@ export default class SubsetOfRealsInput extends BlockComponent {
             Math.round(
                 Math.max(
                     await this.stateValues.xmin,
-                    Math.min(await this.stateValues.xmax, value)
-                ) / dx
+                    Math.min(await this.stateValues.xmax, value),
+                ) / dx,
             ) * dx;
 
         let points = await this.stateValues.points;
@@ -1211,7 +1211,7 @@ export default class SubsetOfRealsInput extends BlockComponent {
                     intervalsFromSubset.splice(
                         intervalSubsetInd,
                         1,
-                        ...newIntervals
+                        ...newIntervals,
                     );
 
                     // leftPoint and rightPoint become part of the subset
@@ -1256,14 +1256,14 @@ export default class SubsetOfRealsInput extends BlockComponent {
                     if (rightPoint && rightPoint.isAdditional) {
                         additionalPoints.splice(
                             rightPoint.additionalPointInd,
-                            1
+                            1,
                         );
                         modifiedAdditionalPoints = true;
                     }
                     if (leftPoint && leftPoint.isAdditional) {
                         additionalPoints.splice(
                             leftPoint.additionalPointInd,
-                            1
+                            1,
                         );
                         modifiedAdditionalPoints = true;
                     }
@@ -1299,7 +1299,7 @@ export default class SubsetOfRealsInput extends BlockComponent {
                     if (leftPoint && leftPoint.isAdditional) {
                         additionalPoints.splice(
                             leftPoint.additionalPointInd,
-                            1
+                            1,
                         );
                         modifiedAdditionalPoints = true;
                     }
@@ -1339,7 +1339,7 @@ export default class SubsetOfRealsInput extends BlockComponent {
                     if (rightPoint && rightPoint.isAdditional) {
                         additionalPoints.splice(
                             rightPoint.additionalPointInd,
-                            1
+                            1,
                         );
                         modifiedAdditionalPoints = true;
                     }
@@ -1356,7 +1356,7 @@ export default class SubsetOfRealsInput extends BlockComponent {
                             intervalsFromSubset.splice(
                                 leftIntervalInd,
                                 2,
-                                newInterval
+                                newInterval,
                             );
 
                             // point becomes additional

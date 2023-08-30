@@ -108,7 +108,7 @@ export default React.memo(function Polyline(props) {
             strokeColor: "none",
             highlightStrokeColor: "none",
             highlightFillColor: getComputedStyle(
-                document.documentElement
+                document.documentElement,
             ).getPropertyValue("--mainGray"),
             layer: 10 * SVs.layer + VERTEX_LAYER_OFFSET,
             showInfoBox: SVs.showCoordsWhenDragging,
@@ -135,8 +135,8 @@ export default React.memo(function Polyline(props) {
                 board.create(
                     "point",
                     [...SVs.numericalVertices[i]],
-                    jsxPointAttributes.current
-                )
+                    jsxPointAttributes.current,
+                ),
             );
         }
 
@@ -150,7 +150,7 @@ export default React.memo(function Polyline(props) {
         let newPolylineJXG = board.create(
             "curve",
             [x, y],
-            jsxPolylineAttributes
+            jsxPolylineAttributes,
         );
         newPolylineJXG.isDraggable = !fixLocation.current;
 
@@ -266,7 +266,7 @@ export default React.memo(function Polyline(props) {
                 for (let j = 0; j < SVs.numVertices; j++) {
                     pointsJXG.current[j].coords.setCoordinates(
                         JXG.COORDS_BY_USER,
-                        [...lastPositionsFromCore.current[j]]
+                        [...lastPositionsFromCore.current[j]],
                     );
                     polylineJXG.current.dataX[j] =
                         lastPositionsFromCore.current[j][0] - shiftX;
@@ -465,8 +465,8 @@ export default React.memo(function Polyline(props) {
                         board.create(
                             "point",
                             [...SVs.numericalVertices[i]],
-                            jsxPointAttributes.current
-                        )
+                            jsxPointAttributes.current,
+                        ),
                     );
                     polylineJXG.current.dataX.length = SVs.numVertices;
 
@@ -475,10 +475,10 @@ export default React.memo(function Polyline(props) {
                     pointsJXG.current[i].on("down", (e) => downHandler(i, e));
                     pointsJXG.current[i].on("hit", (e) => hitHandler());
                     pointsJXG.current[i].on("keyfocusout", (e) =>
-                        keyFocusOutHandler(i)
+                        keyFocusOutHandler(i),
                     );
                     pointsJXG.current[i].on("keydown", (e) =>
-                        keyDownHandler(i, e)
+                        keyDownHandler(i, e),
                     );
                 }
             } else if (SVs.numVertices < previousNumVertices.current) {

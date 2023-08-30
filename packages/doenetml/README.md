@@ -28,15 +28,16 @@ Paste demo code into `packages/test-viewer/src/test/testCode.doenet`
 
 Navigate to `localhost:5173`
 
-
 ## Development
 
 ### Publishing
 
 Run
+
 ```bash
 npm run build
 ```
+
 to make a publishable package in the `./dist` directory. As part of the build process a stripped
 down version of `package.json` is copied into the `./dist` directory. **This** is the package that you should publish.
 I.e., do a `cd ./dist` before publishing.

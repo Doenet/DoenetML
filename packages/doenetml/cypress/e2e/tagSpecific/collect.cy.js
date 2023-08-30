@@ -47,7 +47,7 @@ describe("Collect Tag Tests", function () {
     <p>Average of <m>y</m>-coordinates of points: <mean name="mean"><collect componentTypes="point" prop="y" name="ys" source="_graph3" assignNames="y1 y2 y3 y4 y5" /></mean></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -224,16 +224,16 @@ describe("Collect Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             for (let i = 0; i < 5; i++) {
                 expect(stateVariables[`/q${i + 1}`].stateValues.xs[0]).eq(
-                    xs[i]
+                    xs[i],
                 );
                 expect(stateVariables[`/q${i + 1}`].stateValues.xs[1]).eq(
-                    ys[i]
+                    ys[i],
                 );
                 expect(stateVariables[`/qa${i + 1}`].stateValues.xs[0]).eq(
-                    xs[i]
+                    xs[i],
                 );
                 expect(stateVariables[`/qa${i + 1}`].stateValues.xs[1]).eq(
-                    ys[i]
+                    ys[i],
                 );
                 expect(stateVariables[`/c${i + 1}`].stateValues.value).eqls([
                     "vector",
@@ -241,16 +241,16 @@ describe("Collect Tag Tests", function () {
                     ys[i],
                 ]);
                 expect(stateVariables[`/x${i + 1}`].stateValues.value).eq(
-                    xs[i]
+                    xs[i],
                 );
                 expect(stateVariables[`/xc${i + 1}`].stateValues.value).eq(
-                    xs[i]
+                    xs[i],
                 );
                 expect(stateVariables[`/xe${i + 1}`].stateValues.value).eq(
-                    xs[i]
+                    xs[i],
                 );
                 expect(stateVariables[`/y${i + 1}`].stateValues.value).eq(
-                    ys[i]
+                    ys[i],
                 );
             }
             expect(stateVariables["/mean"].stateValues.value).eq(meany);
@@ -272,7 +272,7 @@ describe("Collect Tag Tests", function () {
 
             cy.get(cesc("#\\/c1")).should(
                 "contain.text",
-                `(${nInDOM(x1)},${nInDOM(y1)})`
+                `(${nInDOM(x1)},${nInDOM(y1)})`,
             );
 
             cy.window().then(async (win) => {
@@ -280,31 +280,31 @@ describe("Collect Tag Tests", function () {
 
                 for (let i = 0; i < 5; i++) {
                     expect(stateVariables[`/q${i + 1}`].stateValues.xs[0]).eq(
-                        xs[i]
+                        xs[i],
                     );
                     expect(stateVariables[`/q${i + 1}`].stateValues.xs[1]).eq(
-                        ys[i]
+                        ys[i],
                     );
                     expect(stateVariables[`/qa${i + 1}`].stateValues.xs[0]).eq(
-                        xs[i]
+                        xs[i],
                     );
                     expect(stateVariables[`/qa${i + 1}`].stateValues.xs[1]).eq(
-                        ys[i]
+                        ys[i],
                     );
                     expect(stateVariables[`/c${i + 1}`].stateValues.value).eqls(
-                        ["vector", xs[i], ys[i]]
+                        ["vector", xs[i], ys[i]],
                     );
                     expect(stateVariables[`/x${i + 1}`].stateValues.value).eq(
-                        xs[i]
+                        xs[i],
                     );
                     expect(stateVariables[`/xc${i + 1}`].stateValues.value).eq(
-                        xs[i]
+                        xs[i],
                     );
                     expect(stateVariables[`/xe${i + 1}`].stateValues.value).eq(
-                        xs[i]
+                        xs[i],
                     );
                     expect(stateVariables[`/y${i + 1}`].stateValues.value).eq(
-                        ys[i]
+                        ys[i],
                     );
                 }
                 expect(stateVariables["/mean"].stateValues.value).eq(meany);
@@ -327,38 +327,38 @@ describe("Collect Tag Tests", function () {
 
             cy.get(cesc("#\\/c1")).should(
                 "contain.text",
-                `(${nInDOM(x1)},${nInDOM(y1)})`
+                `(${nInDOM(x1)},${nInDOM(y1)})`,
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 for (let i = 0; i < 5; i++) {
                     expect(stateVariables[`/q${i + 1}`].stateValues.xs[0]).eq(
-                        xs[i]
+                        xs[i],
                     );
                     expect(stateVariables[`/q${i + 1}`].stateValues.xs[1]).eq(
-                        ys[i]
+                        ys[i],
                     );
                     expect(stateVariables[`/qa${i + 1}`].stateValues.xs[0]).eq(
-                        xs[i]
+                        xs[i],
                     );
                     expect(stateVariables[`/qa${i + 1}`].stateValues.xs[1]).eq(
-                        ys[i]
+                        ys[i],
                     );
                     expect(stateVariables[`/c${i + 1}`].stateValues.value).eqls(
-                        ["vector", xs[i], ys[i]]
+                        ["vector", xs[i], ys[i]],
                     );
                     expect(stateVariables[`/x${i + 1}`].stateValues.value).eq(
-                        xs[i]
+                        xs[i],
                     );
                     expect(stateVariables[`/xc${i + 1}`].stateValues.value).eq(
-                        xs[i]
+                        xs[i],
                     );
                     expect(stateVariables[`/xe${i + 1}`].stateValues.value).eq(
-                        xs[i]
+                        xs[i],
                     );
                     expect(stateVariables[`/y${i + 1}`].stateValues.value).eq(
-                        ys[i]
+                        ys[i],
                     );
                 }
                 expect(stateVariables["/mean"].stateValues.value).eq(meany);
@@ -381,7 +381,7 @@ describe("Collect Tag Tests", function () {
 
             cy.get(cesc("#\\/c2")).should(
                 "contain.text",
-                `(${nInDOM(x2)},${nInDOM(y2)})`
+                `(${nInDOM(x2)},${nInDOM(y2)})`,
             );
 
             cy.window().then(async (win) => {
@@ -389,31 +389,31 @@ describe("Collect Tag Tests", function () {
 
                 for (let i = 0; i < 5; i++) {
                     expect(stateVariables[`/q${i + 1}`].stateValues.xs[0]).eq(
-                        xs[i]
+                        xs[i],
                     );
                     expect(stateVariables[`/q${i + 1}`].stateValues.xs[1]).eq(
-                        ys[i]
+                        ys[i],
                     );
                     expect(stateVariables[`/qa${i + 1}`].stateValues.xs[0]).eq(
-                        xs[i]
+                        xs[i],
                     );
                     expect(stateVariables[`/qa${i + 1}`].stateValues.xs[1]).eq(
-                        ys[i]
+                        ys[i],
                     );
                     expect(stateVariables[`/c${i + 1}`].stateValues.value).eqls(
-                        ["vector", xs[i], ys[i]]
+                        ["vector", xs[i], ys[i]],
                     );
                     expect(stateVariables[`/x${i + 1}`].stateValues.value).eq(
-                        xs[i]
+                        xs[i],
                     );
                     expect(stateVariables[`/xc${i + 1}`].stateValues.value).eq(
-                        xs[i]
+                        xs[i],
                     );
                     expect(stateVariables[`/xe${i + 1}`].stateValues.value).eq(
-                        xs[i]
+                        xs[i],
                     );
                     expect(stateVariables[`/y${i + 1}`].stateValues.value).eq(
-                        ys[i]
+                        ys[i],
                     );
                 }
                 expect(stateVariables["/mean"].stateValues.value).eq(meany);
@@ -436,7 +436,7 @@ describe("Collect Tag Tests", function () {
 
             cy.get(cesc("#\\/c2")).should(
                 "contain.text",
-                `(${nInDOM(x2)},${nInDOM(y2)})`
+                `(${nInDOM(x2)},${nInDOM(y2)})`,
             );
 
             cy.window().then(async (win) => {
@@ -444,31 +444,31 @@ describe("Collect Tag Tests", function () {
 
                 for (let i = 0; i < 5; i++) {
                     expect(stateVariables[`/q${i + 1}`].stateValues.xs[0]).eq(
-                        xs[i]
+                        xs[i],
                     );
                     expect(stateVariables[`/q${i + 1}`].stateValues.xs[1]).eq(
-                        ys[i]
+                        ys[i],
                     );
                     expect(stateVariables[`/qa${i + 1}`].stateValues.xs[0]).eq(
-                        xs[i]
+                        xs[i],
                     );
                     expect(stateVariables[`/qa${i + 1}`].stateValues.xs[1]).eq(
-                        ys[i]
+                        ys[i],
                     );
                     expect(stateVariables[`/c${i + 1}`].stateValues.value).eqls(
-                        ["vector", xs[i], ys[i]]
+                        ["vector", xs[i], ys[i]],
                     );
                     expect(stateVariables[`/x${i + 1}`].stateValues.value).eq(
-                        xs[i]
+                        xs[i],
                     );
                     expect(stateVariables[`/xc${i + 1}`].stateValues.value).eq(
-                        xs[i]
+                        xs[i],
                     );
                     expect(stateVariables[`/xe${i + 1}`].stateValues.value).eq(
-                        xs[i]
+                        xs[i],
                     );
                     expect(stateVariables[`/y${i + 1}`].stateValues.value).eq(
-                        ys[i]
+                        ys[i],
                     );
                 }
                 expect(stateVariables["/mean"].stateValues.value).eq(meany);
@@ -491,7 +491,7 @@ describe("Collect Tag Tests", function () {
 
             cy.get(cesc("#\\/c4")).should(
                 "contain.text",
-                `(${nInDOM(x3)},${nInDOM(y3)})`
+                `(${nInDOM(x3)},${nInDOM(y3)})`,
             );
 
             cy.window().then(async (win) => {
@@ -499,31 +499,31 @@ describe("Collect Tag Tests", function () {
 
                 for (let i = 0; i < 5; i++) {
                     expect(stateVariables[`/q${i + 1}`].stateValues.xs[0]).eq(
-                        xs[i]
+                        xs[i],
                     );
                     expect(stateVariables[`/q${i + 1}`].stateValues.xs[1]).eq(
-                        ys[i]
+                        ys[i],
                     );
                     expect(stateVariables[`/qa${i + 1}`].stateValues.xs[0]).eq(
-                        xs[i]
+                        xs[i],
                     );
                     expect(stateVariables[`/qa${i + 1}`].stateValues.xs[1]).eq(
-                        ys[i]
+                        ys[i],
                     );
                     expect(stateVariables[`/c${i + 1}`].stateValues.value).eqls(
-                        ["vector", xs[i], ys[i]]
+                        ["vector", xs[i], ys[i]],
                     );
                     expect(stateVariables[`/x${i + 1}`].stateValues.value).eq(
-                        xs[i]
+                        xs[i],
                     );
                     expect(stateVariables[`/xc${i + 1}`].stateValues.value).eq(
-                        xs[i]
+                        xs[i],
                     );
                     expect(stateVariables[`/xe${i + 1}`].stateValues.value).eq(
-                        xs[i]
+                        xs[i],
                     );
                     expect(stateVariables[`/y${i + 1}`].stateValues.value).eq(
-                        ys[i]
+                        ys[i],
                     );
                 }
                 expect(stateVariables["/mean"].stateValues.value).eq(meany);
@@ -566,7 +566,7 @@ describe("Collect Tag Tests", function () {
     </aslist></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -577,49 +577,49 @@ describe("Collect Tag Tests", function () {
             expect(stateVariables["/_map1"].stateValues.numIterates[0]).eq(3);
             expect(
                 stateVariables["/_collect1"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(3);
             expect(stateVariables["/_map2"].stateValues.numIterates[0]).eq(3);
             expect(
                 stateVariables["/_collect2"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(6);
             expect(
                 stateVariables["/_collect3"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(6);
 
             for (let i = 0; i < 3; i++) {
                 let x = i + 1;
                 expect(stateVariables[`/p${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/p${i + 1}`].stateValues.xs[1]).eq(
-                    2 * x
+                    2 * x,
                 );
                 expect(stateVariables[`/pa${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/pa${i + 1}`].stateValues.xs[1]).eq(
-                    2 * x
+                    2 * x,
                 );
                 expect(stateVariables[`/q${i + 1}`].stateValues.xs[0]).eq(
-                    x + 1
+                    x + 1,
                 );
                 expect(stateVariables[`/q${i + 1}`].stateValues.xs[1]).eq(
-                    3 * x
+                    3 * x,
                 );
                 expect(stateVariables[`/r${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/r${i + 1}`].stateValues.xs[1]).eq(
-                    2 * x
+                    2 * x,
                 );
                 expect(stateVariables[`/r${i + 4}`].stateValues.xs[0]).eq(
-                    x + 1
+                    x + 1,
                 );
                 expect(stateVariables[`/r${i + 4}`].stateValues.xs[1]).eq(
-                    3 * x
+                    3 * x,
                 );
                 expect(stateVariables[`/y${i + 1}`].stateValues.value).eq(
-                    2 * x
+                    2 * x,
                 );
                 expect(stateVariables[`/y${i + 4}`].stateValues.value).eq(
-                    3 * x
+                    3 * x,
                 );
             }
         });
@@ -629,7 +629,7 @@ describe("Collect Tag Tests", function () {
             `{end}{backspace}5{enter}`,
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/y10")).should("be.visible");
@@ -639,49 +639,49 @@ describe("Collect Tag Tests", function () {
             expect(stateVariables["/_map1"].stateValues.numIterates[0]).eq(5);
             expect(
                 stateVariables["/_collect1"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(5);
             expect(stateVariables["/_map2"].stateValues.numIterates[0]).eq(5);
             expect(
                 stateVariables["/_collect2"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(10);
             expect(
                 stateVariables["/_collect3"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(10);
 
             for (let i = 0; i < 5; i++) {
                 let x = i + 1;
                 expect(stateVariables[`/p${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/p${i + 1}`].stateValues.xs[1]).eq(
-                    2 * x
+                    2 * x,
                 );
                 expect(stateVariables[`/pa${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/pa${i + 1}`].stateValues.xs[1]).eq(
-                    2 * x
+                    2 * x,
                 );
                 expect(stateVariables[`/q${i + 1}`].stateValues.xs[0]).eq(
-                    x + 1
+                    x + 1,
                 );
                 expect(stateVariables[`/q${i + 1}`].stateValues.xs[1]).eq(
-                    3 * x
+                    3 * x,
                 );
                 expect(stateVariables[`/r${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/r${i + 1}`].stateValues.xs[1]).eq(
-                    2 * x
+                    2 * x,
                 );
                 expect(stateVariables[`/r${i + 6}`].stateValues.xs[0]).eq(
-                    x + 1
+                    x + 1,
                 );
                 expect(stateVariables[`/r${i + 6}`].stateValues.xs[1]).eq(
-                    3 * x
+                    3 * x,
                 );
                 expect(stateVariables[`/y${i + 1}`].stateValues.value).eq(
-                    2 * x
+                    2 * x,
                 );
                 expect(stateVariables[`/y${i + 6}`].stateValues.value).eq(
-                    3 * x
+                    3 * x,
                 );
             }
         });
@@ -691,7 +691,7 @@ describe("Collect Tag Tests", function () {
             `{end}{backspace}0.5{enter}`,
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/y10")).should("contain.text", "3.75");
@@ -701,49 +701,49 @@ describe("Collect Tag Tests", function () {
             expect(stateVariables["/_map1"].stateValues.numIterates[0]).eq(5);
             expect(
                 stateVariables["/_collect1"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(5);
             expect(stateVariables["/_map2"].stateValues.numIterates[0]).eq(5);
             expect(
                 stateVariables["/_collect2"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(10);
             expect(
                 stateVariables["/_collect3"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(10);
 
             for (let i = 0; i < 5; i++) {
                 let x = i + 1;
                 expect(stateVariables[`/p${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/p${i + 1}`].stateValues.xs[1]).eq(
-                    0.5 * x
+                    0.5 * x,
                 );
                 expect(stateVariables[`/pa${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/pa${i + 1}`].stateValues.xs[1]).eq(
-                    0.5 * x
+                    0.5 * x,
                 );
                 expect(stateVariables[`/q${i + 1}`].stateValues.xs[0]).eq(
-                    x + 1
+                    x + 1,
                 );
                 expect(stateVariables[`/q${i + 1}`].stateValues.xs[1]).eq(
-                    0.75 * x
+                    0.75 * x,
                 );
                 expect(stateVariables[`/r${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/r${i + 1}`].stateValues.xs[1]).eq(
-                    0.5 * x
+                    0.5 * x,
                 );
                 expect(stateVariables[`/r${i + 6}`].stateValues.xs[0]).eq(
-                    x + 1
+                    x + 1,
                 );
                 expect(stateVariables[`/r${i + 6}`].stateValues.xs[1]).eq(
-                    0.75 * x
+                    0.75 * x,
                 );
                 expect(stateVariables[`/y${i + 1}`].stateValues.value).eq(
-                    0.5 * x
+                    0.5 * x,
                 );
                 expect(stateVariables[`/y${i + 6}`].stateValues.value).eq(
-                    0.75 * x
+                    0.75 * x,
                 );
             }
         });
@@ -753,7 +753,7 @@ describe("Collect Tag Tests", function () {
             `{end}{backspace}1{enter}`,
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/y10")).should("not.exist");
@@ -763,49 +763,49 @@ describe("Collect Tag Tests", function () {
             expect(stateVariables["/_map1"].stateValues.numIterates[0]).eq(1);
             expect(
                 stateVariables["/_collect1"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(1);
             expect(stateVariables["/_map2"].stateValues.numIterates[0]).eq(1);
             expect(
                 stateVariables["/_collect2"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(2);
             expect(
                 stateVariables["/_collect3"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(2);
 
             for (let i = 0; i < 1; i++) {
                 let x = i + 1;
                 expect(stateVariables[`/p${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/p${i + 1}`].stateValues.xs[1]).eq(
-                    0.5 * x
+                    0.5 * x,
                 );
                 expect(stateVariables[`/pa${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/pa${i + 1}`].stateValues.xs[1]).eq(
-                    0.5 * x
+                    0.5 * x,
                 );
                 expect(stateVariables[`/q${i + 1}`].stateValues.xs[0]).eq(
-                    x + 1
+                    x + 1,
                 );
                 expect(stateVariables[`/q${i + 1}`].stateValues.xs[1]).eq(
-                    0.75 * x
+                    0.75 * x,
                 );
                 expect(stateVariables[`/r${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/r${i + 1}`].stateValues.xs[1]).eq(
-                    0.5 * x
+                    0.5 * x,
                 );
                 expect(stateVariables[`/r${i + 2}`].stateValues.xs[0]).eq(
-                    x + 1
+                    x + 1,
                 );
                 expect(stateVariables[`/r${i + 2}`].stateValues.xs[1]).eq(
-                    0.75 * x
+                    0.75 * x,
                 );
                 expect(stateVariables[`/y${i + 1}`].stateValues.value).eq(
-                    0.5 * x
+                    0.5 * x,
                 );
                 expect(stateVariables[`/y${i + 2}`].stateValues.value).eq(
-                    0.75 * x
+                    0.75 * x,
                 );
             }
         });
@@ -815,7 +815,7 @@ describe("Collect Tag Tests", function () {
             `{end}{backspace}4{enter}`,
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/y8")).should("be.visible");
@@ -825,49 +825,49 @@ describe("Collect Tag Tests", function () {
             expect(stateVariables["/_map1"].stateValues.numIterates[0]).eq(4);
             expect(
                 stateVariables["/_collect1"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(4);
             expect(stateVariables["/_map2"].stateValues.numIterates[0]).eq(4);
             expect(
                 stateVariables["/_collect2"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(8);
             expect(
                 stateVariables["/_collect3"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(8);
 
             for (let i = 0; i < 4; i++) {
                 let x = i + 1;
                 expect(stateVariables[`/p${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/p${i + 1}`].stateValues.xs[1]).eq(
-                    0.5 * x
+                    0.5 * x,
                 );
                 expect(stateVariables[`/pa${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/pa${i + 1}`].stateValues.xs[1]).eq(
-                    0.5 * x
+                    0.5 * x,
                 );
                 expect(stateVariables[`/q${i + 1}`].stateValues.xs[0]).eq(
-                    x + 1
+                    x + 1,
                 );
                 expect(stateVariables[`/q${i + 1}`].stateValues.xs[1]).eq(
-                    0.75 * x
+                    0.75 * x,
                 );
                 expect(stateVariables[`/r${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/r${i + 1}`].stateValues.xs[1]).eq(
-                    0.5 * x
+                    0.5 * x,
                 );
                 expect(stateVariables[`/r${i + 5}`].stateValues.xs[0]).eq(
-                    x + 1
+                    x + 1,
                 );
                 expect(stateVariables[`/r${i + 5}`].stateValues.xs[1]).eq(
-                    0.75 * x
+                    0.75 * x,
                 );
                 expect(stateVariables[`/y${i + 1}`].stateValues.value).eq(
-                    0.5 * x
+                    0.5 * x,
                 );
                 expect(stateVariables[`/y${i + 5}`].stateValues.value).eq(
-                    0.75 * x
+                    0.75 * x,
                 );
             }
         });
@@ -877,7 +877,7 @@ describe("Collect Tag Tests", function () {
             `{end}{backspace}6{enter}`,
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/y12")).should("be.visible");
@@ -887,49 +887,49 @@ describe("Collect Tag Tests", function () {
             expect(stateVariables["/_map1"].stateValues.numIterates[0]).eq(6);
             expect(
                 stateVariables["/_collect1"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(6);
             expect(stateVariables["/_map2"].stateValues.numIterates[0]).eq(6);
             expect(
                 stateVariables["/_collect2"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(12);
             expect(
                 stateVariables["/_collect3"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(12);
 
             for (let i = 0; i < 6; i++) {
                 let x = i + 1;
                 expect(stateVariables[`/p${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/p${i + 1}`].stateValues.xs[1]).eq(
-                    0.5 * x
+                    0.5 * x,
                 );
                 expect(stateVariables[`/pa${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/pa${i + 1}`].stateValues.xs[1]).eq(
-                    0.5 * x
+                    0.5 * x,
                 );
                 expect(stateVariables[`/q${i + 1}`].stateValues.xs[0]).eq(
-                    x + 1
+                    x + 1,
                 );
                 expect(stateVariables[`/q${i + 1}`].stateValues.xs[1]).eq(
-                    0.75 * x
+                    0.75 * x,
                 );
                 expect(stateVariables[`/r${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/r${i + 1}`].stateValues.xs[1]).eq(
-                    0.5 * x
+                    0.5 * x,
                 );
                 expect(stateVariables[`/r${i + 7}`].stateValues.xs[0]).eq(
-                    x + 1
+                    x + 1,
                 );
                 expect(stateVariables[`/r${i + 7}`].stateValues.xs[1]).eq(
-                    0.75 * x
+                    0.75 * x,
                 );
                 expect(stateVariables[`/y${i + 1}`].stateValues.value).eq(
-                    0.5 * x
+                    0.5 * x,
                 );
                 expect(stateVariables[`/y${i + 7}`].stateValues.value).eq(
-                    0.75 * x
+                    0.75 * x,
                 );
             }
         });
@@ -970,7 +970,7 @@ describe("Collect Tag Tests", function () {
     </aslist></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -981,49 +981,49 @@ describe("Collect Tag Tests", function () {
             expect(stateVariables["/_map1"].stateValues.numIterates[0]).eq(3);
             expect(
                 stateVariables["/_collect1"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(3);
             expect(stateVariables["/_map2"].stateValues.numIterates[0]).eq(3);
             expect(
                 stateVariables["/_collect2"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(6);
             expect(
                 stateVariables["/_collect3"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(6);
 
             for (let i = 0; i < 3; i++) {
                 let x = i + 1;
                 expect(stateVariables[`/p${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/p${i + 1}`].stateValues.xs[1]).eq(
-                    2 * x
+                    2 * x,
                 );
                 expect(stateVariables[`/pa${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/pa${i + 1}`].stateValues.xs[1]).eq(
-                    2 * x
+                    2 * x,
                 );
                 expect(stateVariables[`/q${i + 1}`].stateValues.xs[0]).eq(
-                    x + 1
+                    x + 1,
                 );
                 expect(stateVariables[`/q${i + 1}`].stateValues.xs[1]).eq(
-                    3 * x
+                    3 * x,
                 );
                 expect(stateVariables[`/r${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/r${i + 1}`].stateValues.xs[1]).eq(
-                    2 * x
+                    2 * x,
                 );
                 expect(stateVariables[`/r${i + 4}`].stateValues.xs[0]).eq(
-                    x + 1
+                    x + 1,
                 );
                 expect(stateVariables[`/r${i + 4}`].stateValues.xs[1]).eq(
-                    3 * x
+                    3 * x,
                 );
                 expect(stateVariables[`/y${i + 1}`].stateValues.value).eq(
-                    2 * x
+                    2 * x,
                 );
                 expect(stateVariables[`/y${i + 4}`].stateValues.value).eq(
-                    3 * x
+                    3 * x,
                 );
             }
         });
@@ -1033,7 +1033,7 @@ describe("Collect Tag Tests", function () {
             `{end}{backspace}5{enter}`,
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/y10")).should("be.visible");
@@ -1043,49 +1043,49 @@ describe("Collect Tag Tests", function () {
             expect(stateVariables["/_map1"].stateValues.numIterates[0]).eq(5);
             expect(
                 stateVariables["/_collect1"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(5);
             expect(stateVariables["/_map2"].stateValues.numIterates[0]).eq(5);
             expect(
                 stateVariables["/_collect2"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(10);
             expect(
                 stateVariables["/_collect3"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(10);
 
             for (let i = 0; i < 5; i++) {
                 let x = i + 1;
                 expect(stateVariables[`/p${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/p${i + 1}`].stateValues.xs[1]).eq(
-                    2 * x
+                    2 * x,
                 );
                 expect(stateVariables[`/pa${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/pa${i + 1}`].stateValues.xs[1]).eq(
-                    2 * x
+                    2 * x,
                 );
                 expect(stateVariables[`/q${i + 1}`].stateValues.xs[0]).eq(
-                    x + 1
+                    x + 1,
                 );
                 expect(stateVariables[`/q${i + 1}`].stateValues.xs[1]).eq(
-                    3 * x
+                    3 * x,
                 );
                 expect(stateVariables[`/r${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/r${i + 1}`].stateValues.xs[1]).eq(
-                    2 * x
+                    2 * x,
                 );
                 expect(stateVariables[`/r${i + 6}`].stateValues.xs[0]).eq(
-                    x + 1
+                    x + 1,
                 );
                 expect(stateVariables[`/r${i + 6}`].stateValues.xs[1]).eq(
-                    3 * x
+                    3 * x,
                 );
                 expect(stateVariables[`/y${i + 1}`].stateValues.value).eq(
-                    2 * x
+                    2 * x,
                 );
                 expect(stateVariables[`/y${i + 6}`].stateValues.value).eq(
-                    3 * x
+                    3 * x,
                 );
             }
         });
@@ -1095,7 +1095,7 @@ describe("Collect Tag Tests", function () {
             `{end}{backspace}0.5{enter}`,
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/y10")).should("contain.text", "3.75");
@@ -1105,49 +1105,49 @@ describe("Collect Tag Tests", function () {
             expect(stateVariables["/_map1"].stateValues.numIterates[0]).eq(5);
             expect(
                 stateVariables["/_collect1"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(5);
             expect(stateVariables["/_map2"].stateValues.numIterates[0]).eq(5);
             expect(
                 stateVariables["/_collect2"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(10);
             expect(
                 stateVariables["/_collect3"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(10);
 
             for (let i = 0; i < 5; i++) {
                 let x = i + 1;
                 expect(stateVariables[`/p${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/p${i + 1}`].stateValues.xs[1]).eq(
-                    0.5 * x
+                    0.5 * x,
                 );
                 expect(stateVariables[`/pa${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/pa${i + 1}`].stateValues.xs[1]).eq(
-                    0.5 * x
+                    0.5 * x,
                 );
                 expect(stateVariables[`/q${i + 1}`].stateValues.xs[0]).eq(
-                    x + 1
+                    x + 1,
                 );
                 expect(stateVariables[`/q${i + 1}`].stateValues.xs[1]).eq(
-                    0.75 * x
+                    0.75 * x,
                 );
                 expect(stateVariables[`/r${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/r${i + 1}`].stateValues.xs[1]).eq(
-                    0.5 * x
+                    0.5 * x,
                 );
                 expect(stateVariables[`/r${i + 6}`].stateValues.xs[0]).eq(
-                    x + 1
+                    x + 1,
                 );
                 expect(stateVariables[`/r${i + 6}`].stateValues.xs[1]).eq(
-                    0.75 * x
+                    0.75 * x,
                 );
                 expect(stateVariables[`/y${i + 1}`].stateValues.value).eq(
-                    0.5 * x
+                    0.5 * x,
                 );
                 expect(stateVariables[`/y${i + 6}`].stateValues.value).eq(
-                    0.75 * x
+                    0.75 * x,
                 );
             }
         });
@@ -1157,7 +1157,7 @@ describe("Collect Tag Tests", function () {
             `{end}{backspace}1{enter}`,
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/y10")).should("not.exist");
@@ -1167,49 +1167,49 @@ describe("Collect Tag Tests", function () {
             expect(stateVariables["/_map1"].stateValues.numIterates[0]).eq(1);
             expect(
                 stateVariables["/_collect1"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(1);
             expect(stateVariables["/_map2"].stateValues.numIterates[0]).eq(1);
             expect(
                 stateVariables["/_collect2"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(2);
             expect(
                 stateVariables["/_collect3"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(2);
 
             for (let i = 0; i < 1; i++) {
                 let x = i + 1;
                 expect(stateVariables[`/p${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/p${i + 1}`].stateValues.xs[1]).eq(
-                    0.5 * x
+                    0.5 * x,
                 );
                 expect(stateVariables[`/pa${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/pa${i + 1}`].stateValues.xs[1]).eq(
-                    0.5 * x
+                    0.5 * x,
                 );
                 expect(stateVariables[`/q${i + 1}`].stateValues.xs[0]).eq(
-                    x + 1
+                    x + 1,
                 );
                 expect(stateVariables[`/q${i + 1}`].stateValues.xs[1]).eq(
-                    0.75 * x
+                    0.75 * x,
                 );
                 expect(stateVariables[`/r${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/r${i + 1}`].stateValues.xs[1]).eq(
-                    0.5 * x
+                    0.5 * x,
                 );
                 expect(stateVariables[`/r${i + 2}`].stateValues.xs[0]).eq(
-                    x + 1
+                    x + 1,
                 );
                 expect(stateVariables[`/r${i + 2}`].stateValues.xs[1]).eq(
-                    0.75 * x
+                    0.75 * x,
                 );
                 expect(stateVariables[`/y${i + 1}`].stateValues.value).eq(
-                    0.5 * x
+                    0.5 * x,
                 );
                 expect(stateVariables[`/y${i + 2}`].stateValues.value).eq(
-                    0.75 * x
+                    0.75 * x,
                 );
             }
         });
@@ -1219,7 +1219,7 @@ describe("Collect Tag Tests", function () {
             `{end}{backspace}4{enter}`,
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/y8")).should("be.visible");
@@ -1229,49 +1229,49 @@ describe("Collect Tag Tests", function () {
             expect(stateVariables["/_map1"].stateValues.numIterates[0]).eq(4);
             expect(
                 stateVariables["/_collect1"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(4);
             expect(stateVariables["/_map2"].stateValues.numIterates[0]).eq(4);
             expect(
                 stateVariables["/_collect2"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(8);
             expect(
                 stateVariables["/_collect3"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(8);
 
             for (let i = 0; i < 4; i++) {
                 let x = i + 1;
                 expect(stateVariables[`/p${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/p${i + 1}`].stateValues.xs[1]).eq(
-                    0.5 * x
+                    0.5 * x,
                 );
                 expect(stateVariables[`/pa${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/pa${i + 1}`].stateValues.xs[1]).eq(
-                    0.5 * x
+                    0.5 * x,
                 );
                 expect(stateVariables[`/q${i + 1}`].stateValues.xs[0]).eq(
-                    x + 1
+                    x + 1,
                 );
                 expect(stateVariables[`/q${i + 1}`].stateValues.xs[1]).eq(
-                    0.75 * x
+                    0.75 * x,
                 );
                 expect(stateVariables[`/r${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/r${i + 1}`].stateValues.xs[1]).eq(
-                    0.5 * x
+                    0.5 * x,
                 );
                 expect(stateVariables[`/r${i + 5}`].stateValues.xs[0]).eq(
-                    x + 1
+                    x + 1,
                 );
                 expect(stateVariables[`/r${i + 5}`].stateValues.xs[1]).eq(
-                    0.75 * x
+                    0.75 * x,
                 );
                 expect(stateVariables[`/y${i + 1}`].stateValues.value).eq(
-                    0.5 * x
+                    0.5 * x,
                 );
                 expect(stateVariables[`/y${i + 5}`].stateValues.value).eq(
-                    0.75 * x
+                    0.75 * x,
                 );
             }
         });
@@ -1281,7 +1281,7 @@ describe("Collect Tag Tests", function () {
             `{end}{backspace}6{enter}`,
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/y12")).should("be.visible");
@@ -1291,49 +1291,49 @@ describe("Collect Tag Tests", function () {
             expect(stateVariables["/_map1"].stateValues.numIterates[0]).eq(6);
             expect(
                 stateVariables["/_collect1"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(6);
             expect(stateVariables["/_map2"].stateValues.numIterates[0]).eq(6);
             expect(
                 stateVariables["/_collect2"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(12);
             expect(
                 stateVariables["/_collect3"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(12);
 
             for (let i = 0; i < 6; i++) {
                 let x = i + 1;
                 expect(stateVariables[`/p${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/p${i + 1}`].stateValues.xs[1]).eq(
-                    0.5 * x
+                    0.5 * x,
                 );
                 expect(stateVariables[`/pa${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/pa${i + 1}`].stateValues.xs[1]).eq(
-                    0.5 * x
+                    0.5 * x,
                 );
                 expect(stateVariables[`/q${i + 1}`].stateValues.xs[0]).eq(
-                    x + 1
+                    x + 1,
                 );
                 expect(stateVariables[`/q${i + 1}`].stateValues.xs[1]).eq(
-                    0.75 * x
+                    0.75 * x,
                 );
                 expect(stateVariables[`/r${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/r${i + 1}`].stateValues.xs[1]).eq(
-                    0.5 * x
+                    0.5 * x,
                 );
                 expect(stateVariables[`/r${i + 7}`].stateValues.xs[0]).eq(
-                    x + 1
+                    x + 1,
                 );
                 expect(stateVariables[`/r${i + 7}`].stateValues.xs[1]).eq(
-                    0.75 * x
+                    0.75 * x,
                 );
                 expect(stateVariables[`/y${i + 1}`].stateValues.value).eq(
-                    0.5 * x
+                    0.5 * x,
                 );
                 expect(stateVariables[`/y${i + 7}`].stateValues.value).eq(
-                    0.75 * x
+                    0.75 * x,
                 );
             }
         });
@@ -1373,7 +1373,7 @@ describe("Collect Tag Tests", function () {
     $_vector2.head{assignNames="h2"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1412,7 +1412,7 @@ describe("Collect Tag Tests", function () {
             expect(stateVariables["/_vector2"].stateValues.head).eqls([y2, x2]);
             expect(
                 stateVariables["/_collect1"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(6);
             expect(stateVariables["/v1"].stateValues.coords).eqls([
                 "vector",
@@ -1440,7 +1440,7 @@ describe("Collect Tag Tests", function () {
             expect(stateVariables["/v6"].stateValues.head).eqls([y2, x2]);
             cy.get(cesc("#\\/h1")).should(
                 "contain.text",
-                `(${nInDOM(x2)},${nInDOM(y2)})`
+                `(${nInDOM(x2)},${nInDOM(y2)})`,
             );
         });
 
@@ -1459,7 +1459,7 @@ describe("Collect Tag Tests", function () {
 
             cy.get(cesc("#\\/h1")).should(
                 "contain.text",
-                `(${nInDOM(x2)},${nInDOM(y2)})`
+                `(${nInDOM(x2)},${nInDOM(y2)})`,
             );
 
             cy.window().then(async (win) => {
@@ -1502,7 +1502,7 @@ describe("Collect Tag Tests", function () {
                 ]);
                 expect(
                     stateVariables["/_collect1"].stateValues.collectedComponents
-                        .length
+                        .length,
                 ).eq(6);
                 expect(stateVariables["/v1"].stateValues.coords).eqls([
                     "vector",
@@ -1546,7 +1546,7 @@ describe("Collect Tag Tests", function () {
 
             cy.get(cesc("#\\/h2")).should(
                 "contain.text",
-                `(${nInDOM(y2)},${nInDOM(x2)})`
+                `(${nInDOM(y2)},${nInDOM(x2)})`,
             );
 
             cy.window().then(async (win) => {
@@ -1589,7 +1589,7 @@ describe("Collect Tag Tests", function () {
                 ]);
                 expect(
                     stateVariables["/_collect1"].stateValues.collectedComponents
-                        .length
+                        .length,
                 ).eq(6);
                 expect(stateVariables["/v1"].stateValues.coords).eqls([
                     "vector",
@@ -1655,7 +1655,7 @@ describe("Collect Tag Tests", function () {
     </aslist></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1666,49 +1666,49 @@ describe("Collect Tag Tests", function () {
             expect(stateVariables["/_map1"].stateValues.numIterates[0]).eq(5);
             expect(
                 stateVariables["/_collect1"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(2);
             expect(stateVariables["/_map2"].stateValues.numIterates[0]).eq(2);
             expect(
                 stateVariables["/_collect2"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(4);
             expect(
                 stateVariables["/_collect3"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(2);
 
             for (let i = 0; i < 5; i++) {
                 let x = i + 1;
                 expect(stateVariables[`/p${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/p${i + 1}`].stateValues.xs[1]).eq(
-                    2 * x
+                    2 * x,
                 );
             }
             for (let i = 0; i < 2; i++) {
                 let x = i + 1;
                 expect(stateVariables[`/pa${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/pa${i + 1}`].stateValues.xs[1]).eq(
-                    2 * x
+                    2 * x,
                 );
                 expect(stateVariables[`/q${i + 1}`].stateValues.xs[0]).eq(
-                    x + 1
+                    x + 1,
                 );
                 expect(stateVariables[`/q${i + 1}`].stateValues.xs[1]).eq(
-                    3 * x
+                    3 * x,
                 );
             }
             for (let i = 0; i < 4; i++) {
                 let x = i + 1;
                 expect(stateVariables[`/r${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/r${i + 1}`].stateValues.xs[1]).eq(
-                    2 * x
+                    2 * x,
                 );
             }
             for (let i = 0; i < 2; i++) {
                 let x = i + 1;
                 expect(stateVariables[`/y${i + 1}`].stateValues.value).eq(
-                    2 * x
+                    2 * x,
                 );
             }
         });
@@ -1716,7 +1716,7 @@ describe("Collect Tag Tests", function () {
         cy.log("increase maxnumber");
         cy.get(cesc("#\\/maxnumber") + " textarea").type(
             `{end}{backspace}5{enter}`,
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/y5")).should("be.visible");
@@ -1726,46 +1726,46 @@ describe("Collect Tag Tests", function () {
             expect(stateVariables["/_map1"].stateValues.numIterates[0]).eq(5);
             expect(
                 stateVariables["/_collect1"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(5);
             expect(stateVariables["/_map2"].stateValues.numIterates[0]).eq(5);
             expect(
                 stateVariables["/_collect2"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(10);
             expect(
                 stateVariables["/_collect3"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(5);
 
             for (let i = 0; i < 5; i++) {
                 let x = i + 1;
                 expect(stateVariables[`/p${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/p${i + 1}`].stateValues.xs[1]).eq(
-                    2 * x
+                    2 * x,
                 );
                 expect(stateVariables[`/pa${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/pa${i + 1}`].stateValues.xs[1]).eq(
-                    2 * x
+                    2 * x,
                 );
                 expect(stateVariables[`/q${i + 1}`].stateValues.xs[0]).eq(
-                    x + 1
+                    x + 1,
                 );
                 expect(stateVariables[`/q${i + 1}`].stateValues.xs[1]).eq(
-                    3 * x
+                    3 * x,
                 );
                 expect(stateVariables[`/r${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/r${i + 1}`].stateValues.xs[1]).eq(
-                    2 * x
+                    2 * x,
                 );
                 expect(stateVariables[`/r${i + 6}`].stateValues.xs[0]).eq(
-                    x + 1
+                    x + 1,
                 );
                 expect(stateVariables[`/r${i + 6}`].stateValues.xs[1]).eq(
-                    3 * x
+                    3 * x,
                 );
                 expect(stateVariables[`/y${i + 1}`].stateValues.value).eq(
-                    2 * x
+                    2 * x,
                 );
                 //expect(stateVariables[`/y${i + 6}`].stateValues.value).eq(3 * x);
             }
@@ -1774,7 +1774,7 @@ describe("Collect Tag Tests", function () {
         cy.log("increase maxnumber further");
         cy.get(cesc("#\\/maxnumber") + " textarea").type(
             `{end}{backspace}10{enter}`,
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/y10")).should("be.visible");
@@ -1784,49 +1784,49 @@ describe("Collect Tag Tests", function () {
             expect(stateVariables["/_map1"].stateValues.numIterates[0]).eq(5);
             expect(
                 stateVariables["/_collect1"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(5);
             expect(stateVariables["/_map2"].stateValues.numIterates[0]).eq(5);
             expect(
                 stateVariables["/_collect2"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(10);
             expect(
                 stateVariables["/_collect3"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(10);
 
             for (let i = 0; i < 5; i++) {
                 let x = i + 1;
                 expect(stateVariables[`/p${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/p${i + 1}`].stateValues.xs[1]).eq(
-                    2 * x
+                    2 * x,
                 );
                 expect(stateVariables[`/pa${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/pa${i + 1}`].stateValues.xs[1]).eq(
-                    2 * x
+                    2 * x,
                 );
                 expect(stateVariables[`/q${i + 1}`].stateValues.xs[0]).eq(
-                    x + 1
+                    x + 1,
                 );
                 expect(stateVariables[`/q${i + 1}`].stateValues.xs[1]).eq(
-                    3 * x
+                    3 * x,
                 );
                 expect(stateVariables[`/r${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/r${i + 1}`].stateValues.xs[1]).eq(
-                    2 * x
+                    2 * x,
                 );
                 expect(stateVariables[`/r${i + 6}`].stateValues.xs[0]).eq(
-                    x + 1
+                    x + 1,
                 );
                 expect(stateVariables[`/r${i + 6}`].stateValues.xs[1]).eq(
-                    3 * x
+                    3 * x,
                 );
                 expect(stateVariables[`/y${i + 1}`].stateValues.value).eq(
-                    2 * x
+                    2 * x,
                 );
                 expect(stateVariables[`/y${i + 6}`].stateValues.value).eq(
-                    3 * x
+                    3 * x,
                 );
             }
         });
@@ -1836,7 +1836,7 @@ describe("Collect Tag Tests", function () {
             `{end}{backspace}0.5{enter}`,
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/y10")).should("contain.text", "3.75");
@@ -1846,49 +1846,49 @@ describe("Collect Tag Tests", function () {
             expect(stateVariables["/_map1"].stateValues.numIterates[0]).eq(5);
             expect(
                 stateVariables["/_collect1"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(5);
             expect(stateVariables["/_map2"].stateValues.numIterates[0]).eq(5);
             expect(
                 stateVariables["/_collect2"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(10);
             expect(
                 stateVariables["/_collect3"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(10);
 
             for (let i = 0; i < 5; i++) {
                 let x = i + 1;
                 expect(stateVariables[`/p${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/p${i + 1}`].stateValues.xs[1]).eq(
-                    0.5 * x
+                    0.5 * x,
                 );
                 expect(stateVariables[`/pa${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/pa${i + 1}`].stateValues.xs[1]).eq(
-                    0.5 * x
+                    0.5 * x,
                 );
                 expect(stateVariables[`/q${i + 1}`].stateValues.xs[0]).eq(
-                    x + 1
+                    x + 1,
                 );
                 expect(stateVariables[`/q${i + 1}`].stateValues.xs[1]).eq(
-                    0.75 * x
+                    0.75 * x,
                 );
                 expect(stateVariables[`/r${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/r${i + 1}`].stateValues.xs[1]).eq(
-                    0.5 * x
+                    0.5 * x,
                 );
                 expect(stateVariables[`/r${i + 6}`].stateValues.xs[0]).eq(
-                    x + 1
+                    x + 1,
                 );
                 expect(stateVariables[`/r${i + 6}`].stateValues.xs[1]).eq(
-                    0.75 * x
+                    0.75 * x,
                 );
                 expect(stateVariables[`/y${i + 1}`].stateValues.value).eq(
-                    0.5 * x
+                    0.5 * x,
                 );
                 expect(stateVariables[`/y${i + 6}`].stateValues.value).eq(
-                    0.75 * x
+                    0.75 * x,
                 );
             }
         });
@@ -1898,7 +1898,7 @@ describe("Collect Tag Tests", function () {
             `{end}{backspace}1{enter}`,
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/y10")).should("not.exist");
@@ -1908,49 +1908,49 @@ describe("Collect Tag Tests", function () {
             expect(stateVariables["/_map1"].stateValues.numIterates[0]).eq(1);
             expect(
                 stateVariables["/_collect1"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(1);
             expect(stateVariables["/_map2"].stateValues.numIterates[0]).eq(1);
             expect(
                 stateVariables["/_collect2"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(2);
             expect(
                 stateVariables["/_collect3"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(2);
 
             for (let i = 0; i < 1; i++) {
                 let x = i + 1;
                 expect(stateVariables[`/p${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/p${i + 1}`].stateValues.xs[1]).eq(
-                    0.5 * x
+                    0.5 * x,
                 );
                 expect(stateVariables[`/pa${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/pa${i + 1}`].stateValues.xs[1]).eq(
-                    0.5 * x
+                    0.5 * x,
                 );
                 expect(stateVariables[`/q${i + 1}`].stateValues.xs[0]).eq(
-                    x + 1
+                    x + 1,
                 );
                 expect(stateVariables[`/q${i + 1}`].stateValues.xs[1]).eq(
-                    0.75 * x
+                    0.75 * x,
                 );
                 expect(stateVariables[`/r${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/r${i + 1}`].stateValues.xs[1]).eq(
-                    0.5 * x
+                    0.5 * x,
                 );
                 expect(stateVariables[`/r${i + 2}`].stateValues.xs[0]).eq(
-                    x + 1
+                    x + 1,
                 );
                 expect(stateVariables[`/r${i + 2}`].stateValues.xs[1]).eq(
-                    0.75 * x
+                    0.75 * x,
                 );
                 expect(stateVariables[`/y${i + 1}`].stateValues.value).eq(
-                    0.5 * x
+                    0.5 * x,
                 );
                 expect(stateVariables[`/y${i + 2}`].stateValues.value).eq(
-                    0.75 * x
+                    0.75 * x,
                 );
             }
         });
@@ -1960,7 +1960,7 @@ describe("Collect Tag Tests", function () {
             `{end}{backspace}4{enter}`,
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/y4")).should("be.visible");
@@ -1970,49 +1970,49 @@ describe("Collect Tag Tests", function () {
             expect(stateVariables["/_map1"].stateValues.numIterates[0]).eq(4);
             expect(
                 stateVariables["/_collect1"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(4);
             expect(stateVariables["/_map2"].stateValues.numIterates[0]).eq(4);
             expect(
                 stateVariables["/_collect2"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(8);
             expect(
                 stateVariables["/_collect3"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(8);
 
             for (let i = 0; i < 4; i++) {
                 let x = i + 1;
                 expect(stateVariables[`/p${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/p${i + 1}`].stateValues.xs[1]).eq(
-                    0.5 * x
+                    0.5 * x,
                 );
                 expect(stateVariables[`/pa${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/pa${i + 1}`].stateValues.xs[1]).eq(
-                    0.5 * x
+                    0.5 * x,
                 );
                 expect(stateVariables[`/q${i + 1}`].stateValues.xs[0]).eq(
-                    x + 1
+                    x + 1,
                 );
                 expect(stateVariables[`/q${i + 1}`].stateValues.xs[1]).eq(
-                    0.75 * x
+                    0.75 * x,
                 );
                 expect(stateVariables[`/r${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/r${i + 1}`].stateValues.xs[1]).eq(
-                    0.5 * x
+                    0.5 * x,
                 );
                 expect(stateVariables[`/r${i + 5}`].stateValues.xs[0]).eq(
-                    x + 1
+                    x + 1,
                 );
                 expect(stateVariables[`/r${i + 5}`].stateValues.xs[1]).eq(
-                    0.75 * x
+                    0.75 * x,
                 );
                 expect(stateVariables[`/y${i + 1}`].stateValues.value).eq(
-                    0.5 * x
+                    0.5 * x,
                 );
                 expect(stateVariables[`/y${i + 5}`].stateValues.value).eq(
-                    0.75 * x
+                    0.75 * x,
                 );
             }
         });
@@ -2020,7 +2020,7 @@ describe("Collect Tag Tests", function () {
         cy.log("decrease max number to 3");
         cy.get(cesc("#\\/maxnumber") + " textarea").type(
             `{end}{backspace}{backspace}3{enter}`,
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/y4")).should("not.exist");
@@ -2030,36 +2030,36 @@ describe("Collect Tag Tests", function () {
             expect(stateVariables["/_map1"].stateValues.numIterates[0]).eq(4);
             expect(
                 stateVariables["/_collect1"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(3);
             expect(stateVariables["/_map2"].stateValues.numIterates[0]).eq(3);
             expect(
                 stateVariables["/_collect2"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(6);
             expect(
                 stateVariables["/_collect3"].stateValues.collectedComponents
-                    .length
+                    .length,
             ).eq(3);
 
             for (let i = 0; i < 4; i++) {
                 let x = i + 1;
                 expect(stateVariables[`/p${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/p${i + 1}`].stateValues.xs[1]).eq(
-                    0.5 * x
+                    0.5 * x,
                 );
             }
             for (let i = 0; i < 3; i++) {
                 let x = i + 1;
                 expect(stateVariables[`/pa${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/pa${i + 1}`].stateValues.xs[1]).eq(
-                    0.5 * x
+                    0.5 * x,
                 );
                 expect(stateVariables[`/q${i + 1}`].stateValues.xs[0]).eq(
-                    x + 1
+                    x + 1,
                 );
                 expect(stateVariables[`/q${i + 1}`].stateValues.xs[1]).eq(
-                    0.75 * x
+                    0.75 * x,
                 );
             }
             for (let i = 0; i < 4; i++) {
@@ -2067,22 +2067,22 @@ describe("Collect Tag Tests", function () {
 
                 expect(stateVariables[`/r${i + 1}`].stateValues.xs[0]).eq(x);
                 expect(stateVariables[`/r${i + 1}`].stateValues.xs[1]).eq(
-                    0.5 * x
+                    0.5 * x,
                 );
             }
             for (let i = 0; i < 2; i++) {
                 let x = i + 1;
                 expect(stateVariables[`/r${i + 5}`].stateValues.xs[0]).eq(
-                    x + 1
+                    x + 1,
                 );
                 expect(stateVariables[`/r${i + 5}`].stateValues.xs[1]).eq(
-                    0.75 * x
+                    0.75 * x,
                 );
             }
             for (let i = 0; i < 3; i++) {
                 let x = i + 1;
                 expect(stateVariables[`/y${i + 1}`].stateValues.value).eq(
-                    0.5 * x
+                    0.5 * x,
                 );
             }
         });
@@ -2138,7 +2138,7 @@ describe("Collect Tag Tests", function () {
   
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2148,12 +2148,12 @@ describe("Collect Tag Tests", function () {
 
         cy.get(cesc("#\\/p_3e") + " span:nth-of-type(1) textarea").type(
             "x{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/p_1") + " > span:nth-of-type(1) .mjx-mrow").should(
             "contain.text",
-            "x"
+            "x",
         );
         // cy.get(cesc('#\\/p_original') + ' span:nth-of-type(1) input').should('have.value', 'x');
 
@@ -2269,7 +2269,7 @@ describe("Collect Tag Tests", function () {
 
         cy.get(cesc("#\\/p_1") + " > span:nth-of-type(5) .mjx-mrow").should(
             "contain.text",
-            "v"
+            "v",
         );
 
         // cy.get(cesc('#\\/p_original') + ' > span:nth-of-type(1) input').should('have.value', 'x');
@@ -2756,46 +2756,46 @@ describe("Collect Tag Tests", function () {
         });
 
         cy.get(cesc("#\\/p_1") + " > span:nth-of-type(3) .mjx-mrow").should(
-            "not.exist"
+            "not.exist",
         );
         cy.get(cesc("#\\/p_1a") + " > span:nth-of-type(3) .mjx-mrow").should(
-            "not.exist"
+            "not.exist",
         );
         cy.get(
-            cesc("#\\/p_1b") + " > span > span:nth-of-type(3) .mjx-mrow"
+            cesc("#\\/p_1b") + " > span > span:nth-of-type(3) .mjx-mrow",
         ).should("not.exist");
         cy.get(cesc("#\\/p_1c") + " > span:nth-of-type(3) .mjx-mrow").should(
-            "not.exist"
+            "not.exist",
         );
         cy.get(
-            cesc("#\\/p_1d") + " > span > span:nth-of-type(3) .mjx-mrow"
+            cesc("#\\/p_1d") + " > span > span:nth-of-type(3) .mjx-mrow",
         ).should("not.exist");
         cy.get(
-            cesc("#\\/p_1e") + " > span > span:nth-of-type(3) .mjx-mrow"
+            cesc("#\\/p_1e") + " > span > span:nth-of-type(3) .mjx-mrow",
         ).should("not.exist");
 
         cy.get(cesc("#\\/p_2") + " > span:nth-of-type(3) .mjx-mrow").should(
-            "not.exist"
+            "not.exist",
         );
         cy.get(cesc("#\\/p_2a") + " > span:nth-of-type(3) .mjx-mrow").should(
-            "not.exist"
+            "not.exist",
         );
         cy.get(
-            cesc("#\\/p_2b") + " > span > span:nth-of-type(3) .mjx-mrow"
+            cesc("#\\/p_2b") + " > span > span:nth-of-type(3) .mjx-mrow",
         ).should("not.exist");
         cy.get(cesc("#\\/p_2c") + " > span:nth-of-type(3) .mjx-mrow").should(
-            "not.exist"
+            "not.exist",
         );
         cy.get(
-            cesc("#\\/p_2d") + " > span > span:nth-of-type(3) .mjx-mrow"
+            cesc("#\\/p_2d") + " > span > span:nth-of-type(3) .mjx-mrow",
         ).should("not.exist");
         cy.get(
-            cesc("#\\/p_2e") + " > span > span:nth-of-type(3) .mjx-mrow"
+            cesc("#\\/p_2e") + " > span > span:nth-of-type(3) .mjx-mrow",
         ).should("not.exist");
 
         cy.get(cesc("#\\/p_1") + " > span:nth-of-type(1) .mjx-mrow").should(
             "contain.text",
-            "x"
+            "x",
         );
 
         // cy.get(cesc('#\\/p_original') + ' > span:nth-of-type(1) input').should('have.value', 'x');
@@ -2990,16 +2990,16 @@ describe("Collect Tag Tests", function () {
 
         cy.get(cesc("#\\/p_3") + " > span:nth-of-type(1) textarea").type(
             "{end}{backspace}a{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/p_3a") + " > span:nth-of-type(2) textarea").type(
             "{end}{backspace}b{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/p_1") + " > span:nth-of-type(2) .mjx-mrow").should(
             "contain.text",
-            "b"
+            "b",
         );
 
         // cy.get(cesc('#\\/p_original') + ' > span:nth-of-type(1) input').should('have.value', 'a');
@@ -3198,7 +3198,7 @@ describe("Collect Tag Tests", function () {
 
         cy.get(cesc("#\\/p_1") + " > span:nth-of-type(5) .mjx-mrow").should(
             "contain.text",
-            "v"
+            "v",
         );
 
         // cy.get(cesc('#\\/p_original') + ' > span:nth-of-type(1) input').should('have.value', 'a');
@@ -3677,19 +3677,19 @@ describe("Collect Tag Tests", function () {
         // cy.get(cesc('#\\/p_3e') + ' > span:nth-of-type(5) input').should('have.value', 'v');
 
         cy.get(
-            cesc("#\\/p_3b") + " > span > span:nth-of-type(3) textarea"
+            cesc("#\\/p_3b") + " > span > span:nth-of-type(3) textarea",
         ).type("{end}{backspace}c{enter}", { force: true });
         cy.get(cesc("#\\/p_3c") + " > span:nth-of-type(4) textarea").type(
             "{end}{backspace}d{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(
-            cesc("#\\/p_3d") + " > span > span:nth-of-type(5) textarea"
+            cesc("#\\/p_3d") + " > span > span:nth-of-type(5) textarea",
         ).type("{end}{backspace}e{enter}", { force: true });
 
         cy.get(cesc("#\\/p_1") + " > span:nth-of-type(5) .mjx-mrow").should(
             "contain.text",
-            "e"
+            "e",
         );
 
         // cy.get(cesc('#\\/p_original') + ' > span:nth-of-type(1) input').should('have.value', 'a');
@@ -4192,7 +4192,7 @@ describe("Collect Tag Tests", function () {
     <p name="pgroup3">$_group1</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4222,187 +4222,187 @@ describe("Collect Tag Tests", function () {
             expect(group1Replacements[1].componentType).eq("mathInput");
             expect(
                 stateVariables[group1Replacements[1].componentName].stateValues
-                    .value
+                    .value,
             ).eq("x");
             expect(collect1Replacements[0].componentType).eq("mathInput");
             expect(
                 stateVariables[collect1Replacements[0].componentName]
-                    .stateValues.value
+                    .stateValues.value,
             ).eq("x");
             expect(collect2Replacements[0].componentType).eq("mathInput");
             expect(
                 stateVariables[collect2Replacements[0].componentName]
-                    .stateValues.value
+                    .stateValues.value,
             ).eq("x");
             expect(group2Replacements[1].componentType).eq("mathInput");
             expect(
                 stateVariables[group2Replacements[1].componentName].stateValues
-                    .value
+                    .value,
             ).eq("x");
             expect(collect3Replacements[0].componentType).eq("mathInput");
             expect(
                 stateVariables[collect3Replacements[0].componentName]
-                    .stateValues.value
+                    .stateValues.value,
             ).eq("x");
             expect(group3Replacements[1].componentType).eq("mathInput");
             expect(
                 stateVariables[group3Replacements[1].componentName].stateValues
-                    .value
+                    .value,
             ).eq("x");
 
             expect(group1Replacements[3].componentType).eq("textInput");
             expect(
                 stateVariables[group1Replacements[3].componentName].stateValues
-                    .value
+                    .value,
             ).eq("hello");
             expect(collect1Replacements[1].componentType).eq("textInput");
             expect(
                 stateVariables[collect1Replacements[1].componentName]
-                    .stateValues.value
+                    .stateValues.value,
             ).eq("hello");
             expect(collect2Replacements[1].componentType).eq("textInput");
             expect(
                 stateVariables[collect2Replacements[1].componentName]
-                    .stateValues.value
+                    .stateValues.value,
             ).eq("hello");
             expect(group2Replacements[3].componentType).eq("textInput");
             expect(
                 stateVariables[group2Replacements[3].componentName].stateValues
-                    .value
+                    .value,
             ).eq("hello");
             expect(collect3Replacements[1].componentType).eq("textInput");
             expect(
                 stateVariables[collect3Replacements[1].componentName]
-                    .stateValues.value
+                    .stateValues.value,
             ).eq("hello");
             expect(group3Replacements[3].componentType).eq("textInput");
             expect(
                 stateVariables[group3Replacements[3].componentName].stateValues
-                    .value
+                    .value,
             ).eq("hello");
 
             expect(group1Replacements[5].componentType).eq("booleanInput");
             expect(
                 stateVariables[group1Replacements[5].componentName].stateValues
-                    .value
+                    .value,
             ).eq(false);
             expect(collect1Replacements[2].componentType).eq("booleanInput");
             expect(
                 stateVariables[collect1Replacements[2].componentName]
-                    .stateValues.value
+                    .stateValues.value,
             ).eq(false);
             expect(collect2Replacements[2].componentType).eq("booleanInput");
             expect(
                 stateVariables[collect2Replacements[2].componentName]
-                    .stateValues.value
+                    .stateValues.value,
             ).eq(false);
             expect(group2Replacements[5].componentType).eq("booleanInput");
             expect(
                 stateVariables[group2Replacements[5].componentName].stateValues
-                    .value
+                    .value,
             ).eq(false);
             expect(collect3Replacements[2].componentType).eq("booleanInput");
             expect(
                 stateVariables[collect3Replacements[2].componentName]
-                    .stateValues.value
+                    .stateValues.value,
             ).eq(false);
             expect(group3Replacements[5].componentType).eq("booleanInput");
             expect(
                 stateVariables[group3Replacements[5].componentName].stateValues
-                    .value
+                    .value,
             ).eq(false);
 
             expect(group1Replacements[7].componentType).eq("math");
             expect(
                 stateVariables[group1Replacements[7].componentName].stateValues
-                    .value
+                    .value,
             ).eqls(["*", 2, "x"]);
             expect(collect1Replacements[3].componentType).eq("math");
             expect(
                 stateVariables[collect1Replacements[3].componentName]
-                    .stateValues.value
+                    .stateValues.value,
             ).eqls(["*", 2, "x"]);
             expect(collect2Replacements[3].componentType).eq("math");
             expect(
                 stateVariables[collect2Replacements[3].componentName]
-                    .stateValues.value
+                    .stateValues.value,
             ).eqls(["*", 2, "x"]);
             expect(group2Replacements[7].componentType).eq("math");
             expect(
                 stateVariables[group2Replacements[7].componentName].stateValues
-                    .value
+                    .value,
             ).eqls(["*", 2, "x"]);
             expect(collect3Replacements[3].componentType).eq("math");
             expect(
                 stateVariables[collect3Replacements[3].componentName]
-                    .stateValues.value
+                    .stateValues.value,
             ).eqls(["*", 2, "x"]);
             expect(group3Replacements[7].componentType).eq("math");
             expect(
                 stateVariables[group3Replacements[7].componentName].stateValues
-                    .value
+                    .value,
             ).eqls(["*", 2, "x"]);
 
             expect(group1Replacements[9].componentType).eq("text");
             expect(
                 stateVariables[group1Replacements[9].componentName].stateValues
-                    .value
+                    .value,
             ).eq("hello there");
             expect(collect1Replacements[4].componentType).eq("text");
             expect(
                 stateVariables[collect1Replacements[4].componentName]
-                    .stateValues.value
+                    .stateValues.value,
             ).eq("hello there");
             expect(collect2Replacements[4].componentType).eq("text");
             expect(
                 stateVariables[collect2Replacements[4].componentName]
-                    .stateValues.value
+                    .stateValues.value,
             ).eq("hello there");
             expect(group2Replacements[9].componentType).eq("text");
             expect(
                 stateVariables[group2Replacements[9].componentName].stateValues
-                    .value
+                    .value,
             ).eq("hello there");
             expect(collect3Replacements[4].componentType).eq("text");
             expect(
                 stateVariables[collect3Replacements[4].componentName]
-                    .stateValues.value
+                    .stateValues.value,
             ).eq("hello there");
             expect(group3Replacements[9].componentType).eq("text");
             expect(
                 stateVariables[group3Replacements[9].componentName].stateValues
-                    .value
+                    .value,
             ).eq("hello there");
 
             expect(group1Replacements[11].componentType).eq("boolean");
             expect(
                 stateVariables[group1Replacements[11].componentName].stateValues
-                    .value
+                    .value,
             ).eq(true);
             expect(collect1Replacements[5].componentType).eq("boolean");
             expect(
                 stateVariables[collect1Replacements[5].componentName]
-                    .stateValues.value
+                    .stateValues.value,
             ).eq(true);
             expect(collect2Replacements[5].componentType).eq("boolean");
             expect(
                 stateVariables[collect2Replacements[5].componentName]
-                    .stateValues.value
+                    .stateValues.value,
             ).eq(true);
             expect(group2Replacements[11].componentType).eq("boolean");
             expect(
                 stateVariables[group2Replacements[11].componentName].stateValues
-                    .value
+                    .value,
             ).eq(true);
             expect(collect3Replacements[5].componentType).eq("boolean");
             expect(
                 stateVariables[collect3Replacements[5].componentName]
-                    .stateValues.value
+                    .stateValues.value,
             ).eq(true);
             expect(group3Replacements[11].componentType).eq("boolean");
             expect(
                 stateVariables[group3Replacements[11].componentName].stateValues
-                    .value
+                    .value,
             ).eq(true);
         });
     });
@@ -4422,7 +4422,7 @@ describe("Collect Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4433,11 +4433,11 @@ describe("Collect Tag Tests", function () {
 
         cy.get(cesc("#\\/_p1")).should(
             "have.text",
-            "Hidden by default: public"
+            "Hidden by default: public",
         );
         cy.get(cesc("#\\/_p2")).should(
             "have.text",
-            "Force to reveal: secret, public"
+            "Force to reveal: secret, public",
         );
     });
 
@@ -4457,7 +4457,7 @@ describe("Collect Tag Tests", function () {
     <collect componentTypes="p" source="_section1" hide="false" assignNames="cp5 cp6 cp7 cp8" />
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4475,11 +4475,11 @@ describe("Collect Tag Tests", function () {
         cy.get(cesc("#\\/cp6")).should("have.text", "Hidden text: ");
         cy.get(cesc("#\\/cp7")).should(
             "have.text",
-            "Hidden paragraph with hidden text: "
+            "Hidden paragraph with hidden text: ",
         );
         cy.get(cesc("#\\/cp8")).should(
             "have.text",
-            "Hidden paragraph with hidden text: "
+            "Hidden paragraph with hidden text: ",
         );
     });
 
@@ -4499,7 +4499,7 @@ describe("Collect Tag Tests", function () {
     <collect componentTypes="p" source="_section1" hide="false" assignNames="cp5 cp6 cp7 cp8" />
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4517,11 +4517,11 @@ describe("Collect Tag Tests", function () {
         cy.get(cesc("#\\/cp6")).should("have.text", "Hidden text: ");
         cy.get(cesc("#\\/cp7")).should(
             "have.text",
-            "Hidden paragraph with hidden text: "
+            "Hidden paragraph with hidden text: ",
         );
         cy.get(cesc("#\\/cp8")).should(
             "have.text",
-            "Hidden paragraph with hidden text: "
+            "Hidden paragraph with hidden text: ",
         );
     });
 
@@ -4551,7 +4551,7 @@ describe("Collect Tag Tests", function () {
     <p name="c2">collect 2: <collect hide="$h2" componentTypes="text" prop="value" source="_p1" asList="false" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4559,7 +4559,7 @@ describe("Collect Tag Tests", function () {
 
         cy.get(cesc("#\\/c1")).should(
             "have.text",
-            "collect 1: Hello, a! Hello, b! Hello, c! Hello, d! "
+            "collect 1: Hello, a! Hello, b! Hello, c! Hello, d! ",
         );
         cy.get(cesc("#\\/c2")).should("have.text", "collect 2: ");
 
@@ -4569,7 +4569,7 @@ describe("Collect Tag Tests", function () {
 
         cy.get(cesc("#\\/c1")).should(
             "have.text",
-            "collect 1: Hello, a! Hello, b! Hello, c! Hello, d! Hello, e! Hello, f! "
+            "collect 1: Hello, a! Hello, b! Hello, c! Hello, d! Hello, e! Hello, f! ",
         );
         cy.get(cesc("#\\/c2")).should("have.text", "collect 2: ");
 
@@ -4579,7 +4579,7 @@ describe("Collect Tag Tests", function () {
         cy.get(cesc("#\\/c1")).should("have.text", "collect 1: ");
         cy.get(cesc("#\\/c2")).should(
             "have.text",
-            "collect 2: Hello, a! Hello, b! Hello, c! Hello, d! Hello, e! Hello, f! "
+            "collect 2: Hello, a! Hello, b! Hello, c! Hello, d! Hello, e! Hello, f! ",
         );
 
         cy.get(cesc("#\\/n") + " textarea").type("{end}{backspace}8{enter}", {
@@ -4589,7 +4589,7 @@ describe("Collect Tag Tests", function () {
         cy.get(cesc("#\\/c1")).should("have.text", "collect 1: ");
         cy.get(cesc("#\\/c2")).should(
             "have.text",
-            "collect 2: Hello, a! Hello, b! Hello, c! Hello, d! Hello, e! Hello, f! Hello, g! Hello, h! "
+            "collect 2: Hello, a! Hello, b! Hello, c! Hello, d! Hello, e! Hello, f! Hello, g! Hello, h! ",
         );
 
         cy.get(cesc("#\\/h1")).click();
@@ -4597,7 +4597,7 @@ describe("Collect Tag Tests", function () {
 
         cy.get(cesc("#\\/c1")).should(
             "have.text",
-            "collect 1: Hello, a! Hello, b! Hello, c! Hello, d! Hello, e! Hello, f! Hello, g! Hello, h! "
+            "collect 1: Hello, a! Hello, b! Hello, c! Hello, d! Hello, e! Hello, f! Hello, g! Hello, h! ",
         );
         cy.get(cesc("#\\/c2")).should("have.text", "collect 2: ");
 
@@ -4607,7 +4607,7 @@ describe("Collect Tag Tests", function () {
 
         cy.get(cesc("#\\/c1")).should(
             "have.text",
-            "collect 1: Hello, a! Hello, b! Hello, c! "
+            "collect 1: Hello, a! Hello, b! Hello, c! ",
         );
         cy.get(cesc("#\\/c2")).should("have.text", "collect 2: ");
 
@@ -4617,7 +4617,7 @@ describe("Collect Tag Tests", function () {
         cy.get(cesc("#\\/c1")).should("have.text", "collect 1: ");
         cy.get(cesc("#\\/c2")).should(
             "have.text",
-            "collect 2: Hello, a! Hello, b! Hello, c! "
+            "collect 2: Hello, a! Hello, b! Hello, c! ",
         );
 
         cy.get(cesc("#\\/n") + " textarea").type("{end}{backspace}4{enter}", {
@@ -4627,7 +4627,7 @@ describe("Collect Tag Tests", function () {
         cy.get(cesc("#\\/c1")).should("have.text", "collect 1: ");
         cy.get(cesc("#\\/c2")).should(
             "have.text",
-            "collect 2: Hello, a! Hello, b! Hello, c! Hello, d! "
+            "collect 2: Hello, a! Hello, b! Hello, c! Hello, d! ",
         );
     });
 
@@ -4643,13 +4643,13 @@ describe("Collect Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get(cesc2("#/pdefault")).should(
             "have.text",
-            "apple, banana, cherry"
+            "apple, banana, cherry",
         );
         cy.get(cesc2("#/pnolist")).should("have.text", "applebananacherry");
     });
@@ -4666,7 +4666,7 @@ describe("Collect Tag Tests", function () {
     <collect source="g" componentTypes="abc" />
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4679,7 +4679,7 @@ describe("Collect Tag Tests", function () {
             expect(errorWarnings.warnings.length).eq(2);
 
             expect(errorWarnings.warnings[0].message).contain(
-                "Cannot collect components of type <abc> as it is an invalid component type"
+                "Cannot collect components of type <abc> as it is an invalid component type",
             );
             expect(errorWarnings.warnings[0].level).eq(1);
             expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(6);
@@ -4688,7 +4688,7 @@ describe("Collect Tag Tests", function () {
             expect(errorWarnings.warnings[0].doenetMLrange.charEnd).eq(47);
 
             expect(errorWarnings.warnings[1].message).contain(
-                "No source found for collect"
+                "No source found for collect",
             );
             expect(errorWarnings.warnings[1].level).eq(1);
             expect(errorWarnings.warnings[1].doenetMLrange.lineBegin).eq(5);
@@ -4721,7 +4721,7 @@ describe("Collect Tag Tests", function () {
     <p>Hello <collect componentTypes="point" source="_p1" /> there</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4749,7 +4749,7 @@ describe("Collect Tag Tests", function () {
             p1AllChildren.push(stateVariables["/B"].adapterUsed.componentName);
 
             expect(stateVariables["/_p1"].allChildrenOrdered).eqls(
-                p1AllChildren
+                p1AllChildren,
             );
 
             let p2AllChildren = [];
@@ -4766,7 +4766,7 @@ describe("Collect Tag Tests", function () {
             }
 
             expect(stateVariables["/_p2"].allChildrenOrdered).eqls(
-                p2AllChildren
+                p2AllChildren,
             );
         }
 
@@ -4835,7 +4835,7 @@ describe("Collect Tag Tests", function () {
     $A2.fixed{assignNames="A2fixed"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4918,7 +4918,7 @@ describe("Collect Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4956,11 +4956,11 @@ describe("Collect Tag Tests", function () {
         cy.get(cesc("#\\/al2\\/Bx") + " .mjx-mrow").should("not.exist");
         cy.get(cesc("#\\/Ax") + " .mjx-mrow").should(
             "contain.text",
-            nInDOM(x1)
+            nInDOM(x1),
         );
         cy.get(cesc("#\\/al2\\/Ax") + " .mjx-mrow").should(
             "contain.text",
-            nInDOM(x1)
+            nInDOM(x1),
         );
 
         cy.window().then(async (win) => {
@@ -4990,11 +4990,11 @@ describe("Collect Tag Tests", function () {
             cy.get(cesc("#\\/al2\\/Bx") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/Ax") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(x1)
+                nInDOM(x1),
             );
             cy.get(cesc("#\\/al2\\/Ax") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(x1)
+                nInDOM(x1),
             );
 
             cy.window().then(async (win) => {
@@ -5023,11 +5023,11 @@ describe("Collect Tag Tests", function () {
             cy.get(cesc("#\\/al2\\/Bx") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/Ax") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(x2)
+                nInDOM(x2),
             );
             cy.get(cesc("#\\/al2\\/Ax") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(x2)
+                nInDOM(x2),
             );
 
             cy.window().then(async (win) => {
@@ -5058,11 +5058,11 @@ describe("Collect Tag Tests", function () {
             cy.get(cesc("#\\/al2\\/Bx") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/Ax") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(x2)
+                nInDOM(x2),
             );
             cy.get(cesc("#\\/al2\\/Ax") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(x2)
+                nInDOM(x2),
             );
 
             cy.window().then(async (win) => {
@@ -5102,7 +5102,7 @@ describe("Collect Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5203,14 +5203,14 @@ describe("Collect Tag Tests", function () {
         cy.window().then(async (win) => {
             cy.get(cesc("#\\/n1") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(x2)
+                nInDOM(x2),
             );
             cy.get(cesc("#\\/n2") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/n3") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/n4") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/al2\\/n1") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(x2)
+                nInDOM(x2),
             );
             cy.get(cesc("#\\/al2\\/n2") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/al2\\/n3") + " .mjx-mrow").should("not.exist");
@@ -5242,14 +5242,14 @@ describe("Collect Tag Tests", function () {
 
             cy.get(cesc("#\\/n1") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(x2)
+                nInDOM(x2),
             );
             cy.get(cesc("#\\/n2") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/n3") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/n4") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/al2\\/n1") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(x2)
+                nInDOM(x2),
             );
             cy.get(cesc("#\\/al2\\/n2") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/al2\\/n3") + " .mjx-mrow").should("not.exist");
@@ -5278,14 +5278,14 @@ describe("Collect Tag Tests", function () {
         cy.window().then(async (win) => {
             cy.get(cesc("#\\/n1") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(y2)
+                nInDOM(y2),
             );
             cy.get(cesc("#\\/n2") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/n3") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/n4") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/al2\\/n1") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(y2)
+                nInDOM(y2),
             );
             cy.get(cesc("#\\/al2\\/n2") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/al2\\/n3") + " .mjx-mrow").should("not.exist");
@@ -5314,14 +5314,14 @@ describe("Collect Tag Tests", function () {
         cy.window().then(async (win) => {
             cy.get(cesc("#\\/n1") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(y1)
+                nInDOM(y1),
             );
             cy.get(cesc("#\\/n2") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/n3") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/n4") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/al2\\/n1") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(y1)
+                nInDOM(y1),
             );
             cy.get(cesc("#\\/al2\\/n2") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/al2\\/n3") + " .mjx-mrow").should("not.exist");
@@ -5380,14 +5380,14 @@ describe("Collect Tag Tests", function () {
         cy.window().then(async (win) => {
             cy.get(cesc("#\\/n1") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(x1)
+                nInDOM(x1),
             );
             cy.get(cesc("#\\/n2") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/n3") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/n4") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/al2\\/n1") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(x1)
+                nInDOM(x1),
             );
             cy.get(cesc("#\\/al2\\/n2") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/al2\\/n3") + " .mjx-mrow").should("not.exist");
@@ -5446,14 +5446,14 @@ describe("Collect Tag Tests", function () {
         cy.window().then(async (win) => {
             cy.get(cesc("#\\/n1") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(x2)
+                nInDOM(x2),
             );
             cy.get(cesc("#\\/n2") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/n3") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/n4") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/al2\\/n1") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(x2)
+                nInDOM(x2),
             );
             cy.get(cesc("#\\/al2\\/n2") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/al2\\/n3") + " .mjx-mrow").should("not.exist");
@@ -5538,7 +5538,7 @@ describe("Collect Tag Tests", function () {
     <p>Average of <m>y</m>-coordinates of points: <mean name="mean"><collect componentTypes="point" prop="Y" name="ys" source="_graph3" assignNames="y1 y2 y3 y4 y5" /></mean></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5715,16 +5715,16 @@ describe("Collect Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             for (let i = 0; i < 5; i++) {
                 expect(stateVariables[`/q${i + 1}`].stateValues.xs[0]).eq(
-                    xs[i]
+                    xs[i],
                 );
                 expect(stateVariables[`/q${i + 1}`].stateValues.xs[1]).eq(
-                    ys[i]
+                    ys[i],
                 );
                 expect(stateVariables[`/qa${i + 1}`].stateValues.xs[0]).eq(
-                    xs[i]
+                    xs[i],
                 );
                 expect(stateVariables[`/qa${i + 1}`].stateValues.xs[1]).eq(
-                    ys[i]
+                    ys[i],
                 );
                 expect(stateVariables[`/c${i + 1}`].stateValues.value).eqls([
                     "vector",
@@ -5732,16 +5732,16 @@ describe("Collect Tag Tests", function () {
                     ys[i],
                 ]);
                 expect(stateVariables[`/x${i + 1}`].stateValues.value).eq(
-                    xs[i]
+                    xs[i],
                 );
                 expect(stateVariables[`/xc${i + 1}`].stateValues.value).eq(
-                    xs[i]
+                    xs[i],
                 );
                 expect(stateVariables[`/xe${i + 1}`].stateValues.value).eq(
-                    xs[i]
+                    xs[i],
                 );
                 expect(stateVariables[`/y${i + 1}`].stateValues.value).eq(
-                    ys[i]
+                    ys[i],
                 );
             }
             expect(stateVariables["/mean"].stateValues.value).eq(meany);
@@ -5766,7 +5766,7 @@ describe("Collect Tag Tests", function () {
     <collect source="g" componentTypes="point" assignNames="P1 P2" />
     `,
                 },
-                "*"
+                "*",
             );
         });
 

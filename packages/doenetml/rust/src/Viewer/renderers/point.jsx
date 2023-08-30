@@ -64,10 +64,10 @@ export default React.memo(function Point(props) {
             strokeOpacity: SVs.selectedStyle.lineOpacity,
             fillOpacity: SVs.selectedStyle.lineOpacity,
             highlightFillColor: getComputedStyle(
-                document.documentElement
+                document.documentElement,
             ).getPropertyValue("--mainGray"),
             highlightStrokeColor: getComputedStyle(
-                document.documentElement
+                document.documentElement,
             ).getPropertyValue("--lightBlue"),
             size: SVs.selectedStyle.markerSize,
             face: normalizeStyle(SVs.selectedStyle.markerStyle),
@@ -166,7 +166,7 @@ export default React.memo(function Point(props) {
         let newShadowPointJXG = board.create(
             "point",
             coords,
-            shadowPointAttributes
+            shadowPointAttributes,
         );
 
         newShadowPointJXG.on("down", function (e) {
@@ -223,7 +223,7 @@ export default React.memo(function Point(props) {
                 board.unitX;
             calculatedX.current = Math.min(
                 xmax,
-                Math.max(xmin, calculatedX.current)
+                Math.max(xmin, calculatedX.current),
             );
 
             calculatedY.current =
@@ -232,7 +232,7 @@ export default React.memo(function Point(props) {
                 board.unitY;
             calculatedY.current = Math.min(
                 ymax,
-                Math.max(ymin, calculatedY.current)
+                Math.max(ymin, calculatedY.current),
             );
 
             callAction({
@@ -247,7 +247,7 @@ export default React.memo(function Point(props) {
 
             newPointJXG.coords.setCoordinates(
                 JXG.COORDS_BY_USER,
-                lastPositionFromCore.current
+                lastPositionFromCore.current,
             );
             board.updateInfobox(newPointJXG);
 
@@ -292,7 +292,7 @@ export default React.memo(function Point(props) {
             if (!dragged.current) {
                 shadowPointJXG.current.coords.setCoordinates(
                     JXG.COORDS_BY_USER,
-                    [x, y]
+                    [x, y],
                 );
             }
 

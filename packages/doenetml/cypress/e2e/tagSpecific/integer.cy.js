@@ -16,7 +16,7 @@ describe("Integer Tag Tests", function () {
       <integer>1.2+1.1</integer>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -41,7 +41,7 @@ describe("Integer Tag Tests", function () {
       <integer>x+1</integer>
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -66,7 +66,7 @@ describe("Integer Tag Tests", function () {
       <mathinput />
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -78,14 +78,14 @@ describe("Integer Tag Tests", function () {
             });
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             "{end}{backspace}-6.5{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/n")).should("have.text", "-6");
         cy.get(cesc(`#\\/_mathinput1`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "−6.5"
+                    "−6.5",
                 );
             });
 
@@ -97,20 +97,20 @@ describe("Integer Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "−6.5x"
+                    "−6.5x",
                 );
             });
 
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}9.5{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/n")).should("have.text", "10");
         cy.get(cesc(`#\\/_mathinput1`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "9.5"
+                    "9.5",
                 );
             });
     });
@@ -124,7 +124,7 @@ describe("Integer Tag Tests", function () {
       <mathinput bindValueTo="$n" hideNaN="false" />
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -132,14 +132,14 @@ describe("Integer Tag Tests", function () {
 
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             "{end}{backspace}-6.5{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/n")).should("have.text", "-6");
         cy.get(cesc(`#\\/_mathinput1`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "−6"
+                    "−6",
                 );
             });
 
@@ -151,14 +151,14 @@ describe("Integer Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "NaN"
+                    "NaN",
                 );
             });
 
         // Note: change to 3 and then 31 to verify bug doesn't reappear
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}3{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/n")).should("have.text", "3");
         cy.get(cesc(`#\\/_mathinput1`) + ` .mq-editable-field`)
@@ -175,7 +175,7 @@ describe("Integer Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "31"
+                    "31",
                 );
             });
 
@@ -187,7 +187,7 @@ describe("Integer Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "32"
+                    "32",
                 );
             });
     });

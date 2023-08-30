@@ -18,13 +18,13 @@ describe("blockquote Tag Tests", function () {
   <p>There</p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get("blockquote" + cesc("#\\/_blockquote1")).should(
             "have.text",
-            "\n    For to be free is not merely to cast off one's chains, but to live in a way that respects and enhances the freedom of others.\n  "
+            "\n    For to be free is not merely to cast off one's chains, but to live in a way that respects and enhances the freedom of others.\n  ",
         );
     });
 });

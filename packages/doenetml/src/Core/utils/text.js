@@ -13,7 +13,7 @@ export function textFromComponent(component) {
 // if that composite has asList set to true
 export function textFromChildren(
     children,
-    textFromComponentConverter = textFromComponent
+    textFromComponentConverter = textFromComponent,
 ) {
     let result = textFromChildrenSub({
         compositeReplacementRange: children.compositeReplacementRange,
@@ -52,7 +52,7 @@ function textFromChildrenSub({
             if (lastChildInd + 1 < rangeFirstInd) {
                 // don't process these children, so just add them back to newChildren
                 newChildren.push(
-                    ...children.slice(lastChildInd + 1, rangeFirstInd)
+                    ...children.slice(lastChildInd + 1, rangeFirstInd),
                 );
                 if (potentialListComponents) {
                     // Since we didn't change the components,
@@ -60,8 +60,8 @@ function textFromChildrenSub({
                     newPotentialListComponents.push(
                         ...potentialListComponents.slice(
                             lastChildInd - startInd + 1,
-                            rangeFirstInd - startInd
-                        )
+                            rangeFirstInd - startInd,
+                        ),
                     );
                 }
             }
@@ -74,7 +74,7 @@ function textFromChildrenSub({
 
             // We remove the replacement range of the current composite (any all earlier ones)
             let subReplacementRange = compositeReplacementRange.slice(
-                rangeInd + 1
+                rangeInd + 1,
             );
 
             let {
@@ -90,7 +90,7 @@ function textFromChildrenSub({
             });
 
             let allAreListComponents = potentialListComponentsInRange.every(
-                (x) => x
+                (x) => x,
             );
 
             if (
@@ -107,15 +107,15 @@ function textFromChildrenSub({
                         .map(textFromComponentConverter)
                         .filter((v) => v.trim() !== "")
                         .map((v, i, a) =>
-                            i === a.length - 1 ? v : v.trimEnd()
+                            i === a.length - 1 ? v : v.trimEnd(),
                         )
-                        .join(", ")
+                        .join(", "),
                 );
             } else {
                 // We are not turning the children in a list,
                 // so just convert the children into strings and concatentate
                 newChildren.push(
-                    childrenInRange.map(textFromComponentConverter).join("")
+                    childrenInRange.map(textFromComponentConverter).join(""),
                 );
             }
 
@@ -137,8 +137,8 @@ function textFromChildrenSub({
             newPotentialListComponents.push(
                 ...potentialListComponents.slice(
                     lastChildInd - startInd + 1,
-                    endInd - startInd + 1
-                )
+                    endInd - startInd + 1,
+                ),
             );
         }
     }

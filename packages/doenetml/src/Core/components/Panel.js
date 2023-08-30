@@ -49,7 +49,7 @@ export default class Panel extends InlineComponent {
 
                 //find the breakpoints for changing the number of columns
                 let itemWidths = dependencyValues.children.map(
-                    (x) => x.stateValues.width
+                    (x) => x.stateValues.width,
                 );
 
                 if (dependencyValues.columns !== null) {

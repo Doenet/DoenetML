@@ -114,7 +114,7 @@ export default React.memo(function Vector(props) {
             strokeColor: "none",
             highlightStrokeColor: "none",
             highlightFillColor: getComputedStyle(
-                document.documentElement
+                document.documentElement,
             ).getPropertyValue("--mainGray"),
             layer: pointLayer,
             showInfoBox: SVs.showCoordsWhenDragging,
@@ -127,7 +127,7 @@ export default React.memo(function Vector(props) {
         let newPoint1JXG = board.create(
             "point",
             endpoints[0],
-            tailPointAttributes
+            tailPointAttributes,
         );
 
         let headPointAttributes = Object.assign({}, jsxPointAttributes);
@@ -136,7 +136,7 @@ export default React.memo(function Vector(props) {
         let newPoint2JXG = board.create(
             "point",
             endpoints[1],
-            headPointAttributes
+            headPointAttributes,
         );
 
         jsxVectorAttributes.label = {
@@ -155,7 +155,7 @@ export default React.memo(function Vector(props) {
         let newVectorJXG = board.create(
             "arrow",
             [newPoint1JXG, newPoint2JXG],
-            jsxVectorAttributes
+            jsxVectorAttributes,
         );
         newVectorJXG.isDraggable = !fixLocation.current;
 
@@ -450,11 +450,11 @@ export default React.memo(function Vector(props) {
 
             vectorJXG.current.point1.coords.setCoordinates(
                 JXG.COORDS_BY_USER,
-                lastPositionsFromCore.current[0]
+                lastPositionsFromCore.current[0],
             );
             vectorJXG.current.point2.coords.setCoordinates(
                 JXG.COORDS_BY_USER,
-                lastPositionsFromCore.current[1]
+                lastPositionsFromCore.current[1],
             );
             if (i === 0) {
                 board.updateInfobox(point1JXG.current);
@@ -554,11 +554,11 @@ export default React.memo(function Vector(props) {
 
             vectorJXG.current.point1.coords.setCoordinates(
                 JXG.COORDS_BY_USER,
-                SVs.numericalEndpoints[0]
+                SVs.numericalEndpoints[0],
             );
             vectorJXG.current.point2.coords.setCoordinates(
                 JXG.COORDS_BY_USER,
-                SVs.numericalEndpoints[1]
+                SVs.numericalEndpoints[1],
             );
 
             let visible = !SVs.hidden && validPoints;

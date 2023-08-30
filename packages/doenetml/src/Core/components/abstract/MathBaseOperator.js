@@ -148,12 +148,12 @@ export default class MathOperator extends MathComponent {
                     // will be numeric only if have all math children are numbers
                     isNumericOperator =
                         dependencyValues.mathChildren.every(
-                            (x) => x.stateValues.isNumber
+                            (x) => x.stateValues.isNumber,
                         ) &&
                         dependencyValues.mathListChildren.every((x) =>
                             x.stateValues.maths.every((y) =>
-                                Number.isFinite(y.tree)
-                            )
+                                Number.isFinite(y.tree),
+                            ),
                         );
                 }
 
@@ -277,7 +277,7 @@ export default class MathOperator extends MathComponent {
                     return {
                         setValue: {
                             unnormalizedValue: me.fromAst(
-                                dependencyValues.numericOperator(inputs)
+                                dependencyValues.numericOperator(inputs),
                             ),
                         },
                     };
@@ -306,8 +306,8 @@ export default class MathOperator extends MathComponent {
                         ) {
                             inputs.push(
                                 ...child.stateValues.numbers.map((x) =>
-                                    me.fromAst(x)
-                                )
+                                    me.fromAst(x),
+                                ),
                             );
                         } else {
                             // mathList
@@ -347,7 +347,7 @@ export default class MathOperator extends MathComponent {
                             ) {
                                 inputs.push(child.stateValues.value);
                                 canBeModified.push(
-                                    child.stateValues.canBeModified
+                                    child.stateValues.canBeModified,
                                 );
                                 inputToChildIndex.push(childInd);
                             } else if (
@@ -360,7 +360,7 @@ export default class MathOperator extends MathComponent {
                                     child.stateValues.value.evaluate_to_constant();
                                 inputs.push(value);
                                 canBeModified.push(
-                                    child.stateValues.canBeModified
+                                    child.stateValues.canBeModified,
                                 );
                                 inputToChildIndex.push(childInd);
                             } else if (
@@ -372,8 +372,8 @@ export default class MathOperator extends MathComponent {
                                 inputs.push(...child.stateValues.numbers);
                                 canBeModified.push(
                                     ...Array(
-                                        child.stateValues.numbers.length
-                                    ).fill(child.stateValues.canBeModified)
+                                        child.stateValues.numbers.length,
+                                    ).fill(child.stateValues.canBeModified),
                                 );
                                 if (child.stateValues.numbers.length === 1) {
                                     inputToChildIndex.push(childInd);
@@ -381,8 +381,8 @@ export default class MathOperator extends MathComponent {
                                     // TODO: invert entries of numberlist that isn't length 1?
                                     inputToChildIndex.push(
                                         ...Array(
-                                            child.stateValues.numbers.length
-                                        ).fill(NaN)
+                                            child.stateValues.numbers.length,
+                                        ).fill(NaN),
                                     );
                                 }
                             } else {
@@ -391,13 +391,13 @@ export default class MathOperator extends MathComponent {
                                     (x) => {
                                         let value = x.evaluate_to_constant();
                                         return value;
-                                    }
+                                    },
                                 );
                                 inputs.push(...values);
                                 canBeModified.push(
                                     ...Array(
-                                        child.stateValues.maths.length
-                                    ).fill(child.stateValues.canBeModified)
+                                        child.stateValues.maths.length,
+                                    ).fill(child.stateValues.canBeModified),
                                 );
                                 if (child.stateValues.maths.length === 1) {
                                     inputToChildIndex.push(childInd);
@@ -405,8 +405,8 @@ export default class MathOperator extends MathComponent {
                                     // TODO: invert entries of mathlist that isn't length 1?
                                     inputToChildIndex.push(
                                         ...Array(
-                                            child.stateValues.maths.length
-                                        ).fill(NaN)
+                                            child.stateValues.maths.length,
+                                        ).fill(NaN),
                                     );
                                 }
                             }
@@ -438,7 +438,7 @@ export default class MathOperator extends MathComponent {
                                             inheritedComponentType:
                                                 child.componentType,
                                             baseComponentType: "numberList",
-                                        }
+                                        },
                                     )
                                 ) {
                                     variableIndex = 2;
@@ -450,7 +450,7 @@ export default class MathOperator extends MathComponent {
                                             inheritedComponentType:
                                                 child.componentType,
                                             baseComponentType: "mathList",
-                                        }
+                                        },
                                     )
                                 ) {
                                     variableIndex = 1;
@@ -511,13 +511,13 @@ export default class MathOperator extends MathComponent {
                         ) {
                             inputs.push(
                                 ...child.stateValues.numbers.map((x) =>
-                                    me.fromAst(x)
-                                )
+                                    me.fromAst(x),
+                                ),
                             );
                             canBeModified.push(
                                 ...Array(child.stateValues.numbers.length).fill(
-                                    child.stateValues.canBeModified
-                                )
+                                    child.stateValues.canBeModified,
+                                ),
                             );
                             if (child.stateValues.numbers.length === 1) {
                                 inputToChildIndex.push(childInd);
@@ -525,8 +525,8 @@ export default class MathOperator extends MathComponent {
                                 // TODO: invert entries of numberlist that isn't length 1?
                                 inputToChildIndex.push(
                                     ...Array(
-                                        child.stateValues.numbers.length
-                                    ).fill(NaN)
+                                        child.stateValues.numbers.length,
+                                    ).fill(NaN),
                                 );
                             }
                         } else {
@@ -534,8 +534,8 @@ export default class MathOperator extends MathComponent {
                             inputs.push(...child.stateValues.maths);
                             canBeModified.push(
                                 ...Array(child.stateValues.maths.length).fill(
-                                    child.stateValues.canBeModified
-                                )
+                                    child.stateValues.canBeModified,
+                                ),
                             );
                             if (child.stateValues.maths.length === 1) {
                                 inputToChildIndex.push(childInd);
@@ -543,8 +543,8 @@ export default class MathOperator extends MathComponent {
                                 // TODO: invert entries of mathlist that isn't length 1?
                                 inputToChildIndex.push(
                                     ...Array(
-                                        child.stateValues.maths.length
-                                    ).fill(NaN)
+                                        child.stateValues.maths.length,
+                                    ).fill(NaN),
                                 );
                             }
                         }
@@ -652,7 +652,7 @@ export default class MathOperator extends MathComponent {
                     Boolean(
                         dependencyValues.isNumericOperator
                             ? dependencyValues.inverseNumericOperator
-                            : dependencyValues.inverseMathOperator
+                            : dependencyValues.inverseMathOperator,
                     );
 
                 if (canBeModified) {
@@ -666,11 +666,11 @@ export default class MathOperator extends MathComponent {
                     ) {
                         let nModifiable =
                             dependencyValues.mathNumberChildren.filter(
-                                (x) => x.stateValues.canBeModified
+                                (x) => x.stateValues.canBeModified,
                             ).length +
                             dependencyValues.mathNumberListChildren.reduce(
                                 (a, c) => a + c.stateValues.numComponents,
-                                0
+                                0,
                             );
 
                         if (nModifiable !== 1) {

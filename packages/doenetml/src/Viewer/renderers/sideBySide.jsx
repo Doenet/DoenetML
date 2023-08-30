@@ -63,7 +63,7 @@ export default React.memo(function sideBySide(props) {
                 key={child.key}
             >
                 {child}
-            </span>
+            </span>,
         );
     }
 

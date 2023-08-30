@@ -22,7 +22,7 @@ describe("DoenetML tests", function () {
       
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -35,24 +35,24 @@ describe("DoenetML tests", function () {
 
         cy.get(cesc("#\\/theP")).should(
             "contain.text",
-            "\n          Did you know that\n          1+1"
+            "\n          Did you know that\n          1+1",
         );
         cy.get(cesc("#\\/theP")).should(
             "contain.text",
-            "1\n          =\n          2"
+            "1\n          =\n          2",
         );
         cy.get(cesc("#\\/theDoenetML")).should("have.text", thePDoenetML);
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/theP"].stateValues.doenetML).eqls(
-                thePDoenetML
+                thePDoenetML,
             );
 
             let preChild =
                 stateVariables["/theDoenetML"].activeChildren[0].componentName;
             expect(stateVariables[preChild].stateValues.value).eqls(
-                thePDoenetML
+                thePDoenetML,
             );
         });
     });
@@ -78,7 +78,7 @@ describe("DoenetML tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -93,7 +93,7 @@ A string by itself!`;
         cy.get(cesc("#\\/theDoenetML")).should("have.text", thePDoenetML);
         cy.get(cesc("#\\/theDoenetML2")).should(
             "have.text",
-            "String with no space."
+            "String with no space.",
         );
         cy.get(cesc("#\\/pMacro")).should("have.text", "This is a macro: $f.");
 
@@ -102,10 +102,10 @@ A string by itself!`;
             expect(stateVariables["/ddml"].stateValues.value).eq(thePDoenetML);
             expect(stateVariables["/ddml"].stateValues.text).eq(thePDoenetML);
             expect(stateVariables["/_displaydoenetml2"].stateValues.value).eq(
-                "String with no space."
+                "String with no space.",
             );
             expect(stateVariables["/_displaydoenetml3"].stateValues.value).eq(
-                "$f"
+                "$f",
             );
         });
     });
@@ -146,7 +146,7 @@ A string by itself!`;
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -258,43 +258,43 @@ ${theDoenetML3}
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get(cesc2("#/s1/_pre1")).should("have.text", `<text>hello!</text>`);
         cy.get(cesc2("#/s1/pd")).should(
             "have.text",
-            `DoenetML: <p>A sentence</p>`
+            `DoenetML: <p>A sentence</p>`,
         );
 
         cy.get(cesc2("#/s2/_pre1")).should("have.text", `<text>hello!</text>`);
         cy.get(cesc2("#/s2/pd")).should(
             "have.text",
-            `DoenetML: <p>A sentence</p>`
+            `DoenetML: <p>A sentence</p>`,
         );
 
         cy.get(cesc2("#/s3/_pre1")).should("have.text", `<text>hello!</text>`);
         cy.get(cesc2("#/s3/pd")).should(
             "have.text",
-            `DoenetML: <p>A sentence</p>`
+            `DoenetML: <p>A sentence</p>`,
         );
 
         cy.get(cesc2("#/s4/_pre1")).should("have.text", `<text>hello!</text>`);
         cy.get(cesc2("#/s4/pd")).should(
             "have.text",
-            `DoenetML: <p>A sentence</p>`
+            `DoenetML: <p>A sentence</p>`,
         );
 
         cy.get(cesc2("#/s5/_pre1")).should("have.text", `<text>hello!</text>`);
         cy.get(cesc2("#/s5/pd")).should(
             "have.text",
-            `DoenetML: <p>A sentence</p>`
+            `DoenetML: <p>A sentence</p>`,
         );
 
         cy.get(cesc2("#/s1a/p1")).should(
             "have.text",
-            `Copy: <text>hello!</text>`
+            `Copy: <text>hello!</text>`,
         );
         // cy.get(cesc2("#/s1a/p2")).should(
         //   "have.text",
@@ -302,16 +302,16 @@ ${theDoenetML3}
         // );
         cy.get(cesc2("#/s1a/p3")).should(
             "have.text",
-            `Copy text: <text>hello!</text>`
+            `Copy text: <text>hello!</text>`,
         );
         cy.get(cesc2("#/s1a/p4")).should(
             "have.text",
-            `Copy text, no link: <text>hello!</text>`
+            `Copy text, no link: <text>hello!</text>`,
         );
 
         cy.get(cesc2("#/s2a/p1")).should(
             "have.text",
-            `Copy: <text>hello!</text>`
+            `Copy: <text>hello!</text>`,
         );
         // cy.get(cesc2("#/s2a/p2")).should(
         //   "have.text",
@@ -319,16 +319,16 @@ ${theDoenetML3}
         // );
         cy.get(cesc2("#/s2a/p3")).should(
             "have.text",
-            `Copy text: <text>hello!</text>`
+            `Copy text: <text>hello!</text>`,
         );
         cy.get(cesc2("#/s2a/p4")).should(
             "have.text",
-            `Copy text, no link: <text>hello!</text>`
+            `Copy text, no link: <text>hello!</text>`,
         );
 
         cy.get(cesc2("#/s3a/p1")).should(
             "have.text",
-            `Copy: <text>hello!</text>`
+            `Copy: <text>hello!</text>`,
         );
         // cy.get(cesc2("#/s3a/p2")).should(
         //   "have.text",
@@ -336,16 +336,16 @@ ${theDoenetML3}
         // );
         cy.get(cesc2("#/s3a/p3")).should(
             "have.text",
-            `Copy text: <text>hello!</text>`
+            `Copy text: <text>hello!</text>`,
         );
         cy.get(cesc2("#/s3a/p4")).should(
             "have.text",
-            `Copy text, no link: <text>hello!</text>`
+            `Copy text, no link: <text>hello!</text>`,
         );
 
         cy.get(cesc2("#/s4a/p1")).should(
             "have.text",
-            `Copy: <text>hello!</text>`
+            `Copy: <text>hello!</text>`,
         );
         // cy.get(cesc2("#/s4a/p2")).should(
         //   "have.text",
@@ -353,16 +353,16 @@ ${theDoenetML3}
         // );
         cy.get(cesc2("#/s4a/p3")).should(
             "have.text",
-            `Copy text: <text>hello!</text>`
+            `Copy text: <text>hello!</text>`,
         );
         cy.get(cesc2("#/s4a/p4")).should(
             "have.text",
-            `Copy text, no link: <text>hello!</text>`
+            `Copy text, no link: <text>hello!</text>`,
         );
 
         cy.get(cesc2("#/s5a/p1")).should(
             "have.text",
-            `Copy: <text>hello!</text>`
+            `Copy: <text>hello!</text>`,
         );
         // cy.get(cesc2("#/s5a/p2")).should(
         //   "have.text",
@@ -370,11 +370,11 @@ ${theDoenetML3}
         // );
         cy.get(cesc2("#/s5a/p3")).should(
             "have.text",
-            `Copy text: <text>hello!</text>`
+            `Copy text: <text>hello!</text>`,
         );
         cy.get(cesc2("#/s5a/p4")).should(
             "have.text",
-            `Copy text, no link: <text>hello!</text>`
+            `Copy text, no link: <text>hello!</text>`,
         );
     });
 
@@ -406,7 +406,7 @@ ${theDoenetML3}
     <section copySource="s1" name="s5" link="false" newNamespace />
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -418,145 +418,145 @@ ${theDoenetML3}
 
         cy.get(cesc2("#/external/external/_pre1")).should(
             "have.text",
-            theGraphDoenetML
+            theGraphDoenetML,
         );
         cy.get(cesc2("#/external/external/_pre2")).should(
             "have.text",
-            `<p name="p">The <alert>DoenetML</alert> of a graph:</p>`
+            `<p name="p">The <alert>DoenetML</alert> of a graph:</p>`,
         );
 
         cy.get(cesc2("#/external/_pre1")).should(
             "have.text",
-            '<p name="p">The <alert>DoenetML</alert> of a graph:</p>'
+            '<p name="p">The <alert>DoenetML</alert> of a graph:</p>',
         );
         cy.get(cesc2("#/external/_pre2")).should(
             "have.text",
-            `<text>hi</text>`
+            `<text>hi</text>`,
         );
 
         cy.get(cesc2("#/_pre1")).should(
             "have.text",
-            `<pre>$(external/p.doenetML)</pre>`
+            `<pre>$(external/p.doenetML)</pre>`,
         );
         cy.get(cesc2("#/_pre2")).should(
             "have.text",
-            '<p name="p">The <alert>DoenetML</alert> of a graph:</p>'
+            '<p name="p">The <alert>DoenetML</alert> of a graph:</p>',
         );
 
         cy.log("check s2");
 
         cy.get(cesc2("#/s2/external/external/_pre1")).should(
             "have.text",
-            theGraphDoenetML
+            theGraphDoenetML,
         );
         cy.get(cesc2("#/s2/external/external/_pre2")).should(
             "have.text",
-            `<p name="p">The <alert>DoenetML</alert> of a graph:</p>`
+            `<p name="p">The <alert>DoenetML</alert> of a graph:</p>`,
         );
 
         cy.get(cesc2("#/s2/external/_pre1")).should(
             "have.text",
-            '<p name="p">The <alert>DoenetML</alert> of a graph:</p>'
+            '<p name="p">The <alert>DoenetML</alert> of a graph:</p>',
         );
         cy.get(cesc2("#/s2/external/_pre2")).should(
             "have.text",
-            `<text>hi</text>`
+            `<text>hi</text>`,
         );
 
         cy.get(cesc2("#/s2/_pre1")).should(
             "have.text",
-            `<pre>$(external/p.doenetML)</pre>`
+            `<pre>$(external/p.doenetML)</pre>`,
         );
         cy.get(cesc2("#/s2/_pre2")).should(
             "have.text",
-            `<p name="p">The <alert>DoenetML</alert> of a graph:</p>`
+            `<p name="p">The <alert>DoenetML</alert> of a graph:</p>`,
         );
 
         cy.log("check s3");
 
         cy.get(cesc2("#/s3/external/external/_pre1")).should(
             "have.text",
-            theGraphDoenetML
+            theGraphDoenetML,
         );
         cy.get(cesc2("#/s3/external/external/_pre2")).should(
             "have.text",
-            `<p name="p">The <alert>DoenetML</alert> of a graph:</p>`
+            `<p name="p">The <alert>DoenetML</alert> of a graph:</p>`,
         );
 
         cy.get(cesc2("#/s3/external/_pre1")).should(
             "have.text",
-            '<p name="p">The <alert>DoenetML</alert> of a graph:</p>'
+            '<p name="p">The <alert>DoenetML</alert> of a graph:</p>',
         );
         cy.get(cesc2("#/s3/external/_pre2")).should(
             "have.text",
-            `<text>hi</text>`
+            `<text>hi</text>`,
         );
 
         cy.get(cesc2("#/s3/_pre1")).should(
             "have.text",
-            `<pre>$(external/p.doenetML)</pre>`
+            `<pre>$(external/p.doenetML)</pre>`,
         );
         cy.get(cesc2("#/s3/_pre2")).should(
             "have.text",
-            '<p name="p">The <alert>DoenetML</alert> of a graph:</p>'
+            '<p name="p">The <alert>DoenetML</alert> of a graph:</p>',
         );
 
         cy.log("check s4");
 
         cy.get(cesc2("#/s4/external/external/_pre1")).should(
             "have.text",
-            theGraphDoenetML
+            theGraphDoenetML,
         );
         cy.get(cesc2("#/s4/external/external/_pre2")).should(
             "have.text",
-            `<p name="p">The <alert>DoenetML</alert> of a graph:</p>`
+            `<p name="p">The <alert>DoenetML</alert> of a graph:</p>`,
         );
 
         cy.get(cesc2("#/s4/external/_pre1")).should(
             "have.text",
-            '<p name="p">The <alert>DoenetML</alert> of a graph:</p>'
+            '<p name="p">The <alert>DoenetML</alert> of a graph:</p>',
         );
         cy.get(cesc2("#/s4/external/_pre2")).should(
             "have.text",
-            `<text>hi</text>`
+            `<text>hi</text>`,
         );
 
         cy.get(cesc2("#/s4/_pre1")).should(
             "have.text",
-            `<pre>$(external/p.doenetML)</pre>`
+            `<pre>$(external/p.doenetML)</pre>`,
         );
         cy.get(cesc2("#/s4/_pre2")).should(
             "have.text",
-            '<p name="p">The <alert>DoenetML</alert> of a graph:</p>'
+            '<p name="p">The <alert>DoenetML</alert> of a graph:</p>',
         );
 
         cy.log("check s5");
 
         cy.get(cesc2("#/s5/external/external/_pre1")).should(
             "have.text",
-            theGraphDoenetML
+            theGraphDoenetML,
         );
         cy.get(cesc2("#/s5/external/external/_pre2")).should(
             "have.text",
-            `<p name="p">The <alert>DoenetML</alert> of a graph:</p>`
+            `<p name="p">The <alert>DoenetML</alert> of a graph:</p>`,
         );
 
         cy.get(cesc2("#/s5/external/_pre1")).should(
             "have.text",
-            '<p name="p">The <alert>DoenetML</alert> of a graph:</p>'
+            '<p name="p">The <alert>DoenetML</alert> of a graph:</p>',
         );
         cy.get(cesc2("#/s5/external/_pre2")).should(
             "have.text",
-            `<text>hi</text>`
+            `<text>hi</text>`,
         );
 
         cy.get(cesc2("#/s5/_pre1")).should(
             "have.text",
-            `<pre>$(external/p.doenetML)</pre>`
+            `<pre>$(external/p.doenetML)</pre>`,
         );
         cy.get(cesc2("#/s5/_pre2")).should(
             "have.text",
-            '<p name="p">The <alert>DoenetML</alert> of a graph:</p>'
+            '<p name="p">The <alert>DoenetML</alert> of a graph:</p>',
         );
     });
 
@@ -580,7 +580,7 @@ ${theDoenetML3}
         <text name="g2p2dml" copySource="g2/p2.doenetML" />
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -615,7 +615,7 @@ ${theDoenetML3}
     <section name="s3" copySource="s1" link="false" />
   `,
                 },
-                "*"
+                "*",
             );
         });
 

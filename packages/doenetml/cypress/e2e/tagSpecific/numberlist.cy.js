@@ -15,7 +15,7 @@ describe("Numberlist Tag Tests", function () {
     <p><numberlist>5 1+1 pi</numberlist></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -31,28 +31,28 @@ describe("Numberlist Tag Tests", function () {
                 stateVariables[
                     stateVariables["/_numberlist1"].activeChildren[0]
                         .componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eq(5);
             expect(
                 stateVariables[
                     stateVariables["/_numberlist1"].activeChildren[1]
                         .componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eq(2);
             expect(
                 stateVariables[
                     stateVariables["/_numberlist1"].activeChildren[2]
                         .componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).closeTo(Math.PI, 14);
             expect(stateVariables["/_numberlist1"].stateValues.numbers[0]).eq(
-                5
+                5,
             );
             expect(stateVariables["/_numberlist1"].stateValues.numbers[1]).eq(
-                2
+                2,
             );
             expect(
-                stateVariables["/_numberlist1"].stateValues.numbers[2]
+                stateVariables["/_numberlist1"].stateValues.numbers[2],
             ).closeTo(Math.PI, 14);
         });
     });
@@ -66,7 +66,7 @@ describe("Numberlist Tag Tests", function () {
     <p><numberlist>5 _  1+1 </numberlist></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -82,28 +82,28 @@ describe("Numberlist Tag Tests", function () {
                 stateVariables[
                     stateVariables["/_numberlist1"].activeChildren[0]
                         .componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eq(5);
             assert.isNaN(
                 stateVariables[
                     stateVariables["/_numberlist1"].activeChildren[1]
                         .componentName
-                ].stateValues.value
+                ].stateValues.value,
             );
             expect(
                 stateVariables[
                     stateVariables["/_numberlist1"].activeChildren[2]
                         .componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eq(2);
             expect(stateVariables["/_numberlist1"].stateValues.numbers[0]).eq(
-                5
+                5,
             );
             assert.isNaN(
-                stateVariables["/_numberlist1"].stateValues.numbers[1]
+                stateVariables["/_numberlist1"].stateValues.numbers[1],
             );
             expect(stateVariables["/_numberlist1"].stateValues.numbers[2]).eq(
-                2
+                2,
             );
         });
     });
@@ -120,7 +120,7 @@ describe("Numberlist Tag Tests", function () {
     </numberlist></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -136,19 +136,19 @@ describe("Numberlist Tag Tests", function () {
                 stateVariables[
                     stateVariables["/_numberlist1"].activeChildren[0]
                         .componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eq(5);
             expect(
                 stateVariables[
                     stateVariables["/_numberlist1"].activeChildren[1]
                         .componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eq(2);
             expect(stateVariables["/_numberlist1"].stateValues.numbers[0]).eq(
-                5
+                5,
             );
             expect(stateVariables["/_numberlist1"].stateValues.numbers[1]).eq(
-                2
+                2,
             );
         });
     });
@@ -166,7 +166,7 @@ describe("Numberlist Tag Tests", function () {
     </numberlist></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -182,46 +182,46 @@ describe("Numberlist Tag Tests", function () {
                 stateVariables[
                     stateVariables["/_numberlist1"].activeChildren[0]
                         .componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eq(-1);
             expect(
                 stateVariables[
                     stateVariables["/_numberlist1"].activeChildren[1]
                         .componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eq(4);
             expect(
                 stateVariables[
                     stateVariables["/_numberlist1"].activeChildren[2]
                         .componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eq(5);
             expect(
                 stateVariables[
                     stateVariables["/_numberlist1"].activeChildren[3]
                         .componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eq(9);
             expect(
                 stateVariables[
                     stateVariables["/_numberlist1"].activeChildren[4]
                         .componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eq(2);
             expect(stateVariables["/_numberlist1"].stateValues.numbers[0]).eq(
-                -1
+                -1,
             );
             expect(stateVariables["/_numberlist1"].stateValues.numbers[1]).eq(
-                4
+                4,
             );
             expect(stateVariables["/_numberlist1"].stateValues.numbers[2]).eq(
-                5
+                5,
             );
             expect(stateVariables["/_numberlist1"].stateValues.numbers[3]).eq(
-                9
+                9,
             );
             expect(stateVariables["/_numberlist1"].stateValues.numbers[4]).eq(
-                2
+                2,
             );
         });
     });
@@ -238,7 +238,7 @@ describe("Numberlist Tag Tests", function () {
     </numberlist></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -254,19 +254,19 @@ describe("Numberlist Tag Tests", function () {
                 stateVariables[
                     stateVariables["/_numberlist1"].activeChildren[0]
                         .componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eq(5);
             expect(
                 stateVariables[
                     stateVariables["/_numberlist1"].activeChildren[1]
                         .componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eq(2);
             expect(stateVariables["/_numberlist1"].stateValues.numbers[0]).eq(
-                5
+                5,
             );
             expect(stateVariables["/_numberlist1"].stateValues.numbers[1]).eq(
-                2
+                2,
             );
         });
     });
@@ -302,7 +302,7 @@ describe("Numberlist Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -311,80 +311,80 @@ describe("Numberlist Tag Tests", function () {
         cy.log("Test value displayed in browser");
         cy.get(cesc("#\\/_p1")).should(
             "have.text",
-            "1, 2, 3, 4, 5, 6, 7, 8, 9"
+            "1, 2, 3, 4, 5, 6, 7, 8, 9",
         );
 
         cy.log("Test internal values are set to the correct values");
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_numberlist1"].stateValues.numbers[0]).eq(
-                1
+                1,
             );
             expect(stateVariables["/_numberlist1"].stateValues.numbers[1]).eq(
-                2
+                2,
             );
             expect(stateVariables["/_numberlist1"].stateValues.numbers[2]).eq(
-                3
+                3,
             );
             expect(stateVariables["/_numberlist1"].stateValues.numbers[3]).eq(
-                4
+                4,
             );
             expect(stateVariables["/_numberlist1"].stateValues.numbers[4]).eq(
-                5
+                5,
             );
             expect(stateVariables["/_numberlist1"].stateValues.numbers[5]).eq(
-                6
+                6,
             );
             expect(stateVariables["/_numberlist1"].stateValues.numbers[6]).eq(
-                7
+                7,
             );
             expect(stateVariables["/_numberlist1"].stateValues.numbers[7]).eq(
-                8
+                8,
             );
             expect(stateVariables["/_numberlist1"].stateValues.numbers[8]).eq(
-                9
+                9,
             );
             expect(stateVariables["/_numberlist2"].stateValues.numbers[0]).eq(
-                2
+                2,
             );
             expect(stateVariables["/_numberlist2"].stateValues.numbers[1]).eq(
-                3
+                3,
             );
             expect(stateVariables["/_numberlist3"].stateValues.numbers[0]).eq(
-                5
+                5,
             );
             expect(stateVariables["/_numberlist3"].stateValues.numbers[1]).eq(
-                6
+                6,
             );
             expect(stateVariables["/_numberlist3"].stateValues.numbers[2]).eq(
-                7
+                7,
             );
             expect(stateVariables["/_numberlist3"].stateValues.numbers[3]).eq(
-                8
+                8,
             );
             expect(stateVariables["/_numberlist3"].stateValues.numbers[4]).eq(
-                9
+                9,
             );
             expect(stateVariables["/_numberlist4"].stateValues.numbers[0]).eq(
-                5
+                5,
             );
             expect(stateVariables["/_numberlist4"].stateValues.numbers[1]).eq(
-                6
+                6,
             );
             expect(stateVariables["/_numberlist4"].stateValues.numbers[2]).eq(
-                7
+                7,
             );
             expect(stateVariables["/_numberlist5"].stateValues.numbers[0]).eq(
-                6
+                6,
             );
             expect(stateVariables["/_numberlist5"].stateValues.numbers[1]).eq(
-                7
+                7,
             );
             expect(stateVariables["/_numberlist6"].stateValues.numbers[0]).eq(
-                8
+                8,
             );
             expect(stateVariables["/_numberlist6"].stateValues.numbers[1]).eq(
-                9
+                9,
             );
         });
 
@@ -392,118 +392,118 @@ describe("Numberlist Tag Tests", function () {
 
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             "{end}{backspace}-11{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/_mathinput2") + " textarea").type(
             "{end}{backspace}-12{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/_mathinput3") + " textarea").type(
             "{end}{backspace}-13{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/_mathinput4") + " textarea").type(
             "{end}{backspace}-14{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/_mathinput5") + " textarea").type(
             "{end}{backspace}-15{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/_mathinput6") + " textarea").type(
             "{end}{backspace}-16{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/_mathinput7") + " textarea").type(
             "{end}{backspace}-17{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/_mathinput8") + " textarea").type(
             "{end}{backspace}-18{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/_mathinput9") + " textarea").type(
             "{end}{backspace}-19{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.log("Test value displayed in browser");
         cy.get(cesc("#\\/_p1")).should(
             "have.text",
-            "-11, -12, -13, -14, -15, -16, -17, -18, -19"
+            "-11, -12, -13, -14, -15, -16, -17, -18, -19",
         );
 
         cy.log("Test internal values are set to the correct values");
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_numberlist1"].stateValues.numbers[0]).eq(
-                -11
+                -11,
             );
             expect(stateVariables["/_numberlist1"].stateValues.numbers[1]).eq(
-                -12
+                -12,
             );
             expect(stateVariables["/_numberlist1"].stateValues.numbers[2]).eq(
-                -13
+                -13,
             );
             expect(stateVariables["/_numberlist1"].stateValues.numbers[3]).eq(
-                -14
+                -14,
             );
             expect(stateVariables["/_numberlist1"].stateValues.numbers[4]).eq(
-                -15
+                -15,
             );
             expect(stateVariables["/_numberlist1"].stateValues.numbers[5]).eq(
-                -16
+                -16,
             );
             expect(stateVariables["/_numberlist1"].stateValues.numbers[6]).eq(
-                -17
+                -17,
             );
             expect(stateVariables["/_numberlist1"].stateValues.numbers[7]).eq(
-                -18
+                -18,
             );
             expect(stateVariables["/_numberlist1"].stateValues.numbers[8]).eq(
-                -19
+                -19,
             );
             expect(stateVariables["/_numberlist2"].stateValues.numbers[0]).eq(
-                -12
+                -12,
             );
             expect(stateVariables["/_numberlist2"].stateValues.numbers[1]).eq(
-                -13
+                -13,
             );
             expect(stateVariables["/_numberlist3"].stateValues.numbers[0]).eq(
-                -15
+                -15,
             );
             expect(stateVariables["/_numberlist3"].stateValues.numbers[1]).eq(
-                -16
+                -16,
             );
             expect(stateVariables["/_numberlist3"].stateValues.numbers[2]).eq(
-                -17
+                -17,
             );
             expect(stateVariables["/_numberlist3"].stateValues.numbers[3]).eq(
-                -18
+                -18,
             );
             expect(stateVariables["/_numberlist3"].stateValues.numbers[4]).eq(
-                -19
+                -19,
             );
             expect(stateVariables["/_numberlist4"].stateValues.numbers[0]).eq(
-                -15
+                -15,
             );
             expect(stateVariables["/_numberlist4"].stateValues.numbers[1]).eq(
-                -16
+                -16,
             );
             expect(stateVariables["/_numberlist4"].stateValues.numbers[2]).eq(
-                -17
+                -17,
             );
             expect(stateVariables["/_numberlist5"].stateValues.numbers[0]).eq(
-                -16
+                -16,
             );
             expect(stateVariables["/_numberlist5"].stateValues.numbers[1]).eq(
-                -17
+                -17,
             );
             expect(stateVariables["/_numberlist6"].stateValues.numbers[0]).eq(
-                -18
+                -18,
             );
             expect(stateVariables["/_numberlist6"].stateValues.numbers[1]).eq(
-                -19
+                -19,
             );
         });
     });
@@ -539,7 +539,7 @@ describe("Numberlist Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -548,80 +548,80 @@ describe("Numberlist Tag Tests", function () {
         cy.log("Test value displayed in browser");
         cy.get(cesc("#\\/_p1")).should(
             "have.text",
-            "1, 2, 3, 4, 5, 6, 7, 8, 9"
+            "1, 2, 3, 4, 5, 6, 7, 8, 9",
         );
 
         cy.log("Test internal values are set to the correct values");
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_numberlist1"].stateValues.numbers[0]).eq(
-                1
+                1,
             );
             expect(stateVariables["/_numberlist1"].stateValues.numbers[1]).eq(
-                2
+                2,
             );
             expect(stateVariables["/_numberlist1"].stateValues.numbers[2]).eq(
-                3
+                3,
             );
             expect(stateVariables["/_numberlist1"].stateValues.numbers[3]).eq(
-                4
+                4,
             );
             expect(stateVariables["/_numberlist1"].stateValues.numbers[4]).eq(
-                5
+                5,
             );
             expect(stateVariables["/_numberlist1"].stateValues.numbers[5]).eq(
-                6
+                6,
             );
             expect(stateVariables["/_numberlist1"].stateValues.numbers[6]).eq(
-                7
+                7,
             );
             expect(stateVariables["/_numberlist1"].stateValues.numbers[7]).eq(
-                8
+                8,
             );
             expect(stateVariables["/_numberlist1"].stateValues.numbers[8]).eq(
-                9
+                9,
             );
             expect(stateVariables["/_numberlist2"].stateValues.numbers[0]).eq(
-                2
+                2,
             );
             expect(stateVariables["/_numberlist2"].stateValues.numbers[1]).eq(
-                3
+                3,
             );
             expect(stateVariables["/_numberlist3"].stateValues.numbers[0]).eq(
-                5
+                5,
             );
             expect(stateVariables["/_numberlist3"].stateValues.numbers[1]).eq(
-                6
+                6,
             );
             expect(stateVariables["/_numberlist3"].stateValues.numbers[2]).eq(
-                7
+                7,
             );
             expect(stateVariables["/_numberlist3"].stateValues.numbers[3]).eq(
-                8
+                8,
             );
             expect(stateVariables["/_numberlist3"].stateValues.numbers[4]).eq(
-                9
+                9,
             );
             expect(stateVariables["/_numberlist4"].stateValues.numbers[0]).eq(
-                5
+                5,
             );
             expect(stateVariables["/_numberlist4"].stateValues.numbers[1]).eq(
-                6
+                6,
             );
             expect(stateVariables["/_numberlist4"].stateValues.numbers[2]).eq(
-                7
+                7,
             );
             expect(stateVariables["/_numberlist5"].stateValues.numbers[0]).eq(
-                6
+                6,
             );
             expect(stateVariables["/_numberlist5"].stateValues.numbers[1]).eq(
-                7
+                7,
             );
             expect(stateVariables["/_numberlist6"].stateValues.numbers[0]).eq(
-                8
+                8,
             );
             expect(stateVariables["/_numberlist6"].stateValues.numbers[1]).eq(
-                9
+                9,
             );
         });
 
@@ -629,118 +629,118 @@ describe("Numberlist Tag Tests", function () {
 
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             "{end}{backspace}-11{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/_mathinput2") + " textarea").type(
             "{end}{backspace}-12{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/_mathinput3") + " textarea").type(
             "{end}{backspace}-13{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/_mathinput4") + " textarea").type(
             "{end}{backspace}-14{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/_mathinput5") + " textarea").type(
             "{end}{backspace}-15{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/_mathinput6") + " textarea").type(
             "{end}{backspace}-16{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/_mathinput7") + " textarea").type(
             "{end}{backspace}-17{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/_mathinput8") + " textarea").type(
             "{end}{backspace}-18{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/_mathinput9") + " textarea").type(
             "{end}{backspace}-19{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.log("Test value displayed in browser");
         cy.get(cesc("#\\/_p1")).should(
             "have.text",
-            "-11, -12, -13, -14, -15, -16, -17, -18, -19"
+            "-11, -12, -13, -14, -15, -16, -17, -18, -19",
         );
 
         cy.log("Test internal values are set to the correct values");
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_numberlist1"].stateValues.numbers[0]).eq(
-                -11
+                -11,
             );
             expect(stateVariables["/_numberlist1"].stateValues.numbers[1]).eq(
-                -12
+                -12,
             );
             expect(stateVariables["/_numberlist1"].stateValues.numbers[2]).eq(
-                -13
+                -13,
             );
             expect(stateVariables["/_numberlist1"].stateValues.numbers[3]).eq(
-                -14
+                -14,
             );
             expect(stateVariables["/_numberlist1"].stateValues.numbers[4]).eq(
-                -15
+                -15,
             );
             expect(stateVariables["/_numberlist1"].stateValues.numbers[5]).eq(
-                -16
+                -16,
             );
             expect(stateVariables["/_numberlist1"].stateValues.numbers[6]).eq(
-                -17
+                -17,
             );
             expect(stateVariables["/_numberlist1"].stateValues.numbers[7]).eq(
-                -18
+                -18,
             );
             expect(stateVariables["/_numberlist1"].stateValues.numbers[8]).eq(
-                -19
+                -19,
             );
             expect(stateVariables["/_numberlist2"].stateValues.numbers[0]).eq(
-                -12
+                -12,
             );
             expect(stateVariables["/_numberlist2"].stateValues.numbers[1]).eq(
-                -13
+                -13,
             );
             expect(stateVariables["/_numberlist3"].stateValues.numbers[0]).eq(
-                -15
+                -15,
             );
             expect(stateVariables["/_numberlist3"].stateValues.numbers[1]).eq(
-                -16
+                -16,
             );
             expect(stateVariables["/_numberlist3"].stateValues.numbers[2]).eq(
-                -17
+                -17,
             );
             expect(stateVariables["/_numberlist3"].stateValues.numbers[3]).eq(
-                -18
+                -18,
             );
             expect(stateVariables["/_numberlist3"].stateValues.numbers[4]).eq(
-                -19
+                -19,
             );
             expect(stateVariables["/_numberlist4"].stateValues.numbers[0]).eq(
-                -15
+                -15,
             );
             expect(stateVariables["/_numberlist4"].stateValues.numbers[1]).eq(
-                -16
+                -16,
             );
             expect(stateVariables["/_numberlist4"].stateValues.numbers[2]).eq(
-                -17
+                -17,
             );
             expect(stateVariables["/_numberlist5"].stateValues.numbers[0]).eq(
-                -16
+                -16,
             );
             expect(stateVariables["/_numberlist5"].stateValues.numbers[1]).eq(
-                -17
+                -17,
             );
             expect(stateVariables["/_numberlist6"].stateValues.numbers[0]).eq(
-                -18
+                -18,
             );
             expect(stateVariables["/_numberlist6"].stateValues.numbers[1]).eq(
-                -19
+                -19,
             );
         });
     });
@@ -782,7 +782,7 @@ describe("Numberlist Tag Tests", function () {
     <mathinput bindValueTo="$(_numberlist1.number12)"/>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -800,14 +800,14 @@ describe("Numberlist Tag Tests", function () {
             let mathinputAnchors = [];
             for (let i in mapping) {
                 mathinputAnchors.push(
-                    cesc(`#\\/_mathinput${Number(i) + 1}`) + ` textarea`
+                    cesc(`#\\/_mathinput${Number(i) + 1}`) + ` textarea`,
                 );
             }
 
             cy.log("Test value displayed in browser");
             cy.get(cesc("#\\/_p1")).should(
                 "have.text",
-                mapping.map((x) => vals[x]).join(", ")
+                mapping.map((x) => vals[x]).join(", "),
             );
 
             cy.log("Test internal values are set to the correct values");
@@ -826,17 +826,17 @@ describe("Numberlist Tag Tests", function () {
                         "{ctrl+home}{shift+end}{backspace}" +
                             (100 + Number(changeInd)) +
                             "{enter}",
-                        { force: true }
+                        { force: true },
                     );
 
                     cy.log("Test value displayed in browser");
                     cy.get(cesc("#\\/_p1")).should(
                         "have.text",
-                        mapping.map((x) => vals[x]).join(", ")
+                        mapping.map((x) => vals[x]).join(", "),
                     );
 
                     cy.log(
-                        "Test internal values are set to the correct values"
+                        "Test internal values are set to the correct values",
                     );
                     cy.window().then(async (win) => {
                         let stateVariables =
@@ -872,7 +872,7 @@ describe("Numberlist Tag Tests", function () {
     </numberlist></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -885,82 +885,82 @@ describe("Numberlist Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_numberlist1"].stateValues.numbers.length
+                stateVariables["/_numberlist1"].stateValues.numbers.length,
             ).eq(7);
             expect(stateVariables["/_numberlist1"].stateValues.numbers[0]).eq(
-                1
+                1,
             );
             expect(stateVariables["/_numberlist1"].stateValues.numbers[1]).eq(
-                2
+                2,
             );
             expect(stateVariables["/_numberlist1"].stateValues.numbers[2]).eq(
-                3
+                3,
             );
             expect(stateVariables["/_numberlist1"].stateValues.numbers[3]).eq(
-                6
+                6,
             );
             expect(stateVariables["/_numberlist1"].stateValues.numbers[4]).eq(
-                7
+                7,
             );
             expect(stateVariables["/_numberlist1"].stateValues.numbers[5]).eq(
-                8
+                8,
             );
             expect(stateVariables["/_numberlist1"].stateValues.numbers[6]).eq(
-                10
+                10,
             );
             expect(
-                stateVariables["/_numberlist2"].stateValues.numbers.length
+                stateVariables["/_numberlist2"].stateValues.numbers.length,
             ).eq(2);
             expect(stateVariables["/_numberlist2"].stateValues.numbers[0]).eq(
-                2
+                2,
             );
             expect(stateVariables["/_numberlist2"].stateValues.numbers[1]).eq(
-                3
+                3,
             );
             expect(
-                stateVariables["/_numberlist3"].stateValues.numbers.length
+                stateVariables["/_numberlist3"].stateValues.numbers.length,
             ).eq(4);
             expect(stateVariables["/_numberlist3"].stateValues.numbers[0]).eq(
-                7
+                7,
             );
             expect(stateVariables["/_numberlist3"].stateValues.numbers[1]).eq(
-                8
+                8,
             );
             expect(stateVariables["/_numberlist3"].stateValues.numbers[2]).eq(
-                10
+                10,
             );
             expect(stateVariables["/_numberlist3"].stateValues.numbers[3]).eq(
-                11
+                11,
             );
             expect(
-                stateVariables["/_numberlist4"].stateValues.numbers.length
+                stateVariables["/_numberlist4"].stateValues.numbers.length,
             ).eq(2);
             expect(stateVariables["/_numberlist4"].stateValues.numbers[0]).eq(
-                7
+                7,
             );
             expect(stateVariables["/_numberlist4"].stateValues.numbers[1]).eq(
-                8
+                8,
             );
             expect(
-                stateVariables["/_numberlist5"].stateValues.numbers.length
+                stateVariables["/_numberlist5"].stateValues.numbers.length,
             ).eq(2);
             expect(stateVariables["/_numberlist5"].stateValues.numbers[0]).eq(
-                8
+                8,
             );
             expect(stateVariables["/_numberlist5"].stateValues.numbers[1]).eq(
-                9
+                9,
             );
             expect(
-                stateVariables["/_numberlist6"].stateValues.numbers.length
+                stateVariables["/_numberlist6"].stateValues.numbers.length,
             ).eq(3);
             expect(stateVariables["/_numberlist6"].stateValues.numbers[0]).eq(
-                10
+                10,
             );
             expect(stateVariables["/_numberlist6"].stateValues.numbers[1]).eq(
-                11
+                11,
             );
             expect(stateVariables["/_numberlist6"].stateValues.numbers[2]).eq(
-                12
+                12,
             );
         });
     });
@@ -978,7 +978,7 @@ describe("Numberlist Tag Tests", function () {
 
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1075,7 +1075,7 @@ describe("Numberlist Tag Tests", function () {
   <p name="pcopynlml">$nlml</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1169,7 +1169,7 @@ describe("Numberlist Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1190,25 +1190,25 @@ describe("Numberlist Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
 
             expect(
-                stateVariables["/numberlist1"].stateValues.numbers.length
+                stateVariables["/numberlist1"].stateValues.numbers.length,
             ).eq(3);
             expect(stateVariables["/numberlist1"].stateValues.numbers[0]).eq(1);
             expect(stateVariables["/numberlist1"].stateValues.numbers[1]).eq(2);
             expect(stateVariables["/numberlist1"].stateValues.numbers[2]).eq(3);
             expect(
-                stateVariables["/numberlist1a"].stateValues.numbers.length
+                stateVariables["/numberlist1a"].stateValues.numbers.length,
             ).eq(3);
             expect(stateVariables["/numberlist1a"].stateValues.numbers[0]).eq(
-                1
+                1,
             );
             expect(stateVariables["/numberlist1a"].stateValues.numbers[1]).eq(
-                2
+                2,
             );
             expect(stateVariables["/numberlist1a"].stateValues.numbers[2]).eq(
-                3
+                3,
             );
             expect(
-                stateVariables["/numberlist2"].stateValues.numbers.length
+                stateVariables["/numberlist2"].stateValues.numbers.length,
             ).eq(8);
             expect(stateVariables["/numberlist2"].stateValues.numbers[0]).eq(4);
             expect(stateVariables["/numberlist2"].stateValues.numbers[1]).eq(1);
@@ -1219,7 +1219,7 @@ describe("Numberlist Tag Tests", function () {
             expect(stateVariables["/numberlist2"].stateValues.numbers[6]).eq(2);
             expect(stateVariables["/numberlist2"].stateValues.numbers[7]).eq(3);
             expect(
-                stateVariables["/numberlist3"].stateValues.numbers.length
+                stateVariables["/numberlist3"].stateValues.numbers.length,
             ).eq(6);
             expect(stateVariables["/numberlist3"].stateValues.numbers[0]).eq(4);
             expect(stateVariables["/numberlist3"].stateValues.numbers[1]).eq(1);
@@ -1245,7 +1245,7 @@ describe("Numberlist Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1255,22 +1255,22 @@ describe("Numberlist Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
 
             let numbers1 = stateVariables["/_numberlist1"].activeChildren.map(
-                (x) => x.componentName
+                (x) => x.componentName,
             );
             let numbers2 = stateVariables["/_numberlist2"].activeChildren.map(
-                (x) => x.componentName
+                (x) => x.componentName,
             );
             let numbers3 = stateVariables["/_numberlist3"].activeChildren.map(
-                (x) => x.componentName
+                (x) => x.componentName,
             );
             let numbers4 = stateVariables["/_numberlist4"].activeChildren.map(
-                (x) => x.componentName
+                (x) => x.componentName,
             );
             let numbers5 = stateVariables["/_numberlist5"].activeChildren.map(
-                (x) => x.componentName
+                (x) => x.componentName,
             );
             let numbers6 = stateVariables["/_numberlist6"].activeChildren.map(
-                (x) => x.componentName
+                (x) => x.componentName,
             );
 
             cy.get(cesc2("#" + numbers1[0])).should("have.text", "2345");
@@ -1278,7 +1278,7 @@ describe("Numberlist Tag Tests", function () {
             cy.get(cesc2("#" + numbers1[2])).should("have.text", "0.5");
             cy.get(cesc2("#" + numbers1[3])).should(
                 "have.text",
-                "5.252 * 10^(-13)"
+                "5.252 * 10^(-13)",
             );
             cy.get(cesc2("#" + numbers1[4])).should("have.text", "0");
 
@@ -1287,7 +1287,7 @@ describe("Numberlist Tag Tests", function () {
             cy.get(cesc2("#" + numbers2[2])).should("have.text", "0.5000");
             cy.get(cesc2("#" + numbers2[3])).should(
                 "have.text",
-                "5.252 * 10^(-13)"
+                "5.252 * 10^(-13)",
             );
             cy.get(cesc2("#" + numbers2[4])).should("have.text", "0.000");
 
@@ -1308,11 +1308,11 @@ describe("Numberlist Tag Tests", function () {
             cy.get(cesc2("#" + numbers5[2])).should("have.text", "0.5");
             cy.get(cesc2("#" + numbers5[3])).should(
                 "have.text",
-                "5.252 * 10^(-13)"
+                "5.252 * 10^(-13)",
             );
             cy.get(cesc2("#" + numbers5[4])).should(
                 "have.text",
-                "6 * 10^(-21)"
+                "6 * 10^(-21)",
             );
 
             cy.get(cesc2("#" + numbers6[0])).should("have.text", "2345");
@@ -1320,11 +1320,11 @@ describe("Numberlist Tag Tests", function () {
             cy.get(cesc2("#" + numbers6[2])).should("have.text", "0.5000");
             cy.get(cesc2("#" + numbers6[3])).should(
                 "have.text",
-                "5.252 * 10^(-13)"
+                "5.252 * 10^(-13)",
             );
             cy.get(cesc2("#" + numbers6[4])).should(
                 "have.text",
-                "6.000 * 10^(-21)"
+                "6.000 * 10^(-21)",
             );
         });
     });
@@ -1379,7 +1379,7 @@ describe("Numberlist Tag Tests", function () {
     </numberList></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1389,22 +1389,22 @@ describe("Numberlist Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
 
             let numbers1 = stateVariables["/ml1"].activeChildren.map(
-                (x) => x.componentName
+                (x) => x.componentName,
             );
             let numbers2 = stateVariables["/ml2"].activeChildren.map(
-                (x) => x.componentName
+                (x) => x.componentName,
             );
             let numbers3 = stateVariables["/ml3"].activeChildren.map(
-                (x) => x.componentName
+                (x) => x.componentName,
             );
             let numbers5 = stateVariables["/ml5"].activeChildren.map(
-                (x) => x.componentName
+                (x) => x.componentName,
             );
             let numbers6 = stateVariables["/ml6"].activeChildren.map(
-                (x) => x.componentName
+                (x) => x.componentName,
             );
             let numbers9 = stateVariables["/ml9"].activeChildren.map(
-                (x) => x.componentName
+                (x) => x.componentName,
             );
 
             cy.get(cesc2("#" + numbers1[0])).should("have.text", "2345.15");
@@ -1442,11 +1442,11 @@ describe("Numberlist Tag Tests", function () {
             cy.get(cesc2("#" + numbers9[2])).should("have.text", "5");
             cy.get(cesc2("#" + numbers9[3])).should(
                 "have.text",
-                "5.252 * 10^(-16)"
+                "5.252 * 10^(-16)",
             );
             cy.get(cesc2("#" + numbers9[4])).should(
                 "have.text",
-                "6 * 10^(-21)"
+                "6 * 10^(-21)",
             );
         });
     });
@@ -1501,7 +1501,7 @@ describe("Numberlist Tag Tests", function () {
     </numberList></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1558,7 +1558,7 @@ describe("Numberlist Tag Tests", function () {
     <p><numberList name="ml1Dec6a" copySource="ml1Dig6" displayDecimals="6" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1571,11 +1571,11 @@ describe("Numberlist Tag Tests", function () {
 
         cy.get(cesc("#\\/ml1Dec6")).should(
             "have.text",
-            "34.245023, 245.238234"
+            "34.245023, 245.238234",
         );
         cy.get(cesc("#\\/ml1Dec6a")).should(
             "have.text",
-            "34.245023, 245.238234"
+            "34.245023, 245.238234",
         );
     });
 
@@ -1592,7 +1592,7 @@ describe("Numberlist Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1637,7 +1637,7 @@ describe("Numberlist Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1658,7 +1658,7 @@ describe("Numberlist Tag Tests", function () {
 
         cy.get(cesc2("#/mi2") + " textarea").type(
             "{end}{leftarrow}{backspace}{backspace}{backspace}-1,2{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc2("#/nl")).should("have.text", "-1, 83, 2");

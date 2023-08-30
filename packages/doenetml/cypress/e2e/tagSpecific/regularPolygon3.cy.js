@@ -310,7 +310,7 @@ describe("Regular Polygon Tag Tests 3", function () {
   <p name="pvert">two vertices: $p.vertex1 $p.vertex2</p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -327,7 +327,7 @@ describe("Regular Polygon Tag Tests 3", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/p"].stateValues.draggable).eq(false);
             expect(stateVariables["/p"].stateValues.verticesDraggable).eq(
-                false
+                false,
             );
         });
 
@@ -360,7 +360,7 @@ describe("Regular Polygon Tag Tests 3", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/p"].stateValues.draggable).eq(false);
             expect(stateVariables["/p"].stateValues.verticesDraggable).eq(
-                false
+                false,
             );
         });
 
@@ -397,7 +397,7 @@ describe("Regular Polygon Tag Tests 3", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/p"].stateValues.draggable).eq(false);
             expect(stateVariables["/p"].stateValues.verticesDraggable).eq(
-                false
+                false,
             );
         });
 
@@ -419,7 +419,7 @@ describe("Regular Polygon Tag Tests 3", function () {
 
         cy.get(cesc("#\\/pvert") + " .mjx-mrow").should(
             "contain.text",
-            "(4,7)"
+            "(4,7)",
         );
 
         cy.get(cesc("#\\/d2")).should("have.text", "false");
@@ -486,7 +486,7 @@ describe("Regular Polygon Tag Tests 3", function () {
 
         cy.get(cesc("#\\/pvert") + " .mjx-mrow").should(
             "contain.text",
-            "(−3,2)"
+            "(−3,2)",
         );
 
         cy.get(cesc("#\\/d2")).should("have.text", "true");
@@ -519,7 +519,7 @@ describe("Regular Polygon Tag Tests 3", function () {
 
         cy.get(cesc("#\\/pvert") + " .mjx-mrow").should(
             "contain.text",
-            "(3,8)"
+            "(3,8)",
         );
 
         cy.get(cesc("#\\/d2")).should("have.text", "true");
@@ -572,7 +572,7 @@ describe("Regular Polygon Tag Tests 3", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/p"].stateValues.draggable).eq(true);
             expect(stateVariables["/p"].stateValues.verticesDraggable).eq(
-                false
+                false,
             );
         });
 
@@ -593,7 +593,7 @@ describe("Regular Polygon Tag Tests 3", function () {
 
         cy.get(cesc("#\\/pvert") + " .mjx-mrow").should(
             "contain.text",
-            "(−4,1)"
+            "(−4,1)",
         );
 
         cy.get(cesc("#\\/d2")).should("have.text", "true");
@@ -610,7 +610,7 @@ describe("Regular Polygon Tag Tests 3", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/p"].stateValues.draggable).eq(true);
             expect(stateVariables["/p"].stateValues.verticesDraggable).eq(
-                false
+                false,
             );
         });
     });
@@ -632,7 +632,7 @@ describe("Regular Polygon Tag Tests 3", function () {
   <p name="pvert">First two vertices: $p.vertex1{assignNames="v1"} $p.vertex2{assignNames="v2" displaySmallAsZero}</p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -696,7 +696,7 @@ describe("Regular Polygon Tag Tests 3", function () {
   <p name="pcenter">Center: $p.center{assignNames="c"}</p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -760,7 +760,7 @@ describe("Regular Polygon Tag Tests 3", function () {
   <p name="pcenter">Center: $p.center{assignNames="c"}</p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 

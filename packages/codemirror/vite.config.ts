@@ -15,6 +15,6 @@ export default defineConfig({
         },
         rollupOptions: {
             external: ["react", "react-dom", "styled-components"],
-        }
+        },
     },
 });

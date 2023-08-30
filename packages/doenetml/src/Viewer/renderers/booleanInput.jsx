@@ -163,7 +163,7 @@ export default React.memo(function BooleanInput(props) {
         jsxInputAttributes.anchor = newAnchorPointJXG;
 
         let { anchorx, anchory } = getPositionFromAnchorByCoordinate(
-            SVs.positionFromAnchor
+            SVs.positionFromAnchor,
         );
         jsxInputAttributes.anchorx = anchorx;
         jsxInputAttributes.anchory = anchory;
@@ -172,11 +172,11 @@ export default React.memo(function BooleanInput(props) {
         let newInputJXG = board.create(
             "checkbox",
             [0, 0, SVs.label],
-            jsxInputAttributes
+            jsxInputAttributes,
         );
         newInputJXG.rendNodeCheckbox.addEventListener(
             "change",
-            onChangeHandler
+            onChangeHandler,
         );
 
         newInputJXG.isDraggable = !fixLocation.current;
@@ -290,11 +290,11 @@ export default React.memo(function BooleanInput(props) {
 
             calculatedX.current = Math.min(
                 xmaxAdjusted,
-                Math.max(xminAdjusted, calculatedX.current)
+                Math.max(xminAdjusted, calculatedX.current),
             );
             calculatedY.current = Math.min(
                 ymaxAdjusted,
-                Math.max(yminAdjusted, calculatedY.current)
+                Math.max(yminAdjusted, calculatedY.current),
             );
 
             callAction({
@@ -309,11 +309,11 @@ export default React.memo(function BooleanInput(props) {
 
             newInputJXG.relativeCoords.setCoordinates(
                 JXG.COORDS_BY_USER,
-                [0, 0]
+                [0, 0],
             );
             newAnchorPointJXG.coords.setCoordinates(
                 JXG.COORDS_BY_USER,
-                lastPositionFromCore.current
+                lastPositionFromCore.current,
             );
         });
 
@@ -354,7 +354,7 @@ export default React.memo(function BooleanInput(props) {
     function deleteInputJXG() {
         inputJXG.current.rendNodeCheckbox.removeEventListener(
             "change",
-            onChangeHandler
+            onChangeHandler,
         );
         inputJXG.current.off("drag");
         inputJXG.current.off("down");
@@ -389,11 +389,11 @@ export default React.memo(function BooleanInput(props) {
 
             inputJXG.current.relativeCoords.setCoordinates(
                 JXG.COORDS_BY_USER,
-                [0, 0]
+                [0, 0],
             );
             anchorPointJXG.current.coords.setCoordinates(
                 JXG.COORDS_BY_USER,
-                anchorCoords
+                anchorCoords,
             );
 
             inputJXG.current.setText(SVs.label);
@@ -432,7 +432,7 @@ export default React.memo(function BooleanInput(props) {
 
             if (SVs.positionFromAnchor !== previousPositionFromAnchor.current) {
                 let { anchorx, anchory } = getPositionFromAnchorByCoordinate(
-                    SVs.positionFromAnchor
+                    SVs.positionFromAnchor,
                 );
                 inputJXG.current.visProp.anchorx = anchorx;
                 inputJXG.current.visProp.anchory = anchory;
@@ -484,7 +484,7 @@ export default React.memo(function BooleanInput(props) {
         if (validationState === "unvalidated") {
             if (disabled) {
                 checkWorkStyle.backgroundColor = getComputedStyle(
-                    document.documentElement
+                    document.documentElement,
                 ).getPropertyValue("--mainGray");
                 checkWorkStyle.cursor = "not-allowed";
             }
@@ -523,7 +523,7 @@ export default React.memo(function BooleanInput(props) {
             if (SVs.showCorrectness) {
                 if (validationState === "correct") {
                     checkWorkStyle.backgroundColor = getComputedStyle(
-                        document.documentElement
+                        document.documentElement,
                     ).getPropertyValue("--mainGreen");
                     checkWorkButton = (
                         <Button id={id + "_correct"} style={checkWorkStyle}>
@@ -546,7 +546,7 @@ export default React.memo(function BooleanInput(props) {
                 } else {
                     //incorrect
                     checkWorkStyle.backgroundColor = getComputedStyle(
-                        document.documentElement
+                        document.documentElement,
                     ).getPropertyValue("--mainRed");
                     checkWorkButton = (
                         <Button id={id + "_incorrect"} style={checkWorkStyle}>

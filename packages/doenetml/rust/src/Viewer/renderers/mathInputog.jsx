@@ -67,7 +67,7 @@ export default class MathInput extends DoenetRenderer {
             this.latexValue = this.doenetSvData.rawRendererValue;
         } else {
             this.latexValue = stripLatex(
-                this.doenetSvData.valueForDisplay.toLatex()
+                this.doenetSvData.valueForDisplay.toLatex(),
             );
             this.actions.updateRawValue({
                 rawRendererValue: this.latexValue,
@@ -144,7 +144,7 @@ export default class MathInput extends DoenetRenderer {
 
         let actuallyUpdate =
             !newMathExpression.equalsViaSyntax(
-                currentMathExpressionNormalized
+                currentMathExpressionNormalized,
             ) ||
             (!this.latexValueSetInRender && text !== this.latexValue);
 
@@ -216,7 +216,7 @@ export default class MathInput extends DoenetRenderer {
         // this.latexValueToRevertTo = this.latexValue;
         if (
             !this.doenetSvData.value.equalsViaSyntax(
-                this.doenetSvData.immediateValue
+                this.doenetSvData.immediateValue,
             )
         ) {
             await this.actions.updateValue();
@@ -259,7 +259,7 @@ export default class MathInput extends DoenetRenderer {
         // this.latexValueToRevertTo = this.latexValue;
         if (
             !this.doenetSvData.value.equalsViaSyntax(
-                this.doenetSvData.immediateValue
+                this.doenetSvData.immediateValue,
             )
         ) {
             await this.actions.updateValue();
@@ -295,7 +295,7 @@ export default class MathInput extends DoenetRenderer {
 
         if (
             !this.valueForDisplayToRevertTo.equalsViaSyntax(
-                this.doenetSvData.valueForDisplay
+                this.doenetSvData.valueForDisplay,
             )
         ) {
             // The valueForDisplay coming from the mathInput component
@@ -377,7 +377,7 @@ export default class MathInput extends DoenetRenderer {
                         //partial credit
 
                         let percent = Math.round(
-                            this.doenetSvData.creditAchieved * 100
+                            this.doenetSvData.creditAchieved * 100,
                         );
                         let partialCreditContents = `${percent} %`;
                         checkWorkStyle.width = "50px";

@@ -82,14 +82,14 @@ export default class Map extends CompositeComponent {
                     setValue: {
                         numSources: dependencyValues.sourcesChildren.length,
                         sourcesNames: dependencyValues.sourcesChildren.map(
-                            (x) => x.componentName
+                            (x) => x.componentName,
                         ),
                         sourceAliases: dependencyValues.sourcesChildren.map(
-                            (x) => x.stateValues.alias
+                            (x) => x.stateValues.alias,
                         ),
                         sourceIndexAliases:
                             dependencyValues.sourcesChildren.map(
-                                (x) => x.stateValues.indexAlias
+                                (x) => x.stateValues.indexAlias,
                             ),
                     },
                 };
@@ -110,14 +110,14 @@ export default class Map extends CompositeComponent {
             }),
             definition: function ({ dependencyValues }) {
                 let numIterates = dependencyValues.sourcesChildren.map(
-                    (x) => x.stateValues.numChildren
+                    (x) => x.stateValues.numChildren,
                 );
 
                 // calculate scalar minNIterates, a scalar holding the minimum value
                 let minNIterates = Math.min(...numIterates);
 
                 let sourcesChildNames = dependencyValues.sourcesChildren.map(
-                    (x) => [...x.stateValues.childComponentNames]
+                    (x) => [...x.stateValues.childComponentNames],
                 );
 
                 return {
@@ -245,7 +245,7 @@ export default class Map extends CompositeComponent {
                 variantDescendants: {
                     dependencyType: "descendant",
                     componentTypes: Object.keys(
-                        componentInfoObjects.componentTypesCreatingVariants
+                        componentInfoObjects.componentTypesCreatingVariants,
                     ),
                     variableNames: [
                         "isVariantComponent",
@@ -270,12 +270,12 @@ export default class Map extends CompositeComponent {
                 for (let descendant of dependencyValues.variantDescendants) {
                     if (descendant.stateValues.isVariantComponent) {
                         subvariants.push(
-                            descendant.stateValues.generatedVariantInfo
+                            descendant.stateValues.generatedVariantInfo,
                         );
                     } else if (descendant.stateValues.generatedVariantInfo) {
                         subvariants.push(
                             ...descendant.stateValues.generatedVariantInfo
-                                .subvariants
+                                .subvariants,
                         );
                     }
                 }
@@ -410,7 +410,7 @@ export default class Map extends CompositeComponent {
         await addSharedParameters(
             replacements[0],
             component,
-            Array(await component.stateValues.numSources).fill(iter)
+            Array(await component.stateValues.numSources).fill(iter),
         );
 
         return { replacements, errors, warnings };
@@ -462,7 +462,7 @@ export default class Map extends CompositeComponent {
 
                 Object.assign(
                     serializedComponents[0].attributes,
-                    attributesFromComposite
+                    attributesFromComposite,
                 );
 
                 if (
@@ -471,7 +471,7 @@ export default class Map extends CompositeComponent {
                     serializedComponents[0].children
                 ) {
                     markToCreateAllUniqueNames(
-                        serializedComponents[0].children
+                        serializedComponents[0].children,
                     );
                 }
 
@@ -491,7 +491,7 @@ export default class Map extends CompositeComponent {
                 await addSharedParameters(
                     thisRepl,
                     component,
-                    newChildnumberArray
+                    newChildnumberArray,
                 );
 
                 replacements.push(thisRepl);
@@ -708,7 +708,7 @@ export default class Map extends CompositeComponent {
             // delete all the extra replacements
             let firstReplacementToDelete = Math.min(
                 currentMinNIterates,
-                prevMinNIterates
+                prevMinNIterates,
             );
             let numberReplacementsToDelete =
                 component.replacements.length - firstReplacementToDelete;
@@ -748,7 +748,7 @@ export default class Map extends CompositeComponent {
                     }
                     withheldNames = new Set([
                         ...lrp.sourcesChildNames[ind].slice(
-                            currentMinNIterates
+                            currentMinNIterates,
                         ),
                         ...withheldNames,
                     ]);

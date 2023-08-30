@@ -26,7 +26,7 @@ describe("Sort Tag Tests", function () {
   </aslist>
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
@@ -115,7 +115,7 @@ describe("Sort Tag Tests", function () {
             expect(stateVariables["/x6"].stateValues.value).eqls(1);
             expect(stateVariables["/x7"].stateValues.value).closeTo(
                 Math.sqrt(2),
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/x8"].stateValues.value).eqls([
                 "apply",
@@ -152,7 +152,7 @@ describe("Sort Tag Tests", function () {
   </aslist>
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
@@ -205,7 +205,7 @@ describe("Sort Tag Tests", function () {
         cy.log("change first value");
         cy.get(cesc("#\\/m1") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}-5{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/x2")).should("contain.text", "−5");
@@ -255,7 +255,7 @@ describe("Sort Tag Tests", function () {
         cy.log("change second value");
         cy.get(cesc("#\\/m2") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}e^5{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/x4")).should("have.text", "70");
@@ -304,7 +304,7 @@ describe("Sort Tag Tests", function () {
             "{end}{backspace}-100{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/x5")).should("have.text", "70");
@@ -351,7 +351,7 @@ describe("Sort Tag Tests", function () {
         cy.log("change fourth value");
         cy.get(cesc("#\\/m4") + " textarea").type(
             "{end}{backspace}{backspace}0{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/x4")).should("have.text", "0");
@@ -430,7 +430,7 @@ describe("Sort Tag Tests", function () {
   </aslist>
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
@@ -519,7 +519,7 @@ describe("Sort Tag Tests", function () {
             expect(stateVariables["/x6"].stateValues.value).eqls(1);
             expect(stateVariables["/x7"].stateValues.value).closeTo(
                 Math.sqrt(2),
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/x8"].stateValues.value).eqls([
                 "apply",
@@ -551,7 +551,7 @@ describe("Sort Tag Tests", function () {
   <sort assignNames="P1 P2 P3 P4 P5">$A$B$C$D$E</sort>
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
@@ -833,7 +833,7 @@ describe("Sort Tag Tests", function () {
   <sort assignNames="Pu1 Pu2 Pu3 Pu4 Pu5" sortByComponent="3">$A$B$C$D$E</sort>
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
@@ -1017,7 +1017,7 @@ describe("Sort Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
@@ -1474,7 +1474,7 @@ describe("Sort Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
@@ -1516,7 +1516,7 @@ describe("Sort Tag Tests", function () {
 
         cy.get(cesc("#\\/P5") + " .mjx-mrow").should(
             "contain.text",
-            "(a,b,c,d)"
+            "(a,b,c,d)",
         );
 
         cy.get(cesc("#\\/P1") + " .mjx-mrow")
@@ -1552,7 +1552,7 @@ describe("Sort Tag Tests", function () {
 
         cy.get(cesc("#\\/cs") + " textarea").type(
             "{ctrl+home}{shift+ctrl+end}{backspace}(3,4,5){enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/P4") + " .mjx-mrow").should("contain.text", "(3,4,5)");
@@ -1609,7 +1609,7 @@ describe("Sort Tag Tests", function () {
   </aslist>
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
@@ -1641,7 +1641,7 @@ describe("Sort Tag Tests", function () {
             expect(stateVariables["/x9"].stateValues.value).eq("mango");
             expect(stateVariables["/x10"].stateValues.value).eq("orange");
             expect(stateVariables["/x11"].stateValues.value).eq(
-                "passion fruit"
+                "passion fruit",
             );
             expect(stateVariables["/x12"].stateValues.value).eq("pear");
             expect(stateVariables["/x13"].stateValues.value).eq("strawberry");
@@ -1668,7 +1668,7 @@ describe("Sort Tag Tests", function () {
   </aslist>
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
@@ -1725,7 +1725,7 @@ describe("Sort Tag Tests", function () {
   <p name="pNoList"><sort copySource="sh" asList="false" /></p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1749,7 +1749,7 @@ describe("Sort Tag Tests", function () {
   <p name="pNoList"><sort copySource="sh" asList="false" /></p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1777,7 +1777,7 @@ describe("Sort Tag Tests", function () {
   <p name="pNoList"><sort copySource="sh" asList="false" /></p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 

@@ -51,7 +51,7 @@ export default React.memo(function orbitalDiagram(props) {
                 orbitalText={row.orbitalText}
                 boxes={row.boxes}
                 name={id}
-            />
+            />,
         );
     }
 
@@ -92,7 +92,7 @@ const OrbitalRow = React.memo(function OrbitalRow({
                 rowNumber={rowNumber}
                 arrows={code}
                 name={name}
-            />
+            />,
         );
     }
 

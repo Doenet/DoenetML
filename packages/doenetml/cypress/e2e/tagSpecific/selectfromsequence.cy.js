@@ -47,7 +47,7 @@ describe("SelectFromSequence Tag Tests", function () {
     </aslist>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -112,7 +112,7 @@ describe("SelectFromSequence Tag Tests", function () {
     </aslist>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -177,7 +177,7 @@ describe("SelectFromSequence Tag Tests", function () {
     </aslist>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -242,7 +242,7 @@ describe("SelectFromSequence Tag Tests", function () {
     </aslist>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -307,7 +307,7 @@ describe("SelectFromSequence Tag Tests", function () {
     </aslist>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -372,7 +372,7 @@ describe("SelectFromSequence Tag Tests", function () {
     </aslist>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -393,7 +393,7 @@ describe("SelectFromSequence Tag Tests", function () {
                             .componentName
                     ].stateValues.value;
                 expect(["c", "d", "e", "f", "g", "h"].includes(letter)).eq(
-                    true
+                    true,
                 );
             }
         });
@@ -429,7 +429,7 @@ describe("SelectFromSequence Tag Tests", function () {
     </aslist>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -489,7 +489,7 @@ describe("SelectFromSequence Tag Tests", function () {
     <p><aslist><selectfromsequence step="2" exclude="0" numToSelect="2" name="sample20" from="-4" to="2" excludecombinations="(-4 -2) (-2 2) (2 -4)" /></aslist></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -517,8 +517,8 @@ describe("SelectFromSequence Tag Tests", function () {
 
                 expect(
                     allowedCombinations.some(
-                        (v) => v[0] === num1 && v[1] === num2
-                    )
+                        (v) => v[0] === num1 && v[1] === num2,
+                    ),
                 ).eq(true);
             }
         });
@@ -560,7 +560,7 @@ describe("SelectFromSequence Tag Tests", function () {
     <p><aslist><selectfromsequence step="2" exclude="0" numToSelect="2" name="sample20" from="-4" to="2" excludecombinations="$ec2 $ec3 $ec4" /></aslist></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -588,8 +588,8 @@ describe("SelectFromSequence Tag Tests", function () {
 
                 expect(
                     allowedCombinations.some(
-                        (v) => v[0] === num1 && v[1] === num2
-                    )
+                        (v) => v[0] === num1 && v[1] === num2,
+                    ),
                 ).eq(true);
             }
         });
@@ -623,7 +623,7 @@ describe("SelectFromSequence Tag Tests", function () {
     <p><aslist><selectfromsequence step="2" exclude="0 3 4 5 6 7 8" numToSelect="2" name="sample20" from="-4" to="2" excludecombinations="(-4 -2) (-2 2) (2 -4)" /></aslist></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -651,8 +651,8 @@ describe("SelectFromSequence Tag Tests", function () {
 
                 expect(
                     allowedCombinations.some(
-                        (v) => v[0] === num1 && v[1] === num2
-                    )
+                        (v) => v[0] === num1 && v[1] === num2,
+                    ),
                 ).eq(true);
             }
         });
@@ -686,7 +686,7 @@ describe("SelectFromSequence Tag Tests", function () {
     <p><aslist><selectfromsequence numToSelect="3" withReplacement name="sample20" from="1" to="3" excludecombinations="(1 1 _) (1 _ 1) (_ 1 1)" /></aslist></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -736,8 +736,8 @@ describe("SelectFromSequence Tag Tests", function () {
 
                 expect(
                     allowedCombinations.some(
-                        (v) => v[0] === num1 && v[1] === num2 && v[2] === num3
-                    )
+                        (v) => v[0] === num1 && v[1] === num2 && v[2] === num3,
+                    ),
                 ).eq(true);
             }
         });
@@ -771,7 +771,7 @@ describe("SelectFromSequence Tag Tests", function () {
     <p><aslist><selectfromsequence numToSelect="3" withReplacement name="sample20" from="1" to="3" excludecombinations="(1 1 _) (1 _ 1) (_ 1 1) (3 1 1) (2 1 1) (1 1 1) (_ 1 1) (_ 1 1) (_ 1 1) (1 1 _) (1 _ 1) (1 1 _) (1 3 1) (1 2 1) (1 1 1)" /></aslist></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -821,8 +821,8 @@ describe("SelectFromSequence Tag Tests", function () {
 
                 expect(
                     allowedCombinations.some(
-                        (v) => v[0] === num1 && v[1] === num2 && v[2] === num3
-                    )
+                        (v) => v[0] === num1 && v[1] === num2 && v[2] === num3,
+                    ),
                 ).eq(true);
             }
         });
@@ -856,7 +856,7 @@ describe("SelectFromSequence Tag Tests", function () {
     <p><aslist><selectfromsequence numToSelect="4" withReplacement name="sample20" from="0" to="3" excludecombinations="(0 _ _ _) (_ 1 _ _) (_ _ 2 _) (_ _ _ 3)" /></aslist></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -923,7 +923,7 @@ describe("SelectFromSequence Tag Tests", function () {
     <p><aslist><selectfromsequence numToSelect="3" name="sample20" from="1" to="3" excludecombinations="(1 _ _) (_ 2 _) (_ _ 3)" /></aslist></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -964,13 +964,13 @@ describe("SelectFromSequence Tag Tests", function () {
     <p><aslist><selectfromsequence numToSelect="3" name="sample1" from="1" to="3" excludecombinations="(1 _ _) (_ 1 _) (_ _ 1)" /></aslist></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get(cesc2("#/_document1")).should(
             "contain.text",
-            "Excluded over 70%"
+            "Excluded over 70%",
         );
         cy.get(cesc2("#/_document1")).should("contain.text", "line 2");
 
@@ -981,7 +981,7 @@ describe("SelectFromSequence Tag Tests", function () {
             expect(errorWarnings.warnings.length).eq(0);
 
             expect(errorWarnings.errors[0].message).contain(
-                "Excluded over 70%"
+                "Excluded over 70%",
             );
             expect(errorWarnings.errors[0].doenetMLrange.lineBegin).eq(2);
             expect(errorWarnings.errors[0].doenetMLrange.charBegin).eq(16);
@@ -1011,7 +1011,7 @@ describe("SelectFromSequence Tag Tests", function () {
     <p><aslist><selectfromsequence numToSelect="10" name="sample10" from="1" to="10" excludecombinations="(1 _ _ _ _ _ _ _ _ _) (_ 2 _ _ _ _ _ _ _ _) (_ _ 3 _ _ _ _ _ _ _) (_ _ _ 4 _ _ _ _ _ _) (_ _ _ _ 5 _ _ _ _ _) (_ _ _ _ _ 6 _ _ _ _) (_ _ _ _ _ _ 7 _ _ _) (_ _ _ _ _ _ _ 8 _ _) (_ _ _ _ _ _ _ _ 9 _) (_ _ _ _ _ _ _ _ _ 10)" /></aslist></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1068,7 +1068,7 @@ describe("SelectFromSequence Tag Tests", function () {
     </aslist>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1153,7 +1153,7 @@ describe("SelectFromSequence Tag Tests", function () {
     <number name="num3">1</number>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1207,7 +1207,7 @@ describe("SelectFromSequence Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1258,7 +1258,7 @@ describe("SelectFromSequence Tag Tests", function () {
     $noresamplep{name="noreresamplep"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1285,49 +1285,49 @@ describe("SelectFromSequence Tag Tests", function () {
             expect(
                 stateVariables[
                     stateVariables["/noresample1"].replacements[0].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eq(num1);
             expect(
                 stateVariables[
                     stateVariables["/noresample2"].replacements[0].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eq(num2);
             expect(
                 stateVariables[
                     stateVariables["/noreresample1"].replacements[0]
                         .componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eq(num1);
             expect(
                 stateVariables[
                     stateVariables["/noreresample2"].replacements[0]
                         .componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eq(num2);
 
             expect(
                 stateVariables[
                     stateVariables["/noresamplelist"].activeChildren[0]
                         .componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eq(num1);
             expect(
                 stateVariables[
                     stateVariables["/noresamplelist"].activeChildren[1]
                         .componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eq(num2);
             expect(
                 stateVariables[
                     stateVariables["/noreresamplelist"].activeChildren[0]
                         .componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eq(num1);
             expect(
                 stateVariables[
                     stateVariables["/noreresamplelist"].activeChildren[1]
                         .componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eq(num2);
 
             expect(
@@ -1336,7 +1336,7 @@ describe("SelectFromSequence Tag Tests", function () {
                         stateVariables["/noresamplep"].activeChildren[0]
                             .componentName
                     ].activeChildren[0].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eq(num1);
             expect(
                 stateVariables[
@@ -1344,7 +1344,7 @@ describe("SelectFromSequence Tag Tests", function () {
                         stateVariables["/noresamplep"].activeChildren[0]
                             .componentName
                     ].activeChildren[1].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eq(num2);
             expect(
                 stateVariables[
@@ -1352,7 +1352,7 @@ describe("SelectFromSequence Tag Tests", function () {
                         stateVariables["/noreresamplep"].activeChildren[0]
                             .componentName
                     ].activeChildren[0].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eq(num1);
             expect(
                 stateVariables[
@@ -1360,7 +1360,7 @@ describe("SelectFromSequence Tag Tests", function () {
                         stateVariables["/noreresamplep"].activeChildren[0]
                             .componentName
                     ].activeChildren[1].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eq(num2);
         });
     });
@@ -1385,7 +1385,7 @@ describe("SelectFromSequence Tag Tests", function () {
     <p>$maxnum2.value{assignNames="maxnum2a"}</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1406,10 +1406,10 @@ describe("SelectFromSequence Tag Tests", function () {
             expect(sample1replacements.length).eq(5);
             expect(sample2replacements.length).eq(2);
             sample1numbers = sample1replacements.map(
-                (x) => stateVariables[x.componentName].stateValues.value
+                (x) => stateVariables[x.componentName].stateValues.value,
             );
             sample2numbers = sample2replacements.map(
-                (x) => stateVariables[x.componentName].stateValues.value
+                (x) => stateVariables[x.componentName].stateValues.value,
             );
 
             for (let num of sample1numbers) {
@@ -1423,21 +1423,21 @@ describe("SelectFromSequence Tag Tests", function () {
         cy.log("Nothing changes when change mathinputs");
         cy.get(cesc("#\\/numToSelect") + " textarea").type(
             `{end}{backspace}7{enter}`,
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/maxnum") + " textarea").type(
             `{end}{backspace}11{enter}`,
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/numToSelect2") + " textarea").type(
             `{end}{backspace}15{enter}`,
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/maxnum2") + " textarea").type(
             `{end}{backspace}{backspace}18{enter}`,
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/maxnum2a")).should("contain.text", "18");
 
@@ -1448,13 +1448,13 @@ describe("SelectFromSequence Tag Tests", function () {
 
             expect(
                 sample1replacements.map(
-                    (x) => stateVariables[x.componentName].stateValues.value
-                )
+                    (x) => stateVariables[x.componentName].stateValues.value,
+                ),
             ).eqls(sample1numbers);
             expect(
                 sample2replacements.map(
-                    (x) => stateVariables[x.componentName].stateValues.value
-                )
+                    (x) => stateVariables[x.componentName].stateValues.value,
+                ),
             ).eqls(sample2numbers);
         });
     });
@@ -1490,7 +1490,7 @@ describe("SelectFromSequence Tag Tests", function () {
     <p>$_mathinput1.value{assignNames="m1"}</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1505,54 +1505,54 @@ describe("SelectFromSequence Tag Tests", function () {
             expect(
                 stateVariables[
                     stateVariables["/p1"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(0);
             expect(
                 stateVariables[
                     stateVariables["/p2"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(0);
             expect(
                 stateVariables[
                     stateVariables["/p3"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(0);
             expect(
                 stateVariables[
                     stateVariables["/p4"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(0);
             expect(
                 stateVariables[
                     stateVariables["/p5"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(0);
             expect(
                 stateVariables[
                     stateVariables["/p6"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(0);
             expect(
                 stateVariables[
                     stateVariables["/p7"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(0);
             expect(
                 stateVariables[
                     stateVariables["/p8"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(0);
             expect(
                 stateVariables[
                     stateVariables["/p9"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(0);
         });
 
         cy.log("sample one variable");
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             `{end}{backspace}1{enter}`,
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/m1")).should("contain.text", "1");
         cy.window().then(async (win) => {
@@ -1562,47 +1562,47 @@ describe("SelectFromSequence Tag Tests", function () {
             expect(
                 stateVariables[
                     stateVariables["/p1"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(1);
             expect(
                 stateVariables[
                     stateVariables["/p2"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(1);
             expect(
                 stateVariables[
                     stateVariables["/p3"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(1);
             expect(
                 stateVariables[
                     stateVariables["/p4"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(1);
             expect(
                 stateVariables[
                     stateVariables["/p5"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(1);
             expect(
                 stateVariables[
                     stateVariables["/p6"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(1);
             expect(
                 stateVariables[
                     stateVariables["/p7"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(1);
             expect(
                 stateVariables[
                     stateVariables["/p8"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(1);
             expect(
                 stateVariables[
                     stateVariables["/p9"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(1);
             for (let ind = 0; ind < 1; ind++) {
                 expect(
@@ -1611,7 +1611,7 @@ describe("SelectFromSequence Tag Tests", function () {
                             stateVariables["/p1"].activeChildren[0]
                                 .componentName
                         ].activeChildren[ind].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(samplednumbers[ind]);
                 expect(
                     stateVariables[
@@ -1619,7 +1619,7 @@ describe("SelectFromSequence Tag Tests", function () {
                             stateVariables["/p2"].activeChildren[0]
                                 .componentName
                         ].activeChildren[ind].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(samplednumbers[ind]);
                 expect(
                     stateVariables[
@@ -1627,7 +1627,7 @@ describe("SelectFromSequence Tag Tests", function () {
                             stateVariables["/p3"].activeChildren[0]
                                 .componentName
                         ].activeChildren[ind].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(samplednumbers[ind]);
                 expect(
                     stateVariables[
@@ -1635,7 +1635,7 @@ describe("SelectFromSequence Tag Tests", function () {
                             stateVariables["/p4"].activeChildren[0]
                                 .componentName
                         ].activeChildren[ind].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(samplednumbers[ind]);
                 expect(
                     stateVariables[
@@ -1643,7 +1643,7 @@ describe("SelectFromSequence Tag Tests", function () {
                             stateVariables["/p5"].activeChildren[0]
                                 .componentName
                         ].activeChildren[ind].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(samplednumbers[ind]);
                 expect(
                     stateVariables[
@@ -1651,7 +1651,7 @@ describe("SelectFromSequence Tag Tests", function () {
                             stateVariables["/p6"].activeChildren[0]
                                 .componentName
                         ].activeChildren[ind].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(samplednumbers[ind]);
                 expect(
                     stateVariables[
@@ -1659,7 +1659,7 @@ describe("SelectFromSequence Tag Tests", function () {
                             stateVariables["/p7"].activeChildren[0]
                                 .componentName
                         ].activeChildren[ind].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(samplednumbers[ind]);
                 expect(
                     stateVariables[
@@ -1667,7 +1667,7 @@ describe("SelectFromSequence Tag Tests", function () {
                             stateVariables["/p8"].activeChildren[0]
                                 .componentName
                         ].activeChildren[ind].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(samplednumbers[ind]);
                 expect(
                     stateVariables[
@@ -1675,7 +1675,7 @@ describe("SelectFromSequence Tag Tests", function () {
                             stateVariables["/p9"].activeChildren[0]
                                 .componentName
                         ].activeChildren[ind].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(samplednumbers[ind]);
             }
         });
@@ -1683,7 +1683,7 @@ describe("SelectFromSequence Tag Tests", function () {
         cy.log("go back to nothing");
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             `{end}{backspace}0{enter}`,
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/m1")).should("contain.text", "0");
         cy.window().then(async (win) => {
@@ -1691,54 +1691,54 @@ describe("SelectFromSequence Tag Tests", function () {
             expect(
                 stateVariables[
                     stateVariables["/p1"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(0);
             expect(
                 stateVariables[
                     stateVariables["/p2"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(0);
             expect(
                 stateVariables[
                     stateVariables["/p3"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(0);
             expect(
                 stateVariables[
                     stateVariables["/p4"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(0);
             expect(
                 stateVariables[
                     stateVariables["/p5"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(0);
             expect(
                 stateVariables[
                     stateVariables["/p6"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(0);
             expect(
                 stateVariables[
                     stateVariables["/p7"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(0);
             expect(
                 stateVariables[
                     stateVariables["/p8"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(0);
             expect(
                 stateVariables[
                     stateVariables["/p9"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(0);
         });
 
         cy.log("get same number back");
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             `{end}{backspace}1{enter}`,
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/m1")).should("contain.text", "1");
         cy.window().then(async (win) => {
@@ -1748,47 +1748,47 @@ describe("SelectFromSequence Tag Tests", function () {
             expect(
                 stateVariables[
                     stateVariables["/p1"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(1);
             expect(
                 stateVariables[
                     stateVariables["/p2"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(1);
             expect(
                 stateVariables[
                     stateVariables["/p3"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(1);
             expect(
                 stateVariables[
                     stateVariables["/p4"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(1);
             expect(
                 stateVariables[
                     stateVariables["/p5"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(1);
             expect(
                 stateVariables[
                     stateVariables["/p6"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(1);
             expect(
                 stateVariables[
                     stateVariables["/p7"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(1);
             expect(
                 stateVariables[
                     stateVariables["/p8"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(1);
             expect(
                 stateVariables[
                     stateVariables["/p9"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(1);
 
             for (let ind = 0; ind < 1; ind++) {
@@ -1798,7 +1798,7 @@ describe("SelectFromSequence Tag Tests", function () {
                             stateVariables["/p1"].activeChildren[0]
                                 .componentName
                         ].activeChildren[ind].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(samplednumbers[ind]);
                 expect(
                     stateVariables[
@@ -1806,7 +1806,7 @@ describe("SelectFromSequence Tag Tests", function () {
                             stateVariables["/p2"].activeChildren[0]
                                 .componentName
                         ].activeChildren[ind].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(samplednumbers[ind]);
                 expect(
                     stateVariables[
@@ -1814,7 +1814,7 @@ describe("SelectFromSequence Tag Tests", function () {
                             stateVariables["/p3"].activeChildren[0]
                                 .componentName
                         ].activeChildren[ind].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(samplednumbers[ind]);
                 expect(
                     stateVariables[
@@ -1822,7 +1822,7 @@ describe("SelectFromSequence Tag Tests", function () {
                             stateVariables["/p4"].activeChildren[0]
                                 .componentName
                         ].activeChildren[ind].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(samplednumbers[ind]);
                 expect(
                     stateVariables[
@@ -1830,7 +1830,7 @@ describe("SelectFromSequence Tag Tests", function () {
                             stateVariables["/p5"].activeChildren[0]
                                 .componentName
                         ].activeChildren[ind].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(samplednumbers[ind]);
                 expect(
                     stateVariables[
@@ -1838,7 +1838,7 @@ describe("SelectFromSequence Tag Tests", function () {
                             stateVariables["/p6"].activeChildren[0]
                                 .componentName
                         ].activeChildren[ind].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(samplednumbers[ind]);
                 expect(
                     stateVariables[
@@ -1846,7 +1846,7 @@ describe("SelectFromSequence Tag Tests", function () {
                             stateVariables["/p7"].activeChildren[0]
                                 .componentName
                         ].activeChildren[ind].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(samplednumbers[ind]);
                 expect(
                     stateVariables[
@@ -1854,7 +1854,7 @@ describe("SelectFromSequence Tag Tests", function () {
                             stateVariables["/p8"].activeChildren[0]
                                 .componentName
                         ].activeChildren[ind].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(samplednumbers[ind]);
                 expect(
                     stateVariables[
@@ -1862,7 +1862,7 @@ describe("SelectFromSequence Tag Tests", function () {
                             stateVariables["/p9"].activeChildren[0]
                                 .componentName
                         ].activeChildren[ind].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(samplednumbers[ind]);
             }
         });
@@ -1870,7 +1870,7 @@ describe("SelectFromSequence Tag Tests", function () {
         cy.log("get two more samples");
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             `{end}{backspace}3{enter}`,
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/m1")).should("contain.text", "3");
         cy.window().then(async (win) => {
@@ -1884,47 +1884,47 @@ describe("SelectFromSequence Tag Tests", function () {
             expect(
                 stateVariables[
                     stateVariables["/p1"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(3);
             expect(
                 stateVariables[
                     stateVariables["/p2"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(3);
             expect(
                 stateVariables[
                     stateVariables["/p3"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(3);
             expect(
                 stateVariables[
                     stateVariables["/p4"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(3);
             expect(
                 stateVariables[
                     stateVariables["/p5"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(3);
             expect(
                 stateVariables[
                     stateVariables["/p6"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(3);
             expect(
                 stateVariables[
                     stateVariables["/p7"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(3);
             expect(
                 stateVariables[
                     stateVariables["/p8"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(3);
             expect(
                 stateVariables[
                     stateVariables["/p9"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(3);
             for (let ind = 0; ind < 3; ind++) {
                 expect(
@@ -1933,7 +1933,7 @@ describe("SelectFromSequence Tag Tests", function () {
                             stateVariables["/p1"].activeChildren[0]
                                 .componentName
                         ].activeChildren[ind].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(samplednumbers[ind]);
                 expect(
                     stateVariables[
@@ -1941,7 +1941,7 @@ describe("SelectFromSequence Tag Tests", function () {
                             stateVariables["/p2"].activeChildren[0]
                                 .componentName
                         ].activeChildren[ind].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(samplednumbers[ind]);
                 expect(
                     stateVariables[
@@ -1949,7 +1949,7 @@ describe("SelectFromSequence Tag Tests", function () {
                             stateVariables["/p3"].activeChildren[0]
                                 .componentName
                         ].activeChildren[ind].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(samplednumbers[ind]);
                 expect(
                     stateVariables[
@@ -1957,7 +1957,7 @@ describe("SelectFromSequence Tag Tests", function () {
                             stateVariables["/p4"].activeChildren[0]
                                 .componentName
                         ].activeChildren[ind].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(samplednumbers[ind]);
                 expect(
                     stateVariables[
@@ -1965,7 +1965,7 @@ describe("SelectFromSequence Tag Tests", function () {
                             stateVariables["/p5"].activeChildren[0]
                                 .componentName
                         ].activeChildren[ind].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(samplednumbers[ind]);
                 expect(
                     stateVariables[
@@ -1973,7 +1973,7 @@ describe("SelectFromSequence Tag Tests", function () {
                             stateVariables["/p6"].activeChildren[0]
                                 .componentName
                         ].activeChildren[ind].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(samplednumbers[ind]);
                 expect(
                     stateVariables[
@@ -1981,7 +1981,7 @@ describe("SelectFromSequence Tag Tests", function () {
                             stateVariables["/p7"].activeChildren[0]
                                 .componentName
                         ].activeChildren[ind].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(samplednumbers[ind]);
                 expect(
                     stateVariables[
@@ -1989,7 +1989,7 @@ describe("SelectFromSequence Tag Tests", function () {
                             stateVariables["/p8"].activeChildren[0]
                                 .componentName
                         ].activeChildren[ind].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(samplednumbers[ind]);
                 expect(
                     stateVariables[
@@ -1997,7 +1997,7 @@ describe("SelectFromSequence Tag Tests", function () {
                             stateVariables["/p9"].activeChildren[0]
                                 .componentName
                         ].activeChildren[ind].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(samplednumbers[ind]);
             }
         });
@@ -2005,7 +2005,7 @@ describe("SelectFromSequence Tag Tests", function () {
         cy.log("go back to nothing");
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             `{end}{backspace}0{enter}`,
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/m1")).should("contain.text", "0");
         cy.window().then(async (win) => {
@@ -2013,54 +2013,54 @@ describe("SelectFromSequence Tag Tests", function () {
             expect(
                 stateVariables[
                     stateVariables["/p1"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(0);
             expect(
                 stateVariables[
                     stateVariables["/p2"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(0);
             expect(
                 stateVariables[
                     stateVariables["/p3"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(0);
             expect(
                 stateVariables[
                     stateVariables["/p4"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(0);
             expect(
                 stateVariables[
                     stateVariables["/p5"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(0);
             expect(
                 stateVariables[
                     stateVariables["/p6"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(0);
             expect(
                 stateVariables[
                     stateVariables["/p7"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(0);
             expect(
                 stateVariables[
                     stateVariables["/p8"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(0);
             expect(
                 stateVariables[
                     stateVariables["/p9"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(0);
         });
 
         cy.log("get first two numbers back");
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             `{end}{backspace}2{enter}`,
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/m1")).should("contain.text", "2");
         cy.window().then(async (win) => {
@@ -2072,47 +2072,47 @@ describe("SelectFromSequence Tag Tests", function () {
             expect(
                 stateVariables[
                     stateVariables["/p1"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(2);
             expect(
                 stateVariables[
                     stateVariables["/p2"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(2);
             expect(
                 stateVariables[
                     stateVariables["/p3"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(2);
             expect(
                 stateVariables[
                     stateVariables["/p4"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(2);
             expect(
                 stateVariables[
                     stateVariables["/p5"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(2);
             expect(
                 stateVariables[
                     stateVariables["/p6"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(2);
             expect(
                 stateVariables[
                     stateVariables["/p7"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(2);
             expect(
                 stateVariables[
                     stateVariables["/p8"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(2);
             expect(
                 stateVariables[
                     stateVariables["/p9"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(2);
 
             for (let ind = 0; ind < 2; ind++) {
@@ -2122,7 +2122,7 @@ describe("SelectFromSequence Tag Tests", function () {
                             stateVariables["/p1"].activeChildren[0]
                                 .componentName
                         ].activeChildren[ind].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(samplednumbers[ind]);
                 expect(
                     stateVariables[
@@ -2130,7 +2130,7 @@ describe("SelectFromSequence Tag Tests", function () {
                             stateVariables["/p2"].activeChildren[0]
                                 .componentName
                         ].activeChildren[ind].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(samplednumbers[ind]);
                 expect(
                     stateVariables[
@@ -2138,7 +2138,7 @@ describe("SelectFromSequence Tag Tests", function () {
                             stateVariables["/p3"].activeChildren[0]
                                 .componentName
                         ].activeChildren[ind].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(samplednumbers[ind]);
                 expect(
                     stateVariables[
@@ -2146,7 +2146,7 @@ describe("SelectFromSequence Tag Tests", function () {
                             stateVariables["/p4"].activeChildren[0]
                                 .componentName
                         ].activeChildren[ind].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(samplednumbers[ind]);
                 expect(
                     stateVariables[
@@ -2154,7 +2154,7 @@ describe("SelectFromSequence Tag Tests", function () {
                             stateVariables["/p5"].activeChildren[0]
                                 .componentName
                         ].activeChildren[ind].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(samplednumbers[ind]);
                 expect(
                     stateVariables[
@@ -2162,7 +2162,7 @@ describe("SelectFromSequence Tag Tests", function () {
                             stateVariables["/p6"].activeChildren[0]
                                 .componentName
                         ].activeChildren[ind].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(samplednumbers[ind]);
                 expect(
                     stateVariables[
@@ -2170,7 +2170,7 @@ describe("SelectFromSequence Tag Tests", function () {
                             stateVariables["/p7"].activeChildren[0]
                                 .componentName
                         ].activeChildren[ind].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(samplednumbers[ind]);
                 expect(
                     stateVariables[
@@ -2178,7 +2178,7 @@ describe("SelectFromSequence Tag Tests", function () {
                             stateVariables["/p8"].activeChildren[0]
                                 .componentName
                         ].activeChildren[ind].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(samplednumbers[ind]);
                 expect(
                     stateVariables[
@@ -2186,7 +2186,7 @@ describe("SelectFromSequence Tag Tests", function () {
                             stateVariables["/p9"].activeChildren[0]
                                 .componentName
                         ].activeChildren[ind].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(samplednumbers[ind]);
             }
         });
@@ -2194,7 +2194,7 @@ describe("SelectFromSequence Tag Tests", function () {
         cy.log("get six total samples");
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             `{end}{backspace}6{enter}`,
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/m1")).should("contain.text", "6");
         cy.window().then(async (win) => {
@@ -2214,47 +2214,47 @@ describe("SelectFromSequence Tag Tests", function () {
             expect(
                 stateVariables[
                     stateVariables["/p1"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(6);
             expect(
                 stateVariables[
                     stateVariables["/p2"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(6);
             expect(
                 stateVariables[
                     stateVariables["/p3"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(6);
             expect(
                 stateVariables[
                     stateVariables["/p4"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(6);
             expect(
                 stateVariables[
                     stateVariables["/p5"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(6);
             expect(
                 stateVariables[
                     stateVariables["/p6"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(6);
             expect(
                 stateVariables[
                     stateVariables["/p7"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(6);
             expect(
                 stateVariables[
                     stateVariables["/p8"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(6);
             expect(
                 stateVariables[
                     stateVariables["/p9"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(6);
             for (let ind = 0; ind < 6; ind++) {
                 expect(
@@ -2263,7 +2263,7 @@ describe("SelectFromSequence Tag Tests", function () {
                             stateVariables["/p1"].activeChildren[0]
                                 .componentName
                         ].activeChildren[ind].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(samplednumbers[ind]);
                 expect(
                     stateVariables[
@@ -2271,7 +2271,7 @@ describe("SelectFromSequence Tag Tests", function () {
                             stateVariables["/p2"].activeChildren[0]
                                 .componentName
                         ].activeChildren[ind].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(samplednumbers[ind]);
                 expect(
                     stateVariables[
@@ -2279,7 +2279,7 @@ describe("SelectFromSequence Tag Tests", function () {
                             stateVariables["/p3"].activeChildren[0]
                                 .componentName
                         ].activeChildren[ind].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(samplednumbers[ind]);
                 expect(
                     stateVariables[
@@ -2287,7 +2287,7 @@ describe("SelectFromSequence Tag Tests", function () {
                             stateVariables["/p4"].activeChildren[0]
                                 .componentName
                         ].activeChildren[ind].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(samplednumbers[ind]);
                 expect(
                     stateVariables[
@@ -2295,7 +2295,7 @@ describe("SelectFromSequence Tag Tests", function () {
                             stateVariables["/p5"].activeChildren[0]
                                 .componentName
                         ].activeChildren[ind].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(samplednumbers[ind]);
                 expect(
                     stateVariables[
@@ -2303,7 +2303,7 @@ describe("SelectFromSequence Tag Tests", function () {
                             stateVariables["/p6"].activeChildren[0]
                                 .componentName
                         ].activeChildren[ind].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(samplednumbers[ind]);
                 expect(
                     stateVariables[
@@ -2311,7 +2311,7 @@ describe("SelectFromSequence Tag Tests", function () {
                             stateVariables["/p7"].activeChildren[0]
                                 .componentName
                         ].activeChildren[ind].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(samplednumbers[ind]);
                 expect(
                     stateVariables[
@@ -2319,7 +2319,7 @@ describe("SelectFromSequence Tag Tests", function () {
                             stateVariables["/p8"].activeChildren[0]
                                 .componentName
                         ].activeChildren[ind].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(samplednumbers[ind]);
                 expect(
                     stateVariables[
@@ -2327,7 +2327,7 @@ describe("SelectFromSequence Tag Tests", function () {
                             stateVariables["/p9"].activeChildren[0]
                                 .componentName
                         ].activeChildren[ind].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(samplednumbers[ind]);
             }
         });
@@ -2335,7 +2335,7 @@ describe("SelectFromSequence Tag Tests", function () {
         cy.log("go back to nothing");
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             `{end}{backspace}0{enter}`,
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/m1")).should("contain.text", "0");
         cy.window().then(async (win) => {
@@ -2343,54 +2343,54 @@ describe("SelectFromSequence Tag Tests", function () {
             expect(
                 stateVariables[
                     stateVariables["/p1"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(0);
             expect(
                 stateVariables[
                     stateVariables["/p2"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(0);
             expect(
                 stateVariables[
                     stateVariables["/p3"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(0);
             expect(
                 stateVariables[
                     stateVariables["/p4"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(0);
             expect(
                 stateVariables[
                     stateVariables["/p5"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(0);
             expect(
                 stateVariables[
                     stateVariables["/p6"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(0);
             expect(
                 stateVariables[
                     stateVariables["/p7"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(0);
             expect(
                 stateVariables[
                     stateVariables["/p8"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(0);
             expect(
                 stateVariables[
                     stateVariables["/p9"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(0);
         });
 
         cy.log("get all six back");
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             `{end}{backspace}6{enter}`,
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/m1")).should("contain.text", "6");
         cy.window().then(async (win) => {
@@ -2410,47 +2410,47 @@ describe("SelectFromSequence Tag Tests", function () {
             expect(
                 stateVariables[
                     stateVariables["/p1"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(6);
             expect(
                 stateVariables[
                     stateVariables["/p2"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(6);
             expect(
                 stateVariables[
                     stateVariables["/p3"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(6);
             expect(
                 stateVariables[
                     stateVariables["/p4"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(6);
             expect(
                 stateVariables[
                     stateVariables["/p5"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(6);
             expect(
                 stateVariables[
                     stateVariables["/p6"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(6);
             expect(
                 stateVariables[
                     stateVariables["/p7"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(6);
             expect(
                 stateVariables[
                     stateVariables["/p8"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(6);
             expect(
                 stateVariables[
                     stateVariables["/p9"].activeChildren[0].componentName
-                ].activeChildren.length
+                ].activeChildren.length,
             ).eq(6);
             for (let ind = 0; ind < 6; ind++) {
                 expect(
@@ -2459,7 +2459,7 @@ describe("SelectFromSequence Tag Tests", function () {
                             stateVariables["/p1"].activeChildren[0]
                                 .componentName
                         ].activeChildren[ind].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(samplednumbers[ind]);
                 expect(
                     stateVariables[
@@ -2467,7 +2467,7 @@ describe("SelectFromSequence Tag Tests", function () {
                             stateVariables["/p2"].activeChildren[0]
                                 .componentName
                         ].activeChildren[ind].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(samplednumbers[ind]);
                 expect(
                     stateVariables[
@@ -2475,7 +2475,7 @@ describe("SelectFromSequence Tag Tests", function () {
                             stateVariables["/p3"].activeChildren[0]
                                 .componentName
                         ].activeChildren[ind].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(samplednumbers[ind]);
                 expect(
                     stateVariables[
@@ -2483,7 +2483,7 @@ describe("SelectFromSequence Tag Tests", function () {
                             stateVariables["/p4"].activeChildren[0]
                                 .componentName
                         ].activeChildren[ind].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(samplednumbers[ind]);
                 expect(
                     stateVariables[
@@ -2491,7 +2491,7 @@ describe("SelectFromSequence Tag Tests", function () {
                             stateVariables["/p5"].activeChildren[0]
                                 .componentName
                         ].activeChildren[ind].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(samplednumbers[ind]);
                 expect(
                     stateVariables[
@@ -2499,7 +2499,7 @@ describe("SelectFromSequence Tag Tests", function () {
                             stateVariables["/p6"].activeChildren[0]
                                 .componentName
                         ].activeChildren[ind].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(samplednumbers[ind]);
                 expect(
                     stateVariables[
@@ -2507,7 +2507,7 @@ describe("SelectFromSequence Tag Tests", function () {
                             stateVariables["/p7"].activeChildren[0]
                                 .componentName
                         ].activeChildren[ind].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(samplednumbers[ind]);
                 expect(
                     stateVariables[
@@ -2515,7 +2515,7 @@ describe("SelectFromSequence Tag Tests", function () {
                             stateVariables["/p8"].activeChildren[0]
                                 .componentName
                         ].activeChildren[ind].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(samplednumbers[ind]);
                 expect(
                     stateVariables[
@@ -2523,7 +2523,7 @@ describe("SelectFromSequence Tag Tests", function () {
                             stateVariables["/p9"].activeChildren[0]
                                 .componentName
                         ].activeChildren[ind].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(samplednumbers[ind]);
             }
         });
@@ -2543,7 +2543,7 @@ describe("SelectFromSequence Tag Tests", function () {
     <p>$w{name="w2"}</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2562,7 +2562,7 @@ describe("SelectFromSequence Tag Tests", function () {
             let u = stateVariables["/u"];
             let u2 = stateVariables["/u2"];
             let comparisons = options.map((el) =>
-                el.equals(me.fromAst(u.stateValues.value))
+                el.equals(me.fromAst(u.stateValues.value)),
             );
             expect(comparisons.includes(true)).eq(true);
             expect(u.stateValues.value).eqls(u2.stateValues.value);
@@ -2570,7 +2570,7 @@ describe("SelectFromSequence Tag Tests", function () {
             let v = stateVariables["/v"];
             let v2 = stateVariables["/v2"];
             comparisons = options.map((el) =>
-                el.equals(me.fromAst(v.stateValues.value))
+                el.equals(me.fromAst(v.stateValues.value)),
             );
             expect(comparisons.includes(true)).eq(true);
             expect(v.stateValues.value).eqls(v2.stateValues.value);
@@ -2578,7 +2578,7 @@ describe("SelectFromSequence Tag Tests", function () {
             let w = stateVariables["/w"];
             let w2 = stateVariables["/w2"];
             comparisons = options.map((el) =>
-                el.equals(me.fromAst(w.stateValues.value))
+                el.equals(me.fromAst(w.stateValues.value)),
             );
             expect(comparisons.includes(true)).eq(true);
             expect(w.stateValues.value).eqls(w2.stateValues.value);
@@ -2599,7 +2599,7 @@ describe("SelectFromSequence Tag Tests", function () {
     <p>$w{name="w2"}</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2623,7 +2623,7 @@ describe("SelectFromSequence Tag Tests", function () {
             let u = stateVariables["/u"];
             let u2 = stateVariables["/u2"];
             let comparisons = options.map((el) =>
-                el.equals(me.fromAst(u.stateValues.value))
+                el.equals(me.fromAst(u.stateValues.value)),
             );
             expect(comparisons.includes(true)).eq(true);
             expect(u.stateValues.value).eqls(u2.stateValues.value);
@@ -2631,7 +2631,7 @@ describe("SelectFromSequence Tag Tests", function () {
             let v = stateVariables["/v"];
             let v2 = stateVariables["/v2"];
             comparisons = options.map((el) =>
-                el.equals(me.fromAst(v.stateValues.value))
+                el.equals(me.fromAst(v.stateValues.value)),
             );
             expect(comparisons.includes(true)).eq(true);
             expect(v.stateValues.value).eqls(v2.stateValues.value);
@@ -2639,7 +2639,7 @@ describe("SelectFromSequence Tag Tests", function () {
             let w = stateVariables["/w"];
             let w2 = stateVariables["/w2"];
             comparisons = options.map((el) =>
-                el.equals(me.fromAst(w.stateValues.value))
+                el.equals(me.fromAst(w.stateValues.value)),
             );
             expect(comparisons.includes(true)).eq(true);
             expect(w.stateValues.value).eqls(w2.stateValues.value);
@@ -2648,7 +2648,7 @@ describe("SelectFromSequence Tag Tests", function () {
             for (let ind = 3; ind < 6; ind++) {
                 let r = stateVariables[s.replacements[ind].componentName];
                 comparisons = options.map((el) =>
-                    el.equals(me.fromAst(r.stateValues.value))
+                    el.equals(me.fromAst(r.stateValues.value)),
                 );
                 expect(comparisons.includes(true)).eq(true);
             }
@@ -2669,7 +2669,7 @@ describe("SelectFromSequence Tag Tests", function () {
     <p>$(s/w{name="w2"})</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2693,7 +2693,7 @@ describe("SelectFromSequence Tag Tests", function () {
             let u = stateVariables["/s/u"];
             let u2 = stateVariables["/u2"];
             let comparisons = options.map((el) =>
-                el.equals(me.fromAst(u.stateValues.value))
+                el.equals(me.fromAst(u.stateValues.value)),
             );
             expect(comparisons.includes(true)).eq(true);
             expect(u.stateValues.value).eqls(u2.stateValues.value);
@@ -2701,7 +2701,7 @@ describe("SelectFromSequence Tag Tests", function () {
             let v = stateVariables["/s/v"];
             let v2 = stateVariables["/v2"];
             comparisons = options.map((el) =>
-                el.equals(me.fromAst(v.stateValues.value))
+                el.equals(me.fromAst(v.stateValues.value)),
             );
             expect(comparisons.includes(true)).eq(true);
             expect(v.stateValues.value).eqls(v2.stateValues.value);
@@ -2709,7 +2709,7 @@ describe("SelectFromSequence Tag Tests", function () {
             let w = stateVariables["/s/w"];
             let w2 = stateVariables["/w2"];
             comparisons = options.map((el) =>
-                el.equals(me.fromAst(w.stateValues.value))
+                el.equals(me.fromAst(w.stateValues.value)),
             );
             expect(comparisons.includes(true)).eq(true);
             expect(w.stateValues.value).eqls(w2.stateValues.value);
@@ -2718,7 +2718,7 @@ describe("SelectFromSequence Tag Tests", function () {
             for (let ind = 3; ind < 6; ind++) {
                 let r = stateVariables[s.replacements[ind].componentName];
                 comparisons = options.map((el) =>
-                    el.equals(me.fromAst(r.stateValues.value))
+                    el.equals(me.fromAst(r.stateValues.value)),
                 );
                 expect(comparisons.includes(true)).eq(true);
             }
@@ -2735,14 +2735,14 @@ describe("SelectFromSequence Tag Tests", function () {
       <p>$c, <copy hide="false" target="d" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
         // to wait for page to load
         cy.get(cesc("#\\/_p1")).should(
             "have.text",
-            "Selectfromsequences and hide"
+            "Selectfromsequences and hide",
         );
 
         cy.window().then(async (win) => {
@@ -2785,7 +2785,7 @@ describe("SelectFromSequence Tag Tests", function () {
     <p><aslist><selectfromsequence from="0.1" to="0.3" step="0.1" numToSelect="2" name="sample20" excludecombinations="(0.1 0.3) (0.2 0.3) (0.3 0.1)" /></aslist></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2861,7 +2861,7 @@ describe("SelectFromSequence Tag Tests", function () {
     <p><aslist><selectfromsequence type="math" from="0.1" to="0.3" step="0.1" numToSelect="2" name="sample20" excludecombinations="(0.1 0.3) (0.2 0.3) (0.3 0.1)" /></aslist></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2937,7 +2937,7 @@ describe("SelectFromSequence Tag Tests", function () {
     <p><aslist><selectfromsequence type="math" from="x" step="y" length="4" exclude="x+2y" numToSelect="2" name="sample20" excludecombinations="(x x+y) (x+y x+3y) (x+3y x)" /></aslist></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2956,19 +2956,19 @@ describe("SelectFromSequence Tag Tests", function () {
                     stateVariables[
                         stateVariables["/sample" + ind].replacements[0]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 );
                 let x2 = me.fromAst(
                     stateVariables[
                         stateVariables["/sample" + ind].replacements[1]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 );
 
                 expect(
                     allowedCombinations.some(
-                        (v) => v[0].equals(x1) && v[1].equals(x2)
-                    )
+                        (v) => v[0].equals(x1) && v[1].equals(x2),
+                    ),
                 ).eq(true);
             }
         });
@@ -3009,7 +3009,7 @@ describe("SelectFromSequence Tag Tests", function () {
     <p><aslist><selectfromsequence type="math" from="x" step="y" length="4" exclude="x+2y" numToSelect="2" name="sample20" excludecombinations="$ec2 $ec3 (x+3y $e3)" /></aslist></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3028,19 +3028,19 @@ describe("SelectFromSequence Tag Tests", function () {
                     stateVariables[
                         stateVariables["/sample" + ind].replacements[0]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 );
                 let x2 = me.fromAst(
                     stateVariables[
                         stateVariables["/sample" + ind].replacements[1]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 );
 
                 expect(
                     allowedCombinations.some(
-                        (v) => v[0].equals(x1) && v[1].equals(x2)
-                    )
+                        (v) => v[0].equals(x1) && v[1].equals(x2),
+                    ),
                 ).eq(true);
             }
         });
@@ -3074,7 +3074,7 @@ describe("SelectFromSequence Tag Tests", function () {
     <p><aslist><selectfromsequence type="math" from="x" step="y" length="4" exclude="x+2y 2z q y" numToSelect="2" name="sample20" excludecombinations="(x x+y) (x+y x+3y) (x+3y x)" /></aslist></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3093,19 +3093,19 @@ describe("SelectFromSequence Tag Tests", function () {
                     stateVariables[
                         stateVariables["/sample" + ind].replacements[0]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 );
                 let x2 = me.fromAst(
                     stateVariables[
                         stateVariables["/sample" + ind].replacements[1]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 );
 
                 expect(
                     allowedCombinations.some(
-                        (v) => v[0].equals(x1) && v[1].equals(x2)
-                    )
+                        (v) => v[0].equals(x1) && v[1].equals(x2),
+                    ),
                 ).eq(true);
             }
         });
@@ -3139,7 +3139,7 @@ describe("SelectFromSequence Tag Tests", function () {
     <p><aslist><selectfromsequence type="letters" from="m" step="3" length="4" exclude="p" numToSelect="2" name="sample20" excludecombinations="(m v) (s m) (v s)" /></aslist></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3166,7 +3166,7 @@ describe("SelectFromSequence Tag Tests", function () {
                     ].stateValues.value;
 
                 expect(
-                    allowedCombinations.some((v) => v[0] === x1 && v[1] === x2)
+                    allowedCombinations.some((v) => v[0] === x1 && v[1] === x2),
                 ).eq(true);
             }
         });
@@ -3207,7 +3207,7 @@ describe("SelectFromSequence Tag Tests", function () {
     <p><aslist><selectfromsequence type="letters" from="m" step="3" length="4" exclude="p" numToSelect="2" name="sample20" excludecombinations="$ec2 $ec3 (v $e3)" /></aslist></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3234,7 +3234,7 @@ describe("SelectFromSequence Tag Tests", function () {
                     ].stateValues.value;
 
                 expect(
-                    allowedCombinations.some((v) => v[0] === x1 && v[1] === x2)
+                    allowedCombinations.some((v) => v[0] === x1 && v[1] === x2),
                 ).eq(true);
             }
         });
@@ -3268,7 +3268,7 @@ describe("SelectFromSequence Tag Tests", function () {
     <p><aslist><selectfromsequence type="letters" from="m" step="3" length="4" exclude="p q r z a" numToSelect="2" name="sample20" excludecombinations="(m v) (s m) (v s)" /></aslist></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3295,7 +3295,7 @@ describe("SelectFromSequence Tag Tests", function () {
                     ].stateValues.value;
 
                 expect(
-                    allowedCombinations.some((v) => v[0] === x1 && v[1] === x2)
+                    allowedCombinations.some((v) => v[0] === x1 && v[1] === x2),
                 ).eq(true);
             }
         });
@@ -3313,7 +3313,7 @@ describe("SelectFromSequence Tag Tests", function () {
     $_p1{name="p3"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3328,7 +3328,7 @@ describe("SelectFromSequence Tag Tests", function () {
                 "/_selectfromsequence1"
             ].replacements.map((x) => stateVariables[x.componentName]);
             let secondnumbers = stateVariables["/aslist2"].activeChildren.map(
-                (x) => stateVariables[x.componentName]
+                (x) => stateVariables[x.componentName],
             );
             let thirdnumbers = stateVariables[
                 stateVariables["/p3"].activeChildren[0].componentName
@@ -3355,7 +3355,7 @@ describe("SelectFromSequence Tag Tests", function () {
     $_p1{name="p3"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3370,7 +3370,7 @@ describe("SelectFromSequence Tag Tests", function () {
                 "/_selectfromsequence1"
             ].replacements.map((x) => stateVariables[x.componentName]);
             let secondletters = stateVariables["/aslist2"].activeChildren.map(
-                (x) => stateVariables[x.componentName]
+                (x) => stateVariables[x.componentName],
             );
             let thirdletters = stateVariables[
                 stateVariables["/p3"].activeChildren[0].componentName
@@ -3380,7 +3380,7 @@ describe("SelectFromSequence Tag Tests", function () {
                 expect(newletter.length).gte(lastletter.length);
                 expect(
                     newletter.length > lastletter.length ||
-                        newletter >= lastletter
+                        newletter >= lastletter,
                 ).to.be.true;
                 lastletter = newletter;
                 expect(secondletters[i].stateValues.value).eq(newletter);
@@ -3406,7 +3406,7 @@ describe("SelectFromSequence Tag Tests", function () {
     <p>$c, $d</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3481,7 +3481,7 @@ describe("SelectFromSequence Tag Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3594,7 +3594,7 @@ describe("SelectFromSequence Tag Tests", function () {
     <p name="p5">a5=$a5, b5=$b5, c5=$c5, d5=$d5, e5=$e5</p>
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3609,19 +3609,19 @@ describe("SelectFromSequence Tag Tests", function () {
             let n5 = stateVariables["/n5"].stateValues.value;
 
             let nums1 = stateVariables["/nums1"].replacements.map(
-                (x) => stateVariables[x.componentName].stateValues.value
+                (x) => stateVariables[x.componentName].stateValues.value,
             );
             let nums2 = stateVariables["/nums2"].replacements.map(
-                (x) => stateVariables[x.componentName].stateValues.value
+                (x) => stateVariables[x.componentName].stateValues.value,
             );
             let nums3 = stateVariables["/nums3"].replacements.map(
-                (x) => stateVariables[x.componentName].stateValues.value
+                (x) => stateVariables[x.componentName].stateValues.value,
             );
             let nums4 = stateVariables["/nums4"].replacements.map(
-                (x) => stateVariables[x.componentName].stateValues.value
+                (x) => stateVariables[x.componentName].stateValues.value,
             );
             let nums5 = stateVariables["/nums5"].replacements.map(
-                (x) => stateVariables[x.componentName].stateValues.value
+                (x) => stateVariables[x.componentName].stateValues.value,
             );
 
             expect(nums1.length).eq(n1);
@@ -3646,23 +3646,23 @@ describe("SelectFromSequence Tag Tests", function () {
 
             cy.get(cesc("#\\/p1")).should(
                 "have.text",
-                nums1.map((v, i) => `${l[i]}1=${v}`).join(", ")
+                nums1.map((v, i) => `${l[i]}1=${v}`).join(", "),
             );
             cy.get(cesc("#\\/p2")).should(
                 "have.text",
-                nums2.map((v, i) => `${l[i]}2=${v}`).join(", ")
+                nums2.map((v, i) => `${l[i]}2=${v}`).join(", "),
             );
             cy.get(cesc("#\\/p3")).should(
                 "have.text",
-                nums3.map((v, i) => `${l[i]}3=${v}`).join(", ")
+                nums3.map((v, i) => `${l[i]}3=${v}`).join(", "),
             );
             cy.get(cesc("#\\/p4")).should(
                 "have.text",
-                nums4.map((v, i) => `${l[i]}4=${v}`).join(", ")
+                nums4.map((v, i) => `${l[i]}4=${v}`).join(", "),
             );
             cy.get(cesc("#\\/p5")).should(
                 "have.text",
-                nums5.map((v, i) => `${l[i]}5=${v}`).join(", ")
+                nums5.map((v, i) => `${l[i]}5=${v}`).join(", "),
             );
         });
     });
@@ -3685,7 +3685,7 @@ describe("SelectFromSequence Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3701,29 +3701,29 @@ describe("SelectFromSequence Tag Tests", function () {
 
             cy.get(cesc("#\\/n1")).should(
                 "have.text",
-                String(Math.round(n1 * 10 ** 8) / 10 ** 8)
+                String(Math.round(n1 * 10 ** 8) / 10 ** 8),
             );
             cy.get(cesc("#\\/n2")).should(
                 "have.text",
-                String(Math.round(n2 * 10 ** 1) / 10 ** 1)
+                String(Math.round(n2 * 10 ** 1) / 10 ** 1),
             );
             cy.get(cesc("#\\/n3")).should(
                 "have.text",
-                String(Math.round(n3 * 10 ** 3) / 10 ** 3)
+                String(Math.round(n3 * 10 ** 3) / 10 ** 3),
             );
             cy.get(cesc("#\\/n4")).should("have.text", String(n4) + ".0");
 
             cy.get(cesc("#\\/n1a")).should(
                 "have.text",
-                String(Math.round(n1 * 10 ** 8) / 10 ** 8)
+                String(Math.round(n1 * 10 ** 8) / 10 ** 8),
             );
             cy.get(cesc("#\\/n2a")).should(
                 "have.text",
-                String(Math.round(n2 * 10 ** 1) / 10 ** 1)
+                String(Math.round(n2 * 10 ** 1) / 10 ** 1),
             );
             cy.get(cesc("#\\/n3a")).should(
                 "have.text",
-                String(Math.round(n3 * 10 ** 3) / 10 ** 3)
+                String(Math.round(n3 * 10 ** 3) / 10 ** 3),
             );
             cy.get(cesc("#\\/n4a")).should("have.text", String(n4) + ".0");
         });
@@ -3737,13 +3737,13 @@ describe("SelectFromSequence Tag Tests", function () {
           <text><selectfromsequence numToSelect="3" length="1" /></text>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get(cesc2("#/_document1")).should(
             "contain.text",
-            "Cannot select 3 values from a sequence of length 1"
+            "Cannot select 3 values from a sequence of length 1",
         );
         cy.get(cesc2("#/_document1")).should("contain.text", "line 2");
 
@@ -3754,7 +3754,7 @@ describe("SelectFromSequence Tag Tests", function () {
             expect(errorWarnings.warnings.length).eq(0);
 
             expect(errorWarnings.errors[0].message).contain(
-                "Cannot select 3 values from a sequence of length 1"
+                "Cannot select 3 values from a sequence of length 1",
             );
             expect(errorWarnings.errors[0].doenetMLrange.lineBegin).eq(2);
             expect(errorWarnings.errors[0].doenetMLrange.charBegin).eq(17);
@@ -3777,7 +3777,7 @@ describe("SelectFromSequence Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3809,7 +3809,7 @@ describe("SelectFromSequence Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3848,7 +3848,7 @@ describe("SelectFromSequence Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3868,7 +3868,7 @@ describe("SelectFromSequence Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3916,7 +3916,7 @@ describe("SelectFromSequence Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3937,7 +3937,7 @@ describe("SelectFromSequence Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 

@@ -18,7 +18,7 @@ describe("MatrixInput Tag Tests", function () {
     <p>Matrix 4: $mi1.immediateValue{assignNames="m2"}</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -51,11 +51,11 @@ describe("MatrixInput Tag Tests", function () {
                 ["tuple", ["tuple", "＿"]],
             ];
             expect(stateVariables["/mi1"].stateValues.immediateValue).eqls(
-                matrixAst
+                matrixAst,
             );
             expect(stateVariables["/mi1"].stateValues.value).eqls(matrixAst);
             expect(stateVariables["/mi2"].stateValues.immediateValue).eqls(
-                matrixAst
+                matrixAst,
             );
             expect(stateVariables["/mi2"].stateValues.value).eqls(matrixAst);
             expect(stateVariables["/m1"].stateValues.value).eqls(matrixAst);
@@ -99,19 +99,19 @@ describe("MatrixInput Tag Tests", function () {
                 ["tuple", ["tuple", "＿"]],
             ];
             expect(stateVariables["/mi1"].stateValues.immediateValue).eqls(
-                matrixAstA
+                matrixAstA,
             );
             expect(stateVariables["/mi1"].stateValues.value).eqls(
-                matrixAstBlank
+                matrixAstBlank,
             );
             expect(stateVariables["/mi2"].stateValues.immediateValue).eqls(
-                matrixAstA
+                matrixAstA,
             );
             expect(stateVariables["/mi2"].stateValues.value).eqls(
-                matrixAstBlank
+                matrixAstBlank,
             );
             expect(stateVariables["/m1"].stateValues.value).eqls(
-                matrixAstBlank
+                matrixAstBlank,
             );
             expect(stateVariables["/m2"].stateValues.value).eqls(matrixAstA);
         });
@@ -148,11 +148,11 @@ describe("MatrixInput Tag Tests", function () {
                 ["tuple", ["tuple", "a"]],
             ];
             expect(stateVariables["/mi1"].stateValues.immediateValue).eqls(
-                matrixAst
+                matrixAst,
             );
             expect(stateVariables["/mi1"].stateValues.value).eqls(matrixAst);
             expect(stateVariables["/mi2"].stateValues.immediateValue).eqls(
-                matrixAst
+                matrixAst,
             );
             expect(stateVariables["/mi2"].stateValues.value).eqls(matrixAst);
             expect(stateVariables["/m1"].stateValues.value).eqls(matrixAst);
@@ -201,11 +201,11 @@ describe("MatrixInput Tag Tests", function () {
                 ["tuple", ["tuple", "a"], ["tuple", "＿"]],
             ];
             expect(stateVariables["/mi1"].stateValues.immediateValue).eqls(
-                matrixAst
+                matrixAst,
             );
             expect(stateVariables["/mi1"].stateValues.value).eqls(matrixAst);
             expect(stateVariables["/mi2"].stateValues.immediateValue).eqls(
-                matrixAst
+                matrixAst,
             );
             expect(stateVariables["/mi2"].stateValues.value).eqls(matrixAst);
             expect(stateVariables["/m1"].stateValues.value).eqls(matrixAst);
@@ -261,11 +261,11 @@ describe("MatrixInput Tag Tests", function () {
                 ["tuple", ["tuple", "a"], ["tuple", "b"]],
             ];
             expect(stateVariables["/mi1"].stateValues.immediateValue).eqls(
-                matrixAstB
+                matrixAstB,
             );
             expect(stateVariables["/mi1"].stateValues.value).eqls(matrixAst);
             expect(stateVariables["/mi2"].stateValues.immediateValue).eqls(
-                matrixAstB
+                matrixAstB,
             );
             expect(stateVariables["/mi2"].stateValues.value).eqls(matrixAst);
             expect(stateVariables["/m1"].stateValues.value).eqls(matrixAst);
@@ -316,11 +316,11 @@ describe("MatrixInput Tag Tests", function () {
                 ["tuple", ["tuple", "a"], ["tuple", "b"]],
             ];
             expect(stateVariables["/mi1"].stateValues.immediateValue).eqls(
-                matrixAst
+                matrixAst,
             );
             expect(stateVariables["/mi1"].stateValues.value).eqls(matrixAst);
             expect(stateVariables["/mi2"].stateValues.immediateValue).eqls(
-                matrixAst
+                matrixAst,
             );
             expect(stateVariables["/mi2"].stateValues.value).eqls(matrixAst);
             expect(stateVariables["/m1"].stateValues.value).eqls(matrixAst);
@@ -332,7 +332,7 @@ describe("MatrixInput Tag Tests", function () {
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "[a＿b＿]"
+            "[a＿b＿]",
         );
 
         cy.get(cesc(`#\\/mi1_component_0_0`) + ` .mq-editable-field`)
@@ -392,11 +392,11 @@ describe("MatrixInput Tag Tests", function () {
                 ["tuple", ["tuple", "a", "＿"], ["tuple", "b", "＿"]],
             ];
             expect(stateVariables["/mi1"].stateValues.immediateValue).eqls(
-                matrixAst
+                matrixAst,
             );
             expect(stateVariables["/mi1"].stateValues.value).eqls(matrixAst);
             expect(stateVariables["/mi2"].stateValues.immediateValue).eqls(
-                matrixAst
+                matrixAst,
             );
             expect(stateVariables["/mi2"].stateValues.value).eqls(matrixAst);
             expect(stateVariables["/m1"].stateValues.value).eqls(matrixAst);
@@ -475,11 +475,11 @@ describe("MatrixInput Tag Tests", function () {
                 ["tuple", ["tuple", "a", "c"], ["tuple", "b", "d"]],
             ];
             expect(stateVariables["/mi1"].stateValues.immediateValue).eqls(
-                matrixAstD
+                matrixAstD,
             );
             expect(stateVariables["/mi1"].stateValues.value).eqls(matrixAst);
             expect(stateVariables["/mi2"].stateValues.immediateValue).eqls(
-                matrixAstD
+                matrixAstD,
             );
             expect(stateVariables["/mi2"].stateValues.value).eqls(matrixAst);
             expect(stateVariables["/m1"].stateValues.value).eqls(matrixAst);
@@ -548,11 +548,11 @@ describe("MatrixInput Tag Tests", function () {
                 ["tuple", ["tuple", "a", "c"], ["tuple", "b", "d"]],
             ];
             expect(stateVariables["/mi1"].stateValues.immediateValue).eqls(
-                matrixAst
+                matrixAst,
             );
             expect(stateVariables["/mi1"].stateValues.value).eqls(matrixAst);
             expect(stateVariables["/mi2"].stateValues.immediateValue).eqls(
-                matrixAst
+                matrixAst,
             );
             expect(stateVariables["/mi2"].stateValues.value).eqls(matrixAst);
             expect(stateVariables["/m1"].stateValues.value).eqls(matrixAst);
@@ -601,11 +601,11 @@ describe("MatrixInput Tag Tests", function () {
                 ["tuple", ["tuple", "a", "c"]],
             ];
             expect(stateVariables["/mi1"].stateValues.immediateValue).eqls(
-                matrixAst
+                matrixAst,
             );
             expect(stateVariables["/mi1"].stateValues.value).eqls(matrixAst);
             expect(stateVariables["/mi2"].stateValues.immediateValue).eqls(
-                matrixAst
+                matrixAst,
             );
             expect(stateVariables["/mi2"].stateValues.value).eqls(matrixAst);
             expect(stateVariables["/m1"].stateValues.value).eqls(matrixAst);
@@ -615,7 +615,7 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change second value");
         cy.get(cesc("#\\/mi1_component_0_1") + " textarea").type(
             "{end}{backspace}e{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[ae]");
@@ -657,11 +657,11 @@ describe("MatrixInput Tag Tests", function () {
                 ["tuple", ["tuple", "a", "e"]],
             ];
             expect(stateVariables["/mi1"].stateValues.immediateValue).eqls(
-                matrixAst
+                matrixAst,
             );
             expect(stateVariables["/mi1"].stateValues.value).eqls(matrixAst);
             expect(stateVariables["/mi2"].stateValues.immediateValue).eqls(
-                matrixAst
+                matrixAst,
             );
             expect(stateVariables["/mi2"].stateValues.value).eqls(matrixAst);
             expect(stateVariables["/m1"].stateValues.value).eqls(matrixAst);
@@ -700,11 +700,11 @@ describe("MatrixInput Tag Tests", function () {
                 ["tuple", ["tuple", "a"]],
             ];
             expect(stateVariables["/mi1"].stateValues.immediateValue).eqls(
-                matrixAst
+                matrixAst,
             );
             expect(stateVariables["/mi1"].stateValues.value).eqls(matrixAst);
             expect(stateVariables["/mi2"].stateValues.immediateValue).eqls(
-                matrixAst
+                matrixAst,
             );
             expect(stateVariables["/mi2"].stateValues.value).eqls(matrixAst);
             expect(stateVariables["/m1"].stateValues.value).eqls(matrixAst);
@@ -714,7 +714,7 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change value");
         cy.get(cesc("#\\/mi2_component_0_0") + " textarea").type(
             "{end}{backspace}f{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[f]");
@@ -746,11 +746,11 @@ describe("MatrixInput Tag Tests", function () {
                 ["tuple", ["tuple", "f"]],
             ];
             expect(stateVariables["/mi1"].stateValues.immediateValue).eqls(
-                matrixAst
+                matrixAst,
             );
             expect(stateVariables["/mi1"].stateValues.value).eqls(matrixAst);
             expect(stateVariables["/mi2"].stateValues.immediateValue).eqls(
-                matrixAst
+                matrixAst,
             );
             expect(stateVariables["/mi2"].stateValues.value).eqls(matrixAst);
             expect(stateVariables["/m1"].stateValues.value).eqls(matrixAst);
@@ -820,11 +820,11 @@ describe("MatrixInput Tag Tests", function () {
                 ["tuple", ["tuple", "f", "e"], ["tuple", "b", "d"]],
             ];
             expect(stateVariables["/mi1"].stateValues.immediateValue).eqls(
-                matrixAst
+                matrixAst,
             );
             expect(stateVariables["/mi1"].stateValues.value).eqls(matrixAst);
             expect(stateVariables["/mi2"].stateValues.immediateValue).eqls(
-                matrixAst
+                matrixAst,
             );
             expect(stateVariables["/mi2"].stateValues.value).eqls(matrixAst);
             expect(stateVariables["/m1"].stateValues.value).eqls(matrixAst);
@@ -834,15 +834,15 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change values");
         cy.get(cesc("#\\/mi1_component_0_0") + " textarea").type(
             "{end}{backspace}g",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_0_1") + " textarea").type(
             "{end}{backspace}h",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi2_component_1_0") + " textarea").type(
             "{end}{backspace}i",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi2_component_1_1") + " textarea")
             .type("{end}{backspace}j", { force: true })
@@ -907,11 +907,11 @@ describe("MatrixInput Tag Tests", function () {
                 ["tuple", ["tuple", "g", "h"], ["tuple", "i", "j"]],
             ];
             expect(stateVariables["/mi1"].stateValues.immediateValue).eqls(
-                matrixAst
+                matrixAst,
             );
             expect(stateVariables["/mi1"].stateValues.value).eqls(matrixAst);
             expect(stateVariables["/mi2"].stateValues.immediateValue).eqls(
-                matrixAst
+                matrixAst,
             );
             expect(stateVariables["/mi2"].stateValues.value).eqls(matrixAst);
             expect(stateVariables["/m1"].stateValues.value).eqls(matrixAst);
@@ -929,7 +929,7 @@ describe("MatrixInput Tag Tests", function () {
     <p>Matrix 2: $mi1.value{assignNames="m1"}</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1005,7 +1005,7 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change value");
         cy.get(cesc("#\\/mi1_component_0_0") + " textarea").type(
             "{end}{backspace}z{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[zc]");
@@ -1080,19 +1080,19 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change values");
         cy.get(cesc("#\\/mi1_component_0_0") + " textarea").type(
             "{end}{backspace}e{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_1_0") + " textarea").type(
             "{end}{backspace}f{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_0_1") + " textarea").type(
             "{end}{backspace}g{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_1_1") + " textarea").type(
             "{end}{backspace}h{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[egfh]");
@@ -1138,7 +1138,7 @@ describe("MatrixInput Tag Tests", function () {
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣egfh＿＿⎤⎥⎦"
+            "⎡⎢⎣egfh＿＿⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/mi1_component_0_0`) + ` .mq-editable-field`)
@@ -1195,16 +1195,16 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change third row values");
         cy.get(cesc("#\\/mi1_component_2_0") + " textarea").type(
             "{end}{backspace}i{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_2_1") + " textarea").type(
             "{end}{backspace}j{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣egfhij⎤⎥⎦"
+            "⎡⎢⎣egfhij⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/mi1_component_0_0`) + ` .mq-editable-field`)
@@ -1292,7 +1292,7 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change value");
         cy.get(cesc("#\\/mi1_component_0_0") + " textarea").type(
             "{end}{backspace}k{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[k]");
@@ -1329,7 +1329,7 @@ describe("MatrixInput Tag Tests", function () {
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣kg＿fh＿ij＿⎤⎥⎦"
+            "⎡⎢⎣kg＿fh＿ij＿⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/mi1_component_0_0`) + ` .mq-editable-field`)
@@ -1412,7 +1412,7 @@ describe("MatrixInput Tag Tests", function () {
     <p>Matrix 2: $mi1.value{assignNames="m1"}</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1559,7 +1559,7 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("type f in second row");
         cy.get(cesc("#\\/mi1_component_1_0") + " textarea").type(
             "{end}{backspace}f{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[ef]");
@@ -1603,7 +1603,7 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("add column via mathinput");
         cy.get(cesc("#\\/numColumns") + " textarea").type(
             "{end}{backspace}2{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[ebfd]");
@@ -1657,11 +1657,11 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("g and h in second column");
         cy.get(cesc("#\\/mi1_component_0_1") + " textarea").type(
             "{end}{backspace}g{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_1_1") + " textarea").type(
             "{end}{backspace}h{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[egfh]");
@@ -1717,12 +1717,12 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}3{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣egfh＿＿⎤⎥⎦"
+            "⎡⎢⎣egfh＿＿⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -1789,16 +1789,16 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change third row values");
         cy.get(cesc("#\\/mi1_component_2_0") + " textarea").type(
             "{end}{backspace}i{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_2_1") + " textarea").type(
             "{end}{backspace}j{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣egfhij⎤⎥⎦"
+            "⎡⎢⎣egfhij⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -1867,11 +1867,11 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}1{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/numColumns") + " textarea").type(
             "{end}{backspace}1{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[e]");
@@ -1910,7 +1910,7 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change value");
         cy.get(cesc("#\\/mi1_component_0_0") + " textarea").type(
             "{end}{backspace}k{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[k]");
@@ -1951,16 +1951,16 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}3{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/numColumns") + " textarea").type(
             "{end}{backspace}3{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣kg＿fh＿ij＿⎤⎥⎦"
+            "⎡⎢⎣kg＿fh＿ij＿⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -2051,7 +2051,7 @@ describe("MatrixInput Tag Tests", function () {
     <p>Matrix 2: $mi1.value{assignNames="m1"}</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2112,7 +2112,7 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change value");
         cy.get(cesc("#\\/mi1_component_0_0") + " textarea").type(
             "{end}{backspace}e{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[e]");
@@ -2172,7 +2172,7 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("type f in second row");
         cy.get(cesc("#\\/mi1_component_1_0") + " textarea").type(
             "{end}{backspace}f{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[ef]");
@@ -2208,7 +2208,7 @@ describe("MatrixInput Tag Tests", function () {
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "[e＿f＿]"
+            "[e＿f＿]",
         );
 
         cy.get(cesc(`#\\/mi1_component_0_0`) + ` .mq-editable-field`)
@@ -2250,11 +2250,11 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("g and h in second column");
         cy.get(cesc("#\\/mi1_component_0_1") + " textarea").type(
             "{end}{backspace}g{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_1_1") + " textarea").type(
             "{end}{backspace}h{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[egfh]");
@@ -2300,7 +2300,7 @@ describe("MatrixInput Tag Tests", function () {
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣egfh＿＿⎤⎥⎦"
+            "⎡⎢⎣egfh＿＿⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/mi1_component_0_0`) + ` .mq-editable-field`)
@@ -2357,16 +2357,16 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change third row values");
         cy.get(cesc("#\\/mi1_component_2_0") + " textarea").type(
             "{end}{backspace}i{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_2_1") + " textarea").type(
             "{end}{backspace}j{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣egfhij⎤⎥⎦"
+            "⎡⎢⎣egfhij⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/mi1_component_0_0`) + ` .mq-editable-field`)
@@ -2452,7 +2452,7 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change value");
         cy.get(cesc("#\\/mi1_component_0_0") + " textarea").type(
             "{end}{backspace}k{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[k]");
@@ -2489,7 +2489,7 @@ describe("MatrixInput Tag Tests", function () {
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣kg＿fh＿ij＿⎤⎥⎦"
+            "⎡⎢⎣kg＿fh＿ij＿⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/mi1_component_0_0`) + ` .mq-editable-field`)
@@ -2570,7 +2570,7 @@ describe("MatrixInput Tag Tests", function () {
     <p>Matrix 2: $mi1.value{assignNames="m1"}</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2631,7 +2631,7 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change value");
         cy.get(cesc("#\\/mi1_component_0_0") + " textarea").type(
             "{end}{backspace}e{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[e]");
@@ -2691,7 +2691,7 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("type f in second row");
         cy.get(cesc("#\\/mi1_component_1_0") + " textarea").type(
             "{end}{backspace}f{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[ef]");
@@ -2727,7 +2727,7 @@ describe("MatrixInput Tag Tests", function () {
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "[e＿f＿]"
+            "[e＿f＿]",
         );
 
         cy.get(cesc(`#\\/mi1_component_0_0`) + ` .mq-editable-field`)
@@ -2769,11 +2769,11 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("g and h in second column");
         cy.get(cesc("#\\/mi1_component_0_1") + " textarea").type(
             "{end}{backspace}g{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_1_1") + " textarea").type(
             "{end}{backspace}h{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[egfh]");
@@ -2819,7 +2819,7 @@ describe("MatrixInput Tag Tests", function () {
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣egfh＿＿⎤⎥⎦"
+            "⎡⎢⎣egfh＿＿⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/mi1_component_0_0`) + ` .mq-editable-field`)
@@ -2876,16 +2876,16 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change third row values");
         cy.get(cesc("#\\/mi1_component_2_0") + " textarea").type(
             "{end}{backspace}i{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_2_1") + " textarea").type(
             "{end}{backspace}j{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣egfhij⎤⎥⎦"
+            "⎡⎢⎣egfhij⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/mi1_component_0_0`) + ` .mq-editable-field`)
@@ -2971,7 +2971,7 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change value");
         cy.get(cesc("#\\/mi1_component_0_0") + " textarea").type(
             "{end}{backspace}k{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[k]");
@@ -3008,7 +3008,7 @@ describe("MatrixInput Tag Tests", function () {
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣kg＿fh＿ij＿⎤⎥⎦"
+            "⎡⎢⎣kg＿fh＿ij＿⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/mi1_component_0_0`) + ` .mq-editable-field`)
@@ -3091,7 +3091,7 @@ describe("MatrixInput Tag Tests", function () {
     <p>Matrix 2: $mi1.value{assignNames="m1"}</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3239,7 +3239,7 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("type f in second row");
         cy.get(cesc("#\\/mi1_component_1_0") + " textarea").type(
             "{end}{backspace}f{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[ef]");
@@ -3283,12 +3283,12 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("add column via mathinput");
         cy.get(cesc("#\\/numColumns") + " textarea").type(
             "{end}{backspace}2{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "[e＿f＿]"
+            "[e＿f＿]",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -3340,11 +3340,11 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("g and h in second column");
         cy.get(cesc("#\\/mi1_component_0_1") + " textarea").type(
             "{end}{backspace}g{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_1_1") + " textarea").type(
             "{end}{backspace}h{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[egfh]");
@@ -3400,12 +3400,12 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}3{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣egfh＿＿⎤⎥⎦"
+            "⎡⎢⎣egfh＿＿⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -3472,16 +3472,16 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change third row values");
         cy.get(cesc("#\\/mi1_component_2_0") + " textarea").type(
             "{end}{backspace}i{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_2_1") + " textarea").type(
             "{end}{backspace}j{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣egfhij⎤⎥⎦"
+            "⎡⎢⎣egfhij⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -3550,11 +3550,11 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}1{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/numColumns") + " textarea").type(
             "{end}{backspace}1{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[e]");
@@ -3593,7 +3593,7 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change value");
         cy.get(cesc("#\\/mi1_component_0_0") + " textarea").type(
             "{end}{backspace}k{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[k]");
@@ -3634,16 +3634,16 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}3{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/numColumns") + " textarea").type(
             "{end}{backspace}3{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣kg＿fh＿ij＿⎤⎥⎦"
+            "⎡⎢⎣kg＿fh＿ij＿⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -3736,7 +3736,7 @@ describe("MatrixInput Tag Tests", function () {
     <p>Matrix 2: $mi1.value{assignNames="m1"}</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3884,7 +3884,7 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("type f in second row");
         cy.get(cesc("#\\/mi1_component_1_0") + " textarea").type(
             "{end}{backspace}f{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[ef]");
@@ -3928,12 +3928,12 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("add column via mathinput");
         cy.get(cesc("#\\/numColumns") + " textarea").type(
             "{end}{backspace}2{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "[e＿f＿]"
+            "[e＿f＿]",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -3985,11 +3985,11 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("g and h in second column");
         cy.get(cesc("#\\/mi1_component_0_1") + " textarea").type(
             "{end}{backspace}g{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_1_1") + " textarea").type(
             "{end}{backspace}h{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[egfh]");
@@ -4045,12 +4045,12 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}3{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣egfh＿＿⎤⎥⎦"
+            "⎡⎢⎣egfh＿＿⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -4117,16 +4117,16 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change third row values");
         cy.get(cesc("#\\/mi1_component_2_0") + " textarea").type(
             "{end}{backspace}i{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_2_1") + " textarea").type(
             "{end}{backspace}j{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣egfhij⎤⎥⎦"
+            "⎡⎢⎣egfhij⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -4195,11 +4195,11 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}1{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/numColumns") + " textarea").type(
             "{end}{backspace}1{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[e]");
@@ -4238,7 +4238,7 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change value");
         cy.get(cesc("#\\/mi1_component_0_0") + " textarea").type(
             "{end}{backspace}k{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[k]");
@@ -4279,16 +4279,16 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}3{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/numColumns") + " textarea").type(
             "{end}{backspace}3{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣kg＿fh＿ij＿⎤⎥⎦"
+            "⎡⎢⎣kg＿fh＿ij＿⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -4379,7 +4379,7 @@ describe("MatrixInput Tag Tests", function () {
     <p>Matrix 2: $mi1.value{assignNames="m1"}</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4440,7 +4440,7 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change value");
         cy.get(cesc("#\\/mi1_component_0_0") + " textarea").type(
             "{end}{backspace}e{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[e]");
@@ -4502,7 +4502,7 @@ describe("MatrixInput Tag Tests", function () {
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "[eb＿＿]"
+            "[eb＿＿]",
         );
 
         cy.get(cesc(`#\\/mi1_component_0_0`) + ` .mq-editable-field`)
@@ -4544,15 +4544,15 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change values");
         cy.get(cesc("#\\/mi1_component_1_0") + " textarea").type(
             "{end}{backspace}f{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_0_1") + " textarea").type(
             "{end}{backspace}g{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_1_1") + " textarea").type(
             "{end}{backspace}h{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[egfh]");
@@ -4598,7 +4598,7 @@ describe("MatrixInput Tag Tests", function () {
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣egfh＿＿⎤⎥⎦"
+            "⎡⎢⎣egfh＿＿⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/mi1_component_0_0`) + ` .mq-editable-field`)
@@ -4655,16 +4655,16 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change third row values");
         cy.get(cesc("#\\/mi1_component_2_0") + " textarea").type(
             "{end}{backspace}i{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_2_1") + " textarea").type(
             "{end}{backspace}j{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣egfhij⎤⎥⎦"
+            "⎡⎢⎣egfhij⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/mi1_component_0_0`) + ` .mq-editable-field`)
@@ -4752,7 +4752,7 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change value");
         cy.get(cesc("#\\/mi1_component_0_0") + " textarea").type(
             "{end}{backspace}k{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[k]");
@@ -4789,7 +4789,7 @@ describe("MatrixInput Tag Tests", function () {
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣kg＿fh＿ij＿⎤⎥⎦"
+            "⎡⎢⎣kg＿fh＿ij＿⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/mi1_component_0_0`) + ` .mq-editable-field`)
@@ -4870,7 +4870,7 @@ describe("MatrixInput Tag Tests", function () {
     <p>Matrix 2: $mi1.value{assignNames="m1"}</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4931,7 +4931,7 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change value");
         cy.get(cesc("#\\/mi1_component_0_0") + " textarea").type(
             "{end}{backspace}e{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[e]");
@@ -4993,7 +4993,7 @@ describe("MatrixInput Tag Tests", function () {
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "[eb＿＿]"
+            "[eb＿＿]",
         );
 
         cy.get(cesc(`#\\/mi1_component_0_0`) + ` .mq-editable-field`)
@@ -5035,15 +5035,15 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change values");
         cy.get(cesc("#\\/mi1_component_1_0") + " textarea").type(
             "{end}{backspace}f{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_0_1") + " textarea").type(
             "{end}{backspace}g{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_1_1") + " textarea").type(
             "{end}{backspace}h{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[egfh]");
@@ -5089,7 +5089,7 @@ describe("MatrixInput Tag Tests", function () {
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣egfh＿＿⎤⎥⎦"
+            "⎡⎢⎣egfh＿＿⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/mi1_component_0_0`) + ` .mq-editable-field`)
@@ -5146,16 +5146,16 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change third row values");
         cy.get(cesc("#\\/mi1_component_2_0") + " textarea").type(
             "{end}{backspace}i{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_2_1") + " textarea").type(
             "{end}{backspace}j{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣egfhij⎤⎥⎦"
+            "⎡⎢⎣egfhij⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/mi1_component_0_0`) + ` .mq-editable-field`)
@@ -5243,7 +5243,7 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change value");
         cy.get(cesc("#\\/mi1_component_0_0") + " textarea").type(
             "{end}{backspace}k{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[k]");
@@ -5280,7 +5280,7 @@ describe("MatrixInput Tag Tests", function () {
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣kg＿fh＿ij＿⎤⎥⎦"
+            "⎡⎢⎣kg＿fh＿ij＿⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/mi1_component_0_0`) + ` .mq-editable-field`)
@@ -5363,7 +5363,7 @@ describe("MatrixInput Tag Tests", function () {
     <p>Matrix 2: $mi1.value{assignNames="m1"}</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5511,7 +5511,7 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("type f in second row");
         cy.get(cesc("#\\/mi1_component_1_0") + " textarea").type(
             "{end}{backspace}f{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[ef]");
@@ -5555,7 +5555,7 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("add column via mathinput");
         cy.get(cesc("#\\/numColumns") + " textarea").type(
             "{end}{backspace}2{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[ebf＿]");
@@ -5609,11 +5609,11 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("g and h in second column");
         cy.get(cesc("#\\/mi1_component_0_1") + " textarea").type(
             "{end}{backspace}g{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_1_1") + " textarea").type(
             "{end}{backspace}h{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[egfh]");
@@ -5669,12 +5669,12 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}3{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣egfh＿＿⎤⎥⎦"
+            "⎡⎢⎣egfh＿＿⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -5741,16 +5741,16 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change third row values");
         cy.get(cesc("#\\/mi1_component_2_0") + " textarea").type(
             "{end}{backspace}i{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_2_1") + " textarea").type(
             "{end}{backspace}j{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣egfhij⎤⎥⎦"
+            "⎡⎢⎣egfhij⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -5819,11 +5819,11 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}1{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/numColumns") + " textarea").type(
             "{end}{backspace}1{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[e]");
@@ -5862,7 +5862,7 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change value");
         cy.get(cesc("#\\/mi1_component_0_0") + " textarea").type(
             "{end}{backspace}k{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[k]");
@@ -5903,16 +5903,16 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}3{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/numColumns") + " textarea").type(
             "{end}{backspace}3{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣kg＿fh＿ij＿⎤⎥⎦"
+            "⎡⎢⎣kg＿fh＿ij＿⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -6005,7 +6005,7 @@ describe("MatrixInput Tag Tests", function () {
     <p>Matrix 2: $mi1.value{assignNames="m1"}</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6153,7 +6153,7 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("type f in second row");
         cy.get(cesc("#\\/mi1_component_1_0") + " textarea").type(
             "{end}{backspace}f{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[ef]");
@@ -6197,7 +6197,7 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("add column via mathinput");
         cy.get(cesc("#\\/numColumns") + " textarea").type(
             "{end}{backspace}2{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[ebf＿]");
@@ -6251,11 +6251,11 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("g and h in second column");
         cy.get(cesc("#\\/mi1_component_0_1") + " textarea").type(
             "{end}{backspace}g{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_1_1") + " textarea").type(
             "{end}{backspace}h{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[egfh]");
@@ -6311,12 +6311,12 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}3{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣egfh＿＿⎤⎥⎦"
+            "⎡⎢⎣egfh＿＿⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -6383,16 +6383,16 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change third row values");
         cy.get(cesc("#\\/mi1_component_2_0") + " textarea").type(
             "{end}{backspace}i{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_2_1") + " textarea").type(
             "{end}{backspace}j{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣egfhij⎤⎥⎦"
+            "⎡⎢⎣egfhij⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -6461,11 +6461,11 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}1{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/numColumns") + " textarea").type(
             "{end}{backspace}1{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[e]");
@@ -6504,7 +6504,7 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change value");
         cy.get(cesc("#\\/mi1_component_0_0") + " textarea").type(
             "{end}{backspace}k{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[k]");
@@ -6545,16 +6545,16 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}3{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/numColumns") + " textarea").type(
             "{end}{backspace}3{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣kg＿fh＿ij＿⎤⎥⎦"
+            "⎡⎢⎣kg＿fh＿ij＿⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -6647,7 +6647,7 @@ describe("MatrixInput Tag Tests", function () {
     <p>Matrix 2: $mi1.value{assignNames="m1"}</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6795,7 +6795,7 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("type f in second row");
         cy.get(cesc("#\\/mi1_component_1_0") + " textarea").type(
             "{end}{backspace}f{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[ef]");
@@ -6839,7 +6839,7 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("add column via mathinput");
         cy.get(cesc("#\\/numColumns") + " textarea").type(
             "{end}{backspace}2{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[ebf＿]");
@@ -6893,11 +6893,11 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("g and h in second column");
         cy.get(cesc("#\\/mi1_component_0_1") + " textarea").type(
             "{end}{backspace}g{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_1_1") + " textarea").type(
             "{end}{backspace}h{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[egfh]");
@@ -6953,12 +6953,12 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}3{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣egfh＿＿⎤⎥⎦"
+            "⎡⎢⎣egfh＿＿⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -7025,16 +7025,16 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change third row values");
         cy.get(cesc("#\\/mi1_component_2_0") + " textarea").type(
             "{end}{backspace}i{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_2_1") + " textarea").type(
             "{end}{backspace}j{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣egfhij⎤⎥⎦"
+            "⎡⎢⎣egfhij⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -7103,11 +7103,11 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}1{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/numColumns") + " textarea").type(
             "{end}{backspace}1{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[e]");
@@ -7146,7 +7146,7 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change value");
         cy.get(cesc("#\\/mi1_component_0_0") + " textarea").type(
             "{end}{backspace}k{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[k]");
@@ -7187,16 +7187,16 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}3{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/numColumns") + " textarea").type(
             "{end}{backspace}3{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣kg＿fh＿ij＿⎤⎥⎦"
+            "⎡⎢⎣kg＿fh＿ij＿⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -7289,7 +7289,7 @@ describe("MatrixInput Tag Tests", function () {
     <p>Matrix 2: $mi1.value{assignNames="m1"}</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -7437,7 +7437,7 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("type f in second row");
         cy.get(cesc("#\\/mi1_component_1_0") + " textarea").type(
             "{end}{backspace}f{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[ef]");
@@ -7481,7 +7481,7 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("add column via mathinput");
         cy.get(cesc("#\\/numColumns") + " textarea").type(
             "{end}{backspace}2{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[ebf＿]");
@@ -7535,11 +7535,11 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("g and h in second column");
         cy.get(cesc("#\\/mi1_component_0_1") + " textarea").type(
             "{end}{backspace}g{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_1_1") + " textarea").type(
             "{end}{backspace}h{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[egfh]");
@@ -7595,12 +7595,12 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}3{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣egfh＿＿⎤⎥⎦"
+            "⎡⎢⎣egfh＿＿⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -7667,16 +7667,16 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change third row values");
         cy.get(cesc("#\\/mi1_component_2_0") + " textarea").type(
             "{end}{backspace}i{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_2_1") + " textarea").type(
             "{end}{backspace}j{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣egfhij⎤⎥⎦"
+            "⎡⎢⎣egfhij⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -7745,11 +7745,11 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}1{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/numColumns") + " textarea").type(
             "{end}{backspace}1{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[e]");
@@ -7788,7 +7788,7 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change value");
         cy.get(cesc("#\\/mi1_component_0_0") + " textarea").type(
             "{end}{backspace}k{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[k]");
@@ -7829,16 +7829,16 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}3{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/numColumns") + " textarea").type(
             "{end}{backspace}3{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣kg＿fh＿ij＿⎤⎥⎦"
+            "⎡⎢⎣kg＿fh＿ij＿⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -7932,7 +7932,7 @@ describe("MatrixInput Tag Tests", function () {
     <p>Matrix 3: $mi1.value{assignNames="m2"}</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -7992,19 +7992,19 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change entries");
         cy.get(cesc("#\\/mi1_component_0_0") + " textarea").type(
             "{end}{backspace}e{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_0_1") + " textarea").type(
             "{end}{backspace}g{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_1_0") + " textarea").type(
             "{end}{backspace}f{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_1_1") + " textarea").type(
             "{end}{backspace}h{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[egfh]");
@@ -8065,12 +8065,12 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}3{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣egfh＿＿⎤⎥⎦"
+            "⎡⎢⎣egfh＿＿⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -8142,16 +8142,16 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change third row values");
         cy.get(cesc("#\\/mi1_component_2_0") + " textarea").type(
             "{end}{backspace}i{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_2_1") + " textarea").type(
             "{end}{backspace}j{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣egfhij⎤⎥⎦"
+            "⎡⎢⎣egfhij⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -8225,11 +8225,11 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}1{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/numColumns") + " textarea").type(
             "{end}{backspace}1{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[e]");
@@ -8273,7 +8273,7 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change value");
         cy.get(cesc("#\\/mi1_component_0_0") + " textarea").type(
             "{end}{backspace}k{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[k]");
@@ -8319,16 +8319,16 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}3{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/numColumns") + " textarea").type(
             "{end}{backspace}3{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣kg＿fh＿ij＿⎤⎥⎦"
+            "⎡⎢⎣kg＿fh＿ij＿⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -8429,7 +8429,7 @@ describe("MatrixInput Tag Tests", function () {
     <p><textinput name="ti" /> $ti.value{assignNames="t"}</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -8489,7 +8489,7 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change value");
         cy.get(cesc("#\\/mi1_component_0_0") + " textarea").type(
             "{end}{backspace}e{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[ebcd]");
@@ -8596,7 +8596,7 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}9{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         // wait for core to responds to change in textinput, so know have waited long enough
@@ -8660,7 +8660,7 @@ describe("MatrixInput Tag Tests", function () {
     <p>Matrix 3: $mi1.value{assignNames="m2"}</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -8711,11 +8711,11 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change values");
         cy.get(cesc("#\\/mi1_component_0_0") + " textarea").type(
             "{end}{backspace}e{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_1_0") + " textarea").type(
             "{end}{backspace}f{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "(e,f)");
@@ -8767,7 +8767,7 @@ describe("MatrixInput Tag Tests", function () {
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "(e,f,＿)"
+            "(e,f,＿)",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -8820,7 +8820,7 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change value");
         cy.get(cesc("#\\/mi1_component_2_0") + " textarea").type(
             "{end}{backspace}z{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "(e,f,z)");
@@ -8924,12 +8924,12 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}4{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "(e,f,z,＿)"
+            "(e,f,z,＿)",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -8993,16 +8993,16 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change values");
         cy.get(cesc("#\\/mi1_component_2_0") + " textarea").type(
             "{end}{backspace}{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_3_0") + " textarea").type(
             "{end}{backspace}y{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "(e,f,＿,y)"
+            "(e,f,＿,y)",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -9068,7 +9068,7 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}2{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "(e,f)");
@@ -9118,12 +9118,12 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("add column via mathinput");
         cy.get(cesc("#\\/numColumns") + " textarea").type(
             "{end}{backspace}2{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "[e＿f＿]"
+            "[e＿f＿]",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -9180,11 +9180,11 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("g and h in second column");
         cy.get(cesc("#\\/mi1_component_0_1") + " textarea").type(
             "{end}{backspace}g{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_1_1") + " textarea").type(
             "{end}{backspace}h{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[egfh]");
@@ -9245,12 +9245,12 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}3{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣egfh＿＿⎤⎥⎦"
+            "⎡⎢⎣egfh＿＿⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -9322,16 +9322,16 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change third row values");
         cy.get(cesc("#\\/mi1_component_2_0") + " textarea").type(
             "{end}{backspace}i{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_2_1") + " textarea").type(
             "{end}{backspace}j{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣egfhij⎤⎥⎦"
+            "⎡⎢⎣egfhij⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -9405,11 +9405,11 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}1{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/numColumns") + " textarea").type(
             "{end}{backspace}1{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[e]");
@@ -9453,7 +9453,7 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change value");
         cy.get(cesc("#\\/mi1_component_0_0") + " textarea").type(
             "{end}{backspace}k{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[k]");
@@ -9499,16 +9499,16 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}3{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/numColumns") + " textarea").type(
             "{end}{backspace}3{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣kg＿fh＿ij＿⎤⎥⎦"
+            "⎡⎢⎣kg＿fh＿ij＿⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -9607,7 +9607,7 @@ describe("MatrixInput Tag Tests", function () {
     <p>Matrix 3: $mi1.value{assignNames="m2"}</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -9658,11 +9658,11 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change values");
         cy.get(cesc("#\\/mi1_component_0_0") + " textarea").type(
             "{end}{backspace}e{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_1_0") + " textarea").type(
             "{end}{backspace}f{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "⟨e,f⟩");
@@ -9714,7 +9714,7 @@ describe("MatrixInput Tag Tests", function () {
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⟨e,f,＿⟩"
+            "⟨e,f,＿⟩",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -9767,7 +9767,7 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change value");
         cy.get(cesc("#\\/mi1_component_2_0") + " textarea").type(
             "{end}{backspace}z{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "⟨e,f,z⟩");
@@ -9871,12 +9871,12 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}4{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⟨e,f,z,＿⟩"
+            "⟨e,f,z,＿⟩",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -9940,16 +9940,16 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change values");
         cy.get(cesc("#\\/mi1_component_2_0") + " textarea").type(
             "{end}{backspace}{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_3_0") + " textarea").type(
             "{end}{backspace}y{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⟨e,f,＿,y⟩"
+            "⟨e,f,＿,y⟩",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -10015,7 +10015,7 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}2{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "⟨e,f⟩");
@@ -10065,12 +10065,12 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("add column via mathinput");
         cy.get(cesc("#\\/numColumns") + " textarea").type(
             "{end}{backspace}2{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "[e＿f＿]"
+            "[e＿f＿]",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -10127,11 +10127,11 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("g and h in second column");
         cy.get(cesc("#\\/mi1_component_0_1") + " textarea").type(
             "{end}{backspace}g{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_1_1") + " textarea").type(
             "{end}{backspace}h{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[egfh]");
@@ -10192,12 +10192,12 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}3{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣egfh＿＿⎤⎥⎦"
+            "⎡⎢⎣egfh＿＿⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -10269,16 +10269,16 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change third row values");
         cy.get(cesc("#\\/mi1_component_2_0") + " textarea").type(
             "{end}{backspace}i{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_2_1") + " textarea").type(
             "{end}{backspace}j{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣egfhij⎤⎥⎦"
+            "⎡⎢⎣egfhij⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -10352,11 +10352,11 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}1{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/numColumns") + " textarea").type(
             "{end}{backspace}1{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[e]");
@@ -10400,7 +10400,7 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change value");
         cy.get(cesc("#\\/mi1_component_0_0") + " textarea").type(
             "{end}{backspace}k{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[k]");
@@ -10446,16 +10446,16 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}3{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/numColumns") + " textarea").type(
             "{end}{backspace}3{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣kg＿fh＿ij＿⎤⎥⎦"
+            "⎡⎢⎣kg＿fh＿ij＿⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -10556,7 +10556,7 @@ describe("MatrixInput Tag Tests", function () {
     <p><textinput name="ti" /> $ti.value{assignNames="t"}</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -10612,11 +10612,11 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change values");
         cy.get(cesc("#\\/mi1_component_0_0") + " textarea").type(
             "{end}{backspace}e{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_1_0") + " textarea").type(
             "{end}{backspace}f{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "(e,f,c)");
@@ -10671,7 +10671,7 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("ignore change in numColumns");
         cy.get(cesc("#\\/numColumns") + " textarea").type(
             "{end}{backspace}3{enter}",
-            { force: true }
+            { force: true },
         );
 
         // wait for core to responds to change in textinput, so know have waited long enough
@@ -10780,7 +10780,7 @@ describe("MatrixInput Tag Tests", function () {
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "[e＿f＿]"
+            "[e＿f＿]",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -10851,7 +10851,7 @@ describe("MatrixInput Tag Tests", function () {
     <p><textinput name="ti" /> $ti.value{assignNames="t"}</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -10907,11 +10907,11 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change values");
         cy.get(cesc("#\\/mi1_component_0_0") + " textarea").type(
             "{end}{backspace}e{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_1_0") + " textarea").type(
             "{end}{backspace}f{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "⟨e,f,c⟩");
@@ -10966,7 +10966,7 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("ignore change in numColumns");
         cy.get(cesc("#\\/numColumns") + " textarea").type(
             "{end}{backspace}3{enter}",
-            { force: true }
+            { force: true },
         );
 
         // wait for core to responds to change in textinput, so know have waited long enough
@@ -11075,7 +11075,7 @@ describe("MatrixInput Tag Tests", function () {
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "[e＿f＿]"
+            "[e＿f＿]",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -11144,7 +11144,7 @@ describe("MatrixInput Tag Tests", function () {
     <p>Matrix 3: $mi1.value{assignNames="m2"}</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -11195,11 +11195,11 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change values");
         cy.get(cesc("#\\/mi1_component_0_0") + " textarea").type(
             "{end}{backspace}e{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_0_1") + " textarea").type(
             "{end}{backspace}g{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "(e,g)T");
@@ -11251,7 +11251,7 @@ describe("MatrixInput Tag Tests", function () {
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "(e,g,＿)T"
+            "(e,g,＿)T",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -11304,12 +11304,12 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change value");
         cy.get(cesc("#\\/mi1_component_0_2") + " textarea").type(
             "{end}{backspace}z{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "(e,g,z)T"
+            "(e,g,z)T",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -11409,12 +11409,12 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("get value back when add columns");
         cy.get(cesc("#\\/numColumns") + " textarea").type(
             "{end}{backspace}4{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "(e,g,z,＿)T"
+            "(e,g,z,＿)T",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -11472,16 +11472,16 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change values");
         cy.get(cesc("#\\/mi1_component_0_2") + " textarea").type(
             "{end}{backspace}{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_0_3") + " textarea").type(
             "{end}{backspace}y{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "(e,g,＿,y)T"
+            "(e,g,＿,y)T",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -11539,7 +11539,7 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("back to 2D vector transpose");
         cy.get(cesc("#\\/numColumns") + " textarea").type(
             "{end}{backspace}2{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "(e,g)T");
@@ -11591,12 +11591,12 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}2{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "[eg＿＿]"
+            "[eg＿＿]",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -11653,11 +11653,11 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("f and h in second row");
         cy.get(cesc("#\\/mi1_component_1_0") + " textarea").type(
             "{end}{backspace}f{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_1_1") + " textarea").type(
             "{end}{backspace}h{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[egfh]");
@@ -11718,12 +11718,12 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}3{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣egfh＿＿⎤⎥⎦"
+            "⎡⎢⎣egfh＿＿⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -11795,16 +11795,16 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change third row values");
         cy.get(cesc("#\\/mi1_component_2_0") + " textarea").type(
             "{end}{backspace}i{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_2_1") + " textarea").type(
             "{end}{backspace}j{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣egfhij⎤⎥⎦"
+            "⎡⎢⎣egfhij⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -11878,11 +11878,11 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}1{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/numColumns") + " textarea").type(
             "{end}{backspace}1{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[e]");
@@ -11926,7 +11926,7 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change value");
         cy.get(cesc("#\\/mi1_component_0_0") + " textarea").type(
             "{end}{backspace}k{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[k]");
@@ -11972,16 +11972,16 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}3{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/numColumns") + " textarea").type(
             "{end}{backspace}3{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣kg＿fh＿ij＿⎤⎥⎦"
+            "⎡⎢⎣kg＿fh＿ij＿⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -12080,7 +12080,7 @@ describe("MatrixInput Tag Tests", function () {
     <p>Matrix 3: $mi1.value{assignNames="m2"}</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -12131,11 +12131,11 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change values");
         cy.get(cesc("#\\/mi1_component_0_0") + " textarea").type(
             "{end}{backspace}e{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_0_1") + " textarea").type(
             "{end}{backspace}g{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "⟨e,g⟩T");
@@ -12187,7 +12187,7 @@ describe("MatrixInput Tag Tests", function () {
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⟨e,g,＿⟩T"
+            "⟨e,g,＿⟩T",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -12240,12 +12240,12 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change value");
         cy.get(cesc("#\\/mi1_component_0_2") + " textarea").type(
             "{end}{backspace}z{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⟨e,g,z⟩T"
+            "⟨e,g,z⟩T",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -12345,12 +12345,12 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("get value back when add columns");
         cy.get(cesc("#\\/numColumns") + " textarea").type(
             "{end}{backspace}4{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⟨e,g,z,＿⟩T"
+            "⟨e,g,z,＿⟩T",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -12408,16 +12408,16 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change values");
         cy.get(cesc("#\\/mi1_component_0_2") + " textarea").type(
             "{end}{backspace}{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_0_3") + " textarea").type(
             "{end}{backspace}y{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⟨e,g,＿,y⟩T"
+            "⟨e,g,＿,y⟩T",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -12475,7 +12475,7 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("back to 2D vector transpose");
         cy.get(cesc("#\\/numColumns") + " textarea").type(
             "{end}{backspace}2{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "⟨e,g⟩T");
@@ -12527,12 +12527,12 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}2{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "[eg＿＿]"
+            "[eg＿＿]",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -12589,11 +12589,11 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("f and h in second row");
         cy.get(cesc("#\\/mi1_component_1_0") + " textarea").type(
             "{end}{backspace}f{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_1_1") + " textarea").type(
             "{end}{backspace}h{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[egfh]");
@@ -12654,12 +12654,12 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}3{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣egfh＿＿⎤⎥⎦"
+            "⎡⎢⎣egfh＿＿⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -12731,16 +12731,16 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change third row values");
         cy.get(cesc("#\\/mi1_component_2_0") + " textarea").type(
             "{end}{backspace}i{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_2_1") + " textarea").type(
             "{end}{backspace}j{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣egfhij⎤⎥⎦"
+            "⎡⎢⎣egfhij⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -12814,11 +12814,11 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}1{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/numColumns") + " textarea").type(
             "{end}{backspace}1{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[e]");
@@ -12862,7 +12862,7 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change value");
         cy.get(cesc("#\\/mi1_component_0_0") + " textarea").type(
             "{end}{backspace}k{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[k]");
@@ -12908,16 +12908,16 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}3{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/numColumns") + " textarea").type(
             "{end}{backspace}3{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣kg＿fh＿ij＿⎤⎥⎦"
+            "⎡⎢⎣kg＿fh＿ij＿⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -13016,7 +13016,7 @@ describe("MatrixInput Tag Tests", function () {
     <p>Matrix 3: $mi1.value{assignNames="m2"}</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -13067,11 +13067,11 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change values");
         cy.get(cesc("#\\/mi1_component_0_0") + " textarea").type(
             "{end}{backspace}e{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_0_1") + " textarea").type(
             "{end}{backspace}g{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "(e,g)′");
@@ -13123,7 +13123,7 @@ describe("MatrixInput Tag Tests", function () {
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "(e,g,＿)′"
+            "(e,g,＿)′",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -13176,12 +13176,12 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change value");
         cy.get(cesc("#\\/mi1_component_0_2") + " textarea").type(
             "{end}{backspace}z{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "(e,g,z)′"
+            "(e,g,z)′",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -13281,12 +13281,12 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("get value back when add columns");
         cy.get(cesc("#\\/numColumns") + " textarea").type(
             "{end}{backspace}4{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "(e,g,z,＿)′"
+            "(e,g,z,＿)′",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -13344,16 +13344,16 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change values");
         cy.get(cesc("#\\/mi1_component_0_2") + " textarea").type(
             "{end}{backspace}{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_0_3") + " textarea").type(
             "{end}{backspace}y{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "(e,g,＿,y)′"
+            "(e,g,＿,y)′",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -13411,7 +13411,7 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("back to 2D vector transpose");
         cy.get(cesc("#\\/numColumns") + " textarea").type(
             "{end}{backspace}2{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "(e,g)′");
@@ -13463,12 +13463,12 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}2{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "[eg＿＿]"
+            "[eg＿＿]",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -13525,11 +13525,11 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("f and h in second row");
         cy.get(cesc("#\\/mi1_component_1_0") + " textarea").type(
             "{end}{backspace}f{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_1_1") + " textarea").type(
             "{end}{backspace}h{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[egfh]");
@@ -13590,12 +13590,12 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}3{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣egfh＿＿⎤⎥⎦"
+            "⎡⎢⎣egfh＿＿⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -13667,16 +13667,16 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change third row values");
         cy.get(cesc("#\\/mi1_component_2_0") + " textarea").type(
             "{end}{backspace}i{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_2_1") + " textarea").type(
             "{end}{backspace}j{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣egfhij⎤⎥⎦"
+            "⎡⎢⎣egfhij⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -13750,11 +13750,11 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}1{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/numColumns") + " textarea").type(
             "{end}{backspace}1{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[e]");
@@ -13798,7 +13798,7 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change value");
         cy.get(cesc("#\\/mi1_component_0_0") + " textarea").type(
             "{end}{backspace}k{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[k]");
@@ -13844,16 +13844,16 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}3{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/numColumns") + " textarea").type(
             "{end}{backspace}3{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣kg＿fh＿ij＿⎤⎥⎦"
+            "⎡⎢⎣kg＿fh＿ij＿⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -13952,7 +13952,7 @@ describe("MatrixInput Tag Tests", function () {
     <p>Matrix 3: $mi1.value{assignNames="m2"}</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -14003,11 +14003,11 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change values");
         cy.get(cesc("#\\/mi1_component_0_0") + " textarea").type(
             "{end}{backspace}e{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_0_1") + " textarea").type(
             "{end}{backspace}g{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "⟨e,g⟩′");
@@ -14059,7 +14059,7 @@ describe("MatrixInput Tag Tests", function () {
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⟨e,g,＿⟩′"
+            "⟨e,g,＿⟩′",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -14112,12 +14112,12 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change value");
         cy.get(cesc("#\\/mi1_component_0_2") + " textarea").type(
             "{end}{backspace}z{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⟨e,g,z⟩′"
+            "⟨e,g,z⟩′",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -14217,12 +14217,12 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("get value back when add columns");
         cy.get(cesc("#\\/numColumns") + " textarea").type(
             "{end}{backspace}4{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⟨e,g,z,＿⟩′"
+            "⟨e,g,z,＿⟩′",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -14280,16 +14280,16 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change values");
         cy.get(cesc("#\\/mi1_component_0_2") + " textarea").type(
             "{end}{backspace}{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_0_3") + " textarea").type(
             "{end}{backspace}y{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⟨e,g,＿,y⟩′"
+            "⟨e,g,＿,y⟩′",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -14347,7 +14347,7 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("back to 2D vector transpose");
         cy.get(cesc("#\\/numColumns") + " textarea").type(
             "{end}{backspace}2{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "⟨e,g⟩′");
@@ -14399,12 +14399,12 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}2{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "[eg＿＿]"
+            "[eg＿＿]",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -14461,11 +14461,11 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("f and h in second row");
         cy.get(cesc("#\\/mi1_component_1_0") + " textarea").type(
             "{end}{backspace}f{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_1_1") + " textarea").type(
             "{end}{backspace}h{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[egfh]");
@@ -14526,12 +14526,12 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}3{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣egfh＿＿⎤⎥⎦"
+            "⎡⎢⎣egfh＿＿⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -14603,16 +14603,16 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change third row values");
         cy.get(cesc("#\\/mi1_component_2_0") + " textarea").type(
             "{end}{backspace}i{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_2_1") + " textarea").type(
             "{end}{backspace}j{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣egfhij⎤⎥⎦"
+            "⎡⎢⎣egfhij⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -14686,11 +14686,11 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}1{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/numColumns") + " textarea").type(
             "{end}{backspace}1{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[e]");
@@ -14734,7 +14734,7 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change value");
         cy.get(cesc("#\\/mi1_component_0_0") + " textarea").type(
             "{end}{backspace}k{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "[k]");
@@ -14780,16 +14780,16 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}3{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/numColumns") + " textarea").type(
             "{end}{backspace}3{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣kg＿fh＿ij＿⎤⎥⎦"
+            "⎡⎢⎣kg＿fh＿ij＿⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -14890,7 +14890,7 @@ describe("MatrixInput Tag Tests", function () {
     <p><textinput name="ti" /> $ti.value{assignNames="t"}</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -14946,16 +14946,16 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change values");
         cy.get(cesc("#\\/mi1_component_0_0") + " textarea").type(
             "{end}{backspace}e{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_0_1") + " textarea").type(
             "{end}{backspace}f{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "(e,f,c)T"
+            "(e,f,c)T",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -15010,7 +15010,7 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}3{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         // wait for core to responds to change in textinput, so know have waited long enough
@@ -15020,7 +15020,7 @@ describe("MatrixInput Tag Tests", function () {
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "(e,f,c)T"
+            "(e,f,c)T",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -15122,7 +15122,7 @@ describe("MatrixInput Tag Tests", function () {
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "[ef＿＿]"
+            "[ef＿＿]",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -15193,7 +15193,7 @@ describe("MatrixInput Tag Tests", function () {
     <p><textinput name="ti" /> $ti.value{assignNames="t"}</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -15249,16 +15249,16 @@ describe("MatrixInput Tag Tests", function () {
         cy.log("change values");
         cy.get(cesc("#\\/mi1_component_0_0") + " textarea").type(
             "{end}{backspace}e{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_0_1") + " textarea").type(
             "{end}{backspace}f{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⟨e,f,c⟩T"
+            "⟨e,f,c⟩T",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -15313,7 +15313,7 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}3{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         // wait for core to responds to change in textinput, so know have waited long enough
@@ -15323,7 +15323,7 @@ describe("MatrixInput Tag Tests", function () {
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⟨e,f,c⟩T"
+            "⟨e,f,c⟩T",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -15425,7 +15425,7 @@ describe("MatrixInput Tag Tests", function () {
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "[ef＿＿]"
+            "[ef＿＿]",
         );
 
         cy.get(cesc(`#\\/numRows`) + ` .mq-editable-field`)
@@ -15494,7 +15494,7 @@ describe("MatrixInput Tag Tests", function () {
     $noSplit2.value{assignNames="noSplit3"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -15511,7 +15511,7 @@ describe("MatrixInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x2"
+                    "x2",
                 );
             });
         cy.get(cesc("#\\/varWithNum3"))
@@ -15532,7 +15532,7 @@ describe("MatrixInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "xyz"
+                    "xyz",
                 );
             });
         cy.get(cesc("#\\/noSplit3"))
@@ -15571,16 +15571,16 @@ describe("MatrixInput Tag Tests", function () {
 
         cy.get(cesc("#\\/varWithNum2") + " textarea").type(
             "{end}{backspace}u9j{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/noSplit2") + " textarea").type(
             "{end}{backspace}uv{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/noSplit") + " .mjx-mrow").should(
             "contain.text",
-            "[xyuv]"
+            "[xyuv]",
         );
 
         cy.get(cesc("#\\/varWithNum"))
@@ -15594,7 +15594,7 @@ describe("MatrixInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "xu9j"
+                    "xu9j",
                 );
             });
         cy.get(cesc("#\\/varWithNum3"))
@@ -15615,7 +15615,7 @@ describe("MatrixInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "xyuv"
+                    "xyuv",
                 );
             });
         cy.get(cesc("#\\/noSplit3"))
@@ -15671,7 +15671,7 @@ describe("MatrixInput Tag Tests", function () {
     <p>Matrix from immediate value: <matrix copySource="mi.immediateValue" name="miv" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -15712,7 +15712,7 @@ describe("MatrixInput Tag Tests", function () {
                 ["tuple", ["tuple", 0, 0], ["tuple", 0, 0]],
             ];
             expect(stateVariables["/mi"].stateValues.immediateValue).eqls(
-                matrixAst
+                matrixAst,
             );
             expect(stateVariables["/mi"].stateValues.value).eqls(matrixAst);
             expect(stateVariables["/miv"].stateValues.value).eqls(matrixAst);
@@ -15729,7 +15729,7 @@ describe("MatrixInput Tag Tests", function () {
             {
                 force: true,
                 delay: 200,
-            }
+            },
         );
 
         cy.get(cesc("#\\/miv") + " .mjx-mrow").should("contain.text", "[00b0]");
@@ -15775,7 +15775,7 @@ describe("MatrixInput Tag Tests", function () {
                 ["tuple", ["tuple", 0, 0], ["tuple", 0, 0]],
             ];
             expect(stateVariables["/mi"].stateValues.immediateValue).eqls(
-                matrixivAst
+                matrixivAst,
             );
             expect(stateVariables["/mi"].stateValues.value).eqls(matrixvAst);
             expect(stateVariables["/miv"].stateValues.value).eqls(matrixivAst);
@@ -15823,7 +15823,7 @@ describe("MatrixInput Tag Tests", function () {
                 ["tuple", ["tuple", 0, 0], ["tuple", "b", 0]],
             ];
             expect(stateVariables["/mi"].stateValues.immediateValue).eqls(
-                matrixAst
+                matrixAst,
             );
             expect(stateVariables["/mi"].stateValues.value).eqls(matrixAst);
             expect(stateVariables["/miv"].stateValues.value).eqls(matrixAst);
@@ -15835,7 +15835,7 @@ describe("MatrixInput Tag Tests", function () {
 
         cy.get(cesc("#\\/mv") + " .mjx-mrow").should(
             "contain.text",
-            "[000b00]"
+            "[000b00]",
         );
 
         cy.get(cesc(`#\\/mi_component_0_0`) + ` .mq-editable-field`)
@@ -15884,7 +15884,7 @@ describe("MatrixInput Tag Tests", function () {
                 ["tuple", ["tuple", 0, 0, 0], ["tuple", "b", 0, 0]],
             ];
             expect(stateVariables["/mi"].stateValues.immediateValue).eqls(
-                matrixAst
+                matrixAst,
             );
             expect(stateVariables["/mi"].stateValues.value).eqls(matrixAst);
             expect(stateVariables["/miv"].stateValues.value).eqls(matrixAst);
@@ -15896,12 +15896,12 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}c",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/miv") + " .mjx-mrow").should(
             "contain.text",
-            "[00cb00]"
+            "[00cb00]",
         );
 
         cy.get(cesc(`#\\/mi_component_0_0`) + ` .mq-editable-field`)
@@ -15955,7 +15955,7 @@ describe("MatrixInput Tag Tests", function () {
                 ["tuple", ["tuple", 0, 0, 0], ["tuple", "b", 0, 0]],
             ];
             expect(stateVariables["/mi"].stateValues.immediateValue).eqls(
-                matrixivAst
+                matrixivAst,
             );
             expect(stateVariables["/mi"].stateValues.value).eqls(matrixvAst);
             expect(stateVariables["/miv"].stateValues.value).eqls(matrixivAst);
@@ -15969,7 +15969,7 @@ describe("MatrixInput Tag Tests", function () {
 
         cy.get(cesc("#\\/mv") + " .mjx-mrow").should(
             "contain.text",
-            "[00cb00]"
+            "[00cb00]",
         );
 
         cy.get(cesc(`#\\/mi_component_0_0`) + ` .mq-editable-field`)
@@ -16018,7 +16018,7 @@ describe("MatrixInput Tag Tests", function () {
                 ["tuple", ["tuple", 0, 0, "c"], ["tuple", "b", 0, 0]],
             ];
             expect(stateVariables["/mi"].stateValues.immediateValue).eqls(
-                matrixAst
+                matrixAst,
             );
             expect(stateVariables["/mi"].stateValues.value).eqls(matrixAst);
             expect(stateVariables["/miv"].stateValues.value).eqls(matrixAst);
@@ -16030,7 +16030,7 @@ describe("MatrixInput Tag Tests", function () {
 
         cy.get(cesc("#\\/mv") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣00cb00000⎤⎥⎦"
+            "⎡⎢⎣00cb00000⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/mi_component_0_0`) + ` .mq-editable-field`)
@@ -16099,7 +16099,7 @@ describe("MatrixInput Tag Tests", function () {
                 ],
             ];
             expect(stateVariables["/mi"].stateValues.immediateValue).eqls(
-                matrixAst
+                matrixAst,
             );
             expect(stateVariables["/mi"].stateValues.value).eqls(matrixAst);
             expect(stateVariables["/miv"].stateValues.value).eqls(matrixAst);
@@ -16111,12 +16111,12 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}d",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/miv") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣00cb000d0⎤⎥⎦"
+            "⎡⎢⎣00cb000d0⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/mi_component_0_0`) + ` .mq-editable-field`)
@@ -16195,7 +16195,7 @@ describe("MatrixInput Tag Tests", function () {
                 ],
             ];
             expect(stateVariables["/mi"].stateValues.immediateValue).eqls(
-                matrixivAst
+                matrixivAst,
             );
             expect(stateVariables["/mi"].stateValues.value).eqls(matrixvAst);
             expect(stateVariables["/miv"].stateValues.value).eqls(matrixivAst);
@@ -16207,7 +16207,7 @@ describe("MatrixInput Tag Tests", function () {
 
         cy.get(cesc("#\\/mv") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣00cb000d0⎤⎥⎦"
+            "⎡⎢⎣00cb000d0⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/mi_component_0_0`) + ` .mq-editable-field`)
@@ -16276,7 +16276,7 @@ describe("MatrixInput Tag Tests", function () {
                 ],
             ];
             expect(stateVariables["/mi"].stateValues.immediateValue).eqls(
-                matrixAst
+                matrixAst,
             );
             expect(stateVariables["/mi"].stateValues.value).eqls(matrixAst);
             expect(stateVariables["/miv"].stateValues.value).eqls(matrixAst);
@@ -16300,7 +16300,7 @@ describe("MatrixInput Tag Tests", function () {
     <p>Matrix 2A: $mi2.value{assignNames="m2"}</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -16441,7 +16441,7 @@ describe("MatrixInput Tag Tests", function () {
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣00＿＿03＿＿＿＿＿＿⎤⎥⎦"
+            "⎡⎢⎣00＿＿03＿＿＿＿＿＿⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/mi1_component_0_0`) + ` .mq-editable-field`)
@@ -16621,7 +16621,7 @@ describe("MatrixInput Tag Tests", function () {
     <p>Matrix 2A: $mi2.value{assignNames="m2"}</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -16699,12 +16699,12 @@ describe("MatrixInput Tag Tests", function () {
                 ["tuple", ["tuple", 0, 0], ["tuple", 0, 3]],
             ];
             expect(stateVariables["/sparse1"].stateValues.value).eqls(
-                matrixAst1
+                matrixAst1,
             );
             expect(stateVariables["/mi1"].stateValues.value).eqls(matrixAst1);
             expect(stateVariables["/m1"].stateValues.value).eqls(matrixAst1);
             expect(stateVariables["/sparse2"].stateValues.value).eqls(
-                matrixAst2
+                matrixAst2,
             );
             expect(stateVariables["/mi2"].stateValues.value).eqls(matrixAst2);
             expect(stateVariables["/m2"].stateValues.value).eqls(matrixAst2);
@@ -16718,11 +16718,11 @@ describe("MatrixInput Tag Tests", function () {
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣00＿03＿＿＿＿⎤⎥⎦"
+            "⎡⎢⎣00＿03＿＿＿＿⎤⎥⎦",
         );
         cy.get(cesc("#\\/m2") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣000030000⎤⎥⎦"
+            "⎡⎢⎣000030000⎤⎥⎦",
         );
 
         cy.get(cesc(`#\\/mi1_component_0_0`) + ` .mq-editable-field`)
@@ -16857,12 +16857,12 @@ describe("MatrixInput Tag Tests", function () {
                 ],
             ];
             expect(stateVariables["/sparse1"].stateValues.value).eqls(
-                matrixAst1
+                matrixAst1,
             );
             expect(stateVariables["/mi1"].stateValues.value).eqls(matrixAst1);
             expect(stateVariables["/m1"].stateValues.value).eqls(matrixAst1);
             expect(stateVariables["/sparse2"].stateValues.value).eqls(
-                matrixAst2
+                matrixAst2,
             );
             expect(stateVariables["/mi2"].stateValues.value).eqls(matrixAst2);
             expect(stateVariables["/m2"].stateValues.value).eqls(matrixAst2);
@@ -16889,7 +16889,7 @@ describe("MatrixInput Tag Tests", function () {
   <p>Change entry: <mathinput name="mi_entry">$entry</mathinput></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -16917,7 +16917,7 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}x{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc2("#/pentry") + " .mjx-mrow").should("contain.text", "x");
@@ -16948,7 +16948,7 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}y{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc2("#/pentry") + " .mjx-mrow").should("contain.text", "y");
@@ -16974,7 +16974,7 @@ describe("MatrixInput Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -16982,14 +16982,14 @@ describe("MatrixInput Tag Tests", function () {
 
         cy.get(cesc("#\\/mi1") + " .mq-editable-field").should(
             "have.text",
-            "5E+1"
+            "5E+1",
         );
         cy.get(cesc("#\\/m1") + " .mjx-mrow")
             .eq(0)
             .should("have.text", "[5E+1]");
         cy.get(cesc("#\\/mi2") + " .mq-editable-field").should(
             "have.text",
-            "50"
+            "50",
         );
         cy.get(cesc("#\\/m2") + " .mjx-mrow")
             .eq(0)
@@ -17001,12 +17001,12 @@ describe("MatrixInput Tag Tests", function () {
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "[2x−3E+2]"
+            "[2x−3E+2]",
         );
 
         cy.get(cesc("#\\/mi1") + " .mq-editable-field").should(
             "have.text",
-            "2x−3E+2"
+            "2x−3E+2",
         );
         cy.get(cesc("#\\/m1") + " .mjx-mrow")
             .eq(0)
@@ -17018,12 +17018,12 @@ describe("MatrixInput Tag Tests", function () {
 
         cy.get(cesc("#\\/m2") + " .mjx-mrow").should(
             "contain.text",
-            "[2x−300]"
+            "[2x−300]",
         );
 
         cy.get(cesc("#\\/mi2") + " .mq-editable-field").should(
             "have.text",
-            "2x−3E+2"
+            "2x−3E+2",
         );
         cy.get(cesc("#\\/m2") + " .mjx-mrow")
             .eq(0)
@@ -17048,7 +17048,7 @@ describe("MatrixInput Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -17071,7 +17071,7 @@ describe("MatrixInput Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -17095,35 +17095,35 @@ describe("MatrixInput Tag Tests", function () {
       <p>Result: <matrixInput minComponentWidth="$mcw" name="result" /></p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get(cesc("#\\/mcw") + " .mq-editable-field").should(
             "have.css",
             "min-width",
-            "50px"
+            "50px",
         );
 
         cy.get(
-            cesc("#\\/original_component_0_0") + " .mq-editable-field"
+            cesc("#\\/original_component_0_0") + " .mq-editable-field",
         ).should("have.css", "min-width", "0px");
         cy.get(cesc("#\\/result_component_0_0") + " .mq-editable-field").should(
             "have.css",
             "min-width",
-            "0px"
+            "0px",
         );
 
         cy.get(cesc("#\\/mcw") + " textarea").type(
             "{end}{backspace}100{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/result_component_0_0") + " .mq-editable-field").should(
             "have.css",
             "min-width",
-            "100px"
+            "100px",
         );
 
         cy.get(cesc("#\\/original_rowIncrement")).click();
@@ -17134,35 +17134,35 @@ describe("MatrixInput Tag Tests", function () {
         cy.get(cesc("#\\/result_component_1_1") + " .mq-editable-field").should(
             "have.css",
             "min-width",
-            "100px"
+            "100px",
         );
         cy.get(cesc("#\\/result_component_0_0") + " .mq-editable-field").should(
             "have.css",
             "min-width",
-            "100px"
+            "100px",
         );
         cy.get(cesc("#\\/result_component_0_1") + " .mq-editable-field").should(
             "have.css",
             "min-width",
-            "100px"
+            "100px",
         );
         cy.get(cesc("#\\/result_component_1_0") + " .mq-editable-field").should(
             "have.css",
             "min-width",
-            "100px"
+            "100px",
         );
 
         cy.get(
-            cesc("#\\/original_component_0_0") + " .mq-editable-field"
+            cesc("#\\/original_component_0_0") + " .mq-editable-field",
         ).should("have.css", "min-width", "0px");
         cy.get(
-            cesc("#\\/original_component_0_1") + " .mq-editable-field"
+            cesc("#\\/original_component_0_1") + " .mq-editable-field",
         ).should("have.css", "min-width", "0px");
         cy.get(
-            cesc("#\\/original_component_1_0") + " .mq-editable-field"
+            cesc("#\\/original_component_1_0") + " .mq-editable-field",
         ).should("have.css", "min-width", "0px");
         cy.get(
-            cesc("#\\/original_component_1_1") + " .mq-editable-field"
+            cesc("#\\/original_component_1_1") + " .mq-editable-field",
         ).should("have.css", "min-width", "0px");
 
         cy.get(cesc("#\\/mcw") + " textarea").type("{end}x{enter}", {
@@ -17172,74 +17172,74 @@ describe("MatrixInput Tag Tests", function () {
         cy.get(cesc("#\\/result_component_0_0") + " .mq-editable-field").should(
             "have.css",
             "min-width",
-            "0px"
+            "0px",
         );
         cy.get(cesc("#\\/result_component_0_1") + " .mq-editable-field").should(
             "have.css",
             "min-width",
-            "0px"
+            "0px",
         );
         cy.get(cesc("#\\/result_component_1_0") + " .mq-editable-field").should(
             "have.css",
             "min-width",
-            "0px"
+            "0px",
         );
         cy.get(cesc("#\\/result_component_1_1") + " .mq-editable-field").should(
             "have.css",
             "min-width",
-            "0px"
+            "0px",
         );
 
         cy.get(cesc("#\\/mcw") + " textarea").type(
             "{end}{backspace}{backspace}{backspace}7{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/result_component_0_0") + " .mq-editable-field").should(
             "have.css",
             "min-width",
-            "17px"
+            "17px",
         );
         cy.get(cesc("#\\/result_component_0_1") + " .mq-editable-field").should(
             "have.css",
             "min-width",
-            "17px"
+            "17px",
         );
         cy.get(cesc("#\\/result_component_1_0") + " .mq-editable-field").should(
             "have.css",
             "min-width",
-            "17px"
+            "17px",
         );
         cy.get(cesc("#\\/result_component_1_1") + " .mq-editable-field").should(
             "have.css",
             "min-width",
-            "17px"
+            "17px",
         );
 
         cy.get(cesc("#\\/mcw") + " textarea").type(
             "{end}{backspace}{backspace}-20{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/result_component_0_0") + " .mq-editable-field").should(
             "have.css",
             "min-width",
-            "0px"
+            "0px",
         );
         cy.get(cesc("#\\/result_component_0_1") + " .mq-editable-field").should(
             "have.css",
             "min-width",
-            "0px"
+            "0px",
         );
         cy.get(cesc("#\\/result_component_1_0") + " .mq-editable-field").should(
             "have.css",
             "min-width",
-            "0px"
+            "0px",
         );
         cy.get(cesc("#\\/result_component_1_1") + " .mq-editable-field").should(
             "have.css",
             "min-width",
-            "0px"
+            "0px",
         );
     });
 
@@ -17257,7 +17257,7 @@ describe("MatrixInput Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -17391,7 +17391,7 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}a",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc2("#/mi2iva") + " .mjx-mrow").should("contain.text", "[ay]");
@@ -17482,7 +17482,7 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}b",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc2("#/mi3iva") + " .mjx-mrow").should("contain.text", "[b]");
@@ -17573,7 +17573,7 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}c",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc2("#/mi4iva") + " .mjx-mrow").should("contain.text", "[ac]");
@@ -17666,7 +17666,7 @@ describe("MatrixInput Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -17751,7 +17751,7 @@ describe("MatrixInput Tag Tests", function () {
         cy.get(cesc2("#/mi4ivchanged")).should("have.text", "false");
 
         cy.log(
-            "press enter in third marks first and third value/immediateValue as changed"
+            "press enter in third marks first and third value/immediateValue as changed",
         );
 
         cy.get(cesc2("#/mi3_component_0_0") + " textarea").type("{enter}", {
@@ -17802,7 +17802,7 @@ describe("MatrixInput Tag Tests", function () {
             "{end}{backspace}a",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc2("#/mi4iva") + " .mjx-mrow").should("contain.text", "[ay]");
@@ -17844,7 +17844,7 @@ describe("MatrixInput Tag Tests", function () {
         cy.get(cesc2("#/mi4ivchanged")).should("have.text", "true");
 
         cy.log(
-            "press enter in fourth marks third and fourth value/immediateValue as changed"
+            "press enter in fourth marks third and fourth value/immediateValue as changed",
         );
 
         cy.get(cesc2("#/mi4_component_0_0") + " textarea").type("{enter}", {
@@ -17897,7 +17897,7 @@ describe("MatrixInput Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -17938,13 +17938,13 @@ describe("MatrixInput Tag Tests", function () {
         cy.get(cesc2("#/mi4ivchanged")).should("have.text", "false");
 
         cy.log(
-            "adding row to first marks first value/immediateValue as changed"
+            "adding row to first marks first value/immediateValue as changed",
         );
         cy.get(cesc("#\\/mi1_rowIncrement")).click();
 
         cy.get(cesc2("#/mi1a") + " .mjx-mrow").should(
             "contain.text",
-            "[\uff3f\uff3f]"
+            "[\uff3f\uff3f]",
         );
 
         cy.get(cesc2("#/mi1a") + " .mjx-mrow")
@@ -17984,13 +17984,13 @@ describe("MatrixInput Tag Tests", function () {
         cy.get(cesc2("#/mi4ivchanged")).should("have.text", "false");
 
         cy.log(
-            "adding column to second marks second value/immediateValue as changed"
+            "adding column to second marks second value/immediateValue as changed",
         );
         cy.get(cesc("#\\/mi2_columnIncrement")).click();
 
         cy.get(cesc2("#/mi2a") + " .mjx-mrow").should(
             "contain.text",
-            "[x\uff3fy\uff3f]"
+            "[x\uff3fy\uff3f]",
         );
 
         cy.get(cesc2("#/mi1a") + " .mjx-mrow")
@@ -18037,7 +18037,7 @@ describe("MatrixInput Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -18078,13 +18078,13 @@ describe("MatrixInput Tag Tests", function () {
         cy.get(cesc2("#/mi4ivchanged")).should("have.text", "false");
 
         cy.log(
-            "adding column to third marks first and third value/immediateValue as changed"
+            "adding column to third marks first and third value/immediateValue as changed",
         );
         cy.get(cesc("#\\/mi3_columnIncrement")).click();
 
         cy.get(cesc2("#/mi3a") + " .mjx-mrow").should(
             "contain.text",
-            "[\uff3f\uff3f]"
+            "[\uff3f\uff3f]",
         );
 
         cy.get(cesc2("#/mi1a") + " .mjx-mrow")
@@ -18124,7 +18124,7 @@ describe("MatrixInput Tag Tests", function () {
         cy.get(cesc2("#/mi4ivchanged")).should("have.text", "false");
 
         cy.log(
-            "subtracting row from fourth marks second and fourth value/immediateValue as changed"
+            "subtracting row from fourth marks second and fourth value/immediateValue as changed",
         );
         cy.get(cesc("#\\/mi4_rowDecrement")).click();
 

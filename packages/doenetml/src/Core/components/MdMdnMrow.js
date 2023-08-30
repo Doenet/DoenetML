@@ -86,7 +86,7 @@ export class Md extends InlineComponent {
             definition: ({ dependencyValues }) => ({
                 setValue: {
                     mrowChildNames: dependencyValues.mrowChildren.map(
-                        (x) => x.componentName
+                        (x) => x.componentName,
                     ),
                 },
             }),
@@ -211,7 +211,7 @@ export class Md extends InlineComponent {
                         .replaceAll("\\amp", "")
                         .split("\\\\")
                         .map((x) =>
-                            me.fromAst(latexToAst.convert(x)).toString()
+                            me.fromAst(latexToAst.convert(x)).toString(),
                         )
                         .join("\\\\\n");
                 } catch (e) {
@@ -221,7 +221,7 @@ export class Md extends InlineComponent {
                 return {
                     setValue: {
                         text: superSubscriptsToUnicode(
-                            expressionText.toString()
+                            expressionText.toString(),
                         ),
                     },
                 };
@@ -385,7 +385,7 @@ export class Mrow extends M {
                     return {
                         setValue: {
                             equationTag: String(
-                                dependencyValues.equationCounter
+                                dependencyValues.equationCounter,
                             ),
                         },
                     };

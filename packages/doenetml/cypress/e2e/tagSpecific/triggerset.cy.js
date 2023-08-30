@@ -37,7 +37,7 @@ describe("TriggerSet Tag Tests", function () {
     </triggerSet>
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -77,7 +77,7 @@ describe("TriggerSet Tag Tests", function () {
                     let stateVariables = await win.returnAllStateVariables1();
                     let g = stateVariables["/g"];
                     return g.activeChildren.length === 2;
-                })
+                }),
             );
 
             cy.get(cesc("#\\/nums"))
@@ -98,7 +98,7 @@ describe("TriggerSet Tag Tests", function () {
                     let stateVariables = await win.returnAllStateVariables1();
                     let g = stateVariables["/g"];
                     return g.activeChildren.length === 3;
-                })
+                }),
             );
 
             cy.get(cesc("#\\/nums"))
@@ -119,7 +119,7 @@ describe("TriggerSet Tag Tests", function () {
                     let stateVariables = await win.returnAllStateVariables1();
                     let g = stateVariables["/g"];
                     return g.activeChildren.length === 4;
-                })
+                }),
             );
 
             cy.get(cesc("#\\/nums"))
@@ -168,7 +168,7 @@ describe("TriggerSet Tag Tests", function () {
     </callAction>
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -208,7 +208,7 @@ describe("TriggerSet Tag Tests", function () {
                     let stateVariables = await win.returnAllStateVariables1();
                     let g = stateVariables["/g"];
                     return g.activeChildren.length === 2;
-                })
+                }),
             );
 
             cy.get(cesc("#\\/nums"))
@@ -229,7 +229,7 @@ describe("TriggerSet Tag Tests", function () {
                     let stateVariables = await win.returnAllStateVariables1();
                     let g = stateVariables["/g"];
                     return g.activeChildren.length === 3;
-                })
+                }),
             );
 
             cy.get(cesc("#\\/nums"))
@@ -250,7 +250,7 @@ describe("TriggerSet Tag Tests", function () {
                     let stateVariables = await win.returnAllStateVariables1();
                     let g = stateVariables["/g"];
                     return g.activeChildren.length === 4;
-                })
+                }),
             );
 
             cy.get(cesc("#\\/nums"))
@@ -303,7 +303,7 @@ describe("TriggerSet Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -343,7 +343,7 @@ describe("TriggerSet Tag Tests", function () {
                     let stateVariables = await win.returnAllStateVariables1();
                     let g = stateVariables["/g"];
                     return g.activeChildren.length === 2;
-                })
+                }),
             );
 
             cy.get(cesc("#\\/nums"))
@@ -364,7 +364,7 @@ describe("TriggerSet Tag Tests", function () {
                     let stateVariables = await win.returnAllStateVariables1();
                     let g = stateVariables["/g"];
                     return g.activeChildren.length === 3;
-                })
+                }),
             );
 
             cy.get(cesc("#\\/nums"))
@@ -385,7 +385,7 @@ describe("TriggerSet Tag Tests", function () {
                     let stateVariables = await win.returnAllStateVariables1();
                     let g = stateVariables["/g"];
                     return g.activeChildren.length === 4;
-                })
+                }),
             );
 
             cy.get(cesc("#\\/nums"))
@@ -443,7 +443,7 @@ describe("TriggerSet Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -484,7 +484,7 @@ describe("TriggerSet Tag Tests", function () {
                     let stateVariables = await win.returnAllStateVariables1();
                     let g = stateVariables["/g"];
                     return g.activeChildren.length === 2;
-                })
+                }),
             );
 
             cy.get(cesc("#\\/nums"))
@@ -506,7 +506,7 @@ describe("TriggerSet Tag Tests", function () {
                     let stateVariables = await win.returnAllStateVariables1();
                     let g = stateVariables["/g"];
                     return g.activeChildren.length === 3;
-                })
+                }),
             );
 
             cy.get(cesc("#\\/b")).should("have.text", "true");
@@ -534,7 +534,7 @@ describe("TriggerSet Tag Tests", function () {
   </triggerSet>
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -754,7 +754,7 @@ describe("TriggerSet Tag Tests", function () {
   </triggerSet>
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -908,7 +908,7 @@ describe("TriggerSet Tag Tests", function () {
   </triggerSet>
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -1073,7 +1073,7 @@ describe("TriggerSet Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -1214,7 +1214,7 @@ describe("TriggerSet Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -1300,7 +1300,7 @@ describe("TriggerSet Tag Tests", function () {
                             await win.returnAllStateVariables1();
                         let g = stateVariables["/g"];
                         return g.activeChildren.length === 2;
-                    })
+                    }),
                 );
                 cy.get(cesc("#\\/nums"))
                     .invoke("text")
@@ -1393,7 +1393,7 @@ describe("TriggerSet Tag Tests", function () {
                             await win.returnAllStateVariables1();
                         let g = stateVariables["/g"];
                         return g.activeChildren.length === 3;
-                    })
+                    }),
                 );
                 cy.get(cesc("#\\/nums"))
                     .invoke("text")
@@ -1461,7 +1461,7 @@ describe("TriggerSet Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -1520,7 +1520,7 @@ describe("TriggerSet Tag Tests", function () {
                             await win.returnAllStateVariables1();
                         let g = stateVariables["/g"];
                         return g.activeChildren.length === 2;
-                    })
+                    }),
                 );
                 cy.get(cesc("#\\/b")).should("have.text", "true");
                 cy.get(cesc("#\\/hello")).should("have.text", " hello");
@@ -1591,7 +1591,7 @@ describe("TriggerSet Tag Tests", function () {
                             await win.returnAllStateVariables1();
                         let g = stateVariables["/g"];
                         return g.activeChildren.length === 3;
-                    })
+                    }),
                 );
                 cy.get(cesc("#\\/b")).should("have.text", "false");
                 cy.get(cesc("#\\/hello")).should("have.text", " hello hello");
@@ -1632,7 +1632,7 @@ describe("TriggerSet Tag Tests", function () {
     </triggerSet>
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -1642,7 +1642,7 @@ describe("TriggerSet Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/tset"].stateValues.label).eq(
-                "It is \\(\\frac{ \\partial f }{ \\partial x }\\)"
+                "It is \\(\\frac{ \\partial f }{ \\partial x }\\)",
             );
         });
     });
@@ -1660,7 +1660,7 @@ describe("TriggerSet Tag Tests", function () {
     </triggerSet>
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -1670,7 +1670,7 @@ describe("TriggerSet Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/trigger-me"].stateValues.label).eq(
-                "trigger me"
+                "trigger me",
             );
         });
     });
@@ -1752,7 +1752,7 @@ describe("TriggerSet Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1769,21 +1769,21 @@ describe("TriggerSet Tag Tests", function () {
 
         cy.get(cesc("#\\/pPositionFromAnchor1")).should(
             "have.text",
-            "Position from anchor 1: upperright"
+            "Position from anchor 1: upperright",
         );
         cy.get(cesc("#\\/pPositionFromAnchor2")).should(
             "have.text",
-            "Position from anchor 2: center"
+            "Position from anchor 2: center",
         );
         cy.get(cesc("#\\/positionFromAnchor1")).should("have.value", "1");
         cy.get(cesc("#\\/positionFromAnchor2")).should("have.value", "9");
         cy.get(cesc("#\\/pDraggable1")).should(
             "have.text",
-            "Draggable 1: true"
+            "Draggable 1: true",
         );
         cy.get(cesc("#\\/pDraggable2")).should(
             "have.text",
-            "Draggable 2: true"
+            "Draggable 2: true",
         );
 
         cy.log("move triggersets by dragging");
@@ -1803,7 +1803,7 @@ describe("TriggerSet Tag Tests", function () {
 
         cy.get(cesc("#\\/pAnchor2") + " .mjx-mrow").should(
             "contain.text",
-            "(4,−5)"
+            "(4,−5)",
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow")
@@ -1817,16 +1817,16 @@ describe("TriggerSet Tag Tests", function () {
 
         cy.get(cesc("#\\/anchorCoords1") + " textarea").type(
             "{home}{shift+end}{backspace}(6,7){enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/anchorCoords2") + " textarea").type(
             "{home}{shift+end}{backspace}(8,9){enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/pAnchor2") + " .mjx-mrow").should(
             "contain.text",
-            "(8,9)"
+            "(8,9)",
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow")
@@ -1842,11 +1842,11 @@ describe("TriggerSet Tag Tests", function () {
 
         cy.get(cesc("#\\/pPositionFromAnchor1")).should(
             "have.text",
-            "Position from anchor 1: lowerleft"
+            "Position from anchor 1: lowerleft",
         );
         cy.get(cesc("#\\/pPositionFromAnchor2")).should(
             "have.text",
-            "Position from anchor 2: lowerright"
+            "Position from anchor 2: lowerright",
         );
 
         cy.log("make not draggable");
@@ -1855,11 +1855,11 @@ describe("TriggerSet Tag Tests", function () {
         cy.get(cesc("#\\/draggable2")).click();
         cy.get(cesc("#\\/pDraggable1")).should(
             "have.text",
-            "Draggable 1: false"
+            "Draggable 1: false",
         );
         cy.get(cesc("#\\/pDraggable2")).should(
             "have.text",
-            "Draggable 2: false"
+            "Draggable 2: false",
         );
 
         cy.log("cannot move triggersets by dragging");
@@ -1893,11 +1893,11 @@ describe("TriggerSet Tag Tests", function () {
         cy.get(cesc("#\\/draggable2")).click();
         cy.get(cesc("#\\/pDraggable1")).should(
             "have.text",
-            "Draggable 1: true"
+            "Draggable 1: true",
         );
         cy.get(cesc("#\\/pDraggable2")).should(
             "have.text",
-            "Draggable 2: true"
+            "Draggable 2: true",
         );
 
         cy.window().then(async (win) => {
@@ -1915,7 +1915,7 @@ describe("TriggerSet Tag Tests", function () {
 
         cy.get(cesc("#\\/pAnchor2") + " .mjx-mrow").should(
             "contain.text",
-            "(−8,−7)"
+            "(−8,−7)",
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow")
@@ -1931,27 +1931,27 @@ describe("TriggerSet Tag Tests", function () {
         cy.get(cesc("#\\/fixLocation2")).click();
         cy.get(cesc("#\\/pFixLocation1")).should(
             "have.text",
-            "FixLocation 1: true"
+            "FixLocation 1: true",
         );
         cy.get(cesc("#\\/pFixLocation2")).should(
             "have.text",
-            "FixLocation 2: true"
+            "FixLocation 2: true",
         );
 
         cy.log("can change coordinates entering coordinates only for button 1");
 
         cy.get(cesc("#\\/anchorCoords2") + " textarea").type(
             "{home}{shift+end}{backspace}(3,4){enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/anchorCoords1") + " textarea").type(
             "{home}{shift+end}{backspace}(1,2){enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow").should(
             "contain.text",
-            "(1,2)"
+            "(1,2)",
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow")
@@ -1992,11 +1992,11 @@ describe("TriggerSet Tag Tests", function () {
 
         cy.get(cesc("#\\/pPositionFromAnchor1")).should(
             "have.text",
-            "Position from anchor 1: top"
+            "Position from anchor 1: top",
         );
         cy.get(cesc("#\\/pPositionFromAnchor2")).should(
             "have.text",
-            "Position from anchor 2: lowerright"
+            "Position from anchor 2: lowerright",
         );
 
         cy.log("can change disabled attribute");
@@ -2015,16 +2015,16 @@ describe("TriggerSet Tag Tests", function () {
 
         cy.get(cesc("#\\/anchorCoords2") + " textarea").type(
             "{home}{shift+end}{backspace}(7,8){enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/anchorCoords1") + " textarea").type(
             "{home}{shift+end}{backspace}(5,6){enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow").should(
             "contain.text",
-            "(5,6)"
+            "(5,6)",
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow")
@@ -2040,11 +2040,11 @@ describe("TriggerSet Tag Tests", function () {
 
         cy.get(cesc("#\\/pPositionFromAnchor1")).should(
             "have.text",
-            "Position from anchor 1: right"
+            "Position from anchor 1: right",
         );
         cy.get(cesc("#\\/pPositionFromAnchor2")).should(
             "have.text",
-            "Position from anchor 2: lowerright"
+            "Position from anchor 2: lowerright",
         );
 
         cy.log("can change disabled attribute only for button 1");

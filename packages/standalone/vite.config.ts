@@ -9,20 +9,18 @@ const require = createRequire(import.meta.url);
 export default defineConfig({
     base: "./",
     plugins: [
-        // dts({ rollupTypes: true }),
+        dts({ rollupTypes: true }),
         viteStaticCopy({
             targets: [
                 {
                     src: path.join(
-                        require.resolve(
-                            "@doenet/doenetml",
-                        ),
+                        require.resolve("@doenet/doenetml"),
                         "../fonts/*",
                     ),
                     dest: "fonts/",
                 },
             ],
-        })
+        }),
     ],
     build: {
         minify: true,

@@ -19,7 +19,7 @@ describe("BooleanInput Tag Tests", function () {
     $v1{name="v2"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -80,7 +80,7 @@ describe("BooleanInput Tag Tests", function () {
     $_booleaninput1.value{assignNames="v1"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -93,7 +93,7 @@ describe("BooleanInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_booleaninput1"].stateValues.value).eq(
-                true
+                true,
             );
             expect(stateVariables["/v1"].stateValues.value).eq(true);
         });
@@ -108,7 +108,7 @@ describe("BooleanInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_booleaninput1"].stateValues.value).eq(
-                false
+                false,
             );
             expect(stateVariables["/v1"].stateValues.value).eq(false);
         });
@@ -123,7 +123,7 @@ describe("BooleanInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_booleaninput1"].stateValues.value).eq(
-                true
+                true,
             );
             expect(stateVariables["/v1"].stateValues.value).eq(true);
         });
@@ -146,7 +146,7 @@ describe("BooleanInput Tag Tests", function () {
     <p>$bi2.value{assignNames="v2"}</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -217,7 +217,7 @@ describe("BooleanInput Tag Tests", function () {
     <p>Copied boolean input: $_booleaninput1.value{assignNames="b3"}</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -230,7 +230,7 @@ describe("BooleanInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_booleaninput1"].stateValues.value).eq(
-                true
+                true,
             );
             expect(stateVariables["/_boolean1"].stateValues.value).eq(true);
             expect(stateVariables["/b2"].stateValues.value).eq(true);
@@ -249,7 +249,7 @@ describe("BooleanInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_booleaninput1"].stateValues.value).eq(
-                false
+                false,
             );
             expect(stateVariables["/_boolean1"].stateValues.value).eq(false);
             expect(stateVariables["/b2"].stateValues.value).eq(false);
@@ -267,7 +267,7 @@ describe("BooleanInput Tag Tests", function () {
     <p>Value: <boolean copysource="_booleaninput1" name="bi2" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -292,7 +292,7 @@ describe("BooleanInput Tag Tests", function () {
     <p>booleaninput based on boolean: <booleaninput bindValueTo="$_boolean1" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -305,7 +305,7 @@ describe("BooleanInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_booleaninput1"].stateValues.value).eq(
-                false
+                false,
             );
             expect(stateVariables["/_boolean1"].stateValues.value).eq(false);
         });
@@ -320,7 +320,7 @@ describe("BooleanInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_booleaninput1"].stateValues.value).eq(
-                false
+                false,
             );
             expect(stateVariables["/_boolean1"].stateValues.value).eq(false);
         });
@@ -338,7 +338,7 @@ describe("BooleanInput Tag Tests", function () {
     <p>Copied boolean input: $_booleaninput1.value{assignNames="b3"}</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -351,7 +351,7 @@ describe("BooleanInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_booleaninput1"].stateValues.value).eq(
-                true
+                true,
             );
             expect(stateVariables["/_boolean1"].stateValues.value).eq(true);
             expect(stateVariables["/b2"].stateValues.value).eq(true);
@@ -368,7 +368,7 @@ describe("BooleanInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_booleaninput1"].stateValues.value).eq(
-                false
+                false,
             );
             expect(stateVariables["/_boolean1"].stateValues.value).eq(false);
             expect(stateVariables["/b2"].stateValues.value).eq(false);
@@ -386,7 +386,7 @@ describe("BooleanInput Tag Tests", function () {
     <p>Value: <boolean copysource="_booleaninput1" name="bi2" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -413,7 +413,7 @@ describe("BooleanInput Tag Tests", function () {
     <p>Value: <boolean copysource="_booleaninput1" name="bi2" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -440,7 +440,7 @@ describe("BooleanInput Tag Tests", function () {
     <p>Value: <boolean copysource="_booleaninput1" name="bi2" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -451,7 +451,7 @@ describe("BooleanInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_booleaninput1"].stateValues.value).eq(
-                false
+                false,
             );
             expect(stateVariables["/bi2"].stateValues.value).eq(false);
         });
@@ -464,7 +464,7 @@ describe("BooleanInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_booleaninput1"].stateValues.value).eq(
-                false
+                false,
             );
             expect(stateVariables["/bi2"].stateValues.value).eq(false);
         });
@@ -481,7 +481,7 @@ describe("BooleanInput Tag Tests", function () {
     <updateValue triggerWith="bi" target="n" newValue="$n+1" type="number" />
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -511,7 +511,7 @@ describe("BooleanInput Tag Tests", function () {
     $v1{name="v2"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -626,7 +626,7 @@ describe("BooleanInput Tag Tests", function () {
     <updateValue triggerWith="toggleLabels" target="_label2.hide" newValue="!$_label2.hide" type="boolean" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -647,10 +647,10 @@ describe("BooleanInput Tag Tests", function () {
             expect(stateVariables["/bi"].stateValues.value).eq(false);
             expect(stateVariables["/v"].stateValues.value).eq(false);
             expect(stateVariables["/atb"].stateValues.label).eq(
-                "It is \\(\\int_a^b f(x)\\,dx\\)"
+                "It is \\(\\int_a^b f(x)\\,dx\\)",
             );
             expect(stateVariables["/bi"].stateValues.label).eq(
-                "Hello \\(\\frac{a}{b}\\)"
+                "Hello \\(\\frac{a}{b}\\)",
             );
         });
 
@@ -672,10 +672,10 @@ describe("BooleanInput Tag Tests", function () {
             expect(stateVariables["/bi"].stateValues.value).eq(false);
             expect(stateVariables["/v"].stateValues.value).eq(true);
             expect(stateVariables["/atb"].stateValues.label).eq(
-                "It is \\(\\int_a^b f(x)\\,dx\\)"
+                "It is \\(\\int_a^b f(x)\\,dx\\)",
             );
             expect(stateVariables["/bi"].stateValues.label).eq(
-                "Hello \\(\\frac{a}{b}\\)"
+                "Hello \\(\\frac{a}{b}\\)",
             );
         });
 
@@ -708,10 +708,10 @@ describe("BooleanInput Tag Tests", function () {
             expect(stateVariables["/bi"].stateValues.value).eq(false);
             expect(stateVariables["/v"].stateValues.value).eq(true);
             expect(stateVariables["/atb"].stateValues.label).eq(
-                "It is \\(\\int_a^b f(x)\\,dx\\)"
+                "It is \\(\\int_a^b f(x)\\,dx\\)",
             );
             expect(stateVariables["/bi"].stateValues.label).eq(
-                "Hello \\(\\frac{a}{b}\\)"
+                "Hello \\(\\frac{a}{b}\\)",
             );
         });
     });
@@ -728,7 +728,7 @@ describe("BooleanInput Tag Tests", function () {
     <boolean copySource="asToggleButton" name="v" />
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -741,26 +741,26 @@ describe("BooleanInput Tag Tests", function () {
         cy.get(cesc("#\\/v")).should("have.text", "false");
         cy.get(cesc("#\\/asToggleButton")).should(
             "contain.text",
-            "as toggle button"
+            "as toggle button",
         );
         cy.get(cesc("#\\/AnotherInput")).should(
             "contain.text",
-            "Another Input"
+            "Another Input",
         );
 
         cy.log("Test internal values are set to the correct values");
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/asToggleButton"].stateValues.value).eq(
-                false
+                false,
             );
             expect(stateVariables["/AnotherInput"].stateValues.value).eq(false);
             expect(stateVariables["/v"].stateValues.value).eq(false);
             expect(stateVariables["/asToggleButton"].stateValues.label).eq(
-                "as toggle button"
+                "as toggle button",
             );
             expect(stateVariables["/AnotherInput"].stateValues.label).eq(
-                "Another Input"
+                "Another Input",
             );
         });
 
@@ -774,26 +774,26 @@ describe("BooleanInput Tag Tests", function () {
         //cy.get(cesc('#\\/AnotherInput_input')).should('be.checked');
         cy.get(cesc("#\\/asToggleButton")).should(
             "contain.text",
-            "as toggle button"
+            "as toggle button",
         );
         cy.get(cesc("#\\/AnotherInput")).should(
             "contain.text",
-            "Another Input"
+            "Another Input",
         );
 
         cy.log("Test internal values are set to the correct values");
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/asToggleButton"].stateValues.value).eq(
-                true
+                true,
             );
             expect(stateVariables["/AnotherInput"].stateValues.value).eq(false);
             expect(stateVariables["/v"].stateValues.value).eq(true);
             expect(stateVariables["/asToggleButton"].stateValues.label).eq(
-                "as toggle button"
+                "as toggle button",
             );
             expect(stateVariables["/AnotherInput"].stateValues.label).eq(
-                "Another Input"
+                "Another Input",
             );
         });
     });
@@ -861,7 +861,7 @@ describe("BooleanInput Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -878,21 +878,21 @@ describe("BooleanInput Tag Tests", function () {
 
         cy.get(cesc("#\\/pPositionFromAnchor1")).should(
             "have.text",
-            "Position from anchor 1: upperright"
+            "Position from anchor 1: upperright",
         );
         cy.get(cesc("#\\/pPositionFromAnchor2")).should(
             "have.text",
-            "Position from anchor 2: center"
+            "Position from anchor 2: center",
         );
         cy.get(cesc("#\\/positionFromAnchor1")).should("have.value", "1");
         cy.get(cesc("#\\/positionFromAnchor2")).should("have.value", "9");
         cy.get(cesc("#\\/pDraggable1")).should(
             "have.text",
-            "Draggable 1: true"
+            "Draggable 1: true",
         );
         cy.get(cesc("#\\/pDraggable2")).should(
             "have.text",
-            "Draggable 2: true"
+            "Draggable 2: true",
         );
 
         cy.log("move booleaninputs by dragging");
@@ -912,7 +912,7 @@ describe("BooleanInput Tag Tests", function () {
 
         cy.get(cesc("#\\/pAnchor2") + " .mjx-mrow").should(
             "contain.text",
-            "(4,−5)"
+            "(4,−5)",
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow")
@@ -926,16 +926,16 @@ describe("BooleanInput Tag Tests", function () {
 
         cy.get(cesc("#\\/anchorCoords1") + " textarea").type(
             "{home}{shift+end}{backspace}(6,7){enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/anchorCoords2") + " textarea").type(
             "{home}{shift+end}{backspace}(8,9){enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/pAnchor2") + " .mjx-mrow").should(
             "contain.text",
-            "(8,9)"
+            "(8,9)",
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow")
@@ -951,11 +951,11 @@ describe("BooleanInput Tag Tests", function () {
 
         cy.get(cesc("#\\/pPositionFromAnchor1")).should(
             "have.text",
-            "Position from anchor 1: lowerleft"
+            "Position from anchor 1: lowerleft",
         );
         cy.get(cesc("#\\/pPositionFromAnchor2")).should(
             "have.text",
-            "Position from anchor 2: lowerright"
+            "Position from anchor 2: lowerright",
         );
 
         cy.log("make not draggable");
@@ -964,11 +964,11 @@ describe("BooleanInput Tag Tests", function () {
         cy.get(cesc("#\\/draggable2")).click();
         cy.get(cesc("#\\/pDraggable1")).should(
             "have.text",
-            "Draggable 1: false"
+            "Draggable 1: false",
         );
         cy.get(cesc("#\\/pDraggable2")).should(
             "have.text",
-            "Draggable 2: false"
+            "Draggable 2: false",
         );
 
         cy.log("cannot move booleaninputs by dragging");
@@ -1002,11 +1002,11 @@ describe("BooleanInput Tag Tests", function () {
         cy.get(cesc("#\\/draggable2")).click();
         cy.get(cesc("#\\/pDraggable1")).should(
             "have.text",
-            "Draggable 1: true"
+            "Draggable 1: true",
         );
         cy.get(cesc("#\\/pDraggable2")).should(
             "have.text",
-            "Draggable 2: true"
+            "Draggable 2: true",
         );
 
         cy.window().then(async (win) => {
@@ -1024,7 +1024,7 @@ describe("BooleanInput Tag Tests", function () {
 
         cy.get(cesc("#\\/pAnchor2") + " .mjx-mrow").should(
             "contain.text",
-            "(−8,−7)"
+            "(−8,−7)",
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow")
@@ -1040,27 +1040,27 @@ describe("BooleanInput Tag Tests", function () {
         cy.get(cesc("#\\/fixLocation2")).click();
         cy.get(cesc("#\\/pFixLocation1")).should(
             "have.text",
-            "FixLocation 1: true"
+            "FixLocation 1: true",
         );
         cy.get(cesc("#\\/pFixLocation2")).should(
             "have.text",
-            "FixLocation 2: true"
+            "FixLocation 2: true",
         );
 
         cy.log("can change coordinates entering coordinates only for input 1");
 
         cy.get(cesc("#\\/anchorCoords2") + " textarea").type(
             "{home}{shift+end}{backspace}(3,4){enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/anchorCoords1") + " textarea").type(
             "{home}{shift+end}{backspace}(1,2){enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow").should(
             "contain.text",
-            "(1,2)"
+            "(1,2)",
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow")
@@ -1101,11 +1101,11 @@ describe("BooleanInput Tag Tests", function () {
 
         cy.get(cesc("#\\/pPositionFromAnchor1")).should(
             "have.text",
-            "Position from anchor 1: top"
+            "Position from anchor 1: top",
         );
         cy.get(cesc("#\\/pPositionFromAnchor2")).should(
             "have.text",
-            "Position from anchor 2: lowerright"
+            "Position from anchor 2: lowerright",
         );
 
         cy.log("can change disabled attribute");
@@ -1124,16 +1124,16 @@ describe("BooleanInput Tag Tests", function () {
 
         cy.get(cesc("#\\/anchorCoords2") + " textarea").type(
             "{home}{shift+end}{backspace}(7,8){enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/anchorCoords1") + " textarea").type(
             "{home}{shift+end}{backspace}(5,6){enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow").should(
             "contain.text",
-            "(5,6)"
+            "(5,6)",
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow")
@@ -1149,11 +1149,11 @@ describe("BooleanInput Tag Tests", function () {
 
         cy.get(cesc("#\\/pPositionFromAnchor1")).should(
             "have.text",
-            "Position from anchor 1: right"
+            "Position from anchor 1: right",
         );
         cy.get(cesc("#\\/pPositionFromAnchor2")).should(
             "have.text",
-            "Position from anchor 2: lowerright"
+            "Position from anchor 2: lowerright",
         );
 
         cy.log("can change disabled attribute only for input 1");
@@ -1177,7 +1177,7 @@ describe("BooleanInput Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1262,7 +1262,7 @@ describe("BooleanInput Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 

@@ -146,7 +146,7 @@ export default React.memo(function Video(props) {
                     clearInterval(pollIntervalId.current);
                     pollIntervalId.current = window.setInterval(
                         pollCurrentTime,
-                        200
+                        200,
                     );
 
                     if (

@@ -129,7 +129,7 @@ const startTag = new _lr.ExternalTokenizer(
     },
     {
         contextual: true,
-    }
+    },
 );
 exports.startTag = startTag;
 

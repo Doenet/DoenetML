@@ -209,7 +209,7 @@ export default class PeriodicSet extends MathComponent {
                             }
                             if (isUnique) {
                                 uniqueOffsets.push(
-                                    dependencyValues.offsets[ind1]
+                                    dependencyValues.offsets[ind1],
                                 );
                             }
                         }
@@ -266,9 +266,9 @@ export default class PeriodicSet extends MathComponent {
                                     .subtract(
                                         period.multiply(
                                             Math.floor(
-                                                offsetValue / periodValue
-                                            )
-                                        )
+                                                offsetValue / periodValue,
+                                            ),
+                                        ),
                                     )
                                     .simplify();
                                 let shiftedOffsetValue =
@@ -284,7 +284,7 @@ export default class PeriodicSet extends MathComponent {
                             asList.push(me.fromAst(["ldots"]));
                             // sort by numeric value
                             shiftedOffsetsWithNumeric.sort(
-                                (a, b) => a.num - b.num
+                                (a, b) => a.num - b.num,
                             );
 
                             let minIndex = -1,
@@ -306,7 +306,7 @@ export default class PeriodicSet extends MathComponent {
                                     asList.push(
                                         offsetObj.offset
                                             .add(period.multiply(i))
-                                            .simplify()
+                                            .simplify(),
                                     );
                                 }
                             }

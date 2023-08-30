@@ -32,7 +32,7 @@ describe("Conditional Content Tag Tests", function () {
   </p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -42,7 +42,7 @@ describe("Conditional Content Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/\s+/g, " ").trim()).equal(
-                    "You typed something else."
+                    "You typed something else.",
                 );
             });
 
@@ -50,55 +50,55 @@ describe("Conditional Content Tag Tests", function () {
 
         cy.get("p" + cesc2("#/_p1")).should(
             "contain.text",
-            "a positive number."
+            "a positive number.",
         );
         cy.get("p" + cesc2("#/_p1"))
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/\s+/g, " ").trim()).equal(
-                    "You typed a positive number."
+                    "You typed a positive number.",
                 );
             });
 
         cy.get(cesc2("#/n") + " textarea").type(
             "{end}{backspace}{backspace}-5/9{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get("p" + cesc2("#/_p1")).should(
             "contain.text",
-            "a negative number."
+            "a negative number.",
         );
         cy.get("p" + cesc2("#/_p1"))
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/\s+/g, " ").trim()).equal(
-                    "You typed a negative number."
+                    "You typed a negative number.",
                 );
             });
 
         cy.get(cesc2("#/n") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}5-5{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get("p" + cesc2("#/_p1")).should("contain.text", "zero.");
         cy.get("p" + cesc2("#/_p1"))
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/\s+/g, " ").trim()).equal(
-                    "You typed zero."
+                    "You typed zero.",
                 );
             });
 
         cy.get(cesc2("#/n") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}-x{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get("p" + cesc2("#/_p1")).should("contain.text", "something else.");
         cy.get("p" + cesc2("#/_p1"))
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/\s+/g, " ").trim()).equal(
-                    "You typed something else."
+                    "You typed something else.",
                 );
             });
     });
@@ -127,7 +127,7 @@ describe("Conditional Content Tag Tests", function () {
   </p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -137,62 +137,62 @@ describe("Conditional Content Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/\s+/g, " ").trim()).equal(
-                    "You typed something else."
+                    "You typed something else.",
                 );
             });
 
         cy.get(cesc2("#/n") + " textarea").type("10{enter}", { force: true });
         cy.get("p" + cesc2("#/_p1")).should(
             "contain.text",
-            "a positive number."
+            "a positive number.",
         );
         cy.get("p" + cesc2("#/_p1"))
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/\s+/g, " ").trim()).equal(
-                    "You typed a positive number."
+                    "You typed a positive number.",
                 );
             });
 
         cy.get(cesc2("#/n") + " textarea").type(
             "{end}{backspace}{backspace}-5/9{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get("p" + cesc2("#/_p1")).should(
             "contain.text",
-            "a negative number."
+            "a negative number.",
         );
         cy.get("p" + cesc2("#/_p1"))
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/\s+/g, " ").trim()).equal(
-                    "You typed a negative number."
+                    "You typed a negative number.",
                 );
             });
 
         cy.get(cesc2("#/n") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}5-5{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get("p" + cesc2("#/_p1")).should("contain.text", "zero.");
         cy.get("p" + cesc2("#/_p1"))
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/\s+/g, " ").trim()).equal(
-                    "You typed zero."
+                    "You typed zero.",
                 );
             });
 
         cy.get(cesc2("#/n") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}-x{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get("p" + cesc2("#/_p1")).should("contain.text", "something else.");
         cy.get("p" + cesc2("#/_p1"))
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/\s+/g, " ").trim()).equal(
-                    "You typed something else."
+                    "You typed something else.",
                 );
             });
     });
@@ -227,7 +227,7 @@ describe("Conditional Content Tag Tests", function () {
     </section>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -240,20 +240,20 @@ describe("Conditional Content Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/\s+/g, " ").trim()).equal(
-                    "You typed something else."
+                    "You typed something else.",
                 );
             });
 
         cy.get(cesc2("#/n") + " textarea").type("10{enter}", { force: true });
         cy.get(cesc2("#/_section1") + " p").should(
             "contain.text",
-            "a positive number."
+            "a positive number.",
         );
         cy.get(cesc2("#/_section1") + " p")
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/\s+/g, " ").trim()).equal(
-                    "You typed a positive number."
+                    "You typed a positive number.",
                 );
             });
         cy.get(cesc2("#/_section2") + " p").should("not.exist");
@@ -262,18 +262,18 @@ describe("Conditional Content Tag Tests", function () {
 
         cy.get(cesc2("#/n") + " textarea").type(
             "{end}{backspace}{backspace}-5/9{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc2("#/_section2") + " p").should(
             "contain.text",
-            "a negative number."
+            "a negative number.",
         );
         cy.get(cesc2("#/_section1") + " p").should("not.exist");
         cy.get(cesc2("#/_section2") + " p")
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/\s+/g, " ").trim()).equal(
-                    "You typed a negative number."
+                    "You typed a negative number.",
                 );
             });
         cy.get(cesc2("#/_section3") + " p").should("not.exist");
@@ -281,7 +281,7 @@ describe("Conditional Content Tag Tests", function () {
 
         cy.get(cesc2("#/n") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}5-5{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc2("#/_section3") + " p").should("contain.text", "zero.");
         cy.get(cesc2("#/_section1") + " p").should("not.exist");
@@ -290,18 +290,18 @@ describe("Conditional Content Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/\s+/g, " ").trim()).equal(
-                    "You typed zero."
+                    "You typed zero.",
                 );
             });
         cy.get(cesc2("#/_section4") + " p").should("not.exist");
 
         cy.get(cesc2("#/n") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}-x{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc2("#/_section4") + " p").should(
             "contain.text",
-            "something else."
+            "something else.",
         );
         cy.get(cesc2("#/_section1") + " p").should("not.exist");
         cy.get(cesc2("#/_section2") + " p").should("not.exist");
@@ -310,7 +310,7 @@ describe("Conditional Content Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/\s+/g, " ").trim()).equal(
-                    "You typed something else."
+                    "You typed something else.",
                 );
             });
     });
@@ -342,7 +342,7 @@ describe("Conditional Content Tag Tests", function () {
   </p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -375,7 +375,7 @@ describe("Conditional Content Tag Tests", function () {
 
         cy.get(cesc2("#/m") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}1/3{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc2("#/_choiceinput1")).select(`stable`);
         cy.get(cesc2("#/_choiceinput1_submit")).click();
@@ -386,7 +386,7 @@ describe("Conditional Content Tag Tests", function () {
 
         cy.get(cesc2("#/m") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}-7/5{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc2("#/_choiceinput1")).select(`stable`);
         cy.get(cesc2("#/_choiceinput1_submit")).click();
@@ -397,7 +397,7 @@ describe("Conditional Content Tag Tests", function () {
 
         cy.get(cesc2("#/m") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}1{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc2("#/_choiceinput1")).select(`stable`);
         cy.get(cesc2("#/_choiceinput1_submit")).click();
@@ -434,7 +434,7 @@ describe("Conditional Content Tag Tests", function () {
   </p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -449,7 +449,7 @@ describe("Conditional Content Tag Tests", function () {
 
         cy.get(cesc2("#/x") + " textarea").type(
             "{end}{backspace}{backspace}{backspace}< 0",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc2("#/x_submit")).should("be.visible");
         cy.get(cesc2("#/x") + " textarea").type("{enter}", { force: true });
@@ -461,7 +461,7 @@ describe("Conditional Content Tag Tests", function () {
 
         cy.get(cesc2("#/x") + " textarea").type(
             "{end}{backspace}{backspace}{backspace}> 0",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc2("#/x_submit")).should("be.visible");
         cy.get(cesc2("#/x") + " textarea").type("{enter}", { force: true });
@@ -473,7 +473,7 @@ describe("Conditional Content Tag Tests", function () {
 
         cy.get(cesc2("#/x") + " textarea").type(
             "{end}{backspace}{backspace}{backspace}< 0",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc2("#/x_submit")).should("be.visible");
         cy.get(cesc2("#/x") + " textarea").type("{enter}", { force: true });
@@ -496,7 +496,7 @@ describe("Conditional Content Tag Tests", function () {
   <p name="p"><conditionalContent condition="$b">The $animal $verb.</conditionalcontent></p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -536,7 +536,7 @@ describe("Conditional Content Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -598,13 +598,13 @@ describe("Conditional Content Tag Tests", function () {
     
   `,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get(cesc2("#/p")).should(
             "have.text",
-            "Greeting is hidden: false. Greeting: Hello!"
+            "Greeting is hidden: false. Greeting: Hello!",
         );
         cy.get(cesc2("#/p2")).should("not.exist");
 
@@ -612,25 +612,25 @@ describe("Conditional Content Tag Tests", function () {
 
         cy.get(cesc2("#/p")).should(
             "have.text",
-            "Greeting is hidden: true. Greeting: "
+            "Greeting is hidden: true. Greeting: ",
         );
         cy.get(cesc2("#/p2")).should("not.exist");
 
         cy.get(cesc2("#/show_copy")).click();
         cy.get(cesc2("#/p2")).should(
             "have.text",
-            "Greeting is hidden: true. Greeting: "
+            "Greeting is hidden: true. Greeting: ",
         );
 
         cy.get(cesc2("#/hide")).click();
 
         cy.get(cesc2("#/p")).should(
             "have.text",
-            "Greeting is hidden: false. Greeting: Hello!"
+            "Greeting is hidden: false. Greeting: Hello!",
         );
         cy.get(cesc2("#/p2")).should(
             "have.text",
-            "Greeting is hidden: false. Greeting: Hello!"
+            "Greeting is hidden: false. Greeting: Hello!",
         );
     });
 
@@ -657,7 +657,7 @@ describe("Conditional Content Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -687,7 +687,7 @@ describe("Conditional Content Tag Tests", function () {
         cy.log("enter 10");
         cy.get(cesc2("#/n") + " textarea").type(
             "{end}{backspace}{backspace}10{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc2("#/pa")).should("have.text", "a: mouse");
@@ -702,7 +702,7 @@ describe("Conditional Content Tag Tests", function () {
         cy.log("enter -1");
         cy.get(cesc2("#/n") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}-1{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc2("#/pa")).should("have.text", "a: dog");
@@ -717,7 +717,7 @@ describe("Conditional Content Tag Tests", function () {
         cy.log("enter x");
         cy.get(cesc2("#/n") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}x{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc2("#/pa")).should("have.text", "a: mouse");
@@ -751,7 +751,7 @@ describe("Conditional Content Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -795,7 +795,7 @@ describe("Conditional Content Tag Tests", function () {
         cy.log("enter -11");
         cy.get(cesc2("#/n") + " textarea").type(
             "{end}{backspace}{backspace}-1{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc2("#/pa")).should("have.text", "a: dog");
@@ -810,7 +810,7 @@ describe("Conditional Content Tag Tests", function () {
         cy.log("enter x");
         cy.get(cesc2("#/n") + " textarea").type(
             "{end}{backspace}{backspace}x{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc2("#/pa")).should("have.text", "a: mouse");
@@ -860,7 +860,7 @@ describe("Conditional Content Tag Tests", function () {
     <p>l1: $l{name="l1"}</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1069,7 +1069,7 @@ describe("Conditional Content Tag Tests", function () {
         cy.log("enter -11");
         cy.get(cesc2("#/n") + " textarea").type(
             "{end}{backspace}{backspace}-1{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc2("#/a")).should("have.text", "dog");
@@ -1139,7 +1139,7 @@ describe("Conditional Content Tag Tests", function () {
         cy.log("enter x");
         cy.get(cesc2("#/n") + " textarea").type(
             "{end}{backspace}{backspace}x{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc2("#/a")).should("have.text", "mouse");
@@ -1244,7 +1244,7 @@ describe("Conditional Content Tag Tests", function () {
     <p>l1: $(s3/l{name="l1"})</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1384,7 +1384,7 @@ describe("Conditional Content Tag Tests", function () {
         cy.log("enter 10");
         cy.get(cesc2("#/n") + " textarea").type(
             "{end}{backspace}{backspace}10{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc2("#/s1/a")).should("have.text", "mouse");
@@ -1454,7 +1454,7 @@ describe("Conditional Content Tag Tests", function () {
         cy.log("enter -1");
         cy.get(cesc2("#/n") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}-1{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc2("#/s1/a")).should("have.text", "dog");
@@ -1524,7 +1524,7 @@ describe("Conditional Content Tag Tests", function () {
         cy.log("enter x");
         cy.get(cesc2("#/n") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}x{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc2("#/s1/a")).should("have.text", "mouse");
@@ -1641,7 +1641,7 @@ describe("Conditional Content Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1774,7 +1774,7 @@ describe("Conditional Content Tag Tests", function () {
         cy.log("enter 10");
         cy.get(cesc2("#/n") + " textarea").type(
             "{end}{backspace}{backspace}10{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc2(`#/a`)).should("have.text", "mouse");
@@ -1868,7 +1868,7 @@ describe("Conditional Content Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1945,7 +1945,7 @@ describe("Conditional Content Tag Tests", function () {
         cy.log("enter 1");
         cy.get(cesc2("#/n") + " textarea").type(
             "{end}{backspace}{backspace}1{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc2(`#/a/animal`)).should("have.text", "cat");
@@ -2019,7 +2019,7 @@ describe("Conditional Content Tag Tests", function () {
         cy.log("enter -1");
         cy.get(cesc2("#/n") + " textarea").type(
             "{end}{backspace}{backspace}-1{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc2(`#/a/animal`)).should("have.text", "dog");
@@ -2093,7 +2093,7 @@ describe("Conditional Content Tag Tests", function () {
         cy.log("enter 10");
         cy.get(cesc2("#/n") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}10{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc2(`#/a/animal`)).should("have.text", "mouse");
@@ -2217,7 +2217,7 @@ describe("Conditional Content Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2294,7 +2294,7 @@ describe("Conditional Content Tag Tests", function () {
         cy.log("enter 1");
         cy.get(cesc2("#/n") + " textarea").type(
             "{end}{backspace}{backspace}1{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc2(`#/s/a/animal`)).should("have.text", "cat");
@@ -2368,7 +2368,7 @@ describe("Conditional Content Tag Tests", function () {
         cy.log("enter -1");
         cy.get(cesc2("#/n") + " textarea").type(
             "{end}{backspace}{backspace}-1{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc2(`#/s/a/animal`)).should("have.text", "dog");
@@ -2442,7 +2442,7 @@ describe("Conditional Content Tag Tests", function () {
         cy.log("enter 10");
         cy.get(cesc2("#/n") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}10{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc2(`#/s/a/animal`)).should("have.text", "mouse");
@@ -2569,7 +2569,7 @@ describe("Conditional Content Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2646,7 +2646,7 @@ describe("Conditional Content Tag Tests", function () {
         cy.log("enter 1");
         cy.get(cesc2("#/n") + " textarea").type(
             "{end}{backspace}{backspace}1{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc2(`#/a/animal`)).should("have.text", "cat");
@@ -2720,7 +2720,7 @@ describe("Conditional Content Tag Tests", function () {
         cy.log("enter -1");
         cy.get(cesc2("#/n") + " textarea").type(
             "{end}{backspace}{backspace}-1{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc2(`#/a/animal`)).should("not.exist");
@@ -2736,10 +2736,10 @@ describe("Conditional Content Tag Tests", function () {
 
             let repeatChildren = stateVariables["/_p1"].activeChildren;
             let theAnimalCopyAnchor = cesc2(
-                "#" + repeatChildren[2].componentName
+                "#" + repeatChildren[2].componentName,
             );
             let thePlantCopyAnchor = cesc2(
-                "#" + repeatChildren[4].componentName
+                "#" + repeatChildren[4].componentName,
             );
             let thePCopyAnchor = cesc2("#" + repeatChildren[6].componentName);
 
@@ -2813,7 +2813,7 @@ describe("Conditional Content Tag Tests", function () {
         cy.log("enter 10");
         cy.get(cesc2("#/n") + " textarea").type(
             "{end}{backspace}{backspace}10{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc2(`#/a/animal`)).should("have.text", "mouse");
@@ -2914,7 +2914,7 @@ describe("Conditional Content Tag Tests", function () {
     <p>The response one more time: <copy source="b/response" prop="value" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2927,7 +2927,7 @@ describe("Conditional Content Tag Tests", function () {
         cy.get(cesc2(`#/b/_p2`)).should("have.text", "Hello, !");
         cy.get(cesc2(`#/_p2`)).should(
             "have.text",
-            "The response one more time: "
+            "The response one more time: ",
         );
 
         cy.get(cesc2(`#/a/response_input`)).clear().type("Fred{enter}");
@@ -2936,7 +2936,7 @@ describe("Conditional Content Tag Tests", function () {
         cy.get(cesc2(`#/b/_p2`)).should("have.text", "Hello, Fred!");
         cy.get(cesc2(`#/_p2`)).should(
             "have.text",
-            "The response one more time: Fred"
+            "The response one more time: Fred",
         );
 
         cy.get(cesc2("#/n") + " textarea").type("{end}{backspace}-1{enter}", {
@@ -2944,18 +2944,18 @@ describe("Conditional Content Tag Tests", function () {
         });
         cy.get(cesc2(`#/a/_p1`)).should(
             "have.text",
-            "What is your favorite animal? "
+            "What is your favorite animal? ",
         );
         cy.get(cesc2(`#/a/_p2`)).should("have.text", "I like , too.");
         cy.get(cesc2(`#/_p1`)).should("have.text", "The response: ");
         cy.get(cesc2(`#/b/_p1`)).should(
             "have.text",
-            "What is your favorite animal? "
+            "What is your favorite animal? ",
         );
         cy.get(cesc2(`#/b/_p2`)).should("have.text", "I like , too.");
         cy.get(cesc2(`#/_p2`)).should(
             "have.text",
-            "The response one more time: "
+            "The response one more time: ",
         );
 
         cy.get(cesc2(`#/a/response_input`)).clear().type("dogs{enter}");
@@ -2964,12 +2964,12 @@ describe("Conditional Content Tag Tests", function () {
         cy.get(cesc2(`#/b/_p2`)).should("have.text", "I like dogs, too.");
         cy.get(cesc2(`#/_p2`)).should(
             "have.text",
-            "The response one more time: dogs"
+            "The response one more time: dogs",
         );
 
         cy.get(cesc2("#/n") + " textarea").type(
             "{end}{backspace}{backspace}3{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc2(`#/a/_p1`)).should("have.text", "Anything else? ");
         cy.get(cesc2(`#/a/_p2`)).should("have.text", "To repeat: .");
@@ -2978,7 +2978,7 @@ describe("Conditional Content Tag Tests", function () {
         cy.get(cesc2(`#/b/_p2`)).should("have.text", "To repeat: .");
         cy.get(cesc2(`#/_p2`)).should(
             "have.text",
-            "The response one more time: "
+            "The response one more time: ",
         );
 
         cy.get(cesc2(`#/a/response_input`)).clear().type("Goodbye{enter}");
@@ -2987,7 +2987,7 @@ describe("Conditional Content Tag Tests", function () {
         cy.get(cesc2(`#/b/_p2`)).should("have.text", "To repeat: Goodbye.");
         cy.get(cesc2(`#/_p2`)).should(
             "have.text",
-            "The response one more time: Goodbye"
+            "The response one more time: Goodbye",
         );
     });
 
@@ -3020,7 +3020,7 @@ describe("Conditional Content Tag Tests", function () {
     <p name="pResponse2">The response one more time: <copy source="c/response" prop="value" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3033,7 +3033,7 @@ describe("Conditional Content Tag Tests", function () {
         cy.get(cesc2(`#/d`)).should("have.text", "Hello, !");
         cy.get(cesc2(`#/pResponse2`)).should(
             "have.text",
-            "The response one more time: "
+            "The response one more time: ",
         );
 
         cy.get(cesc2(`#/a/response_input`)).clear().type("Fred{enter}");
@@ -3042,7 +3042,7 @@ describe("Conditional Content Tag Tests", function () {
         cy.get(cesc2(`#/d`)).should("have.text", "Hello, Fred!");
         cy.get(cesc2(`#/pResponse2`)).should(
             "have.text",
-            "The response one more time: Fred"
+            "The response one more time: Fred",
         );
 
         cy.get(cesc2("#/n") + " textarea").type("{end}{backspace}-1{enter}", {
@@ -3050,18 +3050,18 @@ describe("Conditional Content Tag Tests", function () {
         });
         cy.get(cesc2(`#/a`)).should(
             "have.text",
-            "What is your favorite animal? "
+            "What is your favorite animal? ",
         );
         cy.get(cesc2(`#/b`)).should("have.text", "I like , too.");
         cy.get(cesc2(`#/pResponse`)).should("have.text", "The response: ");
         cy.get(cesc2(`#/c`)).should(
             "have.text",
-            "What is your favorite animal? "
+            "What is your favorite animal? ",
         );
         cy.get(cesc2(`#/d`)).should("have.text", "I like , too.");
         cy.get(cesc2(`#/pResponse2`)).should(
             "have.text",
-            "The response one more time: "
+            "The response one more time: ",
         );
 
         cy.get(cesc2(`#/a/response_input`)).clear().type("dogs{enter}");
@@ -3070,12 +3070,12 @@ describe("Conditional Content Tag Tests", function () {
         cy.get(cesc2(`#/d`)).should("have.text", "I like dogs, too.");
         cy.get(cesc2(`#/pResponse2`)).should(
             "have.text",
-            "The response one more time: dogs"
+            "The response one more time: dogs",
         );
 
         cy.get(cesc2("#/n") + " textarea").type(
             "{end}{backspace}{backspace}3{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc2(`#/a`)).should("have.text", "Anything else? ");
         cy.get(cesc2(`#/b`)).should("have.text", "To repeat: .");
@@ -3084,19 +3084,19 @@ describe("Conditional Content Tag Tests", function () {
         cy.get(cesc2(`#/d`)).should("have.text", "To repeat: .");
         cy.get(cesc2(`#/pResponse2`)).should(
             "have.text",
-            "The response one more time: "
+            "The response one more time: ",
         );
 
         cy.get(cesc2(`#/a/response_input`)).clear().type("Goodbye{enter}");
         cy.get(cesc2(`#/b`)).should("have.text", "To repeat: Goodbye.");
         cy.get(cesc2(`#/pResponse`)).should(
             "have.text",
-            "The response: Goodbye"
+            "The response: Goodbye",
         );
         cy.get(cesc2(`#/d`)).should("have.text", "To repeat: Goodbye.");
         cy.get(cesc2(`#/pResponse2`)).should(
             "have.text",
-            "The response one more time: Goodbye"
+            "The response one more time: Goodbye",
         );
     });
 
@@ -3126,7 +3126,7 @@ describe("Conditional Content Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3150,7 +3150,7 @@ describe("Conditional Content Tag Tests", function () {
         cy.log("enter -1");
         cy.get(cesc2("#/n") + " textarea").type(
             "{end}{backspace}{backspace}-1{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc2("#/_p1")).should("have.text", "non-positive");
@@ -3161,7 +3161,7 @@ describe("Conditional Content Tag Tests", function () {
         cy.log("enter 0");
         cy.get(cesc2("#/n") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}0{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc2("#/_p1")).should("have.text", "non-positive");
@@ -3195,7 +3195,7 @@ describe("Conditional Content Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3219,7 +3219,7 @@ describe("Conditional Content Tag Tests", function () {
         cy.log("enter -1");
         cy.get(cesc2("#/n") + " textarea").type(
             "{end}{backspace}{backspace}-1{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc2("#/_p1")).should("have.text", "bye");
@@ -3230,7 +3230,7 @@ describe("Conditional Content Tag Tests", function () {
         cy.log("enter 0");
         cy.get(cesc2("#/n") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}0{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc2("#/_p1")).should("have.text", "bye");
@@ -3267,7 +3267,7 @@ describe("Conditional Content Tag Tests", function () {
     <p name="pb1">b1: <copy source="b" assignNames="(b1)" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3341,7 +3341,7 @@ describe("Conditional Content Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3350,11 +3350,11 @@ describe("Conditional Content Tag Tests", function () {
         cy.get(cesc2("#/pa")).should("have.text", "a: The elephant trumpets.");
         cy.get(cesc2("#/pa1")).should(
             "have.text",
-            "a1: The elephant trumpets."
+            "a1: The elephant trumpets.",
         );
         cy.get(cesc2("#/ppieces")).should(
             "have.text",
-            "pieces: The elephant trumpets."
+            "pieces: The elephant trumpets.",
         );
         cy.get(cesc2("#/pb1")).should("have.text", "b1: ");
         cy.get(cesc2("#/pc1")).should("have.text", "c1: elephant");
@@ -3377,7 +3377,7 @@ describe("Conditional Content Tag Tests", function () {
         cy.get(cesc2("#/pa1")).should("have.text", "a1: The fox jumps.");
         cy.get(cesc2("#/ppieces")).should(
             "have.text",
-            "pieces: The fox jumps."
+            "pieces: The fox jumps.",
         );
         cy.get(cesc2("#/pb1")).should("have.text", "b1: ");
         cy.get(cesc2("#/pc1")).should("have.text", "c1: fox");
@@ -3401,11 +3401,11 @@ describe("Conditional Content Tag Tests", function () {
         cy.get(cesc2("#/pa")).should("have.text", "a: The elephant trumpets.");
         cy.get(cesc2("#/pa1")).should(
             "have.text",
-            "a1: The elephant trumpets."
+            "a1: The elephant trumpets.",
         );
         cy.get(cesc2("#/ppieces")).should(
             "have.text",
-            "pieces: The elephant trumpets."
+            "pieces: The elephant trumpets.",
         );
         cy.get(cesc2("#/pb1")).should("have.text", "b1: ");
         cy.get(cesc2("#/pc1")).should("have.text", "c1: elephant");
@@ -3436,7 +3436,7 @@ describe("Conditional Content Tag Tests", function () {
   after
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3448,7 +3448,7 @@ describe("Conditional Content Tag Tests", function () {
 
         cy.get(cesc2("#/_document1")).should(
             "contain.text",
-            "a\n  1\n  before\n  nothing: \n  after\n  "
+            "a\n  1\n  before\n  nothing: \n  after\n  ",
         );
 
         cy.window().then(async (win) => {
@@ -3458,8 +3458,8 @@ describe("Conditional Content Tag Tests", function () {
             // expect(stateVariables["/a/nothing"].replacements).eqls([])
             expect(
                 stateVariables["/_document1"].activeChildren.filter(
-                    (x) => x.componentType === "copy"
-                )
+                    (x) => x.componentType === "copy",
+                ),
             ).eqls([]);
         });
     });
@@ -3492,7 +3492,7 @@ describe("Conditional Content Tag Tests", function () {
   </conditionalContent>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3518,7 +3518,7 @@ describe("Conditional Content Tag Tests", function () {
         cy.get(cesc2("#/winner1b")).should("have.text", "first winner");
         cy.get(cesc2("#/_p2")).should(
             "have.text",
-            "Just emphasizing that we have that first winner!"
+            "Just emphasizing that we have that first winner!",
         );
         cy.get(cesc2("#/winner2")).should("not.exist");
         cy.get(cesc2("#/_p3")).should("not.exist");

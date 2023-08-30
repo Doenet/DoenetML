@@ -210,7 +210,7 @@ export default class Textinput extends Input {
                         {
                             setEssentialValue: "valueChanged",
                             value: Boolean(
-                                desiredStateVariableValues.valueChanged
+                                desiredStateVariableValues.valueChanged,
                             ),
                         },
                     ],
@@ -336,7 +336,7 @@ export default class Textinput extends Input {
                         {
                             setEssentialValue: "immediateValueChanged",
                             value: Boolean(
-                                desiredStateVariableValues.immediateValueChanged
+                                desiredStateVariableValues.immediateValueChanged,
                             ),
                         },
                     ],

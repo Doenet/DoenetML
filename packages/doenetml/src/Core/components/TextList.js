@@ -162,7 +162,7 @@ export default class TextList extends InlineComponent {
                     numComponents = maxNum;
                     childIndexByArrayKey = childIndexByArrayKey.slice(
                         0,
-                        maxNum
+                        maxNum,
                     );
                 }
 
@@ -359,7 +359,7 @@ export default class TextList extends InlineComponent {
                         })
                     ) {
                         componentNamesInList.push(
-                            ...child.stateValues.componentNamesInList
+                            ...child.stateValues.componentNamesInList,
                         );
                     } else {
                         componentNamesInList.push(child.componentName);
@@ -371,7 +371,7 @@ export default class TextList extends InlineComponent {
                     maxNum = Math.max(0, Math.floor(maxNum));
                     componentNamesInList = componentNamesInList.slice(
                         0,
-                        maxNum
+                        maxNum,
                     );
                 }
 
@@ -429,7 +429,7 @@ export default class TextList extends InlineComponent {
                 for (let child of dependencyValues.textAndTextListChildren) {
                     let numComponentsLeft = Math.max(
                         0,
-                        numComponentsToDisplay - numComponentsSoFar
+                        numComponentsToDisplay - numComponentsSoFar,
                     );
                     if (numComponentsLeft > 0) {
                         numChildrenToRender++;
@@ -446,7 +446,7 @@ export default class TextList extends InlineComponent {
 
                         let numComponentsForTextListChild = Math.min(
                             numComponentsLeft,
-                            textListChild.stateValues.numComponents
+                            textListChild.stateValues.numComponents,
                         );
 
                         numComponentsToDisplayByChild[

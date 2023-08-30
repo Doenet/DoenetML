@@ -27,7 +27,7 @@ describe("Warning Tests", function () {
 <number copysource="rp.numSides" name="ns" />
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -40,7 +40,7 @@ describe("Warning Tests", function () {
             expect(errorWarnings.warnings.length).eq(7);
 
             expect(errorWarnings.warnings[0].message).contain(
-                "Attribute suppressAutoName is deprecated. It is ignored."
+                "Attribute suppressAutoName is deprecated. It is ignored.",
             );
             expect(errorWarnings.warnings[0].level).eq(1);
             expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(2);
@@ -50,7 +50,7 @@ describe("Warning Tests", function () {
             expect(errorWarnings.warnings[0].level).eq(1);
 
             expect(errorWarnings.warnings[1].message).contain(
-                "Attribute xlabel of component type graph is deprecated. It is ignored."
+                "Attribute xlabel of component type graph is deprecated. It is ignored.",
             );
             expect(errorWarnings.warnings[1].level).eq(1);
             expect(errorWarnings.warnings[1].doenetMLrange.lineBegin).eq(3);
@@ -59,7 +59,7 @@ describe("Warning Tests", function () {
             expect(errorWarnings.warnings[1].doenetMLrange.charEnd).eq(10);
 
             expect(errorWarnings.warnings[2].message).contain(
-                "Attribute nSides is deprecated. Use numSides instead."
+                "Attribute nSides is deprecated. Use numSides instead.",
             );
             expect(errorWarnings.warnings[2].level).eq(1);
             expect(errorWarnings.warnings[2].doenetMLrange.lineBegin).eq(4);
@@ -68,7 +68,7 @@ describe("Warning Tests", function () {
             expect(errorWarnings.warnings[2].doenetMLrange.charEnd).eq(43);
 
             expect(errorWarnings.warnings[3].message).contain(
-                "Attribute nSides is deprecated. Use numSides instead."
+                "Attribute nSides is deprecated. Use numSides instead.",
             );
             expect(errorWarnings.warnings[3].level).eq(1);
             expect(errorWarnings.warnings[3].doenetMLrange.lineBegin).eq(5);
@@ -77,7 +77,7 @@ describe("Warning Tests", function () {
             expect(errorWarnings.warnings[3].doenetMLrange.charEnd).eq(49);
 
             expect(errorWarnings.warnings[6].message).contain(
-                "Attribute nSides is deprecated. Use numSides instead."
+                "Attribute nSides is deprecated. Use numSides instead.",
             );
             expect(errorWarnings.warnings[6].level).eq(1);
             expect(errorWarnings.warnings[6].doenetMLrange.lineBegin).eq(6);
@@ -86,7 +86,7 @@ describe("Warning Tests", function () {
             expect(errorWarnings.warnings[6].doenetMLrange.charEnd).eq(19);
 
             expect(errorWarnings.warnings[4].message).contain(
-                "Attribute maximumNumberOfAttempts of component type answer is deprecated. Use maxNumAttempts instead."
+                "Attribute maximumNumberOfAttempts of component type answer is deprecated. Use maxNumAttempts instead.",
             );
             expect(errorWarnings.warnings[4].level).eq(1);
             expect(errorWarnings.warnings[4].doenetMLrange.lineBegin).eq(8);
@@ -95,7 +95,7 @@ describe("Warning Tests", function () {
             expect(errorWarnings.warnings[4].doenetMLrange.charEnd).eq(11);
 
             expect(errorWarnings.warnings[5].message).contain(
-                "Attribute randomizeOrder is deprecated. Use shuffleOrder instead."
+                "Attribute randomizeOrder is deprecated. Use shuffleOrder instead.",
             );
             expect(errorWarnings.warnings[5].level).eq(1);
             expect(errorWarnings.warnings[5].doenetMLrange.lineBegin).eq(9);
@@ -117,7 +117,7 @@ describe("Warning Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -130,7 +130,7 @@ describe("Warning Tests", function () {
             expect(errorWarnings.warnings.length).eq(1);
 
             expect(errorWarnings.warnings[0].message).contain(
-                "Property nSides is deprecated. Use numSides instead."
+                "Property nSides is deprecated. Use numSides instead.",
             );
             expect(errorWarnings.warnings[0].level).eq(1);
             expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(5);
@@ -155,7 +155,7 @@ describe("Warning Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -170,7 +170,7 @@ describe("Warning Tests", function () {
             expect(errorWarnings.warnings.length).eq(2);
 
             expect(errorWarnings.warnings[0].message).contain(
-                "Cannot define an angle between 3 lines"
+                "Cannot define an angle between 3 lines",
             );
             expect(errorWarnings.warnings[0].level).eq(2);
             expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(6);
@@ -179,7 +179,7 @@ describe("Warning Tests", function () {
             expect(errorWarnings.warnings[0].doenetMLrange.charEnd).eq(51);
 
             expect(errorWarnings.warnings[1].message).contain(
-                "Cannot define an angle between 3 lines"
+                "Cannot define an angle between 3 lines",
             );
             expect(errorWarnings.warnings[1].level).eq(2);
             expect(errorWarnings.warnings[1].doenetMLrange.lineBegin).eq(6);
@@ -200,7 +200,7 @@ describe("Warning Tests", function () {
   <booleaninput name="bi" /><boolean copySource="bi" name="b" />
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -213,7 +213,7 @@ describe("Warning Tests", function () {
             expect(errorWarnings.warnings.length).eq(1);
 
             expect(errorWarnings.warnings[0].message).contain(
-                "Haven't implemented <circle> through 2 points in case where the points don't have numerical values"
+                "Haven't implemented <circle> through 2 points in case where the points don't have numerical values",
             );
             expect(errorWarnings.warnings[0].level).eq(1);
             expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(2);
@@ -236,7 +236,7 @@ describe("Warning Tests", function () {
             expect(errorWarnings.warnings.length).eq(2);
 
             expect(errorWarnings.warnings[0].message).contain(
-                "Haven't implemented <circle> through 2 points in case where the points don't have numerical values"
+                "Haven't implemented <circle> through 2 points in case where the points don't have numerical values",
             );
             expect(errorWarnings.warnings[0].level).eq(1);
             expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(2);
@@ -245,7 +245,7 @@ describe("Warning Tests", function () {
             expect(errorWarnings.warnings[0].doenetMLrange.charEnd).eq(43);
 
             expect(errorWarnings.warnings[1].message).contain(
-                "Cannot change radius of circle with non-numerical through points"
+                "Cannot change radius of circle with non-numerical through points",
             );
             expect(errorWarnings.warnings[1].level).eq(1);
             expect(errorWarnings.warnings[1].doenetMLrange.lineBegin).eq(2);
@@ -282,7 +282,7 @@ describe("Warning Tests", function () {
   <textinput name="ti8">$m8.format</textinput>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -318,7 +318,7 @@ describe("Warning Tests", function () {
             expect(errorWarnings.warnings.length).eq(5);
 
             expect(errorWarnings.warnings[0].message).contain(
-                "Invalid value new1 for attribute format"
+                "Invalid value new1 for attribute format",
             );
             expect(errorWarnings.warnings[0].level).eq(2);
             expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(5);
@@ -327,7 +327,7 @@ describe("Warning Tests", function () {
             expect(errorWarnings.warnings[0].doenetMLrange.charEnd).eq(45);
 
             expect(errorWarnings.warnings[1].message).contain(
-                "Invalid value bad for attribute type"
+                "Invalid value bad for attribute type",
             );
             expect(errorWarnings.warnings[1].level).eq(2);
             expect(errorWarnings.warnings[1].doenetMLrange.lineBegin).eq(2);
@@ -336,7 +336,7 @@ describe("Warning Tests", function () {
             expect(errorWarnings.warnings[1].doenetMLrange.charEnd).eq(25);
 
             expect(errorWarnings.warnings[2].message).contain(
-                "Invalid value new2 for attribute format"
+                "Invalid value new2 for attribute format",
             );
             expect(errorWarnings.warnings[2].level).eq(2);
             expect(errorWarnings.warnings[2].doenetMLrange.lineBegin).eq(7);
@@ -345,7 +345,7 @@ describe("Warning Tests", function () {
             expect(errorWarnings.warnings[2].doenetMLrange.charEnd).eq(50);
 
             expect(errorWarnings.warnings[3].message).contain(
-                "Invalid value new1 for attribute format"
+                "Invalid value new1 for attribute format",
             );
             expect(errorWarnings.warnings[3].level).eq(2);
             expect(errorWarnings.warnings[3].doenetMLrange.lineBegin).eq(9);
@@ -354,7 +354,7 @@ describe("Warning Tests", function () {
             expect(errorWarnings.warnings[3].doenetMLrange.charEnd).eq(36);
 
             expect(errorWarnings.warnings[4].message).contain(
-                "Invalid value new3 for attribute format"
+                "Invalid value new3 for attribute format",
             );
             expect(errorWarnings.warnings[4].level).eq(2);
             expect(errorWarnings.warnings[4].doenetMLrange.lineBegin).eq(10);
@@ -407,62 +407,62 @@ describe("Warning Tests", function () {
             expect(errorWarnings.warnings.length).eq(17);
 
             expect(errorWarnings.warnings[5].message).contain(
-                "Invalid value try1 for attribute format"
+                "Invalid value try1 for attribute format",
             );
             expect(errorWarnings.warnings[5].doenetMLrange.lineBegin).eq(4);
 
             expect(errorWarnings.warnings[6].message).contain(
-                "Invalid value new2 for attribute format"
+                "Invalid value new2 for attribute format",
             );
             expect(errorWarnings.warnings[6].doenetMLrange.lineBegin).eq(7);
 
             expect(errorWarnings.warnings[7].message).contain(
-                "Invalid value try2 for attribute format"
+                "Invalid value try2 for attribute format",
             );
             expect(errorWarnings.warnings[7].doenetMLrange.lineBegin).eq(5);
 
             expect(errorWarnings.warnings[8].message).contain(
-                "Invalid value try2 for attribute format"
+                "Invalid value try2 for attribute format",
             );
             expect(errorWarnings.warnings[8].doenetMLrange.lineBegin).eq(9);
 
             expect(errorWarnings.warnings[9].message).contain(
-                "Invalid value try3 for attribute format"
+                "Invalid value try3 for attribute format",
             );
             expect(errorWarnings.warnings[9].doenetMLrange.lineBegin).eq(6);
 
             expect(errorWarnings.warnings[10].message).contain(
-                "Invalid value new2 for attribute format"
+                "Invalid value new2 for attribute format",
             );
             expect(errorWarnings.warnings[10].doenetMLrange.lineBegin).eq(7);
 
             expect(errorWarnings.warnings[11].message).contain(
-                "Invalid value try4 for attribute format"
+                "Invalid value try4 for attribute format",
             );
             expect(errorWarnings.warnings[11].doenetMLrange.lineBegin).eq(7);
 
             expect(errorWarnings.warnings[12].message).contain(
-                "Invalid value try5 for attribute format"
+                "Invalid value try5 for attribute format",
             );
             expect(errorWarnings.warnings[12].doenetMLrange.lineBegin).eq(8);
 
             expect(errorWarnings.warnings[13].message).contain(
-                "Invalid value try6 for attribute format"
+                "Invalid value try6 for attribute format",
             );
             expect(errorWarnings.warnings[13].doenetMLrange.lineBegin).eq(5);
 
             expect(errorWarnings.warnings[14].message).contain(
-                "Invalid value try6 for attribute format"
+                "Invalid value try6 for attribute format",
             );
             expect(errorWarnings.warnings[14].doenetMLrange.lineBegin).eq(9);
 
             expect(errorWarnings.warnings[15].message).contain(
-                "Invalid value try7 for attribute format"
+                "Invalid value try7 for attribute format",
             );
             expect(errorWarnings.warnings[15].doenetMLrange.lineBegin).eq(10);
 
             expect(errorWarnings.warnings[16].message).contain(
-                "Invalid value try8 for attribute format"
+                "Invalid value try8 for attribute format",
             );
             expect(errorWarnings.warnings[16].doenetMLrange.lineBegin).eq(11);
         });
@@ -479,7 +479,7 @@ describe("Warning Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -506,7 +506,7 @@ describe("Warning Tests", function () {
             expect(errorWarnings.warnings.length).eq(1);
 
             expect(errorWarnings.warnings[0].message).contain(
-                `Invalid target for <updateValue>: cannot find a state variable named "bad" on a <number>`
+                `Invalid target for <updateValue>: cannot find a state variable named "bad" on a <number>`,
             );
             expect(errorWarnings.warnings[0].level).eq(1);
             expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(3);
@@ -531,7 +531,7 @@ describe("Warning Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -544,10 +544,10 @@ describe("Warning Tests", function () {
             expect(errorWarnings.warnings.length).eq(3);
 
             expect(errorWarnings.warnings[0].message).contain(
-                `Invalid children for <p>`
+                `Invalid children for <p>`,
             );
             expect(errorWarnings.warnings[0].message).contain(
-                `Found invalid children: <graph>`
+                `Found invalid children: <graph>`,
             );
             expect(errorWarnings.warnings[0].level).eq(1);
             expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(2);
@@ -556,10 +556,10 @@ describe("Warning Tests", function () {
             expect(errorWarnings.warnings[0].doenetMLrange.charEnd).eq(28);
 
             expect(errorWarnings.warnings[1].message).contain(
-                `Invalid children for <p>`
+                `Invalid children for <p>`,
             );
             expect(errorWarnings.warnings[1].message).contain(
-                `Found invalid children: <graph>, <p>`
+                `Found invalid children: <graph>, <p>`,
             );
             expect(errorWarnings.warnings[1].level).eq(1);
             expect(errorWarnings.warnings[1].doenetMLrange.lineBegin).eq(6);
@@ -568,10 +568,10 @@ describe("Warning Tests", function () {
             expect(errorWarnings.warnings[1].doenetMLrange.charEnd).eq(47);
 
             expect(errorWarnings.warnings[2].message).contain(
-                `Invalid children for <p>`
+                `Invalid children for <p>`,
             );
             expect(errorWarnings.warnings[2].message).contain(
-                `Found invalid children: <graph>, <figure>`
+                `Found invalid children: <graph>, <figure>`,
             );
             expect(errorWarnings.warnings[2].level).eq(1);
             expect(errorWarnings.warnings[2].doenetMLrange.lineBegin).eq(8);
@@ -590,7 +590,7 @@ describe("Warning Tests", function () {
   <selectfromSequence>string!</selectFromSequence>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -603,10 +603,10 @@ describe("Warning Tests", function () {
             expect(errorWarnings.warnings.length).eq(1);
 
             expect(errorWarnings.warnings[0].message).contain(
-                `Invalid children for <selectFromSequence>`
+                `Invalid children for <selectFromSequence>`,
             );
             expect(errorWarnings.warnings[0].message).contain(
-                `Found invalid children: string`
+                `Found invalid children: string`,
             );
             expect(errorWarnings.warnings[0].level).eq(1);
             expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(3);

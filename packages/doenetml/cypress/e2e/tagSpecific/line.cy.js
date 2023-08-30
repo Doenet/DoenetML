@@ -25,50 +25,50 @@ async function testLineCopiedTwice({
 }) {
     cy.get(`#${cesc2(point1InDomName)} .mjx-mrow`).should(
         "contain.text",
-        `(${nInDOM(x1)},${nInDOM(y1)})`
+        `(${nInDOM(x1)},${nInDOM(y1)})`,
     );
     cy.get(`#${cesc2(point2InDomName)} .mjx-mrow`).should(
         "contain.text",
-        `(${nInDOM(x2)},${nInDOM(y2)})`
+        `(${nInDOM(x2)},${nInDOM(y2)})`,
     );
 
     cy.window().then(async (win) => {
         let stateVariables = await win.returnAllStateVariables1();
         expect(
-            stateVariables[graph1Name + lineName].stateValues.points[0]
+            stateVariables[graph1Name + lineName].stateValues.points[0],
         ).eqls([x1, y1]);
         expect(
-            stateVariables[graph1Name + lineName].stateValues.points[1]
+            stateVariables[graph1Name + lineName].stateValues.points[1],
         ).eqls([x2, y2]);
         expect(
-            stateVariables[graph2Name + lineName].stateValues.points[0]
+            stateVariables[graph2Name + lineName].stateValues.points[0],
         ).eqls([x1, y1]);
         expect(
-            stateVariables[graph2Name + lineName].stateValues.points[1]
+            stateVariables[graph2Name + lineName].stateValues.points[1],
         ).eqls([x2, y2]);
         expect(
-            stateVariables[graph3Name + lineName].stateValues.points[0]
+            stateVariables[graph3Name + lineName].stateValues.points[0],
         ).eqls([x1, y1]);
         expect(
-            stateVariables[graph3Name + lineName].stateValues.points[1]
+            stateVariables[graph3Name + lineName].stateValues.points[1],
         ).eqls([x2, y2]);
         expect(stateVariables[graph1Name + point1Name].stateValues.coords).eqls(
-            ["vector", x1, y1]
+            ["vector", x1, y1],
         );
         expect(stateVariables[graph1Name + point2Name].stateValues.coords).eqls(
-            ["vector", x2, y2]
+            ["vector", x2, y2],
         );
         expect(stateVariables[graph2Name + point1Name].stateValues.coords).eqls(
-            ["vector", x1, y1]
+            ["vector", x1, y1],
         );
         expect(stateVariables[graph2Name + point2Name].stateValues.coords).eqls(
-            ["vector", x2, y2]
+            ["vector", x2, y2],
         );
         expect(stateVariables[graph3Name + point1Name].stateValues.coords).eqls(
-            ["vector", x1, y1]
+            ["vector", x1, y1],
         );
         expect(stateVariables[graph3Name + point2Name].stateValues.coords).eqls(
-            ["vector", x2, y2]
+            ["vector", x2, y2],
         );
     });
 }
@@ -90,19 +90,19 @@ async function testLineCopiedTwiceBaseOnSlope({
 }) {
     cy.get(`#${cesc2(point1InDomName)} .mjx-mrow`).should(
         "contain.text",
-        `(${nInDOM(x1).substring(0, 2)}`
+        `(${nInDOM(x1).substring(0, 2)}`,
     );
     cy.get(`#${cesc2(point1InDomName)} .mjx-mrow`).should(
         "contain.text",
-        `,${nInDOM(y1).substring(0, 2)}`
+        `,${nInDOM(y1).substring(0, 2)}`,
     );
     cy.get(`#${cesc2(point2InDomName)} .mjx-mrow`).should(
         "contain.text",
-        `(${nInDOM(x2).substring(0, 2)}`
+        `(${nInDOM(x2).substring(0, 2)}`,
     );
     cy.get(`#${cesc2(point2InDomName)} .mjx-mrow`).should(
         "contain.text",
-        `,${nInDOM(y2).substring(0, 2)}`
+        `,${nInDOM(y2).substring(0, 2)}`,
     );
 
     cy.window().then(async (win) => {
@@ -111,168 +111,168 @@ async function testLineCopiedTwiceBaseOnSlope({
             me
                 .fromAst(
                     stateVariables[graph1Name + lineName].stateValues
-                        .points[0][0]
+                        .points[0][0],
                 )
-                .evaluate_to_constant()
+                .evaluate_to_constant(),
         ).closeTo(x1, 1e-12);
         expect(
             me
                 .fromAst(
                     stateVariables[graph1Name + lineName].stateValues
-                        .points[0][1]
+                        .points[0][1],
                 )
-                .evaluate_to_constant()
+                .evaluate_to_constant(),
         ).closeTo(y1, 1e-12);
         expect(
             me
                 .fromAst(
                     stateVariables[graph1Name + lineName].stateValues
-                        .points[1][0]
+                        .points[1][0],
                 )
-                .evaluate_to_constant()
+                .evaluate_to_constant(),
         ).closeTo(x2, 1e-12);
         expect(
             me
                 .fromAst(
                     stateVariables[graph1Name + lineName].stateValues
-                        .points[1][1]
+                        .points[1][1],
                 )
-                .evaluate_to_constant()
+                .evaluate_to_constant(),
         ).closeTo(y2, 1e-12);
         expect(
             me
                 .fromAst(
                     stateVariables[graph2Name + lineName].stateValues
-                        .points[0][0]
+                        .points[0][0],
                 )
-                .evaluate_to_constant()
+                .evaluate_to_constant(),
         ).closeTo(x1, 1e-12);
         expect(
             me
                 .fromAst(
                     stateVariables[graph2Name + lineName].stateValues
-                        .points[0][1]
+                        .points[0][1],
                 )
-                .evaluate_to_constant()
+                .evaluate_to_constant(),
         ).closeTo(y1, 1e-12);
         expect(
             me
                 .fromAst(
                     stateVariables[graph2Name + lineName].stateValues
-                        .points[1][0]
+                        .points[1][0],
                 )
-                .evaluate_to_constant()
+                .evaluate_to_constant(),
         ).closeTo(x2, 1e-12);
         expect(
             me
                 .fromAst(
                     stateVariables[graph2Name + lineName].stateValues
-                        .points[1][1]
+                        .points[1][1],
                 )
-                .evaluate_to_constant()
+                .evaluate_to_constant(),
         ).closeTo(y2, 1e-12);
         expect(
             me
                 .fromAst(
                     stateVariables[graph3Name + lineName].stateValues
-                        .points[0][0]
+                        .points[0][0],
                 )
-                .evaluate_to_constant()
+                .evaluate_to_constant(),
         ).closeTo(x1, 1e-12);
         expect(
             me
                 .fromAst(
                     stateVariables[graph3Name + lineName].stateValues
-                        .points[0][1]
+                        .points[0][1],
                 )
-                .evaluate_to_constant()
+                .evaluate_to_constant(),
         ).closeTo(y1, 1e-12);
         expect(
             me
                 .fromAst(
                     stateVariables[graph3Name + lineName].stateValues
-                        .points[1][0]
+                        .points[1][0],
                 )
-                .evaluate_to_constant()
+                .evaluate_to_constant(),
         ).closeTo(x2, 1e-12);
         expect(
             me
                 .fromAst(
                     stateVariables[graph3Name + lineName].stateValues
-                        .points[1][1]
+                        .points[1][1],
                 )
-                .evaluate_to_constant()
+                .evaluate_to_constant(),
         ).closeTo(y2, 1e-12);
 
         if (Number.isFinite(slope)) {
             expect(
                 me
                     .fromAst(
-                        stateVariables[graph1Name + lineName].stateValues.slope
+                        stateVariables[graph1Name + lineName].stateValues.slope,
                     )
-                    .evaluate_to_constant()
+                    .evaluate_to_constant(),
             ).closeTo(slope, 1e-12);
             expect(
                 me
                     .fromAst(
-                        stateVariables[graph2Name + lineName].stateValues.slope
+                        stateVariables[graph2Name + lineName].stateValues.slope,
                     )
-                    .evaluate_to_constant()
+                    .evaluate_to_constant(),
             ).closeTo(slope, 1e-12);
             expect(
                 me
                     .fromAst(
-                        stateVariables[graph3Name + lineName].stateValues.slope
+                        stateVariables[graph3Name + lineName].stateValues.slope,
                     )
-                    .evaluate_to_constant()
+                    .evaluate_to_constant(),
             ).closeTo(slope, 1e-12);
         } else {
             expect(stateVariables[graph1Name + lineName].stateValues.slope).eq(
-                slope
+                slope,
             );
             expect(stateVariables[graph2Name + lineName].stateValues.slope).eq(
-                slope
+                slope,
             );
             expect(stateVariables[graph3Name + lineName].stateValues.slope).eq(
-                slope
+                slope,
             );
         }
 
         expect(
-            stateVariables[graph1Name + point1Name].stateValues.xs[0]
+            stateVariables[graph1Name + point1Name].stateValues.xs[0],
         ).closeTo(x1, 1e-12);
         expect(
-            stateVariables[graph1Name + point1Name].stateValues.xs[1]
+            stateVariables[graph1Name + point1Name].stateValues.xs[1],
         ).closeTo(y1, 1e-12);
         expect(
-            stateVariables[graph1Name + point2Name].stateValues.xs[0]
+            stateVariables[graph1Name + point2Name].stateValues.xs[0],
         ).closeTo(x2, 1e-12);
         expect(
-            stateVariables[graph1Name + point2Name].stateValues.xs[1]
+            stateVariables[graph1Name + point2Name].stateValues.xs[1],
         ).closeTo(y2, 1e-12);
         expect(
-            stateVariables[graph2Name + point1Name].stateValues.xs[0]
+            stateVariables[graph2Name + point1Name].stateValues.xs[0],
         ).closeTo(x1, 1e-12);
         expect(
-            stateVariables[graph2Name + point1Name].stateValues.xs[1]
+            stateVariables[graph2Name + point1Name].stateValues.xs[1],
         ).closeTo(y1, 1e-12);
         expect(
-            stateVariables[graph2Name + point2Name].stateValues.xs[0]
+            stateVariables[graph2Name + point2Name].stateValues.xs[0],
         ).closeTo(x2, 1e-12);
         expect(
-            stateVariables[graph2Name + point2Name].stateValues.xs[1]
+            stateVariables[graph2Name + point2Name].stateValues.xs[1],
         ).closeTo(y2, 1e-12);
         expect(
-            stateVariables[graph3Name + point1Name].stateValues.xs[0]
+            stateVariables[graph3Name + point1Name].stateValues.xs[0],
         ).closeTo(x1, 1e-12);
         expect(
-            stateVariables[graph3Name + point1Name].stateValues.xs[1]
+            stateVariables[graph3Name + point1Name].stateValues.xs[1],
         ).closeTo(y1, 1e-12);
         expect(
-            stateVariables[graph3Name + point2Name].stateValues.xs[0]
+            stateVariables[graph3Name + point2Name].stateValues.xs[0],
         ).closeTo(x2, 1e-12);
         expect(
-            stateVariables[graph3Name + point2Name].stateValues.xs[1]
+            stateVariables[graph3Name + point2Name].stateValues.xs[1],
         ).closeTo(y2, 1e-12);
     });
 }
@@ -297,7 +297,7 @@ describe("Line Tag Tests", function () {
   $_point1{name="p1a"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -305,7 +305,7 @@ describe("Line Tag Tests", function () {
 
         cy.get(cesc("#\\/p1a") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(3)},${nInDOM(5)})`
+            `(${nInDOM(3)},${nInDOM(5)})`,
         );
 
         cy.log("move point P to (5,-5)");
@@ -319,7 +319,7 @@ describe("Line Tag Tests", function () {
 
         cy.get(cesc("#\\/p1a") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(5)},${nInDOM(-5)})`
+            `(${nInDOM(5)},${nInDOM(-5)})`,
         );
 
         cy.window().then(async (win) => {
@@ -354,7 +354,7 @@ describe("Line Tag Tests", function () {
   $_line1.point2{assignNames="p2"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -402,7 +402,7 @@ describe("Line Tag Tests", function () {
   $l.point2{assignNames="p2"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -445,7 +445,7 @@ describe("Line Tag Tests", function () {
   $_line1.point2{assignNames="p2"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -493,7 +493,7 @@ describe("Line Tag Tests", function () {
   $_line1.point2{assignNames="p2"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -507,7 +507,7 @@ describe("Line Tag Tests", function () {
 
             // have to create unproxied version of equation for equals to work
             let unproxiedEquation = me.fromAst(
-                stateVariables["/_line1"].stateValues.equation
+                stateVariables["/_line1"].stateValues.equation,
             );
             expect(unproxiedEquation.equals(me.fromText("5x-2y=3"))).to.be.true;
         });
@@ -556,11 +556,11 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(point1coords[0]).substring(0, 2)}`
+                `(${nInDOM(point1coords[0]).substring(0, 2)}`,
             );
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `,${nInDOM(point1coords[1]).substring(0, 2)}`
+                `,${nInDOM(point1coords[1]).substring(0, 2)}`,
             );
 
             cy.window().then(async (win) => {
@@ -573,7 +573,7 @@ describe("Line Tag Tests", function () {
 
                 // have to create unproxied version of equation for equals to work
                 let unproxiedEquation = me.fromAst(
-                    stateVariables["/_line1"].stateValues.equation
+                    stateVariables["/_line1"].stateValues.equation,
                 );
                 expect(unproxiedEquation.equals(newEquation)).to.be.true;
             });
@@ -596,7 +596,7 @@ describe("Line Tag Tests", function () {
   $_line1.point2{assignNames="p2"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -610,11 +610,11 @@ describe("Line Tag Tests", function () {
 
             // have to create unproxied version of equation for equals to work
             let unproxiedEquation = me.fromAst(
-                stateVariables["/_line1"].stateValues.equation
+                stateVariables["/_line1"].stateValues.equation,
             );
             expect(unproxiedEquation.equals(me.fromText("5x-2y=3"))).to.be.true;
             expect(stateVariables["/_line1"].stateValues.label).eq(
-                "slope = \\(\\frac{5}{2}\\)"
+                "slope = \\(\\frac{5}{2}\\)",
             );
         });
 
@@ -662,11 +662,11 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(point1coords[0]).substring(0, 2)}`
+                `(${nInDOM(point1coords[0]).substring(0, 2)}`,
             );
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `,${nInDOM(point1coords[1]).substring(0, 2)}`
+                `,${nInDOM(point1coords[1]).substring(0, 2)}`,
             );
 
             cy.window().then(async (win) => {
@@ -679,11 +679,11 @@ describe("Line Tag Tests", function () {
 
                 // have to create unproxied version of equation for equals to work
                 let unproxiedEquation = me.fromAst(
-                    stateVariables["/_line1"].stateValues.equation
+                    stateVariables["/_line1"].stateValues.equation,
                 );
                 expect(unproxiedEquation.equals(newEquation)).to.be.true;
                 expect(stateVariables["/_line1"].stateValues.label).eq(
-                    "slope = \\(\\frac{5}{2}\\)"
+                    "slope = \\(\\frac{5}{2}\\)",
                 );
             });
         });
@@ -705,7 +705,7 @@ describe("Line Tag Tests", function () {
   <number name="c">3</number>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -717,7 +717,7 @@ describe("Line Tag Tests", function () {
 
             // have to create unproxied version of equation for equals to work
             let unproxiedEquation = me.fromAst(
-                stateVariables["/_line1"].stateValues.equation
+                stateVariables["/_line1"].stateValues.equation,
             );
             expect(unproxiedEquation.equals(me.fromText("5x-2y=3"))).to.be.true;
         });
@@ -742,7 +742,7 @@ describe("Line Tag Tests", function () {
   <number name="c">3</number>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -754,11 +754,11 @@ describe("Line Tag Tests", function () {
 
             // have to create unproxied version of equation for equals to work
             let unproxiedEquation = me.fromAst(
-                stateVariables["/_line1"].stateValues.equation
+                stateVariables["/_line1"].stateValues.equation,
             );
             expect(unproxiedEquation.equals(me.fromText("5x-2y=3"))).to.be.true;
             expect(stateVariables["/_line1"].stateValues.label).eq(
-                "slope = \\(\\frac{5}{2}\\)"
+                "slope = \\(\\frac{5}{2}\\)",
             );
         });
 
@@ -778,7 +778,7 @@ describe("Line Tag Tests", function () {
   </graph>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -790,7 +790,7 @@ describe("Line Tag Tests", function () {
 
             // have to create unproxied version of equation for equals to work
             let unproxiedEquation = me.fromAst(
-                stateVariables["/_line1"].stateValues.equation
+                stateVariables["/_line1"].stateValues.equation,
             );
             expect(unproxiedEquation.equals(me.fromText("5x-2y=3"))).to.be.true;
         });
@@ -812,7 +812,7 @@ describe("Line Tag Tests", function () {
   $_line1.point2{assignNames="p2"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -831,7 +831,7 @@ describe("Line Tag Tests", function () {
 
             // have to create unproxied version of equation for equals to work
             let unproxiedEquation = me.fromAst(
-                stateVariables["/_line1"].stateValues.equation
+                stateVariables["/_line1"].stateValues.equation,
             );
             expect(unproxiedEquation.equals(me.fromText("5x-2y=3"))).to.be.true;
         });
@@ -880,11 +880,11 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(point1coords[0]).substring(0, 2)}`
+                `(${nInDOM(point1coords[0]).substring(0, 2)}`,
             );
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `,${nInDOM(point1coords[1]).substring(0, 2)}`
+                `,${nInDOM(point1coords[1]).substring(0, 2)}`,
             );
 
             cy.window().then(async (win) => {
@@ -897,7 +897,7 @@ describe("Line Tag Tests", function () {
 
                 // have to create unproxied version of equation for equals to work
                 let unproxiedEquation = me.fromAst(
-                    stateVariables["/_line1"].stateValues.equation
+                    stateVariables["/_line1"].stateValues.equation,
                 );
                 expect(unproxiedEquation.equals(newEquation)).to.be.true;
             });
@@ -920,7 +920,7 @@ describe("Line Tag Tests", function () {
   $_line1.point2{assignNames="p2"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -939,11 +939,11 @@ describe("Line Tag Tests", function () {
 
             // have to create unproxied version of equation for equals to work
             let unproxiedEquation = me.fromAst(
-                stateVariables["/_line1"].stateValues.equation
+                stateVariables["/_line1"].stateValues.equation,
             );
             expect(unproxiedEquation.equals(me.fromText("5x-2y=3"))).to.be.true;
             expect(stateVariables["/_line1"].stateValues.label).eq(
-                "slope = \\(\\frac{5}{2}\\)"
+                "slope = \\(\\frac{5}{2}\\)",
             );
         });
 
@@ -991,11 +991,11 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(point1coords[0]).substring(0, 2)}`
+                `(${nInDOM(point1coords[0]).substring(0, 2)}`,
             );
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `,${nInDOM(point1coords[1]).substring(0, 2)}`
+                `,${nInDOM(point1coords[1]).substring(0, 2)}`,
             );
 
             cy.window().then(async (win) => {
@@ -1008,11 +1008,11 @@ describe("Line Tag Tests", function () {
 
                 // have to create unproxied version of equation for equals to work
                 let unproxiedEquation = me.fromAst(
-                    stateVariables["/_line1"].stateValues.equation
+                    stateVariables["/_line1"].stateValues.equation,
                 );
                 expect(unproxiedEquation.equals(newEquation)).to.be.true;
                 expect(stateVariables["/_line1"].stateValues.label).eq(
-                    "slope = \\(\\frac{5}{2}\\)"
+                    "slope = \\(\\frac{5}{2}\\)",
                 );
             });
         });
@@ -1031,7 +1031,7 @@ describe("Line Tag Tests", function () {
   </graph>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1050,7 +1050,7 @@ describe("Line Tag Tests", function () {
 
             // have to create unproxied version of equation for equals to work
             let unproxiedEquation = me.fromAst(
-                stateVariables["/_line1"].stateValues.equation
+                stateVariables["/_line1"].stateValues.equation,
             );
             expect(unproxiedEquation.equals(me.fromText("5x-2y=3"))).to.be.true;
         });
@@ -1072,7 +1072,7 @@ describe("Line Tag Tests", function () {
   $_line1.point2{assignNames="p2"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1099,7 +1099,7 @@ describe("Line Tag Tests", function () {
 
             // have to create unproxied version of equation for equals to work
             let unproxiedEquation = me.fromAst(
-                stateVariables["/_line1"].stateValues.equation
+                stateVariables["/_line1"].stateValues.equation,
             );
             expect(unproxiedEquation.equals(me.fromText("5u-2v=3"))).to.be.true;
             expect(stateVariables["/_line1"].stateValues.var1).eq("u");
@@ -1170,11 +1170,11 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(point1coords[0]).substring(0, 2)}`
+                `(${nInDOM(point1coords[0]).substring(0, 2)}`,
             );
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `,${nInDOM(point1coords[1]).substring(0, 2)}`
+                `,${nInDOM(point1coords[1]).substring(0, 2)}`,
             );
 
             cy.window().then(async (win) => {
@@ -1187,7 +1187,7 @@ describe("Line Tag Tests", function () {
 
                 // have to create unproxied version of equation for equals to work
                 let unproxiedEquation = me.fromAst(
-                    stateVariables["/_line1"].stateValues.equation
+                    stateVariables["/_line1"].stateValues.equation,
                 );
                 expect(unproxiedEquation.equals(newEquation)).to.be.true;
             });
@@ -1209,7 +1209,7 @@ describe("Line Tag Tests", function () {
   </graph>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1225,28 +1225,28 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/_line1"].stateValues.coeff0).eq("\uff3f");
             expect(stateVariables["/_line1"].stateValues.coeffvar1).eq(
-                "\uff3f"
+                "\uff3f",
             );
             expect(stateVariables["/_line1"].stateValues.coeffvar2).eq(
-                "\uff3f"
+                "\uff3f",
             );
 
             expect(stateVariables["/_line2"].stateValues.equation).eq("\uff3f");
             expect(stateVariables["/_line2"].stateValues.coeff0).eq("\uff3f");
             expect(stateVariables["/_line2"].stateValues.coeffvar1).eq(
-                "\uff3f"
+                "\uff3f",
             );
             expect(stateVariables["/_line2"].stateValues.coeffvar2).eq(
-                "\uff3f"
+                "\uff3f",
             );
 
             expect(stateVariables["/_line3"].stateValues.equation).eq("\uff3f");
             expect(stateVariables["/_line3"].stateValues.coeff0).eq("\uff3f");
             expect(stateVariables["/_line3"].stateValues.coeffvar1).eq(
-                "\uff3f"
+                "\uff3f",
             );
             expect(stateVariables["/_line3"].stateValues.coeffvar2).eq(
-                "\uff3f"
+                "\uff3f",
             );
 
             expect(stateVariables["/_line4"].stateValues.equation).eqls([
@@ -1256,19 +1256,19 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/_line4"].stateValues.coeff0).eq("\uff3f");
             expect(stateVariables["/_line4"].stateValues.coeffvar1).eq(
-                "\uff3f"
+                "\uff3f",
             );
             expect(stateVariables["/_line4"].stateValues.coeffvar2).eq(
-                "\uff3f"
+                "\uff3f",
             );
 
             expect(stateVariables["/_line5"].stateValues.equation).eq("\uff3f");
             expect(stateVariables["/_line5"].stateValues.coeff0).eq("\uff3f");
             expect(stateVariables["/_line5"].stateValues.coeffvar1).eq(
-                "\uff3f"
+                "\uff3f",
             );
             expect(stateVariables["/_line5"].stateValues.coeffvar2).eq(
-                "\uff3f"
+                "\uff3f",
             );
         });
     });
@@ -1293,7 +1293,7 @@ describe("Line Tag Tests", function () {
   $_line1.point2{assignNames="p2"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1309,7 +1309,7 @@ describe("Line Tag Tests", function () {
 
         cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(point1x).substring(0, 4)}`
+            `(${nInDOM(point1x).substring(0, 4)}`,
         );
 
         cy.log("points and line match constraints");
@@ -1318,34 +1318,34 @@ describe("Line Tag Tests", function () {
 
             expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                 point2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                 point2y,
-                1e-12
+                1e-12,
             );
 
             expect(stateVariables["/a"].stateValues.value).closeTo(a, 1e-12);
 
             expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                 point1x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                 point1y,
-                1e-12
+                1e-12,
             );
 
             expect(
                 me
                     .fromAst(stateVariables["/_line1"].stateValues.slope)
-                    .evaluate_to_constant()
+                    .evaluate_to_constant(),
             ).closeTo(slope, 1e-12);
 
             expect(
                 me
                     .fromAst(stateVariables["/_line1"].stateValues.yintercept)
-                    .evaluate_to_constant()
+                    .evaluate_to_constant(),
             ).closeTo(yintercept, 1e-12);
         });
 
@@ -1369,58 +1369,58 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(point1x).substring(0, 4)}`
+                `(${nInDOM(point1x).substring(0, 4)}`,
             );
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `,${nInDOM(point1y).substring(0, 4)}`
+                `,${nInDOM(point1y).substring(0, 4)}`,
             );
             cy.get(cesc("#\\/p2") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(point2x).substring(0, 4)}`
+                `(${nInDOM(point2x).substring(0, 4)}`,
             );
             cy.get(cesc("#\\/p2") + " .mjx-mrow").should(
                 "contain.text",
-                `,${nInDOM(point2y).substring(0, 4)}`
+                `,${nInDOM(point2y).substring(0, 4)}`,
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                     point2x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                     point2y,
-                    1e-12
+                    1e-12,
                 );
 
                 expect(stateVariables["/a"].stateValues.value).closeTo(
                     a,
-                    1e-12
+                    1e-12,
                 );
 
                 expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                     point1x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                     point1y,
-                    1e-12
+                    1e-12,
                 );
 
                 expect(
                     me
                         .fromAst(stateVariables["/_line1"].stateValues.slope)
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(slope, 1e-12);
 
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/_line1"].stateValues.yintercept
+                            stateVariables["/_line1"].stateValues.yintercept,
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(yintercept, 1e-12);
             });
         });
@@ -1555,7 +1555,7 @@ describe("Line Tag Tests", function () {
   $_line1.point2{assignNames="p2"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1565,7 +1565,7 @@ describe("Line Tag Tests", function () {
 
         cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(0)},${nInDOM(0)}`
+            `(${nInDOM(0)},${nInDOM(0)}`,
         );
 
         cy.window().then(async (win) => {
@@ -1573,12 +1573,12 @@ describe("Line Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/l2"].stateValues.slope)
-                    .evaluate_to_constant()
+                    .evaluate_to_constant(),
             ).closeTo(3, 1e-12);
             expect(
                 me
                     .fromAst(stateVariables["/l2"].stateValues.yintercept)
-                    .evaluate_to_constant()
+                    .evaluate_to_constant(),
             ).closeTo(0, 1e-12);
         });
 
@@ -1598,11 +1598,11 @@ describe("Line Tag Tests", function () {
 
         cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(-3)},${nInDOM(5)}`
+            `(${nInDOM(-3)},${nInDOM(5)}`,
         );
         cy.get(cesc("#\\/p2") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(5)},${nInDOM(1)}`
+            `(${nInDOM(5)},${nInDOM(1)}`,
         );
 
         cy.window().then(async (win) => {
@@ -1610,12 +1610,12 @@ describe("Line Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/l2"].stateValues.slope)
-                    .evaluate_to_constant()
+                    .evaluate_to_constant(),
             ).closeTo(-0.5, 1e-12);
             expect(
                 me
                     .fromAst(stateVariables["/l2"].stateValues.yintercept)
-                    .evaluate_to_constant()
+                    .evaluate_to_constant(),
             ).closeTo(3.5, 1e-12);
         });
 
@@ -1663,11 +1663,11 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(point1coords[0]).substring(0, 4)}`
+                `(${nInDOM(point1coords[0]).substring(0, 4)}`,
             );
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `,${nInDOM(point1coords[1]).substring(0, 4)}`
+                `,${nInDOM(point1coords[1]).substring(0, 4)}`,
             );
 
             cy.window().then(async (win) => {
@@ -1676,12 +1676,12 @@ describe("Line Tag Tests", function () {
                 expect(
                     me
                         .fromAst(stateVariables["/l2"].stateValues.slope)
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(-0.5, 1e-12);
                 expect(
                     me
                         .fromAst(stateVariables["/l2"].stateValues.yintercept)
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(1.5, 1e-12);
             });
         });
@@ -1730,11 +1730,11 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(point1coords[0]).substring(0, 4)}`
+                `(${nInDOM(point1coords[0]).substring(0, 4)}`,
             );
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `,${nInDOM(point1coords[1]).substring(0, 4)}`
+                `,${nInDOM(point1coords[1]).substring(0, 4)}`,
             );
 
             cy.window().then(async (win) => {
@@ -1742,12 +1742,12 @@ describe("Line Tag Tests", function () {
                 expect(
                     me
                         .fromAst(stateVariables["/l2"].stateValues.slope)
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(-0.5, 1e-12);
                 expect(
                     me
                         .fromAst(stateVariables["/l2"].stateValues.yintercept)
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(-3, 1e-12);
             });
         });
@@ -1772,7 +1772,7 @@ describe("Line Tag Tests", function () {
   $_line1.point2{assignNames="p2"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1782,7 +1782,7 @@ describe("Line Tag Tests", function () {
 
         cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(-0.8)}`
+            `(${nInDOM(-0.8)}`,
         );
 
         cy.window().then(async (win) => {
@@ -1790,22 +1790,22 @@ describe("Line Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/_line1"].stateValues.slope)
-                    .evaluate_to_constant()
+                    .evaluate_to_constant(),
             ).closeTo(2, 1e-12);
             expect(
                 me
                     .fromAst(stateVariables["/_line1"].stateValues.yintercept)
-                    .evaluate_to_constant()
+                    .evaluate_to_constant(),
             ).closeTo(1, 1e-12);
             expect(
                 me
                     .fromAst(stateVariables["/l2"].stateValues.slope)
-                    .evaluate_to_constant()
+                    .evaluate_to_constant(),
             ).closeTo(2, 1e-12);
             expect(
                 me
                     .fromAst(stateVariables["/l2"].stateValues.yintercept)
-                    .evaluate_to_constant()
+                    .evaluate_to_constant(),
             ).closeTo(1, 1e-12);
         });
 
@@ -1854,11 +1854,11 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(point1coords[0]).substring(0, 4)}`
+                `(${nInDOM(point1coords[0]).substring(0, 4)}`,
             );
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `,${nInDOM(point1coords[1]).substring(0, 4)}`
+                `,${nInDOM(point1coords[1]).substring(0, 4)}`,
             );
 
             cy.window().then(async (win) => {
@@ -1866,24 +1866,24 @@ describe("Line Tag Tests", function () {
                 expect(
                     me
                         .fromAst(stateVariables["/_line1"].stateValues.slope)
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(2, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/_line1"].stateValues.yintercept
+                            stateVariables["/_line1"].stateValues.yintercept,
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(4, 1e-12);
                 expect(
                     me
                         .fromAst(stateVariables["/l2"].stateValues.slope)
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(2, 1e-12);
                 expect(
                     me
                         .fromAst(stateVariables["/l2"].stateValues.yintercept)
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(4, 1e-12);
             });
         });
@@ -1934,11 +1934,11 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(point1coords[0]).substring(0, 4)}`
+                `(${nInDOM(point1coords[0]).substring(0, 4)}`,
             );
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `,${nInDOM(point1coords[1]).substring(0, 4)}`
+                `,${nInDOM(point1coords[1]).substring(0, 4)}`,
             );
 
             cy.window().then(async (win) => {
@@ -1946,24 +1946,24 @@ describe("Line Tag Tests", function () {
                 expect(
                     me
                         .fromAst(stateVariables["/_line1"].stateValues.slope)
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(2, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/_line1"].stateValues.yintercept
+                            stateVariables["/_line1"].stateValues.yintercept,
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(12, 1e-12);
                 expect(
                     me
                         .fromAst(stateVariables["/l2"].stateValues.slope)
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(2, 1e-12);
                 expect(
                     me
                         .fromAst(stateVariables["/l2"].stateValues.yintercept)
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(12, 1e-12);
             });
         });
@@ -1989,7 +1989,7 @@ describe("Line Tag Tests", function () {
   $_line1.point2{assignNames="p2b"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2011,7 +2011,7 @@ describe("Line Tag Tests", function () {
             expect(stateVariables["/p2a"].stateValues.xs[1]).eq(p2y);
             cy.get(cesc("#\\/p1b") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(p1x)},${nInDOM(p1y)})`
+                `(${nInDOM(p1x)},${nInDOM(p1y)})`,
             );
         });
 
@@ -2027,7 +2027,7 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/p1b") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(p1x)},${nInDOM(p1y)})`
+                `(${nInDOM(p1x)},${nInDOM(p1y)})`,
             );
 
             cy.window().then(async (win) => {
@@ -2057,7 +2057,7 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/p2b") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(p2x)},${nInDOM(p2y)})`
+                `(${nInDOM(p2x)},${nInDOM(p2y)})`,
             );
 
             cy.window().then(async (win) => {
@@ -2087,7 +2087,7 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/p2b") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(p2x)},${nInDOM(p2y)})`
+                `(${nInDOM(p2x)},${nInDOM(p2y)})`,
             );
 
             cy.window().then(async (win) => {
@@ -2117,7 +2117,7 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/p1b") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(p1x)},${nInDOM(p1y)})`
+                `(${nInDOM(p1x)},${nInDOM(p1y)})`,
             );
 
             cy.window().then(async (win) => {
@@ -2179,39 +2179,39 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/p1b") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(point1coords[0]).substring(0, 4)}`
+                `(${nInDOM(point1coords[0]).substring(0, 4)}`,
             );
             cy.get(cesc("#\\/p1b") + " .mjx-mrow").should(
                 "contain.text",
-                `,${nInDOM(point1coords[1]).substring(0, 4)}`
+                `,${nInDOM(point1coords[1]).substring(0, 4)}`,
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
 
                 expect(stateVariables["/p1"].stateValues.xs[0]).eq(
-                    point1coords[0]
+                    point1coords[0],
                 );
                 expect(stateVariables["/p1"].stateValues.xs[1]).eq(
-                    point1coords[1]
+                    point1coords[1],
                 );
                 expect(stateVariables["/p2"].stateValues.xs[0]).eq(
-                    point2coords[0]
+                    point2coords[0],
                 );
                 expect(stateVariables["/p2"].stateValues.xs[1]).eq(
-                    point2coords[1]
+                    point2coords[1],
                 );
                 expect(stateVariables["/p1a"].stateValues.xs[0]).eq(
-                    point1coords[0]
+                    point1coords[0],
                 );
                 expect(stateVariables["/p1a"].stateValues.xs[1]).eq(
-                    point1coords[1]
+                    point1coords[1],
                 );
                 expect(stateVariables["/p2a"].stateValues.xs[0]).eq(
-                    point2coords[0]
+                    point2coords[0],
                 );
                 expect(stateVariables["/p2a"].stateValues.xs[1]).eq(
-                    point2coords[1]
+                    point2coords[1],
                 );
             });
         });
@@ -2234,7 +2234,7 @@ describe("Line Tag Tests", function () {
   $_line1.point2{assignNames="p2b"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2272,7 +2272,7 @@ describe("Line Tag Tests", function () {
             ]);
             cy.get(cesc("#\\/p1b") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(p1x)},${nInDOM(p1y)})`
+                `(${nInDOM(p1x)},${nInDOM(p1y)})`,
             );
         });
 
@@ -2320,11 +2320,11 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/p1b") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(point1coords[0]).substring(0, 4)}`
+                `(${nInDOM(point1coords[0]).substring(0, 4)}`,
             );
             cy.get(cesc("#\\/p1b") + " .mjx-mrow").should(
                 "contain.text",
-                `,${nInDOM(point1coords[1]).substring(0, 4)}`
+                `,${nInDOM(point1coords[1]).substring(0, 4)}`,
             );
 
             cy.window().then(async (win) => {
@@ -2406,11 +2406,11 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/p1b") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(point1coords[0]).substring(0, 4)}`
+                `(${nInDOM(point1coords[0]).substring(0, 4)}`,
             );
             cy.get(cesc("#\\/p1b") + " .mjx-mrow").should(
                 "contain.text",
-                `,${nInDOM(point1coords[1]).substring(0, 4)}`
+                `,${nInDOM(point1coords[1]).substring(0, 4)}`,
             );
 
             cy.window().then(async (win) => {
@@ -2468,7 +2468,7 @@ describe("Line Tag Tests", function () {
   <p>Equation is: $_line1.equation{assignNames="equation"}.</p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2514,7 +2514,7 @@ describe("Line Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             // have to create unproxied version of equation for equals to work
             let unproxiedEquationInLine = me.fromAst(
-                stateVariables["/_line1"].stateValues.equation
+                stateVariables["/_line1"].stateValues.equation,
             );
             expect(unproxiedEquationInLine.equals(me.fromText("y = -2x+6"))).to
                 .be.true;
@@ -2529,7 +2529,7 @@ describe("Line Tag Tests", function () {
             expect(stateVariables["/yintercept"].stateValues.value).eq(6);
             expect(stateVariables["/slope"].stateValues.value).eq(-2);
             let unproxiedEquation = me.fromAst(
-                stateVariables["/equation"].stateValues.value
+                stateVariables["/equation"].stateValues.value,
             );
             expect(unproxiedEquation.equals(me.fromText("y = -2x+6"))).to.be
                 .true;
@@ -2555,7 +2555,7 @@ describe("Line Tag Tests", function () {
   $_line1.point2{assignNames="p2"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2563,11 +2563,11 @@ describe("Line Tag Tests", function () {
 
         cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(5)},${nInDOM(1)})`
+            `(${nInDOM(5)},${nInDOM(1)})`,
         );
         cy.get(cesc("#\\/p2") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(1)},${nInDOM(5)})`
+            `(${nInDOM(1)},${nInDOM(5)})`,
         );
 
         cy.window().then(async (win) => {
@@ -2575,15 +2575,15 @@ describe("Line Tag Tests", function () {
 
             // have to create unproxied version of equation for equals to work
             let unproxiedEquation = me.fromAst(
-                stateVariables["/_line1"].stateValues.equation
+                stateVariables["/_line1"].stateValues.equation,
             );
             expect(unproxiedEquation.equals(me.fromText("y = 6-x"))).to.be.true;
             unproxiedEquation = me.fromAst(
-                stateVariables["/_line2"].stateValues.equation
+                stateVariables["/_line2"].stateValues.equation,
             );
             expect(unproxiedEquation.equals(me.fromText("y = 6-x"))).to.be.true;
             unproxiedEquation = me.fromAst(
-                stateVariables["/_line3"].stateValues.equation
+                stateVariables["/_line3"].stateValues.equation,
             );
             expect(unproxiedEquation.equals(me.fromText("v = 6-u"))).to.be.true;
             expect(stateVariables["/_line1"].stateValues.variables[0]).eq("x");
@@ -2619,11 +2619,11 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(4)},${nInDOM(4)})`
+                `(${nInDOM(4)},${nInDOM(4)})`,
             );
             cy.get(cesc("#\\/p2") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(6)},${nInDOM(8)})`
+                `(${nInDOM(6)},${nInDOM(8)})`,
             );
 
             cy.window().then(async (win) => {
@@ -2631,17 +2631,17 @@ describe("Line Tag Tests", function () {
 
                 // have to create unproxied version of equation for equals to work
                 let unproxiedEquation = me.fromAst(
-                    stateVariables["/_line1"].stateValues.equation
+                    stateVariables["/_line1"].stateValues.equation,
                 );
                 expect(unproxiedEquation.equals(me.fromText("y = 2x-4"))).to.be
                     .true;
                 unproxiedEquation = me.fromAst(
-                    stateVariables["/_line2"].stateValues.equation
+                    stateVariables["/_line2"].stateValues.equation,
                 );
                 expect(unproxiedEquation.equals(me.fromText("y = 2x-4"))).to.be
                     .true;
                 unproxiedEquation = me.fromAst(
-                    stateVariables["/_line3"].stateValues.equation
+                    stateVariables["/_line3"].stateValues.equation,
                 );
                 expect(unproxiedEquation.equals(me.fromText("v = 2u-4"))).to.be
                     .true;
@@ -2685,7 +2685,7 @@ describe("Line Tag Tests", function () {
   
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2722,11 +2722,11 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x)},${nInDOM(y)})`
+                `(${nInDOM(x)},${nInDOM(y)})`,
             );
             cy.get(cesc("#\\/p2") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(y)},${nInDOM(x)})`
+                `(${nInDOM(y)},${nInDOM(x)})`,
             );
 
             cy.window().then(async (win) => {
@@ -2759,11 +2759,11 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x)},${nInDOM(y)})`
+                `(${nInDOM(x)},${nInDOM(y)})`,
             );
             cy.get(cesc("#\\/p2") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(y)},${nInDOM(x)})`
+                `(${nInDOM(y)},${nInDOM(x)})`,
             );
 
             cy.window().then(async (win) => {
@@ -2795,11 +2795,11 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x)},${nInDOM(y)})`
+                `(${nInDOM(x)},${nInDOM(y)})`,
             );
             cy.get(cesc("#\\/p2") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(y)},${nInDOM(x)})`
+                `(${nInDOM(y)},${nInDOM(x)})`,
             );
 
             cy.window().then(async (win) => {
@@ -2831,11 +2831,11 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x)},${nInDOM(y)})`
+                `(${nInDOM(x)},${nInDOM(y)})`,
             );
             cy.get(cesc("#\\/p2") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(y)},${nInDOM(x)})`
+                `(${nInDOM(y)},${nInDOM(x)})`,
             );
 
             cy.window().then(async (win) => {
@@ -2875,7 +2875,7 @@ describe("Line Tag Tests", function () {
   $_line3.point2{assignNames="p32"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2890,7 +2890,7 @@ describe("Line Tag Tests", function () {
 
         cy.get(cesc("#\\/p11") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(x2)},${nInDOM(y2)})`
+            `(${nInDOM(x2)},${nInDOM(y2)})`,
         );
 
         cy.window().then(async (win) => {
@@ -2934,7 +2934,7 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/p11") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x2)},${nInDOM(y2)})`
+                `(${nInDOM(x2)},${nInDOM(y2)})`,
             );
 
             cy.window().then(async (win) => {
@@ -2979,7 +2979,7 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/p12") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x1)},${nInDOM(y1)})`
+                `(${nInDOM(x1)},${nInDOM(y1)})`,
             );
 
             cy.window().then(async (win) => {
@@ -3024,7 +3024,7 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/p21") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x3)},${nInDOM(y3)})`
+                `(${nInDOM(x3)},${nInDOM(y3)})`,
             );
 
             cy.window().then(async (win) => {
@@ -3069,7 +3069,7 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/p22") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x2)},${nInDOM(y2)})`
+                `(${nInDOM(x2)},${nInDOM(y2)})`,
             );
 
             cy.window().then(async (win) => {
@@ -3114,7 +3114,7 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/p31") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x1)},${nInDOM(y1)})`
+                `(${nInDOM(x1)},${nInDOM(y1)})`,
             );
 
             cy.window().then(async (win) => {
@@ -3159,7 +3159,7 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/p32") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x3)},${nInDOM(y3)})`
+                `(${nInDOM(x3)},${nInDOM(y3)})`,
             );
 
             cy.window().then(async (win) => {
@@ -3216,7 +3216,7 @@ describe("Line Tag Tests", function () {
   $(g1/l.point2{assignNames="p2"})
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3395,7 +3395,7 @@ describe("Line Tag Tests", function () {
   $(g1/l.point2{assignNames="p2"})
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3574,7 +3574,7 @@ describe("Line Tag Tests", function () {
   $(g1/l.point2{assignNames="p2"})
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3753,7 +3753,7 @@ describe("Line Tag Tests", function () {
   $(g1/l.point2{assignNames="p2"})
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3948,7 +3948,7 @@ describe("Line Tag Tests", function () {
   $(g2/l.pointX1_2{assignNames="y12"})
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3957,27 +3957,27 @@ describe("Line Tag Tests", function () {
         async function checkLines({ x11, y11, x12, y12, x2, y2 }) {
             cy.get(cesc("#\\/x11") + " .mjx-mrow").should(
                 "contain.text",
-                `${nInDOM(x11).substring(0, 6)}`
+                `${nInDOM(x11).substring(0, 6)}`,
             );
             cy.get(cesc("#\\/y11") + " .mjx-mrow").should(
                 "contain.text",
-                `${nInDOM(y11).substring(0, 6)}`
+                `${nInDOM(y11).substring(0, 6)}`,
             );
             cy.get(cesc("#\\/x2") + " .mjx-mrow").should(
                 "contain.text",
-                `${nInDOM(x2).substring(0, 6)}`
+                `${nInDOM(x2).substring(0, 6)}`,
             );
             cy.get(cesc("#\\/y2") + " .mjx-mrow").should(
                 "contain.text",
-                `${nInDOM(y2).substring(0, 6)}`
+                `${nInDOM(y2).substring(0, 6)}`,
             );
             cy.get(cesc("#\\/x12") + " .mjx-mrow").should(
                 "contain.text",
-                `${nInDOM(x12).substring(0, 6)}`
+                `${nInDOM(x12).substring(0, 6)}`,
             );
             cy.get(cesc("#\\/y12") + " .mjx-mrow").should(
                 "contain.text",
-                `${nInDOM(y12).substring(0, 6)}`
+                `${nInDOM(y12).substring(0, 6)}`,
             );
 
             cy.window().then(async (win) => {
@@ -3985,231 +3985,231 @@ describe("Line Tag Tests", function () {
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g1/l"].stateValues.points[0][0]
+                            stateVariables["/g1/l"].stateValues.points[0][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x11, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g1/l"].stateValues.points[0][1]
+                            stateVariables["/g1/l"].stateValues.points[0][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y11, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g1/l"].stateValues.points[1][0]
+                            stateVariables["/g1/l"].stateValues.points[1][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x2, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g1/l"].stateValues.points[1][1]
+                            stateVariables["/g1/l"].stateValues.points[1][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y2, 1e-12);
 
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g2/l"].stateValues.points[0][0]
+                            stateVariables["/g2/l"].stateValues.points[0][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x12, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g2/l"].stateValues.points[0][1]
+                            stateVariables["/g2/l"].stateValues.points[0][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y12, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g2/l"].stateValues.points[1][0]
+                            stateVariables["/g2/l"].stateValues.points[1][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x2, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g2/l"].stateValues.points[1][1]
+                            stateVariables["/g2/l"].stateValues.points[1][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y2, 1e-12);
 
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g3/l"].stateValues.points[0][0]
+                            stateVariables["/g3/l"].stateValues.points[0][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x12, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g3/l"].stateValues.points[0][1]
+                            stateVariables["/g3/l"].stateValues.points[0][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y12, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g3/l"].stateValues.points[1][0]
+                            stateVariables["/g3/l"].stateValues.points[1][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x2, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g3/l"].stateValues.points[1][1]
+                            stateVariables["/g3/l"].stateValues.points[1][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y2, 1e-12);
 
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g4/l"].stateValues.points[0][0]
+                            stateVariables["/g4/l"].stateValues.points[0][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x12, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g4/l"].stateValues.points[0][1]
+                            stateVariables["/g4/l"].stateValues.points[0][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y12, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g4/l"].stateValues.points[1][0]
+                            stateVariables["/g4/l"].stateValues.points[1][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x2, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g4/l"].stateValues.points[1][1]
+                            stateVariables["/g4/l"].stateValues.points[1][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y2, 1e-12);
 
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g5/l"].stateValues.points[0][0]
+                            stateVariables["/g5/l"].stateValues.points[0][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x12, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g5/l"].stateValues.points[0][1]
+                            stateVariables["/g5/l"].stateValues.points[0][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y12, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g5/l"].stateValues.points[1][0]
+                            stateVariables["/g5/l"].stateValues.points[1][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x2, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g5/l"].stateValues.points[1][1]
+                            stateVariables["/g5/l"].stateValues.points[1][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y2, 1e-12);
 
                 expect(stateVariables["/g1/A"].stateValues.xs[0]).closeTo(
                     x11,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g1/A"].stateValues.xs[1]).closeTo(
                     y11,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g1/B"].stateValues.xs[0]).closeTo(
                     x2,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g1/B"].stateValues.xs[1]).closeTo(
                     y2,
-                    1e-12
+                    1e-12,
                 );
 
                 expect(stateVariables["/g2/A"].stateValues.xs[0]).closeTo(
                     x12,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g2/A"].stateValues.xs[1]).closeTo(
                     y12,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g2/B"].stateValues.xs[0]).closeTo(
                     x2,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g2/B"].stateValues.xs[1]).closeTo(
                     y2,
-                    1e-12
+                    1e-12,
                 );
 
                 expect(stateVariables["/g3/A"].stateValues.xs[0]).closeTo(
                     x12,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g3/A"].stateValues.xs[1]).closeTo(
                     y12,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g3/B"].stateValues.xs[0]).closeTo(
                     x2,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g3/B"].stateValues.xs[1]).closeTo(
                     y2,
-                    1e-12
+                    1e-12,
                 );
 
                 expect(stateVariables["/g4/A"].stateValues.xs[0]).closeTo(
                     x12,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g4/A"].stateValues.xs[1]).closeTo(
                     y12,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g4/B"].stateValues.xs[0]).closeTo(
                     x2,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g4/B"].stateValues.xs[1]).closeTo(
                     y2,
-                    1e-12
+                    1e-12,
                 );
 
                 expect(stateVariables["/g5/A"].stateValues.xs[0]).closeTo(
                     x12,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g5/A"].stateValues.xs[1]).closeTo(
                     y12,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g5/B"].stateValues.xs[0]).closeTo(
                     x2,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g5/B"].stateValues.xs[1]).closeTo(
                     y2,
-                    1e-12
+                    1e-12,
                 );
             });
         }
@@ -4492,7 +4492,7 @@ describe("Line Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4501,27 +4501,27 @@ describe("Line Tag Tests", function () {
         async function checkLines({ x11, y11, x12, y12, x2, y2 }) {
             cy.get(cesc("#\\/x11") + " .mjx-mrow").should(
                 "contain.text",
-                `${nInDOM(x11).substring(0, 6)}`
+                `${nInDOM(x11).substring(0, 6)}`,
             );
             cy.get(cesc("#\\/y11") + " .mjx-mrow").should(
                 "contain.text",
-                `${nInDOM(y11).substring(0, 6)}`
+                `${nInDOM(y11).substring(0, 6)}`,
             );
             cy.get(cesc("#\\/x2") + " .mjx-mrow").should(
                 "contain.text",
-                `${nInDOM(x2).substring(0, 6)}`
+                `${nInDOM(x2).substring(0, 6)}`,
             );
             cy.get(cesc("#\\/y2") + " .mjx-mrow").should(
                 "contain.text",
-                `${nInDOM(y2).substring(0, 6)}`
+                `${nInDOM(y2).substring(0, 6)}`,
             );
             cy.get(cesc("#\\/x12") + " .mjx-mrow").should(
                 "contain.text",
-                `${nInDOM(x12).substring(0, 6)}`
+                `${nInDOM(x12).substring(0, 6)}`,
             );
             cy.get(cesc("#\\/y12") + " .mjx-mrow").should(
                 "contain.text",
-                `${nInDOM(y12).substring(0, 6)}`
+                `${nInDOM(y12).substring(0, 6)}`,
             );
 
             cy.window().then(async (win) => {
@@ -4530,231 +4530,231 @@ describe("Line Tag Tests", function () {
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g1/l"].stateValues.points[0][0]
+                            stateVariables["/g1/l"].stateValues.points[0][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x11, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g1/l"].stateValues.points[0][1]
+                            stateVariables["/g1/l"].stateValues.points[0][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y11, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g1/l"].stateValues.points[1][0]
+                            stateVariables["/g1/l"].stateValues.points[1][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x2, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g1/l"].stateValues.points[1][1]
+                            stateVariables["/g1/l"].stateValues.points[1][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y2, 1e-12);
 
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g2/l"].stateValues.points[0][0]
+                            stateVariables["/g2/l"].stateValues.points[0][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x12, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g2/l"].stateValues.points[0][1]
+                            stateVariables["/g2/l"].stateValues.points[0][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y12, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g2/l"].stateValues.points[1][0]
+                            stateVariables["/g2/l"].stateValues.points[1][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x2, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g2/l"].stateValues.points[1][1]
+                            stateVariables["/g2/l"].stateValues.points[1][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y2, 1e-12);
 
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g3/l"].stateValues.points[0][0]
+                            stateVariables["/g3/l"].stateValues.points[0][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x12, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g3/l"].stateValues.points[0][1]
+                            stateVariables["/g3/l"].stateValues.points[0][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y12, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g3/l"].stateValues.points[1][0]
+                            stateVariables["/g3/l"].stateValues.points[1][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x2, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g3/l"].stateValues.points[1][1]
+                            stateVariables["/g3/l"].stateValues.points[1][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y2, 1e-12);
 
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g4/l"].stateValues.points[0][0]
+                            stateVariables["/g4/l"].stateValues.points[0][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x12, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g4/l"].stateValues.points[0][1]
+                            stateVariables["/g4/l"].stateValues.points[0][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y12, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g4/l"].stateValues.points[1][0]
+                            stateVariables["/g4/l"].stateValues.points[1][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x2, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g4/l"].stateValues.points[1][1]
+                            stateVariables["/g4/l"].stateValues.points[1][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y2, 1e-12);
 
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g5/l"].stateValues.points[0][0]
+                            stateVariables["/g5/l"].stateValues.points[0][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x12, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g5/l"].stateValues.points[0][1]
+                            stateVariables["/g5/l"].stateValues.points[0][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y12, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g5/l"].stateValues.points[1][0]
+                            stateVariables["/g5/l"].stateValues.points[1][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x2, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g5/l"].stateValues.points[1][1]
+                            stateVariables["/g5/l"].stateValues.points[1][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y2, 1e-12);
 
                 expect(stateVariables["/g1/A"].stateValues.xs[0]).closeTo(
                     x11,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g1/A"].stateValues.xs[1]).closeTo(
                     y11,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g1/B"].stateValues.xs[0]).closeTo(
                     x2,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g1/B"].stateValues.xs[1]).closeTo(
                     y2,
-                    1e-12
+                    1e-12,
                 );
 
                 expect(stateVariables["/g2/A"].stateValues.xs[0]).closeTo(
                     x12,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g2/A"].stateValues.xs[1]).closeTo(
                     y12,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g2/B"].stateValues.xs[0]).closeTo(
                     x2,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g2/B"].stateValues.xs[1]).closeTo(
                     y2,
-                    1e-12
+                    1e-12,
                 );
 
                 expect(stateVariables["/g3/A"].stateValues.xs[0]).closeTo(
                     x12,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g3/A"].stateValues.xs[1]).closeTo(
                     y12,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g3/B"].stateValues.xs[0]).closeTo(
                     x2,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g3/B"].stateValues.xs[1]).closeTo(
                     y2,
-                    1e-12
+                    1e-12,
                 );
 
                 expect(stateVariables["/g4/A"].stateValues.xs[0]).closeTo(
                     x12,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g4/A"].stateValues.xs[1]).closeTo(
                     y12,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g4/B"].stateValues.xs[0]).closeTo(
                     x2,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g4/B"].stateValues.xs[1]).closeTo(
                     y2,
-                    1e-12
+                    1e-12,
                 );
 
                 expect(stateVariables["/g5/A"].stateValues.xs[0]).closeTo(
                     x12,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g5/A"].stateValues.xs[1]).closeTo(
                     y12,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g5/B"].stateValues.xs[0]).closeTo(
                     x2,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g5/B"].stateValues.xs[1]).closeTo(
                     y2,
-                    1e-12
+                    1e-12,
                 );
             });
         }
@@ -5220,7 +5220,7 @@ describe("Line Tag Tests", function () {
   $(g1/l.point2{assignNames="p2"})
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5388,7 +5388,7 @@ describe("Line Tag Tests", function () {
   $(g1/l.point2{assignNames="p2"})
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5549,7 +5549,7 @@ describe("Line Tag Tests", function () {
         cy.log("add first through point");
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             "{end}{backspace}1{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.window().then(async (win) => {
@@ -5700,7 +5700,7 @@ describe("Line Tag Tests", function () {
         cy.log("add second through point");
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             "{end}{backspace}2{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.window().then(async (win) => {
@@ -5845,7 +5845,7 @@ describe("Line Tag Tests", function () {
         cy.log("remove second through point");
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             "{end}{backspace}1{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.window().then(async (win) => {
@@ -5990,7 +5990,7 @@ describe("Line Tag Tests", function () {
         cy.log("remove first through point");
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             "{end}{backspace}0{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.window().then(async (win) => {
@@ -6169,7 +6169,7 @@ describe("Line Tag Tests", function () {
   $(g1/l.point2{assignNames="p2"})
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6330,7 +6330,7 @@ describe("Line Tag Tests", function () {
         cy.log("add first through point");
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             "{end}{backspace}1{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.window().then(async (win) => {
@@ -6459,7 +6459,7 @@ describe("Line Tag Tests", function () {
         cy.log("add second through point");
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             "{end}{backspace}2{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.window().then(async (win) => {
@@ -6580,7 +6580,7 @@ describe("Line Tag Tests", function () {
         cy.log("remove second through point");
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             "{end}{backspace}1{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.window().then(async (win) => {
@@ -6707,7 +6707,7 @@ describe("Line Tag Tests", function () {
         cy.log("remove first through point");
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             "{end}{backspace}0{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.window().then(async (win) => {
@@ -6870,7 +6870,7 @@ describe("Line Tag Tests", function () {
   $_line1.point2{assignNames="p2"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6887,7 +6887,7 @@ describe("Line Tag Tests", function () {
 
         cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(x1)},${nInDOM(y1)})`
+            `(${nInDOM(x1)},${nInDOM(y1)})`,
         );
 
         cy.window().then(async (win) => {
@@ -6937,7 +6937,7 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x1)},${nInDOM(y1)})`
+                `(${nInDOM(x1)},${nInDOM(y1)})`,
             );
 
             cy.window().then(async (win) => {
@@ -6994,7 +6994,7 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/p2") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x2)},${nInDOM(y2)})`
+                `(${nInDOM(x2)},${nInDOM(y2)})`,
             );
 
             cy.window().then(async (win) => {
@@ -7051,7 +7051,7 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x1)},${nInDOM(y1)})`
+                `(${nInDOM(x1)},${nInDOM(y1)})`,
             );
 
             cy.window().then(async (win) => {
@@ -7108,7 +7108,7 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/p2") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x2)},${nInDOM(y2)})`
+                `(${nInDOM(x2)},${nInDOM(y2)})`,
             );
 
             cy.window().then(async (win) => {
@@ -7174,11 +7174,11 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x1)},${nInDOM(y1)})`
+                `(${nInDOM(x1)},${nInDOM(y1)})`,
             );
             cy.get(cesc("#\\/p2") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x2)},${nInDOM(y2)})`
+                `(${nInDOM(x2)},${nInDOM(y2)})`,
             );
 
             cy.window().then(async (win) => {
@@ -7244,11 +7244,11 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x1)},${nInDOM(y1)})`
+                `(${nInDOM(x1)},${nInDOM(y1)})`,
             );
             cy.get(cesc("#\\/p2") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x2)},${nInDOM(y2)})`
+                `(${nInDOM(x2)},${nInDOM(y2)})`,
             );
 
             cy.window().then(async (win) => {
@@ -7313,7 +7313,7 @@ describe("Line Tag Tests", function () {
   $_line1.point2{assignNames="p2"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -7326,7 +7326,7 @@ describe("Line Tag Tests", function () {
 
         cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(x1)},${nInDOM(y1)})`
+            `(${nInDOM(x1)},${nInDOM(y1)})`,
         );
 
         cy.window().then(async (win) => {
@@ -7376,7 +7376,7 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x1)},${nInDOM(y1)})`
+                `(${nInDOM(x1)},${nInDOM(y1)})`,
             );
 
             cy.window().then(async (win) => {
@@ -7433,7 +7433,7 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/p2") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x2)},${nInDOM(y2)})`
+                `(${nInDOM(x2)},${nInDOM(y2)})`,
             );
 
             cy.window().then(async (win) => {
@@ -7490,7 +7490,7 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x1)},${nInDOM(y1)})`
+                `(${nInDOM(x1)},${nInDOM(y1)})`,
             );
 
             cy.window().then(async (win) => {
@@ -7547,7 +7547,7 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/p2") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x2)},${nInDOM(y2)})`
+                `(${nInDOM(x2)},${nInDOM(y2)})`,
             );
 
             cy.window().then(async (win) => {
@@ -7613,11 +7613,11 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x1)},${nInDOM(y1)})`
+                `(${nInDOM(x1)},${nInDOM(y1)})`,
             );
             cy.get(cesc("#\\/p2") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x2)},${nInDOM(y2)})`
+                `(${nInDOM(x2)},${nInDOM(y2)})`,
             );
 
             cy.window().then(async (win) => {
@@ -7683,11 +7683,11 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x1)},${nInDOM(y1)})`
+                `(${nInDOM(x1)},${nInDOM(y1)})`,
             );
             cy.get(cesc("#\\/p2") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x2)},${nInDOM(y2)})`
+                `(${nInDOM(x2)},${nInDOM(y2)})`,
             );
 
             cy.window().then(async (win) => {
@@ -7753,7 +7753,7 @@ describe("Line Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -7769,7 +7769,7 @@ describe("Line Tag Tests", function () {
 
         cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(x1)},${nInDOM(y1)})`
+            `(${nInDOM(x1)},${nInDOM(y1)})`,
         );
 
         cy.window().then(async (win) => {
@@ -7823,11 +7823,11 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x1)},${nInDOM(y1)})`
+                `(${nInDOM(x1)},${nInDOM(y1)})`,
             );
             cy.get(cesc("#\\/p2") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x2)},${nInDOM(y2)})`
+                `(${nInDOM(x2)},${nInDOM(y2)})`,
             );
 
             cy.window().then(async (win) => {
@@ -7888,11 +7888,11 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x1)},${nInDOM(y1)})`
+                `(${nInDOM(x1)},${nInDOM(y1)})`,
             );
             cy.get(cesc("#\\/p2") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x2)},${nInDOM(y2)})`
+                `(${nInDOM(x2)},${nInDOM(y2)})`,
             );
 
             cy.window().then(async (win) => {
@@ -7953,11 +7953,11 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x1)},${nInDOM(y1)})`
+                `(${nInDOM(x1)},${nInDOM(y1)})`,
             );
             cy.get(cesc("#\\/p2") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x2)},${nInDOM(y2)})`
+                `(${nInDOM(x2)},${nInDOM(y2)})`,
             );
 
             cy.window().then(async (win) => {
@@ -8018,11 +8018,11 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x1)},${nInDOM(y1)})`
+                `(${nInDOM(x1)},${nInDOM(y1)})`,
             );
             cy.get(cesc("#\\/p2") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x2)},${nInDOM(y2)})`
+                `(${nInDOM(x2)},${nInDOM(y2)})`,
             );
 
             cy.window().then(async (win) => {
@@ -8091,11 +8091,11 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x1)},${nInDOM(y1)})`
+                `(${nInDOM(x1)},${nInDOM(y1)})`,
             );
             cy.get(cesc("#\\/p2") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x2)},${nInDOM(y2)})`
+                `(${nInDOM(x2)},${nInDOM(y2)})`,
             );
 
             cy.window().then(async (win) => {
@@ -8164,11 +8164,11 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x1)},${nInDOM(y1)})`
+                `(${nInDOM(x1)},${nInDOM(y1)})`,
             );
             cy.get(cesc("#\\/p2") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x2)},${nInDOM(y2)})`
+                `(${nInDOM(x2)},${nInDOM(y2)})`,
             );
 
             cy.window().then(async (win) => {
@@ -8233,7 +8233,7 @@ describe("Line Tag Tests", function () {
   $_line1.point2{assignNames="p2"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -8249,7 +8249,7 @@ describe("Line Tag Tests", function () {
 
         cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(x1)},${nInDOM(y1)})`
+            `(${nInDOM(x1)},${nInDOM(y1)})`,
         );
 
         cy.window().then(async (win) => {
@@ -8303,11 +8303,11 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x1)},${nInDOM(y1)})`
+                `(${nInDOM(x1)},${nInDOM(y1)})`,
             );
             cy.get(cesc("#\\/p2") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x2)},${nInDOM(y2)})`
+                `(${nInDOM(x2)},${nInDOM(y2)})`,
             );
 
             cy.window().then(async (win) => {
@@ -8368,11 +8368,11 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x1)},${nInDOM(y1)})`
+                `(${nInDOM(x1)},${nInDOM(y1)})`,
             );
             cy.get(cesc("#\\/p2") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x2)},${nInDOM(y2)})`
+                `(${nInDOM(x2)},${nInDOM(y2)})`,
             );
 
             cy.window().then(async (win) => {
@@ -8433,11 +8433,11 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x1)},${nInDOM(y1)})`
+                `(${nInDOM(x1)},${nInDOM(y1)})`,
             );
             cy.get(cesc("#\\/p2") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x2)},${nInDOM(y2)})`
+                `(${nInDOM(x2)},${nInDOM(y2)})`,
             );
 
             cy.window().then(async (win) => {
@@ -8498,11 +8498,11 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x1)},${nInDOM(y1)})`
+                `(${nInDOM(x1)},${nInDOM(y1)})`,
             );
             cy.get(cesc("#\\/p2") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x2)},${nInDOM(y2)})`
+                `(${nInDOM(x2)},${nInDOM(y2)})`,
             );
 
             cy.window().then(async (win) => {
@@ -8571,11 +8571,11 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x1)},${nInDOM(y1)})`
+                `(${nInDOM(x1)},${nInDOM(y1)})`,
             );
             cy.get(cesc("#\\/p2") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x2)},${nInDOM(y2)})`
+                `(${nInDOM(x2)},${nInDOM(y2)})`,
             );
 
             cy.window().then(async (win) => {
@@ -8644,11 +8644,11 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x1)},${nInDOM(y1)})`
+                `(${nInDOM(x1)},${nInDOM(y1)})`,
             );
             cy.get(cesc("#\\/p2") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x2)},${nInDOM(y2)})`
+                `(${nInDOM(x2)},${nInDOM(y2)})`,
             );
 
             cy.window().then(async (win) => {
@@ -8717,7 +8717,7 @@ describe("Line Tag Tests", function () {
   $(g1/l.point2{assignNames="p2"})
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -8812,7 +8812,7 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/slope") + " textarea").type(
                 "{end}{backspace}0.5{enter}",
-                { force: true }
+                { force: true },
             );
 
             testLineCopiedTwiceBaseOnSlope({ x1, y1, x2, y2, slope });
@@ -8918,7 +8918,7 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/slope") + " textarea").type(
                 "{ctrl+home}{shift+end}{backspace}-3{enter}",
-                { force: true }
+                { force: true },
             );
 
             testLineCopiedTwiceBaseOnSlope({ x1, y1, x2, y2, slope });
@@ -8990,7 +8990,7 @@ describe("Line Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -9008,27 +9008,27 @@ describe("Line Tag Tests", function () {
         }) {
             cy.get(cesc("#\\/x1") + " .mjx-mrow").should(
                 "contain.text",
-                `${nInDOM(x1).substring(0, 2)}`
+                `${nInDOM(x1).substring(0, 2)}`,
             );
             cy.get(cesc("#\\/y1") + " .mjx-mrow").should(
                 "contain.text",
-                `${nInDOM(y1).substring(0, 2)}`
+                `${nInDOM(y1).substring(0, 2)}`,
             );
             cy.get(cesc("#\\/x21") + " .mjx-mrow").should(
                 "contain.text",
-                `${nInDOM(x21).substring(0, 2)}`
+                `${nInDOM(x21).substring(0, 2)}`,
             );
             cy.get(cesc("#\\/y21") + " .mjx-mrow").should(
                 "contain.text",
-                `${nInDOM(y21).substring(0, 2)}`
+                `${nInDOM(y21).substring(0, 2)}`,
             );
             cy.get(cesc("#\\/x22") + " .mjx-mrow").should(
                 "contain.text",
-                `${nInDOM(x22).substring(0, 2)}`
+                `${nInDOM(x22).substring(0, 2)}`,
             );
             cy.get(cesc("#\\/y22") + " .mjx-mrow").should(
                 "contain.text",
-                `${nInDOM(y22).substring(0, 2)}`
+                `${nInDOM(y22).substring(0, 2)}`,
             );
 
             cy.window().then(async (win) => {
@@ -9037,296 +9037,296 @@ describe("Line Tag Tests", function () {
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g1/l"].stateValues.points[0][0]
+                            stateVariables["/g1/l"].stateValues.points[0][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x1, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g1/l"].stateValues.points[0][1]
+                            stateVariables["/g1/l"].stateValues.points[0][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y1, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g1/l"].stateValues.points[1][0]
+                            stateVariables["/g1/l"].stateValues.points[1][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x21, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g1/l"].stateValues.points[1][1]
+                            stateVariables["/g1/l"].stateValues.points[1][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y21, 1e-12);
                 if (Number.isFinite(slope1)) {
                     expect(
                         me
                             .fromAst(stateVariables["/g1/l"].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(slope1, 1e-12);
                 } else {
                     expect(
                         me
                             .fromAst(stateVariables["/g1/l"].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).eq(slope1);
                 }
 
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g2/l"].stateValues.points[0][0]
+                            stateVariables["/g2/l"].stateValues.points[0][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x1, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g2/l"].stateValues.points[0][1]
+                            stateVariables["/g2/l"].stateValues.points[0][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y1, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g2/l"].stateValues.points[1][0]
+                            stateVariables["/g2/l"].stateValues.points[1][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x22, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g2/l"].stateValues.points[1][1]
+                            stateVariables["/g2/l"].stateValues.points[1][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y22, 1e-12);
                 if (Number.isFinite(slope2)) {
                     expect(
                         me
                             .fromAst(stateVariables["/g2/l"].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(slope2, 1e-12);
                 } else {
                     expect(
                         me
                             .fromAst(stateVariables["/g2/l"].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).eq(slope2);
                 }
 
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g3/l"].stateValues.points[0][0]
+                            stateVariables["/g3/l"].stateValues.points[0][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x1, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g3/l"].stateValues.points[0][1]
+                            stateVariables["/g3/l"].stateValues.points[0][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y1, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g3/l"].stateValues.points[1][0]
+                            stateVariables["/g3/l"].stateValues.points[1][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x22, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g3/l"].stateValues.points[1][1]
+                            stateVariables["/g3/l"].stateValues.points[1][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y22, 1e-12);
                 if (Number.isFinite(slope2)) {
                     expect(
                         me
                             .fromAst(stateVariables["/g3/l"].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(slope2, 1e-12);
                 } else {
                     expect(
                         me
                             .fromAst(stateVariables["/g3/l"].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).eq(slope2);
                 }
 
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g4/l"].stateValues.points[0][0]
+                            stateVariables["/g4/l"].stateValues.points[0][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x1, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g4/l"].stateValues.points[0][1]
+                            stateVariables["/g4/l"].stateValues.points[0][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y1, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g4/l"].stateValues.points[1][0]
+                            stateVariables["/g4/l"].stateValues.points[1][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x22, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g4/l"].stateValues.points[1][1]
+                            stateVariables["/g4/l"].stateValues.points[1][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y22, 1e-12);
                 if (Number.isFinite(slope2)) {
                     expect(
                         me
                             .fromAst(stateVariables["/g4/l"].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(slope2, 1e-12);
                 } else {
                     expect(
                         me
                             .fromAst(stateVariables["/g4/l"].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).eq(slope2);
                 }
 
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g5/l"].stateValues.points[0][0]
+                            stateVariables["/g5/l"].stateValues.points[0][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x1, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g5/l"].stateValues.points[0][1]
+                            stateVariables["/g5/l"].stateValues.points[0][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y1, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g5/l"].stateValues.points[1][0]
+                            stateVariables["/g5/l"].stateValues.points[1][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x22, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g5/l"].stateValues.points[1][1]
+                            stateVariables["/g5/l"].stateValues.points[1][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y22, 1e-12);
                 if (Number.isFinite(slope2)) {
                     expect(
                         me
                             .fromAst(stateVariables["/g5/l"].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(slope2, 1e-12);
                 } else {
                     expect(
                         me
                             .fromAst(stateVariables["/g5/l"].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).eq(slope2);
                 }
 
                 expect(stateVariables["/g1/A"].stateValues.xs[0]).closeTo(
                     x1,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g1/A"].stateValues.xs[1]).closeTo(
                     y1,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g1/B"].stateValues.xs[0]).closeTo(
                     x21,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g1/B"].stateValues.xs[1]).closeTo(
                     y21,
-                    1e-12
+                    1e-12,
                 );
 
                 expect(stateVariables["/g2/A"].stateValues.xs[0]).closeTo(
                     x1,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g2/A"].stateValues.xs[1]).closeTo(
                     y1,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g2/B"].stateValues.xs[0]).closeTo(
                     x22,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g2/B"].stateValues.xs[1]).closeTo(
                     y22,
-                    1e-12
+                    1e-12,
                 );
 
                 expect(stateVariables["/g3/A"].stateValues.xs[0]).closeTo(
                     x1,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g3/A"].stateValues.xs[1]).closeTo(
                     y1,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g3/B"].stateValues.xs[0]).closeTo(
                     x22,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g3/B"].stateValues.xs[1]).closeTo(
                     y22,
-                    1e-12
+                    1e-12,
                 );
 
                 expect(stateVariables["/g4/A"].stateValues.xs[0]).closeTo(
                     x1,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g4/A"].stateValues.xs[1]).closeTo(
                     y1,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g4/B"].stateValues.xs[0]).closeTo(
                     x22,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g4/B"].stateValues.xs[1]).closeTo(
                     y22,
-                    1e-12
+                    1e-12,
                 );
 
                 expect(stateVariables["/g5/A"].stateValues.xs[0]).closeTo(
                     x1,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g5/A"].stateValues.xs[1]).closeTo(
                     y1,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g5/B"].stateValues.xs[0]).closeTo(
                     x22,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g5/B"].stateValues.xs[1]).closeTo(
                     y22,
-                    1e-12
+                    1e-12,
                 );
             });
         }
@@ -9423,7 +9423,7 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/slope1") + " textarea").type(
                 "{end}{backspace}{backspace}0.5{enter}",
-                { force: true }
+                { force: true },
             );
 
             await checkLines({ x1, y1, x21, y21, x22, y22, slope1, slope2 });
@@ -9547,7 +9547,7 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/slope2") + " textarea").type(
                 "{ctrl+home}{shift+end}{backspace}-3{enter}",
-                { force: true }
+                { force: true },
             );
 
             await checkLines({ x1, y1, x21, y21, x22, y22, slope1, slope2 });
@@ -9750,7 +9750,7 @@ describe("Line Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -9768,27 +9768,27 @@ describe("Line Tag Tests", function () {
         }) {
             cy.get(cesc("#\\/x1") + " .mjx-mrow").should(
                 "contain.text",
-                `${nInDOM(x1).substring(0, 2)}`
+                `${nInDOM(x1).substring(0, 2)}`,
             );
             cy.get(cesc("#\\/y1") + " .mjx-mrow").should(
                 "contain.text",
-                `${nInDOM(y1).substring(0, 2)}`
+                `${nInDOM(y1).substring(0, 2)}`,
             );
             cy.get(cesc("#\\/x21") + " .mjx-mrow").should(
                 "contain.text",
-                `${nInDOM(x21).substring(0, 2)}`
+                `${nInDOM(x21).substring(0, 2)}`,
             );
             cy.get(cesc("#\\/y21") + " .mjx-mrow").should(
                 "contain.text",
-                `${nInDOM(y21).substring(0, 2)}`
+                `${nInDOM(y21).substring(0, 2)}`,
             );
             cy.get(cesc("#\\/x22") + " .mjx-mrow").should(
                 "contain.text",
-                `${nInDOM(x22).substring(0, 2)}`
+                `${nInDOM(x22).substring(0, 2)}`,
             );
             cy.get(cesc("#\\/y22") + " .mjx-mrow").should(
                 "contain.text",
-                `${nInDOM(y22).substring(0, 2)}`
+                `${nInDOM(y22).substring(0, 2)}`,
             );
 
             cy.window().then(async (win) => {
@@ -9797,296 +9797,296 @@ describe("Line Tag Tests", function () {
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g1/l"].stateValues.points[0][0]
+                            stateVariables["/g1/l"].stateValues.points[0][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x1, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g1/l"].stateValues.points[0][1]
+                            stateVariables["/g1/l"].stateValues.points[0][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y1, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g1/l"].stateValues.points[1][0]
+                            stateVariables["/g1/l"].stateValues.points[1][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x21, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g1/l"].stateValues.points[1][1]
+                            stateVariables["/g1/l"].stateValues.points[1][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y21, 1e-12);
                 if (Number.isFinite(slope1)) {
                     expect(
                         me
                             .fromAst(stateVariables["/g1/l"].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(slope1, 1e-12);
                 } else {
                     expect(
                         me
                             .fromAst(stateVariables["/g1/l"].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).eq(slope1);
                 }
 
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g2/l"].stateValues.points[0][0]
+                            stateVariables["/g2/l"].stateValues.points[0][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x1, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g2/l"].stateValues.points[0][1]
+                            stateVariables["/g2/l"].stateValues.points[0][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y1, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g2/l"].stateValues.points[1][0]
+                            stateVariables["/g2/l"].stateValues.points[1][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x22, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g2/l"].stateValues.points[1][1]
+                            stateVariables["/g2/l"].stateValues.points[1][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y22, 1e-12);
                 if (Number.isFinite(slope2)) {
                     expect(
                         me
                             .fromAst(stateVariables["/g2/l"].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(slope2, 1e-12);
                 } else {
                     expect(
                         me
                             .fromAst(stateVariables["/g2/l"].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).eq(slope2);
                 }
 
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g3/l"].stateValues.points[0][0]
+                            stateVariables["/g3/l"].stateValues.points[0][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x1, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g3/l"].stateValues.points[0][1]
+                            stateVariables["/g3/l"].stateValues.points[0][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y1, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g3/l"].stateValues.points[1][0]
+                            stateVariables["/g3/l"].stateValues.points[1][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x22, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g3/l"].stateValues.points[1][1]
+                            stateVariables["/g3/l"].stateValues.points[1][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y22, 1e-12);
                 if (Number.isFinite(slope2)) {
                     expect(
                         me
                             .fromAst(stateVariables["/g3/l"].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(slope2, 1e-12);
                 } else {
                     expect(
                         me
                             .fromAst(stateVariables["/g3/l"].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).eq(slope2);
                 }
 
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g4/l"].stateValues.points[0][0]
+                            stateVariables["/g4/l"].stateValues.points[0][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x1, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g4/l"].stateValues.points[0][1]
+                            stateVariables["/g4/l"].stateValues.points[0][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y1, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g4/l"].stateValues.points[1][0]
+                            stateVariables["/g4/l"].stateValues.points[1][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x22, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g4/l"].stateValues.points[1][1]
+                            stateVariables["/g4/l"].stateValues.points[1][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y22, 1e-12);
                 if (Number.isFinite(slope2)) {
                     expect(
                         me
                             .fromAst(stateVariables["/g4/l"].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(slope2, 1e-12);
                 } else {
                     expect(
                         me
                             .fromAst(stateVariables["/g4/l"].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).eq(slope2);
                 }
 
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g5/l"].stateValues.points[0][0]
+                            stateVariables["/g5/l"].stateValues.points[0][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x1, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g5/l"].stateValues.points[0][1]
+                            stateVariables["/g5/l"].stateValues.points[0][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y1, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g5/l"].stateValues.points[1][0]
+                            stateVariables["/g5/l"].stateValues.points[1][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x22, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g5/l"].stateValues.points[1][1]
+                            stateVariables["/g5/l"].stateValues.points[1][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y22, 1e-12);
                 if (Number.isFinite(slope2)) {
                     expect(
                         me
                             .fromAst(stateVariables["/g5/l"].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(slope2, 1e-12);
                 } else {
                     expect(
                         me
                             .fromAst(stateVariables["/g5/l"].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).eq(slope2);
                 }
 
                 expect(stateVariables["/g1/A"].stateValues.xs[0]).closeTo(
                     x1,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g1/A"].stateValues.xs[1]).closeTo(
                     y1,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g1/B"].stateValues.xs[0]).closeTo(
                     x21,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g1/B"].stateValues.xs[1]).closeTo(
                     y21,
-                    1e-12
+                    1e-12,
                 );
 
                 expect(stateVariables["/g2/A"].stateValues.xs[0]).closeTo(
                     x1,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g2/A"].stateValues.xs[1]).closeTo(
                     y1,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g2/B"].stateValues.xs[0]).closeTo(
                     x22,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g2/B"].stateValues.xs[1]).closeTo(
                     y22,
-                    1e-12
+                    1e-12,
                 );
 
                 expect(stateVariables["/g3/A"].stateValues.xs[0]).closeTo(
                     x1,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g3/A"].stateValues.xs[1]).closeTo(
                     y1,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g3/B"].stateValues.xs[0]).closeTo(
                     x22,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g3/B"].stateValues.xs[1]).closeTo(
                     y22,
-                    1e-12
+                    1e-12,
                 );
 
                 expect(stateVariables["/g4/A"].stateValues.xs[0]).closeTo(
                     x1,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g4/A"].stateValues.xs[1]).closeTo(
                     y1,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g4/B"].stateValues.xs[0]).closeTo(
                     x22,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g4/B"].stateValues.xs[1]).closeTo(
                     y22,
-                    1e-12
+                    1e-12,
                 );
 
                 expect(stateVariables["/g5/A"].stateValues.xs[0]).closeTo(
                     x1,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g5/A"].stateValues.xs[1]).closeTo(
                     y1,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g5/B"].stateValues.xs[0]).closeTo(
                     x22,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g5/B"].stateValues.xs[1]).closeTo(
                     y22,
-                    1e-12
+                    1e-12,
                 );
             });
         }
@@ -10281,7 +10281,7 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/slope") + " textarea").type(
                 "{ctrl+home}{shift+end}{backspace}-3{enter}",
-                { force: true }
+                { force: true },
             );
 
             await checkLines({ x1, y1, x21, y21, x22, y22, slope1, slope2 });
@@ -10455,7 +10455,7 @@ describe("Line Tag Tests", function () {
   <copy prop="point2" target="g1/l" assignNames="p2" displaySmallAsZero />
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -10550,7 +10550,7 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/slope") + " textarea").type(
                 "{end}{backspace}0.5{enter}",
-                { force: true }
+                { force: true },
             );
 
             testLineCopiedTwiceBaseOnSlope({ x1, y1, x2, y2, slope });
@@ -10656,7 +10656,7 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/slope") + " textarea").type(
                 "{ctrl+home}{shift+end}{backspace}-3{enter}",
-                { force: true }
+                { force: true },
             );
 
             testLineCopiedTwiceBaseOnSlope({ x1, y1, x2, y2, slope });
@@ -10728,7 +10728,7 @@ describe("Line Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -10746,27 +10746,27 @@ describe("Line Tag Tests", function () {
         }) {
             cy.get(cesc("#\\/x1") + " .mjx-mrow").should(
                 "contain.text",
-                `${nInDOM(x1).substring(0, 2)}`
+                `${nInDOM(x1).substring(0, 2)}`,
             );
             cy.get(cesc("#\\/y1") + " .mjx-mrow").should(
                 "contain.text",
-                `${nInDOM(y1).substring(0, 2)}`
+                `${nInDOM(y1).substring(0, 2)}`,
             );
             cy.get(cesc("#\\/x21") + " .mjx-mrow").should(
                 "contain.text",
-                `${nInDOM(x21).substring(0, 2)}`
+                `${nInDOM(x21).substring(0, 2)}`,
             );
             cy.get(cesc("#\\/y21") + " .mjx-mrow").should(
                 "contain.text",
-                `${nInDOM(y21).substring(0, 2)}`
+                `${nInDOM(y21).substring(0, 2)}`,
             );
             cy.get(cesc("#\\/x22") + " .mjx-mrow").should(
                 "contain.text",
-                `${nInDOM(x22).substring(0, 2)}`
+                `${nInDOM(x22).substring(0, 2)}`,
             );
             cy.get(cesc("#\\/y22") + " .mjx-mrow").should(
                 "contain.text",
-                `${nInDOM(y22).substring(0, 2)}`
+                `${nInDOM(y22).substring(0, 2)}`,
             );
 
             cy.window().then(async (win) => {
@@ -10775,296 +10775,296 @@ describe("Line Tag Tests", function () {
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g1/l"].stateValues.points[0][0]
+                            stateVariables["/g1/l"].stateValues.points[0][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x1, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g1/l"].stateValues.points[0][1]
+                            stateVariables["/g1/l"].stateValues.points[0][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y1, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g1/l"].stateValues.points[1][0]
+                            stateVariables["/g1/l"].stateValues.points[1][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x21, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g1/l"].stateValues.points[1][1]
+                            stateVariables["/g1/l"].stateValues.points[1][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y21, 1e-12);
                 if (Number.isFinite(slope1)) {
                     expect(
                         me
                             .fromAst(stateVariables["/g1/l"].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(slope1, 1e-12);
                 } else {
                     expect(
                         me
                             .fromAst(stateVariables["/g1/l"].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).eq(slope1);
                 }
 
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g2/l"].stateValues.points[0][0]
+                            stateVariables["/g2/l"].stateValues.points[0][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x1, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g2/l"].stateValues.points[0][1]
+                            stateVariables["/g2/l"].stateValues.points[0][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y1, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g2/l"].stateValues.points[1][0]
+                            stateVariables["/g2/l"].stateValues.points[1][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x22, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g2/l"].stateValues.points[1][1]
+                            stateVariables["/g2/l"].stateValues.points[1][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y22, 1e-12);
                 if (Number.isFinite(slope2)) {
                     expect(
                         me
                             .fromAst(stateVariables["/g2/l"].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(slope2, 1e-12);
                 } else {
                     expect(
                         me
                             .fromAst(stateVariables["/g2/l"].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).eq(slope2);
                 }
 
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g3/l"].stateValues.points[0][0]
+                            stateVariables["/g3/l"].stateValues.points[0][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x1, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g3/l"].stateValues.points[0][1]
+                            stateVariables["/g3/l"].stateValues.points[0][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y1, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g3/l"].stateValues.points[1][0]
+                            stateVariables["/g3/l"].stateValues.points[1][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x22, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g3/l"].stateValues.points[1][1]
+                            stateVariables["/g3/l"].stateValues.points[1][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y22, 1e-12);
                 if (Number.isFinite(slope2)) {
                     expect(
                         me
                             .fromAst(stateVariables["/g3/l"].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(slope2, 1e-12);
                 } else {
                     expect(
                         me
                             .fromAst(stateVariables["/g3/l"].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).eq(slope2);
                 }
 
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g4/l"].stateValues.points[0][0]
+                            stateVariables["/g4/l"].stateValues.points[0][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x1, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g4/l"].stateValues.points[0][1]
+                            stateVariables["/g4/l"].stateValues.points[0][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y1, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g4/l"].stateValues.points[1][0]
+                            stateVariables["/g4/l"].stateValues.points[1][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x22, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g4/l"].stateValues.points[1][1]
+                            stateVariables["/g4/l"].stateValues.points[1][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y22, 1e-12);
                 if (Number.isFinite(slope2)) {
                     expect(
                         me
                             .fromAst(stateVariables["/g4/l"].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(slope2, 1e-12);
                 } else {
                     expect(
                         me
                             .fromAst(stateVariables["/g4/l"].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).eq(slope2);
                 }
 
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g5/l"].stateValues.points[0][0]
+                            stateVariables["/g5/l"].stateValues.points[0][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x1, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g5/l"].stateValues.points[0][1]
+                            stateVariables["/g5/l"].stateValues.points[0][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y1, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g5/l"].stateValues.points[1][0]
+                            stateVariables["/g5/l"].stateValues.points[1][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x22, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g5/l"].stateValues.points[1][1]
+                            stateVariables["/g5/l"].stateValues.points[1][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y22, 1e-12);
                 if (Number.isFinite(slope2)) {
                     expect(
                         me
                             .fromAst(stateVariables["/g5/l"].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(slope2, 1e-12);
                 } else {
                     expect(
                         me
                             .fromAst(stateVariables["/g5/l"].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).eq(slope2);
                 }
 
                 expect(stateVariables["/g1/A"].stateValues.xs[0]).closeTo(
                     x1,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g1/A"].stateValues.xs[1]).closeTo(
                     y1,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g1/B"].stateValues.xs[0]).closeTo(
                     x21,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g1/B"].stateValues.xs[1]).closeTo(
                     y21,
-                    1e-12
+                    1e-12,
                 );
 
                 expect(stateVariables["/g2/A"].stateValues.xs[0]).closeTo(
                     x1,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g2/A"].stateValues.xs[1]).closeTo(
                     y1,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g2/B"].stateValues.xs[0]).closeTo(
                     x22,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g2/B"].stateValues.xs[1]).closeTo(
                     y22,
-                    1e-12
+                    1e-12,
                 );
 
                 expect(stateVariables["/g3/A"].stateValues.xs[0]).closeTo(
                     x1,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g3/A"].stateValues.xs[1]).closeTo(
                     y1,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g3/B"].stateValues.xs[0]).closeTo(
                     x22,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g3/B"].stateValues.xs[1]).closeTo(
                     y22,
-                    1e-12
+                    1e-12,
                 );
 
                 expect(stateVariables["/g4/A"].stateValues.xs[0]).closeTo(
                     x1,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g4/A"].stateValues.xs[1]).closeTo(
                     y1,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g4/B"].stateValues.xs[0]).closeTo(
                     x22,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g4/B"].stateValues.xs[1]).closeTo(
                     y22,
-                    1e-12
+                    1e-12,
                 );
 
                 expect(stateVariables["/g5/A"].stateValues.xs[0]).closeTo(
                     x1,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g5/A"].stateValues.xs[1]).closeTo(
                     y1,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g5/B"].stateValues.xs[0]).closeTo(
                     x22,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g5/B"].stateValues.xs[1]).closeTo(
                     y22,
-                    1e-12
+                    1e-12,
                 );
             });
         }
@@ -11163,7 +11163,7 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/slope1") + " textarea").type(
                 "{end}{backspace}{backspace}0.5{enter}",
-                { force: true }
+                { force: true },
             );
 
             await checkLines({ x1, y1, x21, y21, x22, y22, slope1, slope2 });
@@ -11287,7 +11287,7 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/slope2") + " textarea").type(
                 "{ctrl+home}{shift+end}{backspace}-3{enter}",
-                { force: true }
+                { force: true },
             );
 
             await checkLines({ x1, y1, x21, y21, x22, y22, slope1, slope2 });
@@ -11493,7 +11493,7 @@ describe("Line Tag Tests", function () {
   
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -11512,35 +11512,35 @@ describe("Line Tag Tests", function () {
         }) {
             cy.get(cesc("#\\/x11") + " .mjx-mrow").should(
                 "contain.text",
-                `${nInDOM(x11).substring(0, 2)}`
+                `${nInDOM(x11).substring(0, 2)}`,
             );
             cy.get(cesc("#\\/y11") + " .mjx-mrow").should(
                 "contain.text",
-                `${nInDOM(y11).substring(0, 2)}`
+                `${nInDOM(y11).substring(0, 2)}`,
             );
             cy.get(cesc("#\\/x21") + " .mjx-mrow").should(
                 "contain.text",
-                `${nInDOM(x21).substring(0, 2)}`
+                `${nInDOM(x21).substring(0, 2)}`,
             );
             cy.get(cesc("#\\/y21") + " .mjx-mrow").should(
                 "contain.text",
-                `${nInDOM(y21).substring(0, 2)}`
+                `${nInDOM(y21).substring(0, 2)}`,
             );
             cy.get(cesc("#\\/x12") + " .mjx-mrow").should(
                 "contain.text",
-                `${nInDOM(x12).substring(0, 2)}`
+                `${nInDOM(x12).substring(0, 2)}`,
             );
             cy.get(cesc("#\\/y12") + " .mjx-mrow").should(
                 "contain.text",
-                `${nInDOM(y12).substring(0, 2)}`
+                `${nInDOM(y12).substring(0, 2)}`,
             );
             cy.get(cesc("#\\/x22") + " .mjx-mrow").should(
                 "contain.text",
-                `${nInDOM(x22).substring(0, 2)}`
+                `${nInDOM(x22).substring(0, 2)}`,
             );
             cy.get(cesc("#\\/y22") + " .mjx-mrow").should(
                 "contain.text",
-                `${nInDOM(y22).substring(0, 2)}`
+                `${nInDOM(y22).substring(0, 2)}`,
             );
 
             cy.window().then(async (win) => {
@@ -11549,296 +11549,296 @@ describe("Line Tag Tests", function () {
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g1/l"].stateValues.points[0][0]
+                            stateVariables["/g1/l"].stateValues.points[0][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x11, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g1/l"].stateValues.points[0][1]
+                            stateVariables["/g1/l"].stateValues.points[0][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y11, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g1/l"].stateValues.points[1][0]
+                            stateVariables["/g1/l"].stateValues.points[1][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x21, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g1/l"].stateValues.points[1][1]
+                            stateVariables["/g1/l"].stateValues.points[1][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y21, 1e-12);
                 if (Number.isFinite(slope)) {
                     expect(
                         me
                             .fromAst(stateVariables["/g1/l"].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(slope, 1e-12);
                 } else {
                     expect(
                         me
                             .fromAst(stateVariables["/g1/l"].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).eq(slope);
                 }
 
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g2/l"].stateValues.points[0][0]
+                            stateVariables["/g2/l"].stateValues.points[0][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x12, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g2/l"].stateValues.points[0][1]
+                            stateVariables["/g2/l"].stateValues.points[0][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y12, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g2/l"].stateValues.points[1][0]
+                            stateVariables["/g2/l"].stateValues.points[1][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x22, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g2/l"].stateValues.points[1][1]
+                            stateVariables["/g2/l"].stateValues.points[1][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y22, 1e-12);
                 if (Number.isFinite(slope)) {
                     expect(
                         me
                             .fromAst(stateVariables["/g2/l"].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(slope, 1e-12);
                 } else {
                     expect(
                         me
                             .fromAst(stateVariables["/g2/l"].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).eq(slope);
                 }
 
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g3/l"].stateValues.points[0][0]
+                            stateVariables["/g3/l"].stateValues.points[0][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x12, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g3/l"].stateValues.points[0][1]
+                            stateVariables["/g3/l"].stateValues.points[0][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y12, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g3/l"].stateValues.points[1][0]
+                            stateVariables["/g3/l"].stateValues.points[1][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x22, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g3/l"].stateValues.points[1][1]
+                            stateVariables["/g3/l"].stateValues.points[1][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y22, 1e-12);
                 if (Number.isFinite(slope)) {
                     expect(
                         me
                             .fromAst(stateVariables["/g3/l"].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(slope, 1e-12);
                 } else {
                     expect(
                         me
                             .fromAst(stateVariables["/g3/l"].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).eq(slope);
                 }
 
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g4/l"].stateValues.points[0][0]
+                            stateVariables["/g4/l"].stateValues.points[0][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x12, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g4/l"].stateValues.points[0][1]
+                            stateVariables["/g4/l"].stateValues.points[0][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y12, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g4/l"].stateValues.points[1][0]
+                            stateVariables["/g4/l"].stateValues.points[1][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x22, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g4/l"].stateValues.points[1][1]
+                            stateVariables["/g4/l"].stateValues.points[1][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y22, 1e-12);
                 if (Number.isFinite(slope)) {
                     expect(
                         me
                             .fromAst(stateVariables["/g4/l"].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(slope, 1e-12);
                 } else {
                     expect(
                         me
                             .fromAst(stateVariables["/g4/l"].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).eq(slope);
                 }
 
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g5/l"].stateValues.points[0][0]
+                            stateVariables["/g5/l"].stateValues.points[0][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x12, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g5/l"].stateValues.points[0][1]
+                            stateVariables["/g5/l"].stateValues.points[0][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y12, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g5/l"].stateValues.points[1][0]
+                            stateVariables["/g5/l"].stateValues.points[1][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x22, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g5/l"].stateValues.points[1][1]
+                            stateVariables["/g5/l"].stateValues.points[1][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y22, 1e-12);
                 if (Number.isFinite(slope)) {
                     expect(
                         me
                             .fromAst(stateVariables["/g5/l"].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(slope, 1e-12);
                 } else {
                     expect(
                         me
                             .fromAst(stateVariables["/g5/l"].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).eq(slope);
                 }
 
                 expect(stateVariables["/g1/A"].stateValues.xs[0]).closeTo(
                     x11,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g1/A"].stateValues.xs[1]).closeTo(
                     y11,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g1/B"].stateValues.xs[0]).closeTo(
                     x21,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g1/B"].stateValues.xs[1]).closeTo(
                     y21,
-                    1e-12
+                    1e-12,
                 );
 
                 expect(stateVariables["/g2/A"].stateValues.xs[0]).closeTo(
                     x12,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g2/A"].stateValues.xs[1]).closeTo(
                     y12,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g2/B"].stateValues.xs[0]).closeTo(
                     x22,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g2/B"].stateValues.xs[1]).closeTo(
                     y22,
-                    1e-12
+                    1e-12,
                 );
 
                 expect(stateVariables["/g3/A"].stateValues.xs[0]).closeTo(
                     x12,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g3/A"].stateValues.xs[1]).closeTo(
                     y12,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g3/B"].stateValues.xs[0]).closeTo(
                     x22,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g3/B"].stateValues.xs[1]).closeTo(
                     y22,
-                    1e-12
+                    1e-12,
                 );
 
                 expect(stateVariables["/g4/A"].stateValues.xs[0]).closeTo(
                     x12,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g4/A"].stateValues.xs[1]).closeTo(
                     y12,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g4/B"].stateValues.xs[0]).closeTo(
                     x22,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g4/B"].stateValues.xs[1]).closeTo(
                     y22,
-                    1e-12
+                    1e-12,
                 );
 
                 expect(stateVariables["/g5/A"].stateValues.xs[0]).closeTo(
                     x12,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g5/A"].stateValues.xs[1]).closeTo(
                     y12,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g5/B"].stateValues.xs[0]).closeTo(
                     x22,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g5/B"].stateValues.xs[1]).closeTo(
                     y22,
-                    1e-12
+                    1e-12,
                 );
             });
         }
@@ -12032,7 +12032,7 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/slope") + " textarea").type(
                 "{ctrl+home}{shift+end}{backspace}-3{enter}",
-                { force: true }
+                { force: true },
             );
             await checkLines({ x11, y11, x12, y12, x21, y21, x22, y22, slope });
         });
@@ -12218,7 +12218,7 @@ describe("Line Tag Tests", function () {
   
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -12236,27 +12236,27 @@ describe("Line Tag Tests", function () {
         }) {
             cy.get(cesc("#\\/x1") + " .mjx-mrow").should(
                 "contain.text",
-                `${nInDOM(x1).substring(0, 2)}`
+                `${nInDOM(x1).substring(0, 2)}`,
             );
             cy.get(cesc("#\\/y1") + " .mjx-mrow").should(
                 "contain.text",
-                `${nInDOM(y1).substring(0, 2)}`
+                `${nInDOM(y1).substring(0, 2)}`,
             );
             cy.get(cesc("#\\/x21") + " .mjx-mrow").should(
                 "contain.text",
-                `${nInDOM(x21).substring(0, 2)}`
+                `${nInDOM(x21).substring(0, 2)}`,
             );
             cy.get(cesc("#\\/y21") + " .mjx-mrow").should(
                 "contain.text",
-                `${nInDOM(y21).substring(0, 2)}`
+                `${nInDOM(y21).substring(0, 2)}`,
             );
             cy.get(cesc("#\\/x22") + " .mjx-mrow").should(
                 "contain.text",
-                `${nInDOM(x22).substring(0, 2)}`
+                `${nInDOM(x22).substring(0, 2)}`,
             );
             cy.get(cesc("#\\/y22") + " .mjx-mrow").should(
                 "contain.text",
-                `${nInDOM(y22).substring(0, 2)}`
+                `${nInDOM(y22).substring(0, 2)}`,
             );
 
             cy.window().then(async (win) => {
@@ -12265,296 +12265,296 @@ describe("Line Tag Tests", function () {
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g1/l"].stateValues.points[1][0]
+                            stateVariables["/g1/l"].stateValues.points[1][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x1, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g1/l"].stateValues.points[1][1]
+                            stateVariables["/g1/l"].stateValues.points[1][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y1, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g1/l"].stateValues.points[0][0]
+                            stateVariables["/g1/l"].stateValues.points[0][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x21, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g1/l"].stateValues.points[0][1]
+                            stateVariables["/g1/l"].stateValues.points[0][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y21, 1e-12);
                 if (Number.isFinite(slope1)) {
                     expect(
                         me
                             .fromAst(stateVariables["/g1/l"].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(slope1, 1e-12);
                 } else {
                     expect(
                         me
                             .fromAst(stateVariables["/g1/l"].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).eq(slope1);
                 }
 
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g2/l"].stateValues.points[0][0]
+                            stateVariables["/g2/l"].stateValues.points[0][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x1, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g2/l"].stateValues.points[0][1]
+                            stateVariables["/g2/l"].stateValues.points[0][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y1, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g2/l"].stateValues.points[1][0]
+                            stateVariables["/g2/l"].stateValues.points[1][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x22, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g2/l"].stateValues.points[1][1]
+                            stateVariables["/g2/l"].stateValues.points[1][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y22, 1e-12);
                 if (Number.isFinite(slope2)) {
                     expect(
                         me
                             .fromAst(stateVariables["/g2/l"].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(slope2, 1e-12);
                 } else {
                     expect(
                         me
                             .fromAst(stateVariables["/g2/l"].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).eq(slope2);
                 }
 
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g3/l"].stateValues.points[0][0]
+                            stateVariables["/g3/l"].stateValues.points[0][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x1, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g3/l"].stateValues.points[0][1]
+                            stateVariables["/g3/l"].stateValues.points[0][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y1, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g3/l"].stateValues.points[1][0]
+                            stateVariables["/g3/l"].stateValues.points[1][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x22, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g3/l"].stateValues.points[1][1]
+                            stateVariables["/g3/l"].stateValues.points[1][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y22, 1e-12);
                 if (Number.isFinite(slope2)) {
                     expect(
                         me
                             .fromAst(stateVariables["/g3/l"].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(slope2, 1e-12);
                 } else {
                     expect(
                         me
                             .fromAst(stateVariables["/g3/l"].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).eq(slope2);
                 }
 
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g4/l"].stateValues.points[0][0]
+                            stateVariables["/g4/l"].stateValues.points[0][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x1, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g4/l"].stateValues.points[0][1]
+                            stateVariables["/g4/l"].stateValues.points[0][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y1, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g4/l"].stateValues.points[1][0]
+                            stateVariables["/g4/l"].stateValues.points[1][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x22, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g4/l"].stateValues.points[1][1]
+                            stateVariables["/g4/l"].stateValues.points[1][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y22, 1e-12);
                 if (Number.isFinite(slope2)) {
                     expect(
                         me
                             .fromAst(stateVariables["/g4/l"].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(slope2, 1e-12);
                 } else {
                     expect(
                         me
                             .fromAst(stateVariables["/g4/l"].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).eq(slope2);
                 }
 
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g5/l"].stateValues.points[0][0]
+                            stateVariables["/g5/l"].stateValues.points[0][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x1, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g5/l"].stateValues.points[0][1]
+                            stateVariables["/g5/l"].stateValues.points[0][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y1, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g5/l"].stateValues.points[1][0]
+                            stateVariables["/g5/l"].stateValues.points[1][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(x22, 1e-12);
                 expect(
                     me
                         .fromAst(
-                            stateVariables["/g5/l"].stateValues.points[1][1]
+                            stateVariables["/g5/l"].stateValues.points[1][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(y22, 1e-12);
                 if (Number.isFinite(slope2)) {
                     expect(
                         me
                             .fromAst(stateVariables["/g5/l"].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(slope2, 1e-12);
                 } else {
                     expect(
                         me
                             .fromAst(stateVariables["/g5/l"].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).eq(slope2);
                 }
 
                 expect(stateVariables["/g1/B"].stateValues.xs[0]).closeTo(
                     x1,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g1/B"].stateValues.xs[1]).closeTo(
                     y1,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g1/A"].stateValues.xs[0]).closeTo(
                     x21,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g1/A"].stateValues.xs[1]).closeTo(
                     y21,
-                    1e-12
+                    1e-12,
                 );
 
                 expect(stateVariables["/g2/A"].stateValues.xs[0]).closeTo(
                     x1,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g2/A"].stateValues.xs[1]).closeTo(
                     y1,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g2/B"].stateValues.xs[0]).closeTo(
                     x22,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g2/B"].stateValues.xs[1]).closeTo(
                     y22,
-                    1e-12
+                    1e-12,
                 );
 
                 expect(stateVariables["/g3/A"].stateValues.xs[0]).closeTo(
                     x1,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g3/A"].stateValues.xs[1]).closeTo(
                     y1,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g3/B"].stateValues.xs[0]).closeTo(
                     x22,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g3/B"].stateValues.xs[1]).closeTo(
                     y22,
-                    1e-12
+                    1e-12,
                 );
 
                 expect(stateVariables["/g4/A"].stateValues.xs[0]).closeTo(
                     x1,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g4/A"].stateValues.xs[1]).closeTo(
                     y1,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g4/B"].stateValues.xs[0]).closeTo(
                     x22,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g4/B"].stateValues.xs[1]).closeTo(
                     y22,
-                    1e-12
+                    1e-12,
                 );
 
                 expect(stateVariables["/g5/A"].stateValues.xs[0]).closeTo(
                     x1,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g5/A"].stateValues.xs[1]).closeTo(
                     y1,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g5/B"].stateValues.xs[0]).closeTo(
                     x22,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/g5/B"].stateValues.xs[1]).closeTo(
                     y22,
-                    1e-12
+                    1e-12,
                 );
             });
         }
@@ -12748,7 +12748,7 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/slope") + " textarea").type(
                 "{ctrl+home}{shift+end}{backspace}-3{enter}",
-                { force: true }
+                { force: true },
             );
 
             await checkLines({ x1, y1, x21, y21, x22, y22, slope1, slope2 });
@@ -12915,7 +12915,7 @@ describe("Line Tag Tests", function () {
   $P{name="P1a"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -12947,7 +12947,7 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc("#\\/P1a") + " .mjx-mrow").should(
                 "contain.text",
-                ",0.04"
+                ",0.04",
             );
 
             cy.window().then(async (win) => {
@@ -12984,7 +12984,7 @@ describe("Line Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -13032,7 +13032,7 @@ describe("Line Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -13043,7 +13043,7 @@ describe("Line Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 return stateVariables["/A"];
-            })
+            }),
         );
 
         cy.get(cesc("#\\/Ac") + " .mjx-mrow").should("contain.text", "(9,8)");
@@ -13065,7 +13065,7 @@ describe("Line Tag Tests", function () {
 
         cy.get(cesc("#\\/Ac") + " .mjx-mrow").should(
             "contain.text",
-            "(0.5,3.5)"
+            "(0.5,3.5)",
         );
         cy.get(cesc("#\\/Bc") + " .mjx-mrow").should("contain.text", "(6,7)");
 
@@ -13085,7 +13085,7 @@ describe("Line Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -13096,12 +13096,12 @@ describe("Line Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 return stateVariables["/A"];
-            })
+            }),
         );
 
         cy.get(cesc("#\\/Ac") + " .mjx-mrow").should(
             "contain.text",
-            "(0.5,3.5)"
+            "(0.5,3.5)",
         );
         cy.get(cesc("#\\/Bc") + " .mjx-mrow").should("contain.text", "(6,7)");
 
@@ -13121,7 +13121,7 @@ describe("Line Tag Tests", function () {
 
         cy.get(cesc("#\\/Ac") + " .mjx-mrow").should(
             "contain.text",
-            "(8.5,1.5)"
+            "(8.5,1.5)",
         );
         cy.get(cesc("#\\/Bc") + " .mjx-mrow").should("contain.text", "(6,7)");
 
@@ -13149,7 +13149,7 @@ describe("Line Tag Tests", function () {
     <p><copy prop="point2" target="_line1" propIndex="$n" assignNames="x" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -13167,12 +13167,12 @@ describe("Line Tag Tests", function () {
         cy.get(cesc("#\\/n") + " textarea").type("1{enter}", { force: true });
         cy.get(cesc("#\\/P1") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(t1x)},${nInDOM(t1y)})`
+            `(${nInDOM(t1x)},${nInDOM(t1y)})`,
         );
         cy.get(cesc("#\\/P2") + " .mjx-mrow").should("not.exist");
         cy.get(cesc("#\\/x") + " .mjx-mrow").should(
             "contain.text",
-            `${nInDOM(t2x)}`
+            `${nInDOM(t2x)}`,
         );
 
         cy.get(cesc("#\\/n") + " textarea").type("{end}{backspace}2{enter}", {
@@ -13180,12 +13180,12 @@ describe("Line Tag Tests", function () {
         });
         cy.get(cesc("#\\/P1") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(t2x)},${nInDOM(t2y)})`
+            `(${nInDOM(t2x)},${nInDOM(t2y)})`,
         );
         cy.get(cesc("#\\/P2") + " .mjx-mrow").should("not.exist");
         cy.get(cesc("#\\/x") + " .mjx-mrow").should(
             "contain.text",
-            `${nInDOM(t2y)}`
+            `${nInDOM(t2y)}`,
         );
 
         cy.get(cesc("#\\/n") + " textarea").type("{end}{backspace}3{enter}", {
@@ -13216,7 +13216,7 @@ describe("Line Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -13235,16 +13235,16 @@ describe("Line Tag Tests", function () {
         cy.get(cesc("#\\/n") + " textarea").type("1{enter}", { force: true });
         cy.get(cesc("#\\/P1") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(t1x)},${nInDOM(t1y)})`
+            `(${nInDOM(t1x)},${nInDOM(t1y)})`,
         );
         cy.get(cesc("#\\/P2") + " .mjx-mrow").should("not.exist");
         cy.get(cesc("#\\/x") + " .mjx-mrow").should(
             "contain.text",
-            `${nInDOM(t2x)}`
+            `${nInDOM(t2x)}`,
         );
         cy.get(cesc("#\\/xa") + " .mjx-mrow").should(
             "contain.text",
-            `${nInDOM(t2x)}`
+            `${nInDOM(t2x)}`,
         );
 
         cy.get(cesc("#\\/n") + " textarea").type("{end}{backspace}2{enter}", {
@@ -13252,16 +13252,16 @@ describe("Line Tag Tests", function () {
         });
         cy.get(cesc("#\\/P1") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(t2x)},${nInDOM(t2y)})`
+            `(${nInDOM(t2x)},${nInDOM(t2y)})`,
         );
         cy.get(cesc("#\\/P2") + " .mjx-mrow").should("not.exist");
         cy.get(cesc("#\\/x") + " .mjx-mrow").should(
             "contain.text",
-            `${nInDOM(t2y)}`
+            `${nInDOM(t2y)}`,
         );
         cy.get(cesc("#\\/xa") + " .mjx-mrow").should(
             "contain.text",
-            `${nInDOM(t2y)}`
+            `${nInDOM(t2y)}`,
         );
 
         cy.get(cesc("#\\/n") + " textarea").type("{end}{backspace}3{enter}", {
@@ -13290,7 +13290,7 @@ describe("Line Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -13347,7 +13347,7 @@ describe("Line Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -13358,7 +13358,7 @@ describe("Line Tag Tests", function () {
         cy.get(cesc("#\\/pPos")).should("have.text", "Position: upperright");
         cy.get(cesc("#\\/pLabel")).should(
             "contain.text",
-            "Label: line segment"
+            "Label: line segment",
         );
 
         cy.get(cesc("#\\/label_input")).clear().type("nothing{enter}");
@@ -13393,21 +13393,21 @@ describe("Line Tag Tests", function () {
     <p name="Cdescrip">C is a $C.styleDescriptionWithNoun.</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get(cesc("#\\/Adescrip")).should(
             "have.text",
-            "Line A is thick brown."
+            "Line A is thick brown.",
         );
         cy.get(cesc("#\\/Bdescrip")).should(
             "have.text",
-            "B is a dark red line."
+            "B is a dark red line.",
         );
         cy.get(cesc("#\\/Cdescrip")).should(
             "have.text",
-            "C is a thin black line."
+            "C is a thin black line.",
         );
 
         cy.log("set dark mode");
@@ -13418,15 +13418,15 @@ describe("Line Tag Tests", function () {
 
         cy.get(cesc("#\\/Adescrip")).should(
             "have.text",
-            "Line A is thick yellow."
+            "Line A is thick yellow.",
         );
         cy.get(cesc("#\\/Bdescrip")).should(
             "have.text",
-            "B is a light red line."
+            "B is a light red line.",
         );
         cy.get(cesc("#\\/Cdescrip")).should(
             "have.text",
-            "C is a thin white line."
+            "C is a thin white line.",
         );
     });
 
@@ -13456,7 +13456,7 @@ describe("Line Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -13475,34 +13475,34 @@ describe("Line Tag Tests", function () {
         cy.get(cesc("#\\/no_style")).should(
             "have.css",
             "color",
-            "rgb(0, 0, 0)"
+            "rgb(0, 0, 0)",
         );
         cy.get(cesc("#\\/no_style")).should(
             "have.css",
             "background-color",
-            "rgba(0, 0, 0, 0)"
+            "rgba(0, 0, 0, 0)",
         );
 
         cy.get(cesc("#\\/fixed_style")).should(
             "have.css",
             "color",
-            "rgb(0, 128, 0)"
+            "rgb(0, 128, 0)",
         );
         cy.get(cesc("#\\/fixed_style")).should(
             "have.css",
             "background-color",
-            "rgba(0, 0, 0, 0)"
+            "rgba(0, 0, 0, 0)",
         );
 
         cy.get(cesc("#\\/variable_style")).should(
             "have.css",
             "color",
-            "rgb(0, 0, 0)"
+            "rgb(0, 0, 0)",
         );
         cy.get(cesc("#\\/variable_style")).should(
             "have.css",
             "background-color",
-            "rgba(0, 0, 0, 0)"
+            "rgba(0, 0, 0, 0)",
         );
 
         // TODO: how to test color in graph
@@ -13526,34 +13526,34 @@ describe("Line Tag Tests", function () {
         cy.get(cesc("#\\/no_style")).should(
             "have.css",
             "color",
-            "rgb(0, 0, 0)"
+            "rgb(0, 0, 0)",
         );
         cy.get(cesc("#\\/no_style")).should(
             "have.css",
             "background-color",
-            "rgba(0, 0, 0, 0)"
+            "rgba(0, 0, 0, 0)",
         );
 
         cy.get(cesc("#\\/fixed_style")).should(
             "have.css",
             "color",
-            "rgb(0, 128, 0)"
+            "rgb(0, 128, 0)",
         );
         cy.get(cesc("#\\/fixed_style")).should(
             "have.css",
             "background-color",
-            "rgba(0, 0, 0, 0)"
+            "rgba(0, 0, 0, 0)",
         );
 
         cy.get(cesc("#\\/variable_style")).should(
             "have.css",
             "color",
-            "rgb(0, 128, 0)"
+            "rgb(0, 128, 0)",
         );
         cy.get(cesc("#\\/variable_style")).should(
             "have.css",
             "background-color",
-            "rgba(0, 0, 0, 0)"
+            "rgba(0, 0, 0, 0)",
         );
 
         cy.get(cesc("#\\/sn") + " textarea").type("{end}{backspace}3{enter}", {
@@ -13562,7 +13562,7 @@ describe("Line Tag Tests", function () {
 
         cy.get(cesc("#\\/tsd_variable_style")).should(
             "have.text",
-            "red with a blue background"
+            "red with a blue background",
         );
         cy.get(cesc("#\\/tc_variable_style")).should("have.text", "red");
         cy.get(cesc("#\\/bc_variable_style")).should("have.text", "blue");
@@ -13578,34 +13578,34 @@ describe("Line Tag Tests", function () {
         cy.get(cesc("#\\/no_style")).should(
             "have.css",
             "color",
-            "rgb(0, 0, 0)"
+            "rgb(0, 0, 0)",
         );
         cy.get(cesc("#\\/no_style")).should(
             "have.css",
             "background-color",
-            "rgba(0, 0, 0, 0)"
+            "rgba(0, 0, 0, 0)",
         );
 
         cy.get(cesc("#\\/fixed_style")).should(
             "have.css",
             "color",
-            "rgb(0, 128, 0)"
+            "rgb(0, 128, 0)",
         );
         cy.get(cesc("#\\/fixed_style")).should(
             "have.css",
             "background-color",
-            "rgba(0, 0, 0, 0)"
+            "rgba(0, 0, 0, 0)",
         );
 
         cy.get(cesc("#\\/variable_style")).should(
             "have.css",
             "color",
-            "rgb(255, 0, 0)"
+            "rgb(255, 0, 0)",
         );
         cy.get(cesc("#\\/variable_style")).should(
             "have.css",
             "background-color",
-            "rgb(0, 0, 255)"
+            "rgb(0, 0, 255)",
         );
     });
 
@@ -13626,7 +13626,7 @@ describe("Line Tag Tests", function () {
   $Q{name="Qa"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -13639,11 +13639,11 @@ describe("Line Tag Tests", function () {
 
         cy.get(cesc2("#/Pa") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(x1)},${nInDOM(y1)})`
+            `(${nInDOM(x1)},${nInDOM(y1)})`,
         );
         cy.get(cesc2("#/Qa") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(x2)},${nInDOM(y2)})`
+            `(${nInDOM(x2)},${nInDOM(y2)})`,
         );
 
         cy.window().then(async (win) => {
@@ -13665,7 +13665,7 @@ describe("Line Tag Tests", function () {
         });
 
         cy.log(
-            "move line down 4 and right 0.5 actually moves it down 3 and right none"
+            "move line down 4 and right 0.5 actually moves it down 3 and right none",
         );
         cy.window().then(async (win) => {
             let dx = 0.5,
@@ -13694,11 +13694,11 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc2("#/Pa") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x1)},${nInDOM(y1)})`
+                `(${nInDOM(x1)},${nInDOM(y1)})`,
             );
             cy.get(cesc2("#/Qa") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x2)},${nInDOM(y2)})`
+                `(${nInDOM(x2)},${nInDOM(y2)})`,
             );
         });
 
@@ -13732,7 +13732,7 @@ describe("Line Tag Tests", function () {
     <line through="(c,d) (a,b)" variables="a c" />
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -13748,7 +13748,7 @@ describe("Line Tag Tests", function () {
             expect(errorWarnings.warnings.length).eq(3);
 
             expect(errorWarnings.warnings[0].message).contain(
-                "Line must be through points of at least two dimensions"
+                "Line must be through points of at least two dimensions",
             );
             expect(errorWarnings.warnings[0].level).eq(1);
             expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(2);
@@ -13757,7 +13757,7 @@ describe("Line Tag Tests", function () {
             expect(errorWarnings.warnings[0].doenetMLrange.charEnd).eq(24);
 
             expect(errorWarnings.warnings[1].message).contain(
-                "Line is through points that depend on variables: x, y"
+                "Line is through points that depend on variables: x, y",
             );
             expect(errorWarnings.warnings[1].level).eq(1);
             expect(errorWarnings.warnings[1].doenetMLrange.lineBegin).eq(3);
@@ -13766,7 +13766,7 @@ describe("Line Tag Tests", function () {
             expect(errorWarnings.warnings[1].doenetMLrange.charEnd).eq(34);
 
             expect(errorWarnings.warnings[2].message).contain(
-                "Line is through points that depend on variables: a, c"
+                "Line is through points that depend on variables: a, c",
             );
             expect(errorWarnings.warnings[2].level).eq(1);
             expect(errorWarnings.warnings[2].doenetMLrange.lineBegin).eq(5);
@@ -13785,7 +13785,7 @@ describe("Line Tag Tests", function () {
   <line>1=2</line>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -13803,7 +13803,7 @@ describe("Line Tag Tests", function () {
             expect(errorWarnings.warnings.length).eq(2);
 
             expect(errorWarnings.warnings[0].message).contain(
-                "Invalid format for equation of line in variables x and y"
+                "Invalid format for equation of line in variables x and y",
             );
             expect(errorWarnings.warnings[0].level).eq(1);
             expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(2);
@@ -13812,7 +13812,7 @@ describe("Line Tag Tests", function () {
             expect(errorWarnings.warnings[0].doenetMLrange.charEnd).eq(20);
 
             expect(errorWarnings.warnings[1].message).contain(
-                "Invalid format for equation of line in variables x and y"
+                "Invalid format for equation of line in variables x and y",
             );
             expect(errorWarnings.warnings[1].level).eq(1);
             expect(errorWarnings.warnings[1].doenetMLrange.lineBegin).eq(3);
@@ -13840,7 +13840,7 @@ describe("Line Tag Tests", function () {
   $B2{name="B2a"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -13856,11 +13856,11 @@ describe("Line Tag Tests", function () {
 
         cy.get(cesc2("#/A1a") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(A1x)},${nInDOM(A1y)})`
+            `(${nInDOM(A1x)},${nInDOM(A1y)})`,
         );
         cy.get(cesc2("#/B1a") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(B1x)},${nInDOM(B1y)})`
+            `(${nInDOM(B1x)},${nInDOM(B1y)})`,
         );
 
         cy.window().then(async (win) => {
@@ -13879,11 +13879,11 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l2"].stateValues.points[1][0]).closeTo(
                 B2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[1][1]).closeTo(
                 B2y,
-                1e-12
+                1e-12,
             );
         });
 
@@ -13908,7 +13908,7 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc2("#/A2a") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(A2x)},${nInDOM(A2y)})`
+                `(${nInDOM(A2x)},${nInDOM(A2y)})`,
             );
         });
 
@@ -13928,11 +13928,11 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l2"].stateValues.points[1][0]).closeTo(
                 B2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[1][1]).closeTo(
                 B2y,
-                1e-12
+                1e-12,
             );
         });
 
@@ -13954,7 +13954,7 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc2("#/A2a") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(A2x)},${nInDOM(A2y)})`
+                `(${nInDOM(A2x)},${nInDOM(A2y)})`,
             );
         });
 
@@ -13974,11 +13974,11 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l2"].stateValues.points[1][0]).closeTo(
                 B2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[1][1]).closeTo(
                 B2y,
-                1e-12
+                1e-12,
             );
         });
 
@@ -14015,8 +14015,8 @@ describe("Line Tag Tests", function () {
             cy.get(cesc2("#/B2a") + " .mjx-mrow").should(
                 "contain.text",
                 `(${nInDOM(Math.round(100 * B2x) / 100)},${nInDOM(
-                    Math.round(100 * B2y) / 100
-                )})`
+                    Math.round(100 * B2y) / 100,
+                )})`,
             );
         });
 
@@ -14029,11 +14029,11 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l1"].stateValues.points[1][0]).closeTo(
                 B1x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l1"].stateValues.points[1][1]).closeTo(
                 B1y,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[0]).eqls([
                 A2x,
@@ -14041,11 +14041,11 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l2"].stateValues.points[1][0]).closeTo(
                 B2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[1][1]).closeTo(
                 B2y,
-                1e-12
+                1e-12,
             );
         });
 
@@ -14082,8 +14082,8 @@ describe("Line Tag Tests", function () {
             cy.get(cesc2("#/B1a") + " .mjx-mrow").should(
                 "contain.text",
                 `(${nInDOM(Math.round(100 * B1x) / 100)},${nInDOM(
-                    Math.round(100 * B1y) / 100
-                )})`
+                    Math.round(100 * B1y) / 100,
+                )})`,
             );
         });
 
@@ -14096,11 +14096,11 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l1"].stateValues.points[1][0]).closeTo(
                 B1x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l1"].stateValues.points[1][1]).closeTo(
                 B1y,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[0]).eqls([
                 A2x,
@@ -14108,11 +14108,11 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l2"].stateValues.points[1][0]).closeTo(
                 B2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[1][1]).closeTo(
                 B2y,
-                1e-12
+                1e-12,
             );
         });
     });
@@ -14135,7 +14135,7 @@ describe("Line Tag Tests", function () {
   $B2{name="B2a"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -14151,11 +14151,11 @@ describe("Line Tag Tests", function () {
 
         cy.get(cesc2("#/A1a") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(A1x)},${nInDOM(A1y)})`
+            `(${nInDOM(A1x)},${nInDOM(A1y)})`,
         );
         cy.get(cesc2("#/B1a") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(B1x)},${nInDOM(B1y)})`
+            `(${nInDOM(B1x)},${nInDOM(B1y)})`,
         );
 
         cy.window().then(async (win) => {
@@ -14174,11 +14174,11 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l2"].stateValues.points[1][0]).closeTo(
                 B2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[1][1]).closeTo(
                 B2y,
-                1e-12
+                1e-12,
             );
         });
 
@@ -14203,7 +14203,7 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc2("#/A2a") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(A2x)},${nInDOM(A2y)})`
+                `(${nInDOM(A2x)},${nInDOM(A2y)})`,
             );
         });
 
@@ -14223,11 +14223,11 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l2"].stateValues.points[1][0]).closeTo(
                 B2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[1][1]).closeTo(
                 B2y,
-                1e-12
+                1e-12,
             );
         });
 
@@ -14249,7 +14249,7 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc2("#/A2a") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(A2x)},${nInDOM(A2y)})`
+                `(${nInDOM(A2x)},${nInDOM(A2y)})`,
             );
         });
 
@@ -14269,11 +14269,11 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l2"].stateValues.points[1][0]).closeTo(
                 B2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[1][1]).closeTo(
                 B2y,
-                1e-12
+                1e-12,
             );
         });
 
@@ -14310,8 +14310,8 @@ describe("Line Tag Tests", function () {
             cy.get(cesc2("#/B2a") + " .mjx-mrow").should(
                 "contain.text",
                 `(${nInDOM(Math.round(100 * B2x) / 100)},${nInDOM(
-                    Math.round(100 * B2y) / 100
-                )})`
+                    Math.round(100 * B2y) / 100,
+                )})`,
             );
         });
 
@@ -14324,11 +14324,11 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l1"].stateValues.points[1][0]).closeTo(
                 B1x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l1"].stateValues.points[1][1]).closeTo(
                 B1y,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[0]).eqls([
                 A2x,
@@ -14336,11 +14336,11 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l2"].stateValues.points[1][0]).closeTo(
                 B2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[1][1]).closeTo(
                 B2y,
-                1e-12
+                1e-12,
             );
         });
 
@@ -14377,8 +14377,8 @@ describe("Line Tag Tests", function () {
             cy.get(cesc2("#/B1a") + " .mjx-mrow").should(
                 "contain.text",
                 `(${nInDOM(Math.round(100 * B1x) / 100)},${nInDOM(
-                    Math.round(100 * B1y) / 100
-                )})`
+                    Math.round(100 * B1y) / 100,
+                )})`,
             );
         });
 
@@ -14391,11 +14391,11 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l1"].stateValues.points[1][0]).closeTo(
                 B1x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l1"].stateValues.points[1][1]).closeTo(
                 B1y,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[0]).eqls([
                 A2x,
@@ -14403,11 +14403,11 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l2"].stateValues.points[1][0]).closeTo(
                 B2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[1][1]).closeTo(
                 B2y,
-                1e-12
+                1e-12,
             );
         });
     });
@@ -14431,7 +14431,7 @@ describe("Line Tag Tests", function () {
   $B2{name="B2a"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -14447,11 +14447,11 @@ describe("Line Tag Tests", function () {
 
         cy.get(cesc2("#/A1a") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(A1x)},${nInDOM(A1y)})`
+            `(${nInDOM(A1x)},${nInDOM(A1y)})`,
         );
         cy.get(cesc2("#/B1a") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(B1x)},${nInDOM(B1y)})`
+            `(${nInDOM(B1x)},${nInDOM(B1y)})`,
         );
 
         cy.window().then(async (win) => {
@@ -14470,11 +14470,11 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l2"].stateValues.points[1][0]).closeTo(
                 B2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[1][1]).closeTo(
                 B2y,
-                1e-12
+                1e-12,
             );
         });
 
@@ -14499,7 +14499,7 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc2("#/A2a") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(A2x)},${nInDOM(A2y)})`
+                `(${nInDOM(A2x)},${nInDOM(A2y)})`,
             );
         });
 
@@ -14519,11 +14519,11 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l2"].stateValues.points[1][0]).closeTo(
                 B2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[1][1]).closeTo(
                 B2y,
-                1e-12
+                1e-12,
             );
         });
 
@@ -14545,7 +14545,7 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc2("#/A2a") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(A2x)},${nInDOM(A2y)})`
+                `(${nInDOM(A2x)},${nInDOM(A2y)})`,
             );
         });
 
@@ -14565,11 +14565,11 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l2"].stateValues.points[1][0]).closeTo(
                 B2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[1][1]).closeTo(
                 B2y,
-                1e-12
+                1e-12,
             );
         });
 
@@ -14606,8 +14606,8 @@ describe("Line Tag Tests", function () {
             cy.get(cesc2("#/B2a") + " .mjx-mrow").should(
                 "contain.text",
                 `(${nInDOM(Math.round(100 * B2x) / 100)},${nInDOM(
-                    Math.round(100 * B2y) / 100
-                )})`
+                    Math.round(100 * B2y) / 100,
+                )})`,
             );
         });
 
@@ -14620,11 +14620,11 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l1"].stateValues.endpoints[1][0]).closeTo(
                 B1x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l1"].stateValues.endpoints[1][1]).closeTo(
                 B1y,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[0]).eqls([
                 A2x,
@@ -14632,11 +14632,11 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l2"].stateValues.points[1][0]).closeTo(
                 B2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[1][1]).closeTo(
                 B2y,
-                1e-12
+                1e-12,
             );
         });
 
@@ -14673,8 +14673,8 @@ describe("Line Tag Tests", function () {
             cy.get(cesc2("#/B1a") + " .mjx-mrow").should(
                 "contain.text",
                 `(${nInDOM(Math.round(100 * B1x) / 100)},${nInDOM(
-                    Math.round(100 * B1y) / 100
-                )})`
+                    Math.round(100 * B1y) / 100,
+                )})`,
             );
         });
 
@@ -14687,11 +14687,11 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l1"].stateValues.endpoints[1][0]).closeTo(
                 B1x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l1"].stateValues.endpoints[1][1]).closeTo(
                 B1y,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[0]).eqls([
                 A2x,
@@ -14699,11 +14699,11 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l2"].stateValues.points[1][0]).closeTo(
                 B2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[1][1]).closeTo(
                 B2y,
-                1e-12
+                1e-12,
             );
         });
     });
@@ -14727,7 +14727,7 @@ describe("Line Tag Tests", function () {
   $B2{name="B2a"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -14743,11 +14743,11 @@ describe("Line Tag Tests", function () {
 
         cy.get(cesc2("#/A1a") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(A1x)},${nInDOM(A1y)})`
+            `(${nInDOM(A1x)},${nInDOM(A1y)})`,
         );
         cy.get(cesc2("#/B1a") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(B1x)},${nInDOM(B1y)})`
+            `(${nInDOM(B1x)},${nInDOM(B1y)})`,
         );
 
         cy.window().then(async (win) => {
@@ -14766,11 +14766,11 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l2"].stateValues.points[1][0]).closeTo(
                 B2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[1][1]).closeTo(
                 B2y,
-                1e-12
+                1e-12,
             );
         });
 
@@ -14795,7 +14795,7 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc2("#/A2a") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(A2x)},${nInDOM(A2y)})`
+                `(${nInDOM(A2x)},${nInDOM(A2y)})`,
             );
         });
 
@@ -14815,11 +14815,11 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l2"].stateValues.points[1][0]).closeTo(
                 B2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[1][1]).closeTo(
                 B2y,
-                1e-12
+                1e-12,
             );
         });
 
@@ -14841,7 +14841,7 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc2("#/A2a") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(A2x)},${nInDOM(A2y)})`
+                `(${nInDOM(A2x)},${nInDOM(A2y)})`,
             );
         });
 
@@ -14861,11 +14861,11 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l2"].stateValues.points[1][0]).closeTo(
                 B2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[1][1]).closeTo(
                 B2y,
-                1e-12
+                1e-12,
             );
         });
 
@@ -14902,8 +14902,8 @@ describe("Line Tag Tests", function () {
             cy.get(cesc2("#/B2a") + " .mjx-mrow").should(
                 "contain.text",
                 `(${nInDOM(Math.round(100 * B2x) / 100)},${nInDOM(
-                    Math.round(100 * B2y) / 100
-                )})`
+                    Math.round(100 * B2y) / 100,
+                )})`,
             );
         });
 
@@ -14916,11 +14916,11 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l1"].stateValues.endpoints[1][0]).closeTo(
                 B1x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l1"].stateValues.endpoints[1][1]).closeTo(
                 B1y,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[0]).eqls([
                 A2x,
@@ -14928,11 +14928,11 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l2"].stateValues.points[1][0]).closeTo(
                 B2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[1][1]).closeTo(
                 B2y,
-                1e-12
+                1e-12,
             );
         });
 
@@ -14969,8 +14969,8 @@ describe("Line Tag Tests", function () {
             cy.get(cesc2("#/B1a") + " .mjx-mrow").should(
                 "contain.text",
                 `(${nInDOM(Math.round(100 * B1x) / 100)},${nInDOM(
-                    Math.round(100 * B1y) / 100
-                )})`
+                    Math.round(100 * B1y) / 100,
+                )})`,
             );
         });
 
@@ -14983,11 +14983,11 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l1"].stateValues.endpoints[1][0]).closeTo(
                 B1x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l1"].stateValues.endpoints[1][1]).closeTo(
                 B1y,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[0]).eqls([
                 A2x,
@@ -14995,11 +14995,11 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l2"].stateValues.points[1][0]).closeTo(
                 B2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[1][1]).closeTo(
                 B2y,
-                1e-12
+                1e-12,
             );
         });
     });
@@ -15023,7 +15023,7 @@ describe("Line Tag Tests", function () {
   $B2{name="B2a"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -15039,11 +15039,11 @@ describe("Line Tag Tests", function () {
 
         cy.get(cesc2("#/A1a") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(A1x)},${nInDOM(A1y)})`
+            `(${nInDOM(A1x)},${nInDOM(A1y)})`,
         );
         cy.get(cesc2("#/B1a") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(B1x)},${nInDOM(B1y)})`
+            `(${nInDOM(B1x)},${nInDOM(B1y)})`,
         );
 
         cy.window().then(async (win) => {
@@ -15056,11 +15056,11 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l2"].stateValues.points[1][0]).closeTo(
                 B2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[1][1]).closeTo(
                 B2y,
-                1e-12
+                1e-12,
             );
         });
 
@@ -15085,7 +15085,7 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc2("#/A2a") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(A2x)},${nInDOM(A2y)})`
+                `(${nInDOM(A2x)},${nInDOM(A2y)})`,
             );
         });
 
@@ -15099,11 +15099,11 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l2"].stateValues.points[1][0]).closeTo(
                 B2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[1][1]).closeTo(
                 B2y,
-                1e-12
+                1e-12,
             );
         });
 
@@ -15125,7 +15125,7 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc2("#/A2a") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(A2x)},${nInDOM(A2y)})`
+                `(${nInDOM(A2x)},${nInDOM(A2y)})`,
             );
         });
 
@@ -15139,11 +15139,11 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l2"].stateValues.points[1][0]).closeTo(
                 B2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[1][1]).closeTo(
                 B2y,
-                1e-12
+                1e-12,
             );
         });
 
@@ -15180,8 +15180,8 @@ describe("Line Tag Tests", function () {
             cy.get(cesc2("#/B2a") + " .mjx-mrow").should(
                 "contain.text",
                 `(${nInDOM(Math.round(100 * B2x) / 100)},${nInDOM(
-                    Math.round(100 * B2y) / 100
-                )})`
+                    Math.round(100 * B2y) / 100,
+                )})`,
             );
         });
 
@@ -15191,11 +15191,11 @@ describe("Line Tag Tests", function () {
             expect(stateVariables["/l1"].stateValues.tail).eqls([A1x, A1y]);
             expect(stateVariables["/l1"].stateValues.head[0]).closeTo(
                 B1x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l1"].stateValues.head[1]).closeTo(
                 B1y,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[0]).eqls([
                 A2x,
@@ -15203,11 +15203,11 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l2"].stateValues.points[1][0]).closeTo(
                 B2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[1][1]).closeTo(
                 B2y,
-                1e-12
+                1e-12,
             );
         });
 
@@ -15244,8 +15244,8 @@ describe("Line Tag Tests", function () {
             cy.get(cesc2("#/B1a") + " .mjx-mrow").should(
                 "contain.text",
                 `(${nInDOM(Math.round(100 * B1x) / 100)},${nInDOM(
-                    Math.round(100 * B1y) / 100
-                )})`
+                    Math.round(100 * B1y) / 100,
+                )})`,
             );
         });
 
@@ -15255,11 +15255,11 @@ describe("Line Tag Tests", function () {
             expect(stateVariables["/l1"].stateValues.tail).eqls([A1x, A1y]);
             expect(stateVariables["/l1"].stateValues.head[0]).closeTo(
                 B1x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l1"].stateValues.head[1]).closeTo(
                 B1y,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[0]).eqls([
                 A2x,
@@ -15267,11 +15267,11 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l2"].stateValues.points[1][0]).closeTo(
                 B2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[1][1]).closeTo(
                 B2y,
-                1e-12
+                1e-12,
             );
         });
     });
@@ -15295,7 +15295,7 @@ describe("Line Tag Tests", function () {
   $B2{name="B2a"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -15311,11 +15311,11 @@ describe("Line Tag Tests", function () {
 
         cy.get(cesc2("#/A1a") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(A1x)},${nInDOM(A1y)})`
+            `(${nInDOM(A1x)},${nInDOM(A1y)})`,
         );
         cy.get(cesc2("#/B1a") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(B1x)},${nInDOM(B1y)})`
+            `(${nInDOM(B1x)},${nInDOM(B1y)})`,
         );
 
         cy.window().then(async (win) => {
@@ -15328,11 +15328,11 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l2"].stateValues.points[1][0]).closeTo(
                 B2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[1][1]).closeTo(
                 B2y,
-                1e-12
+                1e-12,
             );
         });
 
@@ -15357,7 +15357,7 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc2("#/A2a") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(A2x)},${nInDOM(A2y)})`
+                `(${nInDOM(A2x)},${nInDOM(A2y)})`,
             );
         });
 
@@ -15371,11 +15371,11 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l2"].stateValues.points[1][0]).closeTo(
                 B2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[1][1]).closeTo(
                 B2y,
-                1e-12
+                1e-12,
             );
         });
 
@@ -15397,7 +15397,7 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc2("#/A2a") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(A2x)},${nInDOM(A2y)})`
+                `(${nInDOM(A2x)},${nInDOM(A2y)})`,
             );
         });
 
@@ -15411,11 +15411,11 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l2"].stateValues.points[1][0]).closeTo(
                 B2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[1][1]).closeTo(
                 B2y,
-                1e-12
+                1e-12,
             );
         });
 
@@ -15452,8 +15452,8 @@ describe("Line Tag Tests", function () {
             cy.get(cesc2("#/B2a") + " .mjx-mrow").should(
                 "contain.text",
                 `(${nInDOM(Math.round(100 * B2x) / 100)},${nInDOM(
-                    Math.round(100 * B2y) / 100
-                )})`
+                    Math.round(100 * B2y) / 100,
+                )})`,
             );
         });
 
@@ -15463,11 +15463,11 @@ describe("Line Tag Tests", function () {
             expect(stateVariables["/l1"].stateValues.tail).eqls([A1x, A1y]);
             expect(stateVariables["/l1"].stateValues.head[0]).closeTo(
                 B1x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l1"].stateValues.head[1]).closeTo(
                 B1y,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[0]).eqls([
                 A2x,
@@ -15475,11 +15475,11 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l2"].stateValues.points[1][0]).closeTo(
                 B2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[1][1]).closeTo(
                 B2y,
-                1e-12
+                1e-12,
             );
         });
 
@@ -15516,8 +15516,8 @@ describe("Line Tag Tests", function () {
             cy.get(cesc2("#/B1a") + " .mjx-mrow").should(
                 "contain.text",
                 `(${nInDOM(Math.round(100 * B1x) / 100)},${nInDOM(
-                    Math.round(100 * B1y) / 100
-                )})`
+                    Math.round(100 * B1y) / 100,
+                )})`,
             );
         });
 
@@ -15527,11 +15527,11 @@ describe("Line Tag Tests", function () {
             expect(stateVariables["/l1"].stateValues.tail).eqls([A1x, A1y]);
             expect(stateVariables["/l1"].stateValues.head[0]).closeTo(
                 B1x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l1"].stateValues.head[1]).closeTo(
                 B1y,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[0]).eqls([
                 A2x,
@@ -15539,11 +15539,11 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l2"].stateValues.points[1][0]).closeTo(
                 B2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[1][1]).closeTo(
                 B2y,
-                1e-12
+                1e-12,
             );
         });
     });
@@ -15567,7 +15567,7 @@ describe("Line Tag Tests", function () {
   $B2{name="B2a"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -15583,11 +15583,11 @@ describe("Line Tag Tests", function () {
 
         cy.get(cesc2("#/A1a") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(A1x)},${nInDOM(A1y)})`
+            `(${nInDOM(A1x)},${nInDOM(A1y)})`,
         );
         cy.get(cesc2("#/B1a") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(B1x)},${nInDOM(B1y)})`
+            `(${nInDOM(B1x)},${nInDOM(B1y)})`,
         );
 
         cy.window().then(async (win) => {
@@ -15600,11 +15600,11 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l2"].stateValues.points[1][0]).closeTo(
                 B2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[1][1]).closeTo(
                 B2y,
-                1e-12
+                1e-12,
             );
         });
 
@@ -15629,7 +15629,7 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc2("#/A2a") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(A2x)},${nInDOM(A2y)})`
+                `(${nInDOM(A2x)},${nInDOM(A2y)})`,
             );
         });
 
@@ -15643,11 +15643,11 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l2"].stateValues.points[1][0]).closeTo(
                 B2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[1][1]).closeTo(
                 B2y,
-                1e-12
+                1e-12,
             );
         });
 
@@ -15669,7 +15669,7 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc2("#/A2a") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(A2x)},${nInDOM(A2y)})`
+                `(${nInDOM(A2x)},${nInDOM(A2y)})`,
             );
         });
 
@@ -15683,11 +15683,11 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l2"].stateValues.points[1][0]).closeTo(
                 B2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[1][1]).closeTo(
                 B2y,
-                1e-12
+                1e-12,
             );
         });
 
@@ -15724,8 +15724,8 @@ describe("Line Tag Tests", function () {
             cy.get(cesc2("#/B2a") + " .mjx-mrow").should(
                 "contain.text",
                 `(${nInDOM(Math.round(100 * B2x) / 100)},${nInDOM(
-                    Math.round(100 * B2y) / 100
-                )})`
+                    Math.round(100 * B2y) / 100,
+                )})`,
             );
         });
 
@@ -15735,11 +15735,11 @@ describe("Line Tag Tests", function () {
             expect(stateVariables["/l1"].stateValues.endpoint).eqls([A1x, A1y]);
             expect(stateVariables["/l1"].stateValues.through[0]).closeTo(
                 B1x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l1"].stateValues.through[1]).closeTo(
                 B1y,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[0]).eqls([
                 A2x,
@@ -15747,11 +15747,11 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l2"].stateValues.points[1][0]).closeTo(
                 B2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[1][1]).closeTo(
                 B2y,
-                1e-12
+                1e-12,
             );
         });
 
@@ -15788,8 +15788,8 @@ describe("Line Tag Tests", function () {
             cy.get(cesc2("#/B1a") + " .mjx-mrow").should(
                 "contain.text",
                 `(${nInDOM(Math.round(100 * B1x) / 100)},${nInDOM(
-                    Math.round(100 * B1y) / 100
-                )})`
+                    Math.round(100 * B1y) / 100,
+                )})`,
             );
         });
 
@@ -15799,11 +15799,11 @@ describe("Line Tag Tests", function () {
             expect(stateVariables["/l1"].stateValues.endpoint).eqls([A1x, A1y]);
             expect(stateVariables["/l1"].stateValues.through[0]).closeTo(
                 B1x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l1"].stateValues.through[1]).closeTo(
                 B1y,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[0]).eqls([
                 A2x,
@@ -15811,11 +15811,11 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l2"].stateValues.points[1][0]).closeTo(
                 B2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[1][1]).closeTo(
                 B2y,
-                1e-12
+                1e-12,
             );
         });
     });
@@ -15839,7 +15839,7 @@ describe("Line Tag Tests", function () {
   $B2{name="B2a"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -15855,11 +15855,11 @@ describe("Line Tag Tests", function () {
 
         cy.get(cesc2("#/A1a") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(A1x)},${nInDOM(A1y)})`
+            `(${nInDOM(A1x)},${nInDOM(A1y)})`,
         );
         cy.get(cesc2("#/B1a") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(B1x)},${nInDOM(B1y)})`
+            `(${nInDOM(B1x)},${nInDOM(B1y)})`,
         );
 
         cy.window().then(async (win) => {
@@ -15872,11 +15872,11 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l2"].stateValues.points[1][0]).closeTo(
                 B2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[1][1]).closeTo(
                 B2y,
-                1e-12
+                1e-12,
             );
         });
 
@@ -15901,7 +15901,7 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc2("#/A2a") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(A2x)},${nInDOM(A2y)})`
+                `(${nInDOM(A2x)},${nInDOM(A2y)})`,
             );
         });
 
@@ -15915,11 +15915,11 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l2"].stateValues.points[1][0]).closeTo(
                 B2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[1][1]).closeTo(
                 B2y,
-                1e-12
+                1e-12,
             );
         });
 
@@ -15941,7 +15941,7 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc2("#/A2a") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(A2x)},${nInDOM(A2y)})`
+                `(${nInDOM(A2x)},${nInDOM(A2y)})`,
             );
         });
 
@@ -15955,11 +15955,11 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l2"].stateValues.points[1][0]).closeTo(
                 B2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[1][1]).closeTo(
                 B2y,
-                1e-12
+                1e-12,
             );
         });
 
@@ -15996,8 +15996,8 @@ describe("Line Tag Tests", function () {
             cy.get(cesc2("#/B2a") + " .mjx-mrow").should(
                 "contain.text",
                 `(${nInDOM(Math.round(100 * B2x) / 100)},${nInDOM(
-                    Math.round(100 * B2y) / 100
-                )})`
+                    Math.round(100 * B2y) / 100,
+                )})`,
             );
         });
 
@@ -16007,11 +16007,11 @@ describe("Line Tag Tests", function () {
             expect(stateVariables["/l1"].stateValues.endpoint).eqls([A1x, A1y]);
             expect(stateVariables["/l1"].stateValues.through[0]).closeTo(
                 B1x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l1"].stateValues.through[1]).closeTo(
                 B1y,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[0]).eqls([
                 A2x,
@@ -16019,11 +16019,11 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l2"].stateValues.points[1][0]).closeTo(
                 B2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[1][1]).closeTo(
                 B2y,
-                1e-12
+                1e-12,
             );
         });
 
@@ -16060,8 +16060,8 @@ describe("Line Tag Tests", function () {
             cy.get(cesc2("#/B1a") + " .mjx-mrow").should(
                 "contain.text",
                 `(${nInDOM(Math.round(100 * B1x) / 100)},${nInDOM(
-                    Math.round(100 * B1y) / 100
-                )})`
+                    Math.round(100 * B1y) / 100,
+                )})`,
             );
         });
 
@@ -16071,11 +16071,11 @@ describe("Line Tag Tests", function () {
             expect(stateVariables["/l1"].stateValues.endpoint).eqls([A1x, A1y]);
             expect(stateVariables["/l1"].stateValues.through[0]).closeTo(
                 B1x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l1"].stateValues.through[1]).closeTo(
                 B1y,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[0]).eqls([
                 A2x,
@@ -16083,11 +16083,11 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l2"].stateValues.points[1][0]).closeTo(
                 B2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[1][1]).closeTo(
                 B2y,
-                1e-12
+                1e-12,
             );
         });
     });
@@ -16104,7 +16104,7 @@ describe("Line Tag Tests", function () {
     $l2.points{assignNames="A2 B2"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -16124,11 +16124,11 @@ describe("Line Tag Tests", function () {
 
         cy.get(cesc2("#/A1") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(A1x)},${nInDOM(A1y)},${nInDOM(A1z)})`
+            `(${nInDOM(A1x)},${nInDOM(A1y)},${nInDOM(A1z)})`,
         );
         cy.get(cesc2("#/B1") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(B1x)},${nInDOM(B1y)},${nInDOM(B1z)})`
+            `(${nInDOM(B1x)},${nInDOM(B1y)},${nInDOM(B1z)})`,
         );
 
         cy.window().then(async (win) => {
@@ -16150,15 +16150,15 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l2"].stateValues.points[1][0]).closeTo(
                 B2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[1][1]).closeTo(
                 B2y,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[1][2]).closeTo(
                 B2z,
-                1e-12
+                1e-12,
             );
         });
 
@@ -16185,7 +16185,7 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc2("#/A2") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(A2x)},${nInDOM(A2y)},${nInDOM(A2z)})`
+                `(${nInDOM(A2x)},${nInDOM(A2y)},${nInDOM(A2z)})`,
             );
         });
 
@@ -16208,15 +16208,15 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l2"].stateValues.points[1][0]).closeTo(
                 B2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[1][1]).closeTo(
                 B2y,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[1][2]).closeTo(
                 B2z,
-                1e-12
+                1e-12,
             );
         });
 
@@ -16266,8 +16266,8 @@ describe("Line Tag Tests", function () {
             cy.get(cesc2("#/B2") + " .mjx-mrow").should(
                 "contain.text",
                 `(${nInDOM(Math.round(100 * B2x) / 100)},${nInDOM(
-                    Math.round(100 * B2y) / 100
-                )},${nInDOM(Math.round(100 * B2z) / 100)})`
+                    Math.round(100 * B2y) / 100,
+                )},${nInDOM(Math.round(100 * B2z) / 100)})`,
             );
         });
 
@@ -16281,15 +16281,15 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l1"].stateValues.points[1][0]).closeTo(
                 B1x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l1"].stateValues.points[1][1]).closeTo(
                 B1y,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l1"].stateValues.points[1][2]).closeTo(
                 B1z,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[0]).eqls([
                 A2x,
@@ -16298,15 +16298,15 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l2"].stateValues.points[1][0]).closeTo(
                 B2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[1][1]).closeTo(
                 B2y,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[1][2]).closeTo(
                 B2z,
-                1e-12
+                1e-12,
             );
         });
 
@@ -16357,8 +16357,8 @@ describe("Line Tag Tests", function () {
             cy.get(cesc2("#/B1") + " .mjx-mrow").should(
                 "contain.text",
                 `(${nInDOM(Math.round(100 * B1x) / 100)},${nInDOM(
-                    Math.round(100 * B1y) / 100
-                )},${nInDOM(Math.round(100 * B1z) / 100)})`
+                    Math.round(100 * B1y) / 100,
+                )},${nInDOM(Math.round(100 * B1z) / 100)})`,
             );
         });
 
@@ -16372,15 +16372,15 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l1"].stateValues.points[1][0]).closeTo(
                 B1x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l1"].stateValues.points[1][1]).closeTo(
                 B1y,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l1"].stateValues.points[1][2]).closeTo(
                 B1z,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[0]).eqls([
                 A2x,
@@ -16389,15 +16389,15 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l2"].stateValues.points[1][0]).closeTo(
                 B2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[1][1]).closeTo(
                 B2y,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[1][2]).closeTo(
                 B2z,
-                1e-12
+                1e-12,
             );
         });
     });
@@ -16416,7 +16416,7 @@ describe("Line Tag Tests", function () {
   $B2{name="B2a"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -16427,7 +16427,7 @@ describe("Line Tag Tests", function () {
 
         cy.get(cesc2("#/A2a") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(A2x)},${nInDOM(A2y)})`
+            `(${nInDOM(A2x)},${nInDOM(A2y)})`,
         );
 
         cy.window().then(async (win) => {
@@ -16438,11 +16438,11 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l2"].stateValues.points[1][0]).closeTo(
                 B2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[1][1]).closeTo(
                 B2y,
-                1e-12
+                1e-12,
             );
         });
 
@@ -16467,7 +16467,7 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc2("#/A2a") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(A2x)},${nInDOM(A2y)})`
+                `(${nInDOM(A2x)},${nInDOM(A2y)})`,
             );
         });
 
@@ -16479,11 +16479,11 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l2"].stateValues.points[1][0]).closeTo(
                 B2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[1][1]).closeTo(
                 B2y,
-                1e-12
+                1e-12,
             );
         });
 
@@ -16505,7 +16505,7 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc2("#/A2a") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(A2x)},${nInDOM(A2y)})`
+                `(${nInDOM(A2x)},${nInDOM(A2y)})`,
             );
         });
 
@@ -16517,11 +16517,11 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l2"].stateValues.points[1][0]).closeTo(
                 B2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[1][1]).closeTo(
                 B2y,
-                1e-12
+                1e-12,
             );
         });
 
@@ -16539,8 +16539,8 @@ describe("Line Tag Tests", function () {
             cy.get(cesc2("#/B2a") + " .mjx-mrow").should(
                 "contain.text",
                 `(${nInDOM(Math.round(100 * B2x) / 100)},${nInDOM(
-                    Math.round(100 * B2y) / 100
-                )})`
+                    Math.round(100 * B2y) / 100,
+                )})`,
             );
         });
 
@@ -16553,11 +16553,11 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l2"].stateValues.points[1][0]).closeTo(
                 B2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[1][1]).closeTo(
                 B2y,
-                1e-12
+                1e-12,
             );
         });
     });
@@ -16576,7 +16576,7 @@ describe("Line Tag Tests", function () {
   $B2{name="B2a"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -16587,7 +16587,7 @@ describe("Line Tag Tests", function () {
 
         cy.get(cesc2("#/A2a") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(A2x)},${nInDOM(A2y)})`
+            `(${nInDOM(A2x)},${nInDOM(A2y)})`,
         );
 
         cy.window().then(async (win) => {
@@ -16598,11 +16598,11 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l2"].stateValues.points[1][0]).closeTo(
                 B2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[1][1]).closeTo(
                 B2y,
-                1e-12
+                1e-12,
             );
         });
 
@@ -16627,7 +16627,7 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc2("#/A2a") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(A2x)},${nInDOM(A2y)})`
+                `(${nInDOM(A2x)},${nInDOM(A2y)})`,
             );
         });
 
@@ -16639,11 +16639,11 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l2"].stateValues.points[1][0]).closeTo(
                 B2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[1][1]).closeTo(
                 B2y,
-                1e-12
+                1e-12,
             );
         });
 
@@ -16665,7 +16665,7 @@ describe("Line Tag Tests", function () {
 
             cy.get(cesc2("#/A2a") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(A2x)},${nInDOM(A2y)})`
+                `(${nInDOM(A2x)},${nInDOM(A2y)})`,
             );
         });
 
@@ -16677,11 +16677,11 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l2"].stateValues.points[1][0]).closeTo(
                 B2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[1][1]).closeTo(
                 B2y,
-                1e-12
+                1e-12,
             );
         });
 
@@ -16699,8 +16699,8 @@ describe("Line Tag Tests", function () {
             cy.get(cesc2("#/B2a") + " .mjx-mrow").should(
                 "contain.text",
                 `(${nInDOM(Math.round(100 * B2x) / 100)},${nInDOM(
-                    Math.round(100 * B2y) / 100
-                )})`
+                    Math.round(100 * B2y) / 100,
+                )})`,
             );
         });
 
@@ -16713,11 +16713,11 @@ describe("Line Tag Tests", function () {
             ]);
             expect(stateVariables["/l2"].stateValues.points[1][0]).closeTo(
                 B2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/l2"].stateValues.points[1][1]).closeTo(
                 B2y,
-                1e-12
+                1e-12,
             );
         });
     });

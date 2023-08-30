@@ -963,7 +963,7 @@ describe("Math expressions equality tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -975,19 +975,19 @@ describe("Math expressions equality tests", function () {
             for (let [ind, info] of equivalences.entries()) {
                 expect(
                     stateVariables[`/n${ind}`].stateValues.value,
-                    `Comparing ${info.expr1} and ${info.expr2}`
+                    `Comparing ${info.expr1} and ${info.expr2}`,
                 ).eq(info.equal);
                 expect(
                     stateVariables[`/s${ind}`].stateValues.value,
-                    `Comparing symbolic ${info.expr1} and ${info.expr2}`
+                    `Comparing symbolic ${info.expr1} and ${info.expr2}`,
                 ).eq(info.symbolicEqual);
                 expect(
                     stateVariables[`/ss${ind}`].stateValues.value,
-                    `Comparing symbolic simplify ${info.expr1} and ${info.expr2}`
+                    `Comparing symbolic simplify ${info.expr1} and ${info.expr2}`,
                 ).eq(info.symbolicSimplifyEqual);
                 expect(
                     stateVariables[`/sse${ind}`].stateValues.value,
-                    `Comparing symbolic simplify expand ${info.expr1} and ${info.expr2}`
+                    `Comparing symbolic simplify expand ${info.expr1} and ${info.expr2}`,
                 ).eq(info.symbolicSimplifyExpandEqual);
             }
         });

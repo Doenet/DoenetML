@@ -15,7 +15,7 @@ describe("Spreadsheet Tag Tests", function () {
         verify = true,
     }) {
         cy.get(
-            `#${id} tbody > :nth-child(${row}) > :nth-child(${column + 1})`
+            `#${id} tbody > :nth-child(${row}) > :nth-child(${column + 1})`,
         ).click({ force: true });
         if (clear) {
             cy.get(`#${id} .handsontableInput`)
@@ -28,7 +28,7 @@ describe("Spreadsheet Tag Tests", function () {
         }
         if (verify) {
             cy.get(
-                `#${id} tbody > :nth-child(${row}) > :nth-child(${column + 1})`
+                `#${id} tbody > :nth-child(${row}) > :nth-child(${column + 1})`,
             ).should("have.text", text);
         }
     };
@@ -47,7 +47,7 @@ describe("Spreadsheet Tag Tests", function () {
   </p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -59,8 +59,8 @@ describe("Spreadsheet Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
                 Array.isArray(
-                    stateVariables["/_spreadsheet1"].stateValues.cells
-                )
+                    stateVariables["/_spreadsheet1"].stateValues.cells,
+                ),
             ).eq(true);
         });
         cy.log("enter text in B3");
@@ -69,7 +69,7 @@ describe("Spreadsheet Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[2][1]).eq(
-                "hello"
+                "hello",
             );
         });
 
@@ -79,7 +79,7 @@ describe("Spreadsheet Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[2][1]).eq(
-                ""
+                "",
             );
         });
 
@@ -89,10 +89,10 @@ describe("Spreadsheet Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][0]).eq(
-                "first"
+                "first",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[2][1]).eq(
-                ""
+                "",
             );
         });
 
@@ -102,13 +102,13 @@ describe("Spreadsheet Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][0]).eq(
-                "first"
+                "first",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[2][1]).eq(
-                ""
+                "",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[1][3]).eq(
-                "right"
+                "right",
             );
         });
     });
@@ -130,7 +130,7 @@ describe("Spreadsheet Tag Tests", function () {
   </spreadsheet>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -143,19 +143,19 @@ describe("Spreadsheet Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][0]).eq(
-                "first"
+                "first",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[2][2]).eq(
-                "hello"
+                "hello",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[2][3]).eq(
-                "bye"
+                "bye",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[2][1]).eq(
-                "before"
+                "before",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[1][1]).eq(
-                "above"
+                "above",
             );
             expect(stateVariables["/_cell1"].stateValues.text).eq("first");
             expect(stateVariables["/_cell2"].stateValues.text).eq("hello");
@@ -172,19 +172,19 @@ describe("Spreadsheet Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][0]).eq(
-                "new"
+                "new",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[2][2]).eq(
-                "hello"
+                "hello",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[2][3]).eq(
-                "bye"
+                "bye",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[2][1]).eq(
-                "before"
+                "before",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[1][1]).eq(
-                "above"
+                "above",
             );
             expect(stateVariables["/_cell1"].stateValues.text).eq("new");
             expect(stateVariables["/_cell2"].stateValues.text).eq("hello");
@@ -201,19 +201,19 @@ describe("Spreadsheet Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][0]).eq(
-                "new"
+                "new",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[2][2]).eq(
-                "hello"
+                "hello",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[2][3]).eq(
-                "bye"
+                "bye",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[2][1]).eq(
-                "before"
+                "before",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[1][1]).eq(
-                "above"
+                "above",
             );
             expect(stateVariables["/_cell1"].stateValues.text).eq("new");
             expect(stateVariables["/_cell2"].stateValues.text).eq("hello");
@@ -221,7 +221,7 @@ describe("Spreadsheet Tag Tests", function () {
             expect(stateVariables["/_cell4"].stateValues.text).eq("before");
             expect(stateVariables["/_cell5"].stateValues.text).eq("above");
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][2]).eq(
-                "third"
+                "third",
             );
         });
 
@@ -233,19 +233,19 @@ describe("Spreadsheet Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][0]).eq(
-                "new"
+                "new",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[2][2]).eq(
-                ""
+                "",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[2][3]).eq(
-                "bye"
+                "bye",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[2][1]).eq(
-                "before"
+                "before",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[1][1]).eq(
-                "above"
+                "above",
             );
             expect(stateVariables["/_cell1"].stateValues.text).eq("new");
             expect(stateVariables["/_cell2"].stateValues.text).eq("");
@@ -253,7 +253,7 @@ describe("Spreadsheet Tag Tests", function () {
             expect(stateVariables["/_cell4"].stateValues.text).eq("before");
             expect(stateVariables["/_cell5"].stateValues.text).eq("above");
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][2]).eq(
-                "third"
+                "third",
             );
         });
     });
@@ -291,7 +291,7 @@ describe("Spreadsheet Tag Tests", function () {
   <spreadsheet copySource="ss2a" name="ss2b" />
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_spreadsheet1")); //wait for window to load
@@ -358,7 +358,8 @@ describe("Spreadsheet Tag Tests", function () {
             for (let cellNum in cellNames) {
                 for (let ind in cellNames[cellNum]) {
                     expect(
-                        stateVariables[cellNames[cellNum][ind]].stateValues.text
+                        stateVariables[cellNames[cellNum][ind]].stateValues
+                            .text,
                     ).eq(cellValues[cellNum]);
                 }
             }
@@ -371,7 +372,7 @@ describe("Spreadsheet Tag Tests", function () {
                         expect(
                             stateVariables[ssName].stateValues.cells[
                                 cLoc[0] - 1
-                            ][cLoc[1] - 1]
+                            ][cLoc[1] - 1],
                         ).eq(cellValues[cellNum]);
                     }
                 }
@@ -421,23 +422,23 @@ describe("Spreadsheet Tag Tests", function () {
                     valueInd2++;
                     cy.get(cesc("#\\/t1")).should(
                         "have.text",
-                        allCellValues[1][valueInd2]
+                        allCellValues[1][valueInd2],
                     );
                     cy.get(cesc("#\\/t2")).should(
                         "have.text",
-                        allCellValues[2][valueInd2]
+                        allCellValues[2][valueInd2],
                     );
                     cy.get(cesc("#\\/t3")).should(
                         "have.text",
-                        allCellValues[3][valueInd2]
+                        allCellValues[3][valueInd2],
                     );
                     cy.get(cesc("#\\/t4")).should(
                         "have.text",
-                        allCellValues[4][valueInd2]
+                        allCellValues[4][valueInd2],
                     );
                     cy.get(cesc("#\\/t5")).should(
                         "have.text",
-                        allCellValues[5][valueInd2]
+                        allCellValues[5][valueInd2],
                     );
 
                     cy.window().then(async (win) => {
@@ -448,7 +449,7 @@ describe("Spreadsheet Tag Tests", function () {
                             for (let ind in cellNames[cellNum]) {
                                 expect(
                                     stateVariables[cellNames[cellNum][ind]]
-                                        .stateValues.text
+                                        .stateValues.text,
                                 ).eq(allCellValues[cellNum][valueInd2]);
                             }
                         }
@@ -526,7 +527,7 @@ describe("Spreadsheet Tag Tests", function () {
                             {
                                 errorMsg:
                                     "Time out waiting for spreadsheet to have correct content.",
-                            }
+                            },
                         );
                     });
                 });
@@ -567,7 +568,7 @@ describe("Spreadsheet Tag Tests", function () {
   <spreadsheet copySource="ss2a" name="ss2b" />
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -633,7 +634,8 @@ describe("Spreadsheet Tag Tests", function () {
             for (let cellNum in cellNames) {
                 for (let ind in cellNames[cellNum]) {
                     expect(
-                        stateVariables[cellNames[cellNum][ind]].stateValues.text
+                        stateVariables[cellNames[cellNum][ind]].stateValues
+                            .text,
                     ).eq(cellValues[cellNum]);
                 }
             }
@@ -646,7 +648,7 @@ describe("Spreadsheet Tag Tests", function () {
                         expect(
                             stateVariables[ssName].stateValues.cells[
                                 cLoc[0] - 1
-                            ][cLoc[1] - 1]
+                            ][cLoc[1] - 1],
                         ).eq(cellValues[cellNum]);
                     }
                 }
@@ -696,23 +698,23 @@ describe("Spreadsheet Tag Tests", function () {
                     valueInd2++;
                     cy.get(cesc("#\\/t1")).should(
                         "have.text",
-                        allCellValues[1][valueInd2]
+                        allCellValues[1][valueInd2],
                     );
                     cy.get(cesc("#\\/t2")).should(
                         "have.text",
-                        allCellValues[2][valueInd2]
+                        allCellValues[2][valueInd2],
                     );
                     cy.get(cesc("#\\/t3")).should(
                         "have.text",
-                        allCellValues[3][valueInd2]
+                        allCellValues[3][valueInd2],
                     );
                     cy.get(cesc("#\\/t4")).should(
                         "have.text",
-                        allCellValues[4][valueInd2]
+                        allCellValues[4][valueInd2],
                     );
                     cy.get(cesc("#\\/t5")).should(
                         "have.text",
-                        allCellValues[5][valueInd2]
+                        allCellValues[5][valueInd2],
                     );
 
                     cy.window().then(async (win) => {
@@ -723,7 +725,7 @@ describe("Spreadsheet Tag Tests", function () {
                             for (let ind in cellNames[cellNum]) {
                                 expect(
                                     stateVariables[cellNames[cellNum][ind]]
-                                        .stateValues.text
+                                        .stateValues.text,
                                 ).eq(allCellValues[cellNum][valueInd2]);
                             }
                         }
@@ -795,7 +797,7 @@ describe("Spreadsheet Tag Tests", function () {
                             {
                                 errorMsg:
                                     "Time out waiting for spreadsheet to have correct content.",
-                            }
+                            },
                         );
                     });
                 });
@@ -819,7 +821,7 @@ describe("Spreadsheet Tag Tests", function () {
   </spreadsheet>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -831,37 +833,37 @@ describe("Spreadsheet Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_spreadsheet1"].stateValues.numRows).eq(7);
             expect(stateVariables["/_spreadsheet1"].stateValues.numColumns).eq(
-                6
+                6,
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][0]).eq(
-                "A1"
+                "A1",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][1]).eq(
-                "B1"
+                "B1",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][3]).eq(
-                "D1"
+                "D1",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[1][1]).eq(
-                "B2"
+                "B2",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[1][2]).eq(
-                "C2"
+                "C2",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[4][0]).eq(
-                "A5"
+                "A5",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[4][5]).eq(
-                "F5"
+                "F5",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[5][2]).eq(
-                "C6"
+                "C6",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[5][3]).eq(
-                "D6"
+                "D6",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[6][0]).eq(
-                "A7"
+                "A7",
             );
             expect(stateVariables["/_cell1"].stateValues.text).eq("A1");
             expect(stateVariables["/_cell2"].stateValues.text).eq("B1");
@@ -887,7 +889,7 @@ describe("Spreadsheet Tag Tests", function () {
                 expect(
                     stateVariables["/_spreadsheet1"].stateValues.cells[
                         ind - 1
-                    ][0]
+                    ][0],
                 ).eq(`row${ind}`);
             }
             expect(stateVariables["/_cell1"].stateValues.text).eq("row1");
@@ -912,7 +914,7 @@ describe("Spreadsheet Tag Tests", function () {
   </spreadsheet>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -924,37 +926,37 @@ describe("Spreadsheet Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_spreadsheet1"].stateValues.numRows).eq(6);
             expect(stateVariables["/_spreadsheet1"].stateValues.numColumns).eq(
-                7
+                7,
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][0]).eq(
-                "A1"
+                "A1",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[1][0]).eq(
-                "A2"
+                "A2",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[3][0]).eq(
-                "A4"
+                "A4",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[1][1]).eq(
-                "B2"
+                "B2",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[2][1]).eq(
-                "B3"
+                "B3",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][4]).eq(
-                "E1"
+                "E1",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[5][4]).eq(
-                "E6"
+                "E6",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[2][5]).eq(
-                "F3"
+                "F3",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[3][5]).eq(
-                "F4"
+                "F4",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][6]).eq(
-                "G1"
+                "G1",
             );
             expect(stateVariables["/_cell1"].stateValues.text).eq("A1");
             expect(stateVariables["/_cell2"].stateValues.text).eq("A2");
@@ -980,7 +982,7 @@ describe("Spreadsheet Tag Tests", function () {
                 expect(
                     stateVariables["/_spreadsheet1"].stateValues.cells[0][
                         ind - 1
-                    ]
+                    ],
                 ).eq(`column${ind}`);
             }
             expect(stateVariables["/_cell1"].stateValues.text).eq("column1");
@@ -1017,7 +1019,7 @@ describe("Spreadsheet Tag Tests", function () {
   </spreadsheet>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1029,43 +1031,43 @@ describe("Spreadsheet Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_spreadsheet1"].stateValues.numRows).eq(6);
             expect(stateVariables["/_spreadsheet1"].stateValues.numColumns).eq(
-                8
+                8,
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[2][2]).eq(
-                "C3"
+                "C3",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[2][3]).eq(
-                "D3"
+                "D3",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[1][4]).eq(
-                "E2"
+                "E2",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[2][4]).eq(
-                "E3"
+                "E3",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[1][5]).eq(
-                "F2"
+                "F2",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[1][6]).eq(
-                "G2"
+                "G2",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[3][6]).eq(
-                "G4"
+                "G4",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[4][6]).eq(
-                "G5"
+                "G5",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[4][7]).eq(
-                "H5"
+                "H5",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[4][0]).eq(
-                "A5"
+                "A5",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[5][1]).eq(
-                "B6"
+                "B6",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[4][2]).eq(
-                "C5"
+                "C5",
             );
             expect(stateVariables["/_cell1"].stateValues.text).eq("C3");
             expect(stateVariables["/_cell2"].stateValues.text).eq("D3");
@@ -1093,7 +1095,7 @@ describe("Spreadsheet Tag Tests", function () {
                 expect(
                     stateVariables["/_spreadsheet1"].stateValues.cells[4][
                         ind - 1
-                    ]
+                    ],
                 ).eq(`column${ind}`);
             }
             expect(stateVariables["/_cell8"].stateValues.text).eq("column7");
@@ -1129,7 +1131,7 @@ describe("Spreadsheet Tag Tests", function () {
   </spreadsheet>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1141,18 +1143,18 @@ describe("Spreadsheet Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_spreadsheet1"].stateValues.numRows).eq(4);
             expect(stateVariables["/_spreadsheet1"].stateValues.numColumns).eq(
-                4
+                4,
             );
             expect(stateVariables["/_spreadsheet2"].stateValues.numRows).eq(4);
             expect(stateVariables["/_spreadsheet2"].stateValues.numColumns).eq(
-                4
+                4,
             );
             for (let row = 1; row <= 4; row++) {
                 for (let col = 1; col <= 4; col++) {
                     expect(
                         stateVariables["/_spreadsheet1"].stateValues.cells[
                             row - 1
-                        ][col - 1]
+                        ][col - 1],
                     ).eq(`${String.fromCharCode(64 + col)}${row}`);
                 }
             }
@@ -1161,7 +1163,7 @@ describe("Spreadsheet Tag Tests", function () {
                     expect(
                         stateVariables["/_spreadsheet2"].stateValues.cells[
                             row - 3
-                        ][col - 3]
+                        ][col - 3],
                     ).eq(`${String.fromCharCode(64 + col)}${row}`);
                 }
             }
@@ -1170,7 +1172,7 @@ describe("Spreadsheet Tag Tests", function () {
                     expect(
                         stateVariables["/_spreadsheet2"].stateValues.cells[
                             row - 1
-                        ][col + 1]
+                        ][col + 1],
                     ).eq(`${String.fromCharCode(64 + col)}${row}`);
                 }
             }
@@ -1179,7 +1181,7 @@ describe("Spreadsheet Tag Tests", function () {
                     expect(
                         stateVariables["/_spreadsheet2"].stateValues.cells[
                             row + 1
-                        ][col - 3]
+                        ][col - 3],
                     ).eq(`${String.fromCharCode(64 + col)}${row}`);
                 }
             }
@@ -1202,20 +1204,20 @@ describe("Spreadsheet Tag Tests", function () {
                 expect(
                     stateVariables["/_spreadsheet1"].stateValues.cells[2][
                         ind - 1
-                    ]
+                    ],
                 ).eq(`column${ind}`);
             }
             expect(stateVariables["/_spreadsheet2"].stateValues.cells[2][2]).eq(
-                `column1`
+                `column1`,
             );
             expect(stateVariables["/_spreadsheet2"].stateValues.cells[2][3]).eq(
-                `column2`
+                `column2`,
             );
             expect(stateVariables["/_spreadsheet2"].stateValues.cells[0][0]).eq(
-                `column3`
+                `column3`,
             );
             expect(stateVariables["/_spreadsheet2"].stateValues.cells[0][1]).eq(
-                `column4`
+                `column4`,
             );
         });
 
@@ -1236,20 +1238,20 @@ describe("Spreadsheet Tag Tests", function () {
                 expect(
                     stateVariables["/_spreadsheet2"].stateValues.cells[
                         ind - 1
-                    ][1]
+                    ][1],
                 ).eq(`row${ind}`);
             }
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[2][3]).eq(
-                `row1`
+                `row1`,
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[3][3]).eq(
-                `row2`
+                `row2`,
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][3]).eq(
-                `row3`
+                `row3`,
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[1][3]).eq(
-                `row4`
+                `row4`,
             );
         });
     });
@@ -1281,7 +1283,7 @@ describe("Spreadsheet Tag Tests", function () {
   </spreadsheet>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1293,18 +1295,18 @@ describe("Spreadsheet Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_spreadsheet1"].stateValues.numRows).eq(4);
             expect(stateVariables["/_spreadsheet1"].stateValues.numColumns).eq(
-                4
+                4,
             );
             expect(stateVariables["/_spreadsheet2"].stateValues.numRows).eq(4);
             expect(stateVariables["/_spreadsheet2"].stateValues.numColumns).eq(
-                6
+                6,
             );
             for (let row = 1; row <= 4; row++) {
                 for (let col = 1; col <= 4; col++) {
                     expect(
                         stateVariables["/_spreadsheet1"].stateValues.cells[
                             row - 1
-                        ][col - 1]
+                        ][col - 1],
                     ).eq(`${String.fromCharCode(64 + col)}${row}`);
                 }
             }
@@ -1313,7 +1315,7 @@ describe("Spreadsheet Tag Tests", function () {
                     expect(
                         stateVariables["/_spreadsheet2"].stateValues.cells[
                             row - 1
-                        ][col - 1]
+                        ][col - 1],
                     ).eq("");
                 }
             }
@@ -1321,24 +1323,24 @@ describe("Spreadsheet Tag Tests", function () {
                 expect(
                     stateVariables["/_spreadsheet2"].stateValues.cells[2][
                         col - 1
-                    ]
+                    ],
                 ).eq(`${String.fromCharCode(64 + col)}2`);
                 expect(
                     stateVariables["/_spreadsheet2"].stateValues.cells[3][
                         col - 1
-                    ]
+                    ],
                 ).eq(`${String.fromCharCode(64 + col)}1`);
             }
             for (let row = 1; row <= 4; row++) {
                 expect(
                     stateVariables["/_spreadsheet2"].stateValues.cells[
                         row - 1
-                    ][4]
+                    ][4],
                 ).eq(`C${row}`);
                 expect(
                     stateVariables["/_spreadsheet2"].stateValues.cells[
                         row - 1
-                    ][5]
+                    ][5],
                 ).eq(`B${row}`);
             }
         });
@@ -1360,29 +1362,29 @@ describe("Spreadsheet Tag Tests", function () {
                 expect(
                     stateVariables["/_spreadsheet1"].stateValues.cells[1][
                         ind - 1
-                    ]
+                    ],
                 ).eq(`column${ind}`);
             }
             // becomes third row of second spreadsheet
             expect(stateVariables["/_spreadsheet2"].stateValues.cells[2][0]).eq(
-                `column1`
+                `column1`,
             );
             expect(stateVariables["/_spreadsheet2"].stateValues.cells[2][1]).eq(
-                `column2`
+                `column2`,
             );
             expect(stateVariables["/_spreadsheet2"].stateValues.cells[2][2]).eq(
-                `column3`
+                `column3`,
             );
             expect(stateVariables["/_spreadsheet2"].stateValues.cells[2][3]).eq(
-                `column4`
+                `column4`,
             );
 
             // fifth and sixth column ref third and second column
             expect(stateVariables["/_spreadsheet2"].stateValues.cells[1][4]).eq(
-                `column3`
+                `column3`,
             );
             expect(stateVariables["/_spreadsheet2"].stateValues.cells[1][5]).eq(
-                `column2`
+                `column2`,
             );
         });
 
@@ -1403,31 +1405,31 @@ describe("Spreadsheet Tag Tests", function () {
                 expect(
                     stateVariables["/_spreadsheet2"].stateValues.cells[
                         ind - 1
-                    ][4]
+                    ][4],
                 ).eq(`row${ind}`);
             }
 
             //comes third column of first spreadsheet
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][2]).eq(
-                `row1`
+                `row1`,
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[1][2]).eq(
-                `row2`
+                `row2`,
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[2][2]).eq(
-                `row3`
+                `row3`,
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[3][2]).eq(
-                `row4`
+                `row4`,
             );
 
             // third and fourth row of second spreadsheet also change due
             // changes in second and first row of first spreadsheet
             expect(stateVariables["/_spreadsheet2"].stateValues.cells[2][2]).eq(
-                `row2`
+                `row2`,
             );
             expect(stateVariables["/_spreadsheet2"].stateValues.cells[3][2]).eq(
-                `row1`
+                `row1`,
             );
         });
     });
@@ -1451,7 +1453,7 @@ describe("Spreadsheet Tag Tests", function () {
   </spreadsheet>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1463,18 +1465,18 @@ describe("Spreadsheet Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_spreadsheet1"].stateValues.numRows).eq(3);
             expect(stateVariables["/_spreadsheet1"].stateValues.numColumns).eq(
-                3
+                3,
             );
             expect(stateVariables["/_spreadsheet2"].stateValues.numRows).eq(5);
             expect(stateVariables["/_spreadsheet2"].stateValues.numColumns).eq(
-                4
+                4,
             );
             for (let row = 1; row <= 3; row++) {
                 for (let col = 1; col <= 3; col++) {
                     expect(
                         stateVariables["/_spreadsheet1"].stateValues.cells[
                             row - 1
-                        ][col - 1]
+                        ][col - 1],
                     ).eq(`${String.fromCharCode(64 + col)}${row}`);
                 }
             }
@@ -1483,7 +1485,7 @@ describe("Spreadsheet Tag Tests", function () {
                     expect(
                         stateVariables["/_spreadsheet2"].stateValues.cells[
                             row + 1
-                        ][col]
+                        ][col],
                     ).eq(`${String.fromCharCode(64 + col)}${row}`);
                 }
             }
@@ -1506,12 +1508,12 @@ describe("Spreadsheet Tag Tests", function () {
                 expect(
                     stateVariables["/_spreadsheet1"].stateValues.cells[1][
                         ind - 1
-                    ]
+                    ],
                 ).eq(`column${ind}`);
             }
             for (let ind = 1; ind <= 3; ind++) {
                 expect(
-                    stateVariables["/_spreadsheet2"].stateValues.cells[3][ind]
+                    stateVariables["/_spreadsheet2"].stateValues.cells[3][ind],
                 ).eq(`column${ind}`);
             }
         });
@@ -1533,19 +1535,19 @@ describe("Spreadsheet Tag Tests", function () {
                 expect(
                     stateVariables["/_spreadsheet2"].stateValues.cells[
                         ind - 1
-                    ][3]
+                    ][3],
                 ).eq(`row${ind}`);
             }
 
             //becomes third column of first spreadsheet
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][2]).eq(
-                `row3`
+                `row3`,
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[1][2]).eq(
-                `row4`
+                `row4`,
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[2][2]).eq(
-                `row5`
+                `row5`,
             );
         });
     });
@@ -1571,7 +1573,7 @@ describe("Spreadsheet Tag Tests", function () {
   </spreadsheet>  
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1588,29 +1590,31 @@ describe("Spreadsheet Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][4]).eq(
-                "alpha"
+                "alpha",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][5]).eq(
-                "beta"
+                "beta",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[1][5]).eq(
-                "gamma"
+                "gamma",
             );
             for (let inds of cellBlockUpperLefts) {
                 let row = inds[0];
                 let col = inds[1];
                 expect(
-                    stateVariables["/_spreadsheet2"].stateValues.cells[row][col]
+                    stateVariables["/_spreadsheet2"].stateValues.cells[row][
+                        col
+                    ],
                 ).eq("alpha");
                 expect(
                     stateVariables["/_spreadsheet2"].stateValues.cells[row][
                         col + 1
-                    ]
+                    ],
                 ).eq("beta");
                 expect(
                     stateVariables["/_spreadsheet2"].stateValues.cells[row + 1][
                         col + 1
-                    ]
+                    ],
                 ).eq("gamma");
             }
         });
@@ -1646,37 +1650,39 @@ describe("Spreadsheet Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][4]).eq(
-                "a"
+                "a",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][5]).eq(
-                "b"
+                "b",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[1][4]).eq(
-                "c"
+                "c",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[1][5]).eq(
-                "d"
+                "d",
             );
             for (let inds of cellBlockUpperLefts) {
                 let row = inds[0];
                 let col = inds[1];
                 expect(
-                    stateVariables["/_spreadsheet2"].stateValues.cells[row][col]
+                    stateVariables["/_spreadsheet2"].stateValues.cells[row][
+                        col
+                    ],
                 ).eq("a");
                 expect(
                     stateVariables["/_spreadsheet2"].stateValues.cells[row][
                         col + 1
-                    ]
+                    ],
                 ).eq("b");
                 expect(
                     stateVariables["/_spreadsheet2"].stateValues.cells[row + 1][
                         col
-                    ]
+                    ],
                 ).eq("c");
                 expect(
                     stateVariables["/_spreadsheet2"].stateValues.cells[row + 1][
                         col + 1
-                    ]
+                    ],
                 ).eq("d");
             }
         });
@@ -1712,37 +1718,39 @@ describe("Spreadsheet Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][4]).eq(
-                "first"
+                "first",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][5]).eq(
-                "second"
+                "second",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[1][4]).eq(
-                "third"
+                "third",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[1][5]).eq(
-                "fourth"
+                "fourth",
             );
             for (let inds of cellBlockUpperLefts) {
                 let row = inds[0];
                 let col = inds[1];
                 expect(
-                    stateVariables["/_spreadsheet2"].stateValues.cells[row][col]
+                    stateVariables["/_spreadsheet2"].stateValues.cells[row][
+                        col
+                    ],
                 ).eq("first");
                 expect(
                     stateVariables["/_spreadsheet2"].stateValues.cells[row][
                         col + 1
-                    ]
+                    ],
                 ).eq("second");
                 expect(
                     stateVariables["/_spreadsheet2"].stateValues.cells[row + 1][
                         col
-                    ]
+                    ],
                 ).eq("third");
                 expect(
                     stateVariables["/_spreadsheet2"].stateValues.cells[row + 1][
                         col + 1
-                    ]
+                    ],
                 ).eq("fourth");
             }
         });
@@ -1786,7 +1794,7 @@ describe("Spreadsheet Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1797,20 +1805,20 @@ describe("Spreadsheet Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][0]).eq(
-                "(1,2)"
+                "(1,2)",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][1]).eq(
-                "hello"
+                "hello",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][2]).eq(
-                "5"
+                "5",
             );
             expect(stateVariables["/inAllCells"].activeChildren.length).eq(1);
             expect(
                 stateVariables[
                     stateVariables["/inAllCells"].activeChildren[0]
                         .componentName
-                ].stateValues.xs
+                ].stateValues.xs,
             ).eqls([1, 2]);
             expect(stateVariables["/inCellB3"].activeChildren.length).eq(0);
             expect(stateVariables["/inRow2"].activeChildren.length).eq(0);
@@ -1818,7 +1826,7 @@ describe("Spreadsheet Tag Tests", function () {
             expect(
                 stateVariables[
                     stateVariables["/inColumn1"].activeChildren[0].componentName
-                ].stateValues.xs
+                ].stateValues.xs,
             ).eqls([1, 2]);
             expect(stateVariables["/inRangeA2B4"].activeChildren.length).eq(0);
         });
@@ -1848,20 +1856,20 @@ describe("Spreadsheet Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][0]).eq(
-                "(4,9)"
+                "(4,9)",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][1]).eq(
-                "hello"
+                "hello",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][2]).eq(
-                "5"
+                "5",
             );
             expect(stateVariables["/inAllCells"].activeChildren.length).eq(1);
             expect(
                 stateVariables[
                     stateVariables["/inAllCells"].activeChildren[0]
                         .componentName
-                ].stateValues.xs
+                ].stateValues.xs,
             ).eqls([4, 9]);
             expect(stateVariables["/inCellB3"].activeChildren.length).eq(0);
             expect(stateVariables["/inRow2"].activeChildren.length).eq(0);
@@ -1869,7 +1877,7 @@ describe("Spreadsheet Tag Tests", function () {
             expect(
                 stateVariables[
                     stateVariables["/inColumn1"].activeChildren[0].componentName
-                ].stateValues.xs
+                ].stateValues.xs,
             ).eqls([4, 9]);
             expect(stateVariables["/inRangeA2B4"].activeChildren.length).eq(0);
         });
@@ -1886,49 +1894,49 @@ describe("Spreadsheet Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][0]).eq(
-                "(4,9)"
+                "(4,9)",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][1]).eq(
-                "hello"
+                "hello",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][2]).eq(
-                "5"
+                "5",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[2][1]).eq(
-                "(5,4)"
+                "(5,4)",
             );
             expect(stateVariables["/inAllCells"].activeChildren.length).eq(2);
             expect(
                 stateVariables[
                     stateVariables["/inAllCells"].activeChildren[0]
                         .componentName
-                ].stateValues.xs
+                ].stateValues.xs,
             ).eqls([4, 9]);
             expect(
                 stateVariables[
                     stateVariables["/inAllCells"].activeChildren[1]
                         .componentName
-                ].stateValues.xs
+                ].stateValues.xs,
             ).eqls([5, 4]);
             expect(stateVariables["/inCellB3"].activeChildren.length).eq(1);
             expect(
                 stateVariables[
                     stateVariables["/inCellB3"].activeChildren[0].componentName
-                ].stateValues.xs
+                ].stateValues.xs,
             ).eqls([5, 4]);
             expect(stateVariables["/inRow2"].activeChildren.length).eq(0);
             expect(stateVariables["/inColumn1"].activeChildren.length).eq(1);
             expect(
                 stateVariables[
                     stateVariables["/inColumn1"].activeChildren[0].componentName
-                ].stateValues.xs
+                ].stateValues.xs,
             ).eqls([4, 9]);
             expect(stateVariables["/inRangeA2B4"].activeChildren.length).eq(1);
             expect(
                 stateVariables[
                     stateVariables["/inRangeA2B4"].activeChildren[0]
                         .componentName
-                ].stateValues.xs
+                ].stateValues.xs,
             ).eqls([5, 4]);
         });
 
@@ -1959,29 +1967,29 @@ describe("Spreadsheet Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][0]).eq(
-                ")x,-"
+                ")x,-",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][1]).eq(
-                "hello"
+                "hello",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][2]).eq(
-                "5"
+                "5",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[2][1]).eq(
-                "(5,4)"
+                "(5,4)",
             );
             expect(stateVariables["/inAllCells"].activeChildren.length).eq(1);
             expect(
                 stateVariables[
                     stateVariables["/inAllCells"].activeChildren[0]
                         .componentName
-                ].stateValues.xs
+                ].stateValues.xs,
             ).eqls([5, 4]);
             expect(stateVariables["/inCellB3"].activeChildren.length).eq(1);
             expect(
                 stateVariables[
                     stateVariables["/inCellB3"].activeChildren[0].componentName
-                ].stateValues.xs
+                ].stateValues.xs,
             ).eqls([5, 4]);
             expect(stateVariables["/inRow2"].activeChildren.length).eq(0);
             expect(stateVariables["/inColumn1"].activeChildren.length).eq(0);
@@ -1990,7 +1998,7 @@ describe("Spreadsheet Tag Tests", function () {
                 stateVariables[
                     stateVariables["/inRangeA2B4"].activeChildren[0]
                         .componentName
-                ].stateValues.xs
+                ].stateValues.xs,
             ).eqls([5, 4]);
         });
 
@@ -2006,58 +2014,58 @@ describe("Spreadsheet Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][0]).eq(
-                ")x,-"
+                ")x,-",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][1]).eq(
-                "hello"
+                "hello",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][2]).eq(
-                "5"
+                "5",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[2][1]).eq(
-                "(5,4)"
+                "(5,4)",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[3][0]).eq(
-                "(3,2)"
+                "(3,2)",
             );
             expect(stateVariables["/inAllCells"].activeChildren.length).eq(2);
             expect(
                 stateVariables[
                     stateVariables["/inAllCells"].activeChildren[0]
                         .componentName
-                ].stateValues.xs
+                ].stateValues.xs,
             ).eqls([5, 4]);
             expect(
                 stateVariables[
                     stateVariables["/inAllCells"].activeChildren[1]
                         .componentName
-                ].stateValues.xs
+                ].stateValues.xs,
             ).eqls([3, 2]);
             expect(stateVariables["/inCellB3"].activeChildren.length).eq(1);
             expect(
                 stateVariables[
                     stateVariables["/inCellB3"].activeChildren[0].componentName
-                ].stateValues.xs
+                ].stateValues.xs,
             ).eqls([5, 4]);
             expect(stateVariables["/inRow2"].activeChildren.length).eq(0);
             expect(stateVariables["/inColumn1"].activeChildren.length).eq(1);
             expect(
                 stateVariables[
                     stateVariables["/inColumn1"].activeChildren[0].componentName
-                ].stateValues.xs
+                ].stateValues.xs,
             ).eqls([3, 2]);
             expect(stateVariables["/inRangeA2B4"].activeChildren.length).eq(2);
             expect(
                 stateVariables[
                     stateVariables["/inRangeA2B4"].activeChildren[0]
                         .componentName
-                ].stateValues.xs
+                ].stateValues.xs,
             ).eqls([5, 4]);
             expect(
                 stateVariables[
                     stateVariables["/inRangeA2B4"].activeChildren[1]
                         .componentName
-                ].stateValues.xs
+                ].stateValues.xs,
             ).eqls([3, 2]);
         });
 
@@ -2073,69 +2081,69 @@ describe("Spreadsheet Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][0]).eq(
-                "(7,3)"
+                "(7,3)",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][1]).eq(
-                "hello"
+                "hello",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][2]).eq(
-                "5"
+                "5",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[2][1]).eq(
-                "(5,4)"
+                "(5,4)",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[3][0]).eq(
-                "(3,2)"
+                "(3,2)",
             );
             expect(stateVariables["/inAllCells"].activeChildren.length).eq(3);
             expect(
                 stateVariables[
                     stateVariables["/inAllCells"].activeChildren[0]
                         .componentName
-                ].stateValues.xs
+                ].stateValues.xs,
             ).eqls([7, 3]);
             expect(
                 stateVariables[
                     stateVariables["/inAllCells"].activeChildren[1]
                         .componentName
-                ].stateValues.xs
+                ].stateValues.xs,
             ).eqls([5, 4]);
             expect(
                 stateVariables[
                     stateVariables["/inAllCells"].activeChildren[2]
                         .componentName
-                ].stateValues.xs
+                ].stateValues.xs,
             ).eqls([3, 2]);
             expect(stateVariables["/inCellB3"].activeChildren.length).eq(1);
             expect(
                 stateVariables[
                     stateVariables["/inCellB3"].activeChildren[0].componentName
-                ].stateValues.xs
+                ].stateValues.xs,
             ).eqls([5, 4]);
             expect(stateVariables["/inRow2"].activeChildren.length).eq(0);
             expect(stateVariables["/inColumn1"].activeChildren.length).eq(2);
             expect(
                 stateVariables[
                     stateVariables["/inColumn1"].activeChildren[0].componentName
-                ].stateValues.xs
+                ].stateValues.xs,
             ).eqls([7, 3]);
             expect(
                 stateVariables[
                     stateVariables["/inColumn1"].activeChildren[1].componentName
-                ].stateValues.xs
+                ].stateValues.xs,
             ).eqls([3, 2]);
             expect(stateVariables["/inRangeA2B4"].activeChildren.length).eq(2);
             expect(
                 stateVariables[
                     stateVariables["/inRangeA2B4"].activeChildren[0]
                         .componentName
-                ].stateValues.xs
+                ].stateValues.xs,
             ).eqls([5, 4]);
             expect(
                 stateVariables[
                     stateVariables["/inRangeA2B4"].activeChildren[1]
                         .componentName
-                ].stateValues.xs
+                ].stateValues.xs,
             ).eqls([3, 2]);
         });
 
@@ -2151,83 +2159,83 @@ describe("Spreadsheet Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][0]).eq(
-                "(7,3)"
+                "(7,3)",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][1]).eq(
-                "hello"
+                "hello",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][2]).eq(
-                "5"
+                "5",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[2][1]).eq(
-                "(5,4)"
+                "(5,4)",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[3][0]).eq(
-                "(3,2)"
+                "(3,2)",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[1][3]).eq(
-                "(x,q)"
+                "(x,q)",
             );
             expect(stateVariables["/inAllCells"].activeChildren.length).eq(4);
             expect(
                 stateVariables[
                     stateVariables["/inAllCells"].activeChildren[0]
                         .componentName
-                ].stateValues.xs
+                ].stateValues.xs,
             ).eqls([7, 3]);
             expect(
                 stateVariables[
                     stateVariables["/inAllCells"].activeChildren[1]
                         .componentName
-                ].stateValues.xs
+                ].stateValues.xs,
             ).eqls(["x", "q"]);
             expect(
                 stateVariables[
                     stateVariables["/inAllCells"].activeChildren[2]
                         .componentName
-                ].stateValues.xs
+                ].stateValues.xs,
             ).eqls([5, 4]);
             expect(
                 stateVariables[
                     stateVariables["/inAllCells"].activeChildren[3]
                         .componentName
-                ].stateValues.xs
+                ].stateValues.xs,
             ).eqls([3, 2]);
             expect(stateVariables["/inCellB3"].activeChildren.length).eq(1);
             expect(
                 stateVariables[
                     stateVariables["/inCellB3"].activeChildren[0].componentName
-                ].stateValues.xs
+                ].stateValues.xs,
             ).eqls([5, 4]);
             expect(stateVariables["/inRow2"].activeChildren.length).eq(1);
             expect(
                 stateVariables[
                     stateVariables["/inRow2"].activeChildren[0].componentName
-                ].stateValues.xs
+                ].stateValues.xs,
             ).eqls(["x", "q"]);
             expect(stateVariables["/inColumn1"].activeChildren.length).eq(2);
             expect(
                 stateVariables[
                     stateVariables["/inColumn1"].activeChildren[0].componentName
-                ].stateValues.xs
+                ].stateValues.xs,
             ).eqls([7, 3]);
             expect(
                 stateVariables[
                     stateVariables["/inColumn1"].activeChildren[1].componentName
-                ].stateValues.xs
+                ].stateValues.xs,
             ).eqls([3, 2]);
             expect(stateVariables["/inRangeA2B4"].activeChildren.length).eq(2);
             expect(
                 stateVariables[
                     stateVariables["/inRangeA2B4"].activeChildren[0]
                         .componentName
-                ].stateValues.xs
+                ].stateValues.xs,
             ).eqls([5, 4]);
             expect(
                 stateVariables[
                     stateVariables["/inRangeA2B4"].activeChildren[1]
                         .componentName
-                ].stateValues.xs
+                ].stateValues.xs,
             ).eqls([3, 2]);
         });
 
@@ -2243,108 +2251,108 @@ describe("Spreadsheet Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][0]).eq(
-                "(7,3)"
+                "(7,3)",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][1]).eq(
-                "hello"
+                "hello",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][2]).eq(
-                "5"
+                "5",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[2][1]).eq(
-                "(5,4)"
+                "(5,4)",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[3][0]).eq(
-                "(3,2)"
+                "(3,2)",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[1][3]).eq(
-                "(x,q)"
+                "(x,q)",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[1][0]).eq(
-                "(1,2,3)"
+                "(1,2,3)",
             );
             expect(stateVariables["/inAllCells"].activeChildren.length).eq(5);
             expect(
                 stateVariables[
                     stateVariables["/inAllCells"].activeChildren[0]
                         .componentName
-                ].stateValues.xs
+                ].stateValues.xs,
             ).eqls([7, 3]);
             expect(
                 stateVariables[
                     stateVariables["/inAllCells"].activeChildren[1]
                         .componentName
-                ].stateValues.xs
+                ].stateValues.xs,
             ).eqls([1, 2, 3]);
             expect(
                 stateVariables[
                     stateVariables["/inAllCells"].activeChildren[2]
                         .componentName
-                ].stateValues.xs
+                ].stateValues.xs,
             ).eqls(["x", "q"]);
             expect(
                 stateVariables[
                     stateVariables["/inAllCells"].activeChildren[3]
                         .componentName
-                ].stateValues.xs
+                ].stateValues.xs,
             ).eqls([5, 4]);
             expect(
                 stateVariables[
                     stateVariables["/inAllCells"].activeChildren[4]
                         .componentName
-                ].stateValues.xs
+                ].stateValues.xs,
             ).eqls([3, 2]);
             expect(stateVariables["/inCellB3"].activeChildren.length).eq(1);
             expect(
                 stateVariables[
                     stateVariables["/inCellB3"].activeChildren[0].componentName
-                ].stateValues.xs
+                ].stateValues.xs,
             ).eqls([5, 4]);
             expect(stateVariables["/inRow2"].activeChildren.length).eq(2);
             expect(
                 stateVariables[
                     stateVariables["/inRow2"].activeChildren[0].componentName
-                ].stateValues.xs
+                ].stateValues.xs,
             ).eqls([1, 2, 3]);
             expect(
                 stateVariables[
                     stateVariables["/inRow2"].activeChildren[1].componentName
-                ].stateValues.xs
+                ].stateValues.xs,
             ).eqls(["x", "q"]);
             expect(stateVariables["/inColumn1"].activeChildren.length).eq(3);
             expect(
                 stateVariables[
                     stateVariables["/inColumn1"].activeChildren[0].componentName
-                ].stateValues.xs
+                ].stateValues.xs,
             ).eqls([7, 3]);
             expect(
                 stateVariables[
                     stateVariables["/inColumn1"].activeChildren[1].componentName
-                ].stateValues.xs
+                ].stateValues.xs,
             ).eqls([1, 2, 3]);
             expect(
                 stateVariables[
                     stateVariables["/inColumn1"].activeChildren[2].componentName
-                ].stateValues.xs
+                ].stateValues.xs,
             ).eqls([3, 2]);
             expect(stateVariables["/inRangeA2B4"].activeChildren.length).eq(3);
             expect(
                 stateVariables[
                     stateVariables["/inRangeA2B4"].activeChildren[0]
                         .componentName
-                ].stateValues.xs
+                ].stateValues.xs,
             ).eqls([1, 2, 3]);
             expect(
                 stateVariables[
                     stateVariables["/inRangeA2B4"].activeChildren[1]
                         .componentName
-                ].stateValues.xs
+                ].stateValues.xs,
             ).eqls([5, 4]);
             expect(
                 stateVariables[
                     stateVariables["/inRangeA2B4"].activeChildren[2]
                         .componentName
-                ].stateValues.xs
+                ].stateValues.xs,
             ).eqls([3, 2]);
         });
 
@@ -2402,7 +2410,7 @@ describe("Spreadsheet Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2423,16 +2431,16 @@ describe("Spreadsheet Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][0]).eq(
-                "x²"
+                "x²",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][1]).eq(
-                "hello"
+                "hello",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][2]).eq(
-                "5"
+                "5",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][3]).eq(
-                "true"
+                "true",
             );
         });
 
@@ -2481,16 +2489,16 @@ describe("Spreadsheet Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][0]).eq(
-                "3(-"
+                "3(-",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][1]).eq(
-                "bye"
+                "bye",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][2]).eq(
-                "ab"
+                "ab",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][3]).eq(
-                "1+q"
+                "1+q",
             );
         });
     });
@@ -2521,7 +2529,7 @@ describe("Spreadsheet Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2549,7 +2557,7 @@ describe("Spreadsheet Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_spreadsheet1"].stateValues.numRows).eq(4);
             expect(stateVariables["/_spreadsheet1"].stateValues.numColumns).eq(
-                6
+                6,
             );
             expect(stateVariables["/s2"].stateValues.numRows).eq(4);
             expect(stateVariables["/s2"].stateValues.numColumns).eq(6);
@@ -2557,10 +2565,10 @@ describe("Spreadsheet Tag Tests", function () {
                 expect(
                     stateVariables["/_spreadsheet1"].stateValues.cells[inds[0]][
                         inds[1]
-                    ]
+                    ],
                 ).eq(`first`);
                 expect(
-                    stateVariables["/s2"].stateValues.cells[inds[0]][inds[1]]
+                    stateVariables["/s2"].stateValues.cells[inds[0]][inds[1]],
                 ).eq(`first`);
             }
             for (let inds of secondInds) {
@@ -2568,15 +2576,15 @@ describe("Spreadsheet Tag Tests", function () {
                     ["", undefined].includes(
                         stateVariables["/_spreadsheet1"].stateValues.cells[
                             inds[0]
-                        ][inds[1]]
-                    )
+                        ][inds[1]],
+                    ),
                 ).eq(true);
                 expect(
                     ["", undefined].includes(
                         stateVariables["/s2"].stateValues.cells[inds[0]][
                             inds[1]
-                        ]
-                    )
+                        ],
+                    ),
                 ).eq(true);
             }
         });
@@ -2596,24 +2604,24 @@ describe("Spreadsheet Tag Tests", function () {
                     expect(
                         stateVariables["/_spreadsheet1"].stateValues.cells[
                             inds[0]
-                        ][inds[1]]
+                        ][inds[1]],
                     ).eq("first");
                     expect(
                         stateVariables["/s2"].stateValues.cells[inds[0]][
                             inds[1]
-                        ]
+                        ],
                     ).eq("first");
                 }
                 for (let inds of secondInds) {
                     expect(
                         stateVariables["/_spreadsheet1"].stateValues.cells[
                             inds[0]
-                        ][inds[1]]
+                        ][inds[1]],
                     ).eq(newText);
                     expect(
                         stateVariables["/s2"].stateValues.cells[inds[0]][
                             inds[1]
-                        ]
+                        ],
                     ).eq(newText);
                 }
             });
@@ -2634,24 +2642,24 @@ describe("Spreadsheet Tag Tests", function () {
                     expect(
                         stateVariables["/_spreadsheet1"].stateValues.cells[
                             inds[0]
-                        ][inds[1]]
+                        ][inds[1]],
                     ).eq(newText);
                     expect(
                         stateVariables["/s2"].stateValues.cells[inds[0]][
                             inds[1]
-                        ]
+                        ],
                     ).eq(newText);
                 }
                 for (let inds of secondInds) {
                     expect(
                         stateVariables["/_spreadsheet1"].stateValues.cells[
                             inds[0]
-                        ][inds[1]]
+                        ][inds[1]],
                     ).eq("a20");
                     expect(
                         stateVariables["/s2"].stateValues.cells[inds[0]][
                             inds[1]
-                        ]
+                        ],
                     ).eq("a20");
                 }
             });
@@ -2672,24 +2680,24 @@ describe("Spreadsheet Tag Tests", function () {
                     expect(
                         stateVariables["/_spreadsheet1"].stateValues.cells[
                             inds[0]
-                        ][inds[1]]
+                        ][inds[1]],
                     ).eq("b04");
                     expect(
                         stateVariables["/s2"].stateValues.cells[inds[0]][
                             inds[1]
-                        ]
+                        ],
                     ).eq("b04");
                 }
                 for (let inds of secondInds) {
                     expect(
                         stateVariables["/_spreadsheet1"].stateValues.cells[
                             inds[0]
-                        ][inds[1]]
+                        ][inds[1]],
                     ).eq(newText);
                     expect(
                         stateVariables["/s2"].stateValues.cells[inds[0]][
                             inds[1]
-                        ]
+                        ],
                     ).eq(newText);
                 }
             });
@@ -2710,24 +2718,24 @@ describe("Spreadsheet Tag Tests", function () {
                     expect(
                         stateVariables["/_spreadsheet1"].stateValues.cells[
                             inds[0]
-                        ][inds[1]]
+                        ][inds[1]],
                     ).eq(newText);
                     expect(
                         stateVariables["/s2"].stateValues.cells[inds[0]][
                             inds[1]
-                        ]
+                        ],
                     ).eq(newText);
                 }
                 for (let inds of secondInds) {
                     expect(
                         stateVariables["/_spreadsheet1"].stateValues.cells[
                             inds[0]
-                        ][inds[1]]
+                        ][inds[1]],
                     ).eq("c20");
                     expect(
                         stateVariables["/s2"].stateValues.cells[inds[0]][
                             inds[1]
-                        ]
+                        ],
                     ).eq("c20");
                 }
             });
@@ -2752,7 +2760,7 @@ describe("Spreadsheet Tag Tests", function () {
   <copy name="s2" source="_spreadsheet1" />
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2796,24 +2804,24 @@ describe("Spreadsheet Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_spreadsheet1"].stateValues.numRows).eq(7);
             expect(stateVariables["/_spreadsheet1"].stateValues.numColumns).eq(
-                5
+                5,
             );
             expect(
-                stateVariables["/s2"].replacements[0].stateValues.numRows
+                stateVariables["/s2"].replacements[0].stateValues.numRows,
             ).eq(7);
             expect(
-                stateVariables["/s2"].replacements[0].stateValues.numColumns
+                stateVariables["/s2"].replacements[0].stateValues.numColumns,
             ).eq(5);
             for (let inds of firstInds) {
                 expect(
                     stateVariables["/_spreadsheet1"].stateValues.cells[inds[0]][
                         inds[1]
-                    ]
+                    ],
                 ).eq(`first`);
                 expect(
                     stateVariables["/s2"].replacements[0].stateValues.cells[
                         inds[0]
-                    ][inds[1]]
+                    ][inds[1]],
                 ).eq(`first`);
             }
             for (let inds of secondInds) {
@@ -2821,15 +2829,15 @@ describe("Spreadsheet Tag Tests", function () {
                     ["", undefined].includes(
                         stateVariables["/_spreadsheet1"].stateValues.cells[
                             inds[0]
-                        ][inds[1]]
-                    )
+                        ][inds[1]],
+                    ),
                 ).eq(true);
                 expect(
                     ["", undefined].includes(
                         stateVariables["/s2"].replacements[0].stateValues.cells[
                             inds[0]
-                        ][inds[1]]
-                    )
+                        ][inds[1]],
+                    ),
                 ).eq(true);
             }
         });
@@ -2850,24 +2858,24 @@ describe("Spreadsheet Tag Tests", function () {
                     expect(
                         stateVariables["/_spreadsheet1"].stateValues.cells[
                             inds[0]
-                        ][inds[1]]
+                        ][inds[1]],
                     ).eq("first");
                     expect(
                         stateVariables["/s2"].replacements[0].stateValues.cells[
                             inds[0]
-                        ][inds[1]]
+                        ][inds[1]],
                     ).eq("first");
                 }
                 for (let inds of secondInds) {
                     expect(
                         stateVariables["/_spreadsheet1"].stateValues.cells[
                             inds[0]
-                        ][inds[1]]
+                        ][inds[1]],
                     ).eq(newText);
                     expect(
                         stateVariables["/s2"].replacements[0].stateValues.cells[
                             inds[0]
-                        ][inds[1]]
+                        ][inds[1]],
                     ).eq(newText);
                 }
             });
@@ -2888,24 +2896,24 @@ describe("Spreadsheet Tag Tests", function () {
                     expect(
                         stateVariables["/_spreadsheet1"].stateValues.cells[
                             inds[0]
-                        ][inds[1]]
+                        ][inds[1]],
                     ).eq(newText);
                     expect(
                         stateVariables["/s2"].replacements[0].stateValues.cells[
                             inds[0]
-                        ][inds[1]]
+                        ][inds[1]],
                     ).eq(newText);
                 }
                 for (let inds of secondInds) {
                     expect(
                         stateVariables["/_spreadsheet1"].stateValues.cells[
                             inds[0]
-                        ][inds[1]]
+                        ][inds[1]],
                     ).eq("a44");
                     expect(
                         stateVariables["/s2"].replacements[0].stateValues.cells[
                             inds[0]
-                        ][inds[1]]
+                        ][inds[1]],
                     ).eq("a44");
                 }
             });
@@ -2926,24 +2934,24 @@ describe("Spreadsheet Tag Tests", function () {
                     expect(
                         stateVariables["/_spreadsheet1"].stateValues.cells[
                             inds[0]
-                        ][inds[1]]
+                        ][inds[1]],
                     ).eq("b54");
                     expect(
                         stateVariables["/s2"].replacements[0].stateValues.cells[
                             inds[0]
-                        ][inds[1]]
+                        ][inds[1]],
                     ).eq("b54");
                 }
                 for (let inds of secondInds) {
                     expect(
                         stateVariables["/_spreadsheet1"].stateValues.cells[
                             inds[0]
-                        ][inds[1]]
+                        ][inds[1]],
                     ).eq(newText);
                     expect(
                         stateVariables["/s2"].replacements[0].stateValues.cells[
                             inds[0]
-                        ][inds[1]]
+                        ][inds[1]],
                     ).eq(newText);
                 }
             });
@@ -2964,24 +2972,24 @@ describe("Spreadsheet Tag Tests", function () {
                     expect(
                         stateVariables["/_spreadsheet1"].stateValues.cells[
                             inds[0]
-                        ][inds[1]]
+                        ][inds[1]],
                     ).eq(newText);
                     expect(
                         stateVariables["/s2"].replacements[0].stateValues.cells[
                             inds[0]
-                        ][inds[1]]
+                        ][inds[1]],
                     ).eq(newText);
                 }
                 for (let inds of secondInds) {
                     expect(
                         stateVariables["/_spreadsheet1"].stateValues.cells[
                             inds[0]
-                        ][inds[1]]
+                        ][inds[1]],
                     ).eq("c44");
                     expect(
                         stateVariables["/s2"].replacements[0].stateValues.cells[
                             inds[0]
-                        ][inds[1]]
+                        ][inds[1]],
                     ).eq("c44");
                 }
             });
@@ -3006,24 +3014,24 @@ describe("Spreadsheet Tag Tests", function () {
                 expect(
                     stateVariables["/_spreadsheet1"].stateValues.cells[inds[0]][
                         inds[1]
-                    ]
+                    ],
                 ).eq(blockTexts1[i]);
                 expect(
                     stateVariables["/s2"].replacements[0].stateValues.cells[
                         inds[0]
-                    ][inds[1]]
+                    ][inds[1]],
                 ).eq(blockTexts1[i]);
             }
             for (let [i, inds] of block2Inds.entries()) {
                 expect(
                     stateVariables["/_spreadsheet1"].stateValues.cells[inds[0]][
                         inds[1]
-                    ]
+                    ],
                 ).eq(blockTexts1[i]);
                 expect(
                     stateVariables["/s2"].replacements[0].stateValues.cells[
                         inds[0]
-                    ][inds[1]]
+                    ][inds[1]],
                 ).eq(blockTexts1[i]);
             }
         });
@@ -3047,24 +3055,24 @@ describe("Spreadsheet Tag Tests", function () {
                 expect(
                     stateVariables["/_spreadsheet1"].stateValues.cells[inds[0]][
                         inds[1]
-                    ]
+                    ],
                 ).eq(blockTexts2[i]);
                 expect(
                     stateVariables["/s2"].replacements[0].stateValues.cells[
                         inds[0]
-                    ][inds[1]]
+                    ][inds[1]],
                 ).eq(blockTexts2[i]);
             }
             for (let [i, inds] of block2Inds.entries()) {
                 expect(
                     stateVariables["/_spreadsheet1"].stateValues.cells[inds[0]][
                         inds[1]
-                    ]
+                    ],
                 ).eq(blockTexts2[i]);
                 expect(
                     stateVariables["/s2"].replacements[0].stateValues.cells[
                         inds[0]
-                    ][inds[1]]
+                    ][inds[1]],
                 ).eq(blockTexts2[i]);
             }
         });
@@ -3088,24 +3096,24 @@ describe("Spreadsheet Tag Tests", function () {
                 expect(
                     stateVariables["/_spreadsheet1"].stateValues.cells[inds[0]][
                         inds[1]
-                    ]
+                    ],
                 ).eq(blockTexts3[i]);
                 expect(
                     stateVariables["/s2"].replacements[0].stateValues.cells[
                         inds[0]
-                    ][inds[1]]
+                    ][inds[1]],
                 ).eq(blockTexts3[i]);
             }
             for (let [i, inds] of block2Inds.entries()) {
                 expect(
                     stateVariables["/_spreadsheet1"].stateValues.cells[inds[0]][
                         inds[1]
-                    ]
+                    ],
                 ).eq(blockTexts3[i]);
                 expect(
                     stateVariables["/s2"].replacements[0].stateValues.cells[
                         inds[0]
-                    ][inds[1]]
+                    ][inds[1]],
                 ).eq(blockTexts3[i]);
             }
         });
@@ -3129,24 +3137,24 @@ describe("Spreadsheet Tag Tests", function () {
                 expect(
                     stateVariables["/_spreadsheet1"].stateValues.cells[inds[0]][
                         inds[1]
-                    ]
+                    ],
                 ).eq(blockTexts4[i]);
                 expect(
                     stateVariables["/s2"].replacements[0].stateValues.cells[
                         inds[0]
-                    ][inds[1]]
+                    ][inds[1]],
                 ).eq(blockTexts4[i]);
             }
             for (let [i, inds] of block2Inds.entries()) {
                 expect(
                     stateVariables["/_spreadsheet1"].stateValues.cells[inds[0]][
                         inds[1]
-                    ]
+                    ],
                 ).eq(blockTexts4[i]);
                 expect(
                     stateVariables["/s2"].replacements[0].stateValues.cells[
                         inds[0]
-                    ][inds[1]]
+                    ][inds[1]],
                 ).eq(blockTexts4[i]);
             }
         });
@@ -3169,7 +3177,7 @@ describe("Spreadsheet Tag Tests", function () {
   <copy name="s2" source="_spreadsheet1" />
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3185,28 +3193,28 @@ describe("Spreadsheet Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_spreadsheet1"].stateValues.numRows).eq(
-                numRows
+                numRows,
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.numColumns).eq(
-                numcols
+                numcols,
             );
             expect(
-                stateVariables["/s2"].replacements[0].stateValues.numRows
+                stateVariables["/s2"].replacements[0].stateValues.numRows,
             ).eq(numRows);
             expect(
-                stateVariables["/s2"].replacements[0].stateValues.numColumns
+                stateVariables["/s2"].replacements[0].stateValues.numColumns,
             ).eq(numcols);
             for (let row = 0; row < numRows; row++) {
                 for (let col of [0, 1, 5]) {
                     expect(
                         stateVariables["/_spreadsheet1"].stateValues.cells[row][
                             col
-                        ]
+                        ],
                     ).eq(rowTexts[col]);
                     expect(
                         stateVariables["/s2"].replacements[0].stateValues.cells[
                             row
-                        ][col]
+                        ][col],
                     ).eq(rowTexts[col]);
                 }
             }
@@ -3235,11 +3243,11 @@ describe("Spreadsheet Tag Tests", function () {
                         expect(
                             stateVariables["/_spreadsheet1"].stateValues.cells[
                                 row
-                            ][col]
+                            ][col],
                         ).eq(thisNew[col]);
                         expect(
                             stateVariables["/s2"].replacements[0].stateValues
-                                .cells[row][col]
+                                .cells[row][col],
                         ).eq(thisNew[col]);
                     }
                 }
@@ -3269,11 +3277,11 @@ describe("Spreadsheet Tag Tests", function () {
                         expect(
                             stateVariables["/_spreadsheet1"].stateValues.cells[
                                 row
-                            ][col]
+                            ][col],
                         ).eq(thisNew[col]);
                         expect(
                             stateVariables["/s2"].replacements[0].stateValues
-                                .cells[row][col]
+                                .cells[row][col],
                         ).eq(thisNew[col]);
                     }
                 }
@@ -3298,7 +3306,7 @@ describe("Spreadsheet Tag Tests", function () {
   <copy name="s2" source="_spreadsheet1" />
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3314,28 +3322,28 @@ describe("Spreadsheet Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_spreadsheet1"].stateValues.numRows).eq(
-                numRows
+                numRows,
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.numColumns).eq(
-                numcols
+                numcols,
             );
             expect(
-                stateVariables["/s2"].replacements[0].stateValues.numRows
+                stateVariables["/s2"].replacements[0].stateValues.numRows,
             ).eq(numRows);
             expect(
-                stateVariables["/s2"].replacements[0].stateValues.numColumns
+                stateVariables["/s2"].replacements[0].stateValues.numColumns,
             ).eq(numcols);
             for (let col = 0; col < numcols; col++) {
                 for (let row of [0, 1, 5]) {
                     expect(
                         stateVariables["/_spreadsheet1"].stateValues.cells[row][
                             col
-                        ]
+                        ],
                     ).eq(colTexts[row]);
                     expect(
                         stateVariables["/s2"].replacements[0].stateValues.cells[
                             row
-                        ][col]
+                        ][col],
                     ).eq(colTexts[row]);
                 }
             }
@@ -3364,11 +3372,11 @@ describe("Spreadsheet Tag Tests", function () {
                         expect(
                             stateVariables["/_spreadsheet1"].stateValues.cells[
                                 row
-                            ][col]
+                            ][col],
                         ).eq(thisNew[row]);
                         expect(
                             stateVariables["/s2"].replacements[0].stateValues
-                                .cells[row][col]
+                                .cells[row][col],
                         ).eq(thisNew[row]);
                     }
                 }
@@ -3398,11 +3406,11 @@ describe("Spreadsheet Tag Tests", function () {
                         expect(
                             stateVariables["/_spreadsheet1"].stateValues.cells[
                                 row
-                            ][col]
+                            ][col],
                         ).eq(thisNew[row]);
                         expect(
                             stateVariables["/s2"].replacements[0].stateValues
-                                .cells[row][col]
+                                .cells[row][col],
                         ).eq(thisNew[row]);
                     }
                 }
@@ -3430,7 +3438,7 @@ describe("Spreadsheet Tag Tests", function () {
   <copy name="s2" source="_spreadsheet1" />
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3488,28 +3496,28 @@ describe("Spreadsheet Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_spreadsheet1"].stateValues.numRows).eq(
-                numRows
+                numRows,
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.numColumns).eq(
-                numcols
+                numcols,
             );
             expect(
-                stateVariables["/s2"].replacements[0].stateValues.numRows
+                stateVariables["/s2"].replacements[0].stateValues.numRows,
             ).eq(numRows);
             expect(
-                stateVariables["/s2"].replacements[0].stateValues.numColumns
+                stateVariables["/s2"].replacements[0].stateValues.numColumns,
             ).eq(numcols);
             for (let group = 0; group < 8; group++) {
                 for (let inds of groupInds[group]) {
                     expect(
                         stateVariables["/_spreadsheet1"].stateValues.cells[
                             inds[0]
-                        ][inds[1]]
+                        ][inds[1]],
                     ).eq(groupTexts[group]);
                     expect(
                         stateVariables["/s2"].replacements[0].stateValues.cells[
                             inds[0]
-                        ][inds[1]]
+                        ][inds[1]],
                     ).eq(groupTexts[group]);
                 }
             }
@@ -3518,15 +3526,15 @@ describe("Spreadsheet Tag Tests", function () {
                     ["", undefined].includes(
                         stateVariables["/_spreadsheet1"].stateValues.cells[
                             inds[0]
-                        ][inds[1]]
-                    )
+                        ][inds[1]],
+                    ),
                 ).eq(true);
                 expect(
                     ["", undefined].includes(
                         stateVariables["/s2"].replacements[0].stateValues.cells[
                             inds[0]
-                        ][inds[1]]
-                    )
+                        ][inds[1]],
+                    ),
                 ).eq(true);
             }
         });
@@ -3583,11 +3591,11 @@ describe("Spreadsheet Tag Tests", function () {
                         expect(
                             stateVariables["/_spreadsheet1"].stateValues.cells[
                                 inds[0]
-                            ][inds[1]]
+                            ][inds[1]],
                         ).eq(thisNewGroup[group]);
                         expect(
                             stateVariables["/s2"].replacements[0].stateValues
-                                .cells[inds[0]][inds[1]]
+                                .cells[inds[0]][inds[1]],
                         ).eq(thisNewGroup[group]);
                     }
                 }
@@ -3646,11 +3654,11 @@ describe("Spreadsheet Tag Tests", function () {
                         expect(
                             stateVariables["/_spreadsheet1"].stateValues.cells[
                                 inds[0]
-                            ][inds[1]]
+                            ][inds[1]],
                         ).eq(thisNewGroup[group]);
                         expect(
                             stateVariables["/s2"].replacements[0].stateValues
-                                .cells[inds[0]][inds[1]]
+                                .cells[inds[0]][inds[1]],
                         ).eq(thisNewGroup[group]);
                     }
                 }
@@ -3686,7 +3694,7 @@ describe("Spreadsheet Tag Tests", function () {
   </spreadsheet>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3733,24 +3741,24 @@ describe("Spreadsheet Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_spreadsheet1"].stateValues.numRows).eq(7);
             expect(stateVariables["/_spreadsheet1"].stateValues.numColumns).eq(
-                6
+                6,
             );
             expect(stateVariables["/_spreadsheet2"].stateValues.numRows).eq(7);
             expect(stateVariables["/_spreadsheet2"].stateValues.numColumns).eq(
-                6
+                6,
             );
             for (let inds of firstInds) {
                 expect(
                     stateVariables["/_spreadsheet1"].stateValues.cells[inds[0]][
                         inds[1]
-                    ]
+                    ],
                 ).eq(`first`);
                 expect(
                     ["", undefined].includes(
                         stateVariables["/_spreadsheet2"].stateValues.cells[
                             inds[0]
-                        ][inds[1]]
-                    )
+                        ][inds[1]],
+                    ),
                 ).eq(true);
             }
             for (let inds of secondInds) {
@@ -3758,13 +3766,13 @@ describe("Spreadsheet Tag Tests", function () {
                     ["", undefined].includes(
                         stateVariables["/_spreadsheet1"].stateValues.cells[
                             inds[0]
-                        ][inds[1]]
-                    )
+                        ][inds[1]],
+                    ),
                 ).eq(true);
                 expect(
                     stateVariables["/_spreadsheet2"].stateValues.cells[inds[0]][
                         inds[1]
-                    ]
+                    ],
                 ).eq(`first`);
             }
             for (let inds of [
@@ -3777,15 +3785,15 @@ describe("Spreadsheet Tag Tests", function () {
                     ["", undefined].includes(
                         stateVariables["/_spreadsheet1"].stateValues.cells[
                             inds[0]
-                        ][inds[1]]
-                    )
+                        ][inds[1]],
+                    ),
                 ).eq(true);
                 expect(
                     ["", undefined].includes(
                         stateVariables["/_spreadsheet2"].stateValues.cells[
                             inds[0]
-                        ][inds[1]]
-                    )
+                        ][inds[1]],
+                    ),
                 ).eq(true);
             }
         });
@@ -3805,24 +3813,24 @@ describe("Spreadsheet Tag Tests", function () {
                     expect(
                         stateVariables["/_spreadsheet1"].stateValues.cells[
                             inds[0]
-                        ][inds[1]]
+                        ][inds[1]],
                     ).eq("first");
                     expect(
                         stateVariables["/_spreadsheet2"].stateValues.cells[
                             inds[0]
-                        ][inds[1]]
+                        ][inds[1]],
                     ).eq(newText);
                 }
                 for (let inds of secondInds) {
                     expect(
                         stateVariables["/_spreadsheet1"].stateValues.cells[
                             inds[0]
-                        ][inds[1]]
+                        ][inds[1]],
                     ).eq(newText);
                     expect(
                         stateVariables["/_spreadsheet2"].stateValues.cells[
                             inds[0]
-                        ][inds[1]]
+                        ][inds[1]],
                     ).eq("first");
                 }
             });
@@ -3843,24 +3851,24 @@ describe("Spreadsheet Tag Tests", function () {
                     expect(
                         stateVariables["/_spreadsheet1"].stateValues.cells[
                             inds[0]
-                        ][inds[1]]
+                        ][inds[1]],
                     ).eq(newText);
                     expect(
                         stateVariables["/_spreadsheet2"].stateValues.cells[
                             inds[0]
-                        ][inds[1]]
+                        ][inds[1]],
                     ).eq("a54");
                 }
                 for (let inds of secondInds) {
                     expect(
                         stateVariables["/_spreadsheet1"].stateValues.cells[
                             inds[0]
-                        ][inds[1]]
+                        ][inds[1]],
                     ).eq("a54");
                     expect(
                         stateVariables["/_spreadsheet2"].stateValues.cells[
                             inds[0]
-                        ][inds[1]]
+                        ][inds[1]],
                     ).eq(newText);
                 }
             });
@@ -3881,24 +3889,24 @@ describe("Spreadsheet Tag Tests", function () {
                     expect(
                         stateVariables["/_spreadsheet1"].stateValues.cells[
                             inds[0]
-                        ][inds[1]]
+                        ][inds[1]],
                     ).eq("b65");
                     expect(
                         stateVariables["/_spreadsheet2"].stateValues.cells[
                             inds[0]
-                        ][inds[1]]
+                        ][inds[1]],
                     ).eq(newText);
                 }
                 for (let inds of secondInds) {
                     expect(
                         stateVariables["/_spreadsheet1"].stateValues.cells[
                             inds[0]
-                        ][inds[1]]
+                        ][inds[1]],
                     ).eq(newText);
                     expect(
                         stateVariables["/_spreadsheet2"].stateValues.cells[
                             inds[0]
-                        ][inds[1]]
+                        ][inds[1]],
                     ).eq("b65");
                 }
             });
@@ -3919,24 +3927,24 @@ describe("Spreadsheet Tag Tests", function () {
                     expect(
                         stateVariables["/_spreadsheet1"].stateValues.cells[
                             inds[0]
-                        ][inds[1]]
+                        ][inds[1]],
                     ).eq(newText);
                     expect(
                         stateVariables["/_spreadsheet2"].stateValues.cells[
                             inds[0]
-                        ][inds[1]]
+                        ][inds[1]],
                     ).eq("c65");
                 }
                 for (let inds of secondInds) {
                     expect(
                         stateVariables["/_spreadsheet1"].stateValues.cells[
                             inds[0]
-                        ][inds[1]]
+                        ][inds[1]],
                     ).eq("c65");
                     expect(
                         stateVariables["/_spreadsheet2"].stateValues.cells[
                             inds[0]
-                        ][inds[1]]
+                        ][inds[1]],
                     ).eq(newText);
                 }
             });
@@ -3961,14 +3969,14 @@ describe("Spreadsheet Tag Tests", function () {
                 expect(
                     stateVariables["/_spreadsheet1"].stateValues.cells[inds[0]][
                         inds[1]
-                    ]
+                    ],
                 ).eq(blockTexts1[i]);
             }
             for (let [i, inds] of [...block2Inds, ...block1Inds].entries()) {
                 expect(
                     stateVariables["/_spreadsheet2"].stateValues.cells[inds[0]][
                         inds[1]
-                    ]
+                    ],
                 ).eq(blockTexts1[i]);
             }
         });
@@ -3992,14 +4000,14 @@ describe("Spreadsheet Tag Tests", function () {
                 expect(
                     stateVariables["/_spreadsheet2"].stateValues.cells[inds[0]][
                         inds[1]
-                    ]
+                    ],
                 ).eq(blockTexts2[i]);
             }
             for (let [i, inds] of [...block2Inds, ...block1Inds].entries()) {
                 expect(
                     stateVariables["/_spreadsheet1"].stateValues.cells[inds[0]][
                         inds[1]
-                    ]
+                    ],
                 ).eq(blockTexts2[i]);
             }
         });
@@ -4023,14 +4031,14 @@ describe("Spreadsheet Tag Tests", function () {
                 expect(
                     stateVariables["/_spreadsheet1"].stateValues.cells[inds[0]][
                         inds[1]
-                    ]
+                    ],
                 ).eq(rowTexts1[i]);
             }
             for (let [i, inds] of [...row2Inds, ...row1Inds].entries()) {
                 expect(
                     stateVariables["/_spreadsheet2"].stateValues.cells[inds[0]][
                         inds[1]
-                    ]
+                    ],
                 ).eq(rowTexts1[i]);
             }
         });
@@ -4054,14 +4062,14 @@ describe("Spreadsheet Tag Tests", function () {
                 expect(
                     stateVariables["/_spreadsheet2"].stateValues.cells[inds[0]][
                         inds[1]
-                    ]
+                    ],
                 ).eq(rowTexts2[i]);
             }
             for (let [i, inds] of [...row2Inds, ...row1Inds].entries()) {
                 expect(
                     stateVariables["/_spreadsheet1"].stateValues.cells[inds[0]][
                         inds[1]
-                    ]
+                    ],
                 ).eq(rowTexts2[i]);
             }
         });
@@ -4084,7 +4092,7 @@ describe("Spreadsheet Tag Tests", function () {
   <spreadsheet></spreadsheet>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4144,16 +4152,16 @@ describe("Spreadsheet Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_spreadsheet1"].stateValues.numRows).eq(
-                numrows1
+                numrows1,
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.numColumns).eq(
-                numcols1
+                numcols1,
             );
             expect(stateVariables["/_spreadsheet2"].stateValues.numRows).eq(
-                numrows2
+                numrows2,
             );
             expect(stateVariables["/_spreadsheet2"].stateValues.numColumns).eq(
-                numcols2
+                numcols2,
             );
         });
 
@@ -4175,21 +4183,21 @@ describe("Spreadsheet Tag Tests", function () {
                 expect(
                     stateVariables["/_spreadsheet1"].stateValues.cells[inds[0]][
                         inds[1]
-                    ]
+                    ],
                 ).eq(textsA[i]);
             }
             for (let [i, inds] of inds1B.entries()) {
                 expect(
                     stateVariables["/_spreadsheet1"].stateValues.cells[inds[0]][
                         inds[1]
-                    ]
+                    ],
                 ).eq(textsA[i]);
             }
             for (let [i, inds] of inds2.entries()) {
                 expect(
                     stateVariables["/_spreadsheet2"].stateValues.cells[inds[0]][
                         inds[1]
-                    ]
+                    ],
                 ).eq(textsA[i + inds1B.length]);
             }
         });
@@ -4222,21 +4230,21 @@ describe("Spreadsheet Tag Tests", function () {
                 expect(
                     stateVariables["/_spreadsheet1"].stateValues.cells[inds[0]][
                         inds[1]
-                    ]
+                    ],
                 ).eq(textsB[i]);
             }
             for (let [i, inds] of inds1B.entries()) {
                 expect(
                     stateVariables["/_spreadsheet1"].stateValues.cells[inds[0]][
                         inds[1]
-                    ]
+                    ],
                 ).eq(textsB[i]);
             }
             for (let [i, inds] of inds2.entries()) {
                 expect(
                     stateVariables["/_spreadsheet2"].stateValues.cells[inds[0]][
                         inds[1]
-                    ]
+                    ],
                 ).eq(textsB[i + inds1B.length]);
             }
         });
@@ -4256,7 +4264,7 @@ describe("Spreadsheet Tag Tests", function () {
   <copy name="s2" source="_spreadsheet1" />
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4268,25 +4276,25 @@ describe("Spreadsheet Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_spreadsheet1"].stateValues.numRows).eq(4);
             expect(stateVariables["/_spreadsheet1"].stateValues.numColumns).eq(
-                4
+                4,
             );
             expect(
-                stateVariables["/s2"].replacements[0].stateValues.numRows
+                stateVariables["/s2"].replacements[0].stateValues.numRows,
             ).eq(4);
             expect(
-                stateVariables["/s2"].replacements[0].stateValues.numColumns
+                stateVariables["/s2"].replacements[0].stateValues.numColumns,
             ).eq(4);
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][0]).eq(
-                "4"
+                "4",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][1]).eq(
-                "4"
+                "4",
             );
             expect(
-                stateVariables["/s2"].replacements[0].stateValues.cells[0][0]
+                stateVariables["/s2"].replacements[0].stateValues.cells[0][0],
             ).eq("4");
             expect(
-                stateVariables["/s2"].replacements[0].stateValues.cells[0][1]
+                stateVariables["/s2"].replacements[0].stateValues.cells[0][1],
             ).eq("4");
         });
 
@@ -4307,25 +4315,25 @@ describe("Spreadsheet Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_spreadsheet1"].stateValues.numRows).eq(6);
             expect(stateVariables["/_spreadsheet1"].stateValues.numColumns).eq(
-                7
+                7,
             );
             expect(
-                stateVariables["/s2"].replacements[0].stateValues.numRows
+                stateVariables["/s2"].replacements[0].stateValues.numRows,
             ).eq(6);
             expect(
-                stateVariables["/s2"].replacements[0].stateValues.numColumns
+                stateVariables["/s2"].replacements[0].stateValues.numColumns,
             ).eq(7);
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][0]).eq(
-                "6"
+                "6",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][1]).eq(
-                "7"
+                "7",
             );
             expect(
-                stateVariables["/s2"].replacements[0].stateValues.cells[0][0]
+                stateVariables["/s2"].replacements[0].stateValues.cells[0][0],
             ).eq("6");
             expect(
-                stateVariables["/s2"].replacements[0].stateValues.cells[0][1]
+                stateVariables["/s2"].replacements[0].stateValues.cells[0][1],
             ).eq("7");
         });
 
@@ -4348,25 +4356,25 @@ describe("Spreadsheet Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_spreadsheet1"].stateValues.numRows).eq(6);
             expect(stateVariables["/_spreadsheet1"].stateValues.numColumns).eq(
-                7
+                7,
             );
             expect(
-                stateVariables["/s2"].replacements[0].stateValues.numRows
+                stateVariables["/s2"].replacements[0].stateValues.numRows,
             ).eq(6);
             expect(
-                stateVariables["/s2"].replacements[0].stateValues.numColumns
+                stateVariables["/s2"].replacements[0].stateValues.numColumns,
             ).eq(7);
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][0]).eq(
-                "6"
+                "6",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][1]).eq(
-                "7"
+                "7",
             );
             expect(
-                stateVariables["/s2"].replacements[0].stateValues.cells[0][0]
+                stateVariables["/s2"].replacements[0].stateValues.cells[0][0],
             ).eq("6");
             expect(
-                stateVariables["/s2"].replacements[0].stateValues.cells[0][1]
+                stateVariables["/s2"].replacements[0].stateValues.cells[0][1],
             ).eq("7");
         });
 
@@ -4389,25 +4397,25 @@ describe("Spreadsheet Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_spreadsheet1"].stateValues.numRows).eq(6);
             expect(stateVariables["/_spreadsheet1"].stateValues.numColumns).eq(
-                7
+                7,
             );
             expect(
-                stateVariables["/s2"].replacements[0].stateValues.numRows
+                stateVariables["/s2"].replacements[0].stateValues.numRows,
             ).eq(6);
             expect(
-                stateVariables["/s2"].replacements[0].stateValues.numColumns
+                stateVariables["/s2"].replacements[0].stateValues.numColumns,
             ).eq(7);
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][0]).eq(
-                "6"
+                "6",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][1]).eq(
-                "7"
+                "7",
             );
             expect(
-                stateVariables["/s2"].replacements[0].stateValues.cells[0][0]
+                stateVariables["/s2"].replacements[0].stateValues.cells[0][0],
             ).eq("6");
             expect(
-                stateVariables["/s2"].replacements[0].stateValues.cells[0][1]
+                stateVariables["/s2"].replacements[0].stateValues.cells[0][1],
             ).eq("7");
         });
 
@@ -4428,25 +4436,25 @@ describe("Spreadsheet Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_spreadsheet1"].stateValues.numRows).eq(11);
             expect(stateVariables["/_spreadsheet1"].stateValues.numColumns).eq(
-                9
+                9,
             );
             expect(
-                stateVariables["/s2"].replacements[0].stateValues.numRows
+                stateVariables["/s2"].replacements[0].stateValues.numRows,
             ).eq(11);
             expect(
-                stateVariables["/s2"].replacements[0].stateValues.numColumns
+                stateVariables["/s2"].replacements[0].stateValues.numColumns,
             ).eq(9);
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][0]).eq(
-                "11"
+                "11",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][1]).eq(
-                "9"
+                "9",
             );
             expect(
-                stateVariables["/s2"].replacements[0].stateValues.cells[0][0]
+                stateVariables["/s2"].replacements[0].stateValues.cells[0][0],
             ).eq("11");
             expect(
-                stateVariables["/s2"].replacements[0].stateValues.cells[0][1]
+                stateVariables["/s2"].replacements[0].stateValues.cells[0][1],
             ).eq("9");
         });
     });
@@ -4465,7 +4473,7 @@ describe("Spreadsheet Tag Tests", function () {
   <copy name="s2" source="_spreadsheet1" />
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4477,35 +4485,35 @@ describe("Spreadsheet Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_spreadsheet1"].stateValues.numRows).eq(4);
             expect(stateVariables["/_spreadsheet1"].stateValues.numColumns).eq(
-                4
+                4,
             );
             expect(
-                stateVariables["/s2"].replacements[0].stateValues.numRows
+                stateVariables["/s2"].replacements[0].stateValues.numRows,
             ).eq(4);
             expect(
-                stateVariables["/s2"].replacements[0].stateValues.numColumns
+                stateVariables["/s2"].replacements[0].stateValues.numColumns,
             ).eq(4);
             expect(
                 [undefined, ""].includes(
-                    stateVariables["/_spreadsheet1"].stateValues.cells[0][0]
-                )
+                    stateVariables["/_spreadsheet1"].stateValues.cells[0][0],
+                ),
             ).eq(true);
             expect(
                 [undefined, ""].includes(
-                    stateVariables["/_spreadsheet1"].stateValues.cells[0][1]
-                )
+                    stateVariables["/_spreadsheet1"].stateValues.cells[0][1],
+                ),
             ).eq(true);
             expect(
                 [undefined, ""].includes(
                     stateVariables["/s2"].replacements[0].stateValues
-                        .cells[0][0]
-                )
+                        .cells[0][0],
+                ),
             ).eq(true);
             expect(
                 [undefined, ""].includes(
                     stateVariables["/s2"].replacements[0].stateValues
-                        .cells[0][1]
-                )
+                        .cells[0][1],
+                ),
             ).eq(true);
         });
 
@@ -4526,25 +4534,25 @@ describe("Spreadsheet Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_spreadsheet1"].stateValues.numRows).eq(6);
             expect(stateVariables["/_spreadsheet1"].stateValues.numColumns).eq(
-                7
+                7,
             );
             expect(
-                stateVariables["/s2"].replacements[0].stateValues.numRows
+                stateVariables["/s2"].replacements[0].stateValues.numRows,
             ).eq(6);
             expect(
-                stateVariables["/s2"].replacements[0].stateValues.numColumns
+                stateVariables["/s2"].replacements[0].stateValues.numColumns,
             ).eq(7);
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][0]).eq(
-                "6"
+                "6",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][1]).eq(
-                "7"
+                "7",
             );
             expect(
-                stateVariables["/s2"].replacements[0].stateValues.cells[0][0]
+                stateVariables["/s2"].replacements[0].stateValues.cells[0][0],
             ).eq("6");
             expect(
-                stateVariables["/s2"].replacements[0].stateValues.cells[0][1]
+                stateVariables["/s2"].replacements[0].stateValues.cells[0][1],
             ).eq("7");
         });
 
@@ -4565,25 +4573,25 @@ describe("Spreadsheet Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_spreadsheet1"].stateValues.numRows).eq(6);
             expect(stateVariables["/_spreadsheet1"].stateValues.numColumns).eq(
-                7
+                7,
             );
             expect(
-                stateVariables["/s2"].replacements[0].stateValues.numRows
+                stateVariables["/s2"].replacements[0].stateValues.numRows,
             ).eq(6);
             expect(
-                stateVariables["/s2"].replacements[0].stateValues.numColumns
+                stateVariables["/s2"].replacements[0].stateValues.numColumns,
             ).eq(7);
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][0]).eq(
-                "3"
+                "3",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][1]).eq(
-                "2"
+                "2",
             );
             expect(
-                stateVariables["/s2"].replacements[0].stateValues.cells[0][0]
+                stateVariables["/s2"].replacements[0].stateValues.cells[0][0],
             ).eq("3");
             expect(
-                stateVariables["/s2"].replacements[0].stateValues.cells[0][1]
+                stateVariables["/s2"].replacements[0].stateValues.cells[0][1],
             ).eq("2");
         });
 
@@ -4604,25 +4612,25 @@ describe("Spreadsheet Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_spreadsheet1"].stateValues.numRows).eq(6);
             expect(stateVariables["/_spreadsheet1"].stateValues.numColumns).eq(
-                7
+                7,
             );
             expect(
-                stateVariables["/s2"].replacements[0].stateValues.numRows
+                stateVariables["/s2"].replacements[0].stateValues.numRows,
             ).eq(6);
             expect(
-                stateVariables["/s2"].replacements[0].stateValues.numColumns
+                stateVariables["/s2"].replacements[0].stateValues.numColumns,
             ).eq(7);
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][0]).eq(
-                "hello"
+                "hello",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][1]).eq(
-                "x"
+                "x",
             );
             expect(
-                stateVariables["/s2"].replacements[0].stateValues.cells[0][0]
+                stateVariables["/s2"].replacements[0].stateValues.cells[0][0],
             ).eq("hello");
             expect(
-                stateVariables["/s2"].replacements[0].stateValues.cells[0][1]
+                stateVariables["/s2"].replacements[0].stateValues.cells[0][1],
             ).eq("x");
         });
 
@@ -4643,25 +4651,25 @@ describe("Spreadsheet Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_spreadsheet1"].stateValues.numRows).eq(11);
             expect(stateVariables["/_spreadsheet1"].stateValues.numColumns).eq(
-                9
+                9,
             );
             expect(
-                stateVariables["/s2"].replacements[0].stateValues.numRows
+                stateVariables["/s2"].replacements[0].stateValues.numRows,
             ).eq(11);
             expect(
-                stateVariables["/s2"].replacements[0].stateValues.numColumns
+                stateVariables["/s2"].replacements[0].stateValues.numColumns,
             ).eq(9);
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][0]).eq(
-                "11"
+                "11",
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][1]).eq(
-                "9"
+                "9",
             );
             expect(
-                stateVariables["/s2"].replacements[0].stateValues.cells[0][0]
+                stateVariables["/s2"].replacements[0].stateValues.cells[0][0],
             ).eq("11");
             expect(
-                stateVariables["/s2"].replacements[0].stateValues.cells[0][1]
+                stateVariables["/s2"].replacements[0].stateValues.cells[0][1],
             ).eq("9");
         });
     });
@@ -4690,7 +4698,7 @@ describe("Spreadsheet Tag Tests", function () {
 </aslist></p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4719,7 +4727,7 @@ describe("Spreadsheet Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][0]).eq(
-                "1"
+                "1",
             );
         });
 
@@ -4887,7 +4895,7 @@ $s.cellA1{assignNames="c2"}
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4939,7 +4947,7 @@ $s.cellA1{assignNames="c2"}
 <math name="x" simplify><copy prop="cellA1" source="_spreadsheet1" />+1</math>
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_spreadsheet1")); //wait for window to load
@@ -4965,19 +4973,19 @@ $s.cellA1{assignNames="c2"}
 
             expect(stateVariables["/x"].stateValues.value).eq(x);
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][0]).eq(
-                A1.toString()
+                A1.toString(),
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][1]).eq(
-                B1.toString()
+                B1.toString(),
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[1][0]).eq(
-                A2.toString()
+                A2.toString(),
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[1][1]).eq(
-                B2.toString()
+                B2.toString(),
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[1][2]).eq(
-                C2.toString()
+                C2.toString(),
             );
         });
 
@@ -5012,19 +5020,19 @@ $s.cellA1{assignNames="c2"}
 
             expect(stateVariables["/x"].stateValues.value).eq(x);
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][0]).eq(
-                A1.toString()
+                A1.toString(),
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][1]).eq(
-                B1.toString()
+                B1.toString(),
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[1][0]).eq(
-                A2.toString()
+                A2.toString(),
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[1][1]).eq(
-                B2.toString()
+                B2.toString(),
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[1][2]).eq(
-                C2.toString()
+                C2.toString(),
             );
         });
 
@@ -5054,19 +5062,19 @@ $s.cellA1{assignNames="c2"}
 
             expect(stateVariables["/x"].stateValues.value).eq(x);
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][0]).eq(
-                A1.toString()
+                A1.toString(),
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[0][1]).eq(
-                B1.toString()
+                B1.toString(),
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[1][0]).eq(
-                A2.toString()
+                A2.toString(),
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[1][1]).eq(
-                B2.toString()
+                B2.toString(),
             );
             expect(stateVariables["/_spreadsheet1"].stateValues.cells[1][2]).eq(
-                C2.toString()
+                C2.toString(),
             );
         });
     });
@@ -5088,7 +5096,7 @@ $s.cellA1{assignNames="c2"}
   <p>Change y-coordinate: <mathinput name="x2" bindValueTo="$(P.x2)" /></p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5124,7 +5132,7 @@ $s.cellA1{assignNames="c2"}
   <p>Change y-coordinate: <mathinput name="x2" bindValueTo="$(P.x2)" /></p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5176,7 +5184,7 @@ $s.cellA1{assignNames="c2"}
     </spreadsheet>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5263,7 +5271,7 @@ $s.cellA1{assignNames="c2"}
     </spreadsheet>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5351,7 +5359,7 @@ $s.cellA1{assignNames="c2"}
     </spreadsheet>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5439,7 +5447,7 @@ $s.cellA1{assignNames="c2"}
     </spreadsheet>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5527,7 +5535,7 @@ $s.cellA1{assignNames="c2"}
     </spreadsheet>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5623,7 +5631,7 @@ $s.cellA1{assignNames="c2"}
     </spreadsheet>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5711,7 +5719,7 @@ $s.cellA1{assignNames="c2"}
     </spreadsheet>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5799,7 +5807,7 @@ $s.cellA1{assignNames="c2"}
     </spreadsheet>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5887,7 +5895,7 @@ $s.cellA1{assignNames="c2"}
     </spreadsheet>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5975,7 +5983,7 @@ $s.cellA1{assignNames="c2"}
     </spreadsheet>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6059,7 +6067,7 @@ $s.cellA1{assignNames="c2"}
     <p><copy prop="pointsInColumn2" source="_spreadsheet1" propIndex="$n" assignNames="P4 P5 P6" removeEmptyArrayEntries /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6137,7 +6145,7 @@ $s.cellA1{assignNames="c2"}
     <p><copy source="_spreadsheet1.pointsInColumn2[$n]" assignNames="P4 P5 P6" removeEmptyArrayEntries /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6215,7 +6223,7 @@ $s.cellA1{assignNames="c2"}
     <p><copy source="_spreadsheet1.pointsInCells[$n][2]" assignNames="P4 P5 P6" removeEmptyArrayEntries /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6293,7 +6301,7 @@ $s.cellA1{assignNames="c2"}
     <p><copy source="_spreadsheet1.pointsInColumns[2][$n]" assignNames="P4 P5 P6" removeEmptyArrayEntries /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6371,7 +6379,7 @@ $s.cellA1{assignNames="c2"}
     <p><copy source="_spreadsheet1.pointsInColumns[$n]" assignNames="P4 P5 P6" removeEmptyArrayEntries /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 

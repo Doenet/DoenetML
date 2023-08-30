@@ -15,13 +15,13 @@ describe("ContentBrowser Tag Tests", function () {
         </contentBrowser>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get(cesc2("#/_contentbrowser1") + " [data-test=initials]").should(
             "have.text",
-            "Filter by: "
+            "Filter by: ",
         );
 
         cy.get(cesc2("#/_contentbrowser1") + " [data-test=labelPicker] div")
@@ -63,13 +63,13 @@ describe("ContentBrowser Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get(cesc2("#/_contentbrowser1") + " [data-test=initials]").should(
             "have.text",
-            "Filter by: MPU"
+            "Filter by: MPU",
         );
 
         cy.get(cesc2("#/_contentbrowser1") + " [data-test=labelPicker] div")
@@ -112,10 +112,10 @@ describe("ContentBrowser Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/mathp1"].stateValues.text).eq(
-                "The <math> does math."
+                "The <math> does math.",
             );
             expect(stateVariables["/mathp2"].stateValues.text).eq(
-                "Here is a math: x + x"
+                "Here is a math: x + x",
             );
             expect(stateVariables["/mathinputp1"]).eq(undefined);
             expect(stateVariables["/mathinputp2"]).eq(undefined);
@@ -133,18 +133,18 @@ describe("ContentBrowser Tag Tests", function () {
 
         cy.get(cesc2("#/_title1")).should(
             "have.text",
-            "The <mathInput> component"
+            "The <mathInput> component",
         );
         cy.get(cesc2("#/_title2")).should("not.exist");
 
         cy.get(cesc2("#/mathinputp1")).should(
             "have.text",
-            "The <mathInput> let's you input math, but we don't have a video."
+            "The <mathInput> let's you input math, but we don't have a video.",
         );
 
         cy.get(cesc2("#/mathinputp2")).should(
             "have.text",
-            "Here is a mathInput: x+x"
+            "Here is a mathInput: x+x",
         );
 
         cy.get(cesc2("#/_contentbrowser1") + " [data-test=labelPicker] div")
@@ -174,16 +174,16 @@ describe("ContentBrowser Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/mathp1"].stateValues.text).eq(
-                "The <math> does math."
+                "The <math> does math.",
             );
             expect(stateVariables["/mathp2"].stateValues.text).eq(
-                "Here is a math: x + x"
+                "Here is a math: x + x",
             );
             expect(stateVariables["/mathinputp1"].stateValues.text).eq(
-                "The <mathInput> let's you input math, but we don't have a video."
+                "The <mathInput> let's you input math, but we don't have a video.",
             );
             expect(stateVariables["/mathinputp2"].stateValues.text).eq(
-                "Here is a mathInput: x + x"
+                "Here is a mathInput: x + x",
             );
             expect(stateVariables["/pp1"]).eq(undefined);
             expect(stateVariables["/pp2"]).eq(undefined);
@@ -196,7 +196,7 @@ describe("ContentBrowser Tag Tests", function () {
             .click();
 
         cy.get(
-            cesc2("#/_contentbrowser1") + " [data-test=labelPicker] div"
+            cesc2("#/_contentbrowser1") + " [data-test=labelPicker] div",
         ).should("not.contain.text", "math");
 
         cy.get(cesc2("#/pp1")).should("have.text", "The <p> is simple.");
@@ -226,19 +226,19 @@ describe("ContentBrowser Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/mathp1"].stateValues.text).eq(
-                "The <math> does math."
+                "The <math> does math.",
             );
             expect(stateVariables["/mathp2"].stateValues.text).eq(
-                "Here is a math: x + x"
+                "Here is a math: x + x",
             );
             expect(stateVariables["/mathinputp1"].stateValues.text).eq(
-                "The <mathInput> let's you input math, but we don't have a video."
+                "The <mathInput> let's you input math, but we don't have a video.",
             );
             expect(stateVariables["/mathinputp2"].stateValues.text).eq(
-                "Here is a mathInput: x + x"
+                "Here is a mathInput: x + x",
             );
             expect(stateVariables["/pp1"].stateValues.text).eq(
-                "The <p> is simple."
+                "The <p> is simple.",
             );
             expect(stateVariables["/pp2"].stateValues.text).eq("Hello!");
         });
@@ -251,12 +251,12 @@ describe("ContentBrowser Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get(
-            cesc2("#/_contentbrowser1") + " [data-test=labelPicker] div"
+            cesc2("#/_contentbrowser1") + " [data-test=labelPicker] div",
         ).should("not.contain.text", "math");
 
         cy.get(cesc2("#/_contentbrowser1") + " [data-test=labelPicker] div")
@@ -279,14 +279,14 @@ describe("ContentBrowser Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/pp1"].stateValues.text).eq(
-                "The <p> is simple."
+                "The <p> is simple.",
             );
             expect(stateVariables["/pp2"].stateValues.text).eq("Hello!");
             expect(stateVariables["/mathp1"].stateValues.text).eq(
-                "The <math> does math."
+                "The <math> does math.",
             );
             expect(stateVariables["/mathp2"].stateValues.text).eq(
-                "Here is a math: x + x"
+                "Here is a math: x + x",
             );
             expect(stateVariables["/mathinputp1"]).eq(undefined);
             expect(stateVariables["/mathinputp2"]).eq(undefined);
@@ -314,7 +314,7 @@ describe("ContentBrowser Tag Tests", function () {
             .click();
 
         cy.get(
-            cesc2("#/_contentbrowser1") + " [data-test=labelPicker] div"
+            cesc2("#/_contentbrowser1") + " [data-test=labelPicker] div",
         ).should("contain.text", "Unlabeled");
 
         cy.get(cesc2("#/_title3")).should("have.text", "Forgot a label");
@@ -333,7 +333,7 @@ describe("ContentBrowser Tag Tests", function () {
 
         cy.get(cesc2("#/pUnlabeled")).should(
             "have.text",
-            "This item does not have a label."
+            "This item does not have a label.",
         );
     });
 });

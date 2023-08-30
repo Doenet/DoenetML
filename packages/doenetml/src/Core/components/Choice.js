@@ -136,7 +136,7 @@ export default class Choice extends InlineComponent {
                 let selected;
                 if (dependencyValues.childIndicesSelected) {
                     selected = dependencyValues.childIndicesSelected.includes(
-                        dependencyValues.countAmongSiblings
+                        dependencyValues.countAmongSiblings,
                     );
                 } else if (dependencyValues.primaryShadow) {
                     selected =

@@ -20,7 +20,7 @@ describe("Parameterized Curve Tag Tests", function () {
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -29,18 +29,18 @@ describe("Parameterized Curve Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_curve1"].stateValues.curveType).eq(
-                "parameterization"
+                "parameterization",
             );
             expect(stateVariables["/_curve1"].stateValues.variableForChild).eq(
-                "x"
+                "x",
             );
             expect(stateVariables["/_curve1"].stateValues.parMin).eq(-10);
             expect(stateVariables["/_curve1"].stateValues.parMax).eq(10);
             let f1 = createFunctionFromDefinition(
-                stateVariables["/_curve1"].stateValues.fDefinitions[0]
+                stateVariables["/_curve1"].stateValues.fDefinitions[0],
             );
             let f2 = createFunctionFromDefinition(
-                stateVariables["/_curve1"].stateValues.fDefinitions[1]
+                stateVariables["/_curve1"].stateValues.fDefinitions[1],
             );
             expect(f1(-2)).eq(-5 * 8);
             expect(f1(3)).eq(5 * 27);
@@ -64,7 +64,7 @@ describe("Parameterized Curve Tag Tests", function () {
     <math name="b">5</math>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -73,18 +73,18 @@ describe("Parameterized Curve Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_curve1"].stateValues.curveType).eq(
-                "parameterization"
+                "parameterization",
             );
             expect(stateVariables["/_curve1"].stateValues.variableForChild).eq(
-                "x"
+                "x",
             );
             expect(stateVariables["/_curve1"].stateValues.parMin).eq(-10);
             expect(stateVariables["/_curve1"].stateValues.parMax).eq(10);
             let f1 = createFunctionFromDefinition(
-                stateVariables["/_curve1"].stateValues.fDefinitions[0]
+                stateVariables["/_curve1"].stateValues.fDefinitions[0],
             );
             let f2 = createFunctionFromDefinition(
-                stateVariables["/_curve1"].stateValues.fDefinitions[1]
+                stateVariables["/_curve1"].stateValues.fDefinitions[1],
             );
             expect(f1(-2)).eq(-5 * 8);
             expect(f1(3)).eq(5 * 27);
@@ -109,7 +109,7 @@ describe("Parameterized Curve Tag Tests", function () {
     <math name="b">5</math>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -118,21 +118,21 @@ describe("Parameterized Curve Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_curve1"].stateValues.curveType).eq(
-                "parameterization"
+                "parameterization",
             );
             expect(stateVariables["/_curve1"].stateValues.variableForChild).eq(
-                "x"
+                "x",
             );
             expect(stateVariables["/_curve1"].stateValues.parMin).eq(-10);
             expect(stateVariables["/_curve1"].stateValues.parMax).eq(10);
             expect(stateVariables["/_curve1"].stateValues.label).eq(
-                "\\((5 x^3, 3 x^5)\\)"
+                "\\((5 x^3, 3 x^5)\\)",
             );
             let f1 = createFunctionFromDefinition(
-                stateVariables["/_curve1"].stateValues.fDefinitions[0]
+                stateVariables["/_curve1"].stateValues.fDefinitions[0],
             );
             let f2 = createFunctionFromDefinition(
-                stateVariables["/_curve1"].stateValues.fDefinitions[1]
+                stateVariables["/_curve1"].stateValues.fDefinitions[1],
             );
             expect(f1(-2)).eq(-5 * 8);
             expect(f1(3)).eq(5 * 27);
@@ -154,7 +154,7 @@ describe("Parameterized Curve Tag Tests", function () {
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -163,18 +163,18 @@ describe("Parameterized Curve Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_curve1"].stateValues.curveType).eq(
-                "parameterization"
+                "parameterization",
             );
             expect(stateVariables["/_curve1"].stateValues.variableForChild).eq(
-                "t"
+                "t",
             );
             expect(stateVariables["/_curve1"].stateValues.parMin).eq(-10);
             expect(stateVariables["/_curve1"].stateValues.parMax).eq(10);
             let f1 = createFunctionFromDefinition(
-                stateVariables["/_curve1"].stateValues.fDefinitions[0]
+                stateVariables["/_curve1"].stateValues.fDefinitions[0],
             );
             let f2 = createFunctionFromDefinition(
-                stateVariables["/_curve1"].stateValues.fDefinitions[1]
+                stateVariables["/_curve1"].stateValues.fDefinitions[1],
             );
             expect(f1(-2)).eq(-5 * 8);
             expect(f1(3)).eq(5 * 27);
@@ -197,7 +197,7 @@ describe("Parameterized Curve Tag Tests", function () {
     <math name="var">t</math>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -206,18 +206,18 @@ describe("Parameterized Curve Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_curve1"].stateValues.curveType).eq(
-                "parameterization"
+                "parameterization",
             );
             expect(stateVariables["/_curve1"].stateValues.variableForChild).eq(
-                "t"
+                "t",
             );
             expect(stateVariables["/_curve1"].stateValues.parMin).eq(-10);
             expect(stateVariables["/_curve1"].stateValues.parMax).eq(10);
             let f1 = createFunctionFromDefinition(
-                stateVariables["/_curve1"].stateValues.fDefinitions[0]
+                stateVariables["/_curve1"].stateValues.fDefinitions[0],
             );
             let f2 = createFunctionFromDefinition(
-                stateVariables["/_curve1"].stateValues.fDefinitions[1]
+                stateVariables["/_curve1"].stateValues.fDefinitions[1],
             );
             expect(f1(-2)).eq(-5 * 8);
             expect(f1(3)).eq(5 * 27);
@@ -239,7 +239,7 @@ describe("Parameterized Curve Tag Tests", function () {
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -282,7 +282,7 @@ describe("Parameterized Curve Tag Tests", function () {
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for window to load
@@ -324,7 +324,7 @@ describe("Parameterized Curve Tag Tests", function () {
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -367,7 +367,7 @@ describe("Parameterized Curve Tag Tests", function () {
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -410,7 +410,7 @@ describe("Parameterized Curve Tag Tests", function () {
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -453,7 +453,7 @@ describe("Parameterized Curve Tag Tests", function () {
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -470,7 +470,7 @@ describe("Parameterized Curve Tag Tests", function () {
             expect(stateVariables["/_curve1"].stateValues.variables[1]).eq("y");
             expect(stateVariables["/_curve1"].stateValues.parameter).eq("t");
             expect(stateVariables["/_curve1"].stateValues.parMin.simplify()).eq(
-                -1
+                -1,
             );
             expect(stateVariables["/_curve1"].stateValues.parMax).eq(0.5);
             expect(parametrizedCurve.stateValues.variables[0]).eq("x");
@@ -499,7 +499,7 @@ describe("Parameterized Curve Tag Tests", function () {
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -508,15 +508,15 @@ describe("Parameterized Curve Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_curve1"].stateValues.curveType).eq(
-                "parameterization"
+                "parameterization",
             );
             expect(stateVariables["/_curve1"].stateValues.parMin).eq(-10);
             expect(stateVariables["/_curve1"].stateValues.parMax).eq(10);
             let f1 = createFunctionFromDefinition(
-                stateVariables["/_curve1"].stateValues.fDefinitions[0]
+                stateVariables["/_curve1"].stateValues.fDefinitions[0],
             );
             let f2 = createFunctionFromDefinition(
-                stateVariables["/_curve1"].stateValues.fDefinitions[1]
+                stateVariables["/_curve1"].stateValues.fDefinitions[1],
             );
             expect(f1(-2)).eq(-5 * 8);
             expect(f1(3)).eq(5 * 27);
@@ -538,7 +538,7 @@ describe("Parameterized Curve Tag Tests", function () {
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -547,15 +547,15 @@ describe("Parameterized Curve Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_curve1"].stateValues.curveType).eq(
-                "parameterization"
+                "parameterization",
             );
             expect(stateVariables["/_curve1"].stateValues.parMin).eq(-10);
             expect(stateVariables["/_curve1"].stateValues.parMax).eq(10);
             let f1 = createFunctionFromDefinition(
-                stateVariables["/_curve1"].stateValues.fDefinitions[0]
+                stateVariables["/_curve1"].stateValues.fDefinitions[0],
             );
             let f2 = createFunctionFromDefinition(
-                stateVariables["/_curve1"].stateValues.fDefinitions[1]
+                stateVariables["/_curve1"].stateValues.fDefinitions[1],
             );
             expect(f1(-2)).eq(-5 * 8);
             expect(f1(3)).eq(5 * 27);
@@ -575,7 +575,7 @@ describe("Parameterized Curve Tag Tests", function () {
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -586,15 +586,15 @@ describe("Parameterized Curve Tag Tests", function () {
             let curveName =
                 stateVariables["/_graph1"].activeChildren[0].componentName;
             expect(stateVariables[curveName].stateValues.curveType).eq(
-                "parameterization"
+                "parameterization",
             );
             expect(stateVariables[curveName].stateValues.parMin).eq(-10);
             expect(stateVariables[curveName].stateValues.parMax).eq(10);
             let f1 = createFunctionFromDefinition(
-                stateVariables[curveName].stateValues.fDefinitions[0]
+                stateVariables[curveName].stateValues.fDefinitions[0],
             );
             let f2 = createFunctionFromDefinition(
-                stateVariables[curveName].stateValues.fDefinitions[1]
+                stateVariables[curveName].stateValues.fDefinitions[1],
             );
             expect(f1(-2)).eq(-5 * 8);
             expect(f1(3)).eq(5 * 27);
@@ -618,7 +618,7 @@ describe("Parameterized Curve Tag Tests", function () {
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -627,18 +627,18 @@ describe("Parameterized Curve Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_curve1"].stateValues.curveType).eq(
-                "parameterization"
+                "parameterization",
             );
             expect(stateVariables["/_curve1"].stateValues.parMin).eq(-10);
             expect(stateVariables["/_curve1"].stateValues.parMax).eq(10);
             expect(stateVariables["/_curve1"].stateValues.label).eq(
-                "\\((5t^3,3t^5)\\)"
+                "\\((5t^3,3t^5)\\)",
             );
             let f1 = createFunctionFromDefinition(
-                stateVariables["/_curve1"].stateValues.fDefinitions[0]
+                stateVariables["/_curve1"].stateValues.fDefinitions[0],
             );
             let f2 = createFunctionFromDefinition(
-                stateVariables["/_curve1"].stateValues.fDefinitions[1]
+                stateVariables["/_curve1"].stateValues.fDefinitions[1],
             );
             expect(f1(-2)).eq(-5 * 8);
             expect(f1(3)).eq(5 * 27);
@@ -661,7 +661,7 @@ describe("Parameterized Curve Tag Tests", function () {
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -670,15 +670,15 @@ describe("Parameterized Curve Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_curve1"].stateValues.curveType).eq(
-                "parameterization"
+                "parameterization",
             );
             expect(stateVariables["/_curve1"].stateValues.parMin).eq(-1);
             expect(stateVariables["/_curve1"].stateValues.parMax).eq(0.5);
             let f1 = createFunctionFromDefinition(
-                stateVariables["/_curve1"].stateValues.fDefinitions[0]
+                stateVariables["/_curve1"].stateValues.fDefinitions[0],
             );
             let f2 = createFunctionFromDefinition(
-                stateVariables["/_curve1"].stateValues.fDefinitions[1]
+                stateVariables["/_curve1"].stateValues.fDefinitions[1],
             );
             expect(f1(-2)).eq(-5 * 8);
             expect(f1(3)).eq(5 * 27);
@@ -704,7 +704,7 @@ describe("Parameterized Curve Tag Tests", function () {
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -713,16 +713,16 @@ describe("Parameterized Curve Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/c1"].stateValues.curveType).eq(
-                "parameterization"
+                "parameterization",
             );
             expect(stateVariables["/c1"].stateValues.parMin).eq(-1);
             expect(stateVariables["/c1"].stateValues.parMax).eq(0.5);
 
             let f1 = createFunctionFromDefinition(
-                stateVariables["/c1"].stateValues.fDefinitions[0]
+                stateVariables["/c1"].stateValues.fDefinitions[0],
             );
             let f2 = createFunctionFromDefinition(
-                stateVariables["/c1"].stateValues.fDefinitions[1]
+                stateVariables["/c1"].stateValues.fDefinitions[1],
             );
             expect(f1(-2)).eq(-5 * 8);
             expect(f1(3)).eq(5 * 27);
@@ -730,16 +730,16 @@ describe("Parameterized Curve Tag Tests", function () {
             expect(f2(3)).eq(3 * 243);
 
             expect(stateVariables["/c2"].stateValues.curveType).eq(
-                "parameterization"
+                "parameterization",
             );
             expect(stateVariables["/c2"].stateValues.parMin).eq(-4);
             expect(stateVariables["/c2"].stateValues.parMax).eq(0);
 
             f1 = createFunctionFromDefinition(
-                stateVariables["/c1"].stateValues.fDefinitions[0]
+                stateVariables["/c1"].stateValues.fDefinitions[0],
             );
             f2 = createFunctionFromDefinition(
-                stateVariables["/c1"].stateValues.fDefinitions[1]
+                stateVariables["/c1"].stateValues.fDefinitions[1],
             );
             expect(f1(-2)).eq(-5 * 8);
             expect(f1(3)).eq(5 * 27);
@@ -761,7 +761,7 @@ describe("Parameterized Curve Tag Tests", function () {
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -807,7 +807,7 @@ describe("Parameterized Curve Tag Tests", function () {
     $_mathinput1.value{assignNames="m1"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -819,10 +819,10 @@ describe("Parameterized Curve Tag Tests", function () {
             expect(stateVariables["/_curve1"].stateValues.parMin).eq(-10);
             expect(stateVariables["/_curve1"].stateValues.parMax).eq(10);
             let f1 = createFunctionFromDefinition(
-                stateVariables["/_curve1"].stateValues.fDefinitions[0]
+                stateVariables["/_curve1"].stateValues.fDefinitions[0],
             );
             let f2 = createFunctionFromDefinition(
-                stateVariables["/_curve1"].stateValues.fDefinitions[1]
+                stateVariables["/_curve1"].stateValues.fDefinitions[1],
             );
             expect(f1(-2)).eq(-4 + 1);
             expect(f1(3)).eq(6 + 1);
@@ -832,7 +832,7 @@ describe("Parameterized Curve Tag Tests", function () {
 
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             "{end}{backspace}-3{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "−3");
         cy.window().then(async (win) => {
@@ -840,10 +840,10 @@ describe("Parameterized Curve Tag Tests", function () {
             expect(stateVariables["/_curve1"].stateValues.parMin).eq(-10);
             expect(stateVariables["/_curve1"].stateValues.parMax).eq(10);
             let f1 = createFunctionFromDefinition(
-                stateVariables["/_curve1"].stateValues.fDefinitions[0]
+                stateVariables["/_curve1"].stateValues.fDefinitions[0],
             );
             let f2 = createFunctionFromDefinition(
-                stateVariables["/_curve1"].stateValues.fDefinitions[1]
+                stateVariables["/_curve1"].stateValues.fDefinitions[1],
             );
             expect(f1(-2)).eq(6 + 1);
             expect(f1(3)).eq(-9 + 1);
@@ -877,7 +877,7 @@ describe("Parameterized Curve Tag Tests", function () {
     $_mathinput2.value{assignNames="m2"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -919,7 +919,7 @@ describe("Parameterized Curve Tag Tests", function () {
 
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             "{end}{backspace}{backspace}-1{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/m1")).should("contain.text", "−1");
         cy.window().then(async (win) => {
@@ -945,7 +945,7 @@ describe("Parameterized Curve Tag Tests", function () {
 
         cy.get(cesc("#\\/_mathinput2") + " textarea").type(
             "{end}{backspace}1{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/m2")).should("contain.text", "1");
         cy.window().then(async (win) => {
@@ -981,7 +981,7 @@ describe("Parameterized Curve Tag Tests", function () {
     $_mathinput2.value{assignNames="m2"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1023,7 +1023,7 @@ describe("Parameterized Curve Tag Tests", function () {
 
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             "{end}{backspace}{backspace}-1{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/m1")).should("contain.text", "−1");
         cy.window().then(async (win) => {
@@ -1049,7 +1049,7 @@ describe("Parameterized Curve Tag Tests", function () {
 
         cy.get(cesc("#\\/_mathinput2") + " textarea").type(
             "{end}{backspace}1{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/m2")).should("contain.text", "1");
         cy.window().then(async (win) => {
@@ -1079,7 +1079,7 @@ describe("Parameterized Curve Tag Tests", function () {
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1144,7 +1144,7 @@ describe("Parameterized Curve Tag Tests", function () {
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 

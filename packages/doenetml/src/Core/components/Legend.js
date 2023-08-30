@@ -52,7 +52,7 @@ export default class Legend extends GraphicalComponent {
                         setValue: {
                             graphicalElementNames:
                                 dependencyValues.graphAncestor.stateValues.graphicalDescendants.map(
-                                    (x) => x.componentName
+                                    (x) => x.componentName,
                                 ),
                         },
                     };
@@ -179,7 +179,7 @@ export default class Legend extends GraphicalComponent {
                             let ind =
                                 graphicalDescendantComponentNamesLeft.indexOf(
                                     labelChild.stateValues
-                                        .forObjectComponentName
+                                        .forObjectComponentName,
                                 );
                             if (ind !== -1) {
                                 let comp = graphicalDescendantsLeft[ind];
@@ -189,11 +189,11 @@ export default class Legend extends GraphicalComponent {
                                             inheritedComponentType:
                                                 comp.componentType,
                                             baseComponentType: "point",
-                                        }
+                                        },
                                     )
                                 ) {
                                     pointStyleNumbersFound.push(
-                                        comp.stateValues.styleNumber
+                                        comp.stateValues.styleNumber,
                                     );
                                 } else if (
                                     dependencyValues.displayClosedSwatches &&
@@ -202,11 +202,11 @@ export default class Legend extends GraphicalComponent {
                                     ].representsClosedPath
                                 ) {
                                     closedPathStyleNumbersFound.push(
-                                        comp.stateValues.styleNumber
+                                        comp.stateValues.styleNumber,
                                     );
                                 } else if (comp.componentType !== "legend") {
                                     otherStyleNumbersFound.push(
-                                        comp.stateValues.styleNumber
+                                        comp.stateValues.styleNumber,
                                     );
                                 }
                             }
@@ -225,7 +225,7 @@ export default class Legend extends GraphicalComponent {
                         if (label.forObject) {
                             let ind =
                                 graphicalDescendantComponentNamesLeft.indexOf(
-                                    label.forObject
+                                    label.forObject,
                                 );
                             if (ind !== -1) {
                                 componentForLabel =
@@ -233,7 +233,7 @@ export default class Legend extends GraphicalComponent {
                                 graphicalDescendantsLeft.splice(ind, 1);
                                 graphicalDescendantComponentNamesLeft.splice(
                                     ind,
-                                    1
+                                    1,
                                 );
                             }
                         } else {
@@ -255,12 +255,12 @@ export default class Legend extends GraphicalComponent {
                                                 inheritedComponentType:
                                                     comp.componentType,
                                                 baseComponentType: "point",
-                                            }
+                                            },
                                         )
                                     ) {
                                         if (
                                             !pointStyleNumbersFound.includes(
-                                                comp.stateValues.styleNumber
+                                                comp.stateValues.styleNumber,
                                             )
                                         ) {
                                             componentForLabel = comp;
@@ -275,7 +275,7 @@ export default class Legend extends GraphicalComponent {
                                     ) {
                                         if (
                                             !closedPathStyleNumbersFound.includes(
-                                                comp.stateValues.styleNumber
+                                                comp.stateValues.styleNumber,
                                             )
                                         ) {
                                             componentForLabel = comp;
@@ -286,7 +286,7 @@ export default class Legend extends GraphicalComponent {
                                     ) {
                                         if (
                                             !otherStyleNumbersFound.includes(
-                                                comp.stateValues.styleNumber
+                                                comp.stateValues.styleNumber,
                                             )
                                         ) {
                                             componentForLabel = comp;

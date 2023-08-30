@@ -409,7 +409,7 @@ export default class BooleanComponent extends InlineComponent {
                             {
                                 setEssentialValue: "value",
                                 value: Boolean(
-                                    desiredStateVariableValues.value
+                                    desiredStateVariableValues.value,
                                 ),
                             },
                         ],
@@ -475,7 +475,7 @@ export default class BooleanComponent extends InlineComponent {
             },
             inverseDefinition({ desiredStateVariableValues }) {
                 let desiredText = String(
-                    desiredStateVariableValues.text
+                    desiredStateVariableValues.text,
                 ).toLowerCase();
 
                 let desiredBoolean;

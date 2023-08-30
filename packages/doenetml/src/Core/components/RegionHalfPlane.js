@@ -64,7 +64,7 @@ export default class RegionHalfPlane extends GraphicalComponent {
                                     if (variables.x1 < value) {
                                         let result = Object.assign(
                                             {},
-                                            variables
+                                            variables,
                                         );
                                         result.x1 = value;
                                         return result;
@@ -75,7 +75,7 @@ export default class RegionHalfPlane extends GraphicalComponent {
                                     if (variables.x1 > value) {
                                         let result = Object.assign(
                                             {},
-                                            variables
+                                            variables,
                                         );
                                         result.x1 = value;
                                         return result;
@@ -88,7 +88,7 @@ export default class RegionHalfPlane extends GraphicalComponent {
                                     if (variables.x2 < value) {
                                         let result = Object.assign(
                                             {},
-                                            variables
+                                            variables,
                                         );
                                         result.x2 = value;
                                         return result;
@@ -99,7 +99,7 @@ export default class RegionHalfPlane extends GraphicalComponent {
                                     if (variables.x2 > value) {
                                         let result = Object.assign(
                                             {},
-                                            variables
+                                            variables,
                                         );
                                         result.x2 = value;
                                         return result;

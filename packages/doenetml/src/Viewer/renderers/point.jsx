@@ -109,11 +109,11 @@ export default React.memo(function Point(props) {
             highlightStrokeColor: "var(--lightBlue)",
             size: normalizePointSize(
                 SVs.selectedStyle.markerSize,
-                SVs.selectedStyle.markerStyle
+                SVs.selectedStyle.markerStyle,
             ),
             face: normalizePointStyle(
                 SVs.selectedStyle.markerStyle,
-                offGraphIndicator.current
+                offGraphIndicator.current,
             ),
             highlight: !fixLocation.current,
         };
@@ -121,7 +121,7 @@ export default React.memo(function Point(props) {
         if (withlabel) {
             let labelPosition = adjustPointLabelPosition(
                 SVs.labelPosition,
-                nearEdgeOfGraph.current
+                nearEdgeOfGraph.current,
             );
             previousLabelPosition.current = labelPosition;
 
@@ -184,7 +184,7 @@ export default React.memo(function Point(props) {
         let newShadowPointJXG = board.create(
             "point",
             coords,
-            shadowPointAttributes
+            shadowPointAttributes,
         );
         newShadowPointJXG.isDraggable = !fixLocation.current;
 
@@ -331,11 +331,11 @@ export default React.memo(function Point(props) {
 
             calculatedX.current = Math.min(
                 xmaxAdjusted,
-                Math.max(xminAdjusted, calculatedX.current)
+                Math.max(xminAdjusted, calculatedX.current),
             );
             calculatedY.current = Math.min(
                 ymaxAdjusted,
-                Math.max(yminAdjusted, calculatedY.current)
+                Math.max(yminAdjusted, calculatedY.current),
             );
 
             callAction({
@@ -350,11 +350,11 @@ export default React.memo(function Point(props) {
 
             let shadowX = Math.min(
                 xmaxAdjusted,
-                Math.max(xminAdjusted, newShadowPointJXG.X())
+                Math.max(xminAdjusted, newShadowPointJXG.X()),
             );
             let shadowY = Math.min(
                 ymaxAdjusted,
-                Math.max(yminAdjusted, newShadowPointJXG.Y())
+                Math.max(yminAdjusted, newShadowPointJXG.Y()),
             );
             newShadowPointJXG.coords.setCoordinates(JXG.COORDS_BY_USER, [
                 shadowX,
@@ -363,7 +363,7 @@ export default React.memo(function Point(props) {
 
             newPointJXG.coords.setCoordinates(
                 JXG.COORDS_BY_USER,
-                lastPositionFromCore.current
+                lastPositionFromCore.current,
             );
             board.updateInfobox(newPointJXG);
         });
@@ -504,7 +504,7 @@ export default React.memo(function Point(props) {
             if (!dragged.current) {
                 shadowPointJXG.current.coords.setCoordinates(
                     JXG.COORDS_BY_USER,
-                    [x, y]
+                    [x, y],
                 );
             }
 
@@ -563,7 +563,7 @@ export default React.memo(function Point(props) {
 
             let newFace = normalizePointStyle(
                 SVs.selectedStyle.markerStyle,
-                offGraphIndicator.current
+                offGraphIndicator.current,
             );
             if (pointJXG.current.visProp.face !== newFace) {
                 pointJXG.current.setAttribute({ face: newFace });
@@ -571,7 +571,7 @@ export default React.memo(function Point(props) {
             }
             let newSize = normalizePointSize(
                 SVs.selectedStyle.markerSize,
-                SVs.selectedStyle.markerStyle
+                SVs.selectedStyle.markerStyle,
             );
             if (pointJXG.current.visProp.size !== newSize) {
                 pointJXG.current.setAttribute({ size: newSize });
@@ -613,7 +613,7 @@ export default React.memo(function Point(props) {
 
                 let labelPosition = adjustPointLabelPosition(
                     SVs.labelPosition,
-                    nearEdgeOfGraph.current
+                    nearEdgeOfGraph.current,
                 );
 
                 if (labelPosition !== previousLabelPosition.current) {

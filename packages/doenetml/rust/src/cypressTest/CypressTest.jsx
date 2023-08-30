@@ -36,19 +36,19 @@ function Test() {
         testSettings = defaultTestSettings;
         localStorage.setItem(
             "test settings",
-            JSON.stringify(defaultTestSettings)
+            JSON.stringify(defaultTestSettings),
         );
     }
 
     const [updateNumber, setUpdateNumber] = useState(testSettings.updateNumber);
     const [attemptNumber, setAttemptNumber] = useState(
-        testSettings.attemptNumber
+        testSettings.attemptNumber,
     );
     const [controlsVisible, setControlsVisible] = useState(
-        testSettings.controlsVisible
+        testSettings.controlsVisible,
     );
     const [showCorrectness, setShowCorrectness] = useState(
-        testSettings.showCorrectness
+        testSettings.showCorrectness,
     );
     const [readOnly, setReadOnly] = useState(testSettings.readOnly);
     const [showFeedback, setShowFeedback] = useState(testSettings.showFeedback);
@@ -56,19 +56,19 @@ function Test() {
 
     const [bundledCore, setBundledCore] = useState(testSettings.bundledCore);
     const [allowLoadState, setAllowLoadState] = useState(
-        testSettings.allowLoadState
+        testSettings.allowLoadState,
     );
     const [allowSaveState, setAllowSaveState] = useState(
-        testSettings.allowSaveState
+        testSettings.allowSaveState,
     );
     const [allowLocalState, setAllowLocalState] = useState(
-        testSettings.allowLocalState
+        testSettings.allowLocalState,
     );
     const [allowSaveSubmissions, setAllowSaveSubmissions] = useState(
-        testSettings.allowSaveSubmissions
+        testSettings.allowSaveSubmissions,
     );
     const [allowSaveEvents, setAllowSaveEvents] = useState(
-        testSettings.allowSaveEvents
+        testSettings.allowSaveEvents,
     );
     const [_, setRefresh] = useState(0);
     const solutionDisplayMode = "button";
@@ -107,7 +107,7 @@ function Test() {
                         onClick={() => {
                             localStorage.setItem(
                                 "test settings",
-                                JSON.stringify(defaultTestSettings)
+                                JSON.stringify(defaultTestSettings),
                             );
                             location.href = "/test";
                         }}
@@ -126,7 +126,7 @@ function Test() {
                                     testSettings.attemptNumber + 1;
                                 localStorage.setItem(
                                     "test settings",
-                                    JSON.stringify(testSettings)
+                                    JSON.stringify(testSettings),
                                 );
                                 setAttemptNumber((was) => was + 1);
                             }}
@@ -138,7 +138,7 @@ function Test() {
                                 testSettings.attemptNumber = 1;
                                 localStorage.setItem(
                                     "test settings",
-                                    JSON.stringify(testSettings)
+                                    JSON.stringify(testSettings),
                                 );
                                 setAttemptNumber(1);
                             }}
@@ -159,7 +159,7 @@ function Test() {
                                     !testSettings.showCorrectness;
                                 localStorage.setItem(
                                     "test settings",
-                                    JSON.stringify(testSettings)
+                                    JSON.stringify(testSettings),
                                 );
                                 setShowCorrectness((was) => !was);
                                 setUpdateNumber((was) => was + 1);
@@ -179,7 +179,7 @@ function Test() {
                                 testSettings.readOnly = !testSettings.readOnly;
                                 localStorage.setItem(
                                     "test settings",
-                                    JSON.stringify(testSettings)
+                                    JSON.stringify(testSettings),
                                 );
                                 setReadOnly((was) => !was);
                                 setUpdateNumber((was) => was + 1);
@@ -200,7 +200,7 @@ function Test() {
                                     !testSettings.showFeedback;
                                 localStorage.setItem(
                                     "test settings",
-                                    JSON.stringify(testSettings)
+                                    JSON.stringify(testSettings),
                                 );
                                 setShowFeedback((was) => !was);
                                 setUpdateNumber((was) => was + 1);
@@ -221,7 +221,7 @@ function Test() {
                                     !testSettings.showHints;
                                 localStorage.setItem(
                                     "test settings",
-                                    JSON.stringify(testSettings)
+                                    JSON.stringify(testSettings),
                                 );
                                 setShowHints((was) => !was);
                                 setUpdateNumber((was) => was + 1);
@@ -243,7 +243,7 @@ function Test() {
                                     !testSettings.allowLoadState;
                                 localStorage.setItem(
                                     "test settings",
-                                    JSON.stringify(testSettings)
+                                    JSON.stringify(testSettings),
                                 );
                                 setAllowLoadState((was) => !was);
                                 setUpdateNumber((was) => was + 1);
@@ -264,7 +264,7 @@ function Test() {
                                     !testSettings.allowSaveState;
                                 localStorage.setItem(
                                     "test settings",
-                                    JSON.stringify(testSettings)
+                                    JSON.stringify(testSettings),
                                 );
                                 setAllowSaveState((was) => !was);
                                 setUpdateNumber((was) => was + 1);
@@ -285,7 +285,7 @@ function Test() {
                                     !testSettings.allowLocalState;
                                 localStorage.setItem(
                                     "test settings",
-                                    JSON.stringify(testSettings)
+                                    JSON.stringify(testSettings),
                                 );
                                 setAllowLocalState((was) => !was);
                                 setUpdateNumber((was) => was + 1);
@@ -306,7 +306,7 @@ function Test() {
                                     !testSettings.allowSaveSubmissions;
                                 localStorage.setItem(
                                     "test settings",
-                                    JSON.stringify(testSettings)
+                                    JSON.stringify(testSettings),
                                 );
                                 setAllowSaveSubmissions((was) => !was);
                                 setUpdateNumber((was) => was + 1);
@@ -327,7 +327,7 @@ function Test() {
                                     !testSettings.allowSaveEvents;
                                 localStorage.setItem(
                                     "test settings",
-                                    JSON.stringify(testSettings)
+                                    JSON.stringify(testSettings),
                                 );
                                 setAllowSaveEvents((was) => !was);
                                 setUpdateNumber((was) => was + 1);
@@ -349,7 +349,7 @@ function Test() {
                                     !testSettings.bundledCore;
                                 localStorage.setItem(
                                     "test settings",
-                                    JSON.stringify(testSettings)
+                                    JSON.stringify(testSettings),
                                 );
                                 setBundledCore((was) => !was);
                                 setUpdateNumber((was) => was + 1);

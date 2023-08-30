@@ -181,7 +181,7 @@ export default class AnimateFromSequence extends BaseComponent {
                                 me.math.mod(
                                     desiredStateVariableValues.selectedIndex -
                                         1,
-                                    await stateValues.numValues
+                                    await stateValues.numValues,
                                 ) + 1,
                         },
                     ],
@@ -256,11 +256,11 @@ export default class AnimateFromSequence extends BaseComponent {
                         if (
                             Math.abs(
                                 desiredValue -
-                                    dependencyValues.possibleValues[start]
+                                    dependencyValues.possibleValues[start],
                             ) <
                             Math.abs(
                                 desiredValue -
-                                    dependencyValues.possibleValues[end]
+                                    dependencyValues.possibleValues[end],
                             )
                         ) {
                             closestInd = start;
@@ -317,7 +317,7 @@ export default class AnimateFromSequence extends BaseComponent {
                                 if (
                                     dependencyValues.animationMode.substring(
                                         0,
-                                        8
+                                        8,
                                     ) === "decrease"
                                 ) {
                                     return "decrease";
@@ -609,8 +609,8 @@ export default class AnimateFromSequence extends BaseComponent {
 
         if (stateValues.animationOn) {
             if (!previousValues.animationOn) {
-                let newDirection = await this.stateValues
-                    .currentAnimationDirection;
+                let newDirection =
+                    await this.stateValues.currentAnimationDirection;
                 let animationMode = await this.stateValues.animationMode;
                 let numValues = await this.stateValues.numValues;
                 let selectedIndex = await this.stateValues.selectedIndex;
@@ -668,9 +668,9 @@ export default class AnimateFromSequence extends BaseComponent {
 
                 let additionalInstructions =
                     await this.getUpdateInstructionsToSetTargetsToValue(
-                        (
-                            await this.stateValues.possibleValues
-                        )[me.math.mod(startIndex - 1, numValues)]
+                        (await this.stateValues.possibleValues)[
+                            me.math.mod(startIndex - 1, numValues)
+                        ],
                     );
                 updateInstructions.push(...additionalInstructions);
 
@@ -784,7 +784,7 @@ export default class AnimateFromSequence extends BaseComponent {
 
         let findNextLargerIndex = function (
             minIndex = 0,
-            maxIndex = items.length - 1
+            maxIndex = items.length - 1,
         ) {
             if (maxIndex <= minIndex + 1) {
                 if (value > items[minIndex]) {
@@ -876,14 +876,12 @@ export default class AnimateFromSequence extends BaseComponent {
 
         let additionalInstructions =
             await this.getUpdateInstructionsToSetTargetsToValue(
-                (
-                    await this.stateValues.possibleValues
-                )[
+                (await this.stateValues.possibleValues)[
                     me.math.mod(
                         newSelectedIndex - 1,
-                        await this.stateValues.numValues
+                        await this.stateValues.numValues,
                     )
-                ]
+                ],
             );
         updateInstructions.push(...additionalInstructions);
 

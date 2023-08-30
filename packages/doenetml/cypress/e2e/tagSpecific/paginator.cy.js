@@ -57,7 +57,7 @@ describe("Paginator Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -98,7 +98,7 @@ describe("Paginator Tag Tests", function () {
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        "4"
+                        "4",
                     );
                 });
 
@@ -110,7 +110,7 @@ describe("Paginator Tag Tests", function () {
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        "2"
+                        "2",
                     );
                 });
 
@@ -125,7 +125,7 @@ describe("Paginator Tag Tests", function () {
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        "4"
+                        "4",
                     );
                 });
 
@@ -148,7 +148,7 @@ describe("Paginator Tag Tests", function () {
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        "3"
+                        "3",
                     );
                 });
 
@@ -164,7 +164,7 @@ describe("Paginator Tag Tests", function () {
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        "2"
+                        "2",
                     );
                 });
 
@@ -185,7 +185,7 @@ describe("Paginator Tag Tests", function () {
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        "3"
+                        "3",
                     );
                 });
 
@@ -199,7 +199,7 @@ describe("Paginator Tag Tests", function () {
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        "4"
+                        "4",
                     );
                 });
 
@@ -215,7 +215,7 @@ describe("Paginator Tag Tests", function () {
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        "4"
+                        "4",
                     );
                 });
 
@@ -234,7 +234,7 @@ describe("Paginator Tag Tests", function () {
                     cesc2("#" + mathinput2Name) + " .mq-editable-field";
                 let answer2Correct = cesc2("#" + mathinput2Name + "_correct");
                 let answer2Incorrect = cesc2(
-                    "#" + mathinput2Name + "_incorrect"
+                    "#" + mathinput2Name + "_incorrect",
                 );
 
                 let mathinput3Name =
@@ -246,7 +246,7 @@ describe("Paginator Tag Tests", function () {
                     cesc2("#" + mathinput3Name) + " .mq-editable-field";
                 let answer3Correct = cesc2("#" + mathinput3Name + "_correct");
                 let answer3Incorrect = cesc2(
-                    "#" + mathinput3Name + "_incorrect"
+                    "#" + mathinput3Name + "_incorrect",
                 );
 
                 cy.get(mathinput2Anchor).type("2x{enter}", { force: true });
@@ -256,7 +256,7 @@ describe("Paginator Tag Tests", function () {
                     .invoke("text")
                     .then((text) => {
                         expect(
-                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")
+                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
                         ).equal("2x");
                     });
 
@@ -267,7 +267,7 @@ describe("Paginator Tag Tests", function () {
                     .invoke("text")
                     .then((text) => {
                         expect(
-                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")
+                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
                         ).equal("2y");
                     });
 
@@ -282,7 +282,7 @@ describe("Paginator Tag Tests", function () {
                     .invoke("text")
                     .then((text) => {
                         expect(
-                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")
+                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
                         ).equal("2z");
                     });
 
@@ -291,7 +291,7 @@ describe("Paginator Tag Tests", function () {
                 cy.get(cesc2("#/_title1")).should("not.exist");
                 cy.get(cesc2("#/_section2_title")).should(
                     "have.text",
-                    "Section 2"
+                    "Section 2",
                 );
                 cy.get(cesc2("#/_title2")).should("not.exist");
 
@@ -304,7 +304,7 @@ describe("Paginator Tag Tests", function () {
                     .invoke("text")
                     .then((text) => {
                         expect(
-                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")
+                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
                         ).equal("4");
                     });
 
@@ -320,7 +320,7 @@ describe("Paginator Tag Tests", function () {
                     .invoke("text")
                     .then((text) => {
                         expect(
-                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")
+                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
                         ).equal("4");
                     });
 
@@ -329,7 +329,7 @@ describe("Paginator Tag Tests", function () {
                     .invoke("text")
                     .then((text) => {
                         expect(
-                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")
+                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
                         ).equal("2z");
                     });
                 cy.get(answer3Correct).should("be.visible");
@@ -337,7 +337,7 @@ describe("Paginator Tag Tests", function () {
                     .invoke("text")
                     .then((text) => {
                         expect(
-                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")
+                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
                         ).equal("2y");
                     });
 
@@ -348,7 +348,7 @@ describe("Paginator Tag Tests", function () {
                 cy.get(cesc2("#/_title1")).should("not.exist");
                 cy.get(cesc2("#/_section2_title")).should(
                     "have.text",
-                    "Section 2"
+                    "Section 2",
                 );
                 cy.get(cesc2("#/_title2")).should("not.exist");
 
@@ -361,7 +361,7 @@ describe("Paginator Tag Tests", function () {
                     .invoke("text")
                     .then((text) => {
                         expect(
-                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")
+                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
                         ).equal("4");
                     });
             });
@@ -375,7 +375,7 @@ describe("Paginator Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -388,7 +388,7 @@ describe("Paginator Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 return stateVariables["/_answer4"];
-            })
+            }),
         );
 
         cy.get(cesc2("#/_title1")).should("not.exist");
@@ -416,7 +416,7 @@ describe("Paginator Tag Tests", function () {
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        "4"
+                        "4",
                     );
                 });
 
@@ -430,7 +430,7 @@ describe("Paginator Tag Tests", function () {
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        "4"
+                        "4",
                     );
                 });
 
@@ -446,7 +446,7 @@ describe("Paginator Tag Tests", function () {
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        "4"
+                        "4",
                     );
                 });
 
@@ -462,7 +462,7 @@ describe("Paginator Tag Tests", function () {
                     cesc2("#" + mathinput2Name) + " .mq-editable-field";
                 let answer2Correct = cesc2("#" + mathinput2Name + "_correct");
                 let answer2Incorrect = cesc2(
-                    "#" + mathinput2Name + "_incorrect"
+                    "#" + mathinput2Name + "_incorrect",
                 );
                 let answer2Submit = cesc2("#" + mathinput2Name + "_submit");
 
@@ -475,7 +475,7 @@ describe("Paginator Tag Tests", function () {
                     cesc2("#" + mathinput3Name) + " .mq-editable-field";
                 let answer3Correct = cesc2("#" + mathinput3Name + "_correct");
                 let answer3Incorrect = cesc2(
-                    "#" + mathinput3Name + "_incorrect"
+                    "#" + mathinput3Name + "_incorrect",
                 );
 
                 cy.get(answer2Incorrect).should("be.visible");
@@ -483,7 +483,7 @@ describe("Paginator Tag Tests", function () {
                     .invoke("text")
                     .then((text) => {
                         expect(
-                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")
+                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
                         ).equal("2z");
                     });
                 cy.get(answer3Correct).should("be.visible");
@@ -491,7 +491,7 @@ describe("Paginator Tag Tests", function () {
                     .invoke("text")
                     .then((text) => {
                         expect(
-                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")
+                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
                         ).equal("2y");
                     });
 
@@ -506,7 +506,7 @@ describe("Paginator Tag Tests", function () {
                     .invoke("text")
                     .then((text) => {
                         expect(
-                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")
+                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
                         ).equal("2q");
                     });
 
@@ -521,7 +521,7 @@ describe("Paginator Tag Tests", function () {
                     .invoke("text")
                     .then((text) => {
                         expect(
-                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")
+                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
                         ).equal("3");
                     });
 
@@ -536,7 +536,7 @@ describe("Paginator Tag Tests", function () {
                     .invoke("text")
                     .then((text) => {
                         expect(
-                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")
+                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
                         ).equal("2x");
                     });
 
@@ -545,7 +545,7 @@ describe("Paginator Tag Tests", function () {
                 cy.get(cesc2("#/_title1")).should("not.exist");
                 cy.get(cesc2("#/_section2_title")).should(
                     "have.text",
-                    "Section 2"
+                    "Section 2",
                 );
                 cy.get(cesc2("#/_title2")).should("not.exist");
 
@@ -558,7 +558,7 @@ describe("Paginator Tag Tests", function () {
                     .invoke("text")
                     .then((text) => {
                         expect(
-                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")
+                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
                         ).equal("3");
                     });
 
@@ -574,7 +574,7 @@ describe("Paginator Tag Tests", function () {
                     .invoke("text")
                     .then((text) => {
                         expect(
-                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")
+                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
                         ).equal("3");
                     });
 
@@ -589,10 +589,10 @@ describe("Paginator Tag Tests", function () {
                     let mathinput1DisplayAnchor =
                         cesc2("#" + mathinput1Name) + " .mq-editable-field";
                     let answer1Correct = cesc2(
-                        "#" + mathinput1Name + "_correct"
+                        "#" + mathinput1Name + "_correct",
                     );
                     let answer1Incorrect = cesc2(
-                        "#" + mathinput1Name + "_incorrect"
+                        "#" + mathinput1Name + "_incorrect",
                     );
 
                     cy.get(answer1Correct).should("be.visible");
@@ -600,7 +600,7 @@ describe("Paginator Tag Tests", function () {
                         .invoke("text")
                         .then((text) => {
                             expect(
-                                text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")
+                                text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
                             ).equal("2");
                         });
 
@@ -612,7 +612,7 @@ describe("Paginator Tag Tests", function () {
                         .invoke("text")
                         .then((text) => {
                             expect(
-                                text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")
+                                text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
                             ).equal("2−");
                         });
                     cy.get(cesc2("#/ca")).should("have.text", "0.25");
@@ -622,7 +622,7 @@ describe("Paginator Tag Tests", function () {
                     cy.get(cesc2("#/_title1")).should("not.exist");
                     cy.get(cesc2("#/_section2_title")).should(
                         "have.text",
-                        "Section 2"
+                        "Section 2",
                     );
                     cy.get(cesc2("#/_title2")).should("not.exist");
 
@@ -637,7 +637,7 @@ describe("Paginator Tag Tests", function () {
                         .invoke("text")
                         .then((text) => {
                             expect(
-                                text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")
+                                text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
                             ).equal("2−");
                         });
 
@@ -647,7 +647,7 @@ describe("Paginator Tag Tests", function () {
                     cy.get(cesc2("#/_title1")).should("not.exist");
                     cy.get(cesc2("#/_section2_title")).should(
                         "have.text",
-                        "Section 2"
+                        "Section 2",
                     );
                     cy.get(cesc2("#/_title2")).should("not.exist");
 
@@ -661,7 +661,7 @@ describe("Paginator Tag Tests", function () {
                         .invoke("text")
                         .then((text) => {
                             expect(
-                                text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")
+                                text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
                             ).equal("2q");
                         });
 
@@ -670,7 +670,7 @@ describe("Paginator Tag Tests", function () {
                         .invoke("text")
                         .then((text) => {
                             expect(
-                                text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")
+                                text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
                             ).equal("3");
                         });
 
@@ -679,7 +679,7 @@ describe("Paginator Tag Tests", function () {
                         .invoke("text")
                         .then((text) => {
                             expect(
-                                text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")
+                                text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
                             ).equal("2x");
                         });
                     cy.get(cesc2("#/ca")).should("have.text", "0.25");
@@ -692,7 +692,7 @@ describe("Paginator Tag Tests", function () {
                         .invoke("text")
                         .then((text) => {
                             expect(
-                                text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")
+                                text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
                             ).equal("2x:");
                         });
                     cy.get(cesc2("#/ca")).should("have.text", "0.25");
@@ -702,7 +702,7 @@ describe("Paginator Tag Tests", function () {
                     cy.get(cesc2("#/_title1")).should("not.exist");
                     cy.get(cesc2("#/_section2_title")).should(
                         "have.text",
-                        "Section 2"
+                        "Section 2",
                     );
                     cy.get(cesc2("#/_title2")).should("not.exist");
 
@@ -717,7 +717,7 @@ describe("Paginator Tag Tests", function () {
                         .invoke("text")
                         .then((text) => {
                             expect(
-                                text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")
+                                text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
                             ).equal("2x:");
                         });
                     cy.get(answer3Incorrect).should("be.visible");
@@ -725,7 +725,7 @@ describe("Paginator Tag Tests", function () {
                         .invoke("text")
                         .then((text) => {
                             expect(
-                                text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")
+                                text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
                             ).equal("2q");
                         });
                     cy.get(answer4Incorrect).should("be.visible");
@@ -733,7 +733,7 @@ describe("Paginator Tag Tests", function () {
                         .invoke("text")
                         .then((text) => {
                             expect(
-                                text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")
+                                text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
                             ).equal("3");
                         });
                     cy.get(cesc2("#/ca")).should("have.text", "0.25");
@@ -749,7 +749,7 @@ describe("Paginator Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -760,7 +760,7 @@ describe("Paginator Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 return stateVariables["/_answer4"];
-            })
+            }),
         );
 
         cy.log("on third page without first and second defined");
@@ -804,7 +804,7 @@ describe("Paginator Tag Tests", function () {
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        "2x:"
+                        "2x:",
                     );
                 });
             cy.get(answer3Incorrect).should("be.visible");
@@ -812,7 +812,7 @@ describe("Paginator Tag Tests", function () {
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        "2q"
+                        "2q",
                     );
                 });
             cy.get(answer4Incorrect).should("be.visible");
@@ -820,7 +820,7 @@ describe("Paginator Tag Tests", function () {
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        "3"
+                        "3",
                     );
                 });
             cy.get(cesc2("#/ca")).should("have.text", "0.25");
@@ -840,7 +840,7 @@ describe("Paginator Tag Tests", function () {
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        "3"
+                        "3",
                     );
                 });
 
@@ -851,7 +851,7 @@ describe("Paginator Tag Tests", function () {
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        "2x:"
+                        "2x:",
                     );
                 });
             cy.get(answer3Incorrect).should("be.visible");
@@ -859,7 +859,7 @@ describe("Paginator Tag Tests", function () {
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        "2q"
+                        "2q",
                     );
                 });
             cy.get(answer4Incorrect).should("be.visible");
@@ -867,7 +867,7 @@ describe("Paginator Tag Tests", function () {
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        "3"
+                        "3",
                     );
                 });
             cy.get(cesc2("#/ca")).should("have.text", "0.25");
@@ -895,7 +895,7 @@ describe("Paginator Tag Tests", function () {
                     cesc2("#" + mathinput1Name) + " .mq-editable-field";
                 let answer1Correct = cesc2("#" + mathinput1Name + "_correct");
                 let answer1Incorrect = cesc2(
-                    "#" + mathinput1Name + "_incorrect"
+                    "#" + mathinput1Name + "_incorrect",
                 );
 
                 cy.get(answer1Incorrect).should("be.visible");
@@ -903,7 +903,7 @@ describe("Paginator Tag Tests", function () {
                     .invoke("text")
                     .then((text) => {
                         expect(
-                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")
+                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
                         ).equal("2−");
                     });
                 cy.get(cesc2("#/ca")).should("have.text", "0.25");
@@ -913,7 +913,7 @@ describe("Paginator Tag Tests", function () {
                     .invoke("text")
                     .then((text) => {
                         expect(
-                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")
+                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
                         ).equal("3");
                     });
             });
@@ -952,7 +952,7 @@ describe("Paginator Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -998,7 +998,7 @@ describe("Paginator Tag Tests", function () {
                 let answer2Submit = cesc2("#" + textinput2Name + "_submit");
                 let answer2Correct = cesc2("#" + textinput2Name + "_correct");
                 let answer2Incorrect = cesc2(
-                    "#" + textinput2Name + "_incorrect"
+                    "#" + textinput2Name + "_incorrect",
                 );
 
                 cy.get(answer2Submit).should("be.visible");
@@ -1006,7 +1006,7 @@ describe("Paginator Tag Tests", function () {
                 cy.get(cesc2("#/pcontrols_next")).click();
                 cy.get(cesc2("#/_problem3_title")).should(
                     "have.text",
-                    "Problem 3"
+                    "Problem 3",
                 );
                 cy.get(cesc2("#/ca")).should("have.text", "0.167");
 
@@ -1022,10 +1022,10 @@ describe("Paginator Tag Tests", function () {
                         cesc2("#" + textinput3Name) + " .mq-editable-field";
                     let answer3Submit = cesc2("#" + textinput3Name + "_submit");
                     let answer3Correct = cesc2(
-                        "#" + textinput3Name + "_correct"
+                        "#" + textinput3Name + "_correct",
                     );
                     let answer3Incorrect = cesc2(
-                        "#" + textinput3Name + "_incorrect"
+                        "#" + textinput3Name + "_incorrect",
                     );
 
                     cy.get(answer3Submit).should("be.visible");
@@ -1033,7 +1033,7 @@ describe("Paginator Tag Tests", function () {
                     cy.get(cesc2("#/pcontrols_previous")).click();
                     cy.get(cesc2("#/_problem2_title")).should(
                         "have.text",
-                        "Problem 2"
+                        "Problem 2",
                     );
                     cy.get(cesc2("#/ca")).should("have.text", "0.167");
 
@@ -1045,7 +1045,7 @@ describe("Paginator Tag Tests", function () {
                     cy.get(cesc2("#/pcontrols_previous")).click();
                     cy.get(cesc2("#/_problem1_title")).should(
                         "have.text",
-                        "Problem 1"
+                        "Problem 1",
                     );
                     cy.get(cesc2("#/ca")).should("have.text", "0.5");
 
@@ -1060,7 +1060,7 @@ describe("Paginator Tag Tests", function () {
                     cy.get(cesc2("#/pcontrols_next")).click();
                     cy.get(cesc2("#/_problem2_title")).should(
                         "have.text",
-                        "Problem 2"
+                        "Problem 2",
                     );
                     cy.get(cesc2("#/ca")).should("have.text", "0.333");
 
@@ -1069,7 +1069,7 @@ describe("Paginator Tag Tests", function () {
                     cy.get(cesc2("#/pcontrols_next")).click();
                     cy.get(cesc2("#/_problem3_title")).should(
                         "have.text",
-                        "Problem 3"
+                        "Problem 3",
                     );
                     cy.get(cesc2("#/ca")).should("have.text", "0.333");
 
@@ -1080,7 +1080,7 @@ describe("Paginator Tag Tests", function () {
                     cy.get(cesc2("#/pcontrols_previous")).click();
                     cy.get(cesc2("#/_problem2_title")).should(
                         "have.text",
-                        "Problem 2"
+                        "Problem 2",
                     );
                     cy.get(cesc2("#/ca")).should("have.text", "0.833");
 
@@ -1097,7 +1097,7 @@ describe("Paginator Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1320,7 +1320,7 @@ describe("Paginator Tag Tests", function () {
                         ],
                     },
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1346,7 +1346,7 @@ describe("Paginator Tag Tests", function () {
       <text>b</text>
       `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "b"); //wait for page to load
@@ -1356,7 +1356,7 @@ describe("Paginator Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -1377,7 +1377,7 @@ describe("Paginator Tag Tests", function () {
       <text>b</text>
       `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "b"); //wait for page to load
@@ -1387,7 +1387,7 @@ describe("Paginator Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -1403,7 +1403,7 @@ describe("Paginator Tag Tests", function () {
 
         cy.get(cesc2("#/problem1/input1") + " textarea").type(
             "{end}{backspace}8{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc2("#/problem1/input1_incorrect")).should("be.visible");
         cy.get(cesc2("#/ca")).should("have.text", "0.2");
@@ -1421,7 +1421,7 @@ describe("Paginator Tag Tests", function () {
       <text>b</text>
       `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "b"); //wait for page to load
@@ -1431,7 +1431,7 @@ describe("Paginator Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -1463,7 +1463,7 @@ describe("Paginator Tag Tests", function () {
       <text>b</text>
       `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "b"); //wait for page to load
@@ -1473,7 +1473,7 @@ describe("Paginator Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -1505,7 +1505,7 @@ describe("Paginator Tag Tests", function () {
       <text>b</text>
       `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "b"); //wait for page to load
@@ -1515,7 +1515,7 @@ describe("Paginator Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -1561,7 +1561,7 @@ describe("Paginator Tag Tests", function () {
       <text>b</text>
       `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "b"); //wait for page to load
@@ -1571,7 +1571,7 @@ describe("Paginator Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -1621,7 +1621,7 @@ describe("Paginator Tag Tests", function () {
                     //   name: "mouse"
                     // }]
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1631,7 +1631,7 @@ describe("Paginator Tag Tests", function () {
 
         cy.get(cesc2("#/problem1/_title1")).should(
             "have.text",
-            "Animal sounds"
+            "Animal sounds",
         );
         cy.get(cesc2("#/ca")).should("have.text", "0");
         cy.window().then(async (win) => {
@@ -1641,7 +1641,7 @@ describe("Paginator Tag Tests", function () {
                     .choiceTexts;
             let mouseInd = choices.indexOf("squeak") + 1;
             cy.get(
-                cesc2(`#/problem1/_choiceinput1_choice${mouseInd}_input`)
+                cesc2(`#/problem1/_choiceinput1_choice${mouseInd}_input`),
             ).click();
         });
 
@@ -1657,7 +1657,7 @@ describe("Paginator Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -1668,15 +1668,15 @@ describe("Paginator Tag Tests", function () {
                 let stateVariables = await win.returnAllStateVariables1();
                 let foundIt = Boolean(
                     stateVariables["/problem1/_choiceinput1"]?.stateValues
-                        ?.choiceTexts
+                        ?.choiceTexts,
                 );
                 return foundIt;
-            })
+            }),
         );
 
         cy.get(cesc2("#/problem1/_title1")).should(
             "have.text",
-            "Animal sounds"
+            "Animal sounds",
         );
         cy.get(cesc2(`#/problem1/_choiceinput1_correct`)).should("be.visible");
         cy.get(cesc2("#/ca")).should("have.text", "0.333");
@@ -1684,7 +1684,7 @@ describe("Paginator Tag Tests", function () {
         cy.get(cesc2("#/pcontrols_next")).click();
         cy.get(cesc2("#/problem2/_title1")).should(
             "have.text",
-            "Derivative problem"
+            "Derivative problem",
         );
         cy.get(cesc2("#/ca")).should("have.text", "0.333");
 
@@ -1704,10 +1704,10 @@ describe("Paginator Tag Tests", function () {
             cy.get(cesc2("#/pcontrols_previous")).click();
             cy.get(cesc2("#/problem1/_title1")).should(
                 "have.text",
-                "Animal sounds"
+                "Animal sounds",
             );
             cy.get(cesc2(`#/problem1/_choiceinput1_correct`)).should(
-                "be.visible"
+                "be.visible",
             );
             cy.get(cesc2("#/ca")).should("have.text", "0.667");
 
@@ -1719,24 +1719,24 @@ describe("Paginator Tag Tests", function () {
                     {
                         doenetML,
                     },
-                    "*"
+                    "*",
                 );
             });
             cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
 
             cy.get(cesc2("#/problem1/_title1")).should(
                 "have.text",
-                "Animal sounds"
+                "Animal sounds",
             );
             cy.get(cesc2(`#/problem1/_choiceinput1_correct`)).should(
-                "be.visible"
+                "be.visible",
             );
             cy.get(cesc2("#/ca")).should("have.text", "0.667");
 
             cy.get(cesc2("#/pcontrols_next")).click();
             cy.get(cesc2("#/problem2/_title1")).should(
                 "have.text",
-                "Derivative problem"
+                "Derivative problem",
             );
             cy.get(mathinput2Correct).should("be.visible");
             cy.get(cesc2("#/ca")).should("have.text", "0.667");
@@ -1744,7 +1744,7 @@ describe("Paginator Tag Tests", function () {
             cy.get(cesc2("#/pcontrols_next")).click();
             cy.get(cesc2("#/problem3/_title1")).should(
                 "have.text",
-                "A hard problem"
+                "A hard problem",
             );
             cy.get(cesc2("#/ca")).should("have.text", "0.667");
 
@@ -1752,10 +1752,10 @@ describe("Paginator Tag Tests", function () {
                 "2{enter}",
                 {
                     force: true,
-                }
+                },
             );
             cy.get(cesc2("#/problem3/_mathinput1_correct")).should(
-                "be.visible"
+                "be.visible",
             );
             cy.get(cesc2("#/ca")).should("have.text", "1");
 
@@ -1767,24 +1767,24 @@ describe("Paginator Tag Tests", function () {
                     {
                         doenetML,
                     },
-                    "*"
+                    "*",
                 );
             });
             cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
 
             cy.get(cesc2("#/problem3/_title1")).should(
                 "have.text",
-                "A hard problem"
+                "A hard problem",
             );
             cy.get(cesc2("#/problem3/_mathinput1_correct")).should(
-                "be.visible"
+                "be.visible",
             );
             cy.get(cesc2("#/ca")).should("have.text", "1");
 
             cy.get(cesc2("#/pcontrols_previous")).click();
             cy.get(cesc2("#/problem2/_title1")).should(
                 "have.text",
-                "Derivative problem"
+                "Derivative problem",
             );
             cy.get(mathinput2Correct).should("be.visible");
             cy.get(cesc2("#/ca")).should("have.text", "1");
@@ -1792,10 +1792,10 @@ describe("Paginator Tag Tests", function () {
             cy.get(cesc2("#/pcontrols_previous")).click();
             cy.get(cesc2("#/problem1/_title1")).should(
                 "have.text",
-                "Animal sounds"
+                "Animal sounds",
             );
             cy.get(cesc2(`#/problem1/_choiceinput1_correct`)).should(
-                "be.visible"
+                "be.visible",
             );
             cy.get(cesc2("#/ca")).should("have.text", "1");
 
@@ -1807,13 +1807,13 @@ describe("Paginator Tag Tests", function () {
                 expect(choiceTexts).eqls(choices);
                 let dogInd = choices.indexOf("woof") + 1;
                 cy.get(
-                    cesc2(`#/problem1/_choiceinput1_choice${dogInd}_input`)
+                    cesc2(`#/problem1/_choiceinput1_choice${dogInd}_input`),
                 ).click();
             });
 
             cy.get(cesc2(`#/problem1/_choiceinput1_submit`)).click();
             cy.get(cesc2(`#/problem1/_choiceinput1_incorrect`)).should(
-                "be.visible"
+                "be.visible",
             );
             cy.get(cesc2("#/ca")).should("have.text", "0.667");
 
@@ -1825,13 +1825,13 @@ describe("Paginator Tag Tests", function () {
                 expect(choiceTexts).eqls(choices);
                 let mouseInd = choices.indexOf("squeak") + 1;
                 cy.get(
-                    cesc2(`#/problem1/_choiceinput1_choice${mouseInd}_input`)
+                    cesc2(`#/problem1/_choiceinput1_choice${mouseInd}_input`),
                 ).click();
             });
 
             cy.get(cesc2(`#/problem1/_choiceinput1_submit`)).click();
             cy.get(cesc2(`#/problem1/_choiceinput1_correct`)).should(
-                "be.visible"
+                "be.visible",
             );
             cy.get(cesc2("#/ca")).should("have.text", "1");
         });
@@ -1871,7 +1871,7 @@ describe("Paginator Tag Tests", function () {
                     doenetML,
                     requestedVariantIndex: 3,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1879,7 +1879,7 @@ describe("Paginator Tag Tests", function () {
 
         cy.get(cesc2("#/problem1/_title1")).should(
             "have.text",
-            "Animal sounds"
+            "Animal sounds",
         );
         cy.get(cesc2("#/ca")).should("have.text", "0");
         cy.window().then(async (win) => {
@@ -1890,7 +1890,7 @@ describe("Paginator Tag Tests", function () {
             ];
             let mouseInd = choices.indexOf("squeak") + 1;
             cy.get(
-                cesc2(`#/problem1/_choiceinput1_choice${mouseInd}_input`)
+                cesc2(`#/problem1/_choiceinput1_choice${mouseInd}_input`),
             ).click();
         });
 
@@ -1906,14 +1906,14 @@ describe("Paginator Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
 
         cy.get(cesc2("#/problem1/_title1")).should(
             "have.text",
-            "Animal sounds"
+            "Animal sounds",
         );
         cy.get(cesc2(`#/problem1/_choiceinput1_correct`)).should("be.visible");
         cy.get(cesc2("#/ca")).should("have.text", "0.333");
@@ -1921,7 +1921,7 @@ describe("Paginator Tag Tests", function () {
         cy.get(cesc2("#/pcontrols_next")).click();
         cy.get(cesc2("#/problem2/_title1")).should(
             "have.text",
-            "Derivative problem"
+            "Derivative problem",
         );
         cy.get(cesc2("#/ca")).should("have.text", "0.333");
 
@@ -1941,10 +1941,10 @@ describe("Paginator Tag Tests", function () {
             cy.get(cesc2("#/pcontrols_previous")).click();
             cy.get(cesc2("#/problem1/_title1")).should(
                 "have.text",
-                "Animal sounds"
+                "Animal sounds",
             );
             cy.get(cesc2(`#/problem1/_choiceinput1_correct`)).should(
-                "be.visible"
+                "be.visible",
             );
             cy.get(cesc2("#/ca")).should("have.text", "0.667");
 
@@ -1956,24 +1956,24 @@ describe("Paginator Tag Tests", function () {
                     {
                         doenetML,
                     },
-                    "*"
+                    "*",
                 );
             });
             cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
 
             cy.get(cesc2("#/problem1/_title1")).should(
                 "have.text",
-                "Animal sounds"
+                "Animal sounds",
             );
             cy.get(cesc2(`#/problem1/_choiceinput1_correct`)).should(
-                "be.visible"
+                "be.visible",
             );
             cy.get(cesc2("#/ca")).should("have.text", "0.667");
 
             cy.get(cesc2("#/pcontrols_next")).click();
             cy.get(cesc2("#/problem2/_title1")).should(
                 "have.text",
-                "Derivative problem"
+                "Derivative problem",
             );
             cy.get(mathinput2Correct).should("be.visible");
             cy.get(cesc2("#/ca")).should("have.text", "0.667");
@@ -1981,7 +1981,7 @@ describe("Paginator Tag Tests", function () {
             cy.get(cesc2("#/pcontrols_next")).click();
             cy.get(cesc2("#/problem3/_title1")).should(
                 "have.text",
-                "A hard problem"
+                "A hard problem",
             );
             cy.get(cesc2("#/ca")).should("have.text", "0.667");
 
@@ -1989,10 +1989,10 @@ describe("Paginator Tag Tests", function () {
                 "2{enter}",
                 {
                     force: true,
-                }
+                },
             );
             cy.get(cesc2("#/problem3/_mathinput1_correct")).should(
-                "be.visible"
+                "be.visible",
             );
             cy.get(cesc2("#/ca")).should("have.text", "1");
 
@@ -2004,24 +2004,24 @@ describe("Paginator Tag Tests", function () {
                     {
                         doenetML,
                     },
-                    "*"
+                    "*",
                 );
             });
             cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
 
             cy.get(cesc2("#/problem3/_title1")).should(
                 "have.text",
-                "A hard problem"
+                "A hard problem",
             );
             cy.get(cesc2("#/problem3/_mathinput1_correct")).should(
-                "be.visible"
+                "be.visible",
             );
             cy.get(cesc2("#/ca")).should("have.text", "1");
 
             cy.get(cesc2("#/pcontrols_previous")).click();
             cy.get(cesc2("#/problem2/_title1")).should(
                 "have.text",
-                "Derivative problem"
+                "Derivative problem",
             );
             cy.get(mathinput2Correct).should("be.visible");
             cy.get(cesc2("#/ca")).should("have.text", "1");
@@ -2029,10 +2029,10 @@ describe("Paginator Tag Tests", function () {
             cy.get(cesc2("#/pcontrols_previous")).click();
             cy.get(cesc2("#/problem1/_title1")).should(
                 "have.text",
-                "Animal sounds"
+                "Animal sounds",
             );
             cy.get(cesc2(`#/problem1/_choiceinput1_correct`)).should(
-                "be.visible"
+                "be.visible",
             );
             cy.get(cesc2("#/ca")).should("have.text", "1");
         });
@@ -2073,7 +2073,7 @@ describe("Paginator Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2124,7 +2124,7 @@ describe("Paginator Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -2134,7 +2134,7 @@ describe("Paginator Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 return Boolean(stateVariables["/_answer2"]);
-            })
+            }),
         );
 
         cy.get(cesc2("#/_title2")).should("have.text", "Type a letter");
@@ -2203,7 +2203,7 @@ describe("Paginator Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2334,7 +2334,7 @@ describe("Paginator Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2442,7 +2442,7 @@ describe("Paginator Tag Tests", function () {
                     doenetML: allDoenetMLs[0],
                     requestedVariantIndex: 1,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2462,7 +2462,7 @@ describe("Paginator Tag Tests", function () {
                             doenetML: allDoenetMLs[attemptNumber - 1],
                             requestedVariantIndex: attemptNumber,
                         },
-                        "*"
+                        "*",
                     );
                 });
                 cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -2478,7 +2478,7 @@ describe("Paginator Tag Tests", function () {
 
                 expect(
                     stateVariables["/_document1"].stateValues
-                        .generatedVariantInfo.index
+                        .generatedVariantInfo.index,
                 ).eq(attemptNumber);
 
                 if (stateVariables["/problem1/a"]) {
@@ -2497,7 +2497,7 @@ describe("Paginator Tag Tests", function () {
                     cy.wait(0).then((_) => {
                         cy.get(cesc2("#/ca")).should(
                             "have.text",
-                            `${creditAchieved}`
+                            `${creditAchieved}`,
                         );
 
                         let thisProbInfo = problemInfo[ind];
@@ -2506,7 +2506,7 @@ describe("Paginator Tag Tests", function () {
                         if (problemOrder[ind] === 1) {
                             cy.get(cesc2(`#${thisProbName}_title`)).should(
                                 "have.text",
-                                `Problem ${ind + 1}`
+                                `Problem ${ind + 1}`,
                             );
                             cy.wait(10);
 
@@ -2524,7 +2524,7 @@ describe("Paginator Tag Tests", function () {
                                     ].stateValues.value;
                                 thisProbInfo.o1m = me.fromAst(
                                     stateVariables[`${thisProbName}/o1/m`]
-                                        .stateValues.value
+                                        .stateValues.value,
                                 );
                                 thisProbInfo.o1t =
                                     stateVariables[
@@ -2532,7 +2532,7 @@ describe("Paginator Tag Tests", function () {
                                     ].stateValues.value;
                                 thisProbInfo.o2m = me.fromAst(
                                     stateVariables[`${thisProbName}/o2/m`]
-                                        .stateValues.value
+                                        .stateValues.value,
                                 );
                                 thisProbInfo.o2t =
                                     stateVariables[
@@ -2546,7 +2546,7 @@ describe("Paginator Tag Tests", function () {
                                 let mathinput1Anchor =
                                     cesc2("#" + mathinput1Name) + " textarea";
                                 let answer1Correct = cesc2(
-                                    "#" + mathinput1Name + "_correct"
+                                    "#" + mathinput1Name + "_correct",
                                 );
 
                                 let mathinput2Name =
@@ -2556,7 +2556,7 @@ describe("Paginator Tag Tests", function () {
                                 let mathinput2Anchor =
                                     cesc2("#" + mathinput2Name) + " textarea";
                                 let answer2Correct = cesc2(
-                                    "#" + mathinput2Name + "_correct"
+                                    "#" + mathinput2Name + "_correct",
                                 );
 
                                 let textinput3Name =
@@ -2566,7 +2566,7 @@ describe("Paginator Tag Tests", function () {
                                 let textinput3Anchor =
                                     cesc2("#" + textinput3Name) + "_input";
                                 let answer3Correct = cesc2(
-                                    "#" + textinput3Name + "_correct"
+                                    "#" + textinput3Name + "_correct",
                                 );
 
                                 let mathinput4Name =
@@ -2576,7 +2576,7 @@ describe("Paginator Tag Tests", function () {
                                 let mathinput4Anchor =
                                     cesc2("#" + mathinput4Name) + " textarea";
                                 let answer4Correct = cesc2(
-                                    "#" + mathinput4Name + "_correct"
+                                    "#" + mathinput4Name + "_correct",
                                 );
 
                                 let textinput5Name =
@@ -2586,43 +2586,43 @@ describe("Paginator Tag Tests", function () {
                                 let textinput5Anchor =
                                     cesc2("#" + textinput5Name) + "_input";
                                 let answer5Correct = cesc2(
-                                    "#" + textinput5Name + "_correct"
+                                    "#" + textinput5Name + "_correct",
                                 );
 
                                 cy.get(mathinput1Anchor).type(
                                     `${
                                         thisProbInfo.a
                                     }${thisProbInfo.v.toString()}{enter}`,
-                                    { force: true }
+                                    { force: true },
                                 );
                                 cy.get(answer1Correct).should("be.visible");
 
                                 cy.get(mathinput2Anchor).type(
                                     `${thisProbInfo.o1m.toString()}{enter}`,
-                                    { force: true }
+                                    { force: true },
                                 );
                                 cy.get(answer2Correct).should("be.visible");
 
                                 cy.get(textinput3Anchor).type(
-                                    `${thisProbInfo.o1t}{enter}`
+                                    `${thisProbInfo.o1t}{enter}`,
                                 );
                                 cy.get(answer3Correct).should("be.visible");
 
                                 cy.get(mathinput4Anchor).type(
                                     `${thisProbInfo.o2m.toString()}{enter}`,
-                                    { force: true }
+                                    { force: true },
                                 );
                                 cy.get(answer4Correct).should("be.visible");
 
                                 cy.get(textinput5Anchor).type(
-                                    `${thisProbInfo.o2t}{enter}`
+                                    `${thisProbInfo.o2t}{enter}`,
                                 );
                                 cy.get(answer5Correct).should("be.visible");
                             });
                         } else {
                             cy.get(cesc2(`#${thisProbName}_title`)).should(
                                 "have.text",
-                                `Animal sounds`
+                                `Animal sounds`,
                             );
                             cy.wait(10);
 
@@ -2646,23 +2646,23 @@ describe("Paginator Tag Tests", function () {
                                 ];
                                 thisProbInfo.animalInd =
                                     thisProbInfo.choices.indexOf(
-                                        thisProbInfo.sound
+                                        thisProbInfo.sound,
                                     ) + 1;
                                 cy.get(
                                     cesc2(
-                                        `#${thisProbName}/_choiceinput1_choice${thisProbInfo.animalInd}_input`
-                                    )
+                                        `#${thisProbName}/_choiceinput1_choice${thisProbInfo.animalInd}_input`,
+                                    ),
                                 ).click();
 
                                 cy.get(
                                     cesc2(
-                                        `#${thisProbName}/_choiceinput1_submit`
-                                    )
+                                        `#${thisProbName}/_choiceinput1_submit`,
+                                    ),
                                 ).click();
                                 cy.get(
                                     cesc2(
-                                        `#${thisProbName}/_choiceinput1_correct`
-                                    )
+                                        `#${thisProbName}/_choiceinput1_correct`,
+                                    ),
                                 ).should("be.visible");
                             });
                         }
@@ -2681,7 +2681,7 @@ describe("Paginator Tag Tests", function () {
       <text>b</text>
       `,
                     },
-                    "*"
+                    "*",
                 );
             });
             cy.get(cesc("#\\/_text1")).should("have.text", "b"); //wait for page to load
@@ -2691,7 +2691,7 @@ describe("Paginator Tag Tests", function () {
                     {
                         doenetML: allDoenetMLs[attemptNumber - 1],
                     },
-                    "*"
+                    "*",
                 );
             });
             cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -2702,7 +2702,7 @@ describe("Paginator Tag Tests", function () {
                     let stateVariables = await win.returnAllStateVariables1();
                     let foundIt = Boolean(stateVariables["/_document1"]);
                     return foundIt;
-                })
+                }),
             );
 
             for (let ind = 1; ind >= 0; ind--) {
@@ -2719,7 +2719,7 @@ describe("Paginator Tag Tests", function () {
                     if (problemOrder[ind] === 1) {
                         cy.get(cesc2(`#${thisProbName}_title`)).should(
                             "have.text",
-                            `Problem ${ind + 1}`
+                            `Problem ${ind + 1}`,
                         );
                         cy.wait(10);
 
@@ -2730,73 +2730,73 @@ describe("Paginator Tag Tests", function () {
                             expect(
                                 stateVariables[
                                     `${thisProbName}/a`
-                                ].stateValues.value.toString()
+                                ].stateValues.value.toString(),
                             ).eq(thisProbInfo.a.toString());
                             expect(
                                 stateVariables[
                                     `${thisProbName}/v`
-                                ].stateValues.value.toString()
+                                ].stateValues.value.toString(),
                             ).eq(thisProbInfo.v.toString());
                             expect(
                                 me
                                     .fromAst(
                                         stateVariables[`${thisProbName}/o1/m`]
-                                            .stateValues.value
+                                            .stateValues.value,
                                     )
-                                    .toString()
+                                    .toString(),
                             ).eq(thisProbInfo.o1m.toString());
                             expect(
                                 stateVariables[
                                     `${thisProbName}/o1/t`
-                                ].stateValues.value.toString()
+                                ].stateValues.value.toString(),
                             ).eq(thisProbInfo.o1t.toString());
                             expect(
                                 me
                                     .fromAst(
                                         stateVariables[`${thisProbName}/o2/m`]
-                                            .stateValues.value
+                                            .stateValues.value,
                                     )
-                                    .toString()
+                                    .toString(),
                             ).eq(thisProbInfo.o2m.toString());
                             expect(
                                 stateVariables[
                                     `${thisProbName}/o2/t`
-                                ].stateValues.value.toString()
+                                ].stateValues.value.toString(),
                             ).eq(thisProbInfo.o2t.toString());
 
                             let mathinput1Name =
                                 stateVariables[`${thisProbName}/ans1`]
                                     .stateValues.inputChildren[0].componentName;
                             let answer1Correct = cesc2(
-                                "#" + mathinput1Name + "_correct"
+                                "#" + mathinput1Name + "_correct",
                             );
 
                             let mathinput2Name =
                                 stateVariables[`${thisProbName}/ans2`]
                                     .stateValues.inputChildren[0].componentName;
                             let answer2Correct = cesc2(
-                                "#" + mathinput2Name + "_correct"
+                                "#" + mathinput2Name + "_correct",
                             );
 
                             let textinput3Name =
                                 stateVariables[`${thisProbName}/ans3`]
                                     .stateValues.inputChildren[0].componentName;
                             let answer3Correct = cesc2(
-                                "#" + textinput3Name + "_correct"
+                                "#" + textinput3Name + "_correct",
                             );
 
                             let mathinput4Name =
                                 stateVariables[`${thisProbName}/ans4`]
                                     .stateValues.inputChildren[0].componentName;
                             let answer4Correct = cesc2(
-                                "#" + mathinput4Name + "_correct"
+                                "#" + mathinput4Name + "_correct",
                             );
 
                             let textinput5Name =
                                 stateVariables[`${thisProbName}/ans5`]
                                     .stateValues.inputChildren[0].componentName;
                             let answer5Correct = cesc2(
-                                "#" + textinput5Name + "_correct"
+                                "#" + textinput5Name + "_correct",
                             );
 
                             cy.get(answer1Correct).should("be.visible");
@@ -2812,10 +2812,10 @@ describe("Paginator Tag Tests", function () {
                     } else {
                         cy.get(cesc2(`#${thisProbName}_title`)).should(
                             "have.text",
-                            `Animal sounds`
+                            `Animal sounds`,
                         );
                         cy.get(
-                            cesc2(`#${thisProbName}/_choiceinput1_correct`)
+                            cesc2(`#${thisProbName}/_choiceinput1_correct`),
                         ).should("be.visible");
 
                         cy.wait(10);
@@ -2826,23 +2826,23 @@ describe("Paginator Tag Tests", function () {
 
                             expect(
                                 stateVariables[`${thisProbName}/animal`]
-                                    .stateValues.value
+                                    .stateValues.value,
                             ).eq(thisProbInfo.animal);
                             expect(
                                 stateVariables[`${thisProbName}/sound`]
-                                    .stateValues.value
+                                    .stateValues.value,
                             ).eq(thisProbInfo.sound);
                             expect(
                                 stateVariables[`${thisProbName}/_choiceinput1`]
-                                    .stateValues.choiceTexts
+                                    .stateValues.choiceTexts,
                             ).eqls(thisProbInfo.choices);
                             expect(
                                 thisProbInfo.choices.indexOf(
-                                    thisProbInfo.sound
-                                ) + 1
+                                    thisProbInfo.sound,
+                                ) + 1,
                             ).eq(thisProbInfo.animalInd);
                             cy.get(
-                                cesc2(`#${thisProbName}/_choiceinput1_correct`)
+                                cesc2(`#${thisProbName}/_choiceinput1_correct`),
                             ).should("be.visible");
                         });
                     }
@@ -2858,7 +2858,7 @@ describe("Paginator Tag Tests", function () {
       <text>b</text>
       `,
                     },
-                    "*"
+                    "*",
                 );
             });
             cy.get(cesc("#\\/_text1")).should("have.text", "b"); //wait for page to load
@@ -2868,7 +2868,7 @@ describe("Paginator Tag Tests", function () {
                     {
                         doenetML: allDoenetMLs[attemptNumber - 1],
                     },
-                    "*"
+                    "*",
                 );
             });
             cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -2879,7 +2879,7 @@ describe("Paginator Tag Tests", function () {
                     let stateVariables = await win.returnAllStateVariables1();
                     let foundIt = Boolean(stateVariables["/_document1"]);
                     return foundIt;
-                })
+                }),
             );
 
             for (let ind = 0; ind < 2; ind++) {
@@ -2896,7 +2896,7 @@ describe("Paginator Tag Tests", function () {
                     if (problemOrder[ind] === 1) {
                         cy.get(cesc2(`#${thisProbName}_title`)).should(
                             "have.text",
-                            `Problem ${ind + 1}`
+                            `Problem ${ind + 1}`,
                         );
                         cy.wait(10);
 
@@ -2907,73 +2907,73 @@ describe("Paginator Tag Tests", function () {
                             expect(
                                 stateVariables[
                                     `${thisProbName}/a`
-                                ].stateValues.value.toString()
+                                ].stateValues.value.toString(),
                             ).eq(thisProbInfo.a.toString());
                             expect(
                                 stateVariables[
                                     `${thisProbName}/v`
-                                ].stateValues.value.toString()
+                                ].stateValues.value.toString(),
                             ).eq(thisProbInfo.v.toString());
                             expect(
                                 me
                                     .fromAst(
                                         stateVariables[`${thisProbName}/o1/m`]
-                                            .stateValues.value
+                                            .stateValues.value,
                                     )
-                                    .toString()
+                                    .toString(),
                             ).eq(thisProbInfo.o1m.toString());
                             expect(
                                 stateVariables[
                                     `${thisProbName}/o1/t`
-                                ].stateValues.value.toString()
+                                ].stateValues.value.toString(),
                             ).eq(thisProbInfo.o1t.toString());
                             expect(
                                 me
                                     .fromAst(
                                         stateVariables[`${thisProbName}/o2/m`]
-                                            .stateValues.value
+                                            .stateValues.value,
                                     )
-                                    .toString()
+                                    .toString(),
                             ).eq(thisProbInfo.o2m.toString());
                             expect(
                                 stateVariables[
                                     `${thisProbName}/o2/t`
-                                ].stateValues.value.toString()
+                                ].stateValues.value.toString(),
                             ).eq(thisProbInfo.o2t.toString());
 
                             let mathinput1Name =
                                 stateVariables[`${thisProbName}/ans1`]
                                     .stateValues.inputChildren[0].componentName;
                             let answer1Correct = cesc2(
-                                "#" + mathinput1Name + "_correct"
+                                "#" + mathinput1Name + "_correct",
                             );
 
                             let mathinput2Name =
                                 stateVariables[`${thisProbName}/ans2`]
                                     .stateValues.inputChildren[0].componentName;
                             let answer2Correct = cesc2(
-                                "#" + mathinput2Name + "_correct"
+                                "#" + mathinput2Name + "_correct",
                             );
 
                             let textinput3Name =
                                 stateVariables[`${thisProbName}/ans3`]
                                     .stateValues.inputChildren[0].componentName;
                             let answer3Correct = cesc2(
-                                "#" + textinput3Name + "_correct"
+                                "#" + textinput3Name + "_correct",
                             );
 
                             let mathinput4Name =
                                 stateVariables[`${thisProbName}/ans4`]
                                     .stateValues.inputChildren[0].componentName;
                             let answer4Correct = cesc2(
-                                "#" + mathinput4Name + "_correct"
+                                "#" + mathinput4Name + "_correct",
                             );
 
                             let textinput5Name =
                                 stateVariables[`${thisProbName}/ans5`]
                                     .stateValues.inputChildren[0].componentName;
                             let answer5Correct = cesc2(
-                                "#" + textinput5Name + "_correct"
+                                "#" + textinput5Name + "_correct",
                             );
 
                             cy.get(answer1Correct).should("be.visible");
@@ -2989,10 +2989,10 @@ describe("Paginator Tag Tests", function () {
                     } else {
                         cy.get(cesc2(`#${thisProbName}_title`)).should(
                             "have.text",
-                            `Animal sounds`
+                            `Animal sounds`,
                         );
                         cy.get(
-                            cesc2(`#${thisProbName}/_choiceinput1_correct`)
+                            cesc2(`#${thisProbName}/_choiceinput1_correct`),
                         ).should("be.visible");
 
                         cy.wait(10);
@@ -3003,23 +3003,23 @@ describe("Paginator Tag Tests", function () {
 
                             expect(
                                 stateVariables[`${thisProbName}/animal`]
-                                    .stateValues.value
+                                    .stateValues.value,
                             ).eq(thisProbInfo.animal);
                             expect(
                                 stateVariables[`${thisProbName}/sound`]
-                                    .stateValues.value
+                                    .stateValues.value,
                             ).eq(thisProbInfo.sound);
                             expect(
                                 stateVariables[`${thisProbName}/_choiceinput1`]
-                                    .stateValues.choiceTexts
+                                    .stateValues.choiceTexts,
                             ).eqls(thisProbInfo.choices);
                             expect(
                                 thisProbInfo.choices.indexOf(
-                                    thisProbInfo.sound
-                                ) + 1
+                                    thisProbInfo.sound,
+                                ) + 1,
                             ).eq(thisProbInfo.animalInd);
                             cy.get(
-                                cesc2(`#${thisProbName}/_choiceinput1_correct`)
+                                cesc2(`#${thisProbName}/_choiceinput1_correct`),
                             ).should("be.visible");
                         });
                     }
@@ -3094,7 +3094,7 @@ describe("Paginator Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3132,7 +3132,7 @@ describe("Paginator Tag Tests", function () {
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        correctAnswer
+                        correctAnswer,
                     );
                 });
             cy.get(answer1Submit).click();
@@ -3144,7 +3144,7 @@ describe("Paginator Tag Tests", function () {
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        `2${correctAnswer}`
+                        `2${correctAnswer}`,
                     );
                 });
             cy.get(answer2Submit).click();
@@ -3163,7 +3163,7 @@ describe("Paginator Tag Tests", function () {
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        correctAnswer
+                        correctAnswer,
                     );
                 });
             cy.get(answer1Correct).should("be.visible");
@@ -3172,7 +3172,7 @@ describe("Paginator Tag Tests", function () {
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        `2${correctAnswer}`
+                        `2${correctAnswer}`,
                     );
                 });
             cy.get(answer2Correct).should("be.visible");
@@ -3207,7 +3207,7 @@ describe("Paginator Tag Tests", function () {
                     .invoke("text")
                     .then((text) => {
                         expect(
-                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")
+                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
                         ).equal("1");
                     });
                 cy.get(answer3Correct).should("be.visible");
@@ -3219,7 +3219,7 @@ describe("Paginator Tag Tests", function () {
                     .invoke("text")
                     .then((text) => {
                         expect(
-                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")
+                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
                         ).equal("2");
                     });
                 cy.get(answer4Correct).should("be.visible");
@@ -3229,7 +3229,7 @@ describe("Paginator Tag Tests", function () {
                 cy.get(cesc2("#/pcontrols_previous")).click();
                 cy.get(cesc("#\\/problem1_title")).should(
                     "have.text",
-                    "Problem 1"
+                    "Problem 1",
                 );
                 cy.get(cesc("#\\/ca")).should("have.text", "1");
 
@@ -3237,7 +3237,7 @@ describe("Paginator Tag Tests", function () {
                     .invoke("text")
                     .then((text) => {
                         expect(
-                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")
+                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
                         ).equal(correctAnswer);
                     });
                 cy.get(answer1Correct).should("be.visible");
@@ -3246,7 +3246,7 @@ describe("Paginator Tag Tests", function () {
                     .invoke("text")
                     .then((text) => {
                         expect(
-                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")
+                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
                         ).equal(`2${correctAnswer}`);
                     });
                 cy.get(answer2Correct).should("be.visible");
@@ -3254,7 +3254,7 @@ describe("Paginator Tag Tests", function () {
                 cy.get(cesc2("#/pcontrols_next")).click();
                 cy.get(cesc("#\\/problem2_title")).should(
                     "have.text",
-                    "Problem 2"
+                    "Problem 2",
                 );
                 cy.get(cesc("#\\/ca")).should("have.text", "1");
 
@@ -3262,7 +3262,7 @@ describe("Paginator Tag Tests", function () {
                     .invoke("text")
                     .then((text) => {
                         expect(
-                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")
+                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
                         ).equal("1");
                     });
                 cy.get(answer3Correct).should("be.visible");
@@ -3271,7 +3271,7 @@ describe("Paginator Tag Tests", function () {
                     .invoke("text")
                     .then((text) => {
                         expect(
-                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")
+                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
                         ).equal("2");
                     });
                 cy.get(answer4Correct).should("be.visible");
@@ -3285,7 +3285,7 @@ describe("Paginator Tag Tests", function () {
                         {
                             doenetML: "<text>b</text>",
                         },
-                        "*"
+                        "*",
                     );
                 });
 
@@ -3296,7 +3296,7 @@ describe("Paginator Tag Tests", function () {
                         {
                             doenetML,
                         },
-                        "*"
+                        "*",
                     );
                 });
 
@@ -3304,7 +3304,7 @@ describe("Paginator Tag Tests", function () {
 
                 cy.get(cesc("#\\/problem2_title")).should(
                     "have.text",
-                    "Problem 2"
+                    "Problem 2",
                 );
                 cy.get(cesc("#\\/ca")).should("have.text", "1");
 
@@ -3312,7 +3312,7 @@ describe("Paginator Tag Tests", function () {
                     .invoke("text")
                     .then((text) => {
                         expect(
-                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")
+                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
                         ).equal("1");
                     });
                 cy.get(answer3Correct).should("be.visible");
@@ -3321,7 +3321,7 @@ describe("Paginator Tag Tests", function () {
                     .invoke("text")
                     .then((text) => {
                         expect(
-                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")
+                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
                         ).equal("2");
                     });
                 cy.get(answer4Correct).should("be.visible");
@@ -3331,7 +3331,7 @@ describe("Paginator Tag Tests", function () {
                 cy.get(cesc2("#/pcontrols_previous")).click();
                 cy.get(cesc("#\\/problem1_title")).should(
                     "have.text",
-                    "Problem 1"
+                    "Problem 1",
                 );
                 cy.get(cesc("#\\/ca")).should("have.text", "1");
 
@@ -3339,7 +3339,7 @@ describe("Paginator Tag Tests", function () {
                     .invoke("text")
                     .then((text) => {
                         expect(
-                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")
+                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
                         ).equal(correctAnswer);
                     });
                 cy.get(answer1Correct).should("be.visible");
@@ -3348,7 +3348,7 @@ describe("Paginator Tag Tests", function () {
                     .invoke("text")
                     .then((text) => {
                         expect(
-                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")
+                            text.replace(/[\s\u200B-\u200D\uFEFF]/g, ""),
                         ).equal(`2${correctAnswer}`);
                     });
                 cy.get(answer2Correct).should("be.visible");

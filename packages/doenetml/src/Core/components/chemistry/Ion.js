@@ -468,7 +468,7 @@ export default class Ion extends InlineComponent {
                             dependencyValues.group === 101 ||
                             dependencyValues.group === 102 ||
                             [13, 31, 49, 50, 81, 82, 83, 84].includes(
-                                dependencyValues.atomicNumber
+                                dependencyValues.atomicNumber,
                             ))
                     ) {
                         let suffix = "";

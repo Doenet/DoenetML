@@ -27,7 +27,7 @@ describe("Angle Tag Tests", function () {
   </graph>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -52,7 +52,7 @@ describe("Angle Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_angle1"].stateValues.radians).closeTo(
                 Math.PI / 4,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_angle1"].stateValues.points).eqls([
                 [2, 2],
@@ -63,11 +63,11 @@ describe("Angle Tag Tests", function () {
 
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             "{end}{backspace}4{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/_mathinput2") + " textarea").type(
             "{end}{backspace}4{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/angle2") + " .mjx-mrow").should("contain.text", "5.4");
@@ -91,7 +91,7 @@ describe("Angle Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_angle1"].stateValues.radians).closeTo(
                 (7 * Math.PI) / 4,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_angle1"].stateValues.points).eqls([
                 [4, 4],
@@ -102,11 +102,11 @@ describe("Angle Tag Tests", function () {
 
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             "{end}{backspace}0{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/_mathinput2") + " textarea").type(
             "{end}{backspace}2{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/angle2") + " .mjx-mrow").should("contain.text", "1.5");
@@ -130,7 +130,7 @@ describe("Angle Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_angle1"].stateValues.radians).closeTo(
                 Math.PI / 2,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_angle1"].stateValues.points).eqls([
                 [0, 2],
@@ -141,11 +141,11 @@ describe("Angle Tag Tests", function () {
 
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             "{end}{backspace}4{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/_mathinput2") + " textarea").type(
             "{end}{backspace}6{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/angle2") + " .mjx-mrow").should("contain.text", "4.7");
@@ -169,7 +169,7 @@ describe("Angle Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_angle1"].stateValues.radians).closeTo(
                 (3 * Math.PI) / 2,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_angle1"].stateValues.points).eqls([
                 [4, 6],
@@ -203,7 +203,7 @@ describe("Angle Tag Tests", function () {
   </graph>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -228,25 +228,25 @@ describe("Angle Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_angle1"].stateValues.radians).closeTo(
                 4,
-                1e-12
+                1e-12,
             );
         });
 
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             "{end}{backspace}-3{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/_mathinput2") + " textarea").type(
             "{end}{backspace}7{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/_mathinput3") + " textarea").type(
             "{end}{backspace}{backspace}4{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/_mathinput4") + " textarea").type(
             "{end}{backspace}6{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/angle2") + " .mjx-mrow").should("have.text", "2");
@@ -269,25 +269,25 @@ describe("Angle Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_angle1"].stateValues.radians).closeTo(
                 2,
-                1e-12
+                1e-12,
             );
         });
 
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             "{end}{backspace}5{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/_mathinput2") + " textarea").type(
             "{end}{backspace}-3{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/_mathinput3") + " textarea").type(
             "{end}{backspace}3{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/_mathinput4") + " textarea").type(
             "{end}{backspace}3{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/angle2") + " .mjx-mrow").should("have.text", "0");
@@ -310,25 +310,25 @@ describe("Angle Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_angle1"].stateValues.radians).closeTo(
                 0,
-                1e-12
+                1e-12,
             );
         });
 
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             "{end}{backspace}2{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/_mathinput2") + " textarea").type(
             "{end}{backspace}{backspace}-1{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/_mathinput3") + " textarea").type(
             "{end}{backspace}pi/4{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/_mathinput4") + " textarea").type(
             "{end}{backspace}5pi/4{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/angle2") + " .mjx-mrow").should("contain.text", "3.1");
@@ -351,7 +351,7 @@ describe("Angle Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_angle1"].stateValues.radians).closeTo(
                 Math.PI,
-                1e-12
+                1e-12,
             );
         });
     });
@@ -372,7 +372,7 @@ describe("Angle Tag Tests", function () {
   </graph>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -385,7 +385,7 @@ describe("Angle Tag Tests", function () {
             expect(errorWarnings.warnings.length).eq(1);
 
             expect(errorWarnings.warnings[0].message).contain(
-                "Cannot define an angle between 3 lines"
+                "Cannot define an angle between 3 lines",
             );
             expect(errorWarnings.warnings[0].level).eq(2);
             expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(9);
@@ -414,7 +414,7 @@ describe("Angle Tag Tests", function () {
   </graph>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -442,7 +442,7 @@ describe("Angle Tag Tests", function () {
 
         cy.get(cesc("#\\/_mathinput2") + " textarea").type(
             "{end}{backspace}0{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/angle2") + " .mjx-mrow").should("contain.text", "1.5");
@@ -465,17 +465,17 @@ describe("Angle Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_angle1"].stateValues.radians).closeTo(
                 Math.PI / 2,
-                1e-12
+                1e-12,
             );
         });
 
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             "{end}{backspace}1{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/_mathinput2") + " textarea").type(
             "{end}{backspace}2{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/angle2") + " .mjx-mrow").should("contain.text", "＿");
@@ -517,7 +517,7 @@ describe("Angle Tag Tests", function () {
   $_angle1.radius{assignNames="radius2"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -538,7 +538,7 @@ describe("Angle Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_angle1"].stateValues.radians).closeTo(
                 1,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_angle1"].stateValues.radius).eq("\uFF3F");
         });
@@ -554,7 +554,7 @@ describe("Angle Tag Tests", function () {
 
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             "{end}{backspace}2{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/radius2") + " .mjx-mrow").should("have.text", "2");
         cy.window().then(async (win) => {
@@ -564,7 +564,7 @@ describe("Angle Tag Tests", function () {
 
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             "{end}{backspace}-3{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/radius2") + " .mjx-mrow").should("have.text", "−3");
         cy.window().then(async (win) => {
@@ -572,13 +572,13 @@ describe("Angle Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/_angle1"].stateValues.radius)
-                    .simplify().tree
+                    .simplify().tree,
             ).eq(-3);
         });
 
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             "{end}{backspace}{backspace}x{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/radius2") + " .mjx-mrow").should("have.text", "x");
         cy.window().then(async (win) => {
@@ -588,7 +588,7 @@ describe("Angle Tag Tests", function () {
 
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             "{end}{backspace}4{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/radius2") + " .mjx-mrow").should("have.text", "4");
         cy.window().then(async (win) => {
@@ -615,7 +615,7 @@ describe("Angle Tag Tests", function () {
   <p>Angle again: $_angle1</p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -679,17 +679,17 @@ describe("Angle Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_angle1"].stateValues.radians).closeTo(
                 Math.PI / 4,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_angle1"].stateValues.degrees).closeTo(
                 45,
-                1e-12
+                1e-12,
             );
         });
 
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}1{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/alpha") + " .mjx-mrow").should("have.text", "1");
         cy.get(cesc("#\\/alpha"))
@@ -718,17 +718,17 @@ describe("Angle Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_angle1"].stateValues.radians).closeTo(
                 1,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_angle1"].stateValues.degrees).closeTo(
                 180 / Math.PI,
-                1e-12
+                1e-12,
             );
         });
 
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             "{end}{backspace}pi/3{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/alpha") + " .mjx-mrow").should("contain.text", "1.0");
         cy.get(cesc("#\\/alpha"))
@@ -757,17 +757,17 @@ describe("Angle Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_angle1"].stateValues.radians).closeTo(
                 Math.PI / 3,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_angle1"].stateValues.degrees).closeTo(
                 60,
-                1e-12
+                1e-12,
             );
         });
 
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}2pi/3{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/alpha") + " .mjx-mrow").should("contain.text", "2.0");
         cy.get(cesc("#\\/alpha"))
@@ -796,17 +796,17 @@ describe("Angle Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_angle1"].stateValues.radians).closeTo(
                 (2 * Math.PI) / 3,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_angle1"].stateValues.degrees).closeTo(
                 120,
-                1e-12
+                1e-12,
             );
         });
 
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}pi{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/alpha") + " .mjx-mrow").should("contain.text", "3.1");
         cy.get(cesc("#\\/alpha"))
@@ -835,17 +835,17 @@ describe("Angle Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_angle1"].stateValues.radians).closeTo(
                 Math.PI,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_angle1"].stateValues.degrees).closeTo(
                 180,
-                1e-12
+                1e-12,
             );
         });
 
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             "{end}{backspace}4{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/alpha") + " .mjx-mrow").should("have.text", "4");
         cy.get(cesc("#\\/alpha"))
@@ -874,17 +874,17 @@ describe("Angle Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_angle1"].stateValues.radians).closeTo(
                 4,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_angle1"].stateValues.degrees).closeTo(
                 (4 * 180) / Math.PI,
-                1e-12
+                1e-12,
             );
         });
 
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             "{end}{backspace}3pi/2{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/alpha") + " .mjx-mrow").should("contain.text", "4.7");
         cy.get(cesc("#\\/alpha"))
@@ -913,17 +913,17 @@ describe("Angle Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_angle1"].stateValues.radians).closeTo(
                 (3 * Math.PI) / 2,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_angle1"].stateValues.degrees).closeTo(
                 270,
-                1e-12
+                1e-12,
             );
         });
 
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}11pi/6{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/alpha") + " .mjx-mrow").should("contain.text", "5.7");
         cy.get(cesc("#\\/alpha"))
@@ -952,17 +952,17 @@ describe("Angle Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_angle1"].stateValues.radians).closeTo(
                 (11 * Math.PI) / 6,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_angle1"].stateValues.degrees).closeTo(
                 330,
-                1e-12
+                1e-12,
             );
         });
 
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}{backspace}2pi{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/alpha") + " .mjx-mrow").should("contain.text", "6.2");
         cy.get(cesc("#\\/alpha"))
@@ -991,21 +991,21 @@ describe("Angle Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_angle1"].stateValues.radians).closeTo(
                 2 * Math.PI,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_angle1"].stateValues.degrees).closeTo(
                 360,
-                1e-12
+                1e-12,
             );
         });
 
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             "{end}{backspace}{backspace}2pi+0.00001{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/alpha") + " .mjx-mrow").should(
             "contain.text",
-            "0.000"
+            "0.000",
         );
         cy.get(cesc("#\\/alpha"))
             .find(".mjx-mrow")
@@ -1033,11 +1033,11 @@ describe("Angle Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_angle1"].stateValues.radians).closeTo(
                 0.00001,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_angle1"].stateValues.degrees).closeTo(
                 0.0018 / Math.PI,
-                1e-12
+                1e-12,
             );
         });
     });
@@ -1058,7 +1058,7 @@ describe("Angle Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1109,7 +1109,7 @@ describe("Angle Tag Tests", function () {
             ]);
             expect(stateVariables["/_angle1"].stateValues.points[2][0]).closeTo(
                 0,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/_angle1"].stateValues.points[2][1]).eq(1);
         });
@@ -1131,7 +1131,7 @@ describe("Angle Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1182,7 +1182,7 @@ describe("Angle Tag Tests", function () {
             ]);
             expect(stateVariables["/_angle1"].stateValues.points[2][0]).closeTo(
                 0,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/_angle1"].stateValues.points[2][1]).eq(1);
         });
@@ -1206,7 +1206,7 @@ describe("Angle Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1259,7 +1259,7 @@ describe("Angle Tag Tests", function () {
             ]);
             expect(stateVariables["/_angle1"].stateValues.points[2][0]).closeTo(
                 0,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/_angle1"].stateValues.points[2][1]).eq(1);
             expect(stateVariables["/_angle2"].stateValues.radians).eqls([
@@ -1269,7 +1269,7 @@ describe("Angle Tag Tests", function () {
             ]);
             expect(stateVariables["/_angle2"].stateValues.degrees).closeTo(
                 75,
-                1e-12
+                1e-12,
             );
         });
     });
@@ -1287,7 +1287,7 @@ describe("Angle Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1357,7 +1357,7 @@ describe("Angle Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1426,7 +1426,7 @@ describe("Angle Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1492,7 +1492,7 @@ describe("Angle Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1556,7 +1556,7 @@ describe("Angle Tag Tests", function () {
   <p>angle: $alpha{name="alpha2"}</p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1596,7 +1596,7 @@ describe("Angle Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(Math.trunc(Number(text) * 1000)).eq(
-                    Math.trunc(angleFromPs(points, -1) * 1000)
+                    Math.trunc(angleFromPs(points, -1) * 1000),
                 );
             });
 
@@ -1608,7 +1608,7 @@ describe("Angle Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(Math.trunc(Number(text) * 1000)).eq(
-                    Math.trunc(angleFromPs(points) * 1000)
+                    Math.trunc(angleFromPs(points) * 1000),
                 );
             });
 
@@ -1620,7 +1620,7 @@ describe("Angle Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(Math.trunc(Number(text) * 1000)).eq(
-                    Math.trunc(angleFromPs(points) * 1000)
+                    Math.trunc(angleFromPs(points) * 1000),
                 );
             });
 
@@ -1639,7 +1639,7 @@ describe("Angle Tag Tests", function () {
                 .invoke("text")
                 .then((text) => {
                     expect(Math.trunc(Number(text) * 1000)).eq(
-                        Math.trunc(angleFromPs(points, 1) * 1000)
+                        Math.trunc(angleFromPs(points, 1) * 1000),
                     );
                 });
 
@@ -1650,7 +1650,7 @@ describe("Angle Tag Tests", function () {
                 .invoke("text")
                 .then((text) => {
                     expect(Math.trunc(Number(text) * 1000)).eq(
-                        Math.trunc(angleFromPs(points) * 1000)
+                        Math.trunc(angleFromPs(points) * 1000),
                     );
                 });
 
@@ -1661,7 +1661,7 @@ describe("Angle Tag Tests", function () {
                 .invoke("text")
                 .then((text) => {
                     expect(Math.trunc(Number(text) * 1000)).eq(
-                        Math.trunc(angleFromPs(points) * 1000)
+                        Math.trunc(angleFromPs(points) * 1000),
                     );
                 });
         });
@@ -1681,7 +1681,7 @@ describe("Angle Tag Tests", function () {
                 .invoke("text")
                 .then((text) => {
                     expect(Math.trunc(Number(text) * 1000)).eq(
-                        Math.trunc(angleFromPs(points) * 1000)
+                        Math.trunc(angleFromPs(points) * 1000),
                     );
                 });
 
@@ -1692,7 +1692,7 @@ describe("Angle Tag Tests", function () {
                 .invoke("text")
                 .then((text) => {
                     expect(Math.trunc(Number(text) * 1000)).eq(
-                        Math.trunc(angleFromPs(points, -1) * 1000)
+                        Math.trunc(angleFromPs(points, -1) * 1000),
                     );
                 });
 
@@ -1703,7 +1703,7 @@ describe("Angle Tag Tests", function () {
                 .invoke("text")
                 .then((text) => {
                     expect(Math.trunc(Number(text) * 1000)).eq(
-                        Math.trunc(angleFromPs(points) * 1000)
+                        Math.trunc(angleFromPs(points) * 1000),
                     );
                 });
         });
@@ -1725,7 +1725,7 @@ describe("Angle Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1737,7 +1737,7 @@ describe("Angle Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text).eq(
-                    (Math.round((Math.PI / 2) * 10 ** 2) / 10 ** 2).toString()
+                    (Math.round((Math.PI / 2) * 10 ** 2) / 10 ** 2).toString(),
                 );
             });
         cy.get(cesc("#\\/_math1"))
@@ -1746,7 +1746,7 @@ describe("Angle Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text).eq(
-                    (Math.round(Math.PI * 10 ** 2) / 10 ** 2).toString()
+                    (Math.round(Math.PI * 10 ** 2) / 10 ** 2).toString(),
                 );
             });
         cy.get(cesc("#\\/_math2"))
@@ -1755,7 +1755,7 @@ describe("Angle Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text).eq(
-                    (Math.round(Math.PI * 10 ** 2) / 10 ** 2).toString()
+                    (Math.round(Math.PI * 10 ** 2) / 10 ** 2).toString(),
                 );
             });
         cy.get(cesc("#\\/_math3"))
@@ -1769,7 +1769,7 @@ describe("Angle Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_angle1"].stateValues.radians).eqls(
-                Math.PI / 2
+                Math.PI / 2,
             );
             expect(stateVariables["/_angle1"].stateValues.degrees).eq(90);
             expect(stateVariables["/_angle1"].stateValues.points[0]).eqls([
@@ -1780,7 +1780,7 @@ describe("Angle Tag Tests", function () {
             ]);
             expect(stateVariables["/_angle1"].stateValues.points[2][0]).closeTo(
                 0,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/_angle1"].stateValues.points[2][1]).eq(1);
         });
@@ -1803,7 +1803,7 @@ describe("Angle Tag Tests", function () {
   $A{name="A2"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1815,7 +1815,7 @@ describe("Angle Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text).eq(
-                    (Math.round((Math.PI / 2) * 10 ** 9) / 10 ** 9).toString()
+                    (Math.round((Math.PI / 2) * 10 ** 9) / 10 ** 9).toString(),
                 );
             });
         cy.get(cesc("#\\/_math1"))
@@ -1824,7 +1824,7 @@ describe("Angle Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text).eq(
-                    (Math.round(Math.PI * 10 ** 9) / 10 ** 9).toString()
+                    (Math.round(Math.PI * 10 ** 9) / 10 ** 9).toString(),
                 );
             });
         cy.get(cesc("#\\/_math2"))
@@ -1833,7 +1833,7 @@ describe("Angle Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text).eq(
-                    (Math.round(Math.PI * 10 ** 9) / 10 ** 9).toString()
+                    (Math.round(Math.PI * 10 ** 9) / 10 ** 9).toString(),
                 );
             });
         cy.get(cesc("#\\/_math3"))
@@ -1847,7 +1847,7 @@ describe("Angle Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_angle1"].stateValues.radians).eqls(
-                Math.PI / 2
+                Math.PI / 2,
             );
             expect(stateVariables["/_angle1"].stateValues.degrees).eq(90);
             expect(stateVariables["/_angle1"].stateValues.points[0]).eqls([
@@ -1859,11 +1859,11 @@ describe("Angle Tag Tests", function () {
             let theta = Math.atan2(5, 3) + Math.PI / 2;
             expect(stateVariables["/_angle1"].stateValues.points[2][0]).closeTo(
                 Math.cos(theta),
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/_angle1"].stateValues.points[2][1]).closeTo(
                 Math.sin(theta),
-                1e-14
+                1e-14,
             );
         });
 
@@ -1884,7 +1884,7 @@ describe("Angle Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text).eq(
-                    (Math.round((Math.PI / 2) * 10 ** 9) / 10 ** 9).toString()
+                    (Math.round((Math.PI / 2) * 10 ** 9) / 10 ** 9).toString(),
                 );
             });
         cy.get(cesc("#\\/_math1"))
@@ -1893,7 +1893,7 @@ describe("Angle Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text).eq(
-                    (Math.round(Math.PI * 10 ** 9) / 10 ** 9).toString()
+                    (Math.round(Math.PI * 10 ** 9) / 10 ** 9).toString(),
                 );
             });
         cy.get(cesc("#\\/_math2"))
@@ -1902,7 +1902,7 @@ describe("Angle Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text).eq(
-                    (Math.round(Math.PI * 10 ** 9) / 10 ** 9).toString()
+                    (Math.round(Math.PI * 10 ** 9) / 10 ** 9).toString(),
                 );
             });
         cy.get(cesc("#\\/_math3"))
@@ -1917,11 +1917,11 @@ describe("Angle Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_angle1"].stateValues.radians).closeTo(
                 Math.PI / 2,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/_angle1"].stateValues.degrees).closeTo(
                 90,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_angle1"].stateValues.points[0]).eqls([
                 1, 7,
@@ -1932,11 +1932,11 @@ describe("Angle Tag Tests", function () {
             let theta = Math.atan2(7, 1) + Math.PI / 2;
             expect(stateVariables["/_angle1"].stateValues.points[2][0]).closeTo(
                 Math.cos(theta),
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/_angle1"].stateValues.points[2][1]).closeTo(
                 Math.sin(theta),
-                1e-14
+                1e-14,
             );
         });
     });
@@ -1960,7 +1960,7 @@ describe("Angle Tag Tests", function () {
   $desiredRadians.value{assignNames="desiredRadians2"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2004,7 +2004,7 @@ describe("Angle Tag Tests", function () {
             ]);
             expect(stateVariables["/_angle1"].stateValues.degrees).closeTo(
                 60,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_angle1"].stateValues.points[0]).eqls([
                 3, 5,
@@ -2015,11 +2015,11 @@ describe("Angle Tag Tests", function () {
             let theta = Math.atan2(5, 3) + Math.PI / 3;
             expect(stateVariables["/_angle1"].stateValues.points[2][0]).closeTo(
                 Math.cos(theta),
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/_angle1"].stateValues.points[2][1]).closeTo(
                 Math.sin(theta),
-                1e-14
+                1e-14,
             );
         });
 
@@ -2072,7 +2072,7 @@ describe("Angle Tag Tests", function () {
             ]);
             expect(stateVariables["/_angle1"].stateValues.degrees).closeTo(
                 60,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_angle1"].stateValues.points[0]).eqls([
                 1, 7,
@@ -2083,23 +2083,23 @@ describe("Angle Tag Tests", function () {
             let theta = Math.atan2(7, 1) + Math.PI / 3;
             expect(stateVariables["/_angle1"].stateValues.points[2][0]).closeTo(
                 Math.cos(theta),
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/_angle1"].stateValues.points[2][1]).closeTo(
                 Math.sin(theta),
-                1e-14
+                1e-14,
             );
         });
 
         cy.log("change desired radians");
         cy.get(cesc("#\\/desiredRadians") + " textarea").type(
             "{ctrl+home}{shift+ctrl+end}{backspace}2pi/5{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/desiredRadians2") + " .mjx-mrow").should(
             "contain.text",
-            "2π5"
+            "2π5",
         );
 
         cy.get(cesc("#\\/_angle1"))
@@ -2140,7 +2140,7 @@ describe("Angle Tag Tests", function () {
             ]);
             expect(stateVariables["/_angle1"].stateValues.degrees).closeTo(
                 72,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_angle1"].stateValues.points[0]).eqls([
                 1, 7,
@@ -2151,23 +2151,23 @@ describe("Angle Tag Tests", function () {
             let theta = Math.atan2(7, 1) + (2 * Math.PI) / 5;
             expect(stateVariables["/_angle1"].stateValues.points[2][0]).closeTo(
                 Math.cos(theta),
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/_angle1"].stateValues.points[2][1]).closeTo(
                 Math.sin(theta),
-                1e-14
+                1e-14,
             );
         });
 
         cy.log("change desired radians to variable");
         cy.get(cesc("#\\/desiredRadians") + " textarea").type(
             "{ctrl+home}{shift+ctrl+end}{backspace}theta{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/desiredRadians2") + " .mjx-mrow").should(
             "contain.text",
-            "θ"
+            "θ",
         );
 
         cy.get(cesc("#\\/_angle1"))
@@ -2202,7 +2202,7 @@ describe("Angle Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_angle1"].stateValues.radians).eqls(
-                "theta"
+                "theta",
             );
             expect(stateVariables["/_angle1"].stateValues.degrees).eqls([
                 "/",
@@ -2241,7 +2241,7 @@ describe("Angle Tag Tests", function () {
   $desiredDegrees.value{assignNames="desiredDegrees2"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2278,11 +2278,11 @@ describe("Angle Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/_angle1"].stateValues.radians)
-                    .equals(me.fromAst(["/", "pi", 2]))
+                    .equals(me.fromAst(["/", "pi", 2])),
             ).eq(true);
             expect(stateVariables["/_angle1"].stateValues.degrees).closeTo(
                 90,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_angle1"].stateValues.points[0]).eqls([
                 3, 5,
@@ -2293,11 +2293,11 @@ describe("Angle Tag Tests", function () {
             let theta = Math.atan2(5, 3) + Math.PI / 2;
             expect(stateVariables["/_angle1"].stateValues.points[2][0]).closeTo(
                 Math.cos(theta),
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/_angle1"].stateValues.points[2][1]).closeTo(
                 Math.sin(theta),
-                1e-14
+                1e-14,
             );
         });
 
@@ -2343,11 +2343,11 @@ describe("Angle Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/_angle1"].stateValues.radians)
-                    .equals(me.fromAst(["/", "pi", 2]))
+                    .equals(me.fromAst(["/", "pi", 2])),
             ).eq(true);
             expect(stateVariables["/_angle1"].stateValues.degrees).closeTo(
                 90,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_angle1"].stateValues.points[0]).eqls([
                 1, 7,
@@ -2358,23 +2358,23 @@ describe("Angle Tag Tests", function () {
             let theta = Math.atan2(7, 1) + Math.PI / 2;
             expect(stateVariables["/_angle1"].stateValues.points[2][0]).closeTo(
                 Math.cos(theta),
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/_angle1"].stateValues.points[2][1]).closeTo(
                 Math.sin(theta),
-                1e-14
+                1e-14,
             );
         });
 
         cy.log("change desired degrees");
         cy.get(cesc("#\\/desiredDegrees") + " textarea").type(
             "{ctrl+home}{shift+ctrl+end}{backspace}180{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/desiredDegrees2") + " .mjx-mrow").should(
             "contain.text",
-            "180"
+            "180",
         );
 
         cy.get(cesc("#\\/_angle1"))
@@ -2411,7 +2411,7 @@ describe("Angle Tag Tests", function () {
             expect(stateVariables["/_angle1"].stateValues.radians).eqls("pi");
             expect(stateVariables["/_angle1"].stateValues.degrees).closeTo(
                 180,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_angle1"].stateValues.points[0]).eqls([
                 1, 7,
@@ -2422,23 +2422,23 @@ describe("Angle Tag Tests", function () {
             let theta = Math.atan2(7, 1) + Math.PI;
             expect(stateVariables["/_angle1"].stateValues.points[2][0]).closeTo(
                 Math.cos(theta),
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/_angle1"].stateValues.points[2][1]).closeTo(
                 Math.sin(theta),
-                1e-14
+                1e-14,
             );
         });
 
         cy.log("change desired degrees to variable");
         cy.get(cesc("#\\/desiredDegrees") + " textarea").type(
             "{ctrl+home}{shift+ctrl+end}{backspace}theta{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/desiredDegrees2") + " .mjx-mrow").should(
             "contain.text",
-            "θ"
+            "θ",
         );
 
         cy.get(cesc("#\\/_angle1"))
@@ -2471,7 +2471,7 @@ describe("Angle Tag Tests", function () {
                 180,
             ]);
             expect(stateVariables["/_angle1"].stateValues.degrees).eqls(
-                "theta"
+                "theta",
             );
             expect(stateVariables["/_angle1"].stateValues.points[0]).eqls([
                 1, 7,
@@ -2504,7 +2504,7 @@ describe("Angle Tag Tests", function () {
   $A{name="A2"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2516,7 +2516,7 @@ describe("Angle Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text).eq(
-                    (Math.round((Math.PI / 2) * 10 ** 9) / 10 ** 9).toString()
+                    (Math.round((Math.PI / 2) * 10 ** 9) / 10 ** 9).toString(),
                 );
             });
         cy.get(cesc("#\\/_math1"))
@@ -2525,7 +2525,7 @@ describe("Angle Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text).eq(
-                    (Math.round(Math.PI * 10 ** 9) / 10 ** 9).toString()
+                    (Math.round(Math.PI * 10 ** 9) / 10 ** 9).toString(),
                 );
             });
         cy.get(cesc("#\\/_math2"))
@@ -2534,7 +2534,7 @@ describe("Angle Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text).eq(
-                    (Math.round(Math.PI * 10 ** 9) / 10 ** 9).toString()
+                    (Math.round(Math.PI * 10 ** 9) / 10 ** 9).toString(),
                 );
             });
         cy.get(cesc("#\\/_math3"))
@@ -2548,7 +2548,7 @@ describe("Angle Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_angle1"].stateValues.radians).eqls(
-                Math.PI / 2
+                Math.PI / 2,
             );
             expect(stateVariables["/_angle1"].stateValues.degrees).eq(90);
             expect(stateVariables["/_angle1"].stateValues.points[0]).eqls([
@@ -2560,11 +2560,11 @@ describe("Angle Tag Tests", function () {
             let theta = Math.atan2(5 - 1, 3 - 6) + Math.PI / 2;
             expect(stateVariables["/_angle1"].stateValues.points[2][0]).closeTo(
                 6 + Math.cos(theta),
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/_angle1"].stateValues.points[2][1]).closeTo(
                 1 + Math.sin(theta),
-                1e-14
+                1e-14,
             );
         });
 
@@ -2590,7 +2590,7 @@ describe("Angle Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text).eq(
-                    (Math.round((Math.PI / 2) * 10 ** 9) / 10 ** 9).toString()
+                    (Math.round((Math.PI / 2) * 10 ** 9) / 10 ** 9).toString(),
                 );
             });
         cy.get(cesc("#\\/_math1"))
@@ -2599,7 +2599,7 @@ describe("Angle Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text).eq(
-                    (Math.round(Math.PI * 10 ** 9) / 10 ** 9).toString()
+                    (Math.round(Math.PI * 10 ** 9) / 10 ** 9).toString(),
                 );
             });
         cy.get(cesc("#\\/_math2"))
@@ -2608,7 +2608,7 @@ describe("Angle Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text).eq(
-                    (Math.round(Math.PI * 10 ** 9) / 10 ** 9).toString()
+                    (Math.round(Math.PI * 10 ** 9) / 10 ** 9).toString(),
                 );
             });
         cy.get(cesc("#\\/_math3"))
@@ -2623,11 +2623,11 @@ describe("Angle Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_angle1"].stateValues.radians).closeTo(
                 Math.PI / 2,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/_angle1"].stateValues.degrees).closeTo(
                 90,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_angle1"].stateValues.points[0]).eqls([
                 1, 7,
@@ -2638,11 +2638,11 @@ describe("Angle Tag Tests", function () {
             let theta = Math.atan2(7 - -2, 1 - -3) + Math.PI / 2;
             expect(stateVariables["/_angle1"].stateValues.points[2][0]).closeTo(
                 -3 + Math.cos(theta),
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/_angle1"].stateValues.points[2][1]).closeTo(
                 -2 + Math.sin(theta),
-                1e-14
+                1e-14,
             );
         });
     });
@@ -2667,7 +2667,7 @@ describe("Angle Tag Tests", function () {
   $desiredRadians.value{assignNames="desiredRadians2"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2711,7 +2711,7 @@ describe("Angle Tag Tests", function () {
             ]);
             expect(stateVariables["/_angle1"].stateValues.degrees).closeTo(
                 60,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_angle1"].stateValues.points[0]).eqls([
                 3, 5,
@@ -2722,11 +2722,11 @@ describe("Angle Tag Tests", function () {
             let theta = Math.atan2(5 - 1, 3 - 6) + Math.PI / 3;
             expect(stateVariables["/_angle1"].stateValues.points[2][0]).closeTo(
                 6 + Math.cos(theta),
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/_angle1"].stateValues.points[2][1]).closeTo(
                 1 + Math.sin(theta),
-                1e-14
+                1e-14,
             );
         });
 
@@ -2784,7 +2784,7 @@ describe("Angle Tag Tests", function () {
             ]);
             expect(stateVariables["/_angle1"].stateValues.degrees).closeTo(
                 60,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_angle1"].stateValues.points[0]).eqls([
                 1, 7,
@@ -2795,23 +2795,23 @@ describe("Angle Tag Tests", function () {
             let theta = Math.atan2(7 - -2, 1 - -3) + Math.PI / 3;
             expect(stateVariables["/_angle1"].stateValues.points[2][0]).closeTo(
                 -3 + Math.cos(theta),
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/_angle1"].stateValues.points[2][1]).closeTo(
                 -2 + Math.sin(theta),
-                1e-14
+                1e-14,
             );
         });
 
         cy.log("change desired radians");
         cy.get(cesc("#\\/desiredRadians") + " textarea").type(
             "{ctrl+home}{shift+ctrl+end}{backspace}2pi/5{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/desiredRadians2") + " .mjx-mrow").should(
             "contain.text",
-            "2π5"
+            "2π5",
         );
 
         cy.get(cesc("#\\/_angle1"))
@@ -2852,7 +2852,7 @@ describe("Angle Tag Tests", function () {
             ]);
             expect(stateVariables["/_angle1"].stateValues.degrees).closeTo(
                 72,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_angle1"].stateValues.points[0]).eqls([
                 1, 7,
@@ -2863,23 +2863,23 @@ describe("Angle Tag Tests", function () {
             let theta = Math.atan2(7 - -2, 1 - -3) + (2 * Math.PI) / 5;
             expect(stateVariables["/_angle1"].stateValues.points[2][0]).closeTo(
                 -3 + Math.cos(theta),
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/_angle1"].stateValues.points[2][1]).closeTo(
                 -2 + Math.sin(theta),
-                1e-14
+                1e-14,
             );
         });
 
         cy.log("change desired radians to variable");
         cy.get(cesc("#\\/desiredRadians") + " textarea").type(
             "{ctrl+home}{shift+ctrl+end}{backspace}theta{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/desiredRadians2") + " .mjx-mrow").should(
             "contain.text",
-            "θ"
+            "θ",
         );
 
         cy.get(cesc("#\\/_angle1"))
@@ -2914,7 +2914,7 @@ describe("Angle Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_angle1"].stateValues.radians).eqls(
-                "theta"
+                "theta",
             );
             expect(stateVariables["/_angle1"].stateValues.degrees).eqls([
                 "/",
@@ -2954,7 +2954,7 @@ describe("Angle Tag Tests", function () {
   $desiredDegrees.value{assignNames="desiredDegrees2"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2991,11 +2991,11 @@ describe("Angle Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/_angle1"].stateValues.radians)
-                    .equals(me.fromAst(["/", "pi", 2]))
+                    .equals(me.fromAst(["/", "pi", 2])),
             ).eq(true);
             expect(stateVariables["/_angle1"].stateValues.degrees).closeTo(
                 90,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_angle1"].stateValues.points[0]).eqls([
                 3, 5,
@@ -3006,11 +3006,11 @@ describe("Angle Tag Tests", function () {
             let theta = Math.atan2(5 - 1, 3 - 6) + Math.PI / 2;
             expect(stateVariables["/_angle1"].stateValues.points[2][0]).closeTo(
                 6 + Math.cos(theta),
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/_angle1"].stateValues.points[2][1]).closeTo(
                 1 + Math.sin(theta),
-                1e-14
+                1e-14,
             );
         });
 
@@ -3061,11 +3061,11 @@ describe("Angle Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/_angle1"].stateValues.radians)
-                    .equals(me.fromAst(["/", "pi", 2]))
+                    .equals(me.fromAst(["/", "pi", 2])),
             ).eq(true);
             expect(stateVariables["/_angle1"].stateValues.degrees).closeTo(
                 90,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_angle1"].stateValues.points[0]).eqls([
                 1, 7,
@@ -3076,23 +3076,23 @@ describe("Angle Tag Tests", function () {
             let theta = Math.atan2(7 - -2, 1 - -3) + Math.PI / 2;
             expect(stateVariables["/_angle1"].stateValues.points[2][0]).closeTo(
                 -3 + Math.cos(theta),
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/_angle1"].stateValues.points[2][1]).closeTo(
                 -2 + Math.sin(theta),
-                1e-14
+                1e-14,
             );
         });
 
         cy.log("change desired degrees");
         cy.get(cesc("#\\/desiredDegrees") + " textarea").type(
             "{ctrl+home}{shift+ctrl+end}{backspace}180{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/desiredDegrees2") + " .mjx-mrow").should(
             "contain.text",
-            "180"
+            "180",
         );
 
         cy.get(cesc("#\\/_angle1"))
@@ -3129,7 +3129,7 @@ describe("Angle Tag Tests", function () {
             expect(stateVariables["/_angle1"].stateValues.radians).eqls("pi");
             expect(stateVariables["/_angle1"].stateValues.degrees).closeTo(
                 180,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_angle1"].stateValues.points[0]).eqls([
                 1, 7,
@@ -3140,23 +3140,23 @@ describe("Angle Tag Tests", function () {
             let theta = Math.atan2(7 - -2, 1 - -3) + Math.PI;
             expect(stateVariables["/_angle1"].stateValues.points[2][0]).closeTo(
                 -3 + Math.cos(theta),
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/_angle1"].stateValues.points[2][1]).closeTo(
                 -2 + Math.sin(theta),
-                1e-14
+                1e-14,
             );
         });
 
         cy.log("change desired degrees to variable");
         cy.get(cesc("#\\/desiredDegrees") + " textarea").type(
             "{ctrl+home}{shift+ctrl+end}{backspace}theta{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/desiredDegrees2") + " .mjx-mrow").should(
             "contain.text",
-            "θ"
+            "θ",
         );
 
         cy.get(cesc("#\\/_angle1"))
@@ -3189,7 +3189,7 @@ describe("Angle Tag Tests", function () {
                 180,
             ]);
             expect(stateVariables["/_angle1"].stateValues.degrees).eqls(
-                "theta"
+                "theta",
             );
             expect(stateVariables["/_angle1"].stateValues.points[0]).eqls([
                 1, 7,
@@ -3222,7 +3222,7 @@ describe("Angle Tag Tests", function () {
   $equation.value{assignNames="equation2"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3234,7 +3234,7 @@ describe("Angle Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text).eq(
-                    (Math.round((Math.PI / 2) * 10 ** 9) / 10 ** 9).toString()
+                    (Math.round((Math.PI / 2) * 10 ** 9) / 10 ** 9).toString(),
                 );
             });
         cy.get(cesc("#\\/_math1"))
@@ -3243,7 +3243,7 @@ describe("Angle Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text).eq(
-                    (Math.round(Math.PI * 10 ** 9) / 10 ** 9).toString()
+                    (Math.round(Math.PI * 10 ** 9) / 10 ** 9).toString(),
                 );
             });
         cy.get(cesc("#\\/_math2"))
@@ -3252,7 +3252,7 @@ describe("Angle Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text).eq(
-                    (Math.round(Math.PI * 10 ** 9) / 10 ** 9).toString()
+                    (Math.round(Math.PI * 10 ** 9) / 10 ** 9).toString(),
                 );
             });
         cy.get(cesc("#\\/_math3"))
@@ -3266,16 +3266,16 @@ describe("Angle Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_angle1"].stateValues.radians).eqls(
-                Math.PI / 2
+                Math.PI / 2,
             );
             expect(stateVariables["/_angle1"].stateValues.degrees).eq(90);
             expect(stateVariables["/_angle1"].stateValues.points[0][0]).closeTo(
                 -2 / 5 + 1 / Math.sqrt(5),
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/_angle1"].stateValues.points[0][1]).closeTo(
                 1 / 5 + 2 / Math.sqrt(5),
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/_angle1"].stateValues.points[1]).eqls([
                 -2 / 5,
@@ -3285,23 +3285,23 @@ describe("Angle Tag Tests", function () {
                 Math.atan2(2 / Math.sqrt(5), 1 / Math.sqrt(5)) + Math.PI / 2;
             expect(stateVariables["/_angle1"].stateValues.points[2][0]).closeTo(
                 -2 / 5 + Math.cos(theta),
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/_angle1"].stateValues.points[2][1]).closeTo(
                 1 / 5 + Math.sin(theta),
-                1e-14
+                1e-14,
             );
         });
 
         cy.log("change line");
         cy.get(cesc("#\\/equation") + " textarea").type(
             "{ctrl+home}{shift+ctrl+end}{backspace}y=-1/2{rightarrow}x+3{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/equation2") + " .mjx-mrow").should(
             "contain.text",
-            "y=−(12)x+3"
+            "y=−(12)x+3",
         );
 
         cy.get(cesc("#\\/_angle1"))
@@ -3310,7 +3310,7 @@ describe("Angle Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text).eq(
-                    (Math.round((Math.PI / 2) * 10 ** 9) / 10 ** 9).toString()
+                    (Math.round((Math.PI / 2) * 10 ** 9) / 10 ** 9).toString(),
                 );
             });
         cy.get(cesc("#\\/_math1"))
@@ -3319,7 +3319,7 @@ describe("Angle Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text).eq(
-                    (Math.round(Math.PI * 10 ** 9) / 10 ** 9).toString()
+                    (Math.round(Math.PI * 10 ** 9) / 10 ** 9).toString(),
                 );
             });
         cy.get(cesc("#\\/_math2"))
@@ -3328,7 +3328,7 @@ describe("Angle Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text).eq(
-                    (Math.round(Math.PI * 10 ** 9) / 10 ** 9).toString()
+                    (Math.round(Math.PI * 10 ** 9) / 10 ** 9).toString(),
                 );
             });
         cy.get(cesc("#\\/_math3"))
@@ -3343,19 +3343,19 @@ describe("Angle Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_angle1"].stateValues.radians).closeTo(
                 Math.PI / 2,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/_angle1"].stateValues.degrees).closeTo(
                 90,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_angle1"].stateValues.points[0][0]).closeTo(
                 6 / 5 + 2 / Math.sqrt(5),
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/_angle1"].stateValues.points[0][1]).closeTo(
                 12 / 5 - 1 / Math.sqrt(5),
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/_angle1"].stateValues.points[1]).eqls([
                 6 / 5,
@@ -3365,11 +3365,11 @@ describe("Angle Tag Tests", function () {
                 Math.atan2(-1 / Math.sqrt(5), 2 / Math.sqrt(5)) + Math.PI / 2;
             expect(stateVariables["/_angle1"].stateValues.points[2][0]).closeTo(
                 6 / 5 + Math.cos(theta),
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/_angle1"].stateValues.points[2][1]).closeTo(
                 12 / 5 + Math.sin(theta),
-                1e-14
+                1e-14,
             );
         });
     });
@@ -3394,7 +3394,7 @@ describe("Angle Tag Tests", function () {
   $desiredRadians.value{assignNames="desiredRadians2"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3438,15 +3438,15 @@ describe("Angle Tag Tests", function () {
             ]);
             expect(stateVariables["/_angle1"].stateValues.degrees).closeTo(
                 60,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_angle1"].stateValues.points[0][0]).closeTo(
                 -2 / 5 + 1 / Math.sqrt(5),
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/_angle1"].stateValues.points[0][1]).closeTo(
                 1 / 5 + 2 / Math.sqrt(5),
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/_angle1"].stateValues.points[1]).eqls([
                 -2 / 5,
@@ -3456,23 +3456,23 @@ describe("Angle Tag Tests", function () {
                 Math.atan2(2 / Math.sqrt(5), 1 / Math.sqrt(5)) + Math.PI / 3;
             expect(stateVariables["/_angle1"].stateValues.points[2][0]).closeTo(
                 -2 / 5 + Math.cos(theta),
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/_angle1"].stateValues.points[2][1]).closeTo(
                 1 / 5 + Math.sin(theta),
-                1e-14
+                1e-14,
             );
         });
 
         cy.log("change line");
         cy.get(cesc("#\\/equation") + " textarea").type(
             "{ctrl+home}{shift+ctrl+end}{backspace}y=-1/2{rightarrow}x+3{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/equation2") + " .mjx-mrow").should(
             "contain.text",
-            "y=−(12)x+3"
+            "y=−(12)x+3",
         );
 
         cy.get(cesc("#\\/_angle1"))
@@ -3513,15 +3513,15 @@ describe("Angle Tag Tests", function () {
             ]);
             expect(stateVariables["/_angle1"].stateValues.degrees).closeTo(
                 60,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_angle1"].stateValues.points[0][0]).closeTo(
                 6 / 5 + 2 / Math.sqrt(5),
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/_angle1"].stateValues.points[0][1]).closeTo(
                 12 / 5 - 1 / Math.sqrt(5),
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/_angle1"].stateValues.points[1]).eqls([
                 6 / 5,
@@ -3531,23 +3531,23 @@ describe("Angle Tag Tests", function () {
                 Math.atan2(-1 / Math.sqrt(5), 2 / Math.sqrt(5)) + Math.PI / 3;
             expect(stateVariables["/_angle1"].stateValues.points[2][0]).closeTo(
                 6 / 5 + Math.cos(theta),
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/_angle1"].stateValues.points[2][1]).closeTo(
                 12 / 5 + Math.sin(theta),
-                1e-14
+                1e-14,
             );
         });
 
         cy.log("change desired radians");
         cy.get(cesc("#\\/desiredRadians") + " textarea").type(
             "{ctrl+home}{shift+ctrl+end}{backspace}2pi/5{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/desiredRadians2") + " .mjx-mrow").should(
             "contain.text",
-            "2π5"
+            "2π5",
         );
 
         cy.get(cesc("#\\/_angle1"))
@@ -3588,15 +3588,15 @@ describe("Angle Tag Tests", function () {
             ]);
             expect(stateVariables["/_angle1"].stateValues.degrees).closeTo(
                 72,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_angle1"].stateValues.points[0][0]).closeTo(
                 6 / 5 + 2 / Math.sqrt(5),
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/_angle1"].stateValues.points[0][1]).closeTo(
                 12 / 5 - 1 / Math.sqrt(5),
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/_angle1"].stateValues.points[1]).eqls([
                 6 / 5,
@@ -3607,23 +3607,23 @@ describe("Angle Tag Tests", function () {
                 (2 * Math.PI) / 5;
             expect(stateVariables["/_angle1"].stateValues.points[2][0]).closeTo(
                 6 / 5 + Math.cos(theta),
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/_angle1"].stateValues.points[2][1]).closeTo(
                 12 / 5 + Math.sin(theta),
-                1e-14
+                1e-14,
             );
         });
 
         cy.log("change desired radians to variable");
         cy.get(cesc("#\\/desiredRadians") + " textarea").type(
             "{ctrl+home}{shift+ctrl+end}{backspace}theta{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/desiredRadians2") + " .mjx-mrow").should(
             "contain.text",
-            "θ"
+            "θ",
         );
 
         cy.get(cesc("#\\/_angle1"))
@@ -3658,7 +3658,7 @@ describe("Angle Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_angle1"].stateValues.radians).eqls(
-                "theta"
+                "theta",
             );
             expect(stateVariables["/_angle1"].stateValues.degrees).eqls([
                 "/",
@@ -3667,11 +3667,11 @@ describe("Angle Tag Tests", function () {
             ]);
             expect(stateVariables["/_angle1"].stateValues.points[0][0]).closeTo(
                 6 / 5 + 2 / Math.sqrt(5),
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/_angle1"].stateValues.points[0][1]).closeTo(
                 12 / 5 - 1 / Math.sqrt(5),
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/_angle1"].stateValues.points[1]).eqls([
                 6 / 5,
@@ -3704,7 +3704,7 @@ describe("Angle Tag Tests", function () {
   $desiredDegrees.value{assignNames="desiredDegrees2"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3741,19 +3741,19 @@ describe("Angle Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/_angle1"].stateValues.radians)
-                    .equals(me.fromAst(["/", "pi", 2]))
+                    .equals(me.fromAst(["/", "pi", 2])),
             ).eq(true);
             expect(stateVariables["/_angle1"].stateValues.degrees).closeTo(
                 90,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_angle1"].stateValues.points[0][0]).closeTo(
                 -2 / 5 + 1 / Math.sqrt(5),
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/_angle1"].stateValues.points[0][1]).closeTo(
                 1 / 5 + 2 / Math.sqrt(5),
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/_angle1"].stateValues.points[1]).eqls([
                 -2 / 5,
@@ -3763,23 +3763,23 @@ describe("Angle Tag Tests", function () {
                 Math.atan2(2 / Math.sqrt(5), 1 / Math.sqrt(5)) + Math.PI / 2;
             expect(stateVariables["/_angle1"].stateValues.points[2][0]).closeTo(
                 -2 / 5 + Math.cos(theta),
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/_angle1"].stateValues.points[2][1]).closeTo(
                 1 / 5 + Math.sin(theta),
-                1e-14
+                1e-14,
             );
         });
 
         cy.log("change line");
         cy.get(cesc("#\\/equation") + " textarea").type(
             "{ctrl+home}{shift+ctrl+end}{backspace}y=-1/2{rightarrow}x+3{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/equation2") + " .mjx-mrow").should(
             "contain.text",
-            "y=−(12)x+3"
+            "y=−(12)x+3",
         );
 
         // TODO: add when can simplify ratios
@@ -3813,19 +3813,19 @@ describe("Angle Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/_angle1"].stateValues.radians)
-                    .equals(me.fromAst(["/", "pi", 2]))
+                    .equals(me.fromAst(["/", "pi", 2])),
             ).eq(true);
             expect(stateVariables["/_angle1"].stateValues.degrees).closeTo(
                 90,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_angle1"].stateValues.points[0][0]).closeTo(
                 6 / 5 + 2 / Math.sqrt(5),
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/_angle1"].stateValues.points[0][1]).closeTo(
                 12 / 5 - 1 / Math.sqrt(5),
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/_angle1"].stateValues.points[1]).eqls([
                 6 / 5,
@@ -3835,23 +3835,23 @@ describe("Angle Tag Tests", function () {
                 Math.atan2(-1 / Math.sqrt(5), 2 / Math.sqrt(5)) + Math.PI / 2;
             expect(stateVariables["/_angle1"].stateValues.points[2][0]).closeTo(
                 6 / 5 + Math.cos(theta),
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/_angle1"].stateValues.points[2][1]).closeTo(
                 12 / 5 + Math.sin(theta),
-                1e-14
+                1e-14,
             );
         });
 
         cy.log("change desired degrees");
         cy.get(cesc("#\\/desiredDegrees") + " textarea").type(
             "{ctrl+home}{shift+ctrl+end}{backspace}180{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/desiredDegrees2") + " .mjx-mrow").should(
             "contain.text",
-            "180"
+            "180",
         );
 
         cy.get(cesc("#\\/_angle1"))
@@ -3888,15 +3888,15 @@ describe("Angle Tag Tests", function () {
             expect(stateVariables["/_angle1"].stateValues.radians).eqls("pi");
             expect(stateVariables["/_angle1"].stateValues.degrees).closeTo(
                 180,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_angle1"].stateValues.points[0][0]).closeTo(
                 6 / 5 + 2 / Math.sqrt(5),
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/_angle1"].stateValues.points[0][1]).closeTo(
                 12 / 5 - 1 / Math.sqrt(5),
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/_angle1"].stateValues.points[1]).eqls([
                 6 / 5,
@@ -3906,23 +3906,23 @@ describe("Angle Tag Tests", function () {
                 Math.atan2(-1 / Math.sqrt(5), 2 / Math.sqrt(5)) + Math.PI;
             expect(stateVariables["/_angle1"].stateValues.points[2][0]).closeTo(
                 6 / 5 + Math.cos(theta),
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/_angle1"].stateValues.points[2][1]).closeTo(
                 12 / 5 + Math.sin(theta),
-                1e-14
+                1e-14,
             );
         });
 
         cy.log("change desired degrees to variable");
         cy.get(cesc("#\\/desiredDegrees") + " textarea").type(
             "{ctrl+home}{shift+ctrl+end}{backspace}theta{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/desiredDegrees2") + " .mjx-mrow").should(
             "contain.text",
-            "θ"
+            "θ",
         );
 
         cy.get(cesc("#\\/_angle1"))
@@ -3955,15 +3955,15 @@ describe("Angle Tag Tests", function () {
                 180,
             ]);
             expect(stateVariables["/_angle1"].stateValues.degrees).eqls(
-                "theta"
+                "theta",
             );
             expect(stateVariables["/_angle1"].stateValues.points[0][0]).closeTo(
                 6 / 5 + 2 / Math.sqrt(5),
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/_angle1"].stateValues.points[0][1]).closeTo(
                 12 / 5 - 1 / Math.sqrt(5),
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/_angle1"].stateValues.points[1]).eqls([
                 6 / 5,
@@ -3993,7 +3993,7 @@ describe("Angle Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4002,10 +4002,10 @@ describe("Angle Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/a"].stateValues.label).eq(
-                "\\(\\alpha^2\\)"
+                "\\(\\alpha^2\\)",
             );
             expect(stateVariables["/b"].stateValues.label).eq(
-                "This is \\(\\frac{m}{2}\\)"
+                "This is \\(\\frac{m}{2}\\)",
             );
         });
     });
@@ -4033,7 +4033,7 @@ describe("Angle Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4151,7 +4151,7 @@ describe("Angle Tag Tests", function () {
   
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4159,19 +4159,19 @@ describe("Angle Tag Tests", function () {
 
         cy.get(cesc("#\\/emphasize")).should(
             "have.text",
-            "Emphasize right angle: true, false, false"
+            "Emphasize right angle: true, false, false",
         );
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/a1"].stateValues.emphasizeRightAngle).eq(
-                true
+                true,
             );
             expect(stateVariables["/a2"].stateValues.emphasizeRightAngle).eq(
-                false
+                false,
             );
             expect(stateVariables["/a3"].stateValues.emphasizeRightAngle).eq(
-                false
+                false,
             );
         });
 
@@ -4181,19 +4181,19 @@ describe("Angle Tag Tests", function () {
 
         cy.get(cesc("#\\/emphasize")).should(
             "have.text",
-            "Emphasize right angle: false, true, true"
+            "Emphasize right angle: false, true, true",
         );
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/a1"].stateValues.emphasizeRightAngle).eq(
-                false
+                false,
             );
             expect(stateVariables["/a2"].stateValues.emphasizeRightAngle).eq(
-                true
+                true,
             );
             expect(stateVariables["/a3"].stateValues.emphasizeRightAngle).eq(
-                true
+                true,
             );
         });
     });

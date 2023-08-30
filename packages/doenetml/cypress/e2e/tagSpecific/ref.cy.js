@@ -104,7 +104,7 @@ describe("ref Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -132,7 +132,7 @@ describe("ref Tag Tests", function () {
   <p>A link to <ref uri="http://doenet.org">Doenet</ref>.</p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -152,7 +152,7 @@ describe("ref Tag Tests", function () {
   <p>A link to <ref uri="http://doenet.org/#a&amp;b">Doenet</ref>.</p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -172,7 +172,7 @@ describe("ref Tag Tests", function () {
   <p>A link to <ref uri="doenet:doenetId=abcdefg">a Doenet doc</ref>.</p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -192,13 +192,13 @@ describe("ref Tag Tests", function () {
   <p>A link to <ref uri="http://doenet.org"/>.</p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get(cesc("#\\/_p1")).should(
             "have.text",
-            "A link to http://doenet.org."
+            "A link to http://doenet.org.",
         );
 
         cy.get(cesc("#\\/_ref1"))
@@ -222,7 +222,7 @@ describe("ref Tag Tests", function () {
   <text name="uri" hide>$_ref1.uri</text>-->
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -240,12 +240,12 @@ describe("ref Tag Tests", function () {
 
         cy.get(cesc("#\\/_p3")).should(
             "have.text",
-            "The link address is: http://doenet.org."
+            "The link address is: http://doenet.org.",
         );
 
         cy.get(cesc("#\\/_p4")).should(
             "have.text",
-            "The text linked is: Doenet."
+            "The text linked is: Doenet.",
         );
 
         // cy.get(cesc('#\\/_p5')).should('have.text', 'Recreate from pieces: Doenet.')
@@ -262,13 +262,13 @@ describe("ref Tag Tests", function () {
   <p><ref uri="http://doenet.org" name="toDoenet" createButton>Go to Doenet</ref>.</p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get(cesc("#\\/toDoenet") + " button").should(
             "contain",
-            "Go to Doenet"
+            "Go to Doenet",
         );
     });
 
@@ -304,7 +304,7 @@ describe("ref Tag Tests", function () {
     <p>Paragraph h</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -351,7 +351,7 @@ describe("ref Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -370,7 +370,7 @@ describe("ref Tag Tests", function () {
 
         cy.get(cesc("#\\/inside")).should(
             "have.text",
-            "Paragraph inside the section inside the aside."
+            "Paragraph inside the section inside the aside.",
         );
 
         cy.get(cesc("#\\/inside")).then((el) => {
@@ -404,7 +404,7 @@ describe("ref Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -452,7 +452,7 @@ describe("ref Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -471,7 +471,7 @@ describe("ref Tag Tests", function () {
 
         cy.get(cesc("#\\/inside")).should(
             "have.text",
-            "Paragraph inside the section inside the aside."
+            "Paragraph inside the section inside the aside.",
         );
 
         cy.get(cesc("#\\/inside")).then((el) => {
@@ -516,7 +516,7 @@ describe("ref Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 

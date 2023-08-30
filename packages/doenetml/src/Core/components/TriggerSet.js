@@ -48,7 +48,7 @@ export default class triggerSet extends InlineComponent {
         Object.assign(attributes, returnAnchorAttributes());
 
         let triggerAttributes = returnStandardTriggeringAttributes(
-            "triggerActionsIfTriggerNewlyTrue"
+            "triggerActionsIfTriggerNewlyTrue",
         );
 
         Object.assign(attributes, triggerAttributes);
@@ -74,7 +74,7 @@ export default class triggerSet extends InlineComponent {
 
         addStandardTriggeringStateVariableDefinitions(
             stateVariableDefinitions,
-            "triggerActions"
+            "triggerActions",
         );
 
         let labelDefinitions = returnLabelStateVariableDefinitions();

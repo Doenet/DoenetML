@@ -84,7 +84,7 @@ export default React.memo(function LineSegment(props) {
             strokeColor: "none",
             highlightStrokeColor: "none",
             highlightFillColor: getComputedStyle(
-                document.documentElement
+                document.documentElement,
             ).getPropertyValue("--mainGray"),
             layer: 10 * SVs.layer + 8,
             showInfoBox: SVs.showCoordsWhenDragging,
@@ -102,18 +102,18 @@ export default React.memo(function LineSegment(props) {
         point1JXG.current = board.create(
             "point",
             endpoints[0],
-            jsxPointAttributes
+            jsxPointAttributes,
         );
         point2JXG.current = board.create(
             "point",
             endpoints[1],
-            jsxPointAttributes
+            jsxPointAttributes,
         );
 
         lineSegmentJXG.current = board.create(
             "segment",
             [point1JXG.current, point2JXG.current],
-            jsxSegmentAttributes
+            jsxSegmentAttributes,
         );
 
         point1JXG.current.on("drag", () => onDragHandler(1));
@@ -212,11 +212,11 @@ export default React.memo(function LineSegment(props) {
 
         lineSegmentJXG.current.point1.coords.setCoordinates(
             JXG.COORDS_BY_USER,
-            lastPositionsFromCore.current[0]
+            lastPositionsFromCore.current[0],
         );
         lineSegmentJXG.current.point2.coords.setCoordinates(
             JXG.COORDS_BY_USER,
-            lastPositionsFromCore.current[1]
+            lastPositionsFromCore.current[1],
         );
     }
 
@@ -296,11 +296,11 @@ export default React.memo(function LineSegment(props) {
 
             lineSegmentJXG.current.point1.coords.setCoordinates(
                 JXG.COORDS_BY_USER,
-                SVs.numericalEndpoints[0]
+                SVs.numericalEndpoints[0],
             );
             lineSegmentJXG.current.point2.coords.setCoordinates(
                 JXG.COORDS_BY_USER,
-                SVs.numericalEndpoints[1]
+                SVs.numericalEndpoints[1],
             );
 
             let visible = !SVs.hidden;

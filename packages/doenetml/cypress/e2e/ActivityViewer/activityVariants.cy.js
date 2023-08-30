@@ -35,11 +35,11 @@ describe("Activity variants tests", function () {
                         requestedVariantIndex: ind,
                         attemptNumber,
                     },
-                    "*"
+                    "*",
                 );
                 cy.get(cesc("#\\/_text1")).should(
                     "have.text",
-                    `${attemptNumber}`
+                    `${attemptNumber}`,
                 );
             });
 
@@ -60,7 +60,7 @@ describe("Activity variants tests", function () {
 
                 let mathinputName = cesc2(
                     stateVariables["/_answer1"].stateValues.inputChildren[0]
-                        .componentName
+                        .componentName,
                 );
                 let mathinputAnchor = "#" + mathinputName + " textarea";
                 let mathinputEditiableFieldAnchor =
@@ -77,7 +77,7 @@ describe("Activity variants tests", function () {
                     let stateVariables = await win.returnAllStateVariables1();
 
                     expect(
-                        stateVariables["/_answer1"].stateValues.creditAchieved
+                        stateVariables["/_answer1"].stateValues.creditAchieved,
                     ).eq(1);
                 });
 
@@ -92,11 +92,11 @@ describe("Activity variants tests", function () {
                             requestedVariantIndex: ind,
                             attemptNumber,
                         },
-                        "*"
+                        "*",
                     );
                     cy.get(cesc("#\\/_text1")).should(
                         "have.text",
-                        `${attemptNumber}`
+                        `${attemptNumber}`,
                     );
                 });
 
@@ -106,13 +106,13 @@ describe("Activity variants tests", function () {
                         let stateVariables =
                             await win.returnAllStateVariables1();
                         return stateVariables["/_answer1"];
-                    })
+                    }),
                 );
 
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/_answer1"].stateValues.creditAchieved
+                        stateVariables["/_answer1"].stateValues.creditAchieved,
                     ).eq(1);
                 });
 
@@ -167,7 +167,7 @@ describe("Activity variants tests", function () {
                         doenetML,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
 
@@ -187,7 +187,7 @@ describe("Activity variants tests", function () {
 
                 let textinputName = cesc2(
                     stateVariables["/_answer1"].stateValues.inputChildren[0]
-                        .componentName
+                        .componentName,
                 );
                 let textinputAnchor = "#" + textinputName + "_input";
                 let textinputSubmitAnchor = "#" + textinputName + "_submit";
@@ -202,7 +202,7 @@ describe("Activity variants tests", function () {
                     let stateVariables = await win.returnAllStateVariables1();
 
                     expect(
-                        stateVariables["/_answer1"].stateValues.creditAchieved
+                        stateVariables["/_answer1"].stateValues.creditAchieved,
                     ).eq(1);
                 });
 
@@ -216,7 +216,7 @@ describe("Activity variants tests", function () {
                             doenetML,
                             requestedVariantIndex: 1,
                         },
-                        "*"
+                        "*",
                     );
                 });
 
@@ -228,13 +228,13 @@ describe("Activity variants tests", function () {
                         let stateVariables =
                             await win.returnAllStateVariables1();
                         return stateVariables["/_answer1"];
-                    })
+                    }),
                 );
 
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/_answer1"].stateValues.creditAchieved
+                        stateVariables["/_answer1"].stateValues.creditAchieved,
                     ).eq(1);
                 });
 
@@ -289,7 +289,7 @@ describe("Activity variants tests", function () {
                         doenetML,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
 
@@ -309,7 +309,7 @@ describe("Activity variants tests", function () {
 
                 let textinputName = cesc2(
                     stateVariables["/_answer1"].stateValues.inputChildren[0]
-                        .componentName
+                        .componentName,
                 );
                 let textinputAnchor = "#" + textinputName + "_input";
                 let textinputSubmitAnchor = "#" + textinputName + "_submit";
@@ -324,7 +324,7 @@ describe("Activity variants tests", function () {
                     let stateVariables = await win.returnAllStateVariables1();
 
                     expect(
-                        stateVariables["/_answer1"].stateValues.creditAchieved
+                        stateVariables["/_answer1"].stateValues.creditAchieved,
                     ).eq(1);
                 });
 
@@ -338,7 +338,7 @@ describe("Activity variants tests", function () {
                             doenetML,
                             requestedVariantIndex: 1,
                         },
-                        "*"
+                        "*",
                     );
                 });
 
@@ -350,13 +350,13 @@ describe("Activity variants tests", function () {
                         let stateVariables =
                             await win.returnAllStateVariables1();
                         return stateVariables["/_answer1"];
-                    })
+                    }),
                 );
 
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/_answer1"].stateValues.creditAchieved
+                        stateVariables["/_answer1"].stateValues.creditAchieved,
                     ).eq(1);
                 });
 
@@ -398,7 +398,7 @@ describe("Activity variants tests", function () {
                         doenetML,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
 
@@ -415,16 +415,16 @@ describe("Activity variants tests", function () {
                 expect(activityData.variantIndex).eq(((ind - 1) % 6) + 1);
                 expect(activityData.variantsByPage.length).eq(2);
                 expect(activityData.variantsByPage[0]).eq(
-                    ((activityData.variantIndex - 1) % 2) + 1
+                    ((activityData.variantIndex - 1) % 2) + 1,
                 );
                 expect(activityData.variantsByPage[1]).eq(
-                    ((activityData.variantIndex - 1) % 3) + 1
+                    ((activityData.variantIndex - 1) % 3) + 1,
                 );
 
                 let stateVariables1 = await win.returnAllStateVariables1();
 
                 expect(stateVariables1["/n"].stateValues.value).eq(
-                    activityData.variantsByPage[0]
+                    activityData.variantsByPage[0],
                 );
 
                 cy.get("[data-test=next]").click();
@@ -435,7 +435,7 @@ describe("Activity variants tests", function () {
                     let stateVariables2 = await win.returnAllStateVariables2();
 
                     expect(stateVariables2["/l"].stateValues.value).eq(
-                        numberToLetters(activityData.variantsByPage[1], true)
+                        numberToLetters(activityData.variantsByPage[1], true),
                     );
                 });
             });
@@ -479,7 +479,7 @@ describe("Activity variants tests", function () {
                         doenetML,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
 
@@ -506,7 +506,7 @@ describe("Activity variants tests", function () {
 
                 let mathinputName = cesc2(
                     stateVariables1["/_answer1"].stateValues.inputChildren[0]
-                        .componentName
+                        .componentName,
                 );
                 let mathinputAnchor = "#page1" + mathinputName + " textarea";
                 let mathinputEditiableFieldAnchor =
@@ -524,7 +524,7 @@ describe("Activity variants tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables1 = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables1["/_answer1"].stateValues.creditAchieved
+                        stateVariables1["/_answer1"].stateValues.creditAchieved,
                     ).eq(1);
                 });
 
@@ -539,7 +539,7 @@ describe("Activity variants tests", function () {
 
                     let textinputName = cesc2(
                         stateVariables2["/_answer1"].stateValues
-                            .inputChildren[0].componentName
+                            .inputChildren[0].componentName,
                     );
                     let textinputAnchor = "#page2" + textinputName + "_input";
                     let textinputSubmitAnchor =
@@ -557,7 +557,7 @@ describe("Activity variants tests", function () {
                             await win.returnAllStateVariables2();
                         expect(
                             stateVariables2["/_answer1"].stateValues
-                                .creditAchieved
+                                .creditAchieved,
                         ).eq(1);
                     });
 
@@ -565,7 +565,7 @@ describe("Activity variants tests", function () {
 
                     cy.get(mathinputEditiableFieldAnchor).should(
                         "have.text",
-                        `${n}`
+                        `${n}`,
                     );
                     cy.get(mathinputCorrectAnchor).should("be.visible");
 
@@ -584,7 +584,7 @@ describe("Activity variants tests", function () {
                                 doenetML,
                                 requestedVariantIndex: 1,
                             },
-                            "*"
+                            "*",
                         );
                     });
 
@@ -596,7 +596,7 @@ describe("Activity variants tests", function () {
                             let stateVariables2 =
                                 await win.returnAllStateVariables2();
                             return stateVariables2["/_answer1"];
-                        })
+                        }),
                     );
 
                     cy.window().then(async (win) => {
@@ -604,7 +604,7 @@ describe("Activity variants tests", function () {
                             await win.returnAllStateVariables2();
                         expect(
                             stateVariables2["/_answer1"].stateValues
-                                .creditAchieved
+                                .creditAchieved,
                         ).eq(1);
                     });
 
@@ -617,7 +617,7 @@ describe("Activity variants tests", function () {
                             await win.returnAllStateVariables2();
                         expect(
                             stateVariables2["/_answer1"].stateValues
-                                .creditAchieved
+                                .creditAchieved,
                         ).eq(0);
                     });
 
@@ -631,7 +631,7 @@ describe("Activity variants tests", function () {
                             let stateVariables1 =
                                 await win.returnAllStateVariables1();
                             return stateVariables1["/_answer1"];
-                        })
+                        }),
                     );
 
                     cy.window().then(async (win) => {
@@ -639,7 +639,7 @@ describe("Activity variants tests", function () {
                             await win.returnAllStateVariables1();
                         expect(
                             stateVariables1["/_answer1"].stateValues
-                                .creditAchieved
+                                .creditAchieved,
                         ).eq(1);
                     });
 
@@ -652,7 +652,7 @@ describe("Activity variants tests", function () {
                             await win.returnAllStateVariables1();
                         expect(
                             stateVariables1["/_answer1"].stateValues
-                                .creditAchieved
+                                .creditAchieved,
                         ).eq(0);
                     });
 
@@ -675,13 +675,13 @@ describe("Activity variants tests", function () {
                             await win.returnAllStateVariables1();
                         expect(
                             stateVariables1["/_answer1"].stateValues
-                                .creditAchieved
+                                .creditAchieved,
                         ).eq(1);
                         let stateVariables2 =
                             await win.returnAllStateVariables2();
                         expect(
                             stateVariables2["/_answer1"].stateValues
-                                .creditAchieved
+                                .creditAchieved,
                         ).eq(1);
                     });
                 });
@@ -720,7 +720,7 @@ describe("Activity variants tests", function () {
                         doenetML,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
 
@@ -760,7 +760,7 @@ describe("Activity variants tests", function () {
 
                 let mathinputName = cesc2(
                     stateVariables1["/_answer1"].stateValues.inputChildren[0]
-                        .componentName
+                        .componentName,
                 );
                 let mathinputAnchor = "#page1" + mathinputName + " textarea";
                 let mathinputEditiableFieldAnchor =
@@ -778,7 +778,7 @@ describe("Activity variants tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables1 = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables1["/_answer1"].stateValues.creditAchieved
+                        stateVariables1["/_answer1"].stateValues.creditAchieved,
                     ).eq(1);
                 });
 
@@ -793,7 +793,7 @@ describe("Activity variants tests", function () {
 
                     let textinputName = cesc2(
                         stateVariables2["/_answer1"].stateValues
-                            .inputChildren[0].componentName
+                            .inputChildren[0].componentName,
                     );
                     let textinputAnchor = "#page2" + textinputName + "_input";
                     let textinputSubmitAnchor =
@@ -811,7 +811,7 @@ describe("Activity variants tests", function () {
                             await win.returnAllStateVariables2();
                         expect(
                             stateVariables2["/_answer1"].stateValues
-                                .creditAchieved
+                                .creditAchieved,
                         ).eq(1);
                     });
 
@@ -819,7 +819,7 @@ describe("Activity variants tests", function () {
 
                     cy.get(mathinputEditiableFieldAnchor).should(
                         "have.text",
-                        `${n}`
+                        `${n}`,
                     );
                     cy.get(mathinputCorrectAnchor).should("be.visible");
 
@@ -870,7 +870,7 @@ describe("Activity variants tests", function () {
                         doenetML,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
 
@@ -914,7 +914,7 @@ describe("Activity variants tests", function () {
 
                 cy.get(cesc("#page2\\/_title1")).should(
                     "not.have.text",
-                    title1
+                    title1,
                 );
                 cy.get(cesc("#page2\\/_text1"))
                     .should("have.text", "a")
@@ -950,7 +950,7 @@ describe("Activity variants tests", function () {
                                 selection;
                         } else {
                             expect(selection).eqls(
-                                selectionByVariant[activityData.variantIndex]
+                                selectionByVariant[activityData.variantIndex],
                             );
                         }
                     });
@@ -985,7 +985,7 @@ describe("Activity variants tests", function () {
                         doenetML,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
 
@@ -1005,16 +1005,16 @@ describe("Activity variants tests", function () {
                 expect(activityData.variantIndex).eq(((ind - 1) % 6) + 1);
                 expect(activityData.variantsByPage.length).eq(2);
                 expect(activityData.variantsByPage[0]).eq(
-                    ((activityData.variantIndex - 1) % 2) + 1
+                    ((activityData.variantIndex - 1) % 2) + 1,
                 );
                 expect(activityData.variantsByPage[1]).eq(
-                    ((activityData.variantIndex - 1) % 3) + 1
+                    ((activityData.variantIndex - 1) % 3) + 1,
                 );
 
                 let stateVariables1 = await win.returnAllStateVariables1();
 
                 expect(stateVariables1["/n"].stateValues.value).eq(
-                    nFromVariant[activityData.variantsByPage[0] - 1]
+                    nFromVariant[activityData.variantsByPage[0] - 1],
                 );
 
                 cy.get("[data-test=next]").click();
@@ -1025,7 +1025,7 @@ describe("Activity variants tests", function () {
                     let stateVariables2 = await win.returnAllStateVariables2();
 
                     expect(stateVariables2["/l"].stateValues.value).eq(
-                        lFromVariant[activityData.variantsByPage[1] - 1]
+                        lFromVariant[activityData.variantsByPage[1] - 1],
                     );
                 });
             });
@@ -1059,7 +1059,7 @@ describe("Activity variants tests", function () {
                         doenetML,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
 
@@ -1079,16 +1079,16 @@ describe("Activity variants tests", function () {
                 expect(activityData.variantIndex).eq(((ind - 1) % 6) + 1);
                 expect(activityData.variantsByPage.length).eq(2);
                 expect(activityData.variantsByPage[0]).eq(
-                    ((activityData.variantIndex - 1) % 2) + 1
+                    ((activityData.variantIndex - 1) % 2) + 1,
                 );
                 expect(activityData.variantsByPage[1]).eq(
-                    ((activityData.variantIndex - 1) % 3) + 1
+                    ((activityData.variantIndex - 1) % 3) + 1,
                 );
 
                 let stateVariables1 = await win.returnAllStateVariables1();
 
                 expect(stateVariables1["/n"].stateValues.value).eq(
-                    nFromVariant[activityData.variantsByPage[0] - 1]
+                    nFromVariant[activityData.variantsByPage[0] - 1],
                 );
 
                 cy.get("[data-test=next]").click();
@@ -1099,7 +1099,7 @@ describe("Activity variants tests", function () {
                     let stateVariables2 = await win.returnAllStateVariables2();
 
                     expect(stateVariables2["/l"].stateValues.value).eq(
-                        lFromVariant[activityData.variantsByPage[1] - 1]
+                        lFromVariant[activityData.variantsByPage[1] - 1],
                     );
                 });
             });
@@ -1147,7 +1147,7 @@ describe("Activity variants tests", function () {
                         doenetML,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
 
@@ -1167,16 +1167,16 @@ describe("Activity variants tests", function () {
                 expect(activityData.variantIndex).eq(((ind - 1) % 6) + 1);
                 expect(activityData.variantsByPage.length).eq(2);
                 expect(activityData.variantsByPage[0]).eq(
-                    ((activityData.variantIndex - 1) % 2) + 1
+                    ((activityData.variantIndex - 1) % 2) + 1,
                 );
                 expect(activityData.variantsByPage[1]).eq(
-                    ((activityData.variantIndex - 1) % 3) + 1
+                    ((activityData.variantIndex - 1) % 3) + 1,
                 );
 
                 let stateVariables1 = await win.returnAllStateVariables1();
 
                 expect(stateVariables1["/n"].stateValues.value).eq(
-                    nFromVariant[activityData.variantsByPage[0] - 1]
+                    nFromVariant[activityData.variantsByPage[0] - 1],
                 );
 
                 cy.get("[data-test=next]").click();
@@ -1187,7 +1187,7 @@ describe("Activity variants tests", function () {
                     let stateVariables2 = await win.returnAllStateVariables2();
 
                     expect(stateVariables2["/l"].stateValues.value).eq(
-                        lFromVariant[activityData.variantsByPage[1] - 1]
+                        lFromVariant[activityData.variantsByPage[1] - 1],
                     );
                 });
             });
@@ -1235,7 +1235,7 @@ describe("Activity variants tests", function () {
                         doenetML,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
 
@@ -1255,16 +1255,16 @@ describe("Activity variants tests", function () {
                 expect(activityData.variantIndex).eq(((ind - 1) % 6) + 1);
                 expect(activityData.variantsByPage.length).eq(2);
                 expect(activityData.variantsByPage[0]).eq(
-                    ((activityData.variantIndex - 1) % 2) + 1
+                    ((activityData.variantIndex - 1) % 2) + 1,
                 );
                 expect(activityData.variantsByPage[1]).eq(
-                    ((activityData.variantIndex - 1) % 3) + 1
+                    ((activityData.variantIndex - 1) % 3) + 1,
                 );
 
                 let stateVariables1 = await win.returnAllStateVariables1();
 
                 expect(stateVariables1["/n"].stateValues.value).eq(
-                    nFromVariant[activityData.variantsByPage[0] - 1]
+                    nFromVariant[activityData.variantsByPage[0] - 1],
                 );
 
                 cy.get("[data-test=next]").click();
@@ -1275,7 +1275,7 @@ describe("Activity variants tests", function () {
                     let stateVariables2 = await win.returnAllStateVariables2();
 
                     expect(stateVariables2["/l"].stateValues.value).eq(
-                        lFromVariant[activityData.variantsByPage[1] - 1]
+                        lFromVariant[activityData.variantsByPage[1] - 1],
                     );
                 });
             });
@@ -1319,7 +1319,7 @@ describe("Activity variants tests", function () {
                         doenetML,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
 
@@ -1339,16 +1339,16 @@ describe("Activity variants tests", function () {
                 expect(activityData.variantIndex).eq(((ind - 1) % 6) + 1);
                 expect(activityData.variantsByPage.length).eq(2);
                 expect(activityData.variantsByPage[0]).eq(
-                    ((activityData.variantIndex - 1) % 2) + 1
+                    ((activityData.variantIndex - 1) % 2) + 1,
                 );
                 expect(activityData.variantsByPage[1]).eq(
-                    ((activityData.variantIndex - 1) % 3) + 1
+                    ((activityData.variantIndex - 1) % 3) + 1,
                 );
 
                 let stateVariables1 = await win.returnAllStateVariables1();
 
                 expect(stateVariables1["/n"].stateValues.value).eq(
-                    nFromVariant[activityData.variantsByPage[0] - 1]
+                    nFromVariant[activityData.variantsByPage[0] - 1],
                 );
 
                 cy.get("[data-test=next]").click();
@@ -1359,7 +1359,7 @@ describe("Activity variants tests", function () {
                     let stateVariables2 = await win.returnAllStateVariables2();
 
                     expect(stateVariables2["/l"].stateValues.value).eq(
-                        lFromVariant[activityData.variantsByPage[1] - 1]
+                        lFromVariant[activityData.variantsByPage[1] - 1],
                     );
                 });
             });
@@ -1403,7 +1403,7 @@ describe("Activity variants tests", function () {
                         doenetML,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
 
@@ -1423,16 +1423,16 @@ describe("Activity variants tests", function () {
                 expect(activityData.variantIndex).eq(((ind - 1) % 6) + 1);
                 expect(activityData.variantsByPage.length).eq(2);
                 expect(activityData.variantsByPage[0]).eq(
-                    ((activityData.variantIndex - 1) % 2) + 1
+                    ((activityData.variantIndex - 1) % 2) + 1,
                 );
                 expect(activityData.variantsByPage[1]).eq(
-                    ((activityData.variantIndex - 1) % 3) + 1
+                    ((activityData.variantIndex - 1) % 3) + 1,
                 );
 
                 let stateVariables1 = await win.returnAllStateVariables1();
 
                 expect(stateVariables1["/n"].stateValues.value).eq(
-                    nFromVariant[activityData.variantsByPage[0] - 1]
+                    nFromVariant[activityData.variantsByPage[0] - 1],
                 );
 
                 cy.get("[data-test=next]").click();
@@ -1443,7 +1443,7 @@ describe("Activity variants tests", function () {
                     let stateVariables2 = await win.returnAllStateVariables2();
 
                     expect(stateVariables2["/l"].stateValues.value).eq(
-                        lFromVariant[activityData.variantsByPage[1] - 1]
+                        lFromVariant[activityData.variantsByPage[1] - 1],
                     );
                 });
             });
@@ -1489,7 +1489,7 @@ describe("Activity variants tests", function () {
                         doenetML,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
 
@@ -1509,16 +1509,16 @@ describe("Activity variants tests", function () {
                 expect(activityData.variantIndex).eq(((ind - 1) % 6) + 1);
                 expect(activityData.variantsByPage.length).eq(2);
                 expect(activityData.variantsByPage[0]).eq(
-                    ((activityData.variantIndex - 1) % 2) + 1
+                    ((activityData.variantIndex - 1) % 2) + 1,
                 );
                 expect(activityData.variantsByPage[1]).eq(
-                    ((activityData.variantIndex - 1) % 3) + 1
+                    ((activityData.variantIndex - 1) % 3) + 1,
                 );
 
                 let stateVariables1 = await win.returnAllStateVariables1();
 
                 expect(stateVariables1["/n"].stateValues.value).eq(
-                    nFromVariant[activityData.variantsByPage[0] - 1]
+                    nFromVariant[activityData.variantsByPage[0] - 1],
                 );
 
                 cy.get("[data-test=next]").click();
@@ -1529,7 +1529,7 @@ describe("Activity variants tests", function () {
                     let stateVariables2 = await win.returnAllStateVariables2();
 
                     expect(stateVariables2["/l"].stateValues.value).eq(
-                        lFromVariant[activityData.variantsByPage[1] - 1]
+                        lFromVariant[activityData.variantsByPage[1] - 1],
                     );
                 });
             });
@@ -1575,7 +1575,7 @@ describe("Activity variants tests", function () {
                         doenetML,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
 
@@ -1595,16 +1595,16 @@ describe("Activity variants tests", function () {
                 expect(activityData.variantIndex).eq(((ind - 1) % 6) + 1);
                 expect(activityData.variantsByPage.length).eq(2);
                 expect(activityData.variantsByPage[0]).eq(
-                    ((activityData.variantIndex - 1) % 2) + 1
+                    ((activityData.variantIndex - 1) % 2) + 1,
                 );
                 expect(activityData.variantsByPage[1]).eq(
-                    ((activityData.variantIndex - 1) % 3) + 1
+                    ((activityData.variantIndex - 1) % 3) + 1,
                 );
 
                 let stateVariables1 = await win.returnAllStateVariables1();
 
                 expect(stateVariables1["/n"].stateValues.value).eq(
-                    nFromVariant[activityData.variantsByPage[0] - 1]
+                    nFromVariant[activityData.variantsByPage[0] - 1],
                 );
 
                 cy.get("[data-test=next]").click();
@@ -1615,7 +1615,7 @@ describe("Activity variants tests", function () {
                     let stateVariables2 = await win.returnAllStateVariables2();
 
                     expect(stateVariables2["/l"].stateValues.value).eq(
-                        lFromVariant[activityData.variantsByPage[1] - 1]
+                        lFromVariant[activityData.variantsByPage[1] - 1],
                     );
                 });
             });
@@ -1661,7 +1661,7 @@ describe("Activity variants tests", function () {
                         doenetML,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
 
@@ -1683,19 +1683,19 @@ describe("Activity variants tests", function () {
                 expect(activityData.variantIndex).eq(((ind - 1) % 6) + 1);
                 expect(activityData.variantsByPage.length).eq(2);
                 expect(activityData.variantsByPage[0]).eq(
-                    ((activityData.variantIndex - 1) % 2) + 1
+                    ((activityData.variantIndex - 1) % 2) + 1,
                 );
                 expect(activityData.variantsByPage[1]).eq(
-                    ((activityData.variantIndex - 1) % 3) + 1
+                    ((activityData.variantIndex - 1) % 3) + 1,
                 );
 
                 let stateVariables1 = await win.returnAllStateVariables1();
 
                 expect(stateVariables1["/n"].stateValues.value).eq(
-                    nFromVariant[activityData.variantsByPage[0] - 1]
+                    nFromVariant[activityData.variantsByPage[0] - 1],
                 );
                 expect(
-                    stateVariables1["/_document1"].sharedParameters.variantName
+                    stateVariables1["/_document1"].sharedParameters.variantName,
                 ).eq(docVariantOptions1[activityData.variantsByPage[0] - 1]);
 
                 cy.get("[data-test=next]").click();
@@ -1706,13 +1706,13 @@ describe("Activity variants tests", function () {
                     let stateVariables2 = await win.returnAllStateVariables2();
 
                     expect(stateVariables2["/l"].stateValues.value).eq(
-                        lFromVariant[activityData.variantsByPage[1] - 1]
+                        lFromVariant[activityData.variantsByPage[1] - 1],
                     );
                     expect(
                         stateVariables2["/_document1"].sharedParameters
-                            .variantName
+                            .variantName,
                     ).eq(
-                        docVariantOptions2[activityData.variantsByPage[1] - 1]
+                        docVariantOptions2[activityData.variantsByPage[1] - 1],
                     );
                 });
             });
@@ -1758,7 +1758,7 @@ describe("Activity variants tests", function () {
                         doenetML,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
 
@@ -1780,19 +1780,19 @@ describe("Activity variants tests", function () {
                 expect(activityData.variantIndex).eq(((ind - 1) % 6) + 1);
                 expect(activityData.variantsByPage.length).eq(2);
                 expect(activityData.variantsByPage[0]).eq(
-                    ((activityData.variantIndex - 1) % 2) + 1
+                    ((activityData.variantIndex - 1) % 2) + 1,
                 );
                 expect(activityData.variantsByPage[1]).eq(
-                    ((activityData.variantIndex - 1) % 3) + 1
+                    ((activityData.variantIndex - 1) % 3) + 1,
                 );
 
                 let stateVariables1 = await win.returnAllStateVariables1();
 
                 expect(stateVariables1["/n"].stateValues.value).eq(
-                    nFromVariant[activityData.variantsByPage[0] - 1]
+                    nFromVariant[activityData.variantsByPage[0] - 1],
                 );
                 expect(
-                    stateVariables1["/_document1"].sharedParameters.variantName
+                    stateVariables1["/_document1"].sharedParameters.variantName,
                 ).eq(docVariantOptions1[activityData.variantsByPage[0] - 1]);
 
                 cy.get("[data-test=next]").click();
@@ -1803,13 +1803,13 @@ describe("Activity variants tests", function () {
                     let stateVariables2 = await win.returnAllStateVariables2();
 
                     expect(stateVariables2["/l"].stateValues.value).eq(
-                        lFromVariant[activityData.variantsByPage[1] - 1]
+                        lFromVariant[activityData.variantsByPage[1] - 1],
                     );
                     expect(
                         stateVariables2["/_document1"].sharedParameters
-                            .variantName
+                            .variantName,
                     ).eq(
-                        docVariantOptions2[activityData.variantsByPage[1] - 1]
+                        docVariantOptions2[activityData.variantsByPage[1] - 1],
                     );
                 });
             });
