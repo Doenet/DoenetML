@@ -62,11 +62,11 @@ export default class AsList extends InlineComponent {
                 let latexpieces = [];
                 for (let child of dependencyValues.inlineChildren) {
                     if (typeof child !== "object") {
-                        latexpieces.push(child.toString());
+                        latexpieces.push(child.toString().trim());
                     } else if (typeof child.stateValues.latex === "string") {
-                        latexpieces.push(child.stateValues.latex);
+                        latexpieces.push(child.stateValues.latex.trim());
                     } else if (typeof child.stateValues.text === "string") {
-                        latexpieces.push(child.stateValues.text);
+                        latexpieces.push(child.stateValues.text.trim());
                     } else {
                         latexpieces.push("");
                     }

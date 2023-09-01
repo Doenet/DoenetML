@@ -1245,7 +1245,7 @@ describe("Math Display Tag Tests", function () {
             });
     });
 
-    it("include blank string children", () => {
+    it("separate with spaces when concatenate children", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
@@ -1253,10 +1253,10 @@ describe("Math Display Tag Tests", function () {
     <text>a</text>
     <math name="b">beta</math>
     <math name="s">s</math>
-    <m>$b $s</m>
-    <me>$b $s</me>
+    <m>$b$s</m>
+    <me>$b$s</me>
     <md>
-      <mrow>$b $s</mrow>
+      <mrow>$b$s</mrow>
     </md>
   `,
                 },
@@ -1287,6 +1287,15 @@ describe("Math Display Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("βs");
             });
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/_m1"].stateValues.latex).eq("\\beta s");
+            expect(stateVariables["/_me1"].stateValues.latex).eq("\\beta s");
+            expect(stateVariables["/_md1"].stateValues.latex).eq(
+                "\\notag \\beta s",
+            );
+        });
     });
 
     it("aslist inside displayed math", () => {
