@@ -1,26 +1,14 @@
 // Code modified from xast-util-to-xml MIT License https://github.com/syntax-tree/xast-util-to-xml
-import { stringifyEntitiesLight } from "stringify-entities";
 import { ccount } from "ccount";
-import { DastElement, DastNodes } from "../types";
-
-export type Options = {
-    /**
-     * Whether to render with the DoenetML syntax rather than true XML.
-     * That means `<` and `&` characters are allowed unescaped in the output.
-     */
-    doenetSyntax?: boolean;
-    /**
-     * Whether to output XML error nodes when there are processing errors.
-     */
-    inlineErrors?: boolean;
-};
+import { DastElement, DastNodes, PrintOptions } from "../types";
+import { clean, escape, name } from "./utils";
 
 /**
  * Serialize a xast tree to XML.
  */
 export function toXml(
     tree?: DastNodes[] | DastNodes | null,
-    options?: Options,
+    options?: PrintOptions,
 ) {
     options = options || {};
     if (!tree) {
@@ -38,7 +26,7 @@ export function toXml(
  */
 export function nodesToXml(
     node: DastNodes | DastNodes[],
-    options: Options,
+    options: PrintOptions,
 ): string {
     if (Array.isArray(node)) {
         return node.map((child) => nodesToXml(child, options)).join("");
@@ -80,7 +68,7 @@ export function nodesToXml(
         case "element": {
             const nodeName = name(node.name);
             const content = nodesToXml(node.children, options);
-            const attributes = node.attributes || {};
+            const attributes = node.attributes || [];
 
             const attrs = attributes.flatMap((attr) => {
                 if (attr.children.length === 0) {
@@ -160,45 +148,4 @@ export function quote(value: string) {
     }
 
     return quoteMark + escape(result, ["<", "&", quoteMark]) + quoteMark;
-}
-
-/**
- * Escape a string.
- */
-export function escape(
-    value: string,
-    subset: string[],
-    unsafe?: RegExp | null | undefined,
-): string {
-    const result = clean(value);
-
-    return unsafe ? result.replace(unsafe, encode) : encode(result);
-
-    /**
-     * Actually escape characters.
-     */
-    function encode(value: string): string {
-        return (
-            stringifyEntitiesLight(value, { subset })
-                // We want fancy named versions of these two escaped characters
-                .replace(/&#x3C;/g, "&lt;")
-                .replace(/&#x26;/g, "&amp;")
-        );
-    }
-}
-
-const nonCharacter = /[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g;
-/**
- * Remove non-characters.
- */
-function clean(value: string) {
-    return String(value || "").replace(nonCharacter, "");
-}
-
-/**
- * Encode a node name.
- */
-export function name(value: string) {
-    const subset = ["\t", "\n", " ", '"', "&", "'", "/", "<", "=", ">"];
-    return escape(value, subset);
 }

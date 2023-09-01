@@ -5,7 +5,6 @@ import { parse, showCursor } from "../src/parser";
 import { lezerToDast } from "../src/lezer-to-dast";
 import { lezerToDast as lezerToDastNew } from "../src/lezer-to-dast/lezer-to-dast";
 import { toXml } from "../src/dast-to-xml/dast-util-to-xml";
-import { parser } from "../src/generated-assets/lezer-doenet";
 import util from "util";
 
 const origLog = console.log;

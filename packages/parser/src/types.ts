@@ -365,3 +365,15 @@ export interface DastError extends DastAbstractNode {
 }
 
 export interface ErrorData extends Data {}
+
+export type PrintOptions = {
+    /**
+     * Whether to render with the DoenetML syntax rather than true XML.
+     * That means `<` and `&` characters are allowed unescaped in the output.
+     */
+    doenetSyntax?: boolean;
+    /**
+     * Whether to output XML error nodes when there are processing errors.
+     */
+    inlineErrors?: boolean;
+};
