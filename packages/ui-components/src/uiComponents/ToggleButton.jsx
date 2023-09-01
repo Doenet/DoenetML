@@ -68,7 +68,7 @@ Button.defaultProps = {
 //   align-items: center;
 // `
 
-export default function ToggleButton(props) {
+export function ToggleButton(props) {
     const [isSelected, setSelected] = useState(
         props.isSelected ? props.isSelected : false,
     );

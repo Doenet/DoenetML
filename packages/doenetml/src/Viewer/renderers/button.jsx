@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useRef } from "react";
 import useDoenetRenderer from "../useDoenetRenderer";
-import Button from "../../uiComponents/Button";
+import { Button } from "@doenet/ui-components";
 import { BoardContext } from "./graph";
 import me from "math-expressions";
 import { getPositionFromAnchorByCoordinate } from "../../Core/utils/graphical";

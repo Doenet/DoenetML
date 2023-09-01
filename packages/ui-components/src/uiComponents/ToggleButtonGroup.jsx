@@ -22,7 +22,7 @@ const verticalToggleGroup = {
     padding: "0px 10px 0px 10px",
 };
 
-const ToggleButtonGroup = (props) => {
+export const ToggleButtonGroup = (props) => {
     // if (props.width) {
     //   if (props.width === "menu") {
     //     actionGroup.width = '235px'
@@ -75,5 +75,3 @@ const ToggleButtonGroup = (props) => {
         </Container>
     );
 };
-
-export default ToggleButtonGroup;

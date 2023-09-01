@@ -9,7 +9,7 @@ const Container = styled.div`
     /* overflow: clip; */
 `;
 
-export default function ButtonGroup(props) {
+export function ButtonGroup(props) {
     const buttonGroup = {
         margin: "0px 2px 0px 2px",
         borderRadius: "0",

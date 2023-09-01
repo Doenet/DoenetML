@@ -38,7 +38,7 @@ const verticalActionGroup = {
     outlineOffset: "-6px",
 };
 
-const ActionButtonGroup = (props) => {
+export const ActionButtonGroup = (props) => {
     let first_prop = props.vertical ? "first_vert" : "first";
     let last_prop = props.vertical ? "last_vert" : "last";
     let overflow_prop = props.width ? "no_overflow" : "overflow";
@@ -100,5 +100,3 @@ const ActionButtonGroup = (props) => {
         </>
     );
 };
-
-export default ActionButtonGroup;

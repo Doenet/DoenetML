@@ -4,6 +4,7 @@
     "version": "1.0.0",
     "description": "Monorepo for the DoenetML project",
     "workspaces": [
+        "./packages/ui-components",
         "./packages/parser",
         "./packages/doenetml-worker",
         "./packages/virtual-keyboard",

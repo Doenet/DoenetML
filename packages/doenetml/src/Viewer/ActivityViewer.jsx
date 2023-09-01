@@ -12,9 +12,10 @@ import {
     parseActivityDefinition,
 } from "../utils/activityUtils";
 import VisibilitySensor from "react-visibility-sensor-v2";
-import Button from "../uiComponents/Button";
-import ActionButton from "../uiComponents/ActionButton";
-import ButtonGroup from "../uiComponents/ButtonGroup";
+
+import { Button } from "@doenet/ui-components";
+import { ButtonGroup } from "@doenet/ui-components";
+import { ActionButton } from "@doenet/ui-components";
 import { clear as idb_clear } from "idb-keyval";
 import { cesc } from "../utils/url";
 import { returnAllPossibleVariants } from "../Core/utils/returnAllPossibleVariants";

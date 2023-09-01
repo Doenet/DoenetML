@@ -57,7 +57,7 @@ const Container = styled.div`
     align-items: center;
 `;
 
-export default function Button(props) {
+export function Button(props) {
     //Assume small
     var container = {};
     var align = "flex";

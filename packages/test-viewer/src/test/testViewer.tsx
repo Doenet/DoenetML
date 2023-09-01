@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import type { DoenetML } from "@doenet/doenetml";
 // @ts-ignore
 import doenetML from "./testCode.doenet?raw";
-import Button from "../uiComponents/Button";
+import { Button } from "@doenet/ui-components";
 
 export default function TestViewer({
     DoenetML,

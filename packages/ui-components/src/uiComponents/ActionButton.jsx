@@ -52,7 +52,7 @@ const Container = styled.div`
     align-items: center;
 `;
 
-export default function ActionButton(props) {
+export function ActionButton(props) {
     const alert = props.alert ? props.alert : null;
     //Assume small
 
