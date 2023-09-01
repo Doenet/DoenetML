@@ -66,7 +66,7 @@ describe("Sectioning Tag Tests", function () {
     </section>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -77,100 +77,100 @@ describe("Sectioning Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
 
             let docCaAnchor = cesc2(
-                "#" + stateVariables["/docCa"].replacements[0].componentName
+                "#" + stateVariables["/docCa"].replacements[0].componentName,
             );
             let docPcaAnchor = cesc2(
-                "#" + stateVariables["/docPca"].replacements[0].componentName
+                "#" + stateVariables["/docPca"].replacements[0].componentName,
             );
             let s1CaAnchor = cesc2(
-                "#" + stateVariables["/s1Ca"].replacements[0].componentName
+                "#" + stateVariables["/s1Ca"].replacements[0].componentName,
             );
             let s1PcaAnchor = cesc2(
-                "#" + stateVariables["/s1Pca"].replacements[0].componentName
+                "#" + stateVariables["/s1Pca"].replacements[0].componentName,
             );
             let s2CaAnchor = cesc2(
-                "#" + stateVariables["/s2Ca"].replacements[0].componentName
+                "#" + stateVariables["/s2Ca"].replacements[0].componentName,
             );
             let s2PcaAnchor = cesc2(
-                "#" + stateVariables["/s2Pca"].replacements[0].componentName
+                "#" + stateVariables["/s2Pca"].replacements[0].componentName,
             );
             let s21CaAnchor = cesc2(
-                "#" + stateVariables["/s21Ca"].replacements[0].componentName
+                "#" + stateVariables["/s21Ca"].replacements[0].componentName,
             );
             let s21PcaAnchor = cesc2(
-                "#" + stateVariables["/s21Pca"].replacements[0].componentName
+                "#" + stateVariables["/s21Pca"].replacements[0].componentName,
             );
             let s22CaAnchor = cesc2(
-                "#" + stateVariables["/s22Ca"].replacements[0].componentName
+                "#" + stateVariables["/s22Ca"].replacements[0].componentName,
             );
             let s22PcaAnchor = cesc2(
-                "#" + stateVariables["/s22Pca"].replacements[0].componentName
+                "#" + stateVariables["/s22Pca"].replacements[0].componentName,
             );
             let s221CaAnchor = cesc2(
-                "#" + stateVariables["/s221Ca"].replacements[0].componentName
+                "#" + stateVariables["/s221Ca"].replacements[0].componentName,
             );
             let s221PcaAnchor = cesc2(
-                "#" + stateVariables["/s221Pca"].replacements[0].componentName
+                "#" + stateVariables["/s221Pca"].replacements[0].componentName,
             );
             let s222CaAnchor = cesc2(
-                "#" + stateVariables["/s222Ca"].replacements[0].componentName
+                "#" + stateVariables["/s222Ca"].replacements[0].componentName,
             );
             let s222PcaAnchor = cesc2(
-                "#" + stateVariables["/s222Pca"].replacements[0].componentName
+                "#" + stateVariables["/s222Pca"].replacements[0].componentName,
             );
             let mathinput1Anchor =
                 cesc2(
                     "#" +
                         stateVariables["/_answer1"].stateValues.inputChildren[0]
-                            .componentName
+                            .componentName,
                 ) + " textarea";
             let mathinput2Anchor =
                 cesc2(
                     "#" +
                         stateVariables["/_answer2"].stateValues.inputChildren[0]
-                            .componentName
+                            .componentName,
                 ) + " textarea";
             let mathinput3Anchor =
                 cesc2(
                     "#" +
                         stateVariables["/_answer3"].stateValues.inputChildren[0]
-                            .componentName
+                            .componentName,
                 ) + " textarea";
             let mathinput4Anchor =
                 cesc2(
                     "#" +
                         stateVariables["/_answer4"].stateValues.inputChildren[0]
-                            .componentName
+                            .componentName,
                 ) + " textarea";
             let mathinput5Anchor =
                 cesc2(
                     "#" +
                         stateVariables["/_answer5"].stateValues.inputChildren[0]
-                            .componentName
+                            .componentName,
                 ) + " textarea";
             let mathinput6Anchor =
                 cesc2(
                     "#" +
                         stateVariables["/_answer6"].stateValues.inputChildren[0]
-                            .componentName
+                            .componentName,
                 ) + " textarea";
             let mathinput7Anchor =
                 cesc2(
                     "#" +
                         stateVariables["/_answer7"].stateValues.inputChildren[0]
-                            .componentName
+                            .componentName,
                 ) + " textarea";
             let mathinput8Anchor =
                 cesc2(
                     "#" +
                         stateVariables["/_answer8"].stateValues.inputChildren[0]
-                            .componentName
+                            .componentName,
                 ) + " textarea";
             let mathinput9Anchor =
                 cesc2(
                     "#" +
                         stateVariables["/_answer9"].stateValues.inputChildren[0]
-                            .componentName
+                            .componentName,
                 ) + " textarea";
 
             let weight = [1, 1, 2, 1, 0.5, 1, 1, 1, 3];
@@ -194,80 +194,80 @@ describe("Sectioning Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_document1"].stateValues.creditAchieved
+                    stateVariables["/_document1"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/_document1"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/section1"].stateValues.creditAchieved
+                    stateVariables["/section1"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section1"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/section2"].stateValues.creditAchieved
+                    stateVariables["/section2"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section2"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/section21"].stateValues.creditAchieved
+                    stateVariables["/section21"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section21"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/section22"].stateValues.creditAchieved
+                    stateVariables["/section22"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section22"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/section221"].stateValues.creditAchieved
+                    stateVariables["/section221"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section221"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/section222"].stateValues.creditAchieved
+                    stateVariables["/section222"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section222"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer5"].stateValues.creditAchieved
+                    stateVariables["/_answer5"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer6"].stateValues.creditAchieved
+                    stateVariables["/_answer6"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer7"].stateValues.creditAchieved
+                    stateVariables["/_answer7"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer8"].stateValues.creditAchieved
+                    stateVariables["/_answer8"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer9"].stateValues.creditAchieved
+                    stateVariables["/_answer9"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -282,7 +282,7 @@ describe("Sectioning Tag Tests", function () {
             cy.get(docCaAnchor).should("have.text", credit1Round.toString());
             cy.get(docPcaAnchor).should(
                 "have.text",
-                percentCredit1Round.toString()
+                percentCredit1Round.toString(),
             );
             cy.get(s1CaAnchor).should("have.text", "0");
             cy.get(s1PcaAnchor).should("have.text", "0");
@@ -300,80 +300,80 @@ describe("Sectioning Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_document1"].stateValues.creditAchieved
+                    stateVariables["/_document1"].stateValues.creditAchieved,
                 ).closeTo(credit1, 1e-12);
                 expect(
                     stateVariables["/_document1"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(percentCredit1, 1e-12);
                 expect(
-                    stateVariables["/section1"].stateValues.creditAchieved
+                    stateVariables["/section1"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section1"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/section2"].stateValues.creditAchieved
+                    stateVariables["/section2"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section2"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/section21"].stateValues.creditAchieved
+                    stateVariables["/section21"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section21"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/section22"].stateValues.creditAchieved
+                    stateVariables["/section22"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section22"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/section221"].stateValues.creditAchieved
+                    stateVariables["/section221"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section221"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/section222"].stateValues.creditAchieved
+                    stateVariables["/section222"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section222"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer5"].stateValues.creditAchieved
+                    stateVariables["/_answer5"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer6"].stateValues.creditAchieved
+                    stateVariables["/_answer6"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer7"].stateValues.creditAchieved
+                    stateVariables["/_answer7"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer8"].stateValues.creditAchieved
+                    stateVariables["/_answer8"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer9"].stateValues.creditAchieved
+                    stateVariables["/_answer9"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -391,7 +391,7 @@ describe("Sectioning Tag Tests", function () {
             cy.get(docCaAnchor).should("have.text", credit2Round.toString());
             cy.get(docPcaAnchor).should(
                 "have.text",
-                percentCredit2Round.toString()
+                percentCredit2Round.toString(),
             );
             cy.get(s1CaAnchor).should("have.text", "0");
             cy.get(s1PcaAnchor).should("have.text", "0");
@@ -409,80 +409,80 @@ describe("Sectioning Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_document1"].stateValues.creditAchieved
+                    stateVariables["/_document1"].stateValues.creditAchieved,
                 ).closeTo(credit2, 1e-12);
                 expect(
                     stateVariables["/_document1"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(percentCredit2, 1e-12);
                 expect(
-                    stateVariables["/section1"].stateValues.creditAchieved
+                    stateVariables["/section1"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section1"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/section2"].stateValues.creditAchieved
+                    stateVariables["/section2"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section2"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/section21"].stateValues.creditAchieved
+                    stateVariables["/section21"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section21"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/section22"].stateValues.creditAchieved
+                    stateVariables["/section22"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section22"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/section221"].stateValues.creditAchieved
+                    stateVariables["/section221"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section221"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/section222"].stateValues.creditAchieved
+                    stateVariables["/section222"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section222"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer5"].stateValues.creditAchieved
+                    stateVariables["/_answer5"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer6"].stateValues.creditAchieved
+                    stateVariables["/_answer6"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer7"].stateValues.creditAchieved
+                    stateVariables["/_answer7"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer8"].stateValues.creditAchieved
+                    stateVariables["/_answer8"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer9"].stateValues.creditAchieved
+                    stateVariables["/_answer9"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -500,7 +500,7 @@ describe("Sectioning Tag Tests", function () {
             cy.get(docCaAnchor).should("have.text", credit3Round.toString());
             cy.get(docPcaAnchor).should(
                 "have.text",
-                percentCredit3Round.toString()
+                percentCredit3Round.toString(),
             );
             cy.get(s1CaAnchor).should("have.text", "0");
             cy.get(s1PcaAnchor).should("have.text", "0");
@@ -518,80 +518,80 @@ describe("Sectioning Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_document1"].stateValues.creditAchieved
+                    stateVariables["/_document1"].stateValues.creditAchieved,
                 ).closeTo(credit3, 1e-12);
                 expect(
                     stateVariables["/_document1"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(percentCredit3, 1e-12);
                 expect(
-                    stateVariables["/section1"].stateValues.creditAchieved
+                    stateVariables["/section1"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section1"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/section2"].stateValues.creditAchieved
+                    stateVariables["/section2"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section2"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/section21"].stateValues.creditAchieved
+                    stateVariables["/section21"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section21"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/section22"].stateValues.creditAchieved
+                    stateVariables["/section22"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section22"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/section221"].stateValues.creditAchieved
+                    stateVariables["/section221"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section221"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/section222"].stateValues.creditAchieved
+                    stateVariables["/section222"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section222"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer5"].stateValues.creditAchieved
+                    stateVariables["/_answer5"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer6"].stateValues.creditAchieved
+                    stateVariables["/_answer6"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer7"].stateValues.creditAchieved
+                    stateVariables["/_answer7"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer8"].stateValues.creditAchieved
+                    stateVariables["/_answer8"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer9"].stateValues.creditAchieved
+                    stateVariables["/_answer9"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -606,7 +606,7 @@ describe("Sectioning Tag Tests", function () {
             cy.get(docCaAnchor).should("have.text", credit4Round.toString());
             cy.get(docPcaAnchor).should(
                 "have.text",
-                percentCredit4Round.toString()
+                percentCredit4Round.toString(),
             );
             cy.get(s1CaAnchor).should("have.text", "0");
             cy.get(s1PcaAnchor).should("have.text", "0");
@@ -624,80 +624,80 @@ describe("Sectioning Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_document1"].stateValues.creditAchieved
+                    stateVariables["/_document1"].stateValues.creditAchieved,
                 ).closeTo(credit4, 1e-12);
                 expect(
                     stateVariables["/_document1"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(percentCredit4, 1e-12);
                 expect(
-                    stateVariables["/section1"].stateValues.creditAchieved
+                    stateVariables["/section1"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section1"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/section2"].stateValues.creditAchieved
+                    stateVariables["/section2"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section2"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/section21"].stateValues.creditAchieved
+                    stateVariables["/section21"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section21"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/section22"].stateValues.creditAchieved
+                    stateVariables["/section22"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section22"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/section221"].stateValues.creditAchieved
+                    stateVariables["/section221"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section221"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/section222"].stateValues.creditAchieved
+                    stateVariables["/section222"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section222"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer5"].stateValues.creditAchieved
+                    stateVariables["/_answer5"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer6"].stateValues.creditAchieved
+                    stateVariables["/_answer6"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer7"].stateValues.creditAchieved
+                    stateVariables["/_answer7"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer8"].stateValues.creditAchieved
+                    stateVariables["/_answer8"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer9"].stateValues.creditAchieved
+                    stateVariables["/_answer9"].stateValues.creditAchieved,
                 ).eq(1);
             });
         });
@@ -763,7 +763,7 @@ describe("Sectioning Tag Tests", function () {
     </section>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -774,100 +774,100 @@ describe("Sectioning Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
 
             let docCaAnchor = cesc2(
-                "#" + stateVariables["/docCa"].replacements[0].componentName
+                "#" + stateVariables["/docCa"].replacements[0].componentName,
             );
             let docPcaAnchor = cesc2(
-                "#" + stateVariables["/docPca"].replacements[0].componentName
+                "#" + stateVariables["/docPca"].replacements[0].componentName,
             );
             let s1CaAnchor = cesc2(
-                "#" + stateVariables["/s1Ca"].replacements[0].componentName
+                "#" + stateVariables["/s1Ca"].replacements[0].componentName,
             );
             let s1PcaAnchor = cesc2(
-                "#" + stateVariables["/s1Pca"].replacements[0].componentName
+                "#" + stateVariables["/s1Pca"].replacements[0].componentName,
             );
             let s2CaAnchor = cesc2(
-                "#" + stateVariables["/s2Ca"].replacements[0].componentName
+                "#" + stateVariables["/s2Ca"].replacements[0].componentName,
             );
             let s2PcaAnchor = cesc2(
-                "#" + stateVariables["/s2Pca"].replacements[0].componentName
+                "#" + stateVariables["/s2Pca"].replacements[0].componentName,
             );
             let s21CaAnchor = cesc2(
-                "#" + stateVariables["/s21Ca"].replacements[0].componentName
+                "#" + stateVariables["/s21Ca"].replacements[0].componentName,
             );
             let s21PcaAnchor = cesc2(
-                "#" + stateVariables["/s21Pca"].replacements[0].componentName
+                "#" + stateVariables["/s21Pca"].replacements[0].componentName,
             );
             let s22CaAnchor = cesc2(
-                "#" + stateVariables["/s22Ca"].replacements[0].componentName
+                "#" + stateVariables["/s22Ca"].replacements[0].componentName,
             );
             let s22PcaAnchor = cesc2(
-                "#" + stateVariables["/s22Pca"].replacements[0].componentName
+                "#" + stateVariables["/s22Pca"].replacements[0].componentName,
             );
             let s221CaAnchor = cesc2(
-                "#" + stateVariables["/s221Ca"].replacements[0].componentName
+                "#" + stateVariables["/s221Ca"].replacements[0].componentName,
             );
             let s221PcaAnchor = cesc2(
-                "#" + stateVariables["/s221Pca"].replacements[0].componentName
+                "#" + stateVariables["/s221Pca"].replacements[0].componentName,
             );
             let s222CaAnchor = cesc2(
-                "#" + stateVariables["/s222Ca"].replacements[0].componentName
+                "#" + stateVariables["/s222Ca"].replacements[0].componentName,
             );
             let s222PcaAnchor = cesc2(
-                "#" + stateVariables["/s222Pca"].replacements[0].componentName
+                "#" + stateVariables["/s222Pca"].replacements[0].componentName,
             );
             let mathinput1Anchor =
                 cesc2(
                     "#" +
                         stateVariables["/_answer1"].stateValues.inputChildren[0]
-                            .componentName
+                            .componentName,
                 ) + " textarea";
             let mathinput2Anchor =
                 cesc2(
                     "#" +
                         stateVariables["/_answer2"].stateValues.inputChildren[0]
-                            .componentName
+                            .componentName,
                 ) + " textarea";
             let mathinput3Anchor =
                 cesc2(
                     "#" +
                         stateVariables["/_answer3"].stateValues.inputChildren[0]
-                            .componentName
+                            .componentName,
                 ) + " textarea";
             let mathinput4Anchor =
                 cesc2(
                     "#" +
                         stateVariables["/_answer4"].stateValues.inputChildren[0]
-                            .componentName
+                            .componentName,
                 ) + " textarea";
             let mathinput5Anchor =
                 cesc2(
                     "#" +
                         stateVariables["/_answer5"].stateValues.inputChildren[0]
-                            .componentName
+                            .componentName,
                 ) + " textarea";
             let mathinput6Anchor =
                 cesc2(
                     "#" +
                         stateVariables["/_answer6"].stateValues.inputChildren[0]
-                            .componentName
+                            .componentName,
                 ) + " textarea";
             let mathinput7Anchor =
                 cesc2(
                     "#" +
                         stateVariables["/_answer7"].stateValues.inputChildren[0]
-                            .componentName
+                            .componentName,
                 ) + " textarea";
             let mathinput8Anchor =
                 cesc2(
                     "#" +
                         stateVariables["/_answer8"].stateValues.inputChildren[0]
-                            .componentName
+                            .componentName,
                 ) + " textarea";
             let mathinput9Anchor =
                 cesc2(
                     "#" +
                         stateVariables["/_answer9"].stateValues.inputChildren[0]
-                            .componentName
+                            .componentName,
                 ) + " textarea";
 
             cy.get(docCaAnchor).should("have.text", "0");
@@ -888,80 +888,80 @@ describe("Sectioning Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_document1"].stateValues.creditAchieved
+                    stateVariables["/_document1"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/_document1"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/section1"].stateValues.creditAchieved
+                    stateVariables["/section1"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section1"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/section2"].stateValues.creditAchieved
+                    stateVariables["/section2"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section2"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/section21"].stateValues.creditAchieved
+                    stateVariables["/section21"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section21"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/section22"].stateValues.creditAchieved
+                    stateVariables["/section22"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section22"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/section221"].stateValues.creditAchieved
+                    stateVariables["/section221"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section221"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/section222"].stateValues.creditAchieved
+                    stateVariables["/section222"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section222"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer5"].stateValues.creditAchieved
+                    stateVariables["/_answer5"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer6"].stateValues.creditAchieved
+                    stateVariables["/_answer6"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer7"].stateValues.creditAchieved
+                    stateVariables["/_answer7"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer8"].stateValues.creditAchieved
+                    stateVariables["/_answer8"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer9"].stateValues.creditAchieved
+                    stateVariables["/_answer9"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -976,7 +976,7 @@ describe("Sectioning Tag Tests", function () {
             cy.get(docCaAnchor).should("have.text", credit1Round.toString());
             cy.get(docPcaAnchor).should(
                 "have.text",
-                percentCredit1Round.toString()
+                percentCredit1Round.toString(),
             );
             cy.get(s1CaAnchor).should("have.text", "0");
             cy.get(s1PcaAnchor).should("have.text", "0");
@@ -994,80 +994,80 @@ describe("Sectioning Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_document1"].stateValues.creditAchieved
+                    stateVariables["/_document1"].stateValues.creditAchieved,
                 ).closeTo(credit1, 1e-12);
                 expect(
                     stateVariables["/_document1"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(percentCredit1, 1e-12);
                 expect(
-                    stateVariables["/section1"].stateValues.creditAchieved
+                    stateVariables["/section1"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section1"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/section2"].stateValues.creditAchieved
+                    stateVariables["/section2"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section2"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/section21"].stateValues.creditAchieved
+                    stateVariables["/section21"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section21"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/section22"].stateValues.creditAchieved
+                    stateVariables["/section22"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section22"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/section221"].stateValues.creditAchieved
+                    stateVariables["/section221"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section221"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/section222"].stateValues.creditAchieved
+                    stateVariables["/section222"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section222"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer5"].stateValues.creditAchieved
+                    stateVariables["/_answer5"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer6"].stateValues.creditAchieved
+                    stateVariables["/_answer6"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer7"].stateValues.creditAchieved
+                    stateVariables["/_answer7"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer8"].stateValues.creditAchieved
+                    stateVariables["/_answer8"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer9"].stateValues.creditAchieved
+                    stateVariables["/_answer9"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -1105,31 +1105,31 @@ describe("Sectioning Tag Tests", function () {
             cy.get(docCaAnchor).should("have.text", credit2Round.toString());
             cy.get(docPcaAnchor).should(
                 "have.text",
-                percentCredit2Round.toString()
+                percentCredit2Round.toString(),
             );
             cy.get(s1CaAnchor).should(
                 "have.text",
-                section1credit2Round.toString()
+                section1credit2Round.toString(),
             );
             cy.get(s1PcaAnchor).should(
                 "have.text",
-                section1percentCredit2Round.toString()
+                section1percentCredit2Round.toString(),
             );
             cy.get(s2CaAnchor).should(
                 "have.text",
-                section2credit2Round.toString()
+                section2credit2Round.toString(),
             );
             cy.get(s2PcaAnchor).should(
                 "have.text",
-                section2percentCredit2Round.toString()
+                section2percentCredit2Round.toString(),
             );
             cy.get(s21CaAnchor).should(
                 "have.text",
-                section21credit2Round.toString()
+                section21credit2Round.toString(),
             );
             cy.get(s21PcaAnchor).should(
                 "have.text",
-                section21percentCredit2Round.toString()
+                section21percentCredit2Round.toString(),
             );
             cy.get(s22CaAnchor).should("have.text", "0");
             cy.get(s22PcaAnchor).should("have.text", "0");
@@ -1141,80 +1141,80 @@ describe("Sectioning Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_document1"].stateValues.creditAchieved
+                    stateVariables["/_document1"].stateValues.creditAchieved,
                 ).closeTo(credit2, 1e-12);
                 expect(
                     stateVariables["/_document1"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(percentCredit2, 1e-12);
                 expect(
-                    stateVariables["/section1"].stateValues.creditAchieved
+                    stateVariables["/section1"].stateValues.creditAchieved,
                 ).closeTo(section1credit2, 1e-12);
                 expect(
                     stateVariables["/section1"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(section1percentCredit2, 1e-12);
                 expect(
-                    stateVariables["/section2"].stateValues.creditAchieved
+                    stateVariables["/section2"].stateValues.creditAchieved,
                 ).closeTo(section2credit2, 1e-12);
                 expect(
                     stateVariables["/section2"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(section2percentCredit2, 1e-12);
                 expect(
-                    stateVariables["/section21"].stateValues.creditAchieved
+                    stateVariables["/section21"].stateValues.creditAchieved,
                 ).closeTo(section21credit2, 1e-12);
                 expect(
                     stateVariables["/section21"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(section21percentCredit2, 1e-12);
                 expect(
-                    stateVariables["/section22"].stateValues.creditAchieved
+                    stateVariables["/section22"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section22"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/section221"].stateValues.creditAchieved
+                    stateVariables["/section221"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section221"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/section222"].stateValues.creditAchieved
+                    stateVariables["/section222"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section222"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer5"].stateValues.creditAchieved
+                    stateVariables["/_answer5"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer6"].stateValues.creditAchieved
+                    stateVariables["/_answer6"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer7"].stateValues.creditAchieved
+                    stateVariables["/_answer7"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer8"].stateValues.creditAchieved
+                    stateVariables["/_answer8"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer9"].stateValues.creditAchieved
+                    stateVariables["/_answer9"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -1260,41 +1260,41 @@ describe("Sectioning Tag Tests", function () {
             cy.get(docCaAnchor).should("have.text", credit3Round.toString());
             cy.get(docPcaAnchor).should(
                 "have.text",
-                percentCredit3Round.toString()
+                percentCredit3Round.toString(),
             );
             cy.get(s1CaAnchor).should(
                 "have.text",
-                section1credit3Round.toString()
+                section1credit3Round.toString(),
             );
             cy.get(s1PcaAnchor).should(
                 "have.text",
-                section1percentCredit3Round.toString()
+                section1percentCredit3Round.toString(),
             );
             cy.get(s2CaAnchor).should(
                 "have.text",
-                section2credit3Round.toString()
+                section2credit3Round.toString(),
             );
             cy.get(s2PcaAnchor).should(
                 "have.text",
-                section2percentCredit3Round.toString()
+                section2percentCredit3Round.toString(),
             );
             cy.get(s21CaAnchor).should(
                 "have.text",
-                section21credit3Round.toString()
+                section21credit3Round.toString(),
             );
             cy.get(s21PcaAnchor).should(
                 "have.text",
-                section21percentCredit3Round.toString()
+                section21percentCredit3Round.toString(),
             );
             cy.get(s22CaAnchor).should("have.text", "0");
             cy.get(s22PcaAnchor).should("have.text", "0");
             cy.get(s221CaAnchor).should(
                 "have.text",
-                section221credit3Round.toString()
+                section221credit3Round.toString(),
             );
             cy.get(s221PcaAnchor).should(
                 "have.text",
-                section221percentCredit3Round.toString()
+                section221percentCredit3Round.toString(),
             );
             cy.get(s222CaAnchor).should("have.text", "0");
             cy.get(s222PcaAnchor).should("have.text", "0");
@@ -1302,80 +1302,80 @@ describe("Sectioning Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_document1"].stateValues.creditAchieved
+                    stateVariables["/_document1"].stateValues.creditAchieved,
                 ).closeTo(credit3, 1e-12);
                 expect(
                     stateVariables["/_document1"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(percentCredit3, 1e-12);
                 expect(
-                    stateVariables["/section1"].stateValues.creditAchieved
+                    stateVariables["/section1"].stateValues.creditAchieved,
                 ).closeTo(section1credit3, 1e-12);
                 expect(
                     stateVariables["/section1"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(section1percentCredit3, 1e-12);
                 expect(
-                    stateVariables["/section2"].stateValues.creditAchieved
+                    stateVariables["/section2"].stateValues.creditAchieved,
                 ).closeTo(section2credit3, 1e-12);
                 expect(
                     stateVariables["/section2"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(section2percentCredit3, 1e-12);
                 expect(
-                    stateVariables["/section21"].stateValues.creditAchieved
+                    stateVariables["/section21"].stateValues.creditAchieved,
                 ).closeTo(section21credit3, 1e-12);
                 expect(
                     stateVariables["/section21"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(section21percentCredit3, 1e-12);
                 expect(
-                    stateVariables["/section22"].stateValues.creditAchieved
+                    stateVariables["/section22"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section22"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/section221"].stateValues.creditAchieved
+                    stateVariables["/section221"].stateValues.creditAchieved,
                 ).closeTo(section221credit3, 1e-12);
                 expect(
                     stateVariables["/section221"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(section221percentCredit3, 1e-12);
                 expect(
-                    stateVariables["/section222"].stateValues.creditAchieved
+                    stateVariables["/section222"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section222"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer5"].stateValues.creditAchieved
+                    stateVariables["/_answer5"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer6"].stateValues.creditAchieved
+                    stateVariables["/_answer6"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer7"].stateValues.creditAchieved
+                    stateVariables["/_answer7"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer8"].stateValues.creditAchieved
+                    stateVariables["/_answer8"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer9"].stateValues.creditAchieved
+                    stateVariables["/_answer9"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -1425,128 +1425,128 @@ describe("Sectioning Tag Tests", function () {
             cy.get(docCaAnchor).should("have.text", credit4Round.toString());
             cy.get(docPcaAnchor).should(
                 "have.text",
-                percentCredit4Round.toString()
+                percentCredit4Round.toString(),
             );
             cy.get(s1CaAnchor).should(
                 "have.text",
-                section1credit4Round.toString()
+                section1credit4Round.toString(),
             );
             cy.get(s1PcaAnchor).should(
                 "have.text",
-                section1percentCredit4Round.toString()
+                section1percentCredit4Round.toString(),
             );
             cy.get(s2CaAnchor).should(
                 "have.text",
-                section2credit4Round.toString()
+                section2credit4Round.toString(),
             );
             cy.get(s2PcaAnchor).should(
                 "have.text",
-                section2percentCredit4Round.toString()
+                section2percentCredit4Round.toString(),
             );
             cy.get(s21CaAnchor).should(
                 "have.text",
-                section21credit4Round.toString()
+                section21credit4Round.toString(),
             );
             cy.get(s21PcaAnchor).should(
                 "have.text",
-                section21percentCredit4Round.toString()
+                section21percentCredit4Round.toString(),
             );
             cy.get(s22CaAnchor).should("have.text", "0");
             cy.get(s22PcaAnchor).should("have.text", "0");
             cy.get(s221CaAnchor).should(
                 "have.text",
-                section221credit4Round.toString()
+                section221credit4Round.toString(),
             );
             cy.get(s221PcaAnchor).should(
                 "have.text",
-                section221percentCredit4Round.toString()
+                section221percentCredit4Round.toString(),
             );
             cy.get(s222CaAnchor).should(
                 "have.text",
-                section222credit4Round.toString()
+                section222credit4Round.toString(),
             );
             cy.get(s222PcaAnchor).should(
                 "have.text",
-                section222percentCredit4Round.toString()
+                section222percentCredit4Round.toString(),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_document1"].stateValues.creditAchieved
+                    stateVariables["/_document1"].stateValues.creditAchieved,
                 ).closeTo(credit4, 1e-12);
                 expect(
                     stateVariables["/_document1"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(percentCredit4, 1e-12);
                 expect(
-                    stateVariables["/section1"].stateValues.creditAchieved
+                    stateVariables["/section1"].stateValues.creditAchieved,
                 ).closeTo(section1credit4, 1e-12);
                 expect(
                     stateVariables["/section1"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(section1percentCredit4, 1e-12);
                 expect(
-                    stateVariables["/section2"].stateValues.creditAchieved
+                    stateVariables["/section2"].stateValues.creditAchieved,
                 ).closeTo(section2credit4, 1e-12);
                 expect(
                     stateVariables["/section2"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(section2percentCredit4, 1e-12);
                 expect(
-                    stateVariables["/section21"].stateValues.creditAchieved
+                    stateVariables["/section21"].stateValues.creditAchieved,
                 ).closeTo(section21credit4, 1e-12);
                 expect(
                     stateVariables["/section21"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(section21percentCredit4, 1e-12);
                 expect(
-                    stateVariables["/section22"].stateValues.creditAchieved
+                    stateVariables["/section22"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section22"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/section221"].stateValues.creditAchieved
+                    stateVariables["/section221"].stateValues.creditAchieved,
                 ).closeTo(section221credit4, 1e-12);
                 expect(
                     stateVariables["/section221"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(section221percentCredit4, 1e-12);
                 expect(
-                    stateVariables["/section222"].stateValues.creditAchieved
+                    stateVariables["/section222"].stateValues.creditAchieved,
                 ).closeTo(section222credit4, 1e-12);
                 expect(
                     stateVariables["/section222"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(section222percentCredit4, 1e-12);
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer5"].stateValues.creditAchieved
+                    stateVariables["/_answer5"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer6"].stateValues.creditAchieved
+                    stateVariables["/_answer6"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer7"].stateValues.creditAchieved
+                    stateVariables["/_answer7"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer8"].stateValues.creditAchieved
+                    stateVariables["/_answer8"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer9"].stateValues.creditAchieved
+                    stateVariables["/_answer9"].stateValues.creditAchieved,
                 ).eq(1);
             });
         });
@@ -1612,7 +1612,7 @@ describe("Sectioning Tag Tests", function () {
     </section>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1623,100 +1623,100 @@ describe("Sectioning Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
 
             let docCaAnchor = cesc2(
-                "#" + stateVariables["/docCa"].replacements[0].componentName
+                "#" + stateVariables["/docCa"].replacements[0].componentName,
             );
             let docPcaAnchor = cesc2(
-                "#" + stateVariables["/docPca"].replacements[0].componentName
+                "#" + stateVariables["/docPca"].replacements[0].componentName,
             );
             let s1CaAnchor = cesc2(
-                "#" + stateVariables["/s1Ca"].replacements[0].componentName
+                "#" + stateVariables["/s1Ca"].replacements[0].componentName,
             );
             let s1PcaAnchor = cesc2(
-                "#" + stateVariables["/s1Pca"].replacements[0].componentName
+                "#" + stateVariables["/s1Pca"].replacements[0].componentName,
             );
             let s2CaAnchor = cesc2(
-                "#" + stateVariables["/s2Ca"].replacements[0].componentName
+                "#" + stateVariables["/s2Ca"].replacements[0].componentName,
             );
             let s2PcaAnchor = cesc2(
-                "#" + stateVariables["/s2Pca"].replacements[0].componentName
+                "#" + stateVariables["/s2Pca"].replacements[0].componentName,
             );
             let s21CaAnchor = cesc2(
-                "#" + stateVariables["/s21Ca"].replacements[0].componentName
+                "#" + stateVariables["/s21Ca"].replacements[0].componentName,
             );
             let s21PcaAnchor = cesc2(
-                "#" + stateVariables["/s21Pca"].replacements[0].componentName
+                "#" + stateVariables["/s21Pca"].replacements[0].componentName,
             );
             let s22CaAnchor = cesc2(
-                "#" + stateVariables["/s22Ca"].replacements[0].componentName
+                "#" + stateVariables["/s22Ca"].replacements[0].componentName,
             );
             let s22PcaAnchor = cesc2(
-                "#" + stateVariables["/s22Pca"].replacements[0].componentName
+                "#" + stateVariables["/s22Pca"].replacements[0].componentName,
             );
             let s221CaAnchor = cesc2(
-                "#" + stateVariables["/s221Ca"].replacements[0].componentName
+                "#" + stateVariables["/s221Ca"].replacements[0].componentName,
             );
             let s221PcaAnchor = cesc2(
-                "#" + stateVariables["/s221Pca"].replacements[0].componentName
+                "#" + stateVariables["/s221Pca"].replacements[0].componentName,
             );
             let s222CaAnchor = cesc2(
-                "#" + stateVariables["/s222Ca"].replacements[0].componentName
+                "#" + stateVariables["/s222Ca"].replacements[0].componentName,
             );
             let s222PcaAnchor = cesc2(
-                "#" + stateVariables["/s222Pca"].replacements[0].componentName
+                "#" + stateVariables["/s222Pca"].replacements[0].componentName,
             );
             let mathinput1Anchor =
                 cesc2(
                     "#" +
                         stateVariables["/_answer1"].stateValues.inputChildren[0]
-                            .componentName
+                            .componentName,
                 ) + " textarea";
             let mathinput2Anchor =
                 cesc2(
                     "#" +
                         stateVariables["/_answer2"].stateValues.inputChildren[0]
-                            .componentName
+                            .componentName,
                 ) + " textarea";
             let mathinput3Anchor =
                 cesc2(
                     "#" +
                         stateVariables["/_answer3"].stateValues.inputChildren[0]
-                            .componentName
+                            .componentName,
                 ) + " textarea";
             let mathinput4Anchor =
                 cesc2(
                     "#" +
                         stateVariables["/_answer4"].stateValues.inputChildren[0]
-                            .componentName
+                            .componentName,
                 ) + " textarea";
             let mathinput5Anchor =
                 cesc2(
                     "#" +
                         stateVariables["/_answer5"].stateValues.inputChildren[0]
-                            .componentName
+                            .componentName,
                 ) + " textarea";
             let mathinput6Anchor =
                 cesc2(
                     "#" +
                         stateVariables["/_answer6"].stateValues.inputChildren[0]
-                            .componentName
+                            .componentName,
                 ) + " textarea";
             let mathinput7Anchor =
                 cesc2(
                     "#" +
                         stateVariables["/_answer7"].stateValues.inputChildren[0]
-                            .componentName
+                            .componentName,
                 ) + " textarea";
             let mathinput8Anchor =
                 cesc2(
                     "#" +
                         stateVariables["/_answer8"].stateValues.inputChildren[0]
-                            .componentName
+                            .componentName,
                 ) + " textarea";
             let mathinput9Anchor =
                 cesc2(
                     "#" +
                         stateVariables["/_answer9"].stateValues.inputChildren[0]
-                            .componentName
+                            .componentName,
                 ) + " textarea";
 
             cy.get(docCaAnchor).should("have.text", "0");
@@ -1737,80 +1737,80 @@ describe("Sectioning Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_document1"].stateValues.creditAchieved
+                    stateVariables["/_document1"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/_document1"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/section1"].stateValues.creditAchieved
+                    stateVariables["/section1"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section1"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/section2"].stateValues.creditAchieved
+                    stateVariables["/section2"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section2"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/section21"].stateValues.creditAchieved
+                    stateVariables["/section21"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section21"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/section22"].stateValues.creditAchieved
+                    stateVariables["/section22"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section22"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/section221"].stateValues.creditAchieved
+                    stateVariables["/section221"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section221"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/section222"].stateValues.creditAchieved
+                    stateVariables["/section222"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section222"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer5"].stateValues.creditAchieved
+                    stateVariables["/_answer5"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer6"].stateValues.creditAchieved
+                    stateVariables["/_answer6"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer7"].stateValues.creditAchieved
+                    stateVariables["/_answer7"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer8"].stateValues.creditAchieved
+                    stateVariables["/_answer8"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer9"].stateValues.creditAchieved
+                    stateVariables["/_answer9"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -1825,7 +1825,7 @@ describe("Sectioning Tag Tests", function () {
             cy.get(docCaAnchor).should("have.text", credit1Round.toString());
             cy.get(docPcaAnchor).should(
                 "have.text",
-                percentCredit1Round.toString()
+                percentCredit1Round.toString(),
             );
             cy.get(s1CaAnchor).should("have.text", "0");
             cy.get(s1PcaAnchor).should("have.text", "0");
@@ -1843,80 +1843,80 @@ describe("Sectioning Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_document1"].stateValues.creditAchieved
+                    stateVariables["/_document1"].stateValues.creditAchieved,
                 ).closeTo(credit1, 1e-12);
                 expect(
                     stateVariables["/_document1"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(percentCredit1, 1e-12);
                 expect(
-                    stateVariables["/section1"].stateValues.creditAchieved
+                    stateVariables["/section1"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section1"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/section2"].stateValues.creditAchieved
+                    stateVariables["/section2"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section2"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/section21"].stateValues.creditAchieved
+                    stateVariables["/section21"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section21"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/section22"].stateValues.creditAchieved
+                    stateVariables["/section22"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section22"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/section221"].stateValues.creditAchieved
+                    stateVariables["/section221"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section221"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/section222"].stateValues.creditAchieved
+                    stateVariables["/section222"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section222"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer5"].stateValues.creditAchieved
+                    stateVariables["/_answer5"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer6"].stateValues.creditAchieved
+                    stateVariables["/_answer6"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer7"].stateValues.creditAchieved
+                    stateVariables["/_answer7"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer8"].stateValues.creditAchieved
+                    stateVariables["/_answer8"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer9"].stateValues.creditAchieved
+                    stateVariables["/_answer9"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -1963,39 +1963,39 @@ describe("Sectioning Tag Tests", function () {
             cy.get(docCaAnchor).should("have.text", credit2Round.toString());
             cy.get(docPcaAnchor).should(
                 "have.text",
-                percentCredit2Round.toString()
+                percentCredit2Round.toString(),
             );
             cy.get(s1CaAnchor).should(
                 "have.text",
-                section1credit2Round.toString()
+                section1credit2Round.toString(),
             );
             cy.get(s1PcaAnchor).should(
                 "have.text",
-                section1percentCredit2Round.toString()
+                section1percentCredit2Round.toString(),
             );
             cy.get(s2CaAnchor).should(
                 "have.text",
-                section2credit2Round.toString()
+                section2credit2Round.toString(),
             );
             cy.get(s2PcaAnchor).should(
                 "have.text",
-                section2percentCredit2Round.toString()
+                section2percentCredit2Round.toString(),
             );
             cy.get(s21CaAnchor).should(
                 "have.text",
-                section21credit2Round.toString()
+                section21credit2Round.toString(),
             );
             cy.get(s21PcaAnchor).should(
                 "have.text",
-                section21percentCredit2Round.toString()
+                section21percentCredit2Round.toString(),
             );
             cy.get(s22CaAnchor).should(
                 "have.text",
-                section22credit2Round.toString()
+                section22credit2Round.toString(),
             );
             cy.get(s22PcaAnchor).should(
                 "have.text",
-                section22percentCredit2Round.toString()
+                section22percentCredit2Round.toString(),
             );
             cy.get(s221CaAnchor).should("have.text", "0");
             cy.get(s221PcaAnchor).should("have.text", "0");
@@ -2005,80 +2005,80 @@ describe("Sectioning Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_document1"].stateValues.creditAchieved
+                    stateVariables["/_document1"].stateValues.creditAchieved,
                 ).closeTo(credit2, 1e-12);
                 expect(
                     stateVariables["/_document1"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(percentCredit2, 1e-12);
                 expect(
-                    stateVariables["/section1"].stateValues.creditAchieved
+                    stateVariables["/section1"].stateValues.creditAchieved,
                 ).closeTo(section1credit2, 1e-12);
                 expect(
                     stateVariables["/section1"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(section1percentCredit2, 1e-12);
                 expect(
-                    stateVariables["/section2"].stateValues.creditAchieved
+                    stateVariables["/section2"].stateValues.creditAchieved,
                 ).closeTo(section2credit2, 1e-12);
                 expect(
                     stateVariables["/section2"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(section2percentCredit2, 1e-12);
                 expect(
-                    stateVariables["/section21"].stateValues.creditAchieved
+                    stateVariables["/section21"].stateValues.creditAchieved,
                 ).closeTo(section21credit2, 1e-12);
                 expect(
                     stateVariables["/section21"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(section21percentCredit2, 1e-12);
                 expect(
-                    stateVariables["/section22"].stateValues.creditAchieved
+                    stateVariables["/section22"].stateValues.creditAchieved,
                 ).closeTo(section22credit2, 1e-12);
                 expect(
                     stateVariables["/section22"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(section22percentCredit2, 1e-12);
                 expect(
-                    stateVariables["/section221"].stateValues.creditAchieved
+                    stateVariables["/section221"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section221"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/section222"].stateValues.creditAchieved
+                    stateVariables["/section222"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section222"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer5"].stateValues.creditAchieved
+                    stateVariables["/_answer5"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer6"].stateValues.creditAchieved
+                    stateVariables["/_answer6"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer7"].stateValues.creditAchieved
+                    stateVariables["/_answer7"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer8"].stateValues.creditAchieved
+                    stateVariables["/_answer8"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer9"].stateValues.creditAchieved
+                    stateVariables["/_answer9"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -2133,47 +2133,47 @@ describe("Sectioning Tag Tests", function () {
             cy.get(docCaAnchor).should("have.text", credit3Round.toString());
             cy.get(docPcaAnchor).should(
                 "have.text",
-                percentCredit3Round.toString()
+                percentCredit3Round.toString(),
             );
             cy.get(s1CaAnchor).should(
                 "have.text",
-                section1credit3Round.toString()
+                section1credit3Round.toString(),
             );
             cy.get(s1PcaAnchor).should(
                 "have.text",
-                section1percentCredit3Round.toString()
+                section1percentCredit3Round.toString(),
             );
             cy.get(s2CaAnchor).should(
                 "have.text",
-                section2credit3Round.toString()
+                section2credit3Round.toString(),
             );
             cy.get(s2PcaAnchor).should(
                 "have.text",
-                section2percentCredit3Round.toString()
+                section2percentCredit3Round.toString(),
             );
             cy.get(s21CaAnchor).should(
                 "have.text",
-                section21credit3Round.toString()
+                section21credit3Round.toString(),
             );
             cy.get(s21PcaAnchor).should(
                 "have.text",
-                section21percentCredit3Round.toString()
+                section21percentCredit3Round.toString(),
             );
             cy.get(s22CaAnchor).should(
                 "have.text",
-                section22credit3Round.toString()
+                section22credit3Round.toString(),
             );
             cy.get(s22PcaAnchor).should(
                 "have.text",
-                section22percentCredit3Round.toString()
+                section22percentCredit3Round.toString(),
             );
             cy.get(s221CaAnchor).should(
                 "have.text",
-                section221credit3Round.toString()
+                section221credit3Round.toString(),
             );
             cy.get(s221PcaAnchor).should(
                 "have.text",
-                section221percentCredit3Round.toString()
+                section221percentCredit3Round.toString(),
             );
             cy.get(s222CaAnchor).should("have.text", "0");
             cy.get(s222PcaAnchor).should("have.text", "0");
@@ -2181,80 +2181,80 @@ describe("Sectioning Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_document1"].stateValues.creditAchieved
+                    stateVariables["/_document1"].stateValues.creditAchieved,
                 ).closeTo(credit3, 1e-12);
                 expect(
                     stateVariables["/_document1"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(percentCredit3, 1e-12);
                 expect(
-                    stateVariables["/section1"].stateValues.creditAchieved
+                    stateVariables["/section1"].stateValues.creditAchieved,
                 ).closeTo(section1credit3, 1e-12);
                 expect(
                     stateVariables["/section1"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(section1percentCredit3, 1e-12);
                 expect(
-                    stateVariables["/section2"].stateValues.creditAchieved
+                    stateVariables["/section2"].stateValues.creditAchieved,
                 ).closeTo(section2credit3, 1e-12);
                 expect(
                     stateVariables["/section2"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(section2percentCredit3, 1e-12);
                 expect(
-                    stateVariables["/section21"].stateValues.creditAchieved
+                    stateVariables["/section21"].stateValues.creditAchieved,
                 ).closeTo(section21credit3, 1e-12);
                 expect(
                     stateVariables["/section21"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(section21percentCredit3, 1e-12);
                 expect(
-                    stateVariables["/section22"].stateValues.creditAchieved
+                    stateVariables["/section22"].stateValues.creditAchieved,
                 ).closeTo(section22credit3, 1e-12);
                 expect(
                     stateVariables["/section22"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(section22percentCredit3, 1e-12);
                 expect(
-                    stateVariables["/section221"].stateValues.creditAchieved
+                    stateVariables["/section221"].stateValues.creditAchieved,
                 ).closeTo(section221credit3, 1e-12);
                 expect(
                     stateVariables["/section221"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(section221percentCredit3, 1e-12);
                 expect(
-                    stateVariables["/section222"].stateValues.creditAchieved
+                    stateVariables["/section222"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/section222"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer5"].stateValues.creditAchieved
+                    stateVariables["/_answer5"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer6"].stateValues.creditAchieved
+                    stateVariables["/_answer6"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer7"].stateValues.creditAchieved
+                    stateVariables["/_answer7"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer8"].stateValues.creditAchieved
+                    stateVariables["/_answer8"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer9"].stateValues.creditAchieved
+                    stateVariables["/_answer9"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -2311,134 +2311,134 @@ describe("Sectioning Tag Tests", function () {
             cy.get(docCaAnchor).should("have.text", credit4Round.toString());
             cy.get(docPcaAnchor).should(
                 "have.text",
-                percentCredit4Round.toString()
+                percentCredit4Round.toString(),
             );
             cy.get(s1CaAnchor).should(
                 "have.text",
-                section1credit4Round.toString()
+                section1credit4Round.toString(),
             );
             cy.get(s1PcaAnchor).should(
                 "have.text",
-                section1percentCredit4Round.toString()
+                section1percentCredit4Round.toString(),
             );
             cy.get(s2CaAnchor).should(
                 "have.text",
-                section2credit4Round.toString()
+                section2credit4Round.toString(),
             );
             cy.get(s2PcaAnchor).should(
                 "have.text",
-                section2percentCredit4Round.toString()
+                section2percentCredit4Round.toString(),
             );
             cy.get(s21CaAnchor).should(
                 "have.text",
-                section21credit4Round.toString()
+                section21credit4Round.toString(),
             );
             cy.get(s21PcaAnchor).should(
                 "have.text",
-                section21percentCredit4Round.toString()
+                section21percentCredit4Round.toString(),
             );
             cy.get(s22CaAnchor).should(
                 "have.text",
-                section22credit4Round.toString()
+                section22credit4Round.toString(),
             );
             cy.get(s22PcaAnchor).should(
                 "have.text",
-                section22percentCredit4Round.toString()
+                section22percentCredit4Round.toString(),
             );
             cy.get(s221CaAnchor).should(
                 "have.text",
-                section221credit4Round.toString()
+                section221credit4Round.toString(),
             );
             cy.get(s221PcaAnchor).should(
                 "have.text",
-                section221percentCredit4Round.toString()
+                section221percentCredit4Round.toString(),
             );
             cy.get(s222CaAnchor).should(
                 "have.text",
-                section222credit4Round.toString()
+                section222credit4Round.toString(),
             );
             cy.get(s222PcaAnchor).should(
                 "have.text",
-                section222percentCredit4Round.toString()
+                section222percentCredit4Round.toString(),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_document1"].stateValues.creditAchieved
+                    stateVariables["/_document1"].stateValues.creditAchieved,
                 ).closeTo(credit4, 1e-12);
                 expect(
                     stateVariables["/_document1"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(percentCredit4, 1e-12);
                 expect(
-                    stateVariables["/section1"].stateValues.creditAchieved
+                    stateVariables["/section1"].stateValues.creditAchieved,
                 ).closeTo(section1credit4, 1e-12);
                 expect(
                     stateVariables["/section1"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(section1percentCredit4, 1e-12);
                 expect(
-                    stateVariables["/section2"].stateValues.creditAchieved
+                    stateVariables["/section2"].stateValues.creditAchieved,
                 ).closeTo(section2credit4, 1e-12);
                 expect(
                     stateVariables["/section2"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(section2percentCredit4, 1e-12);
                 expect(
-                    stateVariables["/section21"].stateValues.creditAchieved
+                    stateVariables["/section21"].stateValues.creditAchieved,
                 ).closeTo(section21credit4, 1e-12);
                 expect(
                     stateVariables["/section21"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(section21percentCredit4, 1e-12);
                 expect(
-                    stateVariables["/section22"].stateValues.creditAchieved
+                    stateVariables["/section22"].stateValues.creditAchieved,
                 ).closeTo(section22credit4, 1e-12);
                 expect(
                     stateVariables["/section22"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(section22percentCredit4, 1e-12);
                 expect(
-                    stateVariables["/section221"].stateValues.creditAchieved
+                    stateVariables["/section221"].stateValues.creditAchieved,
                 ).closeTo(section221credit4, 1e-12);
                 expect(
                     stateVariables["/section221"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(section221percentCredit4, 1e-12);
                 expect(
-                    stateVariables["/section222"].stateValues.creditAchieved
+                    stateVariables["/section222"].stateValues.creditAchieved,
                 ).closeTo(section222credit4, 1e-12);
                 expect(
                     stateVariables["/section222"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(section222percentCredit4, 1e-12);
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer5"].stateValues.creditAchieved
+                    stateVariables["/_answer5"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer6"].stateValues.creditAchieved
+                    stateVariables["/_answer6"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer7"].stateValues.creditAchieved
+                    stateVariables["/_answer7"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer8"].stateValues.creditAchieved
+                    stateVariables["/_answer8"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer9"].stateValues.creditAchieved
+                    stateVariables["/_answer9"].stateValues.creditAchieved,
                 ).eq(1);
             });
         });
@@ -2454,7 +2454,7 @@ describe("Sectioning Tag Tests", function () {
     </section>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2473,7 +2473,7 @@ describe("Sectioning Tag Tests", function () {
             expect(errorWarnings.warnings.length).eq(1);
 
             expect(errorWarnings.warnings[0].message).contain(
-                `Cannot create submit all button for <section> because it doesn't aggegrate scores.`
+                `Cannot create submit all button for <section> because it doesn't aggegrate scores.`,
             );
             expect(errorWarnings.warnings[0].level).eq(1);
             expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(2);
@@ -2497,22 +2497,22 @@ describe("Sectioning Tag Tests", function () {
     
     `,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get(cesc("#\\/_paragraphs1_title")).should(
             "have.text",
-            "Some paragraphs"
+            "Some paragraphs",
         );
 
         cy.get(cesc("#\\/_paragraphs1") + " p:first-of-type").should(
             "have.text",
-            "Paragraph 1"
+            "Paragraph 1",
         );
         cy.get(cesc("#\\/_paragraphs1") + " p:last-of-type").should(
             "have.text",
-            "Paragraph 2"
+            "Paragraph 2",
         );
     });
 
@@ -2538,7 +2538,7 @@ describe("Sectioning Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2617,7 +2617,7 @@ describe("Sectioning Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).eq(
-                    "(x+1)(x2−4)"
+                    "(x+1)(x2−4)",
                 );
             });
 
@@ -2679,7 +2679,7 @@ describe("Sectioning Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).eq(
-                    "(x−1)(x2+4)"
+                    "(x−1)(x2+4)",
                 );
             });
 
@@ -2719,14 +2719,14 @@ describe("Sectioning Tag Tests", function () {
    
     `,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get(cesc("#\\/sec_title")).should("have.text", "Section 1: A title");
         cy.get(cesc("#\\/revised_title")).should(
             "have.text",
-            "Section 2: A better title"
+            "Section 2: A better title",
         );
         cy.get(cesc("#\\/title1")).should("have.text", "A title");
         cy.get(cesc("#\\/title2")).should("have.text", "A better title");
@@ -2736,7 +2736,7 @@ describe("Sectioning Tag Tests", function () {
         cy.get(cesc("#\\/_p1")).should("have.text", "Hello");
         cy.get(cesc("#\\/revised") + " p:first-of-type").should(
             "have.text",
-            "Hello"
+            "Hello",
         );
         cy.get(cesc("#\\/_p2")).should("have.text", "Good day!");
     });
@@ -2763,20 +2763,20 @@ describe("Sectioning Tag Tests", function () {
     
     `,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get(cesc("#\\/sec_title")).should("have.text", "Section 1: A title");
         cy.get(cesc("#\\/revised_title")).should(
             "have.text",
-            "Section 2: A better title"
+            "Section 2: A better title",
         );
         cy.get(cesc("#\\/sec\\/_title1")).should("have.text", "A title");
         cy.get(cesc("#\\/revised\\/_title")).should("not.exist");
         cy.get(cesc("#\\/revised\\/_title2")).should(
             "have.text",
-            "A better title"
+            "A better title",
         );
         cy.get(cesc("#\\/title1")).should("have.text", "A title");
         cy.get(cesc("#\\/title2")).should("have.text", "A better title");
@@ -2847,7 +2847,7 @@ describe("Sectioning Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2860,7 +2860,7 @@ describe("Sectioning Tag Tests", function () {
         cy.get(cesc("#\\/sec223_title")).should("have.text", "Section 2.2.3");
         cy.get(cesc("#\\/sec2231_title")).should(
             "have.text",
-            "Section 2.2.3.1"
+            "Section 2.2.3.1",
         );
         cy.get(cesc("#\\/sec23_title")).should("have.text", "Section 2.3");
 
@@ -2967,7 +2967,7 @@ describe("Sectioning Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3084,7 +3084,7 @@ describe("Sectioning Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3201,7 +3201,7 @@ describe("Sectioning Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3211,19 +3211,19 @@ describe("Sectioning Tag Tests", function () {
         cy.get(cesc("#\\/sec22_title")).should("have.text", "Section 2.2: BB");
         cy.get(cesc("#\\/sec221_title")).should(
             "have.text",
-            "Section 2.2.1: BBA"
+            "Section 2.2.1: BBA",
         );
         cy.get(cesc("#\\/sec222_title")).should(
             "have.text",
-            "Section 2.2.2: BBB"
+            "Section 2.2.2: BBB",
         );
         cy.get(cesc("#\\/sec223_title")).should(
             "have.text",
-            "Section 2.2.3: BBC"
+            "Section 2.2.3: BBC",
         );
         cy.get(cesc("#\\/sec2231_title")).should(
             "have.text",
-            "Section 2.2.3.1: BBCA"
+            "Section 2.2.3.1: BBCA",
         );
         cy.get(cesc("#\\/sec23_title")).should("have.text", "Section 2.3: BC");
 
@@ -3330,7 +3330,7 @@ describe("Sectioning Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3466,7 +3466,7 @@ describe("Sectioning Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3476,28 +3476,28 @@ describe("Sectioning Tag Tests", function () {
         cy.get(cesc("#\\/sec211_title")).should("have.text", "Section 1: BAA");
         cy.get(cesc("#\\/sec2111_title")).should(
             "have.text",
-            "Section 1.1: BAAA"
+            "Section 1.1: BAAA",
         );
         cy.get(cesc("#\\/sec2112_title")).should(
             "have.text",
-            "Section 1.2: BAAB"
+            "Section 1.2: BAAB",
         );
         cy.get(cesc("#\\/sec22_title")).should("have.text", "Section 2: BB");
         cy.get(cesc("#\\/sec221_title")).should(
             "have.text",
-            "Section 2.1: BBA"
+            "Section 2.1: BBA",
         );
         cy.get(cesc("#\\/sec222_title")).should(
             "have.text",
-            "Section 2.2: BBB"
+            "Section 2.2: BBB",
         );
         cy.get(cesc("#\\/sec223_title")).should(
             "have.text",
-            "Section 2.3: BBC"
+            "Section 2.3: BBC",
         );
         cy.get(cesc("#\\/sec2231_title")).should(
             "have.text",
-            "Section 2.3.1: BBCA"
+            "Section 2.3.1: BBCA",
         );
         cy.get(cesc("#\\/sec23_title")).should("have.text", "Section 2.3: BC");
 
@@ -3578,7 +3578,7 @@ describe("Sectioning Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3586,11 +3586,11 @@ describe("Sectioning Tag Tests", function () {
         cy.get(cesc("#\\/aside1_title")).should("not.contain.text", ":");
         cy.get(cesc("#\\/aside2_title")).should(
             "contain.text",
-            "Aside: Side point"
+            "Aside: Side point",
         );
         cy.get(cesc("#\\/aside3_title")).should(
             "contain.text",
-            "Aside 3: Another side point"
+            "Aside 3: Another side point",
         );
         cy.get(cesc("#\\/title1")).should("have.text", "Aside 1");
         cy.get(cesc("#\\/title2")).should("have.text", "Side point");
@@ -3657,7 +3657,7 @@ describe("Sectioning Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3702,7 +3702,7 @@ describe("Sectioning Tag Tests", function () {
       <p><textinput name="ti" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3739,7 +3739,7 @@ describe("Sectioning Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3749,51 +3749,51 @@ describe("Sectioning Tag Tests", function () {
 
         cy.get(cesc("#\\/_hint1") + " [data-test=hint-heading]").should(
             "contain.text",
-            "Hint"
+            "Hint",
         );
         cy.get(cesc("#\\/_hint1")).should("not.contain.text", "Try harder");
         cy.get(cesc("#\\/_givenanswer1")).should("contain.text", "Answer");
         cy.get(cesc("#\\/_givenanswer1")).should(
             "not.contain.text",
-            "The correct answer"
+            "The correct answer",
         );
         cy.get(cesc("#\\/_solution1")).should("contain.text", "Solution");
         cy.get(cesc("#\\/_solution1")).should(
             "not.contain.text",
-            "Here's how you do it."
+            "Here's how you do it.",
         );
 
         cy.get(cesc("#\\/_hint1") + " [data-test=hint-heading]").click();
         cy.get(cesc("#\\/_hint1")).should("contain.text", "Try harder");
         cy.get(cesc("#\\/_givenanswer1")).should(
             "not.contain.text",
-            "The correct answer"
+            "The correct answer",
         );
         cy.get(cesc("#\\/_solution1")).should(
             "not.contain.text",
-            "Here's how you do it."
+            "Here's how you do it.",
         );
 
         cy.get(cesc("#\\/_givenanswer1_button")).click();
         cy.get(cesc("#\\/_givenanswer1")).should(
             "contain.text",
-            "The correct answer"
+            "The correct answer",
         );
         cy.get(cesc("#\\/_hint1")).should("contain.text", "Try harder");
         cy.get(cesc("#\\/_solution1")).should(
             "not.contain.text",
-            "Here's how you do it."
+            "Here's how you do it.",
         );
 
         cy.get(cesc("#\\/_solution1_button")).click();
         cy.get(cesc("#\\/_solution1")).should(
             "contain.text",
-            "Here's how you do it."
+            "Here's how you do it.",
         );
         cy.get(cesc("#\\/_hint1")).should("contain.text", "Try harder");
         cy.get(cesc("#\\/_givenanswer1")).should(
             "contain.text",
-            "The correct answer"
+            "The correct answer",
         );
     });
 
@@ -3825,7 +3825,7 @@ describe("Sectioning Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3833,21 +3833,21 @@ describe("Sectioning Tag Tests", function () {
 
         cy.get(cesc("#\\/_introduction1")).should(
             "have.text",
-            "\n    First this\n    Then that\n    Hello World\n  "
+            "\n    First this\n    Then that\n    Hello World\n  ",
         );
 
         cy.get(cesc("#\\/_subsection1")).should(
             "have.text",
-            " Point 1\n    \n    Make the first point\n   "
+            " Point 1\n    \n    Make the first point\n   ",
         );
         cy.get(cesc("#\\/_subsection2")).should(
             "have.text",
-            " Point 2\n    \n    Make the second point\n   "
+            " Point 2\n    \n    Make the second point\n   ",
         );
 
         cy.get(cesc("#\\/_conclusion1")).should(
             "have.text",
-            "\n    Wrap it up!\n  "
+            "\n    Wrap it up!\n  ",
         );
     });
 
@@ -3867,7 +3867,7 @@ describe("Sectioning Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3875,13 +3875,13 @@ describe("Sectioning Tag Tests", function () {
 
         cy.get(cesc("#\\/_objectives1_title")).should(
             "have.text",
-            "Objectives 1"
+            "Objectives 1",
         );
         cy.get(cesc("#\\/_objectives1")).should("contain.text", "Hello World");
 
         cy.get(cesc("#\\/_p1")).should(
             "have.text",
-            "Is objectives boxed? true"
+            "Is objectives boxed? true",
         );
     });
 
@@ -3901,7 +3901,7 @@ describe("Sectioning Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3929,7 +3929,7 @@ describe("Sectioning Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3937,13 +3937,13 @@ describe("Sectioning Tag Tests", function () {
 
         cy.get(cesc("#\\/_definition1_title")).should(
             "have.text",
-            "Definition 1"
+            "Definition 1",
         );
         cy.get(cesc("#\\/_definition1")).should("contain.text", "Hello World");
 
         cy.get(cesc("#\\/_p1")).should(
             "have.text",
-            "Is definition boxed? false"
+            "Is definition boxed? false",
         );
     });
 
@@ -3963,7 +3963,7 @@ describe("Sectioning Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3997,7 +3997,7 @@ describe("Sectioning Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4073,7 +4073,7 @@ describe("Sectioning Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4131,44 +4131,44 @@ describe("Sectioning Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get(cesc("#\\/aProb_title")).should(
             "have.text",
-            "This is a problem"
+            "This is a problem",
         );
         cy.get(cesc("#\\/aProb\\/_ol1")).should(
             "have.css",
             "list-style-type",
-            "decimal"
+            "decimal",
         );
 
         cy.get(cesc("#\\/exercises") + " li")
             .eq(0)
             .should(
                 "contain.text",
-                "We don't have a title, but we have a list."
+                "We don't have a title, but we have a list.",
             );
 
         cy.get(cesc("#\\/prob1_title")).should("have.text", "");
         cy.get(cesc("#\\/prob1\\/_ol1")).should(
             "have.css",
             "list-style-type",
-            "lower-alpha"
+            "lower-alpha",
         );
 
         cy.get(cesc("#\\/prob2_title")).should("have.text", "A titled problem");
 
         cy.get(cesc("#\\/aProbb_title")).should(
             "have.text",
-            "This is a problem"
+            "This is a problem",
         );
         cy.get(cesc("#\\/aProbb\\/_ol1")).should(
             "have.css",
             "list-style-type",
-            "lower-alpha"
+            "lower-alpha",
         );
     });
 
@@ -4206,44 +4206,44 @@ describe("Sectioning Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get(cesc("#\\/aProb_title")).should(
             "have.text",
-            "This is a problem"
+            "This is a problem",
         );
         cy.get(cesc("#\\/aProb\\/_ol1")).should(
             "have.css",
             "list-style-type",
-            "decimal"
+            "decimal",
         );
 
         cy.get(cesc("#\\/exercises") + " li")
             .eq(0)
             .should(
                 "contain.text",
-                "We don't have a title, but we have a list."
+                "We don't have a title, but we have a list.",
             );
 
         cy.get(cesc("#\\/prob1_title")).should("have.text", "");
         cy.get(cesc("#\\/prob1\\/_ol1")).should(
             "have.css",
             "list-style-type",
-            "lower-alpha"
+            "lower-alpha",
         );
 
         cy.get(cesc("#\\/prob2_title")).should("have.text", "A titled problem");
 
         cy.get(cesc("#\\/aProbb_title")).should(
             "have.text",
-            "This is a problem"
+            "This is a problem",
         );
         cy.get(cesc("#\\/aProbb\\/_ol1")).should(
             "have.css",
             "list-style-type",
-            "lower-alpha"
+            "lower-alpha",
         );
     });
 });

@@ -30,7 +30,7 @@ describe("Endpoint Tag Tests", function () {
     $g{name="g2"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 

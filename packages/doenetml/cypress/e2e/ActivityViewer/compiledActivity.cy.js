@@ -19,7 +19,7 @@ describe("Compiled activity tests", function () {
 
         `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -37,7 +37,7 @@ describe("Compiled activity tests", function () {
 
         `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -54,7 +54,7 @@ describe("Compiled activity tests", function () {
           <document type="page">hi</document>
         `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -69,7 +69,7 @@ describe("Compiled activity tests", function () {
           <document type="page" xmlns="https://doenet.org/spec/doenetml/v0.1.0">hi</document>
         `,
                 },
-                "*"
+                "*",
             );
         });
 

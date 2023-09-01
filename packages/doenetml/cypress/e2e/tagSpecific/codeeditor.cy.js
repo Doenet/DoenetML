@@ -17,7 +17,7 @@ describe("Code Editor Tag Tests", function () {
     <p>$_codeeditor1.value</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -29,7 +29,7 @@ describe("Code Editor Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_codeeditor1"].stateValues.immediateValue
+                stateVariables["/_codeeditor1"].stateValues.immediateValue,
             ).eq("");
             expect(stateVariables["/_codeeditor1"].stateValues.value).eq("");
         });
@@ -45,7 +45,7 @@ describe("Code Editor Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_codeeditor1"].stateValues.immediateValue
+                stateVariables["/_codeeditor1"].stateValues.immediateValue,
             ).eq("Hello!");
             expect(stateVariables["/_codeeditor1"].stateValues.value).eq("");
         });
@@ -58,17 +58,17 @@ describe("Code Editor Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_codeeditor1"].stateValues.immediateValue
+                stateVariables["/_codeeditor1"].stateValues.immediateValue,
             ).eq("Hello!");
             expect(stateVariables["/_codeeditor1"].stateValues.value).eq(
-                "Hello!"
+                "Hello!",
             );
         });
 
         cy.log("type more in editor");
         cy.get(cesc("#\\/_codeeditor1") + " .cm-content").type(
             "{enter}More here.",
-            { delay: 0 }
+            { delay: 0 },
         );
 
         cy.get(cesc("#\\/_p1")).should("have.text", "Hello!\nMore here.");
@@ -77,10 +77,10 @@ describe("Code Editor Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_codeeditor1"].stateValues.immediateValue
+                stateVariables["/_codeeditor1"].stateValues.immediateValue,
             ).eq("Hello!\nMore here.");
             expect(stateVariables["/_codeeditor1"].stateValues.value).eq(
-                "Hello!"
+                "Hello!",
             );
         });
 
@@ -93,10 +93,10 @@ describe("Code Editor Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_codeeditor1"].stateValues.immediateValue
+                stateVariables["/_codeeditor1"].stateValues.immediateValue,
             ).eq("Hello!\nMore here.");
             expect(stateVariables["/_codeeditor1"].stateValues.value).eq(
-                "Hello!\nMore here."
+                "Hello!\nMore here.",
             );
         });
     });
@@ -113,7 +113,7 @@ describe("Code Editor Tag Tests", function () {
     <p>$_codeeditor1.value</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -134,10 +134,10 @@ describe("Code Editor Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_codeeditor1"].stateValues.immediateValue
+                    stateVariables["/_codeeditor1"].stateValues.immediateValue,
                 ).eq("");
                 expect(stateVariables["/_codeeditor1"].stateValues.value).eq(
-                    ""
+                    "",
                 );
             });
 
@@ -146,7 +146,7 @@ describe("Code Editor Tag Tests", function () {
                 "<p>Hello!</p>",
                 {
                     delay: 0,
-                }
+                },
             );
 
             cy.get(cesc("#\\/_p1")).should("have.text", "<p>Hello!</p>");
@@ -157,10 +157,10 @@ describe("Code Editor Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_codeeditor1"].stateValues.immediateValue
+                    stateVariables["/_codeeditor1"].stateValues.immediateValue,
                 ).eq("<p>Hello!</p>");
                 expect(stateVariables["/_codeeditor1"].stateValues.value).eq(
-                    ""
+                    "",
                 );
             });
 
@@ -175,10 +175,10 @@ describe("Code Editor Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_codeeditor1"].stateValues.immediateValue
+                    stateVariables["/_codeeditor1"].stateValues.immediateValue,
                 ).eq("<p>Hello!</p>");
                 expect(stateVariables["/_codeeditor1"].stateValues.value).eq(
-                    "<p>Hello!</p>"
+                    "<p>Hello!</p>",
                 );
             });
 
@@ -192,22 +192,22 @@ describe("Code Editor Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_codeeditor1"].stateValues.immediateValue
+                    stateVariables["/_codeeditor1"].stateValues.immediateValue,
                 ).eq("<p>Hello!</p>");
                 expect(stateVariables["/_codeeditor1"].stateValues.value).eq(
-                    "<p>Hello!</p>"
+                    "<p>Hello!</p>",
                 );
             });
 
             cy.log("type more content");
             cy.get(cesc("#\\/_codeeditor1") + " .cm-content").type(
                 "{ctrl+end}{enter}<p><math simplify>1+1</math></p>",
-                { delay: 0 }
+                { delay: 0 },
             );
 
             cy.get(cesc("#\\/_p1")).should(
                 "have.text",
-                "<p>Hello!</p>\n<p><math simplify>1+1</math></p>"
+                "<p>Hello!</p>\n<p><math simplify>1+1</math></p>",
             );
             cy.get(cesc("#\\/_p2")).should("have.text", "<p>Hello!</p>");
 
@@ -217,21 +217,21 @@ describe("Code Editor Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_codeeditor1"].stateValues.immediateValue
+                    stateVariables["/_codeeditor1"].stateValues.immediateValue,
                 ).eq("<p>Hello!</p>\n<p><math simplify>1+1</math></p>");
                 expect(stateVariables["/_codeeditor1"].stateValues.value).eq(
-                    "<p>Hello!</p>"
+                    "<p>Hello!</p>",
                 );
             });
 
             cy.log("Wait for value to be updated");
             cy.get(cesc("#\\/_p2")).should(
                 "have.text",
-                "<p>Hello!</p>\n<p><math simplify>1+1</math></p>"
+                "<p>Hello!</p>\n<p><math simplify>1+1</math></p>",
             );
             cy.get(cesc("#\\/_p1")).should(
                 "have.text",
-                "<p>Hello!</p>\n<p><math simplify>1+1</math></p>"
+                "<p>Hello!</p>\n<p><math simplify>1+1</math></p>",
             );
 
             cy.get(cesc2(`#${viewerName}/_p1`)).should("have.text", "Hello!");
@@ -240,10 +240,10 @@ describe("Code Editor Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_codeeditor1"].stateValues.immediateValue
+                    stateVariables["/_codeeditor1"].stateValues.immediateValue,
                 ).eq("<p>Hello!</p>\n<p><math simplify>1+1</math></p>");
                 expect(stateVariables["/_codeeditor1"].stateValues.value).eq(
-                    "<p>Hello!</p>\n<p><math simplify>1+1</math></p>"
+                    "<p>Hello!</p>\n<p><math simplify>1+1</math></p>",
                 );
             });
 
@@ -254,11 +254,11 @@ describe("Code Editor Tag Tests", function () {
 
             cy.get(cesc("#\\/_p1")).should(
                 "have.text",
-                "<p>Hello!</p>\n<p><math simplify>1+1</math></p>"
+                "<p>Hello!</p>\n<p><math simplify>1+1</math></p>",
             );
             cy.get(cesc("#\\/_p2")).should(
                 "have.text",
-                "<p>Hello!</p>\n<p><math simplify>1+1</math></p>"
+                "<p>Hello!</p>\n<p><math simplify>1+1</math></p>",
             );
 
             cy.get(cesc2(`#${viewerName}/_p1`)).should("have.text", "Hello!");
@@ -269,10 +269,10 @@ describe("Code Editor Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_codeeditor1"].stateValues.immediateValue
+                    stateVariables["/_codeeditor1"].stateValues.immediateValue,
                 ).eq("<p>Hello!</p>\n<p><math simplify>1+1</math></p>");
                 expect(stateVariables["/_codeeditor1"].stateValues.value).eq(
-                    "<p>Hello!</p>\n<p><math simplify>1+1</math></p>"
+                    "<p>Hello!</p>\n<p><math simplify>1+1</math></p>",
                 );
             });
         });
@@ -294,7 +294,7 @@ describe("Code Editor Tag Tests", function () {
     <p>The value of the entered math is $(/result/_math1.value{assignNames="m1"})</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -312,7 +312,7 @@ describe("Code Editor Tag Tests", function () {
             cy.get(cesc("#\\/_p2")).should("have.text", "");
             cy.get(cesc("#\\/_p3")).should(
                 "have.text",
-                "The value of the entered math is "
+                "The value of the entered math is ",
             );
             cy.get(contentAnchor).should("have.text", "");
             cy.get(cesc("#\\/m1")).should("not.exist");
@@ -320,10 +320,10 @@ describe("Code Editor Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_codeeditor1"].stateValues.immediateValue
+                    stateVariables["/_codeeditor1"].stateValues.immediateValue,
                 ).eq("");
                 expect(stateVariables["/_codeeditor1"].stateValues.value).eq(
-                    ""
+                    "",
                 );
                 expect(stateVariables[viewerName].activeChildren.length).eq(0);
                 expect(stateVariables["/result/_p1"]).eq(undefined);
@@ -336,14 +336,14 @@ describe("Code Editor Tag Tests", function () {
                 "<p>Hello!</p>",
                 {
                     delay: 0,
-                }
+                },
             );
 
             cy.get(cesc("#\\/_p1")).should("have.text", "<p>Hello!</p>");
             cy.get(cesc("#\\/_p2")).should("have.text", "");
             cy.get(cesc("#\\/_p3")).should(
                 "have.text",
-                "The value of the entered math is "
+                "The value of the entered math is ",
             );
             cy.get(contentAnchor).should("have.text", "");
             cy.get(cesc("#\\/m1")).should("not.exist");
@@ -351,10 +351,10 @@ describe("Code Editor Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_codeeditor1"].stateValues.immediateValue
+                    stateVariables["/_codeeditor1"].stateValues.immediateValue,
                 ).eq("<p>Hello!</p>");
                 expect(stateVariables["/_codeeditor1"].stateValues.value).eq(
-                    ""
+                    "",
                 );
                 expect(stateVariables[viewerName].activeChildren.length).eq(0);
                 expect(stateVariables["/result/_p1"]).eq(undefined);
@@ -369,7 +369,7 @@ describe("Code Editor Tag Tests", function () {
             cy.get(cesc("#\\/_p2")).should("have.text", "<p>Hello!</p>");
             cy.get(cesc("#\\/_p3")).should(
                 "have.text",
-                "The value of the entered math is "
+                "The value of the entered math is ",
             );
             cy.get(contentAnchor).should("have.text", "");
             cy.get(cesc("#\\/m1")).should("not.exist");
@@ -377,10 +377,10 @@ describe("Code Editor Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_codeeditor1"].stateValues.immediateValue
+                    stateVariables["/_codeeditor1"].stateValues.immediateValue,
                 ).eq("<p>Hello!</p>");
                 expect(stateVariables["/_codeeditor1"].stateValues.value).eq(
-                    "<p>Hello!</p>"
+                    "<p>Hello!</p>",
                 );
                 expect(stateVariables[viewerName].activeChildren.length).eq(0);
                 expect(stateVariables["/result/_p1"]).eq(undefined);
@@ -395,7 +395,7 @@ describe("Code Editor Tag Tests", function () {
             cy.get(cesc("#\\/_p2")).should("have.text", "<p>Hello!</p>");
             cy.get(cesc("#\\/_p3")).should(
                 "have.text",
-                "The value of the entered math is "
+                "The value of the entered math is ",
             );
             cy.get(contentAnchor).should("have.text", "Hello!");
             cy.get(cesc("#\\/m1")).should("not.exist");
@@ -403,17 +403,17 @@ describe("Code Editor Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_codeeditor1"].stateValues.immediateValue
+                    stateVariables["/_codeeditor1"].stateValues.immediateValue,
                 ).eq("<p>Hello!</p>");
                 expect(stateVariables["/_codeeditor1"].stateValues.value).eq(
-                    "<p>Hello!</p>"
+                    "<p>Hello!</p>",
                 );
                 expect(stateVariables[viewerName].activeChildren.length).eq(1);
                 expect(
-                    stateVariables[viewerName].activeChildren[0].componentName
+                    stateVariables[viewerName].activeChildren[0].componentName,
                 ).eq("/result/_p1");
                 expect(stateVariables["/result/_p1"].stateValues.text).eq(
-                    "Hello!"
+                    "Hello!",
                 );
                 expect(stateVariables["/result/_p2"]).eq(undefined);
                 expect(stateVariables["/result/_math1"]).eq(undefined);
@@ -422,17 +422,17 @@ describe("Code Editor Tag Tests", function () {
             cy.log("type more content");
             cy.get(cesc("#\\/_codeeditor1") + " .cm-content").type(
                 "{ctrl+end}{enter}<p><math simplify>1+1</math></p>",
-                { delay: 0 }
+                { delay: 0 },
             );
 
             cy.get(cesc("#\\/_p1")).should(
                 "have.text",
-                "<p>Hello!</p>\n<p><math simplify>1+1</math></p>"
+                "<p>Hello!</p>\n<p><math simplify>1+1</math></p>",
             );
             cy.get(cesc("#\\/_p2")).should("have.text", "<p>Hello!</p>");
             cy.get(cesc("#\\/_p3")).should(
                 "have.text",
-                "The value of the entered math is "
+                "The value of the entered math is ",
             );
             cy.get(contentAnchor).should("have.text", "Hello!");
             cy.get(cesc("#\\/m1")).should("not.exist");
@@ -440,17 +440,17 @@ describe("Code Editor Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_codeeditor1"].stateValues.immediateValue
+                    stateVariables["/_codeeditor1"].stateValues.immediateValue,
                 ).eq("<p>Hello!</p>\n<p><math simplify>1+1</math></p>");
                 expect(stateVariables["/_codeeditor1"].stateValues.value).eq(
-                    "<p>Hello!</p>"
+                    "<p>Hello!</p>",
                 );
                 expect(stateVariables[viewerName].activeChildren.length).eq(1);
                 expect(
-                    stateVariables[viewerName].activeChildren[0].componentName
+                    stateVariables[viewerName].activeChildren[0].componentName,
                 ).eq("/result/_p1");
                 expect(stateVariables["/result/_p1"].stateValues.text).eq(
-                    "Hello!"
+                    "Hello!",
                 );
                 expect(stateVariables["/result/_p2"]).eq(undefined);
                 expect(stateVariables["/result/_math1"]).eq(undefined);
@@ -459,15 +459,15 @@ describe("Code Editor Tag Tests", function () {
             cy.log("Wait for value to be updated");
             cy.get(cesc("#\\/_p2")).should(
                 "have.text",
-                "<p>Hello!</p>\n<p><math simplify>1+1</math></p>"
+                "<p>Hello!</p>\n<p><math simplify>1+1</math></p>",
             );
             cy.get(cesc("#\\/_p1")).should(
                 "have.text",
-                "<p>Hello!</p>\n<p><math simplify>1+1</math></p>"
+                "<p>Hello!</p>\n<p><math simplify>1+1</math></p>",
             );
             cy.get(cesc("#\\/_p3")).should(
                 "have.text",
-                "The value of the entered math is "
+                "The value of the entered math is ",
             );
             cy.get(contentAnchor).should("have.text", "Hello!");
             cy.get(cesc("#\\/m1")).should("not.exist");
@@ -475,17 +475,17 @@ describe("Code Editor Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_codeeditor1"].stateValues.immediateValue
+                    stateVariables["/_codeeditor1"].stateValues.immediateValue,
                 ).eq("<p>Hello!</p>\n<p><math simplify>1+1</math></p>");
                 expect(stateVariables["/_codeeditor1"].stateValues.value).eq(
-                    "<p>Hello!</p>\n<p><math simplify>1+1</math></p>"
+                    "<p>Hello!</p>\n<p><math simplify>1+1</math></p>",
                 );
                 expect(stateVariables[viewerName].activeChildren.length).eq(1);
                 expect(
-                    stateVariables[viewerName].activeChildren[0].componentName
+                    stateVariables[viewerName].activeChildren[0].componentName,
                 ).eq("/result/_p1");
                 expect(stateVariables["/result/_p1"].stateValues.text).eq(
-                    "Hello!"
+                    "Hello!",
                 );
                 expect(stateVariables["/result/_p2"]).eq(undefined);
                 expect(stateVariables["/result/_math1"]).eq(undefined);
@@ -496,15 +496,15 @@ describe("Code Editor Tag Tests", function () {
 
             cy.get(cesc("#\\/_p1")).should(
                 "have.text",
-                "<p>Hello!</p>\n<p><math simplify>1+1</math></p>"
+                "<p>Hello!</p>\n<p><math simplify>1+1</math></p>",
             );
             cy.get(cesc("#\\/_p2")).should(
                 "have.text",
-                "<p>Hello!</p>\n<p><math simplify>1+1</math></p>"
+                "<p>Hello!</p>\n<p><math simplify>1+1</math></p>",
             );
             cy.get(cesc("#\\/_p3")).should(
                 "contain.text",
-                "The value of the entered math is 2"
+                "The value of the entered math is 2",
             );
             cy.get(contentAnchor).should("contain.text", "Hello!\n2");
             cy.get(contentAnchor + " .mjx-mrow")
@@ -523,32 +523,32 @@ describe("Code Editor Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_codeeditor1"].stateValues.immediateValue
+                    stateVariables["/_codeeditor1"].stateValues.immediateValue,
                 ).eq("<p>Hello!</p>\n<p><math simplify>1+1</math></p>");
                 expect(stateVariables["/_codeeditor1"].stateValues.value).eq(
-                    "<p>Hello!</p>\n<p><math simplify>1+1</math></p>"
+                    "<p>Hello!</p>\n<p><math simplify>1+1</math></p>",
                 );
                 expect(stateVariables[viewerName].activeChildren.length).eq(3);
                 expect(
-                    stateVariables[viewerName].activeChildren[0].componentName
+                    stateVariables[viewerName].activeChildren[0].componentName,
                 ).eq("/result/_p1");
                 expect(stateVariables["/result/_p1"].stateValues.text).eq(
-                    "Hello!"
+                    "Hello!",
                 );
                 expect(stateVariables[viewerName].activeChildren[1]).eq("\n");
                 expect(
-                    stateVariables[viewerName].activeChildren[2].componentName
+                    stateVariables[viewerName].activeChildren[2].componentName,
                 ).eq("/result/_p2");
                 expect(stateVariables["/result/_p2"].stateValues.text).eq("2");
                 expect(stateVariables["/result/_p2"].activeChildren.length).eq(
-                    1
+                    1,
                 );
                 expect(
                     stateVariables["/result/_p2"].activeChildren[0]
-                        .componentName
+                        .componentName,
                 ).eq("/result/_math1");
                 expect(stateVariables["/result/_math1"].stateValues.value).eq(
-                    2
+                    2,
                 );
             });
         });
@@ -568,7 +568,7 @@ describe("Code Editor Tag Tests", function () {
     <p name="psP">The coords of the static point are $(/static/P.coords{assignNames="sP"})</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -583,28 +583,28 @@ describe("Code Editor Tag Tests", function () {
 
             cy.get(cesc("#\\/px")).should(
                 "have.text",
-                "The value of the dynamic math is "
+                "The value of the dynamic math is ",
             );
             cy.get(cesc("#\\/psx")).should(
                 "have.text",
-                "The value of the static math is "
+                "The value of the static math is ",
             );
             cy.get(cesc("#\\/pP")).should(
                 "have.text",
-                "The coords of the dynamic point are "
+                "The coords of the dynamic point are ",
             );
             cy.get(cesc("#\\/psP")).should(
                 "have.text",
-                "The coords of the static point are "
+                "The coords of the static point are ",
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_codeeditor1"].stateValues.immediateValue
+                    stateVariables["/_codeeditor1"].stateValues.immediateValue,
                 ).eq("");
                 expect(stateVariables["/_codeeditor1"].stateValues.value).eq(
-                    ""
+                    "",
                 );
                 expect(stateVariables[viewerName].activeChildren.length).eq(0);
                 expect(stateVariables["/x"]).eq(undefined);
@@ -621,38 +621,38 @@ describe("Code Editor Tag Tests", function () {
 
             cy.log("type text in editor");
             cy.get(cesc("#\\/_codeeditor1") + " .cm-content").type(
-                "<p>Enter value <mathinput name='mi' prefill='y' /></p>{enter}"
+                "<p>Enter value <mathinput name='mi' prefill='y' /></p>{enter}",
             );
             cy.get(cesc("#\\/_codeeditor1") + " .cm-content").type(
-                "<p>The value is <copy prop='value' target='mi' assignNames='x' /></p>{enter}"
+                "<p>The value is <copy prop='value' target='mi' assignNames='x' /></p>{enter}",
             );
 
             cy.get(cesc("#\\/px")).should(
                 "have.text",
-                "The value of the dynamic math is "
+                "The value of the dynamic math is ",
             );
             cy.get(cesc("#\\/psx")).should(
                 "have.text",
-                "The value of the static math is "
+                "The value of the static math is ",
             );
             cy.get(cesc("#\\/pP")).should(
                 "have.text",
-                "The coords of the dynamic point are "
+                "The coords of the dynamic point are ",
             );
             cy.get(cesc("#\\/psP")).should(
                 "have.text",
-                "The coords of the static point are "
+                "The coords of the static point are ",
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_codeeditor1"].stateValues.immediateValue
+                    stateVariables["/_codeeditor1"].stateValues.immediateValue,
                 ).eq(
-                    "<p>Enter value <mathinput name='mi' prefill='y' /></p>\n<p>The value is <copy prop='value' target='mi' assignNames='x' /></p>\n"
+                    "<p>Enter value <mathinput name='mi' prefill='y' /></p>\n<p>The value is <copy prop='value' target='mi' assignNames='x' /></p>\n",
                 );
                 expect(stateVariables["/_codeeditor1"].stateValues.value).eq(
-                    ""
+                    "",
                 );
                 expect(stateVariables[viewerName].activeChildren.length).eq(0);
                 expect(stateVariables["/x"]).eq(undefined);
@@ -672,19 +672,19 @@ describe("Code Editor Tag Tests", function () {
 
             cy.get(cesc("#\\/psx")).should(
                 "contain.text",
-                "The value of the static math is y"
+                "The value of the static math is y",
             );
             cy.get(cesc("#\\/px")).should(
                 "have.text",
-                "The value of the dynamic math is "
+                "The value of the dynamic math is ",
             );
             cy.get(cesc("#\\/pP")).should(
                 "have.text",
-                "The coords of the dynamic point are "
+                "The coords of the dynamic point are ",
             );
             cy.get(cesc("#\\/psP")).should(
                 "have.text",
-                "The coords of the static point are "
+                "The coords of the static point are ",
             );
 
             cy.get(cesc("#\\/sx") + " .mjx-mrow")
@@ -697,12 +697,12 @@ describe("Code Editor Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_codeeditor1"].stateValues.immediateValue
+                    stateVariables["/_codeeditor1"].stateValues.immediateValue,
                 ).eq(
-                    "<p>Enter value <mathinput name='mi' prefill='y' /></p>\n<p>The value is <copy prop='value' target='mi' assignNames='x' /></p>\n"
+                    "<p>Enter value <mathinput name='mi' prefill='y' /></p>\n<p>The value is <copy prop='value' target='mi' assignNames='x' /></p>\n",
                 );
                 expect(stateVariables["/_codeeditor1"].stateValues.value).eq(
-                    "<p>Enter value <mathinput name='mi' prefill='y' /></p>\n<p>The value is <copy prop='value' target='mi' assignNames='x' /></p>\n"
+                    "<p>Enter value <mathinput name='mi' prefill='y' /></p>\n<p>The value is <copy prop='value' target='mi' assignNames='x' /></p>\n",
                 );
                 expect(stateVariables["/x"]).eq(undefined);
                 expect(stateVariables["/sx"].stateValues.value).eq("y");
@@ -718,17 +718,17 @@ describe("Code Editor Tag Tests", function () {
 
                 expect(stateVariables["/static"].replacements.length).eq(3);
                 expect(
-                    stateVariables["/static"].replacements[0].componentName
+                    stateVariables["/static"].replacements[0].componentName,
                 ).eq("/static/_p1");
                 expect(stateVariables["/static/_p1"].stateValues.text).eq(
-                    "Enter value y"
+                    "Enter value y",
                 );
                 expect(stateVariables["/static"].replacements[1]).eq("\n");
                 expect(
-                    stateVariables["/static"].replacements[2].componentName
+                    stateVariables["/static"].replacements[2].componentName,
                 ).eq("/static/_p2");
                 expect(stateVariables["/static/_p2"].stateValues.text).eq(
-                    "The value is y"
+                    "The value is y",
                 );
                 expect(stateVariables["/static/mi"].stateValues.value).eq("y");
                 expect(stateVariables["/static/x"].stateValues.value).eq("y");
@@ -739,19 +739,19 @@ describe("Code Editor Tag Tests", function () {
 
             cy.get(cesc("#\\/px")).should(
                 "contain.text",
-                "The value of the dynamic math is y"
+                "The value of the dynamic math is y",
             );
             cy.get(cesc("#\\/psx")).should(
                 "contain.text",
-                "The value of the static math is y"
+                "The value of the static math is y",
             );
             cy.get(cesc("#\\/pP")).should(
                 "have.text",
-                "The coords of the dynamic point are "
+                "The coords of the dynamic point are ",
             );
             cy.get(cesc("#\\/psP")).should(
                 "have.text",
-                "The coords of the static point are "
+                "The coords of the static point are ",
             );
 
             cy.get(cesc("#\\/x") + " .mjx-mrow")
@@ -770,7 +770,7 @@ describe("Code Editor Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(stateVariables["/_codeeditor1"].stateValues.value).eq(
-                    "<p>Enter value <mathinput name='mi' prefill='y' /></p>\n<p>The value is <copy prop='value' target='mi' assignNames='x' /></p>\n"
+                    "<p>Enter value <mathinput name='mi' prefill='y' /></p>\n<p>The value is <copy prop='value' target='mi' assignNames='x' /></p>\n",
                 );
                 expect(stateVariables["/x"].stateValues.value).eq("y");
                 expect(stateVariables["/sx"].stateValues.value).eq("y");
@@ -784,34 +784,34 @@ describe("Code Editor Tag Tests", function () {
                 expect(stateVariables[viewerName].activeChildren.length).eq(3);
                 expect(stateVariables["/result"].replacements.length).eq(3);
                 expect(
-                    stateVariables[viewerName].activeChildren[0].componentName
+                    stateVariables[viewerName].activeChildren[0].componentName,
                 ).eq("/result/_p1");
                 expect(stateVariables["/result/_p1"].stateValues.text).eq(
-                    "Enter value y"
+                    "Enter value y",
                 );
                 expect(stateVariables[viewerName].activeChildren[1]).eq("\n");
                 expect(
-                    stateVariables[viewerName].activeChildren[2].componentName
+                    stateVariables[viewerName].activeChildren[2].componentName,
                 ).eq("/result/_p2");
                 expect(stateVariables["/result/_p2"].stateValues.text).eq(
-                    "The value is y"
+                    "The value is y",
                 );
                 expect(stateVariables["/result/mi"].stateValues.value).eq("y");
                 expect(stateVariables["/result/x"].stateValues.value).eq("y");
 
                 expect(stateVariables["/static"].replacements.length).eq(3);
                 expect(
-                    stateVariables["/static"].replacements[0].componentName
+                    stateVariables["/static"].replacements[0].componentName,
                 ).eq("/static/_p1");
                 expect(stateVariables["/static/_p1"].stateValues.text).eq(
-                    "Enter value y"
+                    "Enter value y",
                 );
                 expect(stateVariables["/static"].replacements[1]).eq("\n");
                 expect(
-                    stateVariables["/static"].replacements[2].componentName
+                    stateVariables["/static"].replacements[2].componentName,
                 ).eq("/static/_p2");
                 expect(stateVariables["/static/_p2"].stateValues.text).eq(
-                    "The value is y"
+                    "The value is y",
                 );
                 expect(stateVariables["/static/mi"].stateValues.value).eq("y");
                 expect(stateVariables["/static/x"].stateValues.value).eq("y");
@@ -820,24 +820,24 @@ describe("Code Editor Tag Tests", function () {
             cy.log("Enter new value in dynamic results");
             cy.get(cesc("#\\/result\\/mi") + " textarea").type(
                 "{end}{backspace}x{enter}",
-                { force: true }
+                { force: true },
             );
 
             cy.get(cesc("#\\/px")).should(
                 "contain.text",
-                "The value of the dynamic math is x"
+                "The value of the dynamic math is x",
             );
             cy.get(cesc("#\\/psx")).should(
                 "contain.text",
-                "The value of the static math is y"
+                "The value of the static math is y",
             );
             cy.get(cesc("#\\/pP")).should(
                 "have.text",
-                "The coords of the dynamic point are "
+                "The coords of the dynamic point are ",
             );
             cy.get(cesc("#\\/psP")).should(
                 "have.text",
-                "The coords of the static point are "
+                "The coords of the static point are ",
             );
 
             cy.get(cesc("#\\/x") + " .mjx-mrow")
@@ -856,7 +856,7 @@ describe("Code Editor Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(stateVariables["/_codeeditor1"].stateValues.value).eq(
-                    "<p>Enter value <mathinput name='mi' prefill='y' /></p>\n<p>The value is <copy prop='value' target='mi' assignNames='x' /></p>\n"
+                    "<p>Enter value <mathinput name='mi' prefill='y' /></p>\n<p>The value is <copy prop='value' target='mi' assignNames='x' /></p>\n",
                 );
                 expect(stateVariables["/x"].stateValues.value).eq("x");
                 expect(stateVariables["/sx"].stateValues.value).eq("y");
@@ -870,34 +870,34 @@ describe("Code Editor Tag Tests", function () {
                 expect(stateVariables[viewerName].activeChildren.length).eq(3);
                 expect(stateVariables["/result"].replacements.length).eq(3);
                 expect(
-                    stateVariables[viewerName].activeChildren[0].componentName
+                    stateVariables[viewerName].activeChildren[0].componentName,
                 ).eq("/result/_p1");
                 expect(stateVariables["/result/_p1"].stateValues.text).eq(
-                    "Enter value x"
+                    "Enter value x",
                 );
                 expect(stateVariables[viewerName].activeChildren[1]).eq("\n");
                 expect(
-                    stateVariables[viewerName].activeChildren[2].componentName
+                    stateVariables[viewerName].activeChildren[2].componentName,
                 ).eq("/result/_p2");
                 expect(stateVariables["/result/_p2"].stateValues.text).eq(
-                    "The value is x"
+                    "The value is x",
                 );
                 expect(stateVariables["/result/mi"].stateValues.value).eq("x");
                 expect(stateVariables["/result/x"].stateValues.value).eq("x");
 
                 expect(stateVariables["/static"].replacements.length).eq(3);
                 expect(
-                    stateVariables["/static"].replacements[0].componentName
+                    stateVariables["/static"].replacements[0].componentName,
                 ).eq("/static/_p1");
                 expect(stateVariables["/static/_p1"].stateValues.text).eq(
-                    "Enter value y"
+                    "Enter value y",
                 );
                 expect(stateVariables["/static"].replacements[1]).eq("\n");
                 expect(
-                    stateVariables["/static"].replacements[2].componentName
+                    stateVariables["/static"].replacements[2].componentName,
                 ).eq("/static/_p2");
                 expect(stateVariables["/static/_p2"].stateValues.text).eq(
-                    "The value is y"
+                    "The value is y",
                 );
                 expect(stateVariables["/static/mi"].stateValues.value).eq("y");
                 expect(stateVariables["/static/x"].stateValues.value).eq("y");
@@ -906,25 +906,25 @@ describe("Code Editor Tag Tests", function () {
             cy.log("type text in editor");
             cy.get(cesc("#\\/_codeeditor1") + " .cm-content")
                 .type(
-                    "{ctrl+end}<graph><point name='P'>(3,4)</point></graph>{enter}"
+                    "{ctrl+end}<graph><point name='P'>(3,4)</point></graph>{enter}",
                 )
                 .blur();
 
             cy.get(cesc("#\\/psP")).should(
                 "contain.text",
-                "The coords of the static point are (3,4)"
+                "The coords of the static point are (3,4)",
             );
             cy.get(cesc("#\\/px")).should(
                 "contain.text",
-                "The value of the dynamic math is x"
+                "The value of the dynamic math is x",
             );
             cy.get(cesc("#\\/psx")).should(
                 "contain.text",
-                "The value of the static math is y"
+                "The value of the static math is y",
             );
             cy.get(cesc("#\\/pP")).should(
                 "have.text",
-                "The coords of the dynamic point are "
+                "The coords of the dynamic point are ",
             );
 
             cy.get(cesc("#\\/x") + " .mjx-mrow")
@@ -960,38 +960,38 @@ describe("Code Editor Tag Tests", function () {
                 expect(stateVariables[viewerName].activeChildren.length).eq(3);
                 expect(stateVariables["/result"].replacements.length).eq(3);
                 expect(
-                    stateVariables[viewerName].activeChildren[0].componentName
+                    stateVariables[viewerName].activeChildren[0].componentName,
                 ).eq("/result/_p1");
                 expect(stateVariables["/result/_p1"].stateValues.text).eq(
-                    "Enter value x"
+                    "Enter value x",
                 );
                 expect(stateVariables[viewerName].activeChildren[1]).eq("\n");
                 expect(
-                    stateVariables[viewerName].activeChildren[2].componentName
+                    stateVariables[viewerName].activeChildren[2].componentName,
                 ).eq("/result/_p2");
                 expect(stateVariables["/result/_p2"].stateValues.text).eq(
-                    "The value is x"
+                    "The value is x",
                 );
                 expect(stateVariables["/result/mi"].stateValues.value).eq("x");
                 expect(stateVariables["/result/x"].stateValues.value).eq("x");
 
                 expect(stateVariables["/static"].replacements.length).eq(5);
                 expect(
-                    stateVariables["/static"].replacements[0].componentName
+                    stateVariables["/static"].replacements[0].componentName,
                 ).eq("/static/_p1");
                 expect(stateVariables["/static/_p1"].stateValues.text).eq(
-                    "Enter value y"
+                    "Enter value y",
                 );
                 expect(stateVariables["/static"].replacements[1]).eq("\n");
                 expect(
-                    stateVariables["/static"].replacements[2].componentName
+                    stateVariables["/static"].replacements[2].componentName,
                 ).eq("/static/_p2");
                 expect(stateVariables["/static/_p2"].stateValues.text).eq(
-                    "The value is y"
+                    "The value is y",
                 );
                 expect(stateVariables["/static"].replacements[3]).eq("\n");
                 expect(
-                    stateVariables["/static"].replacements[4].componentName
+                    stateVariables["/static"].replacements[4].componentName,
                 ).eq("/static/_graph1");
 
                 expect(stateVariables["/static/mi"].stateValues.value).eq("y");
@@ -1004,19 +1004,19 @@ describe("Code Editor Tag Tests", function () {
 
             cy.get(cesc("#\\/pP")).should(
                 "contain.text",
-                "The coords of the dynamic point are (3,4)"
+                "The coords of the dynamic point are (3,4)",
             );
             cy.get(cesc("#\\/px")).should(
                 "contain.text",
-                "The value of the dynamic math is y"
+                "The value of the dynamic math is y",
             );
             cy.get(cesc("#\\/psx")).should(
                 "contain.text",
-                "The value of the static math is y"
+                "The value of the static math is y",
             );
             cy.get(cesc("#\\/psP")).should(
                 "contain.text",
-                "The coords of the static point are (3,4)"
+                "The coords of the static point are (3,4)",
             );
 
             cy.get(cesc("#\\/x") + " .mjx-mrow")
@@ -1058,21 +1058,21 @@ describe("Code Editor Tag Tests", function () {
                 expect(stateVariables[viewerName].activeChildren.length).eq(5);
                 expect(stateVariables["/result"].replacements.length).eq(5);
                 expect(
-                    stateVariables[viewerName].activeChildren[0].componentName
+                    stateVariables[viewerName].activeChildren[0].componentName,
                 ).eq("/result/_p1");
                 expect(stateVariables["/result/_p1"].stateValues.text).eq(
-                    "Enter value y"
+                    "Enter value y",
                 );
                 expect(stateVariables[viewerName].activeChildren[1]).eq("\n");
                 expect(
-                    stateVariables[viewerName].activeChildren[2].componentName
+                    stateVariables[viewerName].activeChildren[2].componentName,
                 ).eq("/result/_p2");
                 expect(stateVariables["/result/_p2"].stateValues.text).eq(
-                    "The value is y"
+                    "The value is y",
                 );
                 expect(stateVariables[viewerName].activeChildren[3]).eq("\n");
                 expect(
-                    stateVariables[viewerName].activeChildren[4].componentName
+                    stateVariables[viewerName].activeChildren[4].componentName,
                 ).eq("/result/_graph1");
                 expect(stateVariables["/result/mi"].stateValues.value).eq("y");
                 expect(stateVariables["/result/x"].stateValues.value).eq("y");
@@ -1080,21 +1080,21 @@ describe("Code Editor Tag Tests", function () {
 
                 expect(stateVariables["/static"].replacements.length).eq(5);
                 expect(
-                    stateVariables["/static"].replacements[0].componentName
+                    stateVariables["/static"].replacements[0].componentName,
                 ).eq("/static/_p1");
                 expect(stateVariables["/static/_p1"].stateValues.text).eq(
-                    "Enter value y"
+                    "Enter value y",
                 );
                 expect(stateVariables["/static"].replacements[1]).eq("\n");
                 expect(
-                    stateVariables["/static"].replacements[2].componentName
+                    stateVariables["/static"].replacements[2].componentName,
                 ).eq("/static/_p2");
                 expect(stateVariables["/static/_p2"].stateValues.text).eq(
-                    "The value is y"
+                    "The value is y",
                 );
                 expect(stateVariables["/static"].replacements[3]).eq("\n");
                 expect(
-                    stateVariables["/static"].replacements[4].componentName
+                    stateVariables["/static"].replacements[4].componentName,
                 ).eq("/static/_graph1");
 
                 expect(stateVariables["/static/mi"].stateValues.value).eq("y");
@@ -1114,19 +1114,19 @@ describe("Code Editor Tag Tests", function () {
 
             cy.get(cesc("#\\/pP")).should(
                 "contain.text",
-                "The coords of the dynamic point are (5,7)"
+                "The coords of the dynamic point are (5,7)",
             );
             cy.get(cesc("#\\/px")).should(
                 "contain.text",
-                "The value of the dynamic math is y"
+                "The value of the dynamic math is y",
             );
             cy.get(cesc("#\\/psx")).should(
                 "contain.text",
-                "The value of the static math is y"
+                "The value of the static math is y",
             );
             cy.get(cesc("#\\/psP")).should(
                 "contain.text",
-                "The coords of the static point are (3,4)"
+                "The coords of the static point are (3,4)",
             );
 
             cy.get(cesc("#\\/x") + " .mjx-mrow")
@@ -1168,21 +1168,21 @@ describe("Code Editor Tag Tests", function () {
                 expect(stateVariables[viewerName].activeChildren.length).eq(5);
                 expect(stateVariables["/result"].replacements.length).eq(5);
                 expect(
-                    stateVariables[viewerName].activeChildren[0].componentName
+                    stateVariables[viewerName].activeChildren[0].componentName,
                 ).eq("/result/_p1");
                 expect(stateVariables["/result/_p1"].stateValues.text).eq(
-                    "Enter value y"
+                    "Enter value y",
                 );
                 expect(stateVariables[viewerName].activeChildren[1]).eq("\n");
                 expect(
-                    stateVariables[viewerName].activeChildren[2].componentName
+                    stateVariables[viewerName].activeChildren[2].componentName,
                 ).eq("/result/_p2");
                 expect(stateVariables["/result/_p2"].stateValues.text).eq(
-                    "The value is y"
+                    "The value is y",
                 );
                 expect(stateVariables[viewerName].activeChildren[3]).eq("\n");
                 expect(
-                    stateVariables[viewerName].activeChildren[4].componentName
+                    stateVariables[viewerName].activeChildren[4].componentName,
                 ).eq("/result/_graph1");
                 expect(stateVariables["/result/mi"].stateValues.value).eq("y");
                 expect(stateVariables["/result/x"].stateValues.value).eq("y");
@@ -1190,21 +1190,21 @@ describe("Code Editor Tag Tests", function () {
 
                 expect(stateVariables["/static"].replacements.length).eq(5);
                 expect(
-                    stateVariables["/static"].replacements[0].componentName
+                    stateVariables["/static"].replacements[0].componentName,
                 ).eq("/static/_p1");
                 expect(stateVariables["/static/_p1"].stateValues.text).eq(
-                    "Enter value y"
+                    "Enter value y",
                 );
                 expect(stateVariables["/static"].replacements[1]).eq("\n");
                 expect(
-                    stateVariables["/static"].replacements[2].componentName
+                    stateVariables["/static"].replacements[2].componentName,
                 ).eq("/static/_p2");
                 expect(stateVariables["/static/_p2"].stateValues.text).eq(
-                    "The value is y"
+                    "The value is y",
                 );
                 expect(stateVariables["/static"].replacements[3]).eq("\n");
                 expect(
-                    stateVariables["/static"].replacements[4].componentName
+                    stateVariables["/static"].replacements[4].componentName,
                 ).eq("/static/_graph1");
 
                 expect(stateVariables["/static/mi"].stateValues.value).eq("y");
@@ -1224,7 +1224,7 @@ describe("Code Editor Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1259,7 +1259,7 @@ describe("Code Editor Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1277,7 +1277,7 @@ describe("Code Editor Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1300,7 +1300,7 @@ describe("Code Editor Tag Tests", function () {
     <p name="piv2">immediate value: $ti.immediateValue</p>
           `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1314,7 +1314,7 @@ describe("Code Editor Tag Tests", function () {
         });
         cy.get(cesc2("#/piv2")).should(
             "have.text",
-            "immediate value: Hello!\nSelam!"
+            "immediate value: Hello!\nSelam!",
         );
         cy.get(cesc2("#/pv2")).should("have.text", "value: Hello!");
 
@@ -1325,12 +1325,12 @@ describe("Code Editor Tag Tests", function () {
 
         cy.get(cesc2("#/piv")).should(
             "have.text",
-            "immediate value: Hello!\nSelam!"
+            "immediate value: Hello!\nSelam!",
         );
         cy.get(cesc2("#/pv")).should("have.text", "value: Hello!\nSelam!");
         cy.get(cesc2("#/piv2")).should(
             "have.text",
-            "immediate value: Hello!\nSelam!"
+            "immediate value: Hello!\nSelam!",
         );
         cy.get(cesc2("#/pv2")).should("have.text", "value: Hello!\nSelam!");
 
@@ -1338,16 +1338,16 @@ describe("Code Editor Tag Tests", function () {
             "{ctrl+end}{enter}Kaixo!",
             {
                 delay: 0,
-            }
+            },
         );
         cy.get(cesc2("#/piv")).should(
             "have.text",
-            "immediate value: Hello!\nSelam!\nKaixo!"
+            "immediate value: Hello!\nSelam!\nKaixo!",
         );
         cy.get(cesc2("#/pv")).should("have.text", "value: Hello!\nSelam!");
         cy.get(cesc2("#/piv2")).should(
             "have.text",
-            "immediate value: Hello!\nSelam!"
+            "immediate value: Hello!\nSelam!",
         );
         cy.get(cesc2("#/pv2")).should("have.text", "value: Hello!\nSelam!");
 
@@ -1355,19 +1355,19 @@ describe("Code Editor Tag Tests", function () {
 
         cy.get(cesc2("#/piv2")).should(
             "have.text",
-            "immediate value: Hello!\nSelam!\nKaixo!"
+            "immediate value: Hello!\nSelam!\nKaixo!",
         );
         cy.get(cesc2("#/pv2")).should(
             "have.text",
-            "value: Hello!\nSelam!\nKaixo!"
+            "value: Hello!\nSelam!\nKaixo!",
         );
         cy.get(cesc2("#/piv")).should(
             "have.text",
-            "immediate value: Hello!\nSelam!\nKaixo!"
+            "immediate value: Hello!\nSelam!\nKaixo!",
         );
         cy.get(cesc2("#/pv")).should(
             "have.text",
-            "value: Hello!\nSelam!\nKaixo!"
+            "value: Hello!\nSelam!\nKaixo!",
         );
     });
 
@@ -1389,7 +1389,7 @@ describe("Code Editor Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1410,7 +1410,7 @@ describe("Code Editor Tag Tests", function () {
                 "<p>Hello!</p>",
                 {
                     delay: 0,
-                }
+                },
             );
             cy.get(updateAnchor).click();
 
@@ -1426,7 +1426,7 @@ describe("Code Editor Tag Tests", function () {
                     {
                         doenetML,
                     },
-                    "*"
+                    "*",
                 );
             });
 
@@ -1440,21 +1440,21 @@ describe("Code Editor Tag Tests", function () {
                     "{command+a}<alert>Ovewritten!</alert>",
                     {
                         delay: 0,
-                    }
+                    },
                 );
             } else {
                 cy.get(cesc("#\\/_codeeditor1") + " .cm-content").type(
                     "{control+a}<alert>Ovewritten!</alert>",
                     {
                         delay: 0,
-                    }
+                    },
                 );
             }
             cy.get(updateAnchor).click();
 
             cy.get(cesc2("#/_p1")).should(
                 "have.text",
-                "<alert>Ovewritten!</alert>"
+                "<alert>Ovewritten!</alert>",
             );
             cy.get(contentAnchor).should("not.contain.text", "Hello!");
             cy.get(contentAnchor).should("contain.text", "Ovewritten!");
@@ -1481,7 +1481,7 @@ describe("Code Editor Tag Tests", function () {
                     {
                         doenetML,
                     },
-                    "*"
+                    "*",
                 );
             });
 
@@ -1502,7 +1502,7 @@ describe("Code Editor Tag Tests", function () {
         <p>$_codeeditor1.value</p>
         `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1523,12 +1523,12 @@ describe("Code Editor Tag Tests", function () {
                 "<p>Hello!</p>",
                 {
                     delay: 0,
-                }
+                },
             );
 
             // Note: for some reason, have to type {enter} more slowly
             cy.get(cesc("#\\/_codeeditor1") + " .cm-content").type(
-                "{end}{enter}"
+                "{end}{enter}",
             );
             cy.get(updateAnchor).click();
 
@@ -1539,17 +1539,17 @@ describe("Code Editor Tag Tests", function () {
                 "{ctrl+end}<text name='ti'>$ti</text>",
                 {
                     delay: 0,
-                }
+                },
             );
             // Note: for some reason, have to type {enter} more slowly
             cy.get(cesc("#\\/_codeeditor1") + " .cm-content").type(
-                "{end}{enter}"
+                "{end}{enter}",
             );
             cy.get(updateAnchor).click();
 
             cy.get(cesc2("#/_p1")).should(
                 "have.text",
-                "<p>Hello!</p>\n<text name='ti'>$ti</text>\n"
+                "<p>Hello!</p>\n<text name='ti'>$ti</text>\n",
             );
 
             cy.get(contentAnchor).should("contain.text", "Circular dependency");
@@ -1558,14 +1558,14 @@ describe("Code Editor Tag Tests", function () {
                 "{ctrl+end}{leftArrow}{leftArrow}{leftArrow}{leftArrow}{leftArrow}{leftArrow}{leftArrow}{leftArrow}{backspace}{backspace}{backspace}Bye",
                 {
                     delay: 0,
-                }
+                },
             );
 
             cy.get(updateAnchor).click();
 
             cy.get(cesc2("#/_p1")).should(
                 "have.text",
-                "<p>Hello!</p>\n<text name='ti'>Bye</text>\n"
+                "<p>Hello!</p>\n<text name='ti'>Bye</text>\n",
             );
 
             cy.get(contentAnchor).should("contain.text", "Hello!\nBye");
@@ -1592,7 +1592,7 @@ describe("Code Editor Tag Tests", function () {
         <p>$_codeeditor3.value</p>
         `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1621,11 +1621,11 @@ describe("Code Editor Tag Tests", function () {
                 "<p>Apple</p>",
                 {
                     delay: 0,
-                }
+                },
             );
             // Note: for some reason, have to type {enter} more slowly
             cy.get(cesc("#\\/_codeeditor1") + " .cm-content").type(
-                "{end}{enter}"
+                "{end}{enter}",
             );
 
             cy.get(updateAnchor1).click();
@@ -1638,11 +1638,11 @@ describe("Code Editor Tag Tests", function () {
                 "<p>Banana</p>",
                 {
                     delay: 0,
-                }
+                },
             );
             // Note: for some reason, have to type {enter} more slowly
             cy.get(cesc("#\\/_codeeditor2") + " .cm-content").type(
-                "{end}{enter}"
+                "{end}{enter}",
             );
             cy.get(updateAnchor2).click();
 
@@ -1654,11 +1654,11 @@ describe("Code Editor Tag Tests", function () {
                 "<p>Cherry</p>",
                 {
                     delay: 0,
-                }
+                },
             );
             // Note: for some reason, have to type {enter} more slowly
             cy.get(cesc("#\\/_codeeditor3") + " .cm-content").type(
-                "{end}{enter}"
+                "{end}{enter}",
             );
             cy.get(updateAnchor3).click();
 
@@ -1681,7 +1681,7 @@ describe("Code Editor Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1933,7 +1933,7 @@ describe("Code Editor Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1984,7 +1984,7 @@ describe("Code Editor Tag Tests", function () {
         cy.get(cesc2("#/ce4ivchanged")).should("have.text", "false");
 
         cy.log(
-            "blur in third marks first and third value/immediateValue as changed"
+            "blur in third marks first and third value/immediateValue as changed",
         );
 
         cy.get(cesc2("#/ce3") + " .cm-content").blur();
@@ -2042,7 +2042,7 @@ describe("Code Editor Tag Tests", function () {
         cy.get(cesc2("#/ce4ivchanged")).should("have.text", "true");
 
         cy.log(
-            "blur in fourth marks third and fourth value/immediateValue as changed"
+            "blur in fourth marks third and fourth value/immediateValue as changed",
         );
 
         cy.get(cesc2("#/ce4") + " .cm-content").blur();
@@ -2084,7 +2084,7 @@ describe("Code Editor Tag Tests", function () {
       
           `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2151,7 +2151,7 @@ describe("Code Editor Tag Tests", function () {
       
           `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2213,7 +2213,7 @@ describe("Code Editor Tag Tests", function () {
           <codeEditor name="ce1" showResults ><selectFromSequence/></codeEditor>
           `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2226,7 +2226,7 @@ describe("Code Editor Tag Tests", function () {
 
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["a"]);
         });
     });

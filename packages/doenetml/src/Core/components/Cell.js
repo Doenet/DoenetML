@@ -314,7 +314,7 @@ export default class Cell extends BaseComponent {
                                     desiredStateVariableValues.text === null
                                         ? ""
                                         : String(
-                                              desiredStateVariableValues.text
+                                              desiredStateVariableValues.text,
                                           ),
                             },
                         ],
@@ -382,7 +382,7 @@ export default class Cell extends BaseComponent {
                     let math;
                     try {
                         math = me.fromAst(
-                            textToAst.convert(dependencyValues.text)
+                            textToAst.convert(dependencyValues.text),
                         );
                     } catch (e) {
                         math = me.fromAst("\uff3f");
@@ -452,7 +452,7 @@ export default class Cell extends BaseComponent {
                         {
                             setDependency: "math",
                             desiredValue: me.fromAst(
-                                desiredStateVariableValues.number
+                                desiredStateVariableValues.number,
                             ),
                         },
                     ],

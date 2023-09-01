@@ -76,11 +76,11 @@ export default class Markers extends BaseComponent {
 
                 if (dependencyValues.markerType === "text") {
                     markers = dependencyValues.textChildren.map(
-                        (x) => x.stateValues.value
+                        (x) => x.stateValues.value,
                     );
                 } else if (dependencyValues.markerType === "number") {
                     markers = dependencyValues.numberChildren.map(
-                        (x) => x.stateValues.value
+                        (x) => x.stateValues.value,
                     );
                     markers.sort((a, b) => {
                         return a - b;

@@ -26,7 +26,7 @@ describe("PeriodicSet Tag Tests", function () {
     <p>Credit achieved: $_answer1.creditAchieved{assignNames="ca"}</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -62,11 +62,11 @@ describe("PeriodicSet Tag Tests", function () {
             ]);
             expect(stateVariables["/s2"].stateValues.period).eq("pi");
             expect(stateVariables["/s2"].stateValues.redundantOffsets).eq(
-                false
+                false,
             );
 
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0
+                0,
             );
         });
 
@@ -83,7 +83,7 @@ describe("PeriodicSet Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/s1"].stateValues.value).eq("\uFF3F");
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0
+                0,
             );
         });
 
@@ -120,18 +120,18 @@ describe("PeriodicSet Tag Tests", function () {
                 2,
             ]);
             expect(stateVariables["/s1"].stateValues.redundantOffsets).eq(
-                false
+                false,
             );
 
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                1
+                1,
             );
         });
 
         cy.log("Change period to be irrational factor of other period");
         cy.get(cesc("#\\/p") + " textarea").type(
             `{ctrl+home}{shift+end}{backspace}1{enter}`,
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/_answer1_submit")).click();
 
@@ -151,18 +151,18 @@ describe("PeriodicSet Tag Tests", function () {
             ]);
             expect(stateVariables["/s1"].stateValues.period).eqls(1);
             expect(stateVariables["/s1"].stateValues.redundantOffsets).eq(
-                false
+                false,
             );
 
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0
+                0,
             );
         });
 
         cy.log("Change period");
         cy.get(cesc("#\\/p") + " textarea").type(
             `{ctrl+home}{shift+end}{backspace}pi{enter}`,
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/_answer1_submit")).click();
 
@@ -188,11 +188,11 @@ describe("PeriodicSet Tag Tests", function () {
             ]);
             expect(stateVariables["/s1"].stateValues.period).eqls("pi");
             expect(stateVariables["/s1"].stateValues.redundantOffsets).eq(
-                false
+                false,
             );
 
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0
+                0,
             );
         });
 
@@ -236,11 +236,11 @@ describe("PeriodicSet Tag Tests", function () {
             ]);
             expect(stateVariables["/s1"].stateValues.period).eqls("pi");
             expect(stateVariables["/s1"].stateValues.redundantOffsets).eq(
-                false
+                false,
             );
 
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                1
+                1,
             );
         });
 
@@ -292,7 +292,7 @@ describe("PeriodicSet Tag Tests", function () {
             expect(stateVariables["/s1"].stateValues.redundantOffsets).eq(true);
 
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                1
+                1,
             );
         });
 
@@ -350,7 +350,7 @@ describe("PeriodicSet Tag Tests", function () {
             expect(stateVariables["/s1"].stateValues.redundantOffsets).eq(true);
 
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0
+                0,
             );
         });
 
@@ -368,7 +368,7 @@ describe("PeriodicSet Tag Tests", function () {
 
             // expect((stateVariables['/s1'].stateValues.value)).eq('\uff3f');
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0
+                0,
             );
         });
     });
@@ -399,7 +399,7 @@ describe("PeriodicSet Tag Tests", function () {
     <p>Redundancies: $a.redundantOffsets, $b.redundantOffsets, $a2.redundantOffsets, $b2.redundantOffsets</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -412,7 +412,7 @@ describe("PeriodicSet Tag Tests", function () {
         cy.get(cesc("#\\/ca")).should("have.text", "0");
         cy.get(cesc("#\\/_p6")).should(
             "have.text",
-            "Redundancies: false, false, false, false"
+            "Redundancies: false, false, false, false",
         );
 
         cy.window().then(async (win) => {
@@ -422,7 +422,7 @@ describe("PeriodicSet Tag Tests", function () {
             expect(stateVariables["/a2"].stateValues.value).eq("\uFF3F");
             expect(stateVariables["/b2"].stateValues.value).eq("\uFF3F");
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0
+                0,
             );
         });
 
@@ -443,7 +443,7 @@ describe("PeriodicSet Tag Tests", function () {
             expect(stateVariables["/a2"].stateValues.value).eq("\uFF3F");
             expect(stateVariables["/b2"].stateValues.value).eq("\uFF3F");
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0
+                0,
             );
         });
 
@@ -460,7 +460,7 @@ describe("PeriodicSet Tag Tests", function () {
         cy.get(cesc("#\\/ca")).should("have.text", "0");
         cy.get(cesc("#\\/_p6")).should(
             "have.text",
-            "Redundancies: false, false, false, false"
+            "Redundancies: false, false, false, false",
         );
 
         cy.window().then(async (win) => {
@@ -498,7 +498,7 @@ describe("PeriodicSet Tag Tests", function () {
                 2,
             ]);
             expect(stateVariables["/a2"].stateValues.redundantOffsets).eq(
-                false
+                false,
             );
 
             let b = ["periodic_set"];
@@ -533,18 +533,18 @@ describe("PeriodicSet Tag Tests", function () {
                 "pi",
             ]);
             expect(stateVariables["/b2"].stateValues.redundantOffsets).eq(
-                false
+                false,
             );
 
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0
+                0,
             );
         });
 
         cy.log("Add offsets to match");
         cy.get(cesc("#\\/offsets2") + " textarea").type(
             `{end}, pi/4{rightArrow}, 11pi/4{rightArrow}, -11pi/4{enter}`,
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/_answer1_submit")).click();
         cy.get(cesc("#\\/_answer1_correct")).should("be.visible");
@@ -553,7 +553,7 @@ describe("PeriodicSet Tag Tests", function () {
 
         cy.get(cesc("#\\/_p6")).should(
             "have.text",
-            "Redundancies: false, false, false, false"
+            "Redundancies: false, false, false, false",
         );
 
         cy.window().then(async (win) => {
@@ -591,7 +591,7 @@ describe("PeriodicSet Tag Tests", function () {
                 2,
             ]);
             expect(stateVariables["/a2"].stateValues.redundantOffsets).eq(
-                false
+                false,
             );
 
             let b = ["periodic_set"];
@@ -629,11 +629,11 @@ describe("PeriodicSet Tag Tests", function () {
                 "pi",
             ]);
             expect(stateVariables["/b2"].stateValues.redundantOffsets).eq(
-                false
+                false,
             );
 
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                1
+                1,
             );
         });
 
@@ -642,7 +642,7 @@ describe("PeriodicSet Tag Tests", function () {
             `{end}, -17pi/4{enter}`,
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/_answer1_submit")).click();
         cy.get(cesc("#\\/_answer1_correct")).should("be.visible");
@@ -651,7 +651,7 @@ describe("PeriodicSet Tag Tests", function () {
 
         cy.get(cesc("#\\/_p6")).should(
             "have.text",
-            "Redundancies: true, false, true, false"
+            "Redundancies: true, false, true, false",
         );
 
         cy.window().then(async (win) => {
@@ -719,18 +719,18 @@ describe("PeriodicSet Tag Tests", function () {
                 "pi",
             ]);
             expect(stateVariables["/b2"].stateValues.redundantOffsets).eq(
-                false
+                false,
             );
 
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                1
+                1,
             );
         });
 
         cy.log("reduce period");
         cy.get(cesc("#\\/period2") + " textarea").type(
             `{end}{backspace}{backspace}pi{enter}`,
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/_answer1_submit")).click();
         cy.get(cesc("#\\/_answer1_correct")).should("be.visible");
@@ -739,7 +739,7 @@ describe("PeriodicSet Tag Tests", function () {
 
         cy.get(cesc("#\\/_p6")).should(
             "have.text",
-            "Redundancies: true, true, true, true"
+            "Redundancies: true, true, true, true",
         );
 
         cy.window().then(async (win) => {
@@ -801,7 +801,7 @@ describe("PeriodicSet Tag Tests", function () {
             expect(stateVariables["/b2"].stateValues.redundantOffsets).eq(true);
 
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                1
+                1,
             );
         });
 
@@ -816,7 +816,7 @@ describe("PeriodicSet Tag Tests", function () {
 
         cy.get(cesc("#\\/_p6")).should(
             "have.text",
-            "Redundancies: true, true, true, true"
+            "Redundancies: true, true, true, true",
         );
 
         cy.window().then(async (win) => {
@@ -882,7 +882,7 @@ describe("PeriodicSet Tag Tests", function () {
             expect(stateVariables["/b2"].stateValues.redundantOffsets).eq(true);
 
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0
+                0,
             );
         });
     });
@@ -972,7 +972,7 @@ describe("PeriodicSet Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -988,7 +988,7 @@ describe("PeriodicSet Tag Tests", function () {
             "4{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/number_offsets_input_correct")).should("be.visible");
 
@@ -1036,7 +1036,7 @@ describe("PeriodicSet Tag Tests", function () {
         cy.log("add extraneous answer blanks");
         cy.get(cesc("#\\/number_offsets_input") + " textarea").type(
             "{end}{backspace}10",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/number_offsets_input_submit")).should("be.visible");
         cy.get(cesc("#\\/number_offsets_input") + " textarea").type("{enter}", {
@@ -1107,7 +1107,7 @@ describe("PeriodicSet Tag Tests", function () {
         cy.log("too few answer blanks");
         cy.get(cesc("#\\/number_offsets_input") + " textarea").type(
             "{end}{backspace}{backspace}3",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/number_offsets_input_submit")).click();
         cy.get(cesc("#\\/number_offsets_input_incorrect")).should("be.visible");
@@ -1147,7 +1147,7 @@ describe("PeriodicSet Tag Tests", function () {
         cy.log("even fewer answer blanks");
         cy.get(cesc("#\\/number_offsets_input") + " textarea").type(
             "{end}{backspace}2",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/number_offsets_input_submit")).click();
         cy.get(cesc("#\\/number_offsets_input_incorrect")).should("be.visible");
@@ -1169,7 +1169,7 @@ describe("PeriodicSet Tag Tests", function () {
         cy.log("change period");
         cy.get(cesc("#\\/period_input") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}180",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/period_input_submit")).click();
         cy.get(cesc("#\\/period_input_correct")).should("be.visible");
@@ -1183,7 +1183,7 @@ describe("PeriodicSet Tag Tests", function () {
         cy.log("additional answer blanks");
         cy.get(cesc("#\\/number_offsets_input") + " textarea").type(
             "{end}{backspace}3",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/number_offsets_input_submit")).click();
         cy.get(cesc("#\\/number_offsets_input_correct")).should("be.visible");
@@ -1218,7 +1218,7 @@ describe("PeriodicSet Tag Tests", function () {
         cy.log("change period");
         cy.get(cesc("#\\/period_input") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}90",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/period_input_submit")).click();
         cy.get(cesc("#\\/period_input_incorrect")).should("be.visible");
@@ -1300,7 +1300,7 @@ describe("PeriodicSet Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1376,7 +1376,7 @@ describe("PeriodicSet Tag Tests", function () {
 
         cy.get(cesc("#\\/offsets") + " textarea").type(
             "{end}{backspace}{backspace}{leftArrow}3,{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/offsets2")).should("contain.text", "3,1");
         cy.get(cesc("#\\/l1"))
@@ -1431,7 +1431,7 @@ describe("PeriodicSet Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim()).equal(
-                    "…,22,23,24,29,30,31,36,37,38,43,44,45,…"
+                    "…,22,23,24,29,30,31,36,37,38,43,44,45,…",
                 );
             });
     });

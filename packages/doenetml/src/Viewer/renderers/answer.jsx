@@ -62,8 +62,8 @@ export default React.memo(function Answer(props) {
                 child &&
                 typeof child !== "string" &&
                 inputChildNames.includes(
-                    child.props.componentInstructions.componentName
-                )
+                    child.props.componentInstructions.componentName,
+                ),
         );
     }
 
@@ -86,7 +86,7 @@ export default React.memo(function Answer(props) {
 
         if (disabled) {
             checkWorkStyle.backgroundColor = getComputedStyle(
-                document.documentElement
+                document.documentElement,
             ).getPropertyValue("--mainGray");
         }
 
@@ -124,7 +124,7 @@ export default React.memo(function Answer(props) {
         if (SVs.showCorrectness) {
             if (validationState === "correct") {
                 checkWorkStyle.backgroundColor = getComputedStyle(
-                    document.documentElement
+                    document.documentElement,
                 ).getPropertyValue("--mainGreen");
                 checkworkComponent = (
                     <Button id={id + "_correct"} style={checkWorkStyle}>
@@ -134,7 +134,7 @@ export default React.memo(function Answer(props) {
                 );
             } else if (validationState === "incorrect") {
                 checkWorkStyle.backgroundColor = getComputedStyle(
-                    document.documentElement
+                    document.documentElement,
                 ).getPropertyValue("--mainRed");
                 checkworkComponent = (
                     <Button id={id + "_incorrect"} style={checkWorkStyle}>

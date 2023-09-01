@@ -179,7 +179,7 @@ export default class Image extends BlockComponent {
                                 dependencyValues.graphAncestor.stateValues
                                     .xscale;
                             midpoints = orderedPercentWidthMidpoints.map(
-                                (x) => (x / 100) * xscale
+                                (x) => (x / 100) * xscale,
                             );
                         } else {
                             midpoints = orderedWidthMidpoints;

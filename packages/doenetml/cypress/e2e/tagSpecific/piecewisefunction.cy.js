@@ -57,7 +57,7 @@ describe("Piecewise Function Tag Tests", function () {
     <me name="meh2">h_2(x)=$h2</me>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -77,13 +77,13 @@ describe("Piecewise Function Tag Tests", function () {
             .eq(0)
             .should(
                 "have.text",
-                "h(x)=⎧⎪⎨⎪⎩12if\u00a0x=01if\u00a0x>00otherwise"
+                "h(x)=⎧⎪⎨⎪⎩12if\u00a0x=01if\u00a0x>00otherwise",
             );
         cy.get(cesc("#\\/meh2") + " .mjx-mrow")
             .eq(0)
             .should(
                 "have.text",
-                "h2(x)=⎧⎪⎨⎪⎩1if\u00a0x>00if\u00a0x<012otherwise"
+                "h2(x)=⎧⎪⎨⎪⎩1if\u00a0x>00if\u00a0x<012otherwise",
             );
 
         let fs = ["f", "f2"];
@@ -95,7 +95,7 @@ describe("Piecewise Function Tag Tests", function () {
 
             for (let fsym of fs) {
                 let f = createFunctionFromDefinition(
-                    stateVariables["/" + fsym].stateValues.fDefinitions[0]
+                    stateVariables["/" + fsym].stateValues.fDefinitions[0],
                 );
                 expect(f(-2)).closeTo(0, 1e-12);
                 expect(f(-1)).closeTo(0, 1e-12);
@@ -106,22 +106,22 @@ describe("Piecewise Function Tag Tests", function () {
                 expect(f(2)).closeTo(1, 1e-12);
 
                 expect(
-                    stateVariables["/" + fsym].stateValues.globalMinimum[1]
+                    stateVariables["/" + fsym].stateValues.globalMinimum[1],
                 ).eq(0);
                 expect(
-                    stateVariables["/" + fsym].stateValues.globalInfimum[1]
+                    stateVariables["/" + fsym].stateValues.globalInfimum[1],
                 ).eq(0);
                 expect(
-                    stateVariables["/" + fsym].stateValues.globalMaximum[1]
+                    stateVariables["/" + fsym].stateValues.globalMaximum[1],
                 ).eq(1);
                 expect(
-                    stateVariables["/" + fsym].stateValues.globalSupremum[1]
+                    stateVariables["/" + fsym].stateValues.globalSupremum[1],
                 ).eq(1);
             }
 
             for (let gsym of gs) {
                 let g = createFunctionFromDefinition(
-                    stateVariables["/" + gsym].stateValues.fDefinitions[0]
+                    stateVariables["/" + gsym].stateValues.fDefinitions[0],
                 );
                 expect(g(-2)).closeTo(0, 1e-12);
                 expect(g(-1)).closeTo(0, 1e-12);
@@ -132,22 +132,22 @@ describe("Piecewise Function Tag Tests", function () {
                 expect(g(2)).closeTo(1, 1e-12);
 
                 expect(
-                    stateVariables["/" + gsym].stateValues.globalMinimum[1]
+                    stateVariables["/" + gsym].stateValues.globalMinimum[1],
                 ).eq(0);
                 expect(
-                    stateVariables["/" + gsym].stateValues.globalInfimum[1]
+                    stateVariables["/" + gsym].stateValues.globalInfimum[1],
                 ).eq(0);
                 expect(
-                    stateVariables["/" + gsym].stateValues.globalMaximum[1]
+                    stateVariables["/" + gsym].stateValues.globalMaximum[1],
                 ).eq(1);
                 expect(
-                    stateVariables["/" + gsym].stateValues.globalSupremum[1]
+                    stateVariables["/" + gsym].stateValues.globalSupremum[1],
                 ).eq(1);
             }
 
             for (let hsym of hs) {
                 let h = createFunctionFromDefinition(
-                    stateVariables["/" + hsym].stateValues.fDefinitions[0]
+                    stateVariables["/" + hsym].stateValues.fDefinitions[0],
                 );
                 expect(h(-2)).closeTo(0, 1e-12);
                 expect(h(-1)).closeTo(0, 1e-12);
@@ -158,16 +158,16 @@ describe("Piecewise Function Tag Tests", function () {
                 expect(h(2)).closeTo(1, 1e-12);
 
                 expect(
-                    stateVariables["/" + hsym].stateValues.globalMinimum[1]
+                    stateVariables["/" + hsym].stateValues.globalMinimum[1],
                 ).eq(0);
                 expect(
-                    stateVariables["/" + hsym].stateValues.globalInfimum[1]
+                    stateVariables["/" + hsym].stateValues.globalInfimum[1],
                 ).eq(0);
                 expect(
-                    stateVariables["/" + hsym].stateValues.globalMaximum[1]
+                    stateVariables["/" + hsym].stateValues.globalMaximum[1],
                 ).eq(1);
                 expect(
-                    stateVariables["/" + hsym].stateValues.globalSupremum[1]
+                    stateVariables["/" + hsym].stateValues.globalSupremum[1],
                 ).eq(1);
             }
         });
@@ -222,7 +222,7 @@ describe("Piecewise Function Tag Tests", function () {
     <me name="meh2">h_2(x)=$h2</me>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -242,13 +242,13 @@ describe("Piecewise Function Tag Tests", function () {
             .eq(0)
             .should(
                 "have.text",
-                "h(x)=⎧⎪⎨⎪⎩12if\u00a0x=01if\u00a0x>00otherwise"
+                "h(x)=⎧⎪⎨⎪⎩12if\u00a0x=01if\u00a0x>00otherwise",
             );
         cy.get(cesc("#\\/meh2") + " .mjx-mrow")
             .eq(0)
             .should(
                 "have.text",
-                "h2(x)=⎧⎪⎨⎪⎩1if\u00a0x>00if\u00a0x<012otherwise"
+                "h2(x)=⎧⎪⎨⎪⎩1if\u00a0x>00if\u00a0x<012otherwise",
             );
 
         let fs = ["f", "f2"];
@@ -260,7 +260,7 @@ describe("Piecewise Function Tag Tests", function () {
 
             for (let fsym of fs) {
                 let f = createFunctionFromDefinition(
-                    stateVariables["/" + fsym].stateValues.fDefinitions[0]
+                    stateVariables["/" + fsym].stateValues.fDefinitions[0],
                 );
                 expect(f(-2)).closeTo(0, 1e-12);
                 expect(f(-1)).closeTo(0, 1e-12);
@@ -271,22 +271,22 @@ describe("Piecewise Function Tag Tests", function () {
                 expect(f(2)).closeTo(1, 1e-12);
 
                 expect(
-                    stateVariables["/" + fsym].stateValues.globalMinimum[1]
+                    stateVariables["/" + fsym].stateValues.globalMinimum[1],
                 ).eq(0);
                 expect(
-                    stateVariables["/" + fsym].stateValues.globalInfimum[1]
+                    stateVariables["/" + fsym].stateValues.globalInfimum[1],
                 ).eq(0);
                 expect(
-                    stateVariables["/" + fsym].stateValues.globalMaximum[1]
+                    stateVariables["/" + fsym].stateValues.globalMaximum[1],
                 ).eq(1);
                 expect(
-                    stateVariables["/" + fsym].stateValues.globalSupremum[1]
+                    stateVariables["/" + fsym].stateValues.globalSupremum[1],
                 ).eq(1);
             }
 
             for (let gsym of gs) {
                 let g = createFunctionFromDefinition(
-                    stateVariables["/" + gsym].stateValues.fDefinitions[0]
+                    stateVariables["/" + gsym].stateValues.fDefinitions[0],
                 );
                 expect(g(-2)).closeTo(0, 1e-12);
                 expect(g(-1)).closeTo(0, 1e-12);
@@ -297,22 +297,22 @@ describe("Piecewise Function Tag Tests", function () {
                 expect(g(2)).closeTo(1, 1e-12);
 
                 expect(
-                    stateVariables["/" + gsym].stateValues.globalMinimum[1]
+                    stateVariables["/" + gsym].stateValues.globalMinimum[1],
                 ).eq(0);
                 expect(
-                    stateVariables["/" + gsym].stateValues.globalInfimum[1]
+                    stateVariables["/" + gsym].stateValues.globalInfimum[1],
                 ).eq(0);
                 expect(
-                    stateVariables["/" + gsym].stateValues.globalMaximum[1]
+                    stateVariables["/" + gsym].stateValues.globalMaximum[1],
                 ).eq(1);
                 expect(
-                    stateVariables["/" + gsym].stateValues.globalSupremum[1]
+                    stateVariables["/" + gsym].stateValues.globalSupremum[1],
                 ).eq(1);
             }
 
             for (let hsym of hs) {
                 let h = createFunctionFromDefinition(
-                    stateVariables["/" + hsym].stateValues.fDefinitions[0]
+                    stateVariables["/" + hsym].stateValues.fDefinitions[0],
                 );
                 expect(h(-2)).closeTo(0, 1e-12);
                 expect(h(-1)).closeTo(0, 1e-12);
@@ -323,16 +323,16 @@ describe("Piecewise Function Tag Tests", function () {
                 expect(h(2)).closeTo(1, 1e-12);
 
                 expect(
-                    stateVariables["/" + hsym].stateValues.globalMinimum[1]
+                    stateVariables["/" + hsym].stateValues.globalMinimum[1],
                 ).eq(0);
                 expect(
-                    stateVariables["/" + hsym].stateValues.globalInfimum[1]
+                    stateVariables["/" + hsym].stateValues.globalInfimum[1],
                 ).eq(0);
                 expect(
-                    stateVariables["/" + hsym].stateValues.globalMaximum[1]
+                    stateVariables["/" + hsym].stateValues.globalMaximum[1],
                 ).eq(1);
                 expect(
-                    stateVariables["/" + hsym].stateValues.globalSupremum[1]
+                    stateVariables["/" + hsym].stateValues.globalSupremum[1],
                 ).eq(1);
             }
         });
@@ -367,7 +367,7 @@ describe("Piecewise Function Tag Tests", function () {
     <me name="mek">k(u)=$k</me>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -388,7 +388,7 @@ describe("Piecewise Function Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
 
             let f = createFunctionFromDefinition(
-                stateVariables["/f"].stateValues.fDefinitions[0]
+                stateVariables["/f"].stateValues.fDefinitions[0],
             );
             expect(f(-2)).closeTo(4, 1e-12);
             expect(f(-1)).closeTo(3, 1e-12);
@@ -406,7 +406,7 @@ describe("Piecewise Function Tag Tests", function () {
             ]);
 
             let g = createFunctionFromDefinition(
-                stateVariables["/g"].stateValues.fDefinitions[0]
+                stateVariables["/g"].stateValues.fDefinitions[0],
             );
             expect(g(-2)).closeTo(4, 1e-12);
             expect(g(-1)).closeTo(3, 1e-12);
@@ -424,7 +424,7 @@ describe("Piecewise Function Tag Tests", function () {
             ]);
 
             let h = createFunctionFromDefinition(
-                stateVariables["/h"].stateValues.fDefinitions[0]
+                stateVariables["/h"].stateValues.fDefinitions[0],
             );
             expect(h(-10.000001)).eqls(NaN);
             expect(h(-10)).closeTo(12, 1e-12);
@@ -448,7 +448,7 @@ describe("Piecewise Function Tag Tests", function () {
             ]);
 
             let k = createFunctionFromDefinition(
-                stateVariables["/k"].stateValues.fDefinitions[0]
+                stateVariables["/k"].stateValues.fDefinitions[0],
             );
             expect(k(-10)).eqls(NaN);
             expect(k(-9.99999)).closeTo(11.99999, 1e-12);
@@ -547,7 +547,7 @@ describe("Piecewise Function Tag Tests", function () {
     <p name="pk2max">Maxima of k_2: $k2.maxima</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -621,30 +621,30 @@ describe("Piecewise Function Tag Tests", function () {
             expect(stateVariables["/g"].stateValues.minima.length).eq(1);
             expect(stateVariables["/g"].stateValues.minima[0][0]).closeTo(
                 0.1,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/g"].stateValues.minima[0][1]).closeTo(
                 -0.01,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/g"].stateValues.maxima.length).eq(1);
             expect(stateVariables["/g"].stateValues.maxima[0][0]).closeTo(
                 0,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/g"].stateValues.maxima[0][1]).closeTo(
                 0,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/g2"].stateValues.minima).eqls([]);
             expect(stateVariables["/g2"].stateValues.maxima.length).eq(1);
             expect(stateVariables["/g2"].stateValues.maxima[0][0]).closeTo(
                 0,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/g2"].stateValues.maxima[0][1]).closeTo(
                 0,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/g"].stateValues.globalMinimum).eqls([]);
             expect(stateVariables["/g"].stateValues.globalInfimum).eqls([
@@ -699,30 +699,30 @@ describe("Piecewise Function Tag Tests", function () {
             expect(stateVariables["/h"].stateValues.minima.length).eq(1);
             expect(stateVariables["/h"].stateValues.minima[0][0]).closeTo(
                 0,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/h"].stateValues.minima[0][1]).closeTo(
                 0,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/h"].stateValues.maxima).eqls([]);
             expect(stateVariables["/h2"].stateValues.minima.length).eq(1);
             expect(stateVariables["/h2"].stateValues.minima[0][0]).closeTo(
                 0,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/h2"].stateValues.minima[0][1]).closeTo(
                 0,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/h2"].stateValues.maxima.length).eq(1);
             expect(stateVariables["/h2"].stateValues.maxima[0][0]).closeTo(
                 -0.1,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/h2"].stateValues.maxima[0][1]).closeTo(
                 0.01,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/h"].stateValues.globalMinimum).eqls([]);
             expect(stateVariables["/h"].stateValues.globalInfimum).eqls([
@@ -750,13 +750,13 @@ describe("Piecewise Function Tag Tests", function () {
             .eq(0)
             .should(
                 "have.text",
-                "k(x)=⎧⎪\n⎪⎨⎪\n⎪⎩(x−2)2if\u00a0x>1(x+2)2if\u00a0x<−1cos(πx2)otherwise"
+                "k(x)=⎧⎪\n⎪⎨⎪\n⎪⎩(x−2)2if\u00a0x>1(x+2)2if\u00a0x<−1cos(πx2)otherwise",
             );
         cy.get(cesc("#\\/mek2") + " .mjx-mrow")
             .eq(0)
             .should(
                 "have.text",
-                "k2(x)=⎧⎪\n⎪⎨⎪\n⎪⎩(x−2)2if\u00a0x≥1(x+2)2if\u00a0x≤−1cos(πx2)otherwise"
+                "k2(x)=⎧⎪\n⎪⎨⎪\n⎪⎩(x−2)2if\u00a0x≥1(x+2)2if\u00a0x≤−1cos(πx2)otherwise",
             );
         cy.get(cesc("#\\/pkmin") + " .mjx-mrow")
             .eq(0)
@@ -806,89 +806,89 @@ describe("Piecewise Function Tag Tests", function () {
             expect(stateVariables["/k"].stateValues.minima.length).eq(4);
             expect(stateVariables["/k"].stateValues.minima[0][0]).closeTo(
                 -2,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/k"].stateValues.minima[0][1]).closeTo(
                 0,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/k"].stateValues.minima[1][0]).closeTo(
                 -1,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/k"].stateValues.minima[1][1]).closeTo(
                 0,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/k"].stateValues.minima[2][0]).closeTo(
                 1,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/k"].stateValues.minima[2][1]).closeTo(
                 0,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/k"].stateValues.minima[3][0]).closeTo(
                 2,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/k"].stateValues.minima[3][1]).closeTo(
                 0,
-                1e-14
+                1e-14,
             );
 
             expect(stateVariables["/k"].stateValues.maxima.length).eq(1);
             expect(stateVariables["/k"].stateValues.maxima[0][0]).closeTo(
                 0,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/k"].stateValues.maxima[0][1]).closeTo(
                 1,
-                1e-14
+                1e-14,
             );
 
             expect(stateVariables["/k2"].stateValues.minima.length).eq(2);
             expect(stateVariables["/k2"].stateValues.minima[0][0]).closeTo(
                 -2,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/k2"].stateValues.minima[0][1]).closeTo(
                 0,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/k2"].stateValues.minima[1][0]).closeTo(
                 2,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/k2"].stateValues.minima[1][1]).closeTo(
                 0,
-                1e-14
+                1e-14,
             );
 
             expect(stateVariables["/k2"].stateValues.maxima.length).eq(3);
             expect(stateVariables["/k2"].stateValues.maxima[0][0]).closeTo(
                 -1,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/k2"].stateValues.maxima[0][1]).closeTo(
                 1,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/k2"].stateValues.maxima[1][0]).closeTo(
                 0,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/k2"].stateValues.maxima[1][1]).closeTo(
                 1,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/k2"].stateValues.maxima[2][0]).closeTo(
                 1,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/k2"].stateValues.maxima[2][1]).closeTo(
                 1,
-                1e-14
+                1e-14,
             );
 
             expect(stateVariables["/k"].stateValues.globalMinimum).eqls([2, 0]);
@@ -996,7 +996,7 @@ describe("Piecewise Function Tag Tests", function () {
     <p name="pk2max">Maxima of k_2: $k2.maxima</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1082,69 +1082,69 @@ describe("Piecewise Function Tag Tests", function () {
             expect(stateVariables["/g"].stateValues.minima.length).eq(3);
             expect(stateVariables["/g"].stateValues.minima[0][0]).closeTo(
                 -2,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/g"].stateValues.minima[0][1]).closeTo(
                 1,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/g"].stateValues.minima[1][0]).closeTo(
                 0,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/g"].stateValues.minima[1][1]).closeTo(
                 0,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/g"].stateValues.minima[2][0]).closeTo(
                 2,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/g"].stateValues.minima[2][1]).closeTo(
                 1,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/g"].stateValues.maxima.length).eq(2);
             expect(stateVariables["/g"].stateValues.maxima[0][0]).closeTo(
                 -1,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/g"].stateValues.maxima[0][1]).closeTo(
                 2,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/g"].stateValues.maxima[1][0]).closeTo(
                 1,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/g"].stateValues.maxima[1][1]).closeTo(
                 2,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/g2"].stateValues.minima.length).eq(3);
             expect(stateVariables["/g2"].stateValues.minima[0][0]).closeTo(
                 -2,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/g2"].stateValues.minima[0][1]).closeTo(
                 1,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/g2"].stateValues.minima[1][0]).closeTo(
                 0,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/g2"].stateValues.minima[1][1]).closeTo(
                 0,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/g2"].stateValues.minima[2][0]).closeTo(
                 2,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/g2"].stateValues.minima[2][1]).closeTo(
                 1,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/g2"].stateValues.maxima).eqls([]);
 
@@ -1208,70 +1208,70 @@ describe("Piecewise Function Tag Tests", function () {
             expect(stateVariables["/h"].stateValues.minima.length).eq(3);
             expect(stateVariables["/h"].stateValues.minima[0][0]).closeTo(
                 -2,
-                1e-8
+                1e-8,
             );
             expect(stateVariables["/h"].stateValues.minima[0][1]).closeTo(
                 -4,
-                1e-8
+                1e-8,
             );
             expect(stateVariables["/h"].stateValues.minima[1][0]).closeTo(
                 0,
-                1e-8
+                1e-8,
             );
             expect(stateVariables["/h"].stateValues.minima[1][1]).closeTo(
                 0,
-                1e-8
+                1e-8,
             );
             expect(stateVariables["/h"].stateValues.minima[2][0]).closeTo(
                 2,
-                1e-8
+                1e-8,
             );
             expect(stateVariables["/h"].stateValues.minima[2][1]).closeTo(
                 -4,
-                1e-8
+                1e-8,
             );
             expect(stateVariables["/h"].stateValues.maxima).eqls([]);
             expect(stateVariables["/h2"].stateValues.minima.length).eq(3);
             expect(stateVariables["/h2"].stateValues.minima[0][0]).closeTo(
                 -2,
-                1e-8
+                1e-8,
             );
             expect(stateVariables["/h2"].stateValues.minima[0][1]).closeTo(
                 -4,
-                1e-8
+                1e-8,
             );
             expect(stateVariables["/h2"].stateValues.minima[1][0]).closeTo(
                 0,
-                1e-8
+                1e-8,
             );
             expect(stateVariables["/h2"].stateValues.minima[1][1]).closeTo(
                 0,
-                1e-8
+                1e-8,
             );
             expect(stateVariables["/h2"].stateValues.minima[2][0]).closeTo(
                 2,
-                1e-8
+                1e-8,
             );
             expect(stateVariables["/h2"].stateValues.minima[2][1]).closeTo(
                 -4,
-                1e-8
+                1e-8,
             );
             expect(stateVariables["/h2"].stateValues.maxima.length).eq(2);
             expect(stateVariables["/h2"].stateValues.maxima[0][0]).closeTo(
                 -1,
-                1e-8
+                1e-8,
             );
             expect(stateVariables["/h2"].stateValues.maxima[0][1]).closeTo(
                 1,
-                1e-8
+                1e-8,
             );
             expect(stateVariables["/h2"].stateValues.maxima[1][0]).closeTo(
                 1,
-                1e-8
+                1e-8,
             );
             expect(stateVariables["/h2"].stateValues.maxima[1][1]).closeTo(
                 1,
-                1e-8
+                1e-8,
             );
 
             expect(stateVariables["/h"].stateValues.globalMinimum).eqls([
@@ -1350,102 +1350,102 @@ describe("Piecewise Function Tag Tests", function () {
             expect(stateVariables["/k"].stateValues.minima.length).eq(5);
             expect(stateVariables["/k"].stateValues.minima[0][0]).closeTo(
                 -3,
-                1e-8
+                1e-8,
             );
             expect(stateVariables["/k"].stateValues.minima[0][1]).closeTo(
                 3,
-                1e-8
+                1e-8,
             );
             expect(stateVariables["/k"].stateValues.minima[1][0]).closeTo(
                 -2,
-                1e-8
+                1e-8,
             );
             expect(stateVariables["/k"].stateValues.minima[1][1]).closeTo(
                 0,
-                1e-8
+                1e-8,
             );
             expect(stateVariables["/k"].stateValues.minima[2][0]).closeTo(
                 0,
-                1e-8
+                1e-8,
             );
             expect(stateVariables["/k"].stateValues.minima[2][1]).closeTo(
                 0,
-                1e-8
+                1e-8,
             );
             expect(stateVariables["/k"].stateValues.minima[3][0]).closeTo(
                 2,
-                1e-8
+                1e-8,
             );
             expect(stateVariables["/k"].stateValues.minima[3][1]).closeTo(
                 0,
-                1e-8
+                1e-8,
             );
             expect(stateVariables["/k"].stateValues.minima[4][0]).closeTo(
                 3,
-                1e-8
+                1e-8,
             );
             expect(stateVariables["/k"].stateValues.minima[4][1]).closeTo(
                 3,
-                1e-8
+                1e-8,
             );
             expect(stateVariables["/k"].stateValues.maxima.length).eq(2);
             expect(stateVariables["/k"].stateValues.maxima[0][0]).closeTo(
                 -1,
-                1e-8
+                1e-8,
             );
             expect(stateVariables["/k"].stateValues.maxima[0][1]).closeTo(
                 2.25,
-                1e-8
+                1e-8,
             );
             expect(stateVariables["/k"].stateValues.maxima[1][0]).closeTo(
                 1,
-                1e-8
+                1e-8,
             );
             expect(stateVariables["/k"].stateValues.maxima[1][1]).closeTo(
                 2.25,
-                1e-8
+                1e-8,
             );
             expect(stateVariables["/k2"].stateValues.minima.length).eq(3);
             expect(stateVariables["/k2"].stateValues.minima[0][0]).closeTo(
                 -2,
-                1e-8
+                1e-8,
             );
             expect(stateVariables["/k2"].stateValues.minima[0][1]).closeTo(
                 0,
-                1e-8
+                1e-8,
             );
             expect(stateVariables["/k2"].stateValues.minima[1][0]).closeTo(
                 0,
-                1e-8
+                1e-8,
             );
             expect(stateVariables["/k2"].stateValues.minima[1][1]).closeTo(
                 0,
-                1e-8
+                1e-8,
             );
             expect(stateVariables["/k2"].stateValues.minima[2][0]).closeTo(
                 2,
-                1e-8
+                1e-8,
             );
             expect(stateVariables["/k2"].stateValues.minima[2][1]).closeTo(
                 0,
-                1e-8
+                1e-8,
             );
             expect(stateVariables["/k2"].stateValues.maxima.length).eq(2);
             expect(stateVariables["/k2"].stateValues.maxima[0][0]).closeTo(
                 -3,
-                1e-8
+                1e-8,
             );
             expect(stateVariables["/k2"].stateValues.maxima[0][1]).closeTo(
                 6.25,
-                1e-8
+                1e-8,
             );
             expect(stateVariables["/k2"].stateValues.maxima[1][0]).closeTo(
                 3,
-                1e-8
+                1e-8,
             );
             expect(stateVariables["/k2"].stateValues.maxima[1][1]).closeTo(
                 6.25,
-                1e-8
+                1e-8,
             );
 
             expect(stateVariables["/k"].stateValues.globalMinimum).eqls([0, 0]);
@@ -1490,7 +1490,7 @@ describe("Piecewise Function Tag Tests", function () {
     <p name="p11">$$f(11)</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1498,7 +1498,7 @@ describe("Piecewise Function Tag Tests", function () {
             .eq(0)
             .should(
                 "have.text",
-                "f(x)=⎧⎪\n⎪\n⎪\n⎪\n⎪\n⎪\n⎪⎨⎪\n⎪\n⎪\n⎪\n⎪\n⎪\n⎪⎩1if\u00a0x=axif\u00a0s<x<tx210if\u00a01≤x<qx3100if\u00a0z<x<5x41000if\u00a08≤x≤10"
+                "f(x)=⎧⎪\n⎪\n⎪\n⎪\n⎪\n⎪\n⎪⎨⎪\n⎪\n⎪\n⎪\n⎪\n⎪\n⎪⎩1if\u00a0x=axif\u00a0s<x<tx210if\u00a01≤x<qx3100if\u00a0z<x<5x41000if\u00a08≤x≤10",
             );
 
         cy.get(cesc("#\\/p7") + " .mjx-mrow")
@@ -1521,7 +1521,7 @@ describe("Piecewise Function Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
 
             let f = createFunctionFromDefinition(
-                stateVariables["/f"].stateValues.fDefinitions[0]
+                stateVariables["/f"].stateValues.fDefinitions[0],
             );
             for (let i = -10; i <= 15; i++) {
                 if (i >= 8 && i <= 10) {
@@ -1568,7 +1568,7 @@ describe("Piecewise Function Tag Tests", function () {
     <me name="mef">f(x)=$f</me>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1576,14 +1576,14 @@ describe("Piecewise Function Tag Tests", function () {
             .eq(0)
             .should(
                 "have.text",
-                "f(x)=⎧⎪\n⎪⎨⎪\n⎪⎩xif\u00a0x=1x210if\u00a0x=2x3100if\u00a01<x<2\u00a0or\u00a02<x<3"
+                "f(x)=⎧⎪\n⎪⎨⎪\n⎪⎩xif\u00a0x=1x210if\u00a0x=2x3100if\u00a01<x<2\u00a0or\u00a02<x<3",
             );
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
             let f = createFunctionFromDefinition(
-                stateVariables["/f"].stateValues.fDefinitions[0]
+                stateVariables["/f"].stateValues.fDefinitions[0],
             );
             expect(f(0)).eqls(NaN);
             expect(f(0.999)).eqls(NaN);
@@ -1629,7 +1629,7 @@ describe("Piecewise Function Tag Tests", function () {
     <me name="mef">f(x)=$f</me>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1637,14 +1637,14 @@ describe("Piecewise Function Tag Tests", function () {
             .eq(0)
             .should(
                 "have.text",
-                "f(x)=⎧⎪⎨⎪⎩3if\u00a0−1<x<0.11x−1if\u00a03<x<4\u00a0or\u00a04<x<5−2−(x+4)2if\u00a0−6<x≤−1\u00a0or\u00a00.1≤x≤3\u00a0or\u00a0x=4\u00a0or\u00a0x≥5"
+                "f(x)=⎧⎪⎨⎪⎩3if\u00a0−1<x<0.11x−1if\u00a03<x<4\u00a0or\u00a04<x<5−2−(x+4)2if\u00a0−6<x≤−1\u00a0or\u00a00.1≤x≤3\u00a0or\u00a0x=4\u00a0or\u00a0x≥5",
             );
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
             let f = createFunctionFromDefinition(
-                stateVariables["/f"].stateValues.fDefinitions[0]
+                stateVariables["/f"].stateValues.fDefinitions[0],
             );
             expect(f(-5)).eqls(NaN);
             expect(f(-4.999)).closeTo(-2 - 0.999 ** 2, 1e-14);
@@ -1668,7 +1668,7 @@ describe("Piecewise Function Tag Tests", function () {
             ]);
             expect(stateVariables["/f"].stateValues.globalMaximum[0]).within(
                 -1,
-                -0.9
+                -0.9,
             );
             expect(stateVariables["/f"].stateValues.globalMaximum[1]).eq(3);
             expect(stateVariables["/f"].stateValues.globalSupremum).eqls([
@@ -1706,7 +1706,7 @@ describe("Piecewise Function Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1714,7 +1714,7 @@ describe("Piecewise Function Tag Tests", function () {
             .eq(0)
             .should(
                 "have.text",
-                "f(x)=⎧⎨⎩xif\u00a0s<x<t\u00a0or\u00a01<x<4x2if\u00a01≤x<q\u00a0or\u00a0b≤x<1\u00a0or\u00a04≤x<6xif\u00a08<x<9"
+                "f(x)=⎧⎨⎩xif\u00a0s<x<t\u00a0or\u00a01<x<4x2if\u00a01≤x<q\u00a0or\u00a0b≤x<1\u00a0or\u00a04≤x<6xif\u00a08<x<9",
             );
     });
 
@@ -1740,7 +1740,7 @@ describe("Piecewise Function Tag Tests", function () {
     <me name="mef">f(x)=$f</me>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1748,7 +1748,7 @@ describe("Piecewise Function Tag Tests", function () {
             .eq(0)
             .should(
                 "have.text",
-                "f(x)=⎧⎪⎨⎪⎩x2if\u00a0−1<x≤11−x24if\u00a0−4<x≤−1\u00a0or\u00a01<x≤4cos(πx)otherwise"
+                "f(x)=⎧⎪⎨⎪⎩x2if\u00a0−1<x≤11−x24if\u00a0−4<x≤−1\u00a0or\u00a01<x≤4cos(πx)otherwise",
             );
 
         cy.window().then(async (win) => {
@@ -1811,7 +1811,7 @@ describe("Piecewise Function Tag Tests", function () {
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1821,7 +1821,7 @@ describe("Piecewise Function Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
 
             let f2 = createFunctionFromDefinition(
-                stateVariables["/f2"].stateValues.fDefinitions[0]
+                stateVariables["/f2"].stateValues.fDefinitions[0],
             );
 
             expect(f2(-4)).eq(-1 / 4);
@@ -1854,7 +1854,7 @@ describe("Piecewise Function Tag Tests", function () {
             ]);
 
             let f3 = createFunctionFromDefinition(
-                stateVariables["/f3"].stateValues.fDefinitions[0]
+                stateVariables["/f3"].stateValues.fDefinitions[0],
             );
 
             expect(f3(-4)).eq(0);

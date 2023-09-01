@@ -69,7 +69,7 @@ export class ContentBrowser extends BlockComponent {
                 }
 
                 items.sort((a, b) =>
-                    a.label.toLowerCase().localeCompare(b.label.toLowerCase())
+                    a.label.toLowerCase().localeCompare(b.label.toLowerCase()),
                 );
 
                 let itemsByInitial = {};

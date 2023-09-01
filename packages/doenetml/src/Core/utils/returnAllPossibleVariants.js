@@ -56,7 +56,7 @@ export async function returnAllPossibleVariants({
         allPossibleVariants = variantNames;
     } else {
         allPossibleVariants = [...Array(numVariants).keys()].map((x) =>
-            indexToLowercaseLetters(x + 1)
+            indexToLowercaseLetters(x + 1),
         );
     }
 

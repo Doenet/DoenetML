@@ -51,7 +51,7 @@ export default React.memo(function ChoiceInput(props) {
     ChoiceInput.baseStateVariable = "selectedIndices";
 
     const [rendererSelectedIndices, setRendererSelectedIndices] = useState(
-        SVs.selectedIndices
+        SVs.selectedIndices,
     );
 
     const setRendererState = useSetRecoilState(rendererState(rendererName));
@@ -87,7 +87,7 @@ export default React.memo(function ChoiceInput(props) {
             if (e.target.value) {
                 newSelectedIndices = Array.from(
                     e.target.selectedOptions,
-                    (option) => Number(option.value)
+                    (option) => Number(option.value),
                 );
             }
         } else {
@@ -161,7 +161,7 @@ export default React.memo(function ChoiceInput(props) {
             if (validationState === "unvalidated") {
                 if (disabled) {
                     checkWorkStyle.backgroundColor = getComputedStyle(
-                        document.documentElement
+                        document.documentElement,
                     ).getPropertyValue("--mainGray");
                 }
                 checkWorkButton = (
@@ -199,7 +199,7 @@ export default React.memo(function ChoiceInput(props) {
                 if (SVs.showCorrectness) {
                     if (validationState === "correct") {
                         checkWorkStyle.backgroundColor = getComputedStyle(
-                            document.documentElement
+                            document.documentElement,
                         ).getPropertyValue("--mainGreen");
                         checkWorkButton = (
                             <Button id={id + "_correct"} style={checkWorkStyle}>
@@ -222,7 +222,7 @@ export default React.memo(function ChoiceInput(props) {
                     } else {
                         //incorrect
                         checkWorkStyle.backgroundColor = getComputedStyle(
-                            document.documentElement
+                            document.documentElement,
                         ).getPropertyValue("--mainRed");
                         checkWorkButton = (
                             <Button
@@ -340,7 +340,7 @@ export default React.memo(function ChoiceInput(props) {
                 }
                 if (disabled) {
                     checkWorkStyle.backgroundColor = getComputedStyle(
-                        document.documentElement
+                        document.documentElement,
                     ).getPropertyValue("--mainGray");
                 }
                 checkworkComponent = (
@@ -379,7 +379,7 @@ export default React.memo(function ChoiceInput(props) {
                 if (SVs.showCorrectness) {
                     if (validationState === "correct") {
                         checkWorkStyle.backgroundColor = getComputedStyle(
-                            document.documentElement
+                            document.documentElement,
                         ).getPropertyValue("--mainGreen");
                         checkworkComponent = (
                             <Button id={id + "_correct"} style={checkWorkStyle}>
@@ -389,7 +389,7 @@ export default React.memo(function ChoiceInput(props) {
                         );
                     } else if (validationState === "incorrect") {
                         checkWorkStyle.backgroundColor = getComputedStyle(
-                            document.documentElement
+                            document.documentElement,
                         ).getPropertyValue("--mainRed");
                         checkworkComponent = (
                             <Button
@@ -485,7 +485,7 @@ export default React.memo(function ChoiceInput(props) {
                                 name={inputKey}
                                 value={i + 1}
                                 checked={rendererSelectedIndices.includes(
-                                    i + 1
+                                    i + 1,
                                 )}
                                 onChange={onChangeHandler}
                                 disabled={radioDisabled}
@@ -520,7 +520,7 @@ export default React.memo(function ChoiceInput(props) {
                                 name={inputKey}
                                 value={i + 1}
                                 checked={rendererSelectedIndices.includes(
-                                    i + 1
+                                    i + 1,
                                 )}
                                 onChange={onChangeHandler}
                                 disabled={disabled || svData.choicesDisabled[i]}

@@ -32,7 +32,8 @@ export default class Constraints extends BaseComponent {
                 setValue: {
                     independentComponentConstraints:
                         dependencyValues.constraintChildren.every(
-                            (x) => x.stateValues.independentComponentConstraints
+                            (x) =>
+                                x.stateValues.independentComponentConstraints,
                         ),
                 },
             }),
@@ -183,7 +184,7 @@ export default class Constraints extends BaseComponent {
 
                 if (
                     [graphXmin, graphXmax, graphYmin, graphYmax].every(
-                        Number.isFinite
+                        Number.isFinite,
                     )
                 ) {
                     return {
@@ -305,13 +306,13 @@ export default class Constraints extends BaseComponent {
                         for (let constraintChild of globalDependencyValues.constraintChildren) {
                             let result =
                                 constraintChild.stateValues.applyComponentConstraint(
-                                    variables
+                                    variables,
                                 );
 
                             if (result.constrained) {
                                 variables["x" + varEnding] =
                                     convertValueToMathExpression(
-                                        result.variables["x" + varEnding]
+                                        result.variables["x" + varEnding],
                                     );
                                 constraintUsed = true;
                             }
@@ -343,14 +344,14 @@ export default class Constraints extends BaseComponent {
                         if (constraintChild.stateValues.applyConstraint) {
                             constraintResult =
                                 constraintChild.stateValues.applyConstraint(
-                                    variables
+                                    variables,
                                 );
                         } else {
                             constraintResult =
                                 applyConstraintFromComponentConstraints(
                                     variables,
                                     constraintChild.stateValues
-                                        .applyComponentConstraint
+                                        .applyComponentConstraint,
                                 );
                         }
 
@@ -358,7 +359,7 @@ export default class Constraints extends BaseComponent {
                             for (let varName in constraintResult.variables) {
                                 variables[varName] =
                                     convertValueToMathExpression(
-                                        constraintResult.variables[varName]
+                                        constraintResult.variables[varName],
                                     );
                             }
                             constraintUsed = true;
@@ -414,20 +415,20 @@ export default class Constraints extends BaseComponent {
                             ["x" + varEnding]: convertValueToMathExpression(
                                 desiredStateVariableValues.constraintResults[
                                     arrayKey
-                                ]
+                                ],
                             ),
                         };
 
                         for (let constraintChild of globalDependencyValues.constraintChildren) {
                             let result =
                                 constraintChild.stateValues.applyComponentConstraint(
-                                    variables
+                                    variables,
                                 );
 
                             if (result.constrained) {
                                 variables["x" + varEnding] =
                                     convertValueToMathExpression(
-                                        result.variables["x" + varEnding]
+                                        result.variables["x" + varEnding],
                                     );
                             }
                         }
@@ -458,7 +459,7 @@ export default class Constraints extends BaseComponent {
                     }
                     Object.assign(
                         workspace.desiredConstraintResults,
-                        desiredStateVariableValues.constraintResults
+                        desiredStateVariableValues.constraintResults,
                     );
 
                     let SVconstraintResults =
@@ -468,12 +469,14 @@ export default class Constraints extends BaseComponent {
                         if (arrayKey in workspace.desiredConstraintResults) {
                             variables["x" + varEnding] =
                                 convertValueToMathExpression(
-                                    workspace.desiredConstraintResults[arrayKey]
+                                    workspace.desiredConstraintResults[
+                                        arrayKey
+                                    ],
                                 );
                         } else {
                             variables["x" + varEnding] =
                                 convertValueToMathExpression(
-                                    SVconstraintResults[arrayKey]
+                                    SVconstraintResults[arrayKey],
                                 );
                         }
                     }
@@ -483,14 +486,14 @@ export default class Constraints extends BaseComponent {
                         if (constraintChild.stateValues.applyConstraint) {
                             constraintResult =
                                 constraintChild.stateValues.applyConstraint(
-                                    variables
+                                    variables,
                                 );
                         } else {
                             constraintResult =
                                 applyConstraintFromComponentConstraints(
                                     variables,
                                     constraintChild.stateValues
-                                        .applyComponentConstraint
+                                        .applyComponentConstraint,
                                 );
                         }
 
@@ -498,7 +501,7 @@ export default class Constraints extends BaseComponent {
                             for (let varName in constraintResult.variables) {
                                 variables[varName] =
                                     convertValueToMathExpression(
-                                        constraintResult.variables[varName]
+                                        constraintResult.variables[varName],
                                     );
                             }
                         }
@@ -536,7 +539,7 @@ export default class Constraints extends BaseComponent {
             }),
             definition: function ({ dependencyValues }) {
                 let constraintUsed = Object.values(
-                    dependencyValues.constraintUsedByComponent
+                    dependencyValues.constraintUsedByComponent,
                 ).some((x) => x);
 
                 return { setValue: { constraintUsed } };

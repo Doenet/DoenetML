@@ -1,10 +1,27 @@
 import { defineConfig } from "vite";
 import dts from "vite-plugin-dts";
+import { viteStaticCopy } from "vite-plugin-static-copy";
+import * as path from "node:path";
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
 
 // https://vitejs.dev/config/
 export default defineConfig({
     base: "./",
-    plugins: [dts({ rollupTypes: true,  })],
+    plugins: [
+        dts({ rollupTypes: true }),
+        viteStaticCopy({
+            targets: [
+                {
+                    src: path.join(
+                        require.resolve("@doenet/doenetml"),
+                        "../fonts/*",
+                    ),
+                    dest: "fonts/",
+                },
+            ],
+        }),
+    ],
     build: {
         minify: true,
         sourcemap: true,
@@ -20,5 +37,8 @@ export default defineConfig({
                 inlineDynamicImports: true,
             },
         },
+    },
+    define: {
+        "process.env.NODE_ENV": '"production"',
     },
 });

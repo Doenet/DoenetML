@@ -63,7 +63,7 @@ export default function createComponentInfoObjects() {
             return false;
         }
         return baseClass.isPrototypeOf(
-            allComponentClasses[inheritedComponentType]
+            allComponentClasses[inheritedComponentType],
         );
     }
 

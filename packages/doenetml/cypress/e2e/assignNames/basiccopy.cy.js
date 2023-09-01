@@ -25,7 +25,7 @@ describe("Basic copy assignName Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -78,7 +78,7 @@ describe("Basic copy assignName Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -154,7 +154,7 @@ describe("Basic copy assignName Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -176,7 +176,7 @@ describe("Basic copy assignName Tests", function () {
 
             // have to create unproxied version of equation for equals to work
             let unproxiedEquation = me.fromAst(
-                stateVariables["/_line1"].stateValues.equation
+                stateVariables["/_line1"].stateValues.equation,
             );
             expect(unproxiedEquation.equals(me.fromText("y=x"))).to.be.true;
 
@@ -473,7 +473,7 @@ describe("Basic copy assignName Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -489,7 +489,7 @@ describe("Basic copy assignName Tests", function () {
 
             // have to create unproxied version of equation for equals to work
             let unproxiedEquation = me.fromAst(
-                stateVariables["/_line1"].stateValues.equation
+                stateVariables["/_line1"].stateValues.equation,
             );
             expect(unproxiedEquation.equals(me.fromText("y=x"))).to.be.true;
 
@@ -603,7 +603,7 @@ describe("Basic copy assignName Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -625,7 +625,7 @@ describe("Basic copy assignName Tests", function () {
 
             // have to create unproxied version of equation for equals to work
             let unproxiedEquation = me.fromAst(
-                stateVariables["/_line1"].stateValues.equation
+                stateVariables["/_line1"].stateValues.equation,
             );
             expect(unproxiedEquation.equals(me.fromText("y=x"))).to.be.true;
 
@@ -736,7 +736,7 @@ describe("Basic copy assignName Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -745,22 +745,22 @@ describe("Basic copy assignName Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             let point1Anchor = cesc2(
-                "#" + stateVariables["/pts"].replacements[0].componentName
+                "#" + stateVariables["/pts"].replacements[0].componentName,
             );
             let point2Anchor = cesc2(
-                "#" + stateVariables["/pts"].replacements[1].componentName
+                "#" + stateVariables["/pts"].replacements[1].componentName,
             );
             let point1aAnchor = cesc2(
-                "#" + stateVariables["/ptsb"].replacements[0].componentName
+                "#" + stateVariables["/ptsb"].replacements[0].componentName,
             );
             let point2aAnchor = cesc2(
-                "#" + stateVariables["/ptsb"].replacements[1].componentName
+                "#" + stateVariables["/ptsb"].replacements[1].componentName,
             );
             let point1bAnchor = cesc2(
-                "#" + stateVariables["/ptsc"].replacements[0].componentName
+                "#" + stateVariables["/ptsc"].replacements[0].componentName,
             );
             let point2bAnchor = cesc2(
-                "#" + stateVariables["/ptsc"].replacements[1].componentName
+                "#" + stateVariables["/ptsc"].replacements[1].componentName,
             );
 
             cy.get(point1Anchor + " .mjx-mrow")
@@ -811,7 +811,7 @@ describe("Basic copy assignName Tests", function () {
 
                 // have to create unproxied version of equation for equals to work
                 let unproxiedEquation = me.fromAst(
-                    stateVariables["/_line1"].stateValues.equation
+                    stateVariables["/_line1"].stateValues.equation,
                 );
                 expect(unproxiedEquation.equals(me.fromText("y=x"))).to.be.true;
 
@@ -1080,7 +1080,7 @@ describe("Basic copy assignName Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1089,26 +1089,28 @@ describe("Basic copy assignName Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             let point1Anchor = cesc2(
-                "#" + stateVariables["/hello/pts"].replacements[0].componentName
+                "#" +
+                    stateVariables["/hello/pts"].replacements[0].componentName,
             );
             let point2Anchor = cesc2(
-                "#" + stateVariables["/hello/pts"].replacements[1].componentName
+                "#" +
+                    stateVariables["/hello/pts"].replacements[1].componentName,
             );
             let point1aAnchor = cesc2(
                 "#" +
-                    stateVariables["/hello/ptsb"].replacements[0].componentName
+                    stateVariables["/hello/ptsb"].replacements[0].componentName,
             );
             let point2aAnchor = cesc2(
                 "#" +
-                    stateVariables["/hello/ptsb"].replacements[1].componentName
+                    stateVariables["/hello/ptsb"].replacements[1].componentName,
             );
             let point1bAnchor = cesc2(
                 "#" +
-                    stateVariables["/hello/ptsc"].replacements[0].componentName
+                    stateVariables["/hello/ptsc"].replacements[0].componentName,
             );
             let point2bAnchor = cesc2(
                 "#" +
-                    stateVariables["/hello/ptsc"].replacements[1].componentName
+                    stateVariables["/hello/ptsc"].replacements[1].componentName,
             );
 
             cy.get(point1Anchor + " .mjx-mrow")
@@ -1171,7 +1173,7 @@ describe("Basic copy assignName Tests", function () {
 
                 // have to create unproxied version of equation for equals to work
                 let unproxiedEquation = me.fromAst(
-                    stateVariables["/hello/_line1"].stateValues.equation
+                    stateVariables["/hello/_line1"].stateValues.equation,
                 );
                 expect(unproxiedEquation.equals(me.fromText("y=x"))).to.be.true;
 
@@ -1232,15 +1234,15 @@ describe("Basic copy assignName Tests", function () {
                 cy.get(cesc2("#/hello/n9")).should("have.text", "nothing 9: ");
                 cy.get(cesc2("#/hello/n10")).should(
                     "have.text",
-                    "nothing 10: "
+                    "nothing 10: ",
                 );
                 cy.get(cesc2("#/hello/n11")).should(
                     "have.text",
-                    "nothing 11: "
+                    "nothing 11: ",
                 );
                 cy.get(cesc2("#/hello/n12")).should(
                     "have.text",
-                    "nothing 12: "
+                    "nothing 12: ",
                 );
                 cy.get(cesc2("#/n13")).should("have.text", "nothing 13: ");
                 cy.get(cesc2("#/n14")).should("have.text", "nothing 14: ");
@@ -1304,15 +1306,15 @@ describe("Basic copy assignName Tests", function () {
                 cy.get(cesc2("#/hello/n9")).should("have.text", "nothing 9: ");
                 cy.get(cesc2("#/hello/n10")).should(
                     "have.text",
-                    "nothing 10: "
+                    "nothing 10: ",
                 );
                 cy.get(cesc2("#/hello/n11")).should(
                     "have.text",
-                    "nothing 11: "
+                    "nothing 11: ",
                 );
                 cy.get(cesc2("#/hello/n12")).should(
                     "have.text",
-                    "nothing 12: "
+                    "nothing 12: ",
                 );
                 cy.get(cesc2("#/n13")).should("have.text", "nothing 13: ");
                 cy.get(cesc2("#/n14")).should("have.text", "nothing 14: ");
@@ -1376,15 +1378,15 @@ describe("Basic copy assignName Tests", function () {
                 cy.get(cesc2("#/hello/n9")).should("have.text", "nothing 9: ");
                 cy.get(cesc2("#/hello/n10")).should(
                     "have.text",
-                    "nothing 10: "
+                    "nothing 10: ",
                 );
                 cy.get(cesc2("#/hello/n11")).should(
                     "have.text",
-                    "nothing 11: "
+                    "nothing 11: ",
                 );
                 cy.get(cesc2("#/hello/n12")).should(
                     "have.text",
-                    "nothing 12: "
+                    "nothing 12: ",
                 );
                 cy.get(cesc2("#/n13")).should("have.text", "nothing 13: ");
                 cy.get(cesc2("#/n14")).should("have.text", "nothing 14: ");
@@ -1452,15 +1454,15 @@ describe("Basic copy assignName Tests", function () {
                 cy.get(cesc2("#/hello/n9")).should("have.text", "nothing 9: ");
                 cy.get(cesc2("#/hello/n10")).should(
                     "have.text",
-                    "nothing 10: "
+                    "nothing 10: ",
                 );
                 cy.get(cesc2("#/hello/n11")).should(
                     "have.text",
-                    "nothing 11: "
+                    "nothing 11: ",
                 );
                 cy.get(cesc2("#/hello/n12")).should(
                     "have.text",
-                    "nothing 12: "
+                    "nothing 12: ",
                 );
                 cy.get(cesc2("#/n13")).should("have.text", "nothing 13: ");
                 cy.get(cesc2("#/n14")).should("have.text", "nothing 14: ");
@@ -1512,7 +1514,7 @@ describe("Basic copy assignName Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1791,7 +1793,7 @@ describe("Basic copy assignName Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1969,7 +1971,7 @@ describe("Basic copy assignName Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2188,17 +2190,17 @@ $(a/_p1/person) $(a/person)
 $(b/_p1/person) $(b/person)</p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get(cesc("#\\/_section1\\/_p1")).should(
             "have.text",
-            "Hello, Jesse!"
+            "Hello, Jesse!",
         );
         cy.get(cesc("#\\/_section1\\/_p2")).should(
             "have.text",
-            "Hello, Jessica!"
+            "Hello, Jessica!",
         );
         cy.get(cesc("#\\/a\\/_p1")).should("have.text", "Hello, Jesse!");
         cy.get(cesc("#\\/a\\/_p2")).should("have.text", "Hello, Jessica!");
@@ -2207,24 +2209,24 @@ $(b/_p1/person) $(b/person)</p>
 
         cy.get(cesc("#\\/_p1")).should(
             "have.text",
-            "Jesse Jessica\nJesse Jessica\nJesse Jessica"
+            "Jesse Jessica\nJesse Jessica\nJesse Jessica",
         );
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
             expect(
-                stateVariables["/_section1/_p1/person"].stateValues.value
+                stateVariables["/_section1/_p1/person"].stateValues.value,
             ).eq("Jesse");
             expect(stateVariables["/_section1/person"].stateValues.value).eq(
-                "Jessica"
+                "Jessica",
             );
             expect(stateVariables["/a/_p1/person"].stateValues.value).eq(
-                "Jesse"
+                "Jesse",
             );
             expect(stateVariables["/a/person"].stateValues.value).eq("Jessica");
             expect(stateVariables["/b/_p1/person"].stateValues.value).eq(
-                "Jesse"
+                "Jesse",
             );
             expect(stateVariables["/b/person"].stateValues.value).eq("Jessica");
         });
@@ -2247,7 +2249,7 @@ $(b/_p1/person) $(b/person)</p>
   </section>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2255,7 +2257,7 @@ $(b/_p1/person) $(b/person)</p>
         cy.get(cesc("#\\/hello\\/a")).should("have.text", "Hello, Jesse!");
         cy.get(cesc("#\\/hello\\/_p2")).should(
             "have.text",
-            "Jesse Jesse Jesse"
+            "Jesse Jesse Jesse",
         );
 
         cy.get(cesc("#\\/bye\\/a")).should("have.text", "Hello, Jesse!");
@@ -2265,13 +2267,13 @@ $(b/_p1/person) $(b/person)</p>
             let stateVariables = await win.returnAllStateVariables1();
 
             expect(stateVariables["/hello/_p1/person"].stateValues.value).eq(
-                "Jesse"
+                "Jesse",
             );
             expect(stateVariables["/hello/a/person"].stateValues.value).eq(
-                "Jesse"
+                "Jesse",
             );
             expect(stateVariables["/bye/a/person"].stateValues.value).eq(
-                "Jesse"
+                "Jesse",
             );
         });
     });
@@ -2299,7 +2301,7 @@ $(b/_p1/person) $(b/person)</p>
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 

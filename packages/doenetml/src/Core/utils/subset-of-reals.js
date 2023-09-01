@@ -225,7 +225,7 @@ class Union extends Subset {
                 val instanceof Union
                     ? acc.concat(val.subsets)
                     : acc.concat(val),
-            []
+            [],
         );
 
         this.subsets = [];
@@ -426,7 +426,7 @@ class OpenInterval extends Interval {
     intersectWithOpenInterval(that) {
         return new OpenInterval(
             Math.max(this.left, that.left),
-            Math.min(this.right, that.right)
+            Math.min(this.right, that.right),
         );
     }
 
@@ -933,11 +933,11 @@ export function mathExpressionFromSubsetValue({
     // merge any singletons to create closed intervals
     if (subsetValue instanceof Union) {
         let singletons = subsetValue.subsets.filter(
-            (x) => x instanceof Singleton
+            (x) => x instanceof Singleton,
         );
 
         let intervals = subsetValue.subsets.filter(
-            (x) => x instanceof OpenInterval
+            (x) => x instanceof OpenInterval,
         );
 
         for (let ind1 = 0; ind1 < singletons.length; ind1++) {
@@ -984,7 +984,7 @@ export function mathExpressionFromSubsetValue({
             .sort(
                 (a, b) =>
                     (a.left === undefined ? a.element : a.left) -
-                    (b.left === undefined ? b.element : b.left)
+                    (b.left === undefined ? b.element : b.left),
             )
             .map((x) => subsetToMath(x));
 

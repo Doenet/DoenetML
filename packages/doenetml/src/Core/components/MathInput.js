@@ -77,6 +77,8 @@ export default class MathInput extends Input {
             createStateVariable: "format",
             defaultValue: "text",
             public: true,
+            toLowerCase: true,
+            validValues: ["text", "latex"],
         };
         attributes.functionSymbols = {
             createComponentOfType: "textList",
@@ -170,7 +172,7 @@ export default class MathInput extends Input {
             returnRoundingStateVariableDefinitions({
                 displayDigitsDefault: 10,
                 displaySmallAsZeroDefault: 0,
-            })
+            }),
         );
 
         let labelDefinitions = returnLabelStateVariableDefinitions();
@@ -194,7 +196,7 @@ export default class MathInput extends Input {
                         {
                             setEssentialValue: "valueChanged",
                             value: Boolean(
-                                desiredStateVariableValues.valueChanged
+                                desiredStateVariableValues.valueChanged,
                             ),
                         },
                     ],
@@ -295,7 +297,7 @@ export default class MathInput extends Input {
                                                     dependencyValues.splitSymbols,
                                                 parseScientificNotation:
                                                     dependencyValues.parseScientificNotation,
-                                            }
+                                            },
                                         );
                                     }
                                 },
@@ -366,7 +368,7 @@ export default class MathInput extends Input {
                         {
                             setEssentialValue: "immediateValueChanged",
                             value: Boolean(
-                                desiredStateVariableValues.immediateValueChanged
+                                desiredStateVariableValues.immediateValueChanged,
                             ),
                         },
                     ],
@@ -602,7 +604,7 @@ export default class MathInput extends Input {
                         justUpdatedForNewComponent ||
                         deepCompare(
                             essentialValues.lastValueForDisplay.tree,
-                            dependencyValues.valueForDisplay.tree
+                            dependencyValues.valueForDisplay.tree,
                         ) ||
                         dependencyValues.dontUpdateRawValueInDefinition
                     )
@@ -614,13 +616,13 @@ export default class MathInput extends Input {
                         !usedDefault.prefillLatex
                     ) {
                         rawRendererValue = stripLatex(
-                            dependencyValues.prefillLatex
+                            dependencyValues.prefillLatex,
                         );
                     } else {
                         rawRendererValue = stripLatex(
                             dependencyValues.valueForDisplay.toLatex({
                                 showBlanks: false,
-                            })
+                            }),
                         );
                     }
 
@@ -746,15 +748,15 @@ export default class MathInput extends Input {
                     if (
                         !deepCompare(
                             desiredStateVariableValues.rawRendererValue.tree,
-                            currentMath.tree
+                            currentMath.tree,
                         )
                     ) {
                         let desiredValue = stripLatex(
                             desiredStateVariableValues.rawRendererValue.toLatex(
                                 {
                                     showBlanks: false,
-                                }
-                            )
+                                },
+                            ),
                         );
                         if (
                             dependencyValues.hideNaN &&
@@ -837,7 +839,7 @@ export default class MathInput extends Input {
             if (
                 !deepCompare(
                     (await this.stateValues.value).tree,
-                    immediateValue.tree
+                    immediateValue.tree,
                 )
             ) {
                 let updateInstructions = [
@@ -929,7 +931,7 @@ export default class MathInput extends Input {
         {
             stateVariable: "value",
             stateVariablesToShadow: Object.keys(
-                returnRoundingStateVariableDefinitions()
+                returnRoundingStateVariableDefinitions(),
             ),
         },
     ];

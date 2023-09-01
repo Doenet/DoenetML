@@ -77,7 +77,7 @@ export default class NumberList extends InlineComponent {
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions()
+            returnRoundingStateVariableDefinitions(),
         );
 
         // set overrideChildHide so that children are hidden
@@ -172,7 +172,7 @@ export default class NumberList extends InlineComponent {
                     numComponents = maxNum;
                     childIndexByArrayKey = childIndexByArrayKey.slice(
                         0,
-                        maxNum
+                        maxNum,
                     );
                 }
 
@@ -409,7 +409,7 @@ export default class NumberList extends InlineComponent {
 
                 for (let arrayKey of arrayKeys) {
                     maths[arrayKey] = me.fromAst(
-                        dependencyValuesByKey[arrayKey].number
+                        dependencyValuesByKey[arrayKey].number,
                     );
                 }
 
@@ -506,7 +506,7 @@ export default class NumberList extends InlineComponent {
                         roundForDisplay({
                             value: me.fromAst(x),
                             dependencyValues,
-                        }).toString(params)
+                        }).toString(params),
                     );
                 }
 
@@ -554,7 +554,7 @@ export default class NumberList extends InlineComponent {
                         })
                     ) {
                         componentNamesInList.push(
-                            ...child.stateValues.componentNamesInList
+                            ...child.stateValues.componentNamesInList,
                         );
                     } else {
                         componentNamesInList.push(child.componentName);
@@ -563,7 +563,7 @@ export default class NumberList extends InlineComponent {
 
                 componentNamesInList = componentNamesInList.slice(
                     0,
-                    dependencyValues.numComponents
+                    dependencyValues.numComponents,
                 );
 
                 return { setValue: { componentNamesInList } };
@@ -620,7 +620,7 @@ export default class NumberList extends InlineComponent {
                 for (let child of dependencyValues.numberAndNumberListChildren) {
                     let numComponentsLeft = Math.max(
                         0,
-                        numComponentsToDisplay - numComponentsSoFar
+                        numComponentsToDisplay - numComponentsSoFar,
                     );
                     if (numComponentsLeft > 0) {
                         numChildrenToRender++;
@@ -637,7 +637,7 @@ export default class NumberList extends InlineComponent {
 
                         let numComponentsForNumberListChild = Math.min(
                             numComponentsLeft,
-                            numberListChild.stateValues.numComponents
+                            numberListChild.stateValues.numComponents,
                         );
 
                         numComponentsToDisplayByChild[
@@ -667,13 +667,13 @@ export default class NumberList extends InlineComponent {
             stateVariable: "maths",
             componentType: "mathList",
             stateVariablesToShadow: Object.keys(
-                returnRoundingStateVariableDefinitions()
+                returnRoundingStateVariableDefinitions(),
             ),
         },
         {
             stateVariable: "math",
             stateVariablesToShadow: Object.keys(
-                returnRoundingStateVariableDefinitions()
+                returnRoundingStateVariableDefinitions(),
             ),
         },
         "text",

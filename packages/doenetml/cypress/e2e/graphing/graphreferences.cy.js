@@ -39,7 +39,7 @@ describe("Graph Reference Test", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -143,83 +143,83 @@ describe("Graph Reference Test", function () {
                 for (let point of pointsA) {
                     expect(stateVariables[point].stateValues.xs[0]).closeTo(
                         pointAx,
-                        1e-12
+                        1e-12,
                     );
                     expect(stateVariables[point].stateValues.xs[1]).closeTo(
                         pointAy,
-                        1e-12
+                        1e-12,
                     );
                 }
                 for (let point of pointsB) {
                     expect(stateVariables[point].stateValues.xs[0]).closeTo(
                         pointBx,
-                        1e-12
+                        1e-12,
                     );
                     expect(stateVariables[point].stateValues.xs[1]).closeTo(
                         pointBy,
-                        1e-12
+                        1e-12,
                     );
                 }
                 for (let point of pointsD) {
                     expect(stateVariables[point].stateValues.xs[0]).closeTo(
                         pointAx,
-                        1e-12
+                        1e-12,
                     );
                     expect(stateVariables[point].stateValues.xs[1]).closeTo(
                         pointBy,
-                        1e-12
+                        1e-12,
                     );
                 }
                 for (let point of pointsE) {
                     expect(stateVariables[point].stateValues.xs[0]).closeTo(
                         pointEx,
-                        1e-12
+                        1e-12,
                     );
                     expect(stateVariables[point].stateValues.xs[1]).closeTo(
                         pointEy,
-                        1e-12
+                        1e-12,
                     );
                 }
                 for (let line of linesA) {
                     expect(
                         me
                             .fromAst(stateVariables[line].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(slopeA, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables[line].stateValues.xintercept
+                                stateVariables[line].stateValues.xintercept,
                             )
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(xinterceptA, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables[line].stateValues.yintercept
+                                stateVariables[line].stateValues.yintercept,
                             )
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(yinterceptA, 1e-12);
                 }
                 for (let line of linesB) {
                     expect(
                         me
                             .fromAst(stateVariables[line].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(slopeB, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables[line].stateValues.xintercept
+                                stateVariables[line].stateValues.xintercept,
                             )
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(xinterceptB, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables[line].stateValues.yintercept
+                                stateVariables[line].stateValues.yintercept,
                             )
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(yinterceptB, 1e-12);
                 }
             });
@@ -276,83 +276,83 @@ describe("Graph Reference Test", function () {
                 for (let point of pointsA) {
                     expect(stateVariables[point].stateValues.xs[0]).closeTo(
                         pointAx,
-                        1e-12
+                        1e-12,
                     );
                     expect(stateVariables[point].stateValues.xs[1]).closeTo(
                         pointAy,
-                        1e-12
+                        1e-12,
                     );
                 }
                 for (let point of pointsB) {
                     expect(stateVariables[point].stateValues.xs[0]).closeTo(
                         pointBx,
-                        1e-12
+                        1e-12,
                     );
                     expect(stateVariables[point].stateValues.xs[1]).closeTo(
                         pointBy,
-                        1e-12
+                        1e-12,
                     );
                 }
                 for (let point of pointsD) {
                     expect(stateVariables[point].stateValues.xs[0]).closeTo(
                         pointAx,
-                        1e-12
+                        1e-12,
                     );
                     expect(stateVariables[point].stateValues.xs[1]).closeTo(
                         pointBy,
-                        1e-12
+                        1e-12,
                     );
                 }
                 for (let point of pointsE) {
                     expect(stateVariables[point].stateValues.xs[0]).closeTo(
                         pointEx,
-                        1e-12
+                        1e-12,
                     );
                     expect(stateVariables[point].stateValues.xs[1]).closeTo(
                         pointEy,
-                        1e-12
+                        1e-12,
                     );
                 }
                 for (let line of linesA) {
                     expect(
                         me
                             .fromAst(stateVariables[line].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(slopeA, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables[line].stateValues.xintercept
+                                stateVariables[line].stateValues.xintercept,
                             )
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(xinterceptA, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables[line].stateValues.yintercept
+                                stateVariables[line].stateValues.yintercept,
                             )
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(yinterceptA, 1e-12);
                 }
                 for (let line of linesB) {
                     expect(
                         me
                             .fromAst(stateVariables[line].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(slopeB, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables[line].stateValues.xintercept
+                                stateVariables[line].stateValues.xintercept,
                             )
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(xinterceptB, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables[line].stateValues.yintercept
+                                stateVariables[line].stateValues.yintercept,
                             )
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(yinterceptB, 1e-12);
                 }
             });
@@ -381,8 +381,8 @@ describe("Graph Reference Test", function () {
                 pointBy = pointDy;
 
                 let moveUp = 8;
-                let lineA3Points = await stateVariables[linesA[3]].stateValues
-                    .points;
+                let lineA3Points =
+                    await stateVariables[linesA[3]].stateValues.points;
                 let point1coords = [lineA3Points[0][0], lineA3Points[0][1]];
                 let point2coords = [lineA3Points[1][0], lineA3Points[1][1]];
                 point1coords[1] = point1coords[1] + moveUp;
@@ -409,83 +409,83 @@ describe("Graph Reference Test", function () {
                 for (let point of pointsA) {
                     expect(stateVariables[point].stateValues.xs[0]).closeTo(
                         pointAx,
-                        1e-12
+                        1e-12,
                     );
                     expect(stateVariables[point].stateValues.xs[1]).closeTo(
                         pointAy,
-                        1e-12
+                        1e-12,
                     );
                 }
                 for (let point of pointsB) {
                     expect(stateVariables[point].stateValues.xs[0]).closeTo(
                         pointBx,
-                        1e-12
+                        1e-12,
                     );
                     expect(stateVariables[point].stateValues.xs[1]).closeTo(
                         pointBy,
-                        1e-12
+                        1e-12,
                     );
                 }
                 for (let point of pointsD) {
                     expect(stateVariables[point].stateValues.xs[0]).closeTo(
                         pointAx,
-                        1e-12
+                        1e-12,
                     );
                     expect(stateVariables[point].stateValues.xs[1]).closeTo(
                         pointBy,
-                        1e-12
+                        1e-12,
                     );
                 }
                 for (let point of pointsE) {
                     expect(stateVariables[point].stateValues.xs[0]).closeTo(
                         pointEx,
-                        1e-12
+                        1e-12,
                     );
                     expect(stateVariables[point].stateValues.xs[1]).closeTo(
                         pointEy,
-                        1e-12
+                        1e-12,
                     );
                 }
                 for (let line of linesA) {
                     expect(
                         me
                             .fromAst(stateVariables[line].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(slopeA, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables[line].stateValues.xintercept
+                                stateVariables[line].stateValues.xintercept,
                             )
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(xinterceptA, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables[line].stateValues.yintercept
+                                stateVariables[line].stateValues.yintercept,
                             )
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(yinterceptA, 1e-12);
                 }
                 for (let line of linesB) {
                     expect(
                         me
                             .fromAst(stateVariables[line].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(slopeB, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables[line].stateValues.xintercept
+                                stateVariables[line].stateValues.xintercept,
                             )
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(xinterceptB, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables[line].stateValues.yintercept
+                                stateVariables[line].stateValues.yintercept,
                             )
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(yinterceptB, 1e-12);
                 }
             });
@@ -495,8 +495,8 @@ describe("Graph Reference Test", function () {
                 let stateVariables = await win.returnAllStateVariables1();
 
                 let moveUp = -4;
-                let lineA5points = await stateVariables[linesA[5]].stateValues
-                    .points;
+                let lineA5points =
+                    await stateVariables[linesA[5]].stateValues.points;
                 let point1coords = [lineA5points[0][0], lineA5points[0][1]];
                 let point2coords = [lineA5points[1][0], lineA5points[1][1]];
                 point1coords[1] = point1coords[1] + moveUp;
@@ -516,8 +516,8 @@ describe("Graph Reference Test", function () {
 
                 let moveX = 3;
                 let moveY = 2;
-                let lineB5points = await stateVariables[linesB[5]].stateValues
-                    .points;
+                let lineB5points =
+                    await stateVariables[linesB[5]].stateValues.points;
                 point1coords = [lineB5points[0][0], lineB5points[0][1]];
                 point2coords = [lineB5points[1][0], lineB5points[1][1]];
                 point1coords[0] = point1coords[0] + moveX;
@@ -549,83 +549,83 @@ describe("Graph Reference Test", function () {
                 for (let point of pointsA) {
                     expect(stateVariables[point].stateValues.xs[0]).closeTo(
                         pointAx,
-                        1e-12
+                        1e-12,
                     );
                     expect(stateVariables[point].stateValues.xs[1]).closeTo(
                         pointAy,
-                        1e-12
+                        1e-12,
                     );
                 }
                 for (let point of pointsB) {
                     expect(stateVariables[point].stateValues.xs[0]).closeTo(
                         pointBx,
-                        1e-12
+                        1e-12,
                     );
                     expect(stateVariables[point].stateValues.xs[1]).closeTo(
                         pointBy,
-                        1e-12
+                        1e-12,
                     );
                 }
                 for (let point of pointsD) {
                     expect(stateVariables[point].stateValues.xs[0]).closeTo(
                         pointAx,
-                        1e-12
+                        1e-12,
                     );
                     expect(stateVariables[point].stateValues.xs[1]).closeTo(
                         pointBy,
-                        1e-12
+                        1e-12,
                     );
                 }
                 for (let point of pointsE) {
                     expect(stateVariables[point].stateValues.xs[0]).closeTo(
                         pointEx,
-                        1e-12
+                        1e-12,
                     );
                     expect(stateVariables[point].stateValues.xs[1]).closeTo(
                         pointEy,
-                        1e-12
+                        1e-12,
                     );
                 }
                 for (let line of linesA) {
                     expect(
                         me
                             .fromAst(stateVariables[line].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(slopeA, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables[line].stateValues.xintercept
+                                stateVariables[line].stateValues.xintercept,
                             )
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(xinterceptA, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables[line].stateValues.yintercept
+                                stateVariables[line].stateValues.yintercept,
                             )
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(yinterceptA, 1e-12);
                 }
                 for (let line of linesB) {
                     expect(
                         me
                             .fromAst(stateVariables[line].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(slopeB, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables[line].stateValues.xintercept
+                                stateVariables[line].stateValues.xintercept,
                             )
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(xinterceptB, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables[line].stateValues.yintercept
+                                stateVariables[line].stateValues.yintercept,
                             )
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(yinterceptB, 1e-12);
                 }
             });
@@ -654,8 +654,8 @@ describe("Graph Reference Test", function () {
                 pointBy = pointDy;
 
                 let moveUp = 1;
-                let lineA7points = await stateVariables[linesA[7]].stateValues
-                    .points;
+                let lineA7points =
+                    await stateVariables[linesA[7]].stateValues.points;
                 let point1coords = [lineA7points[0][0], lineA7points[0][1]];
                 let point2coords = [lineA7points[1][0], lineA7points[1][1]];
                 point1coords[1] = point1coords[1] + moveUp;
@@ -682,83 +682,83 @@ describe("Graph Reference Test", function () {
                 for (let point of pointsA) {
                     expect(stateVariables[point].stateValues.xs[0]).closeTo(
                         pointAx,
-                        1e-12
+                        1e-12,
                     );
                     expect(stateVariables[point].stateValues.xs[1]).closeTo(
                         pointAy,
-                        1e-12
+                        1e-12,
                     );
                 }
                 for (let point of pointsB) {
                     expect(stateVariables[point].stateValues.xs[0]).closeTo(
                         pointBx,
-                        1e-12
+                        1e-12,
                     );
                     expect(stateVariables[point].stateValues.xs[1]).closeTo(
                         pointBy,
-                        1e-12
+                        1e-12,
                     );
                 }
                 for (let point of pointsD) {
                     expect(stateVariables[point].stateValues.xs[0]).closeTo(
                         pointAx,
-                        1e-12
+                        1e-12,
                     );
                     expect(stateVariables[point].stateValues.xs[1]).closeTo(
                         pointBy,
-                        1e-12
+                        1e-12,
                     );
                 }
                 for (let point of pointsE) {
                     expect(stateVariables[point].stateValues.xs[0]).closeTo(
                         pointEx,
-                        1e-12
+                        1e-12,
                     );
                     expect(stateVariables[point].stateValues.xs[1]).closeTo(
                         pointEy,
-                        1e-12
+                        1e-12,
                     );
                 }
                 for (let line of linesA) {
                     expect(
                         me
                             .fromAst(stateVariables[line].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(slopeA, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables[line].stateValues.xintercept
+                                stateVariables[line].stateValues.xintercept,
                             )
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(xinterceptA, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables[line].stateValues.yintercept
+                                stateVariables[line].stateValues.yintercept,
                             )
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(yinterceptA, 1e-12);
                 }
                 for (let line of linesB) {
                     expect(
                         me
                             .fromAst(stateVariables[line].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(slopeB, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables[line].stateValues.xintercept
+                                stateVariables[line].stateValues.xintercept,
                             )
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(xinterceptB, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables[line].stateValues.yintercept
+                                stateVariables[line].stateValues.yintercept,
                             )
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(yinterceptB, 1e-12);
                 }
             });
@@ -783,8 +783,8 @@ describe("Graph Reference Test", function () {
                 let stateVariables = await win.returnAllStateVariables1();
 
                 let moveUp = -3;
-                let lineA8points = await stateVariables[linesA[8]].stateValues
-                    .points;
+                let lineA8points =
+                    await stateVariables[linesA[8]].stateValues.points;
                 let point1coords = [lineA8points[0][0], lineA8points[0][1]];
                 let point2coords = [lineA8points[1][0], lineA8points[1][1]];
                 point1coords[1] = point1coords[1] + moveUp;
@@ -811,83 +811,83 @@ describe("Graph Reference Test", function () {
                 for (let point of pointsA) {
                     expect(stateVariables[point].stateValues.xs[0]).closeTo(
                         pointAx,
-                        1e-12
+                        1e-12,
                     );
                     expect(stateVariables[point].stateValues.xs[1]).closeTo(
                         pointAy,
-                        1e-12
+                        1e-12,
                     );
                 }
                 for (let point of pointsB) {
                     expect(stateVariables[point].stateValues.xs[0]).closeTo(
                         pointBx,
-                        1e-12
+                        1e-12,
                     );
                     expect(stateVariables[point].stateValues.xs[1]).closeTo(
                         pointBy,
-                        1e-12
+                        1e-12,
                     );
                 }
                 for (let point of pointsD) {
                     expect(stateVariables[point].stateValues.xs[0]).closeTo(
                         pointAx,
-                        1e-12
+                        1e-12,
                     );
                     expect(stateVariables[point].stateValues.xs[1]).closeTo(
                         pointBy,
-                        1e-12
+                        1e-12,
                     );
                 }
                 for (let point of pointsE) {
                     expect(stateVariables[point].stateValues.xs[0]).closeTo(
                         pointEx,
-                        1e-12
+                        1e-12,
                     );
                     expect(stateVariables[point].stateValues.xs[1]).closeTo(
                         pointEy,
-                        1e-12
+                        1e-12,
                     );
                 }
                 for (let line of linesA) {
                     expect(
                         me
                             .fromAst(stateVariables[line].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(slopeA, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables[line].stateValues.xintercept
+                                stateVariables[line].stateValues.xintercept,
                             )
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(xinterceptA, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables[line].stateValues.yintercept
+                                stateVariables[line].stateValues.yintercept,
                             )
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(yinterceptA, 1e-12);
                 }
                 for (let line of linesB) {
                     expect(
                         me
                             .fromAst(stateVariables[line].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(slopeB, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables[line].stateValues.xintercept
+                                stateVariables[line].stateValues.xintercept,
                             )
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(xinterceptB, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables[line].stateValues.yintercept
+                                stateVariables[line].stateValues.yintercept,
                             )
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(yinterceptB, 1e-12);
                 }
             });
@@ -897,8 +897,8 @@ describe("Graph Reference Test", function () {
                 let stateVariables = await win.returnAllStateVariables1();
 
                 let moveUp = -2;
-                let lineA11points = await stateVariables[linesA[11]].stateValues
-                    .points;
+                let lineA11points =
+                    await stateVariables[linesA[11]].stateValues.points;
                 let point1coords = [lineA11points[0][0], lineA11points[0][1]];
                 let point2coords = [lineA11points[1][0], lineA11points[1][1]];
                 point1coords[1] = point1coords[1] + moveUp;
@@ -919,8 +919,8 @@ describe("Graph Reference Test", function () {
 
                 let moveX = -1;
                 let moveY = 3;
-                let lineB11points = await stateVariables[linesB[11]].stateValues
-                    .points;
+                let lineB11points =
+                    await stateVariables[linesB[11]].stateValues.points;
                 point1coords = [lineB11points[0][0], lineB11points[0][1]];
                 point2coords = [lineB11points[1][0], lineB11points[1][1]];
                 point1coords[0] = point1coords[0] + moveX;
@@ -952,83 +952,83 @@ describe("Graph Reference Test", function () {
                 for (let point of pointsA) {
                     expect(stateVariables[point].stateValues.xs[0]).closeTo(
                         pointAx,
-                        1e-12
+                        1e-12,
                     );
                     expect(stateVariables[point].stateValues.xs[1]).closeTo(
                         pointAy,
-                        1e-12
+                        1e-12,
                     );
                 }
                 for (let point of pointsB) {
                     expect(stateVariables[point].stateValues.xs[0]).closeTo(
                         pointBx,
-                        1e-12
+                        1e-12,
                     );
                     expect(stateVariables[point].stateValues.xs[1]).closeTo(
                         pointBy,
-                        1e-12
+                        1e-12,
                     );
                 }
                 for (let point of pointsD) {
                     expect(stateVariables[point].stateValues.xs[0]).closeTo(
                         pointAx,
-                        1e-12
+                        1e-12,
                     );
                     expect(stateVariables[point].stateValues.xs[1]).closeTo(
                         pointBy,
-                        1e-12
+                        1e-12,
                     );
                 }
                 for (let point of pointsE) {
                     expect(stateVariables[point].stateValues.xs[0]).closeTo(
                         pointEx,
-                        1e-12
+                        1e-12,
                     );
                     expect(stateVariables[point].stateValues.xs[1]).closeTo(
                         pointEy,
-                        1e-12
+                        1e-12,
                     );
                 }
                 for (let line of linesA) {
                     expect(
                         me
                             .fromAst(stateVariables[line].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(slopeA, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables[line].stateValues.xintercept
+                                stateVariables[line].stateValues.xintercept,
                             )
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(xinterceptA, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables[line].stateValues.yintercept
+                                stateVariables[line].stateValues.yintercept,
                             )
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(yinterceptA, 1e-12);
                 }
                 for (let line of linesB) {
                     expect(
                         me
                             .fromAst(stateVariables[line].stateValues.slope)
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(slopeB, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables[line].stateValues.xintercept
+                                stateVariables[line].stateValues.xintercept,
                             )
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(xinterceptB, 1e-12);
                     expect(
                         me
                             .fromAst(
-                                stateVariables[line].stateValues.yintercept
+                                stateVariables[line].stateValues.yintercept,
                             )
-                            .evaluate_to_constant()
+                            .evaluate_to_constant(),
                     ).closeTo(yinterceptB, 1e-12);
                 }
             });

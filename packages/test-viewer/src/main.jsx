@@ -2,6 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import TestViewer from "./test/testViewer";
 import { DoenetML } from "@doenet/doenetml";
+import "@doenet/doenetml/style.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
     <TestViewer DoenetML={DoenetML} />,

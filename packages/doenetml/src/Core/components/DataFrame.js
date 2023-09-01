@@ -124,7 +124,7 @@ export default class DataFrame extends BaseComponent {
                         x
                             .trim()
                             .split(",")
-                            .map((y) => y.trim())
+                            .map((y) => y.trim()),
                     );
 
                 let numColumns = originalData[0]?.length;
@@ -172,7 +172,7 @@ export default class DataFrame extends BaseComponent {
                     data = originalData.slice(1);
                 } else {
                     dataFrame.columnNames = [...Array(numColumns).keys()].map(
-                        (x) => `col${x + 1}`
+                        (x) => `col${x + 1}`,
                     );
                     data = originalData;
                 }
@@ -260,7 +260,7 @@ export default class DataFrame extends BaseComponent {
                                 data[rowInd][colInd] = null;
                             } else {
                                 data[rowInd][colInd] = Number(
-                                    data[rowInd][colInd]
+                                    data[rowInd][colInd],
                                 );
                             }
                         }

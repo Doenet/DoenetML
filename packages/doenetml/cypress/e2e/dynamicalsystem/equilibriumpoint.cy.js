@@ -42,7 +42,7 @@ describe("Equilibriumpoint Tag Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 

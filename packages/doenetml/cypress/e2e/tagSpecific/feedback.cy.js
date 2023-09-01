@@ -23,7 +23,7 @@ describe("Feedback Tag Tests", function () {
   </section>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -94,7 +94,7 @@ describe("Feedback Tag Tests", function () {
             // cy.get(mathinputAnchor).should('have.value', 'x');
             cy.get(cesc("#\\/_section1") + " p").should(
                 "have.text",
-                "That's a bad answer."
+                "That's a bad answer.",
             );
 
             cy.log("Enter different wrong answer");
@@ -106,7 +106,7 @@ describe("Feedback Tag Tests", function () {
             // cy.get(mathinputAnchor).should('have.value', 'y');
             cy.get(cesc("#\\/_section1") + " p").should(
                 "have.text",
-                "That's a bad answer."
+                "That's a bad answer.",
             );
 
             cy.log("Submit answer");
@@ -140,7 +140,7 @@ describe("Feedback Tag Tests", function () {
   </section>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -230,7 +230,7 @@ describe("Feedback Tag Tests", function () {
   </section>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -269,7 +269,7 @@ describe("Feedback Tag Tests", function () {
             // cy.get(mathinputAnchor).should('have.value', 'x+y');
             cy.get(cesc("#\\/_section1") + " p").should(
                 "have.text",
-                `You got award 1.`
+                `You got award 1.`,
             );
 
             cy.log("Enter wrong answer");
@@ -281,7 +281,7 @@ describe("Feedback Tag Tests", function () {
             // cy.get(mathinputAnchor).should('have.value', 'x');
             cy.get(cesc("#\\/_section1") + " p").should(
                 "have.text",
-                `You got award 1.`
+                `You got award 1.`,
             );
 
             cy.log("Submit answer");
@@ -291,7 +291,7 @@ describe("Feedback Tag Tests", function () {
             // cy.get(mathinputAnchor).should('have.value', 'x');
             cy.get(cesc("#\\/_section1") + " p").should(
                 "have.text",
-                `You got award 2.`
+                `You got award 2.`,
             );
 
             cy.log("Enter different wrong answer");
@@ -303,7 +303,7 @@ describe("Feedback Tag Tests", function () {
             // cy.get(mathinputAnchor).should('have.value', 'y');
             cy.get(cesc("#\\/_section1") + " p").should(
                 "have.text",
-                `You got award 2.`
+                `You got award 2.`,
             );
 
             cy.log("Submit answer");
@@ -349,7 +349,7 @@ describe("Feedback Tag Tests", function () {
   </section>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -397,7 +397,7 @@ describe("Feedback Tag Tests", function () {
         // cy.get(cesc('#\\/_mathinput1_input')).should('have.value', '11');
         cy.get(cesc("#\\/_section1") + " p").should(
             "have.text",
-            `Larger than 10`
+            `Larger than 10`,
         );
         cy.get(cesc("#\\/ca"))
             .invoke("text")
@@ -410,7 +410,7 @@ describe("Feedback Tag Tests", function () {
             `{end}{backspace}0`,
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/_mathinput1_submit")).should("be.visible");
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(`{enter}`, {
@@ -421,7 +421,7 @@ describe("Feedback Tag Tests", function () {
         // cy.get(cesc('#\\/_mathinput1_input')).should('have.value', '10');
         cy.get(cesc("#\\/_section1") + " p").should(
             "have.text",
-            `Larger than 2`
+            `Larger than 2`,
         );
         cy.get(cesc("#\\/ca"))
             .invoke("text")
@@ -432,7 +432,7 @@ describe("Feedback Tag Tests", function () {
         cy.log("submit 2");
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             `{end}{backspace}{backspace}2`,
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/_mathinput1_submit")).should("be.visible");
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(`{enter}`, {
@@ -443,7 +443,7 @@ describe("Feedback Tag Tests", function () {
         // cy.get(cesc('#\\/_mathinput1_input')).should('have.value', '2');
         cy.get(cesc("#\\/_section1") + " p").should(
             "have.text",
-            `Larger than 1`
+            `Larger than 1`,
         );
         cy.get(cesc("#\\/ca"))
             .invoke("text")
@@ -456,7 +456,7 @@ describe("Feedback Tag Tests", function () {
             `{end}{backspace}1`,
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/_mathinput1_submit")).should("be.visible");
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(`{enter}`, {
@@ -467,7 +467,7 @@ describe("Feedback Tag Tests", function () {
         // cy.get(cesc('#\\/_mathinput1_input')).should('have.value', '1');
         cy.get(cesc("#\\/_section1") + " p").should(
             "have.text",
-            `Larger than 0.9`
+            `Larger than 0.9`,
         );
         cy.get(cesc("#\\/ca"))
             .invoke("text")
@@ -480,7 +480,7 @@ describe("Feedback Tag Tests", function () {
             `{end}{backspace}0`,
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/_mathinput1_submit")).should("be.visible");
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(`{enter}`, {
@@ -501,7 +501,7 @@ describe("Feedback Tag Tests", function () {
             `{end}{backspace}-1`,
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/_mathinput1_submit")).should("be.visible");
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(`{enter}`, {
@@ -512,7 +512,7 @@ describe("Feedback Tag Tests", function () {
         // cy.get(cesc('#\\/_mathinput1_input')).should('have.value', '-1');
         cy.get(cesc("#\\/_section1") + " p").should(
             "have.text",
-            `A negative number?`
+            `A negative number?`,
         );
         cy.get(cesc("#\\/ca"))
             .invoke("text")
@@ -547,7 +547,7 @@ describe("Feedback Tag Tests", function () {
   </section>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -560,16 +560,16 @@ describe("Feedback Tag Tests", function () {
                     .componentName;
             let mathinput1Anchor = cesc2("#" + mathinput1Name) + " textarea";
             let mathinput1SubmitAnchor = cesc2(
-                "#" + mathinput1Name + "_submit"
+                "#" + mathinput1Name + "_submit",
             );
             let mathinput1CorrectAnchor = cesc2(
-                "#" + mathinput1Name + "_correct"
+                "#" + mathinput1Name + "_correct",
             );
             let mathinput1IncorrectAnchor = cesc2(
-                "#" + mathinput1Name + "_incorrect"
+                "#" + mathinput1Name + "_incorrect",
             );
             let mathinput1PartialAnchor = cesc2(
-                "#" + mathinput1Name + "_partial"
+                "#" + mathinput1Name + "_partial",
             );
 
             let mathinput2Name =
@@ -577,16 +577,16 @@ describe("Feedback Tag Tests", function () {
                     .componentName;
             let mathinput2Anchor = cesc2("#" + mathinput2Name) + " textarea";
             let mathinput2SubmitAnchor = cesc2(
-                "#" + mathinput2Name + "_submit"
+                "#" + mathinput2Name + "_submit",
             );
             let mathinput2CorrectAnchor = cesc2(
-                "#" + mathinput2Name + "_correct"
+                "#" + mathinput2Name + "_correct",
             );
             let mathinput2IncorrectAnchor = cesc2(
-                "#" + mathinput2Name + "_incorrect"
+                "#" + mathinput2Name + "_incorrect",
             );
             let mathinput2PartialAnchor = cesc2(
-                "#" + mathinput2Name + "_partial"
+                "#" + mathinput2Name + "_partial",
             );
 
             cy.get(cesc("#\\/_section1") + " p").should("not.exist");
@@ -600,7 +600,7 @@ describe("Feedback Tag Tests", function () {
             cy.get(mathinput2SubmitAnchor).should("be.visible");
             cy.get(cesc("#\\/_section1") + " p").should(
                 "have.text",
-                `You got award 1.`
+                `You got award 1.`,
             );
             cy.get(cesc("#\\/_section2") + " p").should("not.exist");
 
@@ -609,13 +609,13 @@ describe("Feedback Tag Tests", function () {
                 `{end}{backspace}{backspace}{enter}`,
                 {
                     force: true,
-                }
+                },
             );
             cy.get(mathinput1PartialAnchor).should("be.visible");
             cy.get(mathinput2SubmitAnchor).should("be.visible");
             cy.get(cesc("#\\/_section1") + " p").should(
                 "have.text",
-                `You got award 2.`
+                `You got award 2.`,
             );
             cy.get(cesc("#\\/_section2") + " p").should("not.exist");
 
@@ -625,11 +625,11 @@ describe("Feedback Tag Tests", function () {
             cy.get(mathinput1PartialAnchor).should("be.visible");
             cy.get(cesc("#\\/_section2") + " p").should(
                 "have.text",
-                `You got award 1.`
+                `You got award 1.`,
             );
             cy.get(cesc("#\\/_section1") + " p").should(
                 "have.text",
-                `You got award 2.`
+                `You got award 2.`,
             );
 
             cy.log("Submit correct answer 2");
@@ -637,17 +637,17 @@ describe("Feedback Tag Tests", function () {
                 `{end}{backspace}{backspace}{enter}`,
                 {
                     force: true,
-                }
+                },
             );
             cy.get(mathinput2CorrectAnchor).should("be.visible");
             cy.get(mathinput1PartialAnchor).should("be.visible");
             cy.get(cesc("#\\/_section2") + " p").should(
                 "have.text",
-                `You got award 2.`
+                `You got award 2.`,
             );
             cy.get(cesc("#\\/_section1") + " p").should(
                 "have.text",
-                `You got award 2.`
+                `You got award 2.`,
             );
 
             cy.log("Enter different wrong answer 1");
@@ -659,7 +659,7 @@ describe("Feedback Tag Tests", function () {
             cy.get(cesc("#\\/_section1") + " p").should("not.exist");
             cy.get(cesc("#\\/_section2") + " p").should(
                 "have.text",
-                `You got award 2.`
+                `You got award 2.`,
             );
 
             cy.log("Enter different wrong answer 2");
@@ -708,7 +708,7 @@ describe("Feedback Tag Tests", function () {
   </section>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -721,7 +721,7 @@ describe("Feedback Tag Tests", function () {
                     .componentName;
             let choiceinputAnchor = cesc2("#" + choiceinputName);
             let choiceinputSubmitAnchor = cesc2(
-                "#" + choiceinputName + "_submit"
+                "#" + choiceinputName + "_submit",
             );
 
             cy.log("Test value displayed in browser");
@@ -832,7 +832,7 @@ describe("Feedback Tag Tests", function () {
   `,
                     requestedVariantIndex: 2,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -845,7 +845,7 @@ describe("Feedback Tag Tests", function () {
                     .componentName;
             let choiceinputAnchor = cesc2("#" + choiceinputName);
             let choiceinputSubmitAnchor = cesc2(
-                "#" + choiceinputName + "_submit"
+                "#" + choiceinputName + "_submit",
             );
 
             cy.log("Test value displayed in browser");
@@ -970,7 +970,7 @@ describe("Feedback Tag Tests", function () {
   `,
                     requestedVariantIndex: 2,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -983,14 +983,14 @@ describe("Feedback Tag Tests", function () {
                     .componentName;
             let choiceinput1Anchor = cesc2("#" + choiceinput1Name);
             let choiceinput1SubmitAnchor = cesc2(
-                "#" + choiceinput1Name + "_submit"
+                "#" + choiceinput1Name + "_submit",
             );
             let choiceinput2Name =
                 stateVariables["/_answer2"].stateValues.inputChildren[0]
                     .componentName;
             let choiceinput2Anchor = cesc2("#" + choiceinput2Name);
             let choiceinput2SubmitAnchor = cesc2(
-                "#" + choiceinput2Name + "_submit"
+                "#" + choiceinput2Name + "_submit",
             );
 
             cy.log("Test value displayed in browser");
@@ -1064,7 +1064,7 @@ describe("Feedback Tag Tests", function () {
   </section>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1087,7 +1087,7 @@ describe("Feedback Tag Tests", function () {
             cy.get(textinputAnchor).should("have.value", "wrong");
             cy.get(cesc("#\\/_section1") + " p").should(
                 "have.text",
-                `Your response wrong is incorrect.`
+                `Your response wrong is incorrect.`,
             );
 
             cy.log("Enter correct answer");
@@ -1104,7 +1104,7 @@ describe("Feedback Tag Tests", function () {
             cy.get(textinputAnchor).should("have.value", "");
             cy.get(cesc("#\\/_section1") + " p").should(
                 "have.text",
-                `Your response  is incorrect.`
+                `Your response  is incorrect.`,
             );
 
             cy.log("Enter another incorrect answer in");
@@ -1114,7 +1114,7 @@ describe("Feedback Tag Tests", function () {
             cy.get(textinputAnchor).should("have.value", "bye");
             cy.get(cesc("#\\/_section1") + " p").should(
                 "have.text",
-                `Your response bye is incorrect.`
+                `Your response bye is incorrect.`,
             );
         });
     });
@@ -1144,7 +1144,7 @@ describe("Feedback Tag Tests", function () {
   <subsection name="feedback4"><title/>$_answer1.feedbacks</subsection>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1158,13 +1158,13 @@ describe("Feedback Tag Tests", function () {
             let mathinputAnchor = cesc2("#" + mathinputName) + " textarea";
             let mathinputSubmitAnchor = cesc2("#" + mathinputName + "_submit");
             let mathinputCorrectAnchor = cesc2(
-                "#" + mathinputName + "_correct"
+                "#" + mathinputName + "_correct",
             );
             let mathinputIncorrectAnchor = cesc2(
-                "#" + mathinputName + "_incorrect"
+                "#" + mathinputName + "_incorrect",
             );
             let mathinputPartialAnchor = cesc2(
-                "#" + mathinputName + "_partial"
+                "#" + mathinputName + "_partial",
             );
 
             cy.log("Test value displayed in browser");
@@ -1270,7 +1270,7 @@ describe("Feedback Tag Tests", function () {
             cy.get(mathinputCorrectAnchor).should("be.visible");
             cy.get(cesc("#\\/feedback1")).should(
                 "contain.text",
-                "FeedbackGood job!"
+                "FeedbackGood job!",
             );
             cy.get(cesc("#\\/feedback2"))
                 .invoke("text")
@@ -1284,18 +1284,18 @@ describe("Feedback Tag Tests", function () {
                 });
             cy.get(cesc("#\\/feedback4")).should(
                 "contain.text",
-                "FeedbackGood job!"
+                "FeedbackGood job!",
             );
 
             cy.log("Type cos(pi x)");
             cy.get(mathinputAnchor).type(
                 `{ctrl+home}{shift+end}{backspace}cos(pi x)`,
-                { force: true }
+                { force: true },
             );
             cy.get(mathinputSubmitAnchor).should("be.visible");
             cy.get(cesc("#\\/feedback1")).should(
                 "contain.text",
-                "FeedbackGood job!"
+                "FeedbackGood job!",
             );
             cy.get(cesc("#\\/feedback2"))
                 .invoke("text")
@@ -1309,7 +1309,7 @@ describe("Feedback Tag Tests", function () {
                 });
             cy.get(cesc("#\\/feedback4")).should(
                 "contain.text",
-                "FeedbackGood job!"
+                "FeedbackGood job!",
             );
 
             cy.log("Blur");
@@ -1317,7 +1317,7 @@ describe("Feedback Tag Tests", function () {
             cy.get(mathinputSubmitAnchor).should("be.visible");
             cy.get(cesc("#\\/feedback1")).should(
                 "contain.text",
-                "FeedbackGood job!"
+                "FeedbackGood job!",
             );
             cy.get(cesc("#\\/feedback2"))
                 .invoke("text")
@@ -1331,7 +1331,7 @@ describe("Feedback Tag Tests", function () {
                 });
             cy.get(cesc("#\\/feedback4")).should(
                 "contain.text",
-                "FeedbackGood job!"
+                "FeedbackGood job!",
             );
 
             cy.log("Submit answer");
@@ -1344,7 +1344,7 @@ describe("Feedback Tag Tests", function () {
                 });
             cy.get(cesc("#\\/feedback2")).should(
                 "contain.text",
-                "FeedbackClose, but wrong trignometric function"
+                "FeedbackClose, but wrong trignometric function",
             );
             cy.get(cesc("#\\/feedback3"))
                 .invoke("text")
@@ -1353,7 +1353,7 @@ describe("Feedback Tag Tests", function () {
                 });
             cy.get(cesc("#\\/feedback4")).should(
                 "contain.text",
-                "FeedbackClose, but wrong trignometric function"
+                "FeedbackClose, but wrong trignometric function",
             );
 
             cy.log("Enter x");
@@ -1403,11 +1403,11 @@ describe("Feedback Tag Tests", function () {
                 });
             cy.get(cesc("#\\/feedback3")).should(
                 "contain.text",
-                "FeedbackYou lost pi"
+                "FeedbackYou lost pi",
             );
             cy.get(cesc("#\\/feedback4")).should(
                 "contain.text",
-                "FeedbackYou lost pi"
+                "FeedbackYou lost pi",
             );
         });
     });
@@ -1444,7 +1444,7 @@ describe("Feedback Tag Tests", function () {
   <subsection name="feedback4"><title/>$_answer1.feedbacks</subsection>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1458,13 +1458,13 @@ describe("Feedback Tag Tests", function () {
             let mathinputAnchor = cesc2("#" + mathinputName) + " textarea";
             let mathinputSubmitAnchor = cesc2("#" + mathinputName + "_submit");
             let mathinputCorrectAnchor = cesc2(
-                "#" + mathinputName + "_correct"
+                "#" + mathinputName + "_correct",
             );
             let mathinputIncorrectAnchor = cesc2(
-                "#" + mathinputName + "_incorrect"
+                "#" + mathinputName + "_incorrect",
             );
             let mathinputPartialAnchor = cesc2(
-                "#" + mathinputName + "_partial"
+                "#" + mathinputName + "_partial",
             );
 
             cy.log("Test value displayed in browser");
@@ -1570,7 +1570,7 @@ describe("Feedback Tag Tests", function () {
             cy.get(mathinputCorrectAnchor).should("be.visible");
             cy.get(cesc("#\\/feedback1")).should(
                 "contain.text",
-                "FeedbackGood job!"
+                "FeedbackGood job!",
             );
             cy.get(cesc("#\\/feedback2"))
                 .invoke("text")
@@ -1584,18 +1584,18 @@ describe("Feedback Tag Tests", function () {
                 });
             cy.get(cesc("#\\/feedback4")).should(
                 "contain.text",
-                "FeedbackGood job!"
+                "FeedbackGood job!",
             );
 
             cy.log("Type cos(pi x)");
             cy.get(mathinputAnchor).type(
                 `{ctrl+home}{shift+end}{backspace}cos(pi x)`,
-                { force: true }
+                { force: true },
             );
             cy.get(mathinputSubmitAnchor).should("be.visible");
             cy.get(cesc("#\\/feedback1")).should(
                 "contain.text",
-                "FeedbackGood job!"
+                "FeedbackGood job!",
             );
             cy.get(cesc("#\\/feedback2"))
                 .invoke("text")
@@ -1609,7 +1609,7 @@ describe("Feedback Tag Tests", function () {
                 });
             cy.get(cesc("#\\/feedback4")).should(
                 "contain.text",
-                "FeedbackGood job!"
+                "FeedbackGood job!",
             );
 
             cy.log("Blur");
@@ -1617,7 +1617,7 @@ describe("Feedback Tag Tests", function () {
             cy.get(mathinputSubmitAnchor).should("be.visible");
             cy.get(cesc("#\\/feedback1")).should(
                 "contain.text",
-                "FeedbackGood job!"
+                "FeedbackGood job!",
             );
             cy.get(cesc("#\\/feedback2"))
                 .invoke("text")
@@ -1631,7 +1631,7 @@ describe("Feedback Tag Tests", function () {
                 });
             cy.get(cesc("#\\/feedback4")).should(
                 "contain.text",
-                "FeedbackGood job!"
+                "FeedbackGood job!",
             );
 
             cy.log("Submit answer");
@@ -1644,7 +1644,7 @@ describe("Feedback Tag Tests", function () {
                 });
             cy.get(cesc("#\\/feedback2")).should(
                 "contain.text",
-                "FeedbackClose, but wrong trignometric function"
+                "FeedbackClose, but wrong trignometric function",
             );
             cy.get(cesc("#\\/feedback3"))
                 .invoke("text")
@@ -1653,7 +1653,7 @@ describe("Feedback Tag Tests", function () {
                 });
             cy.get(cesc("#\\/feedback4")).should(
                 "contain.text",
-                "FeedbackClose, but wrong trignometric function"
+                "FeedbackClose, but wrong trignometric function",
             );
 
             cy.log("Enter x");
@@ -1703,11 +1703,11 @@ describe("Feedback Tag Tests", function () {
                 });
             cy.get(cesc("#\\/feedback3")).should(
                 "contain.text",
-                "FeedbackYou lost pi"
+                "FeedbackYou lost pi",
             );
             cy.get(cesc("#\\/feedback4")).should(
                 "contain.text",
-                "FeedbackYou lost pi"
+                "FeedbackYou lost pi",
             );
         });
     });
@@ -1752,7 +1752,7 @@ describe("Feedback Tag Tests", function () {
   </section>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1766,13 +1766,13 @@ describe("Feedback Tag Tests", function () {
             let mathinputAnchor = cesc2("#" + mathinputName) + " textarea";
             let mathinputSubmitAnchor = cesc2("#" + mathinputName + "_submit");
             let mathinputCorrectAnchor = cesc2(
-                "#" + mathinputName + "_correct"
+                "#" + mathinputName + "_correct",
             );
             let mathinputIncorrectAnchor = cesc2(
-                "#" + mathinputName + "_incorrect"
+                "#" + mathinputName + "_incorrect",
             );
             let mathinputPartialAnchor = cesc2(
-                "#" + mathinputName + "_partial"
+                "#" + mathinputName + "_partial",
             );
 
             cy.log("Test value displayed in browser");
@@ -1878,7 +1878,7 @@ describe("Feedback Tag Tests", function () {
             cy.get(mathinputCorrectAnchor).should("be.visible");
             cy.get(cesc("#\\/feedback1")).should(
                 "contain.text",
-                "FeedbackGood job!"
+                "FeedbackGood job!",
             );
             cy.get(cesc("#\\/feedback2"))
                 .invoke("text")
@@ -1892,18 +1892,18 @@ describe("Feedback Tag Tests", function () {
                 });
             cy.get(cesc("#\\/feedback4")).should(
                 "contain.text",
-                "FeedbackGood job!"
+                "FeedbackGood job!",
             );
 
             cy.log("Type cos(pi x)");
             cy.get(mathinputAnchor).type(
                 `{ctrl+home}{shift+end}{backspace}cos(pi x)`,
-                { force: true }
+                { force: true },
             );
             cy.get(mathinputSubmitAnchor).should("be.visible");
             cy.get(cesc("#\\/feedback1")).should(
                 "contain.text",
-                "FeedbackGood job!"
+                "FeedbackGood job!",
             );
             cy.get(cesc("#\\/feedback2"))
                 .invoke("text")
@@ -1917,7 +1917,7 @@ describe("Feedback Tag Tests", function () {
                 });
             cy.get(cesc("#\\/feedback4")).should(
                 "contain.text",
-                "FeedbackGood job!"
+                "FeedbackGood job!",
             );
 
             cy.log("Blur");
@@ -1925,7 +1925,7 @@ describe("Feedback Tag Tests", function () {
             cy.get(mathinputSubmitAnchor).should("be.visible");
             cy.get(cesc("#\\/feedback1")).should(
                 "contain.text",
-                "FeedbackGood job!"
+                "FeedbackGood job!",
             );
             cy.get(cesc("#\\/feedback2"))
                 .invoke("text")
@@ -1939,7 +1939,7 @@ describe("Feedback Tag Tests", function () {
                 });
             cy.get(cesc("#\\/feedback4")).should(
                 "contain.text",
-                "FeedbackGood job!"
+                "FeedbackGood job!",
             );
 
             cy.log("Submit answer");
@@ -1952,7 +1952,7 @@ describe("Feedback Tag Tests", function () {
                 });
             cy.get(cesc("#\\/feedback2")).should(
                 "contain.text",
-                "FeedbackClose, but wrong trignometric function"
+                "FeedbackClose, but wrong trignometric function",
             );
             cy.get(cesc("#\\/feedback3"))
                 .invoke("text")
@@ -1961,7 +1961,7 @@ describe("Feedback Tag Tests", function () {
                 });
             cy.get(cesc("#\\/feedback4")).should(
                 "contain.text",
-                "FeedbackClose, but wrong trignometric function"
+                "FeedbackClose, but wrong trignometric function",
             );
 
             cy.log("Enter x");
@@ -2011,11 +2011,11 @@ describe("Feedback Tag Tests", function () {
                 });
             cy.get(cesc("#\\/feedback3")).should(
                 "contain.text",
-                "FeedbackYou lost pi"
+                "FeedbackYou lost pi",
             );
             cy.get(cesc("#\\/feedback4")).should(
                 "contain.text",
-                "FeedbackYou lost pi"
+                "FeedbackYou lost pi",
             );
         });
     });
@@ -2053,7 +2053,7 @@ describe("Feedback Tag Tests", function () {
   <subsection name="feedback4"><title/>$_answer1.feedbacks</subsection>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2067,13 +2067,13 @@ describe("Feedback Tag Tests", function () {
             let mathinputAnchor = cesc2("#" + mathinputName) + " textarea";
             let mathinputSubmitAnchor = cesc2("#" + mathinputName + "_submit");
             let mathinputCorrectAnchor = cesc2(
-                "#" + mathinputName + "_correct"
+                "#" + mathinputName + "_correct",
             );
             let mathinputIncorrectAnchor = cesc2(
-                "#" + mathinputName + "_incorrect"
+                "#" + mathinputName + "_incorrect",
             );
             let mathinputPartialAnchor = cesc2(
-                "#" + mathinputName + "_partial"
+                "#" + mathinputName + "_partial",
             );
 
             cy.log("Test value displayed in browser");
@@ -2179,7 +2179,7 @@ describe("Feedback Tag Tests", function () {
             cy.get(mathinputCorrectAnchor).should("be.visible");
             cy.get(cesc("#\\/feedback1")).should(
                 "contain.text",
-                "FeedbackGood job!"
+                "FeedbackGood job!",
             );
             cy.get(cesc("#\\/feedback2"))
                 .invoke("text")
@@ -2193,18 +2193,18 @@ describe("Feedback Tag Tests", function () {
                 });
             cy.get(cesc("#\\/feedback4")).should(
                 "contain.text",
-                "FeedbackGood job!"
+                "FeedbackGood job!",
             );
 
             cy.log("Type cos(pi x)");
             cy.get(mathinputAnchor).type(
                 `{ctrl+home}{shift+end}{backspace}cos(pi x)`,
-                { force: true }
+                { force: true },
             );
             cy.get(mathinputSubmitAnchor).should("be.visible");
             cy.get(cesc("#\\/feedback1")).should(
                 "contain.text",
-                "FeedbackGood job!"
+                "FeedbackGood job!",
             );
             cy.get(cesc("#\\/feedback2"))
                 .invoke("text")
@@ -2218,7 +2218,7 @@ describe("Feedback Tag Tests", function () {
                 });
             cy.get(cesc("#\\/feedback4")).should(
                 "contain.text",
-                "FeedbackGood job!"
+                "FeedbackGood job!",
             );
 
             cy.log("Blur");
@@ -2226,7 +2226,7 @@ describe("Feedback Tag Tests", function () {
             cy.get(mathinputSubmitAnchor).should("be.visible");
             cy.get(cesc("#\\/feedback1")).should(
                 "contain.text",
-                "FeedbackGood job!"
+                "FeedbackGood job!",
             );
             cy.get(cesc("#\\/feedback2"))
                 .invoke("text")
@@ -2240,7 +2240,7 @@ describe("Feedback Tag Tests", function () {
                 });
             cy.get(cesc("#\\/feedback4")).should(
                 "contain.text",
-                "FeedbackGood job!"
+                "FeedbackGood job!",
             );
 
             cy.log("Submit answer");
@@ -2314,11 +2314,11 @@ describe("Feedback Tag Tests", function () {
                 });
             cy.get(cesc("#\\/feedback3")).should(
                 "contain.text",
-                "FeedbackYou lost pi"
+                "FeedbackYou lost pi",
             );
             cy.get(cesc("#\\/feedback4")).should(
                 "contain.text",
-                "FeedbackYou lost pi"
+                "FeedbackYou lost pi",
             );
         });
     });
@@ -2343,7 +2343,7 @@ describe("Feedback Tag Tests", function () {
   <subsection name="feedbacks"><title/>$_answer1.feedbacks</subsection>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2353,7 +2353,7 @@ describe("Feedback Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             let choiceinputName = cesc2(
                 stateVariables["/_answer1"].stateValues.inputChildren[0]
-                    .componentName
+                    .componentName,
             );
             let choiceinputAnchor = "#" + choiceinputName;
             let choiceinputSubmitAnchor = "#" + choiceinputName + "_submit";
@@ -2385,7 +2385,7 @@ describe("Feedback Tag Tests", function () {
             cy.get(choiceinputCorrectAnchor).should("be.visible");
             cy.get(cesc("#\\/feedbacks")).should(
                 "contain.text",
-                "FeedbackGood job!"
+                "FeedbackGood job!",
             );
 
             cy.log("Select half correct answer");
@@ -2393,7 +2393,7 @@ describe("Feedback Tag Tests", function () {
             cy.get(choiceinputSubmitAnchor).should("be.visible");
             cy.get(cesc("#\\/feedbacks")).should(
                 "contain.text",
-                "FeedbackGood job!"
+                "FeedbackGood job!",
             );
 
             cy.log("Click submit button");
@@ -2405,7 +2405,7 @@ describe("Feedback Tag Tests", function () {
                 });
             cy.get(cesc("#\\/feedbacks")).should(
                 "contain.text",
-                "Feedbackmeow"
+                "Feedbackmeow",
             );
 
             cy.log("Select incorrect answer");
@@ -2413,7 +2413,7 @@ describe("Feedback Tag Tests", function () {
             cy.get(choiceinputSubmitAnchor).should("be.visible");
             cy.get(cesc("#\\/feedbacks")).should(
                 "contain.text",
-                "Feedbackmeow"
+                "Feedbackmeow",
             );
 
             cy.log("Click submit button");
@@ -2462,7 +2462,7 @@ describe("Feedback Tag Tests", function () {
   </section>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2472,7 +2472,7 @@ describe("Feedback Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             let choiceinputName = cesc2(
                 stateVariables["/_answer1"].stateValues.inputChildren[0]
-                    .componentName
+                    .componentName,
             );
             let choiceinputAnchor = "#" + choiceinputName;
             let choiceinputSubmitAnchor = "#" + choiceinputName + "_submit";
@@ -2504,7 +2504,7 @@ describe("Feedback Tag Tests", function () {
             cy.get(choiceinputCorrectAnchor).should("be.visible");
             cy.get(cesc("#\\/feedbacks")).should(
                 "contain.text",
-                "FeedbackWoof FeedbackGrrr"
+                "FeedbackWoof FeedbackGrrr",
             );
 
             cy.log("Select half correct answer");
@@ -2512,7 +2512,7 @@ describe("Feedback Tag Tests", function () {
             cy.get(choiceinputSubmitAnchor).should("be.visible");
             cy.get(cesc("#\\/feedbacks")).should(
                 "contain.text",
-                "FeedbackWoof FeedbackGrrr"
+                "FeedbackWoof FeedbackGrrr",
             );
 
             cy.log("Click submit button");
@@ -2524,7 +2524,7 @@ describe("Feedback Tag Tests", function () {
                 });
             cy.get(cesc("#\\/feedbacks")).should(
                 "contain.text",
-                "FeedbackMeow"
+                "FeedbackMeow",
             );
 
             cy.log("Select incorrect answer");
@@ -2532,7 +2532,7 @@ describe("Feedback Tag Tests", function () {
             cy.get(choiceinputSubmitAnchor).should("be.visible");
             cy.get(cesc("#\\/feedbacks")).should(
                 "contain.text",
-                "FeedbackMeow"
+                "FeedbackMeow",
             );
 
             cy.log("Click submit button");
@@ -2563,7 +2563,7 @@ describe("Feedback Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2598,7 +2598,7 @@ describe("Feedback Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2656,7 +2656,7 @@ describe("Feedback Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2688,7 +2688,7 @@ describe("Feedback Tag Tests", function () {
         cy.get(cesc("#\\/fback1b")).should("not.exist");
         cy.get(cesc("#\\/fback2b")).should(
             "have.text",
-            "You got the second; what about the first?"
+            "You got the second; what about the first?",
         );
         cy.get(cesc("#\\/r1") + " .mjx-mrow")
             .eq(0)
@@ -2702,12 +2702,12 @@ describe("Feedback Tag Tests", function () {
         cy.get(cesc("#\\/fback1")).should("not.exist");
         cy.get(cesc("#\\/fback2")).should(
             "have.text",
-            "You got the second; what about the first?"
+            "You got the second; what about the first?",
         );
         cy.get(cesc("#\\/fback1b")).should("not.exist");
         cy.get(cesc("#\\/fback2b")).should(
             "have.text",
-            "You got the second; what about the first?"
+            "You got the second; what about the first?",
         );
         cy.get(cesc("#\\/r1") + " .mjx-mrow")
             .eq(0)
@@ -2720,7 +2720,7 @@ describe("Feedback Tag Tests", function () {
         cy.get(cesc("#\\/fback1")).should("not.exist");
         cy.get(cesc("#\\/fback2")).should(
             "have.text",
-            "You got the second; what about the first?"
+            "You got the second; what about the first?",
         );
         cy.get(cesc("#\\/fback1b")).should("not.exist");
         cy.get(cesc("#\\/fback2b")).should("not.exist");
@@ -2751,7 +2751,7 @@ describe("Feedback Tag Tests", function () {
         cy.get(cesc("#\\/fback2")).should("not.exist");
         cy.get(cesc("#\\/fback1b")).should(
             "have.text",
-            "You got the first; what about the second?"
+            "You got the first; what about the second?",
         );
         cy.get(cesc("#\\/fback2b")).should("not.exist");
         cy.get(cesc("#\\/r1") + " .mjx-mrow")
@@ -2765,12 +2765,12 @@ describe("Feedback Tag Tests", function () {
         cy.get(cesc("#\\/ans_incorrect")).should("be.visible");
         cy.get(cesc("#\\/fback1")).should(
             "have.text",
-            "You got the first; what about the second?"
+            "You got the first; what about the second?",
         );
         cy.get(cesc("#\\/fback2")).should("not.exist");
         cy.get(cesc("#\\/fback1b")).should(
             "have.text",
-            "You got the first; what about the second?"
+            "You got the first; what about the second?",
         );
         cy.get(cesc("#\\/fback2b")).should("not.exist");
         cy.get(cesc("#\\/r1") + " .mjx-mrow")
@@ -2815,7 +2815,7 @@ describe("Feedback Tag Tests", function () {
   </section>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2846,7 +2846,7 @@ describe("Feedback Tag Tests", function () {
         cy.get(cesc("#\\/goodAndClose")).should("not.exist");
         cy.get(cesc("#\\/startingClose")).should(
             "contain.text",
-            "A number or two is starting to get close."
+            "A number or two is starting to get close.",
         );
         cy.get(cesc("#\\/closeStartingClose")).should("not.exist");
         cy.get(cesc("#\\/goodStartingClose")).should("not.exist");
@@ -2860,7 +2860,7 @@ describe("Feedback Tag Tests", function () {
         cy.get(cesc("#\\/goodAndClose")).should("not.exist");
         cy.get(cesc("#\\/startingClose")).should(
             "contain.text",
-            "A number or two is starting to get close."
+            "A number or two is starting to get close.",
         );
         cy.get(cesc("#\\/closeStartingClose")).should("not.exist");
         cy.get(cesc("#\\/goodStartingClose")).should("not.exist");
@@ -2874,7 +2874,7 @@ describe("Feedback Tag Tests", function () {
             });
         cy.get(cesc("#\\/close")).should(
             "contain.text",
-            "A number or two is close but not quite."
+            "A number or two is close but not quite.",
         );
         cy.get(cesc("#\\/goodAndClose")).should("not.exist");
         cy.get(cesc("#\\/startingClose")).should("not.exist");
@@ -2888,7 +2888,7 @@ describe("Feedback Tag Tests", function () {
         cy.get(cesc("#\\/ans_submit")).should("be.visible");
         cy.get(cesc("#\\/close")).should(
             "contain.text",
-            "A number or two is close but not quite."
+            "A number or two is close but not quite.",
         );
         cy.get(cesc("#\\/goodAndClose")).should("not.exist");
         cy.get(cesc("#\\/startingClose")).should("not.exist");
@@ -2930,7 +2930,7 @@ describe("Feedback Tag Tests", function () {
         cy.get(cesc("#\\/closeStartingClose")).should("not.exist");
         cy.get(cesc("#\\/goodStartingClose")).should(
             "have.text",
-            "One number is good, the other number is starting to get close."
+            "One number is good, the other number is starting to get close.",
         );
         cy.get(cesc("#\\/good")).should("not.exist");
 
@@ -2944,7 +2944,7 @@ describe("Feedback Tag Tests", function () {
         cy.get(cesc("#\\/closeStartingClose")).should("not.exist");
         cy.get(cesc("#\\/goodStartingClose")).should(
             "have.text",
-            "One number is good, the other number is starting to get close."
+            "One number is good, the other number is starting to get close.",
         );
         cy.get(cesc("#\\/good")).should("not.exist");
 
@@ -2957,7 +2957,7 @@ describe("Feedback Tag Tests", function () {
         cy.get(cesc("#\\/close")).should("not.exist");
         cy.get(cesc("#\\/goodAndClose")).should(
             "have.text",
-            "One number is good, the other number is close but not quite."
+            "One number is good, the other number is close but not quite.",
         );
         cy.get(cesc("#\\/startingClose")).should("not.exist");
         cy.get(cesc("#\\/closeStartingClose")).should("not.exist");
@@ -2971,7 +2971,7 @@ describe("Feedback Tag Tests", function () {
         cy.get(cesc("#\\/close")).should("not.exist");
         cy.get(cesc("#\\/goodAndClose")).should(
             "have.text",
-            "One number is good, the other number is close but not quite."
+            "One number is good, the other number is close but not quite.",
         );
         cy.get(cesc("#\\/startingClose")).should("not.exist");
         cy.get(cesc("#\\/closeStartingClose")).should("not.exist");
@@ -3009,7 +3009,7 @@ describe("Feedback Tag Tests", function () {
             });
         cy.get(cesc("#\\/close")).should(
             "contain.text",
-            "A number or two is close but not quite."
+            "A number or two is close but not quite.",
         );
         cy.get(cesc("#\\/goodAndClose")).should("not.exist");
         cy.get(cesc("#\\/startingClose")).should("not.exist");
@@ -3023,7 +3023,7 @@ describe("Feedback Tag Tests", function () {
         cy.get(cesc("#\\/ans_submit")).should("be.visible");
         cy.get(cesc("#\\/close")).should(
             "contain.text",
-            "A number or two is close but not quite."
+            "A number or two is close but not quite.",
         );
         cy.get(cesc("#\\/goodAndClose")).should("not.exist");
         cy.get(cesc("#\\/startingClose")).should("not.exist");
@@ -3039,13 +3039,13 @@ describe("Feedback Tag Tests", function () {
             });
         cy.get(cesc("#\\/close")).should(
             "contain.text",
-            "A number or two is close but not quite."
+            "A number or two is close but not quite.",
         );
         cy.get(cesc("#\\/goodAndClose")).should("not.exist");
         cy.get(cesc("#\\/startingClose")).should("not.exist");
         cy.get(cesc("#\\/closeStartingClose")).should(
             "contain.text",
-            "A number is close but not quite; the other number is starting to get close."
+            "A number is close but not quite; the other number is starting to get close.",
         );
         cy.get(cesc("#\\/goodStartingClose")).should("not.exist");
         cy.get(cesc("#\\/good")).should("not.exist");
@@ -3061,7 +3061,7 @@ describe("Feedback Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3080,7 +3080,7 @@ describe("Feedback Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3111,7 +3111,7 @@ describe("Feedback Tag Tests", function () {
         </p>
         `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3123,7 +3123,7 @@ describe("Feedback Tag Tests", function () {
         cy.get(cesc("#\\/mi_incorrect")).should("be.visible");
         cy.get(cesc("#\\/_li2") + " .mjx-mrow").should(
             "contain.text",
-            "\uff3f"
+            "\uff3f",
         );
 
         cy.get(cesc("#\\/fb")).should("not.exist");
@@ -3139,7 +3139,7 @@ describe("Feedback Tag Tests", function () {
         cy.get(cesc("#\\/_li2") + " .mjx-mrow").should("contain.text", "y");
         cy.get(cesc("#\\/fb")).should(
             "have.text",
-            "You answered at least twice"
+            "You answered at least twice",
         );
     });
 
@@ -3155,7 +3155,7 @@ describe("Feedback Tag Tests", function () {
   </feedback>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3186,7 +3186,7 @@ describe("Feedback Tag Tests", function () {
             cy.get(mathinputIncorrect).should("be.visible");
             cy.get(cesc2("#/pSub")).should(
                 "have.text",
-                "You answered more than once!"
+                "You answered more than once!",
             );
 
             cy.log("Submit third time");
@@ -3196,7 +3196,7 @@ describe("Feedback Tag Tests", function () {
             cy.get(mathinputCorrect).should("be.visible");
             cy.get(cesc2("#/pSub")).should(
                 "have.text",
-                "You answered more than once!"
+                "You answered more than once!",
             );
         });
     });
@@ -3213,7 +3213,7 @@ describe("Feedback Tag Tests", function () {
   </feedback>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3244,7 +3244,7 @@ describe("Feedback Tag Tests", function () {
             cy.get(mathinputIncorrect).should("be.visible");
             cy.get(cesc2("#/pSub")).should(
                 "have.text",
-                "You answered more than once!"
+                "You answered more than once!",
             );
 
             cy.log("Submit third time");
@@ -3254,7 +3254,7 @@ describe("Feedback Tag Tests", function () {
             cy.get(mathinputCorrect).should("be.visible");
             cy.get(cesc2("#/pSub")).should(
                 "have.text",
-                "You answered more than once!"
+                "You answered more than once!",
             );
         });
     });

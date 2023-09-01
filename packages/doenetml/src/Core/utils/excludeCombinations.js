@@ -117,7 +117,7 @@ export function checkForExcludedCombination({
 }) {
     if (type === "math") {
         return excludedCombinations.some((x) =>
-            x.every((v, i) => v.equals(values[i]))
+            x.every((v, i) => v.equals(values[i])),
         );
     } else if (type === "number") {
         // if one entry of excluded combinations is NaN, then it is a wildcard
@@ -127,12 +127,12 @@ export function checkForExcludedCombination({
                 (v, i) =>
                     Number.isNaN(v) ||
                     Math.abs(v - values[i]) <=
-                        1e-14 * Math.max(Math.abs(v), Math.abs(values[i]))
-            )
+                        1e-14 * Math.max(Math.abs(v), Math.abs(values[i])),
+            ),
         );
     } else {
         return excludedCombinations.some((x) =>
-            x.every((v, i) => v === values[i])
+            x.every((v, i) => v === values[i]),
         );
     }
 }
@@ -170,7 +170,7 @@ export function estimateNumberOfNumberCombinationsExcluded({
 export function estimateNumberOfDuplicateCombinations(
     combinations,
     numValues,
-    withReplacement
+    withReplacement,
 ) {
     // if have wildcards, get better estimate of number excluded
 
@@ -213,7 +213,7 @@ export function estimateNumberOfDuplicateCombinations(
                     duplicateCombinations.push(duplicate);
                 } else {
                     let nonNanEntries = duplicate.filter(
-                        (x) => !Number.isNaN(x)
+                        (x) => !Number.isNaN(x),
                     );
                     if (
                         [...new Set(nonNanEntries)].length ===
@@ -244,7 +244,7 @@ export function estimateNumberOfDuplicateCombinations(
         for (let comb of duplicateCombinations) {
             let numNans = comb.reduce(
                 (a, c) => a + (Number.isNaN(c) ? 1 : 0),
-                0
+                0,
             );
 
             if (numNans > 0) {
@@ -267,7 +267,7 @@ export function estimateNumberOfDuplicateCombinations(
     numberDuplicated -= estimateNumberOfDuplicateCombinations(
         duplicateCombinations,
         numValues,
-        withReplacement
+        withReplacement,
     );
 
     return numberDuplicated;

@@ -79,7 +79,7 @@ export default React.memo(function Polyline(props) {
             strokeColor: "none",
             highlightStrokeColor: "none",
             highlightFillColor: getComputedStyle(
-                document.documentElement
+                document.documentElement,
             ).getPropertyValue("--mainGray"),
             layer: 10 * SVs.layer + 9,
         });
@@ -106,8 +106,8 @@ export default React.memo(function Polyline(props) {
                 board.create(
                     "point",
                     [...SVs.numericalVertices[i]],
-                    jsxPointAttributes.current
-                )
+                    jsxPointAttributes.current,
+                ),
             );
         }
 
@@ -121,7 +121,7 @@ export default React.memo(function Polyline(props) {
         let newPolylineJXG = board.create(
             "curve",
             [x, y],
-            jsxPolylineAttributes
+            jsxPolylineAttributes,
         );
 
         for (let i = 0; i < SVs.nVertices; i++) {
@@ -129,7 +129,7 @@ export default React.memo(function Polyline(props) {
             pointsJXG.current[i].on("up", () => upHandler(i));
             pointsJXG.current[i].on(
                 "down",
-                () => (draggedPoint.current = null)
+                () => (draggedPoint.current = null),
             );
         }
 
@@ -311,18 +311,18 @@ export default React.memo(function Polyline(props) {
                         board.create(
                             "point",
                             [...SVs.numericalVertices[i]],
-                            jsxPointAttributes.current
-                        )
+                            jsxPointAttributes.current,
+                        ),
                     );
                     polylineJXG.current.dataX.length = SVs.nVertices;
 
                     pointsJXG.current[i].on("drag", (x) =>
-                        dragHandler(i, true)
+                        dragHandler(i, true),
                     );
                     pointsJXG.current[i].on("up", (x) => dragHandler(i, false));
                     pointsJXG.current[i].on(
                         "down",
-                        (x) => (draggedPoint.current = null)
+                        (x) => (draggedPoint.current = null),
                     );
                 }
             } else if (SVs.nVertices < previousNVertices.current) {

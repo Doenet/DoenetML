@@ -16,7 +16,7 @@ describe("Number Tag Tests", function () {
       <number>1+1</number>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -41,7 +41,7 @@ describe("Number Tag Tests", function () {
       <number>x+1</number>
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -67,7 +67,7 @@ describe("Number Tag Tests", function () {
       <mathinput bindValueTo="$n" />
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -82,7 +82,7 @@ describe("Number Tag Tests", function () {
 
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}9{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/n")).should("have.text", "9");
     });
@@ -96,7 +96,7 @@ describe("Number Tag Tests", function () {
       <math>x+<number>3</number></math>
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -132,7 +132,7 @@ describe("Number Tag Tests", function () {
       <number><math>5+<math>3</math></math></number>
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -164,7 +164,7 @@ describe("Number Tag Tests", function () {
       <math>$_number1</math>
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -188,11 +188,11 @@ describe("Number Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_math1"].stateValues.value).closeTo(
                 num,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/_number1"].stateValues.value).closeTo(
                 num,
-                1e-14
+                1e-14,
             );
         });
     });
@@ -256,7 +256,7 @@ describe("Number Tag Tests", function () {
       
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -361,183 +361,183 @@ describe("Number Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n1"].stateValues.value).eq(
-                234234823.34235235324
+                234234823.34235235324,
             );
             expect(stateVariables["/n1a"].stateValues.value).eq(
-                234234823.34235235324
+                234234823.34235235324,
             );
             expect(stateVariables["/n1b"].stateValues.value).eq(
-                234234823.34235235324
+                234234823.34235235324,
             );
             expect(stateVariables["/n1c"].stateValues.value).eq(
-                234234823.34235235324
+                234234823.34235235324,
             );
             expect(
                 stateVariables[
                     stateVariables["/n1am"].activeChildren[0].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eq(234234823.34235235324);
             expect(
                 stateVariables[
                     stateVariables["/n1bm"].activeChildren[0].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eq(234234823.34235235324);
             expect(
                 stateVariables[
                     stateVariables["/n1cm"].activeChildren[0].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eq(234234823.34235235324);
             expect(stateVariables["/n2"].stateValues.value).eq(
-                5.4285023408250342
+                5.4285023408250342,
             );
             expect(stateVariables["/n2a"].stateValues.value).eq(
-                5.4285023408250342
+                5.4285023408250342,
             );
             expect(stateVariables["/n2b"].stateValues.value).eq(
-                5.4285023408250342
+                5.4285023408250342,
             );
             expect(stateVariables["/n2c"].stateValues.value).eq(
-                5.4285023408250342
+                5.4285023408250342,
             );
             expect(
                 stateVariables[
                     stateVariables["/n2am"].activeChildren[0].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eq(5.4285023408250342);
             expect(
                 stateVariables[
                     stateVariables["/n2bm"].activeChildren[0].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eq(5.4285023408250342);
             expect(
                 stateVariables[
                     stateVariables["/n2cm"].activeChildren[0].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eq(5.4285023408250342);
             expect(stateVariables["/n3"].stateValues.value).eq(
-                0.000000000000005023481340324
+                0.000000000000005023481340324,
             );
             expect(stateVariables["/n3a"].stateValues.value).eq(
-                0.000000000000005023481340324
+                0.000000000000005023481340324,
             );
             expect(stateVariables["/n3b"].stateValues.value).eq(
-                0.000000000000005023481340324
+                0.000000000000005023481340324,
             );
             expect(stateVariables["/n3c"].stateValues.value).eq(
-                0.000000000000005023481340324
+                0.000000000000005023481340324,
             );
             expect(
                 stateVariables[
                     stateVariables["/n3am"].activeChildren[0].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eq(0.000000000000005023481340324);
             expect(
                 stateVariables[
                     stateVariables["/n3bm"].activeChildren[0].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eq(0.000000000000005023481340324);
             expect(
                 stateVariables[
                     stateVariables["/n3cm"].activeChildren[0].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eq(0.000000000000005023481340324);
 
             expect(stateVariables["/n1aa"].stateValues.value).eq(
-                234234823.34235235324
+                234234823.34235235324,
             );
             expect(stateVariables["/n1ab"].stateValues.value).eq(
-                234234823.34235235324
+                234234823.34235235324,
             );
             expect(
                 stateVariables[
                     stateVariables["/n1aam"].activeChildren[0].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eq(234234823.34235235324);
             expect(
                 stateVariables[
                     stateVariables["/n1abm"].activeChildren[0].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eq(234234823.34235235324);
             expect(stateVariables["/n2aa"].stateValues.value).eq(
-                5.4285023408250342
+                5.4285023408250342,
             );
             expect(stateVariables["/n2ab"].stateValues.value).eq(
-                5.4285023408250342
+                5.4285023408250342,
             );
             expect(
                 stateVariables[
                     stateVariables["/n2aam"].activeChildren[0].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eq(5.4285023408250342);
             expect(
                 stateVariables[
                     stateVariables["/n2abm"].activeChildren[0].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eq(5.4285023408250342);
             expect(stateVariables["/n3aa"].stateValues.value).eq(
-                0.000000000000005023481340324
+                0.000000000000005023481340324,
             );
             expect(stateVariables["/n3ab"].stateValues.value).eq(
-                0.000000000000005023481340324
+                0.000000000000005023481340324,
             );
             expect(
                 stateVariables[
                     stateVariables["/n3aam"].activeChildren[0].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eq(0.000000000000005023481340324);
             expect(
                 stateVariables[
                     stateVariables["/n3abm"].activeChildren[0].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eq(0.000000000000005023481340324);
 
             expect(stateVariables["/n1ba"].stateValues.value).eq(
-                234234823.34235235324
+                234234823.34235235324,
             );
             expect(stateVariables["/n1bb"].stateValues.value).eq(
-                234234823.34235235324
+                234234823.34235235324,
             );
             expect(
                 stateVariables[
                     stateVariables["/n1bam"].activeChildren[0].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eq(234234823.34235235324);
             expect(
                 stateVariables[
                     stateVariables["/n1bbm"].activeChildren[0].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eq(234234823.34235235324);
             expect(stateVariables["/n2ba"].stateValues.value).eq(
-                5.4285023408250342
+                5.4285023408250342,
             );
             expect(stateVariables["/n2bb"].stateValues.value).eq(
-                5.4285023408250342
+                5.4285023408250342,
             );
             expect(
                 stateVariables[
                     stateVariables["/n2bam"].activeChildren[0].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eq(5.4285023408250342);
             expect(
                 stateVariables[
                     stateVariables["/n2bbm"].activeChildren[0].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eq(5.4285023408250342);
             expect(stateVariables["/n3ba"].stateValues.value).eq(
-                0.000000000000005023481340324
+                0.000000000000005023481340324,
             );
             expect(stateVariables["/n3bb"].stateValues.value).eq(
-                0.000000000000005023481340324
+                0.000000000000005023481340324,
             );
             expect(
                 stateVariables[
                     stateVariables["/n3bam"].activeChildren[0].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eq(0.000000000000005023481340324);
             expect(
                 stateVariables[
                     stateVariables["/n3bbm"].activeChildren[0].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eq(0.000000000000005023481340324);
         });
     });
@@ -643,7 +643,7 @@ describe("Number Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -710,7 +710,7 @@ describe("Number Tag Tests", function () {
         cy.get(cesc("#\\/n2aNumber")).should("have.text", "5 * 10^(-15)");
         cy.get(cesc("#\\/n2apadNumber")).should(
             "have.text",
-            "5.000 * 10^(-15)"
+            "5.000 * 10^(-15)",
         );
         cy.get(cesc("#\\/n2bNumber")).should("have.text", "0");
         cy.get(cesc("#\\/n2bpadNumber")).should("have.text", "0.000");
@@ -830,7 +830,7 @@ describe("Number Tag Tests", function () {
       <p>$n{displayDigits='$ndigits' displayDecimals='$ndecimals' name="na"}</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -842,7 +842,7 @@ describe("Number Tag Tests", function () {
         cy.log("only digits");
         cy.get(cesc("#\\/ndecimals") + " textarea").type(
             "{end}{backspace}-\\infty{enter}{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/na")).should("have.text", "35200000");
@@ -850,21 +850,21 @@ describe("Number Tag Tests", function () {
         cy.log("more digits");
         cy.get(cesc("#\\/ndigits") + " textarea").type(
             "{end}{backspace}12{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/na")).should("have.text", "35203423.0235");
 
         cy.log("remove digits");
         cy.get(cesc("#\\/ndigits") + " textarea").type(
             "{end}{backspace}{backspace}0{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/na")).should("contain.text", "35203423.02352343");
 
         cy.log("Fewer digits than have");
         cy.get(cesc("#\\/ndecimals") + " textarea").type(
             "{end}{backspace}10{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/na")).should("contain.text", "0");
 
@@ -873,18 +873,18 @@ describe("Number Tag Tests", function () {
             "{end}{backspace}1{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/na")).should("have.text", "40000000");
 
         cy.log("invalid precision means no rounding");
         cy.get(cesc("#\\/ndigits") + " textarea").type(
             "{end}{backspace}{backspace}x{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/ndecimals") + " textarea").type(
             "{end}{backspace}{backspace}{backspace}y{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/na")).should("contain.text", "35203423.02352343");
@@ -892,18 +892,18 @@ describe("Number Tag Tests", function () {
         cy.log("add a decimal");
         cy.get(cesc("#\\/ndecimals") + " textarea").type(
             "{end}{backspace}1{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/na")).should("have.text", "35203423");
 
         cy.log("negative precision, ignores display digits");
         cy.get(cesc("#\\/ndigits") + " textarea").type(
             "{end}{backspace}-3{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/ndecimals") + " textarea").type(
             "{end}{backspace}-3{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/na")).should("have.text", "35203000");
     });
@@ -942,7 +942,7 @@ describe("Number Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1038,7 +1038,7 @@ describe("Number Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1154,7 +1154,7 @@ describe("Number Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1306,7 +1306,7 @@ describe("Number Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1330,7 +1330,7 @@ describe("Number Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "NaN"
+                    "NaN",
                 );
             });
         cy.get(cesc("#\\/n3")).should("have.text", "NaN");
@@ -1395,57 +1395,57 @@ describe("Number Tag Tests", function () {
 
         cy.get(cesc("#\\/mi1") + " textarea").type(
             "{ctrl+home}{shift+ctrl+end}{backspace}3/4{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi2") + " textarea").type(
             "{ctrl+home}{shift+ctrl+end}{backspace}3/4{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi3") + " textarea").type(
             "{ctrl+home}{shift+ctrl+end}{backspace}3/4{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi4") + " textarea").type(
             "{ctrl+home}{shift+ctrl+end}{backspace}3/4{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/mi1a") + " textarea").type(
             "{ctrl+home}{shift+ctrl+end}{backspace}3/4{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi2a") + " textarea").type(
             "{ctrl+home}{shift+ctrl+end}{backspace}3/4{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi3a") + " textarea").type(
             "{ctrl+home}{shift+ctrl+end}{backspace}3/4{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi4a") + " textarea").type(
             "{ctrl+home}{shift+ctrl+end}{backspace}3/4{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/mi2b") + " textarea").type(
             "{ctrl+home}{shift+ctrl+end}{backspace}3/4{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi4b") + " textarea").type(
             "{ctrl+home}{shift+ctrl+end}{backspace}3/4{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc(`#\\/mi4b`) + ` .mq-editable-field`).should(
             "contain.text",
-            "0.75"
+            "0.75",
         );
 
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "34"
+                    "34",
                 );
             });
         cy.get(cesc("#\\/n1")).should("have.text", "0.75");
@@ -1454,7 +1454,7 @@ describe("Number Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "34"
+                    "34",
                 );
             });
         cy.get(cesc("#\\/n2")).should("have.text", "0.75");
@@ -1463,7 +1463,7 @@ describe("Number Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "0.75"
+                    "0.75",
                 );
             });
         cy.get(cesc("#\\/n3")).should("have.text", "0.75");
@@ -1472,7 +1472,7 @@ describe("Number Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "0.75"
+                    "0.75",
                 );
             });
         cy.get(cesc("#\\/n4")).should("have.text", "0.75");
@@ -1481,7 +1481,7 @@ describe("Number Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "34"
+                    "34",
                 );
             });
         cy.get(cesc("#\\/n1a")).should("have.text", "0.75");
@@ -1490,7 +1490,7 @@ describe("Number Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "34"
+                    "34",
                 );
             });
         cy.get(cesc("#\\/n2a")).should("have.text", "0.75");
@@ -1499,7 +1499,7 @@ describe("Number Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "0.75"
+                    "0.75",
                 );
             });
         cy.get(cesc("#\\/n3a")).should("have.text", "0.75");
@@ -1508,7 +1508,7 @@ describe("Number Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "0.75"
+                    "0.75",
                 );
             });
         cy.get(cesc("#\\/n4a")).should("have.text", "0.75");
@@ -1517,7 +1517,7 @@ describe("Number Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "34"
+                    "34",
                 );
             });
         cy.get(cesc("#\\/n2b")).should("have.text", "0.75");
@@ -1526,57 +1526,57 @@ describe("Number Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "0.75"
+                    "0.75",
                 );
             });
         cy.get(cesc("#\\/n4b")).should("have.text", "0.75");
 
         cy.get(cesc("#\\/mi1") + " textarea").type(
             "{ctrl+home}{shift+ctrl+end}{backspace}x{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi2") + " textarea").type(
             "{ctrl+home}{shift+ctrl+end}{backspace}x{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi3") + " textarea").type(
             "{ctrl+home}{shift+ctrl+end}{backspace}x{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi4") + " textarea").type(
             "{ctrl+home}{shift+ctrl+end}{backspace}x{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/mi1a") + " textarea").type(
             "{ctrl+home}{shift+ctrl+end}{backspace}x{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi2a") + " textarea").type(
             "{ctrl+home}{shift+ctrl+end}{backspace}x{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi3a") + " textarea").type(
             "{ctrl+home}{shift+ctrl+end}{backspace}x{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi4a") + " textarea").type(
             "{ctrl+home}{shift+ctrl+end}{backspace}x{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/mi2b") + " textarea").type(
             "{ctrl+home}{shift+ctrl+end}{backspace}x{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi4b") + " textarea").type(
             "{ctrl+home}{shift+ctrl+end}{backspace}x{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc(`#\\/mi4b`) + ` .mq-editable-field`).should(
             "contain.text",
-            "5"
+            "5",
         );
 
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`)
@@ -1597,7 +1597,7 @@ describe("Number Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "NaN"
+                    "NaN",
                 );
             });
         cy.get(cesc("#\\/n3")).should("have.text", "NaN");
@@ -1669,7 +1669,7 @@ describe("Number Tag Tests", function () {
   <p><number name="ifalt"><number>0^0</number>^0</number></p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1732,7 +1732,7 @@ describe("Number Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1789,12 +1789,12 @@ describe("Number Tag Tests", function () {
             expect(stateVariables["/i1a"].stateValues.value).eqls("i");
             expect(stateVariables["/i2"].stateValues.value.re).closeTo(
                 0,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/i2"].stateValues.value.im).eq(1);
             expect(stateVariables["/i3"].stateValues.value.re).closeTo(
                 0,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/i3"].stateValues.value.im).eq(1);
             expect(stateVariables["/i4"].stateValues.value.re).eq(0);
@@ -1803,21 +1803,21 @@ describe("Number Tag Tests", function () {
             expect(stateVariables["/i5"].stateValues.value.im).eq(1);
             expect(stateVariables["/i6"].stateValues.value.re).closeTo(
                 0,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/i6"].stateValues.value.im).eq(1);
             expect(stateVariables["/i7"].stateValues.value.re).eq(0);
             expect(stateVariables["/i7"].stateValues.value.im).eq(1);
             expect(stateVariables["/i8"].stateValues.value.re).closeTo(
                 0,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/i8"].stateValues.value.im).eq(1);
             expect(stateVariables["/i9"].stateValues.value.re).eq(0);
             expect(stateVariables["/i9"].stateValues.value.im).eq(1);
             expect(stateVariables["/i10"].stateValues.value.re).closeTo(
                 0,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/i10"].stateValues.value.im).eq(1);
             expect(stateVariables["/i11"].stateValues.value.re).eq(0);
@@ -1832,24 +1832,24 @@ describe("Number Tag Tests", function () {
             expect(stateVariables["/ni2"].stateValues.value.im).eq(-1);
             expect(stateVariables["/ni3"].stateValues.value.re).closeTo(
                 0,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/ni3"].stateValues.value.im).eq(-1);
             expect(stateVariables["/ni4"].stateValues.value.re).closeTo(
                 0,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/ni4"].stateValues.value.im).eq(-1);
             expect(stateVariables["/ni5"].stateValues.value.re).eq(0);
             expect(stateVariables["/ni5"].stateValues.value.im).eq(-1);
             expect(stateVariables["/ni6"].stateValues.value.re).closeTo(
                 0,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/ni6"].stateValues.value.im).eq(-1);
             expect(stateVariables["/ni7"].stateValues.value.re).closeTo(
                 0,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/ni7"].stateValues.value.im).eq(-1);
             expect(stateVariables["/ni8"].stateValues.value.re).eq(0);
@@ -1860,7 +1860,7 @@ describe("Number Tag Tests", function () {
             expect(stateVariables["/ni10"].stateValues.value.im).eq(-1);
             expect(stateVariables["/ni11"].stateValues.value.re).closeTo(
                 0,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/ni11"].stateValues.value.im).eq(-1);
             expect(stateVariables["/ni12"].stateValues.value.re).eq(0);
@@ -1874,19 +1874,19 @@ describe("Number Tag Tests", function () {
             expect(stateVariables["/c2"].stateValues.value.im).eq(3);
             expect(stateVariables["/c3"].stateValues.value.re).closeTo(
                 0.9,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/c3"].stateValues.value.im).closeTo(
                 0.7,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/c4"].stateValues.value.re).closeTo(
                 0.9,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/c4"].stateValues.value.im).closeTo(
                 0.7,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/c5"].stateValues.value.re).eqls(NaN);
             expect(stateVariables["/c5"].stateValues.value.im).eqls(NaN);
@@ -1909,7 +1909,7 @@ describe("Number Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1921,11 +1921,11 @@ describe("Number Tag Tests", function () {
 
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`).should(
             "have.text",
-            "1"
+            "1",
         );
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`).should(
             "have.text",
-            "1"
+            "1",
         );
         cy.get(cesc(`#\\/mi3`) + ` .mq-editable-field`).should("have.text", "");
 
@@ -1955,15 +1955,15 @@ describe("Number Tag Tests", function () {
 
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`).should(
             "have.text",
-            "i"
+            "i",
         );
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`).should(
             "have.text",
-            "i"
+            "i",
         );
         cy.get(cesc(`#\\/mi3`) + ` .mq-editable-field`).should(
             "have.text",
-            "i"
+            "i",
         );
 
         cy.window().then(async (win) => {
@@ -2001,15 +2001,15 @@ describe("Number Tag Tests", function () {
 
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`).should(
             "have.text",
-            "2+i"
+            "2+i",
         );
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`).should(
             "have.text",
-            "2+i"
+            "2+i",
         );
         cy.get(cesc(`#\\/mi3`) + ` .mq-editable-field`).should(
             "have.text",
-            "2+i"
+            "2+i",
         );
 
         cy.window().then(async (win) => {
@@ -2039,11 +2039,11 @@ describe("Number Tag Tests", function () {
 
         cy.get(cesc("#\\/mi1") + " textarea").type(
             "{end}{backspace}{backspace}{backspace}3+0i{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi2") + " textarea").type(
             "{end}{backspace}{backspace}{backspace}3+0i{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi3") + " textarea")
             .type("{end}{backspace}{backspace}{backspace}3+0i{enter}", {
@@ -2057,15 +2057,15 @@ describe("Number Tag Tests", function () {
 
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`).should(
             "have.text",
-            "3"
+            "3",
         );
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`).should(
             "have.text",
-            "3"
+            "3",
         );
         cy.get(cesc(`#\\/mi3`) + ` .mq-editable-field`).should(
             "have.text",
-            "3"
+            "3",
         );
 
         cy.window().then(async (win) => {
@@ -2082,13 +2082,13 @@ describe("Number Tag Tests", function () {
             "{end}{backspace}1i{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/mi2") + " textarea").type(
             "{end}{backspace}1i{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/mi3") + " textarea")
             .type("{end}{backspace}1i{enter}", { force: true })
@@ -2100,15 +2100,15 @@ describe("Number Tag Tests", function () {
 
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`).should(
             "have.text",
-            "i"
+            "i",
         );
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`).should(
             "have.text",
-            "i"
+            "i",
         );
         cy.get(cesc(`#\\/mi3`) + ` .mq-editable-field`).should(
             "have.text",
-            "i"
+            "i",
         );
 
         cy.window().then(async (win) => {
@@ -2134,13 +2134,13 @@ describe("Number Tag Tests", function () {
             "{end}{backspace}-1i+0{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/mi2") + " textarea").type(
             "{end}{backspace}-1i+0{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/mi3") + " textarea")
             .type("{end}{backspace}-1i+0{enter}", { force: true })
@@ -2152,15 +2152,15 @@ describe("Number Tag Tests", function () {
 
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`).should(
             "have.text",
-            "−i"
+            "−i",
         );
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`).should(
             "have.text",
-            "−i"
+            "−i",
         );
         cy.get(cesc(`#\\/mi3`) + ` .mq-editable-field`).should(
             "have.text",
-            "−i"
+            "−i",
         );
 
         cy.window().then(async (win) => {
@@ -2199,7 +2199,7 @@ describe("Number Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2290,7 +2290,7 @@ describe("Number Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2305,21 +2305,21 @@ describe("Number Tag Tests", function () {
 
         cy.get(cesc("#\\/pPositionFromAnchor1")).should(
             "have.text",
-            "Position from anchor 1: upperright"
+            "Position from anchor 1: upperright",
         );
         cy.get(cesc("#\\/pPositionFromAnchor2")).should(
             "have.text",
-            "Position from anchor 2: center"
+            "Position from anchor 2: center",
         );
         cy.get(cesc("#\\/positionFromAnchor1")).should("have.value", "1");
         cy.get(cesc("#\\/positionFromAnchor2")).should("have.value", "9");
         cy.get(cesc("#\\/pDraggable1")).should(
             "have.text",
-            "Draggable 1: true"
+            "Draggable 1: true",
         );
         cy.get(cesc("#\\/pDraggable2")).should(
             "have.text",
-            "Draggable 2: true"
+            "Draggable 2: true",
         );
         cy.get(cesc("#\\/pContent1")).should("have.text", "Content 1: 11");
         cy.get(cesc("#\\/pContent2")).should("have.text", "Content 2: -17");
@@ -2341,7 +2341,7 @@ describe("Number Tag Tests", function () {
 
         cy.get(cesc("#\\/pAnchor2") + " .mjx-mrow").should(
             "contain.text",
-            "(4,−5)"
+            "(4,−5)",
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow")
@@ -2355,16 +2355,16 @@ describe("Number Tag Tests", function () {
 
         cy.get(cesc("#\\/anchorCoords1") + " textarea").type(
             "{home}{shift+end}{backspace}(6,7){enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/anchorCoords2") + " textarea").type(
             "{home}{shift+end}{backspace}(8,9){enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/pAnchor2") + " .mjx-mrow").should(
             "contain.text",
-            "(8,9)"
+            "(8,9)",
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow")
@@ -2380,11 +2380,11 @@ describe("Number Tag Tests", function () {
 
         cy.get(cesc("#\\/pPositionFromAnchor1")).should(
             "have.text",
-            "Position from anchor 1: lowerleft"
+            "Position from anchor 1: lowerleft",
         );
         cy.get(cesc("#\\/pPositionFromAnchor2")).should(
             "have.text",
-            "Position from anchor 2: lowerright"
+            "Position from anchor 2: lowerright",
         );
 
         cy.log("make not draggable");
@@ -2393,11 +2393,11 @@ describe("Number Tag Tests", function () {
         cy.get(cesc("#\\/draggable2")).click();
         cy.get(cesc("#\\/pDraggable1")).should(
             "have.text",
-            "Draggable 1: false"
+            "Draggable 1: false",
         );
         cy.get(cesc("#\\/pDraggable2")).should(
             "have.text",
-            "Draggable 2: false"
+            "Draggable 2: false",
         );
 
         cy.log("cannot move numbers by dragging");

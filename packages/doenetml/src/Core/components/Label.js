@@ -237,7 +237,7 @@ export default class Label extends InlineComponent {
 
                 let textFromComponentConverter = function (
                     comp,
-                    getValue = true
+                    getValue = true,
                 ) {
                     if (typeof comp !== "object") {
                         return comp.toString();
@@ -277,11 +277,11 @@ export default class Label extends InlineComponent {
 
                 let value = textFromChildren(
                     dependencyValues.inlineChildren,
-                    (x) => textFromComponentConverter(x, true)
+                    (x) => textFromComponentConverter(x, true),
                 );
                 let text = textFromChildren(
                     dependencyValues.inlineChildren,
-                    (x) => textFromComponentConverter(x, false)
+                    (x) => textFromComponentConverter(x, false),
                 );
 
                 return { setValue: { text, latex: text, value } };

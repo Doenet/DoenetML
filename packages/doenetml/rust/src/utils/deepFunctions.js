@@ -39,13 +39,13 @@ export function deepClone(obj, BaseComponent, hash) {
         Array.from(obj, ([key, val]) =>
             result.set(
                 deepClone(key, BaseComponent, hash),
-                deepClone(val, BaseComponent, hash)
-            )
+                deepClone(val, BaseComponent, hash),
+            ),
         );
     else if (obj instanceof Set) {
         // result.values = result.values.bind(result);
         Array.from(obj, (key) =>
-            result.add(deepClone(key, BaseComponent, hash))
+            result.add(deepClone(key, BaseComponent, hash)),
         );
     }
     // Register in hash
@@ -55,7 +55,7 @@ export function deepClone(obj, BaseComponent, hash) {
         result,
         ...Object.keys(obj).map((key) => ({
             [key]: deepClone(obj[key], BaseComponent, hash),
-        }))
+        })),
     );
 }
 

@@ -16,7 +16,7 @@ describe("Math Display Tag Tests", function () {
     <me>\\cos(x)</me>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -61,7 +61,7 @@ describe("Math Display Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -91,7 +91,7 @@ describe("Math Display Tag Tests", function () {
             });
         cy.get(cesc("#\\/_p1")).should(
             "have.text",
-            "We have equation (1), equation (2), and equation (3)."
+            "We have equation (1), equation (2), and equation (3).",
         );
         cy.get(cesc("#\\/re1")).should("have.text", "(1)");
         cy.get(cesc("#\\/re2")).should("have.text", "(2)");
@@ -99,7 +99,7 @@ describe("Math Display Tag Tests", function () {
 
         cy.get(cesc("#\\/_p2")).should(
             "have.text",
-            "From copying properties: 1, 2, and 3."
+            "From copying properties: 1, 2, and 3.",
         );
         cy.get(cesc("#\\/te1")).should("have.text", "1");
         cy.get(cesc("#\\/te2")).should("have.text", "2");
@@ -170,7 +170,7 @@ describe("Math Display Tag Tests", function () {
     <lorem generateParagraphs="8" />
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -190,7 +190,7 @@ describe("Math Display Tag Tests", function () {
                 });
             cy.get(cesc("#\\/px")).should(
                 "have.text",
-                `x: ${counter}, equation (${counter})`
+                `x: ${counter}, equation (${counter})`,
             );
             cy.get(cesc("#\\/etx")).should("have.text", `${counter}`);
             cy.get(cesc("#\\/rx")).should("have.text", `(${counter})`);
@@ -213,15 +213,15 @@ describe("Math Display Tag Tests", function () {
                     if (i <= 6) {
                         cy.get(cesc(`#\\/pm${i}`)).should(
                             "have.text",
-                            `m${i}: ${counter}, equation (${counter})`
+                            `m${i}: ${counter}, equation (${counter})`,
                         );
                         cy.get(cesc(`#\\/etm${i}`)).should(
                             "have.text",
-                            `${counter}`
+                            `${counter}`,
                         );
                         cy.get(cesc(`#\\/rm${i}`)).should(
                             "have.text",
-                            `(${counter})`
+                            `(${counter})`,
                         );
                         cy.get(cesc(`#\\/rm${i}`)).click();
                         cy.get(cesc(`#\\/m${i}\\/eq`)).then((el) => {
@@ -235,7 +235,7 @@ describe("Math Display Tag Tests", function () {
                 cy.window().then(async (win) => {
                     cy.get(cesc(`#\\/pm${i}`)).should(
                         "have.text",
-                        `m${i}: , equation ???`
+                        `m${i}: , equation ???`,
                     );
                     cy.get(cesc(`#\\/etm${i}`)).should("not.exist");
                     cy.get(cesc(`#\\/rm${i}`)).should("have.text", `???`);
@@ -257,7 +257,7 @@ describe("Math Display Tag Tests", function () {
                     });
                 cy.get(cesc("#\\/py")).should(
                     "have.text",
-                    `y: ${counter}, equation (${counter})`
+                    `y: ${counter}, equation (${counter})`,
                 );
                 cy.get(cesc("#\\/ety")).should("have.text", `${counter}`);
                 cy.get(cesc("#\\/ry")).should("have.text", `(${counter})`);
@@ -281,15 +281,15 @@ describe("Math Display Tag Tests", function () {
                     if (i <= 6) {
                         cy.get(cesc(`#\\/pn${i}`)).should(
                             "have.text",
-                            `n${i}: ${counter}, equation (${counter})`
+                            `n${i}: ${counter}, equation (${counter})`,
                         );
                         cy.get(cesc(`#\\/etn${i}`)).should(
                             "have.text",
-                            `${counter}`
+                            `${counter}`,
                         );
                         cy.get(cesc(`#\\/rn${i}`)).should(
                             "have.text",
-                            `(${counter})`
+                            `(${counter})`,
                         );
                         cy.get(cesc(`#\\/rn${i}`)).click();
                         cy.get(cesc(`#\\/n${i}\\/eq`)).then((el) => {
@@ -304,7 +304,7 @@ describe("Math Display Tag Tests", function () {
                 cy.window().then(async (win) => {
                     cy.get(cesc(`#\\/pn${i}`)).should(
                         "have.text",
-                        `n${i}: , equation ???`
+                        `n${i}: , equation ???`,
                     );
                     cy.get(cesc(`#\\/etn${i}`)).should("not.exist");
                     cy.get(cesc(`#\\/rn${i}`)).should("have.text", `???`);
@@ -326,7 +326,7 @@ describe("Math Display Tag Tests", function () {
                     });
                 cy.get(cesc("#\\/pz")).should(
                     "have.text",
-                    `z: ${counter}, equation (${counter})`
+                    `z: ${counter}, equation (${counter})`,
                 );
                 cy.get(cesc("#\\/etz")).should("have.text", `${counter}`);
                 cy.get(cesc("#\\/rz")).should("have.text", `(${counter})`);
@@ -388,7 +388,7 @@ describe("Math Display Tag Tests", function () {
     <men><math simplify>z+z</math></men>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -432,7 +432,7 @@ describe("Math Display Tag Tests", function () {
     <men><number>0-i</number></men>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -507,7 +507,7 @@ describe("Math Display Tag Tests", function () {
     </mdn>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -647,7 +647,7 @@ describe("Math Display Tag Tests", function () {
     <lorem generateParagraphs="8" />
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -667,7 +667,7 @@ describe("Math Display Tag Tests", function () {
                 });
             cy.get(cesc("#\\/px")).should(
                 "have.text",
-                `x: ${counter}, equation (${counter})`
+                `x: ${counter}, equation (${counter})`,
             );
             cy.get(cesc("#\\/etx")).should("have.text", `${counter}`);
             cy.get(cesc("#\\/rx")).should("have.text", `(${counter})`);
@@ -697,15 +697,15 @@ describe("Math Display Tag Tests", function () {
                     if (i <= 6) {
                         cy.get(cesc(`#\\/pm${i}`)).should(
                             "have.text",
-                            `m${i}: ${counter}, equation (${counter})`
+                            `m${i}: ${counter}, equation (${counter})`,
                         );
                         cy.get(cesc(`#\\/etm${i}`)).should(
                             "have.text",
-                            `${counter}`
+                            `${counter}`,
                         );
                         cy.get(cesc(`#\\/rm${i}`)).should(
                             "have.text",
-                            `(${counter})`
+                            `(${counter})`,
                         );
                         cy.get(cesc(`#\\/rm${i}`)).click();
                         cy.get(cesc(`#\\/m${i}\\/eq`)).then((el) => {
@@ -719,7 +719,7 @@ describe("Math Display Tag Tests", function () {
                 cy.window().then(async (win) => {
                     cy.get(cesc(`#\\/pm${i}`)).should(
                         "have.text",
-                        `m${i}: , equation ???`
+                        `m${i}: , equation ???`,
                     );
                     cy.get(cesc(`#\\/etm${i}`)).should("not.exist");
                     cy.get(cesc(`#\\/rm${i}`)).should("have.text", `???`);
@@ -741,7 +741,7 @@ describe("Math Display Tag Tests", function () {
                     });
                 cy.get(cesc("#\\/py")).should(
                     "have.text",
-                    `y: ${counter}, equation (${counter})`
+                    `y: ${counter}, equation (${counter})`,
                 );
                 cy.get(cesc("#\\/ety")).should("have.text", `${counter}`);
                 cy.get(cesc("#\\/ry")).should("have.text", `(${counter})`);
@@ -772,15 +772,15 @@ describe("Math Display Tag Tests", function () {
                     if (i <= 6) {
                         cy.get(cesc(`#\\/pn${i}`)).should(
                             "have.text",
-                            `n${i}: ${counter}, equation (${counter})`
+                            `n${i}: ${counter}, equation (${counter})`,
                         );
                         cy.get(cesc(`#\\/etn${i}`)).should(
                             "have.text",
-                            `${counter}`
+                            `${counter}`,
                         );
                         cy.get(cesc(`#\\/rn${i}`)).should(
                             "have.text",
-                            `(${counter})`
+                            `(${counter})`,
                         );
                         cy.get(cesc(`#\\/rn${i}`)).click();
                         cy.get(cesc(`#\\/n${i}\\/eq`)).then((el) => {
@@ -795,7 +795,7 @@ describe("Math Display Tag Tests", function () {
                 cy.window().then(async (win) => {
                     cy.get(cesc(`#\\/pn${i}`)).should(
                         "have.text",
-                        `n${i}: , equation ???`
+                        `n${i}: , equation ???`,
                     );
                     cy.get(cesc(`#\\/etn${i}`)).should("not.exist");
                     cy.get(cesc(`#\\/rn${i}`)).should("have.text", `???`);
@@ -817,7 +817,7 @@ describe("Math Display Tag Tests", function () {
                     });
                 cy.get(cesc("#\\/pz")).should(
                     "have.text",
-                    `z: ${counter}, equation (${counter})`
+                    `z: ${counter}, equation (${counter})`,
                 );
                 cy.get(cesc("#\\/etz")).should("have.text", `${counter}`);
                 cy.get(cesc("#\\/rz")).should("have.text", `(${counter})`);
@@ -915,7 +915,7 @@ describe("Math Display Tag Tests", function () {
     <lorem generateParagraphs="8" />
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -935,7 +935,7 @@ describe("Math Display Tag Tests", function () {
                 });
             cy.get(cesc("#\\/px")).should(
                 "have.text",
-                `x: ${counter}, equation (${counter})`
+                `x: ${counter}, equation (${counter})`,
             );
             cy.get(cesc("#\\/etx")).should("have.text", `${counter}`);
             cy.get(cesc("#\\/rx")).should("have.text", `(${counter})`);
@@ -970,20 +970,20 @@ describe("Math Display Tag Tests", function () {
                         if (i <= 6) {
                             cy.get(cesc(`#\\/pm${i}`)).should(
                                 "have.text",
-                                `m${i}: ${counter}, equation (${counter})`
+                                `m${i}: ${counter}, equation (${counter})`,
                             );
                             cy.get(cesc(`#\\/etm${i}`)).should(
                                 "have.text",
-                                `${counter}`
+                                `${counter}`,
                             );
                             cy.get(cesc(`#\\/rm${i}`)).should(
                                 "have.text",
-                                `(${counter})`
+                                `(${counter})`,
                             );
                             cy.get(cesc(`#\\/rm${i}`)).click();
                             cy.url().should(
                                 "match",
-                                RegExp(cesc(`#\\/m${i}\\/eq`) + "$")
+                                RegExp(cesc(`#\\/m${i}\\/eq`) + "$"),
                             );
                             cy.get(cesc(`#\\/m${i}\\/eq`)).then((el) => {
                                 let rect = el[0].getBoundingClientRect();
@@ -1002,17 +1002,17 @@ describe("Math Display Tag Tests", function () {
                         if (i <= 6) {
                             cy.get(cesc(`#\\/pm${i}`)).should(
                                 "have.text",
-                                `m${i}: , equation ???`
+                                `m${i}: , equation ???`,
                             );
                             cy.get(cesc(`#\\/etm${i}`)).should("have.text", "");
                             cy.get(cesc(`#\\/rm${i}`)).should(
                                 "have.text",
-                                `???`
+                                `???`,
                             );
                             cy.get(cesc(`#\\/rm${i}`)).click();
                             cy.url().should(
                                 "match",
-                                RegExp(cesc(`#\\/m${i}\\/eq`) + "$")
+                                RegExp(cesc(`#\\/m${i}\\/eq`) + "$"),
                             );
                         }
                     }
@@ -1022,7 +1022,7 @@ describe("Math Display Tag Tests", function () {
                 cy.window().then(async (win) => {
                     cy.get(cesc(`#\\/pm${i}`)).should(
                         "have.text",
-                        `m${i}: , equation ???`
+                        `m${i}: , equation ???`,
                     );
                     cy.get(cesc(`#\\/etm${i}`)).should("not.exist");
                     cy.get(cesc(`#\\/rm${i}`)).should("have.text", `???`);
@@ -1045,7 +1045,7 @@ describe("Math Display Tag Tests", function () {
                     });
                 cy.get(cesc("#\\/py")).should(
                     "have.text",
-                    `y: ${counter}, equation (${counter})`
+                    `y: ${counter}, equation (${counter})`,
                 );
                 cy.get(cesc("#\\/ety")).should("have.text", `${counter}`);
                 cy.get(cesc("#\\/ry")).should("have.text", `(${counter})`);
@@ -1081,20 +1081,20 @@ describe("Math Display Tag Tests", function () {
                         if (i <= 6) {
                             cy.get(cesc(`#\\/pn${i}`)).should(
                                 "have.text",
-                                `n${i}: ${counter}, equation (${counter})`
+                                `n${i}: ${counter}, equation (${counter})`,
                             );
                             cy.get(cesc(`#\\/etn${i}`)).should(
                                 "have.text",
-                                `${counter}`
+                                `${counter}`,
                             );
                             cy.get(cesc(`#\\/rn${i}`)).should(
                                 "have.text",
-                                `(${counter})`
+                                `(${counter})`,
                             );
                             cy.get(cesc(`#\\/rn${i}`)).click();
                             cy.url().should(
                                 "match",
-                                RegExp(cesc(`#\\/n${i}\\/eq`) + "$")
+                                RegExp(cesc(`#\\/n${i}\\/eq`) + "$"),
                             );
                             cy.get(cesc(`#\\/n${i}\\/eq`)).then((el) => {
                                 let rect = el[0].getBoundingClientRect();
@@ -1113,17 +1113,17 @@ describe("Math Display Tag Tests", function () {
                         if (i <= 6) {
                             cy.get(cesc(`#\\/pn${i}`)).should(
                                 "have.text",
-                                `n${i}: , equation ???`
+                                `n${i}: , equation ???`,
                             );
                             cy.get(cesc(`#\\/etn${i}`)).should("have.text", ``);
                             cy.get(cesc(`#\\/rn${i}`)).should(
                                 "have.text",
-                                `???`
+                                `???`,
                             );
                             cy.get(cesc(`#\\/rn${i}`)).click();
                             cy.url().should(
                                 "match",
-                                RegExp(cesc(`#\\/n${i}\\/eq`) + "$")
+                                RegExp(cesc(`#\\/n${i}\\/eq`) + "$"),
                             );
                         }
                     }
@@ -1134,7 +1134,7 @@ describe("Math Display Tag Tests", function () {
                 cy.window().then(async (win) => {
                     cy.get(cesc(`#\\/pn${i}`)).should(
                         "have.text",
-                        `n${i}: , equation ???`
+                        `n${i}: , equation ???`,
                     );
                     cy.get(cesc(`#\\/etn${i}`)).should("not.exist");
                     cy.get(cesc(`#\\/rn${i}`)).should("have.text", `???`);
@@ -1157,7 +1157,7 @@ describe("Math Display Tag Tests", function () {
                     });
                 cy.get(cesc("#\\/pz")).should(
                     "have.text",
-                    `z: ${counter}, equation (${counter})`
+                    `z: ${counter}, equation (${counter})`,
                 );
                 cy.get(cesc("#\\/etz")).should("have.text", `${counter}`);
                 cy.get(cesc("#\\/rz")).should("have.text", `(${counter})`);
@@ -1221,7 +1221,7 @@ describe("Math Display Tag Tests", function () {
     <p><m><intcomma><math>25236501.35</math></intcomma></m></p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1245,7 +1245,7 @@ describe("Math Display Tag Tests", function () {
             });
     });
 
-    it("include blank string children", () => {
+    it("separate with spaces when concatenate children", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
@@ -1253,14 +1253,14 @@ describe("Math Display Tag Tests", function () {
     <text>a</text>
     <math name="b">beta</math>
     <math name="s">s</math>
-    <m>$b $s</m>
-    <me>$b $s</me>
+    <m>$b$s</m>
+    <me>$b$s</me>
     <md>
-      <mrow>$b $s</mrow>
+      <mrow>$b$s</mrow>
     </md>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1287,6 +1287,15 @@ describe("Math Display Tag Tests", function () {
             .then((text) => {
                 expect(text.trim()).equal("βs");
             });
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/_m1"].stateValues.latex).eq("\\beta s");
+            expect(stateVariables["/_me1"].stateValues.latex).eq("\\beta s");
+            expect(stateVariables["/_md1"].stateValues.latex).eq(
+                "\\notag \\beta s",
+            );
+        });
     });
 
     it("aslist inside displayed math", () => {
@@ -1304,7 +1313,7 @@ describe("Math Display Tag Tests", function () {
     </md>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1351,7 +1360,7 @@ describe("Math Display Tag Tests", function () {
     <p><updateValue name="uv" target="m.latex" type="text" newValue="\\frac{1}{2}" ><label>Change latex</label></updateValue></p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1400,22 +1409,22 @@ describe("Math Display Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait until loaded
         cy.get(cesc("#\\/m1t")).should(
             "have.text",
-            "2 x₁ y₂₃ + z₄₅₆ - a₇₊₈₋₉₀"
+            "2 x₁ y₂₃ + z₄₅₆ - a₇₊₈₋₉₀",
         );
         cy.get(cesc("#\\/m2t")).should(
             "have.text",
-            "2 x¹ y²³ + z⁴⁵⁶ - a⁷⁺⁸⁻⁹⁰"
+            "2 x¹ y²³ + z⁴⁵⁶ - a⁷⁺⁸⁻⁹⁰",
         );
         cy.get(cesc("#\\/mdt")).should(
             "have.text",
-            "2 x₁ y₂₃ + z₄₅₆ - a₇₊₈₋₉₀\\\\\n2 x¹ y²³ + z⁴⁵⁶ - a⁷⁺⁸⁻⁹⁰"
+            "2 x₁ y₂₃ + z₄₅₆ - a₇₊₈₋₉₀\\\\\n2 x¹ y²³ + z⁴⁵⁶ - a⁷⁺⁸⁻⁹⁰",
         );
     });
 
@@ -1472,7 +1481,7 @@ describe("Math Display Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1487,21 +1496,21 @@ describe("Math Display Tag Tests", function () {
 
         cy.get(cesc("#\\/pPositionFromAnchor1")).should(
             "have.text",
-            "Position from anchor 1: upperright"
+            "Position from anchor 1: upperright",
         );
         cy.get(cesc("#\\/pPositionFromAnchor2")).should(
             "have.text",
-            "Position from anchor 2: center"
+            "Position from anchor 2: center",
         );
         cy.get(cesc("#\\/positionFromAnchor1")).should("have.value", "1");
         cy.get(cesc("#\\/positionFromAnchor2")).should("have.value", "9");
         cy.get(cesc("#\\/pDraggable1")).should(
             "have.text",
-            "Draggable 1: true"
+            "Draggable 1: true",
         );
         cy.get(cesc("#\\/pDraggable2")).should(
             "have.text",
-            "Draggable 2: true"
+            "Draggable 2: true",
         );
         cy.get(cesc("#\\/pContent1") + " .mjx-mrow")
             .eq(0)
@@ -1527,7 +1536,7 @@ describe("Math Display Tag Tests", function () {
 
         cy.get(cesc("#\\/pAnchor2") + " .mjx-mrow").should(
             "contain.text",
-            "(4,−5)"
+            "(4,−5)",
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow")
@@ -1541,16 +1550,16 @@ describe("Math Display Tag Tests", function () {
 
         cy.get(cesc("#\\/anchorCoords1") + " textarea").type(
             "{home}{shift+end}{backspace}(6,7){enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/anchorCoords2") + " textarea").type(
             "{home}{shift+end}{backspace}(8,9){enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/pAnchor2") + " .mjx-mrow").should(
             "contain.text",
-            "(8,9)"
+            "(8,9)",
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow")
@@ -1566,11 +1575,11 @@ describe("Math Display Tag Tests", function () {
 
         cy.get(cesc("#\\/pPositionFromAnchor1")).should(
             "have.text",
-            "Position from anchor 1: lowerleft"
+            "Position from anchor 1: lowerleft",
         );
         cy.get(cesc("#\\/pPositionFromAnchor2")).should(
             "have.text",
-            "Position from anchor 2: lowerright"
+            "Position from anchor 2: lowerright",
         );
 
         cy.log("make not draggable");
@@ -1579,11 +1588,11 @@ describe("Math Display Tag Tests", function () {
         cy.get(cesc("#\\/draggable2")).click();
         cy.get(cesc("#\\/pDraggable1")).should(
             "have.text",
-            "Draggable 1: false"
+            "Draggable 1: false",
         );
         cy.get(cesc("#\\/pDraggable2")).should(
             "have.text",
-            "Draggable 2: false"
+            "Draggable 2: false",
         );
 
         cy.log("cannot move maths by dragging");
@@ -1630,7 +1639,7 @@ describe("Math Display Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1644,12 +1653,12 @@ describe("Math Display Tag Tests", function () {
 
         cy.get(cesc("#\\/anchorCoords1") + " textarea").type(
             "{home}{shift+end}{backspace}(6,7){enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow").should(
             "contain.text",
-            "(6,7)"
+            "(6,7)",
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow")
@@ -1660,7 +1669,7 @@ describe("Math Display Tag Tests", function () {
 
         cy.get(cesc("#\\/anchorCoords1") + " textarea").type(
             "{home}{shift+end}{backspace}q{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow").should("contain.text", "q");
@@ -1723,7 +1732,7 @@ describe("Math Display Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1738,21 +1747,21 @@ describe("Math Display Tag Tests", function () {
 
         cy.get(cesc("#\\/pPositionFromAnchor1")).should(
             "have.text",
-            "Position from anchor 1: upperright"
+            "Position from anchor 1: upperright",
         );
         cy.get(cesc("#\\/pPositionFromAnchor2")).should(
             "have.text",
-            "Position from anchor 2: center"
+            "Position from anchor 2: center",
         );
         cy.get(cesc("#\\/positionFromAnchor1")).should("have.value", "1");
         cy.get(cesc("#\\/positionFromAnchor2")).should("have.value", "9");
         cy.get(cesc("#\\/pDraggable1")).should(
             "have.text",
-            "Draggable 1: true"
+            "Draggable 1: true",
         );
         cy.get(cesc("#\\/pDraggable2")).should(
             "have.text",
-            "Draggable 2: true"
+            "Draggable 2: true",
         );
         cy.get(cesc("#\\/pContent1") + " .mjx-mrow")
             .eq(0)
@@ -1778,7 +1787,7 @@ describe("Math Display Tag Tests", function () {
 
         cy.get(cesc("#\\/pAnchor2") + " .mjx-mrow").should(
             "contain.text",
-            "(4,−5)"
+            "(4,−5)",
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow")
@@ -1792,16 +1801,16 @@ describe("Math Display Tag Tests", function () {
 
         cy.get(cesc("#\\/anchorCoords1") + " textarea").type(
             "{home}{shift+end}{backspace}(6,7){enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/anchorCoords2") + " textarea").type(
             "{home}{shift+end}{backspace}(8,9){enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/pAnchor2") + " .mjx-mrow").should(
             "contain.text",
-            "(8,9)"
+            "(8,9)",
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow")
@@ -1817,11 +1826,11 @@ describe("Math Display Tag Tests", function () {
 
         cy.get(cesc("#\\/pPositionFromAnchor1")).should(
             "have.text",
-            "Position from anchor 1: lowerleft"
+            "Position from anchor 1: lowerleft",
         );
         cy.get(cesc("#\\/pPositionFromAnchor2")).should(
             "have.text",
-            "Position from anchor 2: lowerright"
+            "Position from anchor 2: lowerright",
         );
 
         cy.log("make not draggable");
@@ -1830,11 +1839,11 @@ describe("Math Display Tag Tests", function () {
         cy.get(cesc("#\\/draggable2")).click();
         cy.get(cesc("#\\/pDraggable1")).should(
             "have.text",
-            "Draggable 1: false"
+            "Draggable 1: false",
         );
         cy.get(cesc("#\\/pDraggable2")).should(
             "have.text",
-            "Draggable 2: false"
+            "Draggable 2: false",
         );
 
         cy.log("cannot move maths by dragging");
@@ -1922,7 +1931,7 @@ describe("Math Display Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1937,21 +1946,21 @@ describe("Math Display Tag Tests", function () {
 
         cy.get(cesc("#\\/pPositionFromAnchor1")).should(
             "have.text",
-            "Position from anchor 1: upperright"
+            "Position from anchor 1: upperright",
         );
         cy.get(cesc("#\\/pPositionFromAnchor2")).should(
             "have.text",
-            "Position from anchor 2: center"
+            "Position from anchor 2: center",
         );
         cy.get(cesc("#\\/positionFromAnchor1")).should("have.value", "1");
         cy.get(cesc("#\\/positionFromAnchor2")).should("have.value", "9");
         cy.get(cesc("#\\/pDraggable1")).should(
             "have.text",
-            "Draggable 1: true"
+            "Draggable 1: true",
         );
         cy.get(cesc("#\\/pDraggable2")).should(
             "have.text",
-            "Draggable 2: true"
+            "Draggable 2: true",
         );
         cy.get(cesc("#\\/pContent1"))
             .find(".mjx-mtr")
@@ -1999,7 +2008,7 @@ describe("Math Display Tag Tests", function () {
 
         cy.get(cesc("#\\/pAnchor2") + " .mjx-mrow").should(
             "contain.text",
-            "(4,−5)"
+            "(4,−5)",
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow")
@@ -2013,16 +2022,16 @@ describe("Math Display Tag Tests", function () {
 
         cy.get(cesc("#\\/anchorCoords1") + " textarea").type(
             "{home}{shift+end}{backspace}(6,7){enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/anchorCoords2") + " textarea").type(
             "{home}{shift+end}{backspace}(8,9){enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/pAnchor2") + " .mjx-mrow").should(
             "contain.text",
-            "(8,9)"
+            "(8,9)",
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow")
@@ -2038,11 +2047,11 @@ describe("Math Display Tag Tests", function () {
 
         cy.get(cesc("#\\/pPositionFromAnchor1")).should(
             "have.text",
-            "Position from anchor 1: lowerleft"
+            "Position from anchor 1: lowerleft",
         );
         cy.get(cesc("#\\/pPositionFromAnchor2")).should(
             "have.text",
-            "Position from anchor 2: lowerright"
+            "Position from anchor 2: lowerright",
         );
 
         cy.log("make not draggable");
@@ -2051,11 +2060,11 @@ describe("Math Display Tag Tests", function () {
         cy.get(cesc("#\\/draggable2")).click();
         cy.get(cesc("#\\/pDraggable1")).should(
             "have.text",
-            "Draggable 1: false"
+            "Draggable 1: false",
         );
         cy.get(cesc("#\\/pDraggable2")).should(
             "have.text",
-            "Draggable 2: false"
+            "Draggable 2: false",
         );
 
         cy.log("cannot move maths by dragging");
@@ -2110,7 +2119,7 @@ describe("Math Display Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2129,34 +2138,34 @@ describe("Math Display Tag Tests", function () {
         cy.get(cesc("#\\/no_style")).should(
             "have.css",
             "color",
-            "rgb(0, 0, 0)"
+            "rgb(0, 0, 0)",
         );
         cy.get(cesc("#\\/no_style")).should(
             "have.css",
             "background-color",
-            "rgba(0, 0, 0, 0)"
+            "rgba(0, 0, 0, 0)",
         );
 
         cy.get(cesc("#\\/fixed_style")).should(
             "have.css",
             "color",
-            "rgb(0, 128, 0)"
+            "rgb(0, 128, 0)",
         );
         cy.get(cesc("#\\/fixed_style")).should(
             "have.css",
             "background-color",
-            "rgba(0, 0, 0, 0)"
+            "rgba(0, 0, 0, 0)",
         );
 
         cy.get(cesc("#\\/variable_style")).should(
             "have.css",
             "color",
-            "rgb(0, 0, 0)"
+            "rgb(0, 0, 0)",
         );
         cy.get(cesc("#\\/variable_style")).should(
             "have.css",
             "background-color",
-            "rgba(0, 0, 0, 0)"
+            "rgba(0, 0, 0, 0)",
         );
 
         // TODO: how to test color in graph
@@ -2180,34 +2189,34 @@ describe("Math Display Tag Tests", function () {
         cy.get(cesc("#\\/no_style")).should(
             "have.css",
             "color",
-            "rgb(0, 0, 0)"
+            "rgb(0, 0, 0)",
         );
         cy.get(cesc("#\\/no_style")).should(
             "have.css",
             "background-color",
-            "rgba(0, 0, 0, 0)"
+            "rgba(0, 0, 0, 0)",
         );
 
         cy.get(cesc("#\\/fixed_style")).should(
             "have.css",
             "color",
-            "rgb(0, 128, 0)"
+            "rgb(0, 128, 0)",
         );
         cy.get(cesc("#\\/fixed_style")).should(
             "have.css",
             "background-color",
-            "rgba(0, 0, 0, 0)"
+            "rgba(0, 0, 0, 0)",
         );
 
         cy.get(cesc("#\\/variable_style")).should(
             "have.css",
             "color",
-            "rgb(0, 128, 0)"
+            "rgb(0, 128, 0)",
         );
         cy.get(cesc("#\\/variable_style")).should(
             "have.css",
             "background-color",
-            "rgba(0, 0, 0, 0)"
+            "rgba(0, 0, 0, 0)",
         );
 
         cy.get(cesc("#\\/sn") + " textarea").type("{end}{backspace}3{enter}", {
@@ -2216,7 +2225,7 @@ describe("Math Display Tag Tests", function () {
 
         cy.get(cesc("#\\/tsd_variable_style")).should(
             "have.text",
-            "red with a blue background"
+            "red with a blue background",
         );
         cy.get(cesc("#\\/tc_variable_style")).should("have.text", "red");
         cy.get(cesc("#\\/bc_variable_style")).should("have.text", "blue");
@@ -2232,34 +2241,34 @@ describe("Math Display Tag Tests", function () {
         cy.get(cesc("#\\/no_style")).should(
             "have.css",
             "color",
-            "rgb(0, 0, 0)"
+            "rgb(0, 0, 0)",
         );
         cy.get(cesc("#\\/no_style")).should(
             "have.css",
             "background-color",
-            "rgba(0, 0, 0, 0)"
+            "rgba(0, 0, 0, 0)",
         );
 
         cy.get(cesc("#\\/fixed_style")).should(
             "have.css",
             "color",
-            "rgb(0, 128, 0)"
+            "rgb(0, 128, 0)",
         );
         cy.get(cesc("#\\/fixed_style")).should(
             "have.css",
             "background-color",
-            "rgba(0, 0, 0, 0)"
+            "rgba(0, 0, 0, 0)",
         );
 
         cy.get(cesc("#\\/variable_style")).should(
             "have.css",
             "color",
-            "rgb(255, 0, 0)"
+            "rgb(255, 0, 0)",
         );
         cy.get(cesc("#\\/variable_style")).should(
             "have.css",
             "background-color",
-            "rgb(0, 0, 255)"
+            "rgb(0, 0, 255)",
         );
     });
 
@@ -2289,7 +2298,7 @@ describe("Math Display Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2308,34 +2317,34 @@ describe("Math Display Tag Tests", function () {
         cy.get(cesc("#\\/no_style")).should(
             "have.css",
             "color",
-            "rgb(0, 0, 0)"
+            "rgb(0, 0, 0)",
         );
         cy.get(cesc("#\\/no_style")).should(
             "have.css",
             "background-color",
-            "rgba(0, 0, 0, 0)"
+            "rgba(0, 0, 0, 0)",
         );
 
         cy.get(cesc("#\\/fixed_style")).should(
             "have.css",
             "color",
-            "rgb(0, 128, 0)"
+            "rgb(0, 128, 0)",
         );
         cy.get(cesc("#\\/fixed_style")).should(
             "have.css",
             "background-color",
-            "rgba(0, 0, 0, 0)"
+            "rgba(0, 0, 0, 0)",
         );
 
         cy.get(cesc("#\\/variable_style")).should(
             "have.css",
             "color",
-            "rgb(0, 0, 0)"
+            "rgb(0, 0, 0)",
         );
         cy.get(cesc("#\\/variable_style")).should(
             "have.css",
             "background-color",
-            "rgba(0, 0, 0, 0)"
+            "rgba(0, 0, 0, 0)",
         );
 
         // TODO: how to test color in graph
@@ -2359,34 +2368,34 @@ describe("Math Display Tag Tests", function () {
         cy.get(cesc("#\\/no_style")).should(
             "have.css",
             "color",
-            "rgb(0, 0, 0)"
+            "rgb(0, 0, 0)",
         );
         cy.get(cesc("#\\/no_style")).should(
             "have.css",
             "background-color",
-            "rgba(0, 0, 0, 0)"
+            "rgba(0, 0, 0, 0)",
         );
 
         cy.get(cesc("#\\/fixed_style")).should(
             "have.css",
             "color",
-            "rgb(0, 128, 0)"
+            "rgb(0, 128, 0)",
         );
         cy.get(cesc("#\\/fixed_style")).should(
             "have.css",
             "background-color",
-            "rgba(0, 0, 0, 0)"
+            "rgba(0, 0, 0, 0)",
         );
 
         cy.get(cesc("#\\/variable_style")).should(
             "have.css",
             "color",
-            "rgb(0, 128, 0)"
+            "rgb(0, 128, 0)",
         );
         cy.get(cesc("#\\/variable_style")).should(
             "have.css",
             "background-color",
-            "rgba(0, 0, 0, 0)"
+            "rgba(0, 0, 0, 0)",
         );
 
         cy.get(cesc("#\\/sn") + " textarea").type("{end}{backspace}3{enter}", {
@@ -2395,7 +2404,7 @@ describe("Math Display Tag Tests", function () {
 
         cy.get(cesc("#\\/tsd_variable_style")).should(
             "have.text",
-            "red with a blue background"
+            "red with a blue background",
         );
         cy.get(cesc("#\\/tc_variable_style")).should("have.text", "red");
         cy.get(cesc("#\\/bc_variable_style")).should("have.text", "blue");
@@ -2411,34 +2420,34 @@ describe("Math Display Tag Tests", function () {
         cy.get(cesc("#\\/no_style")).should(
             "have.css",
             "color",
-            "rgb(0, 0, 0)"
+            "rgb(0, 0, 0)",
         );
         cy.get(cesc("#\\/no_style")).should(
             "have.css",
             "background-color",
-            "rgba(0, 0, 0, 0)"
+            "rgba(0, 0, 0, 0)",
         );
 
         cy.get(cesc("#\\/fixed_style")).should(
             "have.css",
             "color",
-            "rgb(0, 128, 0)"
+            "rgb(0, 128, 0)",
         );
         cy.get(cesc("#\\/fixed_style")).should(
             "have.css",
             "background-color",
-            "rgba(0, 0, 0, 0)"
+            "rgba(0, 0, 0, 0)",
         );
 
         cy.get(cesc("#\\/variable_style")).should(
             "have.css",
             "color",
-            "rgb(255, 0, 0)"
+            "rgb(255, 0, 0)",
         );
         cy.get(cesc("#\\/variable_style")).should(
             "have.css",
             "background-color",
-            "rgb(0, 0, 255)"
+            "rgb(0, 0, 255)",
         );
     });
 
@@ -2468,7 +2477,7 @@ describe("Math Display Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2487,34 +2496,34 @@ describe("Math Display Tag Tests", function () {
         cy.get(cesc("#\\/no_style")).should(
             "have.css",
             "color",
-            "rgb(0, 0, 0)"
+            "rgb(0, 0, 0)",
         );
         cy.get(cesc("#\\/no_style")).should(
             "have.css",
             "background-color",
-            "rgba(0, 0, 0, 0)"
+            "rgba(0, 0, 0, 0)",
         );
 
         cy.get(cesc("#\\/fixed_style")).should(
             "have.css",
             "color",
-            "rgb(0, 128, 0)"
+            "rgb(0, 128, 0)",
         );
         cy.get(cesc("#\\/fixed_style")).should(
             "have.css",
             "background-color",
-            "rgba(0, 0, 0, 0)"
+            "rgba(0, 0, 0, 0)",
         );
 
         cy.get(cesc("#\\/variable_style")).should(
             "have.css",
             "color",
-            "rgb(0, 0, 0)"
+            "rgb(0, 0, 0)",
         );
         cy.get(cesc("#\\/variable_style")).should(
             "have.css",
             "background-color",
-            "rgba(0, 0, 0, 0)"
+            "rgba(0, 0, 0, 0)",
         );
 
         // TODO: how to test color in graph
@@ -2538,34 +2547,34 @@ describe("Math Display Tag Tests", function () {
         cy.get(cesc("#\\/no_style")).should(
             "have.css",
             "color",
-            "rgb(0, 0, 0)"
+            "rgb(0, 0, 0)",
         );
         cy.get(cesc("#\\/no_style")).should(
             "have.css",
             "background-color",
-            "rgba(0, 0, 0, 0)"
+            "rgba(0, 0, 0, 0)",
         );
 
         cy.get(cesc("#\\/fixed_style")).should(
             "have.css",
             "color",
-            "rgb(0, 128, 0)"
+            "rgb(0, 128, 0)",
         );
         cy.get(cesc("#\\/fixed_style")).should(
             "have.css",
             "background-color",
-            "rgba(0, 0, 0, 0)"
+            "rgba(0, 0, 0, 0)",
         );
 
         cy.get(cesc("#\\/variable_style")).should(
             "have.css",
             "color",
-            "rgb(0, 128, 0)"
+            "rgb(0, 128, 0)",
         );
         cy.get(cesc("#\\/variable_style")).should(
             "have.css",
             "background-color",
-            "rgba(0, 0, 0, 0)"
+            "rgba(0, 0, 0, 0)",
         );
 
         cy.get(cesc("#\\/sn") + " textarea").type("{end}{backspace}3{enter}", {
@@ -2574,7 +2583,7 @@ describe("Math Display Tag Tests", function () {
 
         cy.get(cesc("#\\/tsd_variable_style")).should(
             "have.text",
-            "red with a blue background"
+            "red with a blue background",
         );
         cy.get(cesc("#\\/tc_variable_style")).should("have.text", "red");
         cy.get(cesc("#\\/bc_variable_style")).should("have.text", "blue");
@@ -2590,34 +2599,34 @@ describe("Math Display Tag Tests", function () {
         cy.get(cesc("#\\/no_style")).should(
             "have.css",
             "color",
-            "rgb(0, 0, 0)"
+            "rgb(0, 0, 0)",
         );
         cy.get(cesc("#\\/no_style")).should(
             "have.css",
             "background-color",
-            "rgba(0, 0, 0, 0)"
+            "rgba(0, 0, 0, 0)",
         );
 
         cy.get(cesc("#\\/fixed_style")).should(
             "have.css",
             "color",
-            "rgb(0, 128, 0)"
+            "rgb(0, 128, 0)",
         );
         cy.get(cesc("#\\/fixed_style")).should(
             "have.css",
             "background-color",
-            "rgba(0, 0, 0, 0)"
+            "rgba(0, 0, 0, 0)",
         );
 
         cy.get(cesc("#\\/variable_style")).should(
             "have.css",
             "color",
-            "rgb(255, 0, 0)"
+            "rgb(255, 0, 0)",
         );
         cy.get(cesc("#\\/variable_style")).should(
             "have.css",
             "background-color",
-            "rgb(0, 0, 255)"
+            "rgb(0, 0, 255)",
         );
     });
 
@@ -2663,7 +2672,7 @@ describe("Math Display Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2731,7 +2740,7 @@ describe("Math Display Tag Tests", function () {
 
             cy.get(cesc("#\\/m2coords") + " .mjx-mrow").should(
                 "contain.text",
-                "(4,−5)"
+                "(4,−5)",
             );
 
             cy.get(cesc("#\\/m1coords") + " .mjx-mrow")
@@ -2769,7 +2778,7 @@ describe("Math Display Tag Tests", function () {
 
             cy.get(cesc("#\\/m2coords") + " .mjx-mrow").should(
                 "contain.text",
-                "(−8,2)"
+                "(−8,2)",
             );
 
             cy.get(cesc("#\\/m1coords") + " .mjx-mrow")
@@ -2807,7 +2816,7 @@ describe("Math Display Tag Tests", function () {
 
             cy.get(cesc("#\\/m2bcoords") + " .mjx-mrow").should(
                 "contain.text",
-                "(−5,−4)"
+                "(−5,−4)",
             );
 
             cy.get(cesc("#\\/m1coords") + " .mjx-mrow")
@@ -2837,7 +2846,7 @@ describe("Math Display Tag Tests", function () {
                 {
                     doenetML: `<m>x = <answer>x</answer></m>`,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2852,7 +2861,7 @@ describe("Math Display Tag Tests", function () {
             expect(errorWarnings.warnings.length).eq(1);
 
             expect(errorWarnings.warnings[0].message).contain(
-                `Child <answer> of <m> ignored as it does not have a string "text" or "latex" state variable`
+                `Child <answer> of <m> ignored as it does not have a string "text" or "latex" state variable`,
             );
             expect(errorWarnings.warnings[0].level).eq(1);
             expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(1);

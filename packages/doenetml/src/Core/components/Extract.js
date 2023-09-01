@@ -100,7 +100,7 @@ export default class Extract extends CompositeComponent {
                         )
                     ) {
                         throw Error(
-                            `Invalid componentType ${dependencyValues.typeAttr} of copy.`
+                            `Invalid componentType ${dependencyValues.typeAttr} of copy.`,
                         );
                     }
                     if (dependencyValues.numComponentsAttr !== null) {
@@ -111,7 +111,7 @@ export default class Extract extends CompositeComponent {
                     }
                 } else if (dependencyValues.numComponentsAttr !== null) {
                     throw Error(
-                        `You must specify createComponentOfType when specifying numComponents for a copy.`
+                        `You must specify createComponentOfType when specifying numComponents for a copy.`,
                     );
                 } else {
                     numComponentsSpecified = null;
@@ -364,9 +364,9 @@ export default class Extract extends CompositeComponent {
         let results = await replacementFromProp({
             component,
             components,
-            replacementSource: (
-                await component.stateValues.sourceComponents
-            )[sourceNum],
+            replacementSource: (await component.stateValues.sourceComponents)[
+                sourceNum
+            ],
             propName,
             // numReplacementsSoFar,
             uniqueIdentifiersUsed,
@@ -435,7 +435,7 @@ export default class Extract extends CompositeComponent {
 
         let maxSourceLength = Math.max(
             sourceComponents.length,
-            workspace.numReplacementsBySource.length
+            workspace.numReplacementsBySource.length,
         );
 
         let recreateRemaining = false;
@@ -474,7 +474,7 @@ export default class Extract extends CompositeComponent {
                             .slice(sourceNum)
                             .forEach(
                                 (v, i) =>
-                                    (workspace.numReplacementsBySource[i] = 0)
+                                    (workspace.numReplacementsBySource[i] = 0),
                             );
                     }
 
@@ -571,7 +571,7 @@ export default class Extract extends CompositeComponent {
                             .slice(sourceNum)
                             .forEach(
                                 (v, i) =>
-                                    (workspace.numReplacementsBySource[i] = 0)
+                                    (workspace.numReplacementsBySource[i] = 0),
                             );
                     }
                 }
@@ -634,7 +634,7 @@ export default class Extract extends CompositeComponent {
                 workspace.numReplacementsBySource
                     .slice(sourceNum)
                     .forEach(
-                        (v, i) => (workspace.numReplacementsBySource[i] = 0)
+                        (v, i) => (workspace.numReplacementsBySource[i] = 0),
                     );
             } else {
                 for (let ind = 0; ind < nNewReplacements; ind++) {
@@ -647,7 +647,7 @@ export default class Extract extends CompositeComponent {
                             ind
                         ].some(
                             (v, i) =>
-                                v !== propVariablesCopiedByReplacement[ind][i]
+                                v !== propVariablesCopiedByReplacement[ind][i],
                         )
                     ) {
                         let replacementInstruction = {

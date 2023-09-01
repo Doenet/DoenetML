@@ -33,7 +33,7 @@ describe("Ion Compounds Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -47,13 +47,13 @@ describe("Ion Compounds Tests", function () {
             let mathinputLiOAnchor =
                 cesc2("#" + mathinputLiOName) + " textarea";
             let mathinputLiOSubmitAnchor = cesc2(
-                "#" + mathinputLiOName + "_submit"
+                "#" + mathinputLiOName + "_submit",
             );
             let mathinputLiOCorrectAnchor = cesc2(
-                "#" + mathinputLiOName + "_correct"
+                "#" + mathinputLiOName + "_correct",
             );
             let mathinputLiOIncorrectAnchor = cesc2(
-                "#" + mathinputLiOName + "_incorrect"
+                "#" + mathinputLiOName + "_incorrect",
             );
 
             cy.get(mathinputLiOAnchor).type("LiO{enter}", { force: true });
@@ -68,7 +68,7 @@ describe("Ion Compounds Tests", function () {
                 "{end}{leftarrow}{backspace}_2{enter}",
                 {
                     force: true,
-                }
+                },
             );
             cy.get(mathinputLiOCorrectAnchor).should("be.visible");
 
@@ -78,13 +78,13 @@ describe("Ion Compounds Tests", function () {
             let mathinputCaPAnchor =
                 cesc2("#" + mathinputCaPName) + " textarea";
             let mathinputCaPSubmitAnchor = cesc2(
-                "#" + mathinputCaPName + "_submit"
+                "#" + mathinputCaPName + "_submit",
             );
             let mathinputCaPCorrectAnchor = cesc2(
-                "#" + mathinputCaPName + "_correct"
+                "#" + mathinputCaPName + "_correct",
             );
             let mathinputCaPIncorrectAnchor = cesc2(
-                "#" + mathinputCaPName + "_incorrect"
+                "#" + mathinputCaPName + "_incorrect",
             );
 
             cy.get(mathinputCaPAnchor).type("CaP{enter}", { force: true });
@@ -106,13 +106,13 @@ describe("Ion Compounds Tests", function () {
             let mathinputMgSAnchor =
                 cesc2("#" + mathinputMgSName) + " textarea";
             let mathinputMgSSubmitAnchor = cesc2(
-                "#" + mathinputMgSName + "_submit"
+                "#" + mathinputMgSName + "_submit",
             );
             let mathinputMgSCorrectAnchor = cesc2(
-                "#" + mathinputMgSName + "_correct"
+                "#" + mathinputMgSName + "_correct",
             );
             let mathinputMgSIncorrectAnchor = cesc2(
-                "#" + mathinputMgSName + "_incorrect"
+                "#" + mathinputMgSName + "_incorrect",
             );
 
             cy.get(mathinputMgSAnchor).type("MgS{enter}", { force: true });
@@ -129,13 +129,13 @@ describe("Ion Compounds Tests", function () {
             let mathinputSrIAnchor =
                 cesc2("#" + mathinputSrIName) + " textarea";
             let mathinputSrISubmitAnchor = cesc2(
-                "#" + mathinputSrIName + "_submit"
+                "#" + mathinputSrIName + "_submit",
             );
             let mathinputSrICorrectAnchor = cesc2(
-                "#" + mathinputSrIName + "_correct"
+                "#" + mathinputSrIName + "_correct",
             );
             let mathinputSrIIncorrectAnchor = cesc2(
-                "#" + mathinputSrIName + "_incorrect"
+                "#" + mathinputSrIName + "_incorrect",
             );
 
             cy.get(mathinputSrIAnchor).type("SrI{enter}", { force: true });
@@ -146,7 +146,7 @@ describe("Ion Compounds Tests", function () {
 
             cy.get(mathinputSrIAnchor).type(
                 "{leftarrow}{leftarrow}{leftarrow} {enter}",
-                { force: true }
+                { force: true },
             );
             cy.get(mathinputSrICorrectAnchor).should("be.visible");
         });
@@ -164,7 +164,7 @@ describe("Ion Compounds Tests", function () {
   <ionicCompound>$Li$Ca</ionicCompound>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -177,7 +177,7 @@ describe("Ion Compounds Tests", function () {
             expect(errorWarnings.warnings.length).eq(2);
 
             expect(errorWarnings.warnings[0].message).contain(
-                `Have not implemented ionic compound for anything other than two ions`
+                `Have not implemented ionic compound for anything other than two ions`,
             );
             expect(errorWarnings.warnings[0].level).eq(1);
             expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(5);
@@ -186,7 +186,7 @@ describe("Ion Compounds Tests", function () {
             expect(errorWarnings.warnings[0].doenetMLrange.charEnd).eq(41);
 
             expect(errorWarnings.warnings[1].message).contain(
-                `Ionic compound implemented only for one cation and one anion`
+                `Ionic compound implemented only for one cation and one anion`,
             );
             expect(errorWarnings.warnings[1].level).eq(1);
             expect(errorWarnings.warnings[1].doenetMLrange.lineBegin).eq(6);

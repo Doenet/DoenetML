@@ -129,7 +129,7 @@ export default class PiecewiseFunction extends Function {
 
                         childrenWithNonNumericDomains.push(
                             Number.isNaN(intervalMin) ||
-                                Number.isNaN(intervalMax)
+                                Number.isNaN(intervalMax),
                         );
 
                         if (
@@ -356,18 +356,18 @@ export default class PiecewiseFunction extends Function {
                                 .filter(
                                     (_, i) =>
                                         globalDependencyValues
-                                            .numericalDomainsOfChildren[i]
+                                            .numericalDomainsOfChildren[i],
                                 )
                                 .map(
                                     (functionChild) =>
                                         functionChild.stateValues.numericalfs[
                                             arrayKey
-                                        ]
+                                        ],
                                 );
 
                         let numericalDomainsOfChildren =
                             globalDependencyValues.numericalDomainsOfChildren.filter(
-                                (x) => x
+                                (x) => x,
                             );
                         numericalfs[arrayKey] =
                             returnPiecewiseNumericalFunctionFromChildren({
@@ -469,18 +469,18 @@ export default class PiecewiseFunction extends Function {
                                 .filter(
                                     (_, i) =>
                                         globalDependencyValues
-                                            .numericalDomainsOfChildren[i]
+                                            .numericalDomainsOfChildren[i],
                                 )
                                 .map(
                                     (functionChild) =>
                                         functionChild.stateValues.fDefinitions[
                                             arrayKey
-                                        ]
+                                        ],
                                 );
 
                         let numericalDomainsOfChildren =
                             globalDependencyValues.numericalDomainsOfChildren.filter(
-                                (x) => x
+                                (x) => x,
                             );
 
                         fDefinitions[arrayKey] = {
@@ -713,12 +713,12 @@ export default class PiecewiseFunction extends Function {
                                 formulaLatexByLine.splice(indexOfFormula, 1);
                                 nonNumericConditionsByLine.splice(
                                     indexOfFormula,
-                                    1
+                                    1,
                                 );
                                 subsetDomainsByLine.splice(indexOfFormula, 1);
                                 lineContainsNonNumeric.splice(
                                     indexOfFormula,
-                                    1
+                                    1,
                                 );
                             }
 
@@ -772,11 +772,11 @@ export default class PiecewiseFunction extends Function {
                         lastNonNumeric = formulaLatexByLine.length - 1;
                         lineContainsNonNumeric[indexUsed] = true;
                         nonNumericConditionsByLine[indexUsed].push(
-                            conditionLatex
+                            conditionLatex,
                         );
                     } else {
                         subsetDomainsByLine[indexUsed].push(
-                            effectiveDomainsOfChildrenIgnoringDomain[ind]
+                            effectiveDomainsOfChildrenIgnoringDomain[ind],
                         );
                     }
                 }
@@ -795,7 +795,7 @@ export default class PiecewiseFunction extends Function {
                                 conditionLatex +=
                                     " " +
                                     nonNumericConditionsByLine[i].join(
-                                        " \\text{ or } "
+                                        " \\text{ or } ",
                                     );
                             }
 
@@ -808,7 +808,7 @@ export default class PiecewiseFunction extends Function {
                                 // Simplify the expression for the numerical domain by calculating the combined subset
                                 // and reconverting to latex
                                 let overallDomain = new subsets.Union(
-                                    subsetDomains
+                                    subsetDomains,
                                 );
                                 conditionLatex += latexFromSubsetDomain({
                                     subsetDomain: overallDomain,
@@ -820,7 +820,7 @@ export default class PiecewiseFunction extends Function {
 
                             return conditionLatex;
                         }
-                    }
+                    },
                 );
 
                 let latex = formulaLatexByLine
@@ -998,7 +998,7 @@ function latexFromSubsetDomain({
                 roundForDisplay({
                     value: me.fromAst(subint),
                     dependencyValues,
-                }).toLatex(toLatexParams)
+                }).toLatex(toLatexParams),
             )
             .join(" \\text{ or }");
     } else {

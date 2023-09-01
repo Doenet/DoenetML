@@ -30,7 +30,7 @@ describe("Module Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -70,7 +70,7 @@ describe("Module Tag Tests", function () {
     $m{name="m4"}
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -110,7 +110,7 @@ describe("Module Tag Tests", function () {
     $m{name="m4"}
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -150,7 +150,7 @@ describe("Module Tag Tests", function () {
     $m{name="m4"}
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -200,7 +200,7 @@ describe("Module Tag Tests", function () {
     <p>$ar.value{assignNames="ar2"}</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -213,13 +213,13 @@ describe("Module Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/m/g"].stateValues.size).eq("medium");
             expect(stateVariables["/m/g"].stateValues.width.size).eq(
-                mediumWidth
+                mediumWidth,
             );
             expect(stateVariables["/m/g"].stateValues.aspectRatio).eq(1);
             expect(stateVariables["/m/p"].stateValues.xs).eqls([3, 5]);
             expect(stateVariables["/m2/g"].stateValues.size).eq("small");
             expect(stateVariables["/m2/g"].stateValues.width.size).eq(
-                smallWidth
+                smallWidth,
             );
             expect(stateVariables["/m2/g"].stateValues.aspectRatio).eq(0.5);
             expect(stateVariables["/m2/p"].stateValues.xs).eqls([7, -7]);
@@ -229,7 +229,7 @@ describe("Module Tag Tests", function () {
             "{end}{backspace}-6{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc2("#/m/y2") + " textarea").type("{end}{backspace}9{enter}", {
             force: true,
@@ -240,13 +240,13 @@ describe("Module Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/m/g"].stateValues.size).eq("medium");
             expect(stateVariables["/m/g"].stateValues.width.size).eq(
-                mediumWidth
+                mediumWidth,
             );
             expect(stateVariables["/m/g"].stateValues.aspectRatio).eq(1);
             expect(stateVariables["/m/p"].stateValues.xs).eqls([-6, 9]);
             expect(stateVariables["/m2/g"].stateValues.size).eq("small");
             expect(stateVariables["/m2/g"].stateValues.width.size).eq(
-                smallWidth
+                smallWidth,
             );
             expect(stateVariables["/m2/g"].stateValues.aspectRatio).eq(0.5);
             expect(stateVariables["/m2/p"].stateValues.xs).eqls([7, -7]);
@@ -254,18 +254,18 @@ describe("Module Tag Tests", function () {
 
         cy.get(cesc2("#/x") + " textarea").type(
             "{end}{backspace}{backspace}1{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc2("#/y") + " textarea").type(
             "{end}{backspace}{backspace}2{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc2("#/s") + "_input")
             .clear()
             .type("large{enter}", { force: true });
         cy.get(cesc2("#/ar") + " textarea").type(
             "{ctrl+home}{shift+ctrl+end}{backspace}3/2{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc2("#/ar2")).should("contain.text", "3");
 
@@ -273,13 +273,13 @@ describe("Module Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/m/g"].stateValues.size).eq("medium");
             expect(stateVariables["/m/g"].stateValues.width.size).eq(
-                mediumWidth
+                mediumWidth,
             );
             expect(stateVariables["/m/g"].stateValues.aspectRatio).eq(1);
             expect(stateVariables["/m/p"].stateValues.xs).eqls([-6, 9]);
             expect(stateVariables["/m2/g"].stateValues.size).eq("large");
             expect(stateVariables["/m2/g"].stateValues.width.size).eq(
-                largeWidth
+                largeWidth,
             );
             expect(stateVariables["/m2/g"].stateValues.aspectRatio).eq(1.5);
             expect(stateVariables["/m2/p"].stateValues.xs).eqls([1, 2]);
@@ -289,13 +289,13 @@ describe("Module Tag Tests", function () {
             "{end}{backspace}-3{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc2("#/m2/y2") + " textarea").type(
             "{end}{backspace}-4{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc2("#/m2/y2a")).should("contain.text", "−4");
 
@@ -303,13 +303,13 @@ describe("Module Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/m/g"].stateValues.size).eq("medium");
             expect(stateVariables["/m/g"].stateValues.width.size).eq(
-                mediumWidth
+                mediumWidth,
             );
             expect(stateVariables["/m/g"].stateValues.aspectRatio).eq(1);
             expect(stateVariables["/m/p"].stateValues.xs).eqls([-6, 9]);
             expect(stateVariables["/m2/g"].stateValues.size).eq("large");
             expect(stateVariables["/m2/g"].stateValues.width.size).eq(
-                largeWidth
+                largeWidth,
             );
             expect(stateVariables["/m2/g"].stateValues.aspectRatio).eq(1.5);
             expect(stateVariables["/m2/p"].stateValues.xs).eqls([-3, -4]);
@@ -325,13 +325,13 @@ describe("Module Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/m/g"].stateValues.size).eq("medium");
             expect(stateVariables["/m/g"].stateValues.width.size).eq(
-                mediumWidth
+                mediumWidth,
             );
             expect(stateVariables["/m/g"].stateValues.aspectRatio).eq(1);
             expect(stateVariables["/m/p"].stateValues.xs).eqls([-8, -9]);
             expect(stateVariables["/m2/g"].stateValues.size).eq("large");
             expect(stateVariables["/m2/g"].stateValues.width.size).eq(
-                largeWidth
+                largeWidth,
             );
             expect(stateVariables["/m2/g"].stateValues.aspectRatio).eq(1.5);
             expect(stateVariables["/m2/p"].stateValues.xs).eqls([-3, -4]);
@@ -347,13 +347,13 @@ describe("Module Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/m/g"].stateValues.size).eq("medium");
             expect(stateVariables["/m/g"].stateValues.width.size).eq(
-                mediumWidth
+                mediumWidth,
             );
             expect(stateVariables["/m/g"].stateValues.aspectRatio).eq(1);
             expect(stateVariables["/m/p"].stateValues.xs).eqls([-8, -9]);
             expect(stateVariables["/m2/g"].stateValues.size).eq("large");
             expect(stateVariables["/m2/g"].stateValues.width.size).eq(
-                largeWidth
+                largeWidth,
             );
             expect(stateVariables["/m2/g"].stateValues.aspectRatio).eq(1.5);
             expect(stateVariables["/m2/p"].stateValues.xs).eqls([6, -10]);
@@ -396,7 +396,7 @@ describe("Module Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -412,11 +412,11 @@ describe("Module Tag Tests", function () {
 
         cy.get(cesc2("#/x") + " textarea").type(
             "{end}{backspace}{backspace}-6{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc2("#/y") + " textarea").type(
             "{end}{backspace}{backspace}8{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc2("#/y2")).should("contain.text", "8");
 
@@ -526,7 +526,7 @@ describe("Module Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -700,7 +700,7 @@ describe("Module Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -805,31 +805,31 @@ describe("Module Tag Tests", function () {
             expect(stateVariables["/g2/extMod/P"].stateValues.xs).eqls([9, 0]);
             expect(stateVariables["/g3/extMod/P"].stateValues.xs).eqls([-3, 0]);
             expect(stateVariables["/g/extMod/_graph1"].stateValues.size).eq(
-                "medium"
+                "medium",
             );
             expect(
-                stateVariables["/g/extMod/_graph1"].stateValues.width.size
+                stateVariables["/g/extMod/_graph1"].stateValues.width.size,
             ).eq(mediumWidth);
             expect(
-                stateVariables["/g/extMod/_graph1"].stateValues.aspectRatio
+                stateVariables["/g/extMod/_graph1"].stateValues.aspectRatio,
             ).eq(1);
             expect(stateVariables["/g2/extMod/_graph1"].stateValues.size).eq(
-                "small"
+                "small",
             );
             expect(
-                stateVariables["/g2/extMod/_graph1"].stateValues.width.size
+                stateVariables["/g2/extMod/_graph1"].stateValues.width.size,
             ).eq(smallWidth);
             expect(
-                stateVariables["/g2/extMod/_graph1"].stateValues.aspectRatio
+                stateVariables["/g2/extMod/_graph1"].stateValues.aspectRatio,
             ).eq(0.8);
             expect(stateVariables["/g3/extMod/_graph1"].stateValues.size).eq(
-                "large"
+                "large",
             );
             expect(
-                stateVariables["/g3/extMod/_graph1"].stateValues.width.size
+                stateVariables["/g3/extMod/_graph1"].stateValues.width.size,
             ).eq(largeWidth);
             expect(
-                stateVariables["/g3/extMod/_graph1"].stateValues.aspectRatio
+                stateVariables["/g3/extMod/_graph1"].stateValues.aspectRatio,
             ).eq(1.2);
         });
 
@@ -1038,7 +1038,7 @@ describe("Module Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -1054,13 +1054,13 @@ describe("Module Tag Tests", function () {
                 "#" +
                     stateVariables[
                         stateVariables["/g2"].replacements[3].componentName
-                    ].activeChildren[1].componentName
+                    ].activeChildren[1].componentName,
             );
             let g2m3Anchor = cesc2(
                 "#" +
                     stateVariables[
                         stateVariables["/g2"].replacements[5].componentName
-                    ].activeChildren[3].componentName
+                    ].activeChildren[3].componentName,
             );
             let g2extProblem =
                 stateVariables[
@@ -1073,33 +1073,33 @@ describe("Module Tag Tests", function () {
             let g2extm1Anchor = cesc2(
                 "#" +
                     stateVariables[g2extProblem.activeChildren[2].componentName]
-                        .activeChildren[1].componentName
+                        .activeChildren[1].componentName,
             );
             let g2extGraph =
                 stateVariables[g2extProblem.activeChildren[4].componentName];
             let g2extPName = g2extGraph.activeChildren[0].componentName;
             let g2extAnswerSubmitAnchor = cesc2(
-                "#" + g2extProblem.activeChildren[6].componentName + "_submit"
+                "#" + g2extProblem.activeChildren[6].componentName + "_submit",
             );
             let g2extAnswerCorrectAnchor = cesc2(
-                "#" + g2extProblem.activeChildren[6].componentName + "_correct"
+                "#" + g2extProblem.activeChildren[6].componentName + "_correct",
             );
             let g2extAnswerIncorrectAnchor = cesc2(
                 "#" +
                     g2extProblem.activeChildren[6].componentName +
-                    "_incorrect"
+                    "_incorrect",
             );
             let g3m1Anchor = cesc2(
                 "#" +
                     stateVariables[
                         stateVariables["/g3"].replacements[3].componentName
-                    ].activeChildren[1].componentName
+                    ].activeChildren[1].componentName,
             );
             let g3m3Anchor = cesc2(
                 "#" +
                     stateVariables[
                         stateVariables["/g3"].replacements[5].componentName
-                    ].activeChildren[3].componentName
+                    ].activeChildren[3].componentName,
             );
             let g3extProblem =
                 stateVariables[
@@ -1112,21 +1112,21 @@ describe("Module Tag Tests", function () {
             let g3extm1Anchor = cesc2(
                 "#" +
                     stateVariables[g3extProblem.activeChildren[2].componentName]
-                        .activeChildren[1].componentName
+                        .activeChildren[1].componentName,
             );
             let g3extGraph =
                 stateVariables[g3extProblem.activeChildren[4].componentName];
             let g3extPName = g3extGraph.activeChildren[0].componentName;
             let g3extAnswerSubmitAnchor = cesc2(
-                "#" + g3extProblem.activeChildren[6].componentName + "_submit"
+                "#" + g3extProblem.activeChildren[6].componentName + "_submit",
             );
             let g3extAnswerCorrectAnchor = cesc2(
-                "#" + g3extProblem.activeChildren[6].componentName + "_correct"
+                "#" + g3extProblem.activeChildren[6].componentName + "_correct",
             );
             let g3extAnswerIncorrectAnchor = cesc2(
                 "#" +
                     g3extProblem.activeChildren[6].componentName +
-                    "_incorrect"
+                    "_incorrect",
             );
 
             cy.get(cesc2("#/_m1"))
@@ -1199,35 +1199,35 @@ describe("Module Tag Tests", function () {
                 expect(stateVariables[g2extPName].stateValues.xs).eqls([9, 0]);
                 expect(stateVariables[g3extPName].stateValues.xs).eqls([-3, 0]);
                 expect(stateVariables["/extMod/_graph1"].stateValues.size).eq(
-                    "medium"
+                    "medium",
                 );
                 expect(
-                    stateVariables["/extMod/_graph1"].stateValues.width.size
+                    stateVariables["/extMod/_graph1"].stateValues.width.size,
                 ).eq(mediumWidth);
                 expect(
-                    stateVariables["/extMod/_graph1"].stateValues.aspectRatio
+                    stateVariables["/extMod/_graph1"].stateValues.aspectRatio,
                 ).eq(1);
                 expect(
-                    stateVariables[g2extGraph.componentName].stateValues.size
+                    stateVariables[g2extGraph.componentName].stateValues.size,
                 ).eq("small");
                 expect(
                     stateVariables[g2extGraph.componentName].stateValues.width
-                        .size
+                        .size,
                 ).eq(smallWidth);
                 expect(
                     stateVariables[g2extGraph.componentName].stateValues
-                        .aspectRatio
+                        .aspectRatio,
                 ).eq(0.8);
                 expect(
-                    stateVariables[g3extGraph.componentName].stateValues.size
+                    stateVariables[g3extGraph.componentName].stateValues.size,
                 ).eq("large");
                 expect(
                     stateVariables[g3extGraph.componentName].stateValues.width
-                        .size
+                        .size,
                 ).eq(largeWidth);
                 expect(
                     stateVariables[g3extGraph.componentName].stateValues
-                        .aspectRatio
+                        .aspectRatio,
                 ).eq(1.2);
             });
 
@@ -1242,15 +1242,15 @@ describe("Module Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/extMod/prob"].stateValues.creditAchieved
+                    stateVariables["/extMod/prob"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables[g2extProblem.componentName].stateValues
-                        .creditAchieved
+                        .creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables[g3extProblem.componentName].stateValues
-                        .creditAchieved
+                        .creditAchieved,
                 ).eq(0);
             });
 
@@ -1348,15 +1348,15 @@ describe("Module Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/extMod/prob"].stateValues.creditAchieved
+                    stateVariables["/extMod/prob"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
                     stateVariables[g2extProblem.componentName].stateValues
-                        .creditAchieved
+                        .creditAchieved,
                 ).eq(1);
                 expect(
                     stateVariables[g3extProblem.componentName].stateValues
-                        .creditAchieved
+                        .creditAchieved,
                 ).eq(1);
             });
         });
@@ -1385,7 +1385,7 @@ describe("Module Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -1447,7 +1447,7 @@ describe("Module Tag Tests", function () {
     $m{disabled="false" name="m3"}
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -1473,14 +1473,14 @@ describe("Module Tag Tests", function () {
     </module>
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
 
         cy.get(cesc2("#/_document1")).should(
             "contain.text",
-            "Duplicate component name: duplicate"
+            "Duplicate component name: duplicate",
         );
         cy.get(cesc2("#/_document1")).should("contain.text", "line 7");
 
@@ -1491,7 +1491,7 @@ describe("Module Tag Tests", function () {
             expect(errorWarnings.warnings.length).eq(0);
 
             expect(errorWarnings.errors[0].message).contain(
-                "Duplicate component name: duplicate"
+                "Duplicate component name: duplicate",
             );
             expect(errorWarnings.errors[0].doenetMLrange.lineBegin).eq(7);
             expect(errorWarnings.errors[0].doenetMLrange.charBegin).eq(9);
@@ -1525,7 +1525,7 @@ describe("Module Tag Tests", function () {
     <module copySource="m" b="hello" name="m1" />
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1539,7 +1539,7 @@ describe("Module Tag Tests", function () {
             expect(errorWarnings.warnings.length).eq(9);
 
             expect(errorWarnings.warnings[0].message).contain(
-                "Could not create <customAttribute>. It must be inside a <setup> component that is inside a <module> or similar component"
+                "Could not create <customAttribute>. It must be inside a <setup> component that is inside a <module> or similar component",
             );
             expect(errorWarnings.warnings[0].level).eq(1);
             expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(14);
@@ -1548,7 +1548,7 @@ describe("Module Tag Tests", function () {
             expect(errorWarnings.warnings[0].doenetMLrange.charEnd).eq(111);
 
             expect(errorWarnings.warnings[1].message).contain(
-                "Could not create <customAttribute>. It must be inside a <setup> component that is inside a <module> or similar component"
+                "Could not create <customAttribute>. It must be inside a <setup> component that is inside a <module> or similar component",
             );
             expect(errorWarnings.warnings[1].level).eq(1);
             expect(errorWarnings.warnings[1].doenetMLrange.lineBegin).eq(14);
@@ -1557,7 +1557,7 @@ describe("Module Tag Tests", function () {
             expect(errorWarnings.warnings[1].doenetMLrange.charEnd).eq(111);
 
             expect(errorWarnings.warnings[2].message).contain(
-                `Cannot add attribute "disabled" to a <module> because the <module> component type already has a "disabled" attribute defined`
+                `Cannot add attribute "disabled" to a <module> because the <module> component type already has a "disabled" attribute defined`,
             );
             expect(errorWarnings.warnings[2].level).eq(1);
             expect(errorWarnings.warnings[2].doenetMLrange.lineBegin).eq(4);
@@ -1566,7 +1566,7 @@ describe("Module Tag Tests", function () {
             expect(errorWarnings.warnings[2].doenetMLrange.charEnd).eq(115);
 
             expect(errorWarnings.warnings[3].message).contain(
-                "<customAttribute> contains an invalid component type: <bad>"
+                "<customAttribute> contains an invalid component type: <bad>",
             );
             expect(errorWarnings.warnings[3].level).eq(1);
             expect(errorWarnings.warnings[3].doenetMLrange.lineBegin).eq(6);
@@ -1575,7 +1575,7 @@ describe("Module Tag Tests", function () {
             expect(errorWarnings.warnings[3].doenetMLrange.charEnd).eq(96);
 
             expect(errorWarnings.warnings[4].message).contain(
-                `Since a default value was not supplied for <customAttribute> with attribute="b", it will not be created unless a value is specified`
+                `Since a default value was not supplied for <customAttribute> with attribute="b", it will not be created unless a value is specified`,
             );
             expect(errorWarnings.warnings[4].level).eq(1);
             expect(errorWarnings.warnings[4].doenetMLrange.lineBegin).eq(8);
@@ -1584,7 +1584,7 @@ describe("Module Tag Tests", function () {
             expect(errorWarnings.warnings[4].doenetMLrange.charEnd).eq(78);
 
             expect(errorWarnings.warnings[5].message).contain(
-                `<customAttribute> must contain a componentType attribute`
+                `<customAttribute> must contain a componentType attribute`,
             );
             expect(errorWarnings.warnings[5].level).eq(1);
             expect(errorWarnings.warnings[5].doenetMLrange.lineBegin).eq(10);
@@ -1593,7 +1593,7 @@ describe("Module Tag Tests", function () {
             expect(errorWarnings.warnings[5].doenetMLrange.charEnd).eq(27);
 
             expect(errorWarnings.warnings[6].message).contain(
-                `Cannot add attribute "disabled" to a <module> because the <module> component type already has a "disabled" attribute defined`
+                `Cannot add attribute "disabled" to a <module> because the <module> component type already has a "disabled" attribute defined`,
             );
             expect(errorWarnings.warnings[6].level).eq(1);
             expect(errorWarnings.warnings[6].doenetMLrange.lineBegin).eq(4);
@@ -1602,7 +1602,7 @@ describe("Module Tag Tests", function () {
             expect(errorWarnings.warnings[6].doenetMLrange.charEnd).eq(115);
 
             expect(errorWarnings.warnings[7].message).contain(
-                "<customAttribute> contains an invalid component type: <bad>"
+                "<customAttribute> contains an invalid component type: <bad>",
             );
             expect(errorWarnings.warnings[7].level).eq(1);
             expect(errorWarnings.warnings[7].doenetMLrange.lineBegin).eq(6);
@@ -1611,7 +1611,7 @@ describe("Module Tag Tests", function () {
             expect(errorWarnings.warnings[7].doenetMLrange.charEnd).eq(96);
 
             expect(errorWarnings.warnings[8].message).contain(
-                `<customAttribute> must contain a componentType attribute`
+                `<customAttribute> must contain a componentType attribute`,
             );
             expect(errorWarnings.warnings[8].level).eq(1);
             expect(errorWarnings.warnings[8].doenetMLrange.lineBegin).eq(10);
@@ -1647,42 +1647,42 @@ describe("Module Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
 
         cy.get(cesc("#\\/md\\/_p1")).should(
             "have.text",
-            "The first number is 1; the second number is 2."
+            "The first number is 1; the second number is 2.",
         );
         cy.get(cesc("#\\/md1\\/_p1")).should(
             "have.text",
-            "The first number is 1; the second number is 2."
+            "The first number is 1; the second number is 2.",
         );
         cy.get(cesc("#\\/md2\\/_p1")).should(
             "have.text",
-            "The first number is 1; the second number is 10."
+            "The first number is 1; the second number is 10.",
         );
         cy.get(cesc("#\\/md3\\/_p1")).should(
             "have.text",
-            "The first number is 100; the second number is 10."
+            "The first number is 100; the second number is 10.",
         );
         cy.get(cesc("#\\/md4\\/_p1")).should(
             "have.text",
-            "The first number is 100; the second number is 0."
+            "The first number is 100; the second number is 0.",
         );
         cy.get(cesc("#\\/md5\\/_p1")).should(
             "have.text",
-            "The first number is 13; the second number is 17."
+            "The first number is 13; the second number is 17.",
         );
         cy.get(cesc("#\\/md6\\/_p1")).should(
             "have.text",
-            "The first number is NaN; the second number is NaN."
+            "The first number is NaN; the second number is NaN.",
         );
         cy.get(cesc("#\\/md7\\/_p1")).should(
             "have.text",
-            "The first number is 3; the second number is 4."
+            "The first number is 3; the second number is 4.",
         );
 
         cy.get(cesc("#\\/md\\/_p2") + " .mjx-mrow")
@@ -1761,7 +1761,7 @@ describe("Module Tag Tests", function () {
 
         cy.get(cesc("#\\/md7\\/_p2") + " .mjx-mrow").should(
             "contain.text",
-            "t"
+            "t",
         );
 
         cy.get(cesc("#\\/md\\/_p2") + " .mjx-mrow")
@@ -1874,7 +1874,7 @@ describe("Module Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load

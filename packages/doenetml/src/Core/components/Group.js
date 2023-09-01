@@ -133,7 +133,7 @@ export default class Group extends CompositeComponent {
                 variantDescendants: {
                     dependencyType: "descendant",
                     componentTypes: Object.keys(
-                        componentInfoObjects.componentTypesCreatingVariants
+                        componentInfoObjects.componentTypesCreatingVariants,
                     ),
                     variableNames: [
                         "isVariantComponent",
@@ -158,12 +158,12 @@ export default class Group extends CompositeComponent {
                 for (let descendant of dependencyValues.variantDescendants) {
                     if (descendant.stateValues.isVariantComponent) {
                         subvariants.push(
-                            descendant.stateValues.generatedVariantInfo
+                            descendant.stateValues.generatedVariantInfo,
                         );
                     } else if (descendant.stateValues.generatedVariantInfo) {
                         subvariants.push(
                             ...descendant.stateValues.generatedVariantInfo
-                                .subvariants
+                                .subvariants,
                         );
                     }
                 }
@@ -203,7 +203,7 @@ export default class Group extends CompositeComponent {
                         )
                     ) {
                         throw Error(
-                            `Invalid componentType ${dependencyValues.typeAttr} of copy.`
+                            `Invalid componentType ${dependencyValues.typeAttr} of copy.`,
                         );
                     }
                     if (dependencyValues.numComponentsAttr !== null) {
@@ -214,7 +214,7 @@ export default class Group extends CompositeComponent {
                     }
                 } else if (dependencyValues.numComponentsAttr !== null) {
                     throw Error(
-                        `You must specify createComponentOfType when specifying numComponents for a ${componentClass.componentType}.`
+                        `You must specify createComponentOfType when specifying numComponents for a ${componentClass.componentType}.`,
                     );
                 } else {
                     numComponentsSpecified = null;
@@ -244,7 +244,7 @@ export default class Group extends CompositeComponent {
             return { replacements: [], errors, warnings };
         } else {
             let replacements = deepClone(
-                await component.state.serializedChildren.value
+                await component.state.serializedChildren.value,
             );
 
             let newNamespace = component.attributes.newNamespace?.primitive;
@@ -307,7 +307,7 @@ export default class Group extends CompositeComponent {
 
                     components,
                     publicCaseInsensitiveAliasSubstitutions,
-                }
+                },
             );
             errors.push(...verificationResult.errors);
             warnings.push(...verificationResult.warnings);
@@ -398,7 +398,7 @@ export default class Group extends CompositeComponent {
 
         let additionalRendererTypes =
             this.potentialRendererTypesFromSerializedComponents(
-                this.serializedChildren
+                this.serializedChildren,
             );
         for (let rendererType of additionalRendererTypes) {
             if (!allPotentialRendererTypes.includes(rendererType)) {

@@ -66,7 +66,7 @@ export default class Sort extends CompositeComponent {
                 !matchedChildren.every(
                     (child) =>
                         typeof child === "string" ||
-                        child.doenetAttributes?.createdFromMacro
+                        child.doenetAttributes?.createdFromMacro,
                 )
             ) {
                 return { success: false };
@@ -159,7 +159,7 @@ export default class Sort extends CompositeComponent {
                 for (let child of dependencyValues.children) {
                     if (child.stateValues.componentNamesInList) {
                         componentNamesForValues.push(
-                            ...child.stateValues.componentNamesInList
+                            ...child.stateValues.componentNamesInList,
                         );
                     } else {
                         componentNamesForValues.push(child.componentName);
@@ -348,7 +348,7 @@ export default class Sort extends CompositeComponent {
 
                 if (allAreNumeric) {
                     allValues.sort(
-                        (a, b) => a.numericalValue - b.numericalValue
+                        (a, b) => a.numericalValue - b.numericalValue,
                     );
                 } else {
                     allValues.sort((a, b) =>
@@ -356,7 +356,7 @@ export default class Sort extends CompositeComponent {
                             ? 1
                             : a.textValue < b.textValue
                             ? -1
-                            : 0
+                            : 0,
                     );
                 }
 
@@ -414,7 +414,7 @@ export default class Sort extends CompositeComponent {
                 replacements.push(
                     await replacementSource.serialize({
                         primitiveSourceAttributesToIgnore: ["isResponse"],
-                    })
+                    }),
                 );
             }
         }
@@ -478,7 +478,7 @@ export default class Sort extends CompositeComponent {
         if (
             componentsToCopy.length == workspace.componentsCopied.length &&
             workspace.componentsCopied.every(
-                (x, i) => x === componentsToCopy[i]
+                (x, i) => x === componentsToCopy[i],
             )
         ) {
             return [];

@@ -73,7 +73,7 @@ export default React.memo(function Legend(props) {
                         y,
                         element.label.value,
                     ],
-                    textAttrs
+                    textAttrs,
                 );
 
                 labels.current.push(txt);
@@ -87,7 +87,7 @@ export default React.memo(function Legend(props) {
         if (atRight) {
             legendX = Math.max(
                 legendX,
-                xmax - legendLineLength - 3 * legendDx - maxTextWidth
+                xmax - legendLineLength - 3 * legendDx - maxTextWidth,
             );
         }
 
@@ -108,7 +108,7 @@ export default React.memo(function Legend(props) {
                 let point = board.create(
                     "point",
                     [legendX + legendLineLength / 2, y],
-                    pointStyle
+                    pointStyle,
                 );
                 swatches.current.push(point);
             } else if (element.swatchType === "rectangle") {
@@ -136,7 +136,7 @@ export default React.memo(function Legend(props) {
                         [legendX + legendLineLength, y - legendDy / 4],
                         [legendX, y - legendDy / 4],
                     ],
-                    rectangleStyle
+                    rectangleStyle,
                 );
                 swatches.current.push(seg);
             } else {
@@ -154,7 +154,7 @@ export default React.memo(function Legend(props) {
                         [legendX, y],
                         [legendX + legendLineLength, y],
                     ],
-                    lineStyle
+                    lineStyle,
                 );
                 swatches.current.push(seg);
             }
@@ -172,7 +172,7 @@ export default React.memo(function Legend(props) {
                 for (let txt of labels.current) {
                     maxTextWidth = Math.max(
                         maxTextWidth,
-                        txt.rendNode.offsetWidth
+                        txt.rendNode.offsetWidth,
                     );
                 }
 
@@ -180,7 +180,7 @@ export default React.memo(function Legend(props) {
 
                 legendX = Math.max(
                     legendX,
-                    xmax - legendLineLength - 3 * legendDx - maxTextWidth
+                    xmax - legendLineLength - 3 * legendDx - maxTextWidth,
                 );
 
                 for (let [ind, swatch] of swatches.current.entries()) {
@@ -195,19 +195,19 @@ export default React.memo(function Legend(props) {
                     } else if (swatch.elType === "polygon") {
                         swatch.vertices[0].coords.setCoordinates(
                             JXG.COORDS_BY_USER,
-                            [legendX, y + legendDy / 4]
+                            [legendX, y + legendDy / 4],
                         );
                         swatch.vertices[1].coords.setCoordinates(
                             JXG.COORDS_BY_USER,
-                            [legendX + legendLineLength, y + legendDy / 4]
+                            [legendX + legendLineLength, y + legendDy / 4],
                         );
                         swatch.vertices[2].coords.setCoordinates(
                             JXG.COORDS_BY_USER,
-                            [legendX + legendLineLength, y - legendDy / 4]
+                            [legendX + legendLineLength, y - legendDy / 4],
                         );
                         swatch.vertices[3].coords.setCoordinates(
                             JXG.COORDS_BY_USER,
-                            [legendX, y - legendDy / 4]
+                            [legendX, y - legendDy / 4],
                         );
 
                         for (let i = 0; i < 4; i++) {
@@ -221,11 +221,11 @@ export default React.memo(function Legend(props) {
                     } else {
                         swatch.point1.coords.setCoordinates(
                             JXG.COORDS_BY_USER,
-                            [legendX, y]
+                            [legendX, y],
                         );
                         swatch.point2.coords.setCoordinates(
                             JXG.COORDS_BY_USER,
-                            [legendX + legendLineLength, y]
+                            [legendX + legendLineLength, y],
                         );
                         swatch.needsUpdate = true;
                         swatch.update();
@@ -234,7 +234,7 @@ export default React.memo(function Legend(props) {
                     if (labels.current[ind]) {
                         labels.current[ind].coords.setCoordinates(
                             JXG.COORDS_BY_USER,
-                            [legendX + legendLineLength + legendDx, y]
+                            [legendX + legendLineLength + legendDx, y],
                         );
                         labels.current[ind].needsUpdate = true;
                         labels.current[ind].update();

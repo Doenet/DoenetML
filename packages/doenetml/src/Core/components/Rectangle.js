@@ -35,7 +35,7 @@ export default class Rectangle extends Polygon {
                 }).setValue.styleDescriptionWithNoun;
                 styleDescriptionWithNoun = styleDescriptionWithNoun.replaceAll(
                     "polygon",
-                    "rectangle"
+                    "rectangle",
                 );
 
                 return { setValue: { styleDescriptionWithNoun } };
@@ -457,7 +457,7 @@ export default class Rectangle extends Polygon {
                             setDependency:
                                 dependencyNamesByKey[arrayKey].vertex2,
                             desiredValue: desiredV2,
-                        }
+                        },
                     );
                 }
 
@@ -670,7 +670,7 @@ export default class Rectangle extends Polygon {
                         // array of "pointInd,i", where i=0, ..., arraySize[1]-1
                         return Array.from(
                             Array(arraySize[1]),
-                            (_, i) => pointInd + "," + i
+                            (_, i) => pointInd + "," + i,
                         );
                     } else {
                         return [];
@@ -916,7 +916,7 @@ export default class Rectangle extends Polygon {
                                         centerComponent.subtract(width / 2);
                                 } else {
                                     vertices[arrayKey] = centerComponent.add(
-                                        width / 2
+                                        width / 2,
                                     );
                                 }
                             } else {
@@ -929,7 +929,7 @@ export default class Rectangle extends Polygon {
                                         centerComponent.subtract(height / 2);
                                 } else {
                                     vertices[arrayKey] = centerComponent.add(
-                                        height / 2
+                                        height / 2,
                                     );
                                 }
                             }
@@ -983,7 +983,7 @@ export default class Rectangle extends Polygon {
                                     1
                             ) {
                                 vertComponent = Object.values(
-                                    verticesAttr.stateValues
+                                    verticesAttr.stateValues,
                                 )[0];
                             } else {
                                 vertComponent = me.fromAst("\uff3f");
@@ -1003,7 +1003,7 @@ export default class Rectangle extends Polygon {
                                 vertices[arrayKey] = vertComponent.add(
                                     centerComponent
                                         .subtract(vertComponent)
-                                        .multiply(2)
+                                        .multiply(2),
                                 );
                             }
                         }
@@ -1023,7 +1023,7 @@ export default class Rectangle extends Polygon {
                                     1
                             ) {
                                 vertComponent = Object.values(
-                                    verticesAttr.stateValues
+                                    verticesAttr.stateValues,
                                 )[0];
                             } else {
                                 vertComponent = me.fromAst("\uff3f");
@@ -1064,7 +1064,7 @@ export default class Rectangle extends Polygon {
                             Object.keys(verticesAttr.stateValues).length === 1
                         ) {
                             vertices[arrayKey] = Object.values(
-                                verticesAttr.stateValues
+                                verticesAttr.stateValues,
                             )[0];
                         } else {
                             vertices[arrayKey] = me.fromAst("\uff3f");
@@ -1163,7 +1163,7 @@ export default class Rectangle extends Polygon {
                                         dependencyNamesByKey[keyX]
                                             .specifiedCenter,
                                     desiredValue: center,
-                                }
+                                },
                             );
                         }
 
@@ -1188,7 +1188,7 @@ export default class Rectangle extends Polygon {
                                         dependencyNamesByKey[keyY]
                                             .specifiedCenter,
                                     desiredValue: center,
-                                }
+                                },
                             );
                         }
                     } else {
@@ -1549,16 +1549,16 @@ export default class Rectangle extends Polygon {
         // address case where only one point is constrained
         // to make rectangle just translate in this case
         if (numVerticesMoved > 1) {
-            let numVerticesSpecified = await this.stateValues
-                .numVerticesSpecified;
+            let numVerticesSpecified =
+                await this.stateValues.numVerticesSpecified;
 
             if (
                 numVerticesSpecified > 1 ||
                 (numVerticesSpecified === 1 &&
                     (await this.stateValues.haveSpecifiedCenter))
             ) {
-                let resultingNumericalVertices = await this.stateValues
-                    .numericalVertices;
+                let resultingNumericalVertices =
+                    await this.stateValues.numericalVertices;
 
                 let numericalPoints, resultingNumericalPoints;
 
@@ -1600,7 +1600,7 @@ export default class Rectangle extends Polygon {
                 for (let [ind, pt] of numericalPoints.entries()) {
                     if (
                         !pt.every(
-                            (v, i) => v === resultingNumericalPoints[ind][i]
+                            (v, i) => v === resultingNumericalPoints[ind][i],
                         )
                     ) {
                         pointsChanged.push(ind);
@@ -1625,7 +1625,7 @@ export default class Rectangle extends Polygon {
 
                     for (let i = 0; i < 4; i++) {
                         newNumericalVertices.push(
-                            pointCoords[i].map((v, j) => v - changevec1[j])
+                            pointCoords[i].map((v, j) => v - changevec1[j]),
                         );
                     }
 
@@ -1633,10 +1633,10 @@ export default class Rectangle extends Polygon {
 
                     for (let ind in newNumericalVertices) {
                         newVertexComponents[ind + ",0"] = me.fromAst(
-                            newNumericalVertices[ind][0]
+                            newNumericalVertices[ind][0],
                         );
                         newVertexComponents[ind + ",1"] = me.fromAst(
-                            newNumericalVertices[ind][1]
+                            newNumericalVertices[ind][1],
                         );
                     }
 

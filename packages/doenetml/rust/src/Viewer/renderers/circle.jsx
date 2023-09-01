@@ -92,7 +92,7 @@ export default React.memo(function Circle(props) {
         let newCircleJXG = board.create(
             "circle",
             [[...SVs.numericalCenter], SVs.numericalRadius],
-            jsxCircleAttributes
+            jsxCircleAttributes,
         );
 
         newCircleJXG.on("drag", function (e) {
@@ -191,7 +191,7 @@ export default React.memo(function Circle(props) {
             }
 
             let validCoords = SVs.numericalCenter.every((x) =>
-                Number.isFinite(x)
+                Number.isFinite(x),
             );
 
             circleJXG.current.center.coords.setCoordinates(JXG.COORDS_BY_USER, [

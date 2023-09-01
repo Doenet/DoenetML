@@ -23,7 +23,7 @@ export async function expandDoenetMLsToFullSerializedComponents({
 
         correctComponentTypeCapitalization(
             serializedComponents,
-            componentInfoObjects.componentTypeLowerCaseMapping
+            componentInfoObjects.componentTypeLowerCaseMapping,
         );
 
         createAttributesFromProps(serializedComponents, componentInfoObjects);
@@ -63,8 +63,8 @@ export async function expandDoenetMLsToFullSerializedComponents({
             if (newCids[ind] && newCids[ind].substring(0, cid.length) !== cid) {
                 return Promise.reject(
                     new Error(
-                        `Requested cid ${cid} but got back ${newCids[ind]}!`
-                    )
+                        `Requested cid ${cid} but got back ${newCids[ind]}!`,
+                    ),
                 );
             }
         }
@@ -75,7 +75,7 @@ export async function expandDoenetMLsToFullSerializedComponents({
             if (!cid) {
                 // wasn't able to retrieve content
                 console.warn(
-                    `Unable to retrieve content with cid = ${cidList[ind]}`
+                    `Unable to retrieve content with cid = ${cidList[ind]}`,
                 );
                 newDoenetMLs[ind] = "";
             }
@@ -99,7 +99,7 @@ export async function expandDoenetMLsToFullSerializedComponents({
                 originalCopyWithUri.children.push({
                     componentType: "externalContent",
                     children: JSON.parse(
-                        JSON.stringify(serializedComponentsForCid)
+                        JSON.stringify(serializedComponentsForCid),
                     ),
                     attributes: { newNamespace: { primitive: true } },
                     doenetAttributes: { createUniqueName: true },
@@ -145,7 +145,7 @@ function cidsToDoenetMLs(cids) {
 
 export function removeBlankStringChildren(
     serializedComponents,
-    componentInfoObjects
+    componentInfoObjects,
 ) {
     for (let component of serializedComponents) {
         if (component.children) {
@@ -155,7 +155,7 @@ export function removeBlankStringChildren(
                 ];
             if (componentClass && !componentClass.includeBlankStringChildren) {
                 component.children = component.children.filter(
-                    (x) => typeof x !== "string" || x.trim() !== ""
+                    (x) => typeof x !== "string" || x.trim() !== "",
                 );
             }
 
@@ -253,7 +253,7 @@ function substituteDeprecations(serializedComponents) {
                             deprecatedPropertySubstitutions[propLower];
 
                         console.warn(
-                            `Attribute ${prop} is deprecated.  Use ${newProp} instead.`
+                            `Attribute ${prop} is deprecated.  Use ${newProp} instead.`,
                         );
 
                         component.props[newProp] = component.props[prop];
@@ -276,7 +276,7 @@ function substituteDeprecations(serializedComponents) {
 
 function cleanIfHaveJustDocument(serializedComponents) {
     let componentsWithoutBlankStrings = serializedComponents.filter(
-        (x) => typeof x !== "string" || x.trim() !== ""
+        (x) => typeof x !== "string" || x.trim() !== "",
     );
 
     if (
@@ -291,7 +291,7 @@ function cleanIfHaveJustDocument(serializedComponents) {
 
 function correctComponentTypeCapitalization(
     serializedComponents,
-    componentTypeLowerCaseMapping
+    componentTypeLowerCaseMapping,
 ) {
     //special case for macros before application
     // componentTypeLowerCaseMapping["macro"] = "macro";
@@ -311,14 +311,14 @@ function correctComponentTypeCapitalization(
             throw Error(
                 `Invalid component type${indexRangeString(component)}: ${
                     component.componentType
-                }`
+                }`,
             );
         }
 
         if (component.children) {
             correctComponentTypeCapitalization(
                 component.children,
-                componentTypeLowerCaseMapping
+                componentTypeLowerCaseMapping,
             );
         }
     }
@@ -355,7 +355,7 @@ function createAttributesFromProps(serializedComponents, componentInfoObjects) {
                         throw Error(
                             `Cannot repeat prop ${propName}.  Found in component type ${
                                 component.componentType
-                            }${indexRangeString(component)}`
+                            }${indexRangeString(component)}`,
                         );
                     }
 
@@ -368,7 +368,7 @@ function createAttributesFromProps(serializedComponents, componentInfoObjects) {
                     delete component.props[prop];
                 } else if (
                     !["name", "assignnames", "target"].includes(
-                        prop.toLowerCase()
+                        prop.toLowerCase(),
                     )
                 ) {
                     if (componentClass.acceptAnyAttribute) {
@@ -381,7 +381,7 @@ function createAttributesFromProps(serializedComponents, componentInfoObjects) {
                         throw Error(
                             `Invalid attribute ${prop} for component of type ${
                                 component.componentType
-                            }${indexRangeString(component)}`
+                            }${indexRangeString(component)}`,
                         );
                     }
                 }
@@ -491,7 +491,7 @@ export function componentFromAttribute({
                 for (let attrName of attrObj.copyComponentAttributesForCreatedComponent) {
                     if (originalComponentProps[attrName]) {
                         newComponent.props[attrName] = JSON.parse(
-                            JSON.stringify(originalComponentProps[attrName])
+                            JSON.stringify(originalComponentProps[attrName]),
                         );
                     }
                 }
@@ -570,7 +570,7 @@ export function applyMacros(serializedComponents, componentInfoObjects) {
                 } else if (attribute.childrenForComponent) {
                     applyMacros(
                         attribute.childrenForComponent,
-                        componentInfoObjects
+                        componentInfoObjects,
                     );
                 }
             }
@@ -614,7 +614,7 @@ function substituteMacros(serializedComponents, componentInfoObjects) {
                     } catch (e) {
                         let strWithError = str.slice(
                             firstIndMatched,
-                            firstIndMatched + matchLength
+                            firstIndMatched + matchLength,
                         );
                         let startInd = firstIndMatched;
                         if (
@@ -633,13 +633,13 @@ function substituteMacros(serializedComponents, componentInfoObjects) {
                         throw Error(
                             `Error in macro at indices ${startInd}-${
                                 startInd + matchLength
-                            }.  Found: ${strWithError}`
+                            }.  Found: ${strWithError}`,
                         );
                     }
 
                     createAttributesFromProps(
                         newComponents,
-                        componentInfoObjects
+                        componentInfoObjects,
                     );
                     markCreatedFromMacro(newComponents);
 
@@ -672,7 +672,7 @@ function substituteMacros(serializedComponents, componentInfoObjects) {
 
                 let nComponentsToRemove = 1;
                 let stringToAddAtEnd = str.substring(
-                    firstIndMatched + matchLength
+                    firstIndMatched + matchLength,
                 );
 
                 if (nDollarSigns === 2) {
@@ -704,13 +704,13 @@ function substituteMacros(serializedComponents, componentInfoObjects) {
                         includeFirstInRemaining = true;
                         remainingComponents.push(
                             str.substring(
-                                firstIndMatched + matchLengthWithOpeningParens
-                            )
+                                firstIndMatched + matchLengthWithOpeningParens,
+                            ),
                         );
                     }
 
                     remainingComponents.push(
-                        ...serializedComponents.slice(componentInd + 1)
+                        ...serializedComponents.slice(componentInd + 1),
                     );
 
                     let evaluateResult =
@@ -757,7 +757,7 @@ function substituteMacros(serializedComponents, componentInfoObjects) {
                 serializedComponents.splice(
                     componentInd,
                     nComponentsToRemove,
-                    ...replacements
+                    ...replacements,
                 );
 
                 if (firstIndMatched > 0) {
@@ -858,7 +858,7 @@ function findFirstFullMacroInString(str) {
             nDollarSigns,
             additionalAttributes: strAfterMatch.substring(
                 0,
-                resultForClosingBrace.braceInd
+                resultForClosingBrace.braceInd,
             ),
         };
     } else {
@@ -952,7 +952,7 @@ function createEvaluateIfFindMatchedClosingParens({
     // save in stringAfterFunction
     if (result.charInd + 1 < lastComponentOfFunction.length) {
         stringAfterFunction = lastComponentOfFunction.substring(
-            result.charInd + 1
+            result.charInd + 1,
         );
     }
 
@@ -1080,7 +1080,7 @@ function decodeXMLEntities(serializedComponents) {
                     } else if (attribute.primitive) {
                         if (typeof attribute.primitive === "string") {
                             attribute.primitive = replaceEntities(
-                                attribute.primitive
+                                attribute.primitive,
                             );
                         }
                     } else {
@@ -1089,7 +1089,7 @@ function decodeXMLEntities(serializedComponents) {
                         }
                         if (attribute.rawString) {
                             attribute.rawString = replaceEntities(
-                                attribute.rawString
+                                attribute.rawString,
                             );
                         }
                     }
@@ -1146,7 +1146,7 @@ export function applySugar({
 
                     if (sugarInstruction.childrenRegex) {
                         let match = childTypes.match(
-                            sugarInstruction.childrenRegex
+                            sugarInstruction.childrenRegex,
                         );
 
                         if (
@@ -1209,8 +1209,8 @@ export function applySugar({
                                 if (comp) {
                                     preSugarIndsFoundInAttributes.push(
                                         ...findPreSugarIndsAndMarkFromSugar(
-                                            comp.children
-                                        )
+                                            comp.children,
+                                        ),
                                     );
                                 }
                             }
@@ -1228,7 +1228,7 @@ export function applySugar({
                                 .every((v, i) => v === i)
                         ) {
                             throw Error(
-                                `Invalid sugar for ${componentType} as didn't return set of original components`
+                                `Invalid sugar for ${componentType} as didn't return set of original components`,
                             );
                         }
 
@@ -1239,11 +1239,11 @@ export function applySugar({
                             if (
                                 !sortedList.every(
                                     (v, i) =>
-                                        v === preSugarIndsFoundInChildren[i]
+                                        v === preSugarIndsFoundInChildren[i],
                                 )
                             ) {
                                 throw Error(
-                                    `Invalid sugar for ${componentType} as didn't return original components in order`
+                                    `Invalid sugar for ${componentType} as didn't return original components in order`,
                                 );
                             }
                         }
@@ -1251,7 +1251,7 @@ export function applySugar({
                         if (sugarResults.parametersForChildrenSugar) {
                             Object.assign(
                                 newParentParametersFromSugar,
-                                sugarResults.parametersForChildrenSugar
+                                sugarResults.parametersForChildrenSugar,
                             );
                         }
 
@@ -1273,7 +1273,7 @@ export function applySugar({
 
             if (componentClass.removeBlankStringChildrenPostSugar) {
                 component.children = component.children.filter(
-                    (x) => typeof x !== "string" || /\S/.test(x)
+                    (x) => typeof x !== "string" || /\S/.test(x),
                 );
             }
 
@@ -1467,13 +1467,13 @@ export function createComponentNames({
                         throw Error(
                             `Cannot define name twice.  Found in component of type ${
                                 serializedComponent.componentType
-                            }${indexRangeString(serializedComponent)}`
+                            }${indexRangeString(serializedComponent)}`,
                         );
                     }
                 } else if (lowercaseKey === "assignnames") {
                     if (assignNames === undefined) {
                         let result = breakStringInPiecesBySpacesOrParens(
-                            props[key]
+                            props[key],
                         );
                         if (result.success) {
                             assignNames = result.pieces;
@@ -1481,7 +1481,7 @@ export function createComponentNames({
                             throw Error(
                                 `Invalid format for assignnames.  Found in component of type ${
                                     serializedComponent.componentType
-                                }${indexRangeString(serializedComponent)}`
+                                }${indexRangeString(serializedComponent)}`,
                             );
                         }
                         delete props[key];
@@ -1489,7 +1489,7 @@ export function createComponentNames({
                         throw Error(
                             `Cannot define assignNames twice for a component.  Found in component of type ${
                                 serializedComponent.componentType
-                            }${indexRangeString(serializedComponent)}`
+                            }${indexRangeString(serializedComponent)}`,
                         );
                     }
                 } else if (lowercaseKey === "target") {
@@ -1498,7 +1498,7 @@ export function createComponentNames({
                             throw Error(
                                 `Must specify value for target.  Found in component of type ${
                                     serializedComponent.componentType
-                                }${indexRangeString(serializedComponent)}`
+                                }${indexRangeString(serializedComponent)}`,
                             );
                         }
                         target = props[key].trim();
@@ -1507,7 +1507,7 @@ export function createComponentNames({
                         throw Error(
                             `Cannot define target twice for a component.  Found in component of type ${
                                 serializedComponent.componentType
-                            }${indexRangeString(serializedComponent)}`
+                            }${indexRangeString(serializedComponent)}`,
                         );
                     }
                 }
@@ -1523,14 +1523,14 @@ export function createComponentNames({
                     throw Error(
                         `Invalid component name: ${prescribedName}.  Component name must begin with a letter.  Found in component of type ${
                             serializedComponent.componentType
-                        }${indexRangeString(serializedComponent)}`
+                        }${indexRangeString(serializedComponent)}`,
                     );
                 }
                 if (!/^[a-zA-Z0-9_\-]+$/.test(prescribedName)) {
                     throw Error(
                         `Invalid component name: ${prescribedName}.  Component name can contain only letters, numbers, hyphens, and underscores.  Found in component of type ${
                             serializedComponent.componentType
-                        }${indexRangeString(serializedComponent)}`
+                        }${indexRangeString(serializedComponent)}`,
                     );
                 }
             }
@@ -1543,7 +1543,7 @@ export function createComponentNames({
 
             if (serializedComponent.downstreamDependencies) {
                 longNameId += JSON.stringify(
-                    serializedComponent.downstreamDependencies
+                    serializedComponent.downstreamDependencies,
                 );
             } else {
                 longNameId +=
@@ -1552,7 +1552,7 @@ export function createComponentNames({
 
             prescribedName = createUniqueName(
                 componentType.toLowerCase(),
-                longNameId
+                longNameId,
             );
         }
 
@@ -1573,7 +1573,7 @@ export function createComponentNames({
                 throw Error(
                     `Cannot assign names for component type ${
                         serializedComponent.componentType
-                    }${indexRangeString(serializedComponent)}`
+                    }${indexRangeString(serializedComponent)}`,
                 );
             }
 
@@ -1588,14 +1588,14 @@ export function createComponentNames({
                         throw Error(
                             `All assigned names must begin with a letter.  Found in component of type ${
                                 serializedComponent.componentType
-                            }${indexRangeString(serializedComponent)}`
+                            }${indexRangeString(serializedComponent)}`,
                         );
                     }
                     if (!/^[a-zA-Z0-9_\-]+$/.test(name)) {
                         throw Error(
                             `Assigned names can contain only letters, numbers, hyphens, and underscores.  Found in component of type ${
                                 serializedComponent.componentType
-                            }${indexRangeString(serializedComponent)}`
+                            }${indexRangeString(serializedComponent)}`,
                         );
                     }
                 }
@@ -1604,7 +1604,7 @@ export function createComponentNames({
                     throw Error(
                         `Duplicate assigned names.  Found in component of type ${
                             serializedComponent.componentType
-                        }${indexRangeString(serializedComponent)}`
+                        }${indexRangeString(serializedComponent)}`,
                     );
                 }
             }
@@ -1642,7 +1642,7 @@ export function createComponentNames({
                     let lastInd =
                         serializedComponent.originalName.lastIndexOf("/");
                     prescribedName = serializedComponent.originalName.substring(
-                        lastInd + 1
+                        lastInd + 1,
                     );
                     // } else if (serializedComponent.componentName) {
                     //   let lastInd = serializedComponent.componentName.lastIndexOf("/");
@@ -1662,7 +1662,7 @@ export function createComponentNames({
                 throw Error(
                     `Duplicate component name ${componentName}.  Found in component of type ${
                         serializedComponent.componentType
-                    }${indexRangeString(serializedComponent)}`
+                    }${indexRangeString(serializedComponent)}`,
                 );
             }
             currentNamespace.namesUsed[prescribedName] = true;
@@ -1677,7 +1677,7 @@ export function createComponentNames({
                         throw Error(
                             `Duplicate component name ${name} (from assignNames of ${componentName}).  Found in component of type ${
                                 serializedComponent.componentType
-                            }${indexRangeString(serializedComponent)}`
+                            }${indexRangeString(serializedComponent)}`,
                         );
                     }
                     currentNamespace.namesUsed[name] = true;
@@ -1708,7 +1708,7 @@ export function createComponentNames({
                 let lastInd = serializedComponent.originalName.lastIndexOf("/");
                 oldNamespace = serializedComponent.originalName.slice(
                     0,
-                    lastInd + 1
+                    lastInd + 1,
                 );
             } else {
                 namespace = componentName + "/";
@@ -1729,15 +1729,15 @@ export function createComponentNames({
 
         renameMatchingTNames(
             serializedComponent,
-            doenetAttributesByTargetComponentName
+            doenetAttributesByTargetComponentName,
         );
 
         if (target) {
             if (!componentClass.acceptTarget) {
                 throw Error(
                     `Component type ${componentType} does not accept a target attribute.   Found in component ${componentName}${indexRangeString(
-                        serializedComponent
-                    )}`
+                        serializedComponent,
+                    )}`,
                 );
             }
 
@@ -1745,7 +1745,7 @@ export function createComponentNames({
                 throw Error(
                     `target cannot include |.  Found in component of type ${
                         serializedComponent.componentType
-                    }${indexRangeString(serializedComponent)}`
+                    }${indexRangeString(serializedComponent)}`,
                 );
             }
 
@@ -1780,7 +1780,7 @@ export function createComponentNames({
                 let namesUsed = {};
                 if (assignNames) {
                     flattenDeep(assignNames).forEach(
-                        (x) => (namesUsed[x] = true)
+                        (x) => (namesUsed[x] = true),
                     );
                 }
 
@@ -1885,7 +1885,7 @@ function createNewAssignNamesAndRenameMatchingTNames({
             renameMatchingTNames(
                 infoForRenaming,
                 doenetAttributesByTargetComponentName,
-                true
+                true,
             );
         }
     }
@@ -1971,7 +1971,7 @@ let nanInfinityReviver = function (key, value) {
 export function serializedComponentsReviver(key, value) {
     return me.reviver(
         key,
-        subsets.Subset.reviver(key, nanInfinityReviver(key, value))
+        subsets.Subset.reviver(key, nanInfinityReviver(key, value)),
     );
 }
 
@@ -2015,7 +2015,7 @@ export function gatherVariantComponents({
         // is a variant component
         if (
             serializedComponent.children.some(
-                (x) => x.componentType === "variantControl"
+                (x) => x.componentType === "variantControl",
             )
         ) {
             serializedComponent.variants = {
@@ -2067,7 +2067,7 @@ export function getNumberOfVariants({
             // if have a single child that is a section, use variants from that section
 
             let nonBlankChildren = serializedComponent.children.filter(
-                (x) => x.componentType || x.trim() !== ""
+                (x) => x.componentType || x.trim() !== "",
             );
 
             if (
@@ -2144,7 +2144,7 @@ export function getNumberOfVariants({
 
     let variantNames =
         variantControlChild.attributes.variantNames?.component?.children.map(
-            (x) => x.toLowerCase().substring(0, 1000)
+            (x) => x.toLowerCase().substring(0, 1000),
         );
 
     let indicesToIgnore = [];
@@ -2154,7 +2154,7 @@ export function getNumberOfVariants({
                 .map(Number)
                 .filter(
                     (x) =>
-                        Number.isInteger(x) && x >= 1 && x <= numberOfVariants
+                        Number.isInteger(x) && x >= 1 && x <= numberOfVariants,
                 )
                 .sort((a, b) => a - b);
     }
@@ -2196,7 +2196,7 @@ export function getNumberOfVariants({
         serializedComponent.variants.uniqueVariants = true;
 
         indicesToIgnore = indicesToIgnore.filter(
-            (x) => x <= numberOfVariantsPreIgnore
+            (x) => x <= numberOfVariantsPreIgnore,
         );
 
         // don't have to add to serializedComponent.variants.numberOfVariants
@@ -2245,13 +2245,13 @@ export function processAssignNames({
         if (nComponents > 0) {
             // find a component with an original name, i.e., not a string
             let component = serializedComponents.filter(
-                (x) => typeof x === "object"
+                (x) => typeof x === "object",
             )[0];
             if (component && component.originalName) {
                 let lastSlash = component.originalName.lastIndexOf("/");
                 originalNamespace = component.originalName.substring(
                     0,
-                    lastSlash
+                    lastSlash,
                 );
             }
         }
@@ -2263,7 +2263,7 @@ export function processAssignNames({
                         namespace: originalNamespace,
                         components: [component],
                         doenetAttributesByTargetComponentName,
-                    }
+                    },
                 );
             }
         }
@@ -2281,7 +2281,7 @@ export function processAssignNames({
                 let lastSlash = component.originalName.lastIndexOf("/");
                 originalNamespace = component.originalName.substring(
                     0,
-                    lastSlash
+                    lastSlash,
                 );
             }
 
@@ -2291,7 +2291,7 @@ export function processAssignNames({
                         namespace: originalNamespace,
                         components: [component],
                         doenetAttributesByTargetComponentName,
-                    }
+                    },
                 );
             }
         }
@@ -2328,7 +2328,7 @@ export function processAssignNames({
                 let lastSlash = component.originalName.lastIndexOf("/");
                 originalNamespace = component.originalName.substring(
                     0,
-                    lastSlash
+                    lastSlash,
                 );
             }
         }
@@ -2361,7 +2361,7 @@ export function processAssignNames({
                     parentName + "|assignName|" + indForNames.toString();
                 component.doenetAttributes.prescribedName = createUniqueName(
                     component.componentType.toLowerCase(),
-                    longNameId
+                    longNameId,
                 );
 
                 let componentName = parentName;
@@ -2380,7 +2380,7 @@ export function processAssignNames({
             } else {
                 // TODO: what to do when try to assign names recursively to non-composite?
                 console.warn(
-                    `Cannot assign names recursively to ${component.componentType}`
+                    `Cannot assign names recursively to ${component.componentType}`,
                 );
                 name = null;
             }
@@ -2393,14 +2393,14 @@ export function processAssignNames({
                 !component.doenetAttributes?.createUniqueName
             ) {
                 name = component.originalName.slice(
-                    originalNamespace.length + 1
+                    originalNamespace.length + 1,
                 );
             } else {
                 let longNameId =
                     parentName + "|assignName|" + indForNames.toString();
                 name = createUniqueName(
                     component.componentType.toLowerCase(),
-                    longNameId
+                    longNameId,
                 );
             }
         }
@@ -2553,7 +2553,7 @@ function setTargetsOutsideNamespaceToAbsoluteAndRecordAllTargetComponentNames({
                         [];
                 }
                 doenetAttributesByTargetComponentName[targetComponentName].push(
-                    component.doenetAttributes
+                    component.doenetAttributes,
                 );
             }
         }
@@ -2564,7 +2564,7 @@ function setTargetsOutsideNamespaceToAbsoluteAndRecordAllTargetComponentNames({
                     namespace,
                     components: component.children,
                     doenetAttributesByTargetComponentName,
-                }
+                },
             );
         }
         if (component.attributes) {
@@ -2576,7 +2576,7 @@ function setTargetsOutsideNamespaceToAbsoluteAndRecordAllTargetComponentNames({
                             namespace,
                             components: [attribute.component],
                             doenetAttributesByTargetComponentName,
-                        }
+                        },
                     );
                 } else if (attribute.childrenForComponent) {
                     setTargetsOutsideNamespaceToAbsoluteAndRecordAllTargetComponentNames(
@@ -2584,7 +2584,7 @@ function setTargetsOutsideNamespaceToAbsoluteAndRecordAllTargetComponentNames({
                             namespace,
                             components: attribute.childrenForComponent,
                             doenetAttributesByTargetComponentName,
-                        }
+                        },
                     );
                 }
             }
@@ -2595,7 +2595,7 @@ function setTargetsOutsideNamespaceToAbsoluteAndRecordAllTargetComponentNames({
 function renameMatchingTNames(
     component,
     doenetAttributesByTargetComponentName,
-    renameMatchingNamespaces = false
+    renameMatchingNamespaces = false,
 ) {
     if (
         component.originalName &&
@@ -2654,7 +2654,7 @@ function moveComponentNamesToOriginalNames(components) {
                     moveComponentNamesToOriginalNames([attribute.component]);
                 } else if (attribute.childrenForComponent) {
                     moveComponentNamesToOriginalNames(
-                        attribute.childrenForComponent
+                        attribute.childrenForComponent,
                     );
                 }
             }

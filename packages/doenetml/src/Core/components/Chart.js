@@ -163,7 +163,7 @@ export default class Chart extends BlockComponent {
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions()
+            returnRoundingStateVariableDefinitions(),
         );
 
         stateVariableDefinitions.dataFrame = {
@@ -220,7 +220,7 @@ export default class Chart extends BlockComponent {
                     colInd = null;
                 if (dependencyValues.dataFrame) {
                     colInd = dependencyValues.dataFrame.columnNames.indexOf(
-                        dependencyValues.desiredColumn
+                        dependencyValues.desiredColumn,
                     );
                     if (colInd !== -1) {
                         columnName = dependencyValues.desiredColumn;

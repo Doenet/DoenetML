@@ -134,7 +134,7 @@ export default class Slider extends BaseComponent {
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions()
+            returnRoundingStateVariableDefinitions(),
         );
 
         stateVariableDefinitions.items = {
@@ -245,7 +245,7 @@ export default class Slider extends BaseComponent {
                         Math.floor(
                             (dependencyValues.to - dependencyValues.from) /
                                 dependencyValues.step +
-                                1e-10
+                                1e-10,
                         ) + 1;
                     if (!(numItems >= 0 && Number.isFinite(numItems))) {
                         numItems = 0;
@@ -757,7 +757,7 @@ function findIndexOfClosestValidValue({
 
     let findNextLargerIndex = function (
         minIndex = 0,
-        maxIndex = items.length - 1
+        maxIndex = items.length - 1,
     ) {
         if (maxIndex <= minIndex + 1) {
             if (value > items[minIndex]) {

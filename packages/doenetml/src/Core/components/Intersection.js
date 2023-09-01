@@ -147,17 +147,17 @@ export default class Intersection extends CompositeComponent {
         let warnings = [];
 
         let lines = (await component.stateValues.lineChildren).map(
-            (x) => x.stateValues
+            (x) => x.stateValues,
         );
         let numLines = lines.length;
 
         let circles = (await component.stateValues.circleChildren).map(
-            (x) => x.stateValues
+            (x) => x.stateValues,
         );
         let numCircles = circles.length;
 
         let polys = (await component.stateValues.polyChildren).map(
-            (x) => x.stateValues
+            (x) => x.stateValues,
         );
         let numPolys = polys.length;
 
@@ -222,7 +222,7 @@ export default class Intersection extends CompositeComponent {
                         componentType: repl.componentType,
                         componentInfoObjects,
                         compositeCreatesNewNamespace: newNamespace,
-                    }
+                    },
                 );
 
                 if (!repl.attributes) {
@@ -353,7 +353,7 @@ function intersectTwoLines(lines) {
         )
     ) {
         console.log(
-            "Intersection of lines implemented only for numerical values"
+            "Intersection of lines implemented only for numerical values",
         );
         return [];
     }
@@ -425,7 +425,7 @@ function intersectTwoCircles(circleChildren) {
         )
     ) {
         console.log(
-            "Intersection of circles implemented only for numerical values"
+            "Intersection of circles implemented only for numerical values",
         );
         return [];
     }
@@ -491,7 +491,7 @@ function intersectLineAndCircle(line, circle) {
         )
     ) {
         console.log(
-            "Intersection of line and circle implemented only for numerical values"
+            "Intersection of line and circle implemented only for numerical values",
         );
         return [];
     }
@@ -579,7 +579,7 @@ function ptEqual(pt1, pt2) {
 
 function dedupPts(points) {
     return points.filter(
-        (pt, ind, arr) => !arr.slice(0, ind).some((pt2) => ptEqual(pt, pt2))
+        (pt, ind, arr) => !arr.slice(0, ind).some((pt2) => ptEqual(pt, pt2)),
     );
 }
 
@@ -589,7 +589,7 @@ function intersectTwoPolys(polys) {
 
     if (poly1.numDimensions !== 2 || poly2.numDimensions !== 2) {
         console.log(
-            "Intersection involving polygons/polylines implemented only in 2D"
+            "Intersection involving polygons/polylines implemented only in 2D",
         );
         return [];
     }
@@ -629,7 +629,7 @@ function intersectTwoPolys(polys) {
             };
 
             intersectionPts.push(
-                ...intersectTwoLines([segmentFromPoly1, segmentFromPoly2])
+                ...intersectTwoLines([segmentFromPoly1, segmentFromPoly2]),
             );
         }
     }
@@ -640,7 +640,7 @@ function intersectTwoPolys(polys) {
 function intersectLineAndPoly(line, poly) {
     if (line.numDimensions !== 2 || poly.numDimensions !== 2) {
         console.log(
-            "Intersection involving lines and polygons/polylines implemented only in 2D"
+            "Intersection involving lines and polygons/polylines implemented only in 2D",
         );
         return [];
     }
@@ -672,7 +672,7 @@ function intersectLineAndPoly(line, poly) {
 function intersectPolyAndCircle(poly, circle) {
     if (poly.numDimensions !== 2) {
         console.log(
-            "Intersection involving polygons/polylines implemented only in 2D"
+            "Intersection involving polygons/polylines implemented only in 2D",
         );
         return [];
     }

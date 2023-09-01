@@ -38,7 +38,7 @@ export default class Variable extends MathComponent {
             definition({ dependencyValues }) {
                 let warnings = [];
                 let validVariable = isValidVariable(
-                    dependencyValues.valuePreValidate
+                    dependencyValues.valuePreValidate,
                 );
 
                 if (!validVariable) {

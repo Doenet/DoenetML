@@ -63,14 +63,14 @@ export default class AttractToConstraint extends ConstraintComponent {
                         if (constraintChild.stateValues.applyConstraint) {
                             constraintResult =
                                 constraintChild.stateValues.applyConstraint(
-                                    variables
+                                    variables,
                                 );
                         } else {
                             constraintResult =
                                 applyConstraintFromComponentConstraints(
                                     variables,
                                     constraintChild.stateValues
-                                        .applyComponentConstraint
+                                        .applyComponentConstraint,
                                 );
                         }
 
@@ -80,10 +80,10 @@ export default class AttractToConstraint extends ConstraintComponent {
                             // since, for now, have a distance function only for numerical values,
                             // skip if don't have numerical values
                             let originalVar = findFiniteNumericalValue(
-                                variables[varname]
+                                variables[varname],
                             );
                             let constrainedVar = findFiniteNumericalValue(
-                                constraintResult.variables[varname]
+                                constraintResult.variables[varname],
                             );
 
                             if (
@@ -95,7 +95,7 @@ export default class AttractToConstraint extends ConstraintComponent {
 
                             distance2 += Math.pow(
                                 originalVar - constrainedVar,
-                                2
+                                2,
                             );
                         }
 

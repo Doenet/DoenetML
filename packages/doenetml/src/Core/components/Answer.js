@@ -368,15 +368,15 @@ export default class Answer extends InlineComponent {
                                 componentIsSpecifiedType(grandChild, "math") ||
                                 componentIsSpecifiedType(
                                     grandChild,
-                                    "number"
+                                    "number",
                                 ) ||
                                 componentIsSpecifiedType(
                                     grandChild,
-                                    "mathList"
+                                    "mathList",
                                 ) ||
                                 componentIsSpecifiedType(
                                     grandChild,
-                                    "numberList"
+                                    "numberList",
                                 )
                             ) {
                                 foundMath = true;
@@ -395,7 +395,7 @@ export default class Answer extends InlineComponent {
                             } else if (
                                 componentIsSpecifiedType(
                                     grandChild,
-                                    "booleanList"
+                                    "booleanList",
                                 )
                             ) {
                                 // TODO: what should we do with a booleanList,
@@ -414,7 +414,7 @@ export default class Answer extends InlineComponent {
                             } else if (
                                 componentIsSpecifiedType(
                                     grandChild,
-                                    "orbitalDiagram"
+                                    "orbitalDiagram",
                                 )
                             ) {
                                 // Note: should add componentTypes as create more comparable types in award
@@ -467,7 +467,7 @@ export default class Answer extends InlineComponent {
             if (nChoicesFound > 0) {
                 // remove blank string children
                 matchedChildren = matchedChildren.filter(
-                    (x) => typeof x !== "string" || x.trim() !== ""
+                    (x) => typeof x !== "string" || x.trim() !== "",
                 );
                 if (matchedChildren.length !== nChoicesFound) {
                     return { success: false };
@@ -513,7 +513,7 @@ export default class Answer extends InlineComponent {
                         if (componentIsSpecifiedType(child, "award")) {
                             if (child.children?.length > 0) {
                                 addResponsesToCompositeDescendants(
-                                    child.children
+                                    child.children,
                                 );
                             }
                         }
@@ -534,7 +534,7 @@ export default class Answer extends InlineComponent {
                     if (firstNonLabelInd !== -1) {
                         childrenToNotWrapBegin = matchedChildren.slice(
                             0,
-                            firstNonLabelInd
+                            firstNonLabelInd,
                         );
                         matchedChildren =
                             matchedChildren.slice(firstNonLabelInd);
@@ -726,7 +726,7 @@ export default class Answer extends InlineComponent {
                     setValue: {
                         haveAwardThatRequiresInput:
                             dependencyValues.awardChildren.some(
-                                (x) => x.stateValues.requireInputInAnswer
+                                (x) => x.stateValues.requireInputInAnswer,
                             ),
                     },
                 };
@@ -909,7 +909,7 @@ export default class Answer extends InlineComponent {
                     childTypes: {
                         dependencyType: "value",
                         value: stateValues.awardInputResponseChildren.map(
-                            (x) => x.componentType
+                            (x) => x.componentType,
                         ),
                     },
                 };
@@ -1055,7 +1055,7 @@ export default class Answer extends InlineComponent {
                     childTypes: {
                         dependencyType: "value",
                         value: stateValues.awardInputResponseChildren.map(
-                            (x) => x.componentType
+                            (x) => x.componentType,
                         ),
                     },
                 };
@@ -1185,7 +1185,7 @@ export default class Answer extends InlineComponent {
                     } else {
                         // considerAsResponses
                         responseComponents.push(
-                            ...globalDependencyValues["child" + ind]
+                            ...globalDependencyValues["child" + ind],
                         );
                     }
                 }
@@ -1210,8 +1210,8 @@ export default class Answer extends InlineComponent {
                         currentResponses.push(...component.stateValues.values);
                         componentType.push(
                             ...Array(component.stateValues.values.length).fill(
-                                ct
-                            )
+                                ct,
+                            ),
                         );
                     } else if (component.stateValues.value !== undefined) {
                         currentResponses.push(component.stateValues.value);
@@ -1353,8 +1353,8 @@ export default class Answer extends InlineComponent {
                     componentType.push(
                         ...globalDependencyValues.submittedResponsesComponentType.slice(
                             0,
-                            globalDependencyValues.numSubmittedResponses
-                        )
+                            globalDependencyValues.numSubmittedResponses,
+                        ),
                     );
                 }
 
@@ -1561,7 +1561,7 @@ export default class Answer extends InlineComponent {
                                     awardsUsed[0] = child.componentName;
                                     awardCredits[0] = creditFromChild;
                                     minimumFromAwardCredits = Math.min(
-                                        ...awardCredits
+                                        ...awardCredits,
                                     );
                                 } else {
                                     for (let [
@@ -1575,20 +1575,20 @@ export default class Answer extends InlineComponent {
                                             awardsUsed.splice(
                                                 ind,
                                                 0,
-                                                child.componentName
+                                                child.componentName,
                                             );
                                             awardsUsed = awardsUsed.slice(0, n);
                                             awardCredits.splice(
                                                 ind,
                                                 0,
-                                                creditFromChild
+                                                creditFromChild,
                                             );
                                             awardCredits = awardCredits.slice(
                                                 0,
-                                                n
+                                                n,
                                             );
                                             minimumFromAwardCredits = Math.min(
-                                                ...awardCredits
+                                                ...awardCredits,
                                             );
                                             break;
                                         }
@@ -1600,7 +1600,7 @@ export default class Answer extends InlineComponent {
 
                     creditAchieved = Math.min(
                         1,
-                        awardCredits.reduce((a, c) => a + c, 0)
+                        awardCredits.reduce((a, c) => a + c, 0),
                     );
                 }
                 return {
@@ -1719,12 +1719,12 @@ export default class Answer extends InlineComponent {
 
                 let stringified = stringify(
                     dependencyValues.currentCreditAchievedDependencies,
-                    { replacer: serializedComponentsReplacer }
+                    { replacer: serializedComponentsReplacer },
                 );
                 return {
                     setValue: {
                         creditAchievedDependencies: Base64.stringify(
-                            sha1(stringified)
+                            sha1(stringified),
                         ),
                     },
                 };
@@ -1849,7 +1849,7 @@ export default class Answer extends InlineComponent {
                         Array.isArray(feedbackComponent.stateValues.feedbacks)
                     ) {
                         feedbacks.push(
-                            ...feedbackComponent.stateValues.feedbacks
+                            ...feedbackComponent.stateValues.feedbacks,
                         );
                     }
                 }
@@ -2102,8 +2102,8 @@ export default class Answer extends InlineComponent {
             },
         ];
 
-        let inputChildrenWithValues = await this.stateValues
-            .inputChildrenWithValues;
+        let inputChildrenWithValues =
+            await this.stateValues.inputChildrenWithValues;
 
         if (inputChildrenWithValues.length === 1) {
             // if have a single input descendant,

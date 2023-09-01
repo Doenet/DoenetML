@@ -22,7 +22,7 @@ describe("Specifying single variant document tests", function () {
     `,
                     requestedVariantIndex: 1,
                 },
-                "*"
+                "*",
             );
         });
         // to wait for page to load
@@ -34,7 +34,7 @@ describe("Specifying single variant document tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             nWithIndex1 = stateVariables["/n"].stateValues.value;
             expect(
-                stateVariables["/_document1"].stateValues.generatedVariantInfo
+                stateVariables["/_document1"].stateValues.generatedVariantInfo,
             ).eqls({
                 index: 1,
                 name: "a",
@@ -49,17 +49,17 @@ describe("Specifying single variant document tests", function () {
                 ],
             });
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("1");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(1);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("a");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls([
                 "a",
                 "b",
@@ -178,7 +178,7 @@ describe("Specifying single variant document tests", function () {
     `,
                     requestedVariantIndex: 1,
                 },
-                "*"
+                "*",
             );
         });
         // to wait for page to load
@@ -187,7 +187,7 @@ describe("Specifying single variant document tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(nWithIndex1);
             expect(
-                stateVariables["/_document1"].stateValues.generatedVariantInfo
+                stateVariables["/_document1"].stateValues.generatedVariantInfo,
             ).eqls({
                 index: 1,
                 name: "a",
@@ -202,13 +202,13 @@ describe("Specifying single variant document tests", function () {
                 ],
             });
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("1");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(1);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("a");
         });
 
@@ -224,7 +224,7 @@ describe("Specifying single variant document tests", function () {
     `,
                     requestedVariantIndex: 1,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -234,7 +234,7 @@ describe("Specifying single variant document tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(nWithIndex1);
             expect(
-                stateVariables["/_document1"].stateValues.generatedVariantInfo
+                stateVariables["/_document1"].stateValues.generatedVariantInfo,
             ).eqls({
                 index: 1,
                 name: "a",
@@ -249,13 +249,13 @@ describe("Specifying single variant document tests", function () {
                 ],
             });
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("1");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(1);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("a");
         });
 
@@ -271,7 +271,7 @@ describe("Specifying single variant document tests", function () {
     `,
                     requestedVariantIndex: 1,
                 },
-                "*"
+                "*",
             );
         });
         // to wait for page to load
@@ -282,7 +282,7 @@ describe("Specifying single variant document tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(nWithIndex1);
             expect(
-                stateVariables["/_document1"].stateValues.generatedVariantInfo
+                stateVariables["/_document1"].stateValues.generatedVariantInfo,
             ).eqls({
                 index: 1,
                 name: "a",
@@ -299,17 +299,17 @@ describe("Specifying single variant document tests", function () {
             generatedVariantInfo = JSON.parse(
                 JSON.stringify(
                     stateVariables["/_document1"].stateValues
-                        .generatedVariantInfo
-                )
+                        .generatedVariantInfo,
+                ),
             );
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("1");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(1);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("a");
         });
 
@@ -360,7 +360,7 @@ describe("Specifying single variant document tests", function () {
     `,
                     requestedVariantIndex: 2,
                 },
-                "*"
+                "*",
             );
         });
         // to wait for page to load
@@ -373,7 +373,7 @@ describe("Specifying single variant document tests", function () {
             nWithIndex2 = stateVariables["/n"].stateValues.value;
             expect(nWithIndex2).not.eq(nWithIndex1);
             expect(
-                stateVariables["/_document1"].stateValues.generatedVariantInfo
+                stateVariables["/_document1"].stateValues.generatedVariantInfo,
             ).eqls({
                 index: 2,
                 name: "b",
@@ -388,13 +388,13 @@ describe("Specifying single variant document tests", function () {
                 ],
             });
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("2");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(2);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("b");
         });
 
@@ -410,7 +410,7 @@ describe("Specifying single variant document tests", function () {
     `,
                     requestedVariantIndex: 2,
                 },
-                "*"
+                "*",
             );
         });
         // to wait for page to load
@@ -419,7 +419,7 @@ describe("Specifying single variant document tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(nWithIndex2);
             expect(
-                stateVariables["/_document1"].stateValues.generatedVariantInfo
+                stateVariables["/_document1"].stateValues.generatedVariantInfo,
             ).eqls({
                 index: 2,
                 name: "b",
@@ -434,13 +434,13 @@ describe("Specifying single variant document tests", function () {
                 ],
             });
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("2");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(2);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("b");
         });
 
@@ -456,7 +456,7 @@ describe("Specifying single variant document tests", function () {
     `,
                     requestedVariantIndex: 2,
                 },
-                "*"
+                "*",
             );
         });
         // to wait for page to load
@@ -465,7 +465,7 @@ describe("Specifying single variant document tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(nWithIndex2);
             expect(
-                stateVariables["/_document1"].stateValues.generatedVariantInfo
+                stateVariables["/_document1"].stateValues.generatedVariantInfo,
             ).eqls({
                 index: 2,
                 name: "b",
@@ -480,13 +480,13 @@ describe("Specifying single variant document tests", function () {
                 ],
             });
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("2");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(2);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("b");
         });
 
@@ -503,7 +503,7 @@ describe("Specifying single variant document tests", function () {
     `,
                     requestedVariantIndex: 102,
                 },
-                "*"
+                "*",
             );
         });
         // to wait for page to load
@@ -512,7 +512,7 @@ describe("Specifying single variant document tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(nWithIndex2);
             expect(
-                stateVariables["/_document1"].stateValues.generatedVariantInfo
+                stateVariables["/_document1"].stateValues.generatedVariantInfo,
             ).eqls({
                 index: 2,
                 name: "b",
@@ -527,13 +527,13 @@ describe("Specifying single variant document tests", function () {
                 ],
             });
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("2");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(2);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("b");
         });
 
@@ -549,7 +549,7 @@ describe("Specifying single variant document tests", function () {
     `,
                     requestedVariantIndex: 102,
                 },
-                "*"
+                "*",
             );
         });
         // to wait for page to load
@@ -558,7 +558,7 @@ describe("Specifying single variant document tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(nWithIndex2);
             expect(
-                stateVariables["/_document1"].stateValues.generatedVariantInfo
+                stateVariables["/_document1"].stateValues.generatedVariantInfo,
             ).eqls({
                 index: 2,
                 name: "b",
@@ -573,13 +573,13 @@ describe("Specifying single variant document tests", function () {
                 ],
             });
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("2");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(2);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("b");
         });
 
@@ -596,7 +596,7 @@ describe("Specifying single variant document tests", function () {
     `,
                     requestedVariantIndex: -298,
                 },
-                "*"
+                "*",
             );
         });
         // to wait for page to load
@@ -605,7 +605,7 @@ describe("Specifying single variant document tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(nWithIndex2);
             expect(
-                stateVariables["/_document1"].stateValues.generatedVariantInfo
+                stateVariables["/_document1"].stateValues.generatedVariantInfo,
             ).eqls({
                 index: 2,
                 name: "b",
@@ -620,13 +620,13 @@ describe("Specifying single variant document tests", function () {
                 ],
             });
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("2");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(2);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("b");
         });
 
@@ -644,7 +644,7 @@ describe("Specifying single variant document tests", function () {
     `,
                     requestedVariantIndex: -298,
                 },
-                "*"
+                "*",
             );
         });
         // to wait for page to load
@@ -653,7 +653,7 @@ describe("Specifying single variant document tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(nWithIndex2);
             expect(
-                stateVariables["/_document1"].stateValues.generatedVariantInfo
+                stateVariables["/_document1"].stateValues.generatedVariantInfo,
             ).eqls({
                 index: 2,
                 name: "b",
@@ -668,13 +668,13 @@ describe("Specifying single variant document tests", function () {
                 ],
             });
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("2");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(2);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("b");
         });
 
@@ -691,7 +691,7 @@ describe("Specifying single variant document tests", function () {
     `,
                     requestedVariantIndex: 83057201,
                 },
-                "*"
+                "*",
             );
         });
         // to wait for page to load
@@ -700,7 +700,7 @@ describe("Specifying single variant document tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(nWithIndex1);
             expect(
-                stateVariables["/_document1"].stateValues.generatedVariantInfo
+                stateVariables["/_document1"].stateValues.generatedVariantInfo,
             ).eqls({
                 index: 1,
                 name: "a",
@@ -715,13 +715,13 @@ describe("Specifying single variant document tests", function () {
                 ],
             });
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("1");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(1);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("a");
         });
 
@@ -737,7 +737,7 @@ describe("Specifying single variant document tests", function () {
     `,
                     requestedVariantIndex: 83057201,
                 },
-                "*"
+                "*",
             );
         });
         // to wait for page to load
@@ -746,7 +746,7 @@ describe("Specifying single variant document tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(nWithIndex1);
             expect(
-                stateVariables["/_document1"].stateValues.generatedVariantInfo
+                stateVariables["/_document1"].stateValues.generatedVariantInfo,
             ).eqls({
                 index: 1,
                 name: "a",
@@ -761,13 +761,13 @@ describe("Specifying single variant document tests", function () {
                 ],
             });
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("1");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(1);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("a");
         });
 
@@ -918,7 +918,7 @@ describe("Specifying single variant document tests", function () {
     `,
                     requestedVariantIndex: "301",
                 },
-                "*"
+                "*",
             );
         });
         // to wait for page to load
@@ -927,7 +927,7 @@ describe("Specifying single variant document tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(nWithIndex1);
             expect(
-                stateVariables["/_document1"].stateValues.generatedVariantInfo
+                stateVariables["/_document1"].stateValues.generatedVariantInfo,
             ).eqls({
                 index: 1,
                 name: "a",
@@ -942,13 +942,13 @@ describe("Specifying single variant document tests", function () {
                 ],
             });
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("1");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(1);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("a");
         });
 
@@ -965,7 +965,7 @@ describe("Specifying single variant document tests", function () {
     `,
                     requestedVariantIndex: "95",
                 },
-                "*"
+                "*",
             );
         });
         // to wait for page to load
@@ -979,7 +979,7 @@ describe("Specifying single variant document tests", function () {
             expect(nWithIndex95).not.eq(nWithIndex1);
             expect(nWithIndex95).not.eq(nWithIndex2);
             expect(
-                stateVariables["/_document1"].stateValues.generatedVariantInfo
+                stateVariables["/_document1"].stateValues.generatedVariantInfo,
             ).eqls({
                 index: 95,
                 name: "cq",
@@ -994,13 +994,13 @@ describe("Specifying single variant document tests", function () {
                 ],
             });
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("95");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(95);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("cq");
         });
 
@@ -1052,7 +1052,7 @@ describe("Specifying single variant document tests", function () {
     `,
                     requestedVariantIndex: "bad",
                 },
-                "*"
+                "*",
             );
         });
         // to wait for page to load
@@ -1062,7 +1062,7 @@ describe("Specifying single variant document tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(nWithIndex1);
             expect(
-                stateVariables["/_document1"].stateValues.generatedVariantInfo
+                stateVariables["/_document1"].stateValues.generatedVariantInfo,
             ).eqls({
                 index: 1,
                 name: "a",
@@ -1077,13 +1077,13 @@ describe("Specifying single variant document tests", function () {
                 ],
             });
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("1");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(1);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("a");
         });
 
@@ -1135,7 +1135,7 @@ describe("Specifying single variant document tests", function () {
     `,
                     requestedVariantIndex: 95.48,
                 },
-                "*"
+                "*",
             );
         });
         // to wait for page to load
@@ -1145,7 +1145,7 @@ describe("Specifying single variant document tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(nWithIndex95);
             expect(
-                stateVariables["/_document1"].stateValues.generatedVariantInfo
+                stateVariables["/_document1"].stateValues.generatedVariantInfo,
             ).eqls({
                 index: 95,
                 name: "cq",
@@ -1160,13 +1160,13 @@ describe("Specifying single variant document tests", function () {
                 ],
             });
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("95");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(95);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("cq");
         });
     });
@@ -1193,7 +1193,7 @@ describe("Specifying single variant document tests", function () {
     `,
                     requestedVariantIndex: 1,
                 },
-                "*"
+                "*",
             );
         });
         // to wait for page to load
@@ -1235,17 +1235,17 @@ describe("Specifying single variant document tests", function () {
             //   }]
             // })
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("1");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(1);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("avocado");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["avocado", "broccoli", "carrot", "dill", "eggplant"]);
         });
 
@@ -1270,7 +1270,7 @@ describe("Specifying single variant document tests", function () {
     `,
                     requestedVariantIndex: 3,
                 },
-                "*"
+                "*",
             );
         });
         // to wait for page to load
@@ -1312,13 +1312,13 @@ describe("Specifying single variant document tests", function () {
             //   }]
             // })
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("3");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(3);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("carrot");
         });
 
@@ -1504,7 +1504,7 @@ describe("Specifying single variant document tests", function () {
     `,
                     requestedVariantIndex: 20582310,
                 },
-                "*"
+                "*",
             );
         });
         // to wait for page to load
@@ -1546,13 +1546,13 @@ describe("Specifying single variant document tests", function () {
             //   }]
             // })
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("5");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(5);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("eggplant");
         });
 
@@ -1577,7 +1577,7 @@ describe("Specifying single variant document tests", function () {
     `,
                     requestedVariantIndex: "-20582308",
                 },
-                "*"
+                "*",
             );
         });
         // to wait for page to load
@@ -1619,13 +1619,13 @@ describe("Specifying single variant document tests", function () {
             //   }]
             // })
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("2");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(2);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("broccoli");
         });
 
@@ -1650,7 +1650,7 @@ describe("Specifying single variant document tests", function () {
     `,
                     requestedVariantIndex: "wrong",
                 },
-                "*"
+                "*",
             );
         });
         // to wait for page to load
@@ -1692,13 +1692,13 @@ describe("Specifying single variant document tests", function () {
             //   }]
             // })
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("1");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(1);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("avocado");
         });
 
@@ -1776,7 +1776,7 @@ describe("Specifying single variant document tests", function () {
     `,
                     requestedVariantIndex: 4.5,
                 },
-                "*"
+                "*",
             );
         });
         // to wait for page to load
@@ -1818,13 +1818,13 @@ describe("Specifying single variant document tests", function () {
             //   }]
             // })
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("5");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(5);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("eggplant");
         });
     });
@@ -1844,7 +1844,7 @@ describe("Specifying single variant document tests", function () {
     `,
                     requestedVariantIndex: 1,
                 },
-                "*"
+                "*",
             );
         });
         // to wait for page to load
@@ -1856,7 +1856,7 @@ describe("Specifying single variant document tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             nWithSeed50283 = stateVariables["/n"].stateValues.value;
             expect(
-                stateVariables["/_document1"].stateValues.generatedVariantInfo
+                stateVariables["/_document1"].stateValues.generatedVariantInfo,
             ).eqls({
                 index: 1,
                 name: "a",
@@ -1871,17 +1871,17 @@ describe("Specifying single variant document tests", function () {
                 ],
             });
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("50283");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(1);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("a");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["a", "b", "c", "d", "e"]);
         });
 
@@ -1898,7 +1898,7 @@ describe("Specifying single variant document tests", function () {
     `,
                     requestedVariantIndex: 1,
                 },
-                "*"
+                "*",
             );
         });
         // to wait for page to load
@@ -1908,7 +1908,7 @@ describe("Specifying single variant document tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(nWithSeed50283);
             expect(
-                stateVariables["/_document1"].stateValues.generatedVariantInfo
+                stateVariables["/_document1"].stateValues.generatedVariantInfo,
             ).eqls({
                 index: 1,
                 name: "a",
@@ -1923,13 +1923,13 @@ describe("Specifying single variant document tests", function () {
                 ],
             });
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("50283");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(1);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("a");
         });
 
@@ -1947,7 +1947,7 @@ describe("Specifying single variant document tests", function () {
     `,
                     requestedVariantIndex: 124082,
                 },
-                "*"
+                "*",
             );
         });
         // to wait for page to load
@@ -1960,7 +1960,7 @@ describe("Specifying single variant document tests", function () {
             nWithSeed25018 = stateVariables["/n"].stateValues.value;
             expect(nWithSeed25018).not.eq(nWithSeed50283);
             expect(
-                stateVariables["/_document1"].stateValues.generatedVariantInfo
+                stateVariables["/_document1"].stateValues.generatedVariantInfo,
             ).eqls({
                 index: 2,
                 name: "b",
@@ -1975,13 +1975,13 @@ describe("Specifying single variant document tests", function () {
                 ],
             });
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("25018");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(2);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("b");
         });
 
@@ -1998,7 +1998,7 @@ describe("Specifying single variant document tests", function () {
     `,
                     requestedVariantIndex: 124082,
                 },
-                "*"
+                "*",
             );
         });
         // to wait for page to load
@@ -2007,7 +2007,7 @@ describe("Specifying single variant document tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(nWithSeed25018);
             expect(
-                stateVariables["/_document1"].stateValues.generatedVariantInfo
+                stateVariables["/_document1"].stateValues.generatedVariantInfo,
             ).eqls({
                 index: 2,
                 name: "b",
@@ -2022,13 +2022,13 @@ describe("Specifying single variant document tests", function () {
                 ],
             });
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("25018");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(2);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("b");
         });
 
@@ -2046,7 +2046,7 @@ describe("Specifying single variant document tests", function () {
     `,
                     requestedVariantIndex: "3",
                 },
-                "*"
+                "*",
             );
         });
         // to wait for page to load
@@ -2060,7 +2060,7 @@ describe("Specifying single variant document tests", function () {
             expect(nWithSeed52018).not.eq(nWithSeed50283);
             expect(nWithSeed52018).not.eq(nWithSeed25018);
             expect(
-                stateVariables["/_document1"].stateValues.generatedVariantInfo
+                stateVariables["/_document1"].stateValues.generatedVariantInfo,
             ).eqls({
                 index: 3,
                 name: "c",
@@ -2075,13 +2075,13 @@ describe("Specifying single variant document tests", function () {
                 ],
             });
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("52018");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(3);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("c");
         });
 
@@ -2133,7 +2133,7 @@ describe("Specifying single variant document tests", function () {
     `,
                     requestedVariantIndex: "820572309",
                 },
-                "*"
+                "*",
             );
         });
         // to wait for page to load
@@ -2148,7 +2148,7 @@ describe("Specifying single variant document tests", function () {
             expect(nWithSeed2917392).not.eq(nWithSeed25018);
             expect(nWithSeed2917392).not.eq(nWithSeed52018);
             expect(
-                stateVariables["/_document1"].stateValues.generatedVariantInfo
+                stateVariables["/_document1"].stateValues.generatedVariantInfo,
             ).eqls({
                 index: 4,
                 name: "d",
@@ -2163,13 +2163,13 @@ describe("Specifying single variant document tests", function () {
                 ],
             });
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("2917392");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(4);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("d");
         });
 
@@ -2186,7 +2186,7 @@ describe("Specifying single variant document tests", function () {
     `,
                     requestedVariantIndex: "820572309",
                 },
-                "*"
+                "*",
             );
         });
         // to wait for page to load
@@ -2195,7 +2195,7 @@ describe("Specifying single variant document tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(nWithSeed2917392);
             expect(
-                stateVariables["/_document1"].stateValues.generatedVariantInfo
+                stateVariables["/_document1"].stateValues.generatedVariantInfo,
             ).eqls({
                 index: 4,
                 name: "d",
@@ -2210,13 +2210,13 @@ describe("Specifying single variant document tests", function () {
                 ],
             });
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("2917392");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(4);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("d");
         });
 
@@ -2234,7 +2234,7 @@ describe("Specifying single variant document tests", function () {
     `,
                     requestedVariantIndex: "-820572305",
                 },
-                "*"
+                "*",
             );
         });
         // to wait for page to load
@@ -2250,7 +2250,7 @@ describe("Specifying single variant document tests", function () {
             expect(nWithSeed603962).not.eq(nWithSeed52018);
             expect(nWithSeed603962).not.eq(nWithSeed2917392);
             expect(
-                stateVariables["/_document1"].stateValues.generatedVariantInfo
+                stateVariables["/_document1"].stateValues.generatedVariantInfo,
             ).eqls({
                 index: 5,
                 name: "e",
@@ -2265,13 +2265,13 @@ describe("Specifying single variant document tests", function () {
                 ],
             });
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("603962");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(5);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("e");
         });
 
@@ -2289,7 +2289,7 @@ describe("Specifying single variant document tests", function () {
     `,
                     requestedVariantIndex: "-820572305",
                 },
-                "*"
+                "*",
             );
         });
         // to wait for page to load
@@ -2298,7 +2298,7 @@ describe("Specifying single variant document tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(nWithSeed603962);
             expect(
-                stateVariables["/_document1"].stateValues.generatedVariantInfo
+                stateVariables["/_document1"].stateValues.generatedVariantInfo,
             ).eqls({
                 index: 5,
                 name: "e",
@@ -2315,17 +2315,17 @@ describe("Specifying single variant document tests", function () {
             generatedVariantInfo = JSON.parse(
                 JSON.stringify(
                     stateVariables["/_document1"].stateValues
-                        .generatedVariantInfo
-                )
+                        .generatedVariantInfo,
+                ),
             );
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("603962");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(5);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("e");
         });
 
@@ -2380,7 +2380,7 @@ describe("Specifying single variant document tests", function () {
     `,
                     requestedVariantIndex: 1,
                 },
-                "*"
+                "*",
             );
         });
         // to wait for page to load
@@ -2390,7 +2390,7 @@ describe("Specifying single variant document tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(nWithSeed2917392);
             expect(
-                stateVariables["/_document1"].stateValues.generatedVariantInfo
+                stateVariables["/_document1"].stateValues.generatedVariantInfo,
             ).eqls({
                 index: 1,
                 name: "a",
@@ -2405,13 +2405,13 @@ describe("Specifying single variant document tests", function () {
                 ],
             });
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("2917392");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(1);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("a");
         });
 
@@ -2430,7 +2430,7 @@ describe("Specifying single variant document tests", function () {
     `,
                     requestedVariantIndex: 1,
                 },
-                "*"
+                "*",
             );
         });
         // to wait for page to load
@@ -2439,7 +2439,7 @@ describe("Specifying single variant document tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(nWithSeed2917392);
             expect(
-                stateVariables["/_document1"].stateValues.generatedVariantInfo
+                stateVariables["/_document1"].stateValues.generatedVariantInfo,
             ).eqls({
                 index: 1,
                 name: "a",
@@ -2454,13 +2454,13 @@ describe("Specifying single variant document tests", function () {
                 ],
             });
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("2917392");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(1);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("a");
         });
 
@@ -2478,7 +2478,7 @@ describe("Specifying single variant document tests", function () {
     `,
                     requestedVariantIndex: 124082,
                 },
-                "*"
+                "*",
             );
         });
         // to wait for page to load
@@ -2488,7 +2488,7 @@ describe("Specifying single variant document tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(nWithSeed52018);
             expect(
-                stateVariables["/_document1"].stateValues.generatedVariantInfo
+                stateVariables["/_document1"].stateValues.generatedVariantInfo,
             ).eqls({
                 index: 2,
                 name: "b",
@@ -2503,13 +2503,13 @@ describe("Specifying single variant document tests", function () {
                 ],
             });
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("52018");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(2);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("b");
         });
 
@@ -2563,7 +2563,7 @@ describe("Specifying single variant document tests", function () {
     `,
                     requestedVariantIndex: "820572309",
                 },
-                "*"
+                "*",
             );
         });
         // to wait for page to load
@@ -2573,7 +2573,7 @@ describe("Specifying single variant document tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(nWithSeed50283);
             expect(
-                stateVariables["/_document1"].stateValues.generatedVariantInfo
+                stateVariables["/_document1"].stateValues.generatedVariantInfo,
             ).eqls({
                 index: 4,
                 name: "d",
@@ -2588,13 +2588,13 @@ describe("Specifying single variant document tests", function () {
                 ],
             });
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("50283");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(4);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("d");
         });
 
@@ -2612,7 +2612,7 @@ describe("Specifying single variant document tests", function () {
     `,
                     requestedVariantIndex: "-820572305",
                 },
-                "*"
+                "*",
             );
         });
         // to wait for page to load
@@ -2622,7 +2622,7 @@ describe("Specifying single variant document tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(nWithSeed25018);
             expect(
-                stateVariables["/_document1"].stateValues.generatedVariantInfo
+                stateVariables["/_document1"].stateValues.generatedVariantInfo,
             ).eqls({
                 index: 5,
                 name: "e",
@@ -2637,13 +2637,13 @@ describe("Specifying single variant document tests", function () {
                 ],
             });
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("25018");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(5);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("e");
         });
     });
@@ -2663,7 +2663,7 @@ describe("Specifying single variant document tests", function () {
     `,
                     requestedVariantIndex: 1,
                 },
-                "*"
+                "*",
             );
         });
         // to wait for page to load
@@ -2675,7 +2675,7 @@ describe("Specifying single variant document tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             nWithSeed50283 = stateVariables["/n"].stateValues.value;
             expect(
-                stateVariables["/_document1"].stateValues.generatedVariantInfo
+                stateVariables["/_document1"].stateValues.generatedVariantInfo,
             ).eqls({
                 index: 1,
                 name: "d",
@@ -2690,17 +2690,17 @@ describe("Specifying single variant document tests", function () {
                 ],
             });
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("50283");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(1);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("d");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["d", "h", "c", "e"]);
         });
 
@@ -2718,7 +2718,7 @@ describe("Specifying single variant document tests", function () {
     `,
                     requestedVariantIndex: 124082,
                 },
-                "*"
+                "*",
             );
         });
         // to wait for page to load
@@ -2731,7 +2731,7 @@ describe("Specifying single variant document tests", function () {
             nWithSeed25018 = stateVariables["/n"].stateValues.value;
             expect(nWithSeed25018).not.eq(nWithSeed50283);
             expect(
-                stateVariables["/_document1"].stateValues.generatedVariantInfo
+                stateVariables["/_document1"].stateValues.generatedVariantInfo,
             ).eqls({
                 index: 2,
                 name: "h",
@@ -2746,13 +2746,13 @@ describe("Specifying single variant document tests", function () {
                 ],
             });
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("25018");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(2);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("h");
         });
 
@@ -2770,7 +2770,7 @@ describe("Specifying single variant document tests", function () {
     `,
                     requestedVariantIndex: "3",
                 },
-                "*"
+                "*",
             );
         });
         // to wait for page to load
@@ -2784,7 +2784,7 @@ describe("Specifying single variant document tests", function () {
             expect(nWithSeed3).not.eq(nWithSeed50283);
             expect(nWithSeed3).not.eq(nWithSeed25018);
             expect(
-                stateVariables["/_document1"].stateValues.generatedVariantInfo
+                stateVariables["/_document1"].stateValues.generatedVariantInfo,
             ).eqls({
                 index: 3,
                 name: "c",
@@ -2799,13 +2799,13 @@ describe("Specifying single variant document tests", function () {
                 ],
             });
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("3");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(3);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("c");
         });
 
@@ -2823,7 +2823,7 @@ describe("Specifying single variant document tests", function () {
     `,
                     requestedVariantIndex: "820572308",
                 },
-                "*"
+                "*",
             );
         });
         // to wait for page to load
@@ -2838,7 +2838,7 @@ describe("Specifying single variant document tests", function () {
             expect(nWithSeed4).not.eq(nWithSeed25018);
             expect(nWithSeed4).not.eq(nWithSeed3);
             expect(
-                stateVariables["/_document1"].stateValues.generatedVariantInfo
+                stateVariables["/_document1"].stateValues.generatedVariantInfo,
             ).eqls({
                 index: 4,
                 name: "e",
@@ -2853,13 +2853,13 @@ describe("Specifying single variant document tests", function () {
                 ],
             });
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("4");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(4);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("e");
         });
     });
@@ -2879,7 +2879,7 @@ describe("Specifying single variant document tests", function () {
     `,
                     requestedVariantIndex: 1,
                 },
-                "*"
+                "*",
             );
         });
         // to wait for page to load
@@ -2891,7 +2891,7 @@ describe("Specifying single variant document tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             nWithSeed1 = stateVariables["/n"].stateValues.value;
             expect(
-                stateVariables["/_document1"].stateValues.generatedVariantInfo
+                stateVariables["/_document1"].stateValues.generatedVariantInfo,
             ).eqls({
                 index: 1,
                 name: "a",
@@ -2906,17 +2906,17 @@ describe("Specifying single variant document tests", function () {
                 ],
             });
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("1");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(1);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("a");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["a", "b", "c"]);
         });
 
@@ -2934,7 +2934,7 @@ describe("Specifying single variant document tests", function () {
     `,
                     requestedVariantIndex: 5,
                 },
-                "*"
+                "*",
             );
         });
         // to wait for page to load
@@ -2947,7 +2947,7 @@ describe("Specifying single variant document tests", function () {
             nWithSeed2 = stateVariables["/n"].stateValues.value;
             expect(nWithSeed2).not.eq(nWithSeed1);
             expect(
-                stateVariables["/_document1"].stateValues.generatedVariantInfo
+                stateVariables["/_document1"].stateValues.generatedVariantInfo,
             ).eqls({
                 index: 2,
                 name: "b",
@@ -2962,13 +2962,13 @@ describe("Specifying single variant document tests", function () {
                 ],
             });
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("2");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(2);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("b");
         });
 
@@ -2986,7 +2986,7 @@ describe("Specifying single variant document tests", function () {
     `,
                     requestedVariantIndex: "3",
                 },
-                "*"
+                "*",
             );
         });
         // to wait for page to load
@@ -3000,7 +3000,7 @@ describe("Specifying single variant document tests", function () {
             expect(nWithSeed3).not.eq(nWithSeed1);
             expect(nWithSeed3).not.eq(nWithSeed2);
             expect(
-                stateVariables["/_document1"].stateValues.generatedVariantInfo
+                stateVariables["/_document1"].stateValues.generatedVariantInfo,
             ).eqls({
                 index: 3,
                 name: "c",
@@ -3015,13 +3015,13 @@ describe("Specifying single variant document tests", function () {
                 ],
             });
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("3");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(3);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("c");
         });
     });
@@ -3041,7 +3041,7 @@ describe("Specifying single variant document tests", function () {
     `,
                     requestedVariantIndex: 1,
                 },
-                "*"
+                "*",
             );
         });
         // to wait for page to load
@@ -3053,7 +3053,7 @@ describe("Specifying single variant document tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             nWithSeed1 = stateVariables["/n"].stateValues.value;
             expect(
-                stateVariables["/_document1"].stateValues.generatedVariantInfo
+                stateVariables["/_document1"].stateValues.generatedVariantInfo,
             ).eqls({
                 index: 1,
                 name: "a",
@@ -3068,17 +3068,17 @@ describe("Specifying single variant document tests", function () {
                 ],
             });
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("1");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(1);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("a");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["a"]);
         });
 
@@ -3096,7 +3096,7 @@ describe("Specifying single variant document tests", function () {
     `,
                     requestedVariantIndex: 2,
                 },
-                "*"
+                "*",
             );
         });
         // to wait for page to load
@@ -3106,7 +3106,7 @@ describe("Specifying single variant document tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(nWithSeed1);
             expect(
-                stateVariables["/_document1"].stateValues.generatedVariantInfo
+                stateVariables["/_document1"].stateValues.generatedVariantInfo,
             ).eqls({
                 index: 1,
                 name: "a",
@@ -3121,13 +3121,13 @@ describe("Specifying single variant document tests", function () {
                 ],
             });
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("1");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(1);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("a");
         });
     });
@@ -3147,7 +3147,7 @@ describe("Specifying single variant document tests", function () {
     `,
                     requestedVariantIndex: 7,
                 },
-                "*"
+                "*",
             );
         });
         // to wait for page to load
@@ -3159,7 +3159,7 @@ describe("Specifying single variant document tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             nWithSeed3 = stateVariables["/n"].stateValues.value;
             expect(
-                stateVariables["/_document1"].stateValues.generatedVariantInfo
+                stateVariables["/_document1"].stateValues.generatedVariantInfo,
             ).eqls({
                 index: 3,
                 name: "c",
@@ -3174,17 +3174,17 @@ describe("Specifying single variant document tests", function () {
                 ],
             });
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("3");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(3);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("c");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["a", "b", "c", "d"]);
         });
     });
@@ -3204,7 +3204,7 @@ describe("Specifying single variant document tests", function () {
     `,
                     requestedVariantIndex: 19,
                 },
-                "*"
+                "*",
             );
         });
         // to wait for page to load
@@ -3216,7 +3216,7 @@ describe("Specifying single variant document tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             nWithSeed1 = stateVariables["/n"].stateValues.value;
             expect(
-                stateVariables["/_document1"].stateValues.generatedVariantInfo
+                stateVariables["/_document1"].stateValues.generatedVariantInfo,
             ).eqls({
                 index: 1,
                 name: "a",
@@ -3231,17 +3231,17 @@ describe("Specifying single variant document tests", function () {
                 ],
             });
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("1");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(1);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("a");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["a"]);
         });
 
@@ -3259,7 +3259,7 @@ describe("Specifying single variant document tests", function () {
     `,
                     requestedVariantIndex: 5,
                 },
-                "*"
+                "*",
             );
         });
         // to wait for page to load
@@ -3269,7 +3269,7 @@ describe("Specifying single variant document tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(nWithSeed1);
             expect(
-                stateVariables["/_document1"].stateValues.generatedVariantInfo
+                stateVariables["/_document1"].stateValues.generatedVariantInfo,
             ).eqls({
                 index: 1,
                 name: "a",
@@ -3284,13 +3284,13 @@ describe("Specifying single variant document tests", function () {
                 ],
             });
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("1");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(1);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("a");
         });
     });
@@ -3310,7 +3310,7 @@ describe("Specifying single variant document tests", function () {
     `,
                     requestedVariantIndex: 1001,
                 },
-                "*"
+                "*",
             );
         });
         // to wait for page to load
@@ -3322,7 +3322,7 @@ describe("Specifying single variant document tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             nWithSeed1 = stateVariables["/n"].stateValues.value;
             expect(
-                stateVariables["/_document1"].stateValues.generatedVariantInfo
+                stateVariables["/_document1"].stateValues.generatedVariantInfo,
             ).eqls({
                 index: 1,
                 name: "a",
@@ -3337,17 +3337,17 @@ describe("Specifying single variant document tests", function () {
                 ],
             });
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("1");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(1);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("a");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants.length
+                    .allPossibleVariants.length,
             ).eq(1000);
         });
     });
@@ -3405,7 +3405,7 @@ describe("Specifying single variant document tests", function () {
                     {
                         doenetML: `<text>${ind}</text>${doenetML}`,
                     },
-                    "*"
+                    "*",
                 );
             });
             // to wait for page to load
@@ -3443,7 +3443,7 @@ describe("Specifying single variant document tests", function () {
                     }
                 } else if (variantInd === 2) {
                     let i = ["a", "b", "c", "d", "e", "f", "g"].indexOf(
-                        secondValue
+                        secondValue,
                     );
                     expect(i).not.eq(-1);
                 } else {
@@ -3452,7 +3452,7 @@ describe("Specifying single variant document tests", function () {
                 }
 
                 cy.get(cesc("#\\/_textinput1_input")).type(
-                    `${secondValue}{enter}`
+                    `${secondValue}{enter}`,
                 );
                 cy.get(cesc("#\\/_textinput1_correct")).should("be.visible");
 
@@ -3466,7 +3466,7 @@ describe("Specifying single variant document tests", function () {
                         {
                             doenetML: `<text>${ind}</text>${doenetML}`,
                         },
-                        "*"
+                        "*",
                     );
                 });
                 // to wait for page to load
@@ -3478,7 +3478,7 @@ describe("Specifying single variant document tests", function () {
                         let stateVariables =
                             await win.returnAllStateVariables1();
                         return stateVariables["/_textinput1"];
-                    })
+                    }),
                 );
 
                 cy.get(cesc("#\\/_textinput1_correct")).should("be.visible");
@@ -3498,14 +3498,14 @@ describe("Specifying single variant document tests", function () {
                     cy.get(cesc("#\\/_textinput1_input")).type(`{end}X`);
                     cy.get(cesc("#\\/_textinput1_submit")).click();
                     cy.get(cesc("#\\/_textinput1_incorrect")).should(
-                        "be.visible"
+                        "be.visible",
                     );
                     cy.get(cesc("#\\/_textinput1_input")).type(
-                        `{end}{backspace}`
+                        `{end}{backspace}`,
                     );
                     cy.get(cesc("#\\/_textinput1_submit")).click();
                     cy.get(cesc("#\\/_textinput1_correct")).should(
-                        "be.visible"
+                        "be.visible",
                     );
                 });
             });
@@ -3567,7 +3567,7 @@ describe("Specifying single variant document tests", function () {
         `,
                             requestedVariantIndex: ind,
                         },
-                        "*"
+                        "*",
                     );
                 });
                 // to wait for page to load
@@ -3619,20 +3619,20 @@ describe("Specifying single variant document tests", function () {
                                 ].indexOf(
                                     stateVariables[
                                         p.activeChildren[1].componentName
-                                    ].stateValues.value
+                                    ].stateValues.value,
                                 ) + 1;
                             expect(problemVariantInd).not.eq(0);
                             if (
                                 !variantOfProblemsFound[0].includes(
-                                    problemVariantInd
+                                    problemVariantInd,
                                 )
                             ) {
                                 variantOfProblemsFound[0].push(
-                                    problemVariantInd
+                                    problemVariantInd,
                                 );
                             }
                             expect(problemVariantInd).eq(
-                                problem.stateValues.generatedVariantInfo.index
+                                problem.stateValues.generatedVariantInfo.index,
                             );
 
                             // let selectVariantInd = ["bad", "angry", "drab", "excoriated", "churlish"].indexOf(stateVariables[p.activeChildren[1].componentName].stateValues.value) + 1;
@@ -3664,11 +3664,11 @@ describe("Specifying single variant document tests", function () {
                                 problem.stateValues.generatedVariantInfo.index;
                             if (
                                 !variantOfProblemsFound[1].includes(
-                                    problemVariantInd
+                                    problemVariantInd,
                                 )
                             ) {
                                 variantOfProblemsFound[1].push(
-                                    problemVariantInd
+                                    problemVariantInd,
                                 );
                             }
                             // generatedVariantInfo.subvariants[0].subvariants.push({
@@ -3849,7 +3849,7 @@ describe("Specifying single variant document tests", function () {
         // })
 
         cy.log(
-            "make sure all problem variants were selected at least once"
+            "make sure all problem variants were selected at least once",
         ).then(() => {
             expect(variantOfProblemsFound[0].sort()).eqls([1, 2, 3, 4, 5]);
             expect(variantOfProblemsFound[1].sort()).eqls([1, 2, 3, 4]);
@@ -3914,7 +3914,7 @@ describe("Specifying single variant document tests", function () {
         `,
                             requestedVariantIndex: ind,
                         },
-                        "*"
+                        "*",
                     );
                 });
                 // to wait for page to load
@@ -3963,20 +3963,20 @@ describe("Specifying single variant document tests", function () {
                                 ["angry", "bad", "churlish"].indexOf(
                                     stateVariables[
                                         p.activeChildren[1].componentName
-                                    ].stateValues.value
+                                    ].stateValues.value,
                                 ) + 1;
                             expect(problemVariantInd).not.eq(0);
                             if (
                                 !variantOfProblemsFound[0].includes(
-                                    problemVariantInd
+                                    problemVariantInd,
                                 )
                             ) {
                                 variantOfProblemsFound[0].push(
-                                    problemVariantInd
+                                    problemVariantInd,
                                 );
                             }
                             expect(problemVariantInd).eq(
-                                problem.stateValues.generatedVariantInfo.index
+                                problem.stateValues.generatedVariantInfo.index,
                             );
 
                             // let selectVariantInd = ["bad", "angry", "drab", "excoriated", "churlish"].indexOf(stateVariables[p.activeChildren[1].componentName].stateValues.value) + 1;
@@ -4014,11 +4014,11 @@ describe("Specifying single variant document tests", function () {
                                 problem.stateValues.generatedVariantInfo.index;
                             if (
                                 !variantOfProblemsFound[1].includes(
-                                    problemVariantInd
+                                    problemVariantInd,
                                 )
                             ) {
                                 variantOfProblemsFound[1].push(
-                                    problemVariantInd
+                                    problemVariantInd,
                                 );
                             }
                             // let problemVariantInfo = {
@@ -4222,7 +4222,7 @@ describe("Specifying single variant document tests", function () {
         // })
 
         cy.log(
-            "make sure all problem variants were selected at least once"
+            "make sure all problem variants were selected at least once",
         ).then(() => {
             expect(variantOfProblemsFound[0].sort()).eqls([1, 2, 3]);
             expect(variantOfProblemsFound[1].sort()).eqls([1, 2, 3, 4]);
@@ -4284,7 +4284,7 @@ describe("Specifying single variant document tests", function () {
         `,
                             requestedVariantIndex: ind,
                         },
-                        "*"
+                        "*",
                     );
                 });
                 // to wait for page to load
@@ -4336,20 +4336,20 @@ describe("Specifying single variant document tests", function () {
                                 ].indexOf(
                                     stateVariables[
                                         p.activeChildren[1].componentName
-                                    ].stateValues.value
+                                    ].stateValues.value,
                                 ) + 1;
                             expect(problemVariantInd).not.eq(0);
                             if (
                                 !variantOfProblemsFound[0].includes(
-                                    problemVariantInd
+                                    problemVariantInd,
                                 )
                             ) {
                                 variantOfProblemsFound[0].push(
-                                    problemVariantInd
+                                    problemVariantInd,
                                 );
                             }
                             expect(problemVariantInd).eq(
-                                problem.stateValues.generatedVariantInfo.index
+                                problem.stateValues.generatedVariantInfo.index,
                             );
 
                             // let selectVariantInd = ["bad", "angry", "drab", "excoriated", "churlish"].indexOf(stateVariables[p.activeChildren[1].componentName].stateValues.value) + 1;
@@ -4381,11 +4381,11 @@ describe("Specifying single variant document tests", function () {
                                 problem.stateValues.generatedVariantInfo.index;
                             if (
                                 !variantOfProblemsFound[1].includes(
-                                    problemVariantInd
+                                    problemVariantInd,
                                 )
                             ) {
                                 variantOfProblemsFound[1].push(
-                                    problemVariantInd
+                                    problemVariantInd,
                                 );
                             }
                             // generatedVariantInfo.subvariants[0].subvariants.push({
@@ -4566,7 +4566,7 @@ describe("Specifying single variant document tests", function () {
         // })
 
         cy.log(
-            "make sure all problem variants were selected at least once"
+            "make sure all problem variants were selected at least once",
         ).then(() => {
             expect(variantOfProblemsFound[0].sort()).eqls([1, 2, 3, 4, 5]);
             // not for second problem since have 100 possible variants by default
@@ -4602,7 +4602,7 @@ describe("Specifying single variant document tests", function () {
         `,
                             requestedVariantIndex: ind,
                         },
-                        "*"
+                        "*",
                     );
                 });
                 // to wait for page to load
@@ -4770,7 +4770,7 @@ describe("Specifying single variant document tests", function () {
                         doenetML: `<text>${ind}</text>${doenetML}`,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
             // to wait for page to load
@@ -4818,7 +4818,7 @@ describe("Specifying single variant document tests", function () {
                         {
                             doenetML: `<text>${ind}</text>${doenetML}`,
                         },
-                        "*"
+                        "*",
                     );
                 });
                 // to wait for page to load
@@ -4830,7 +4830,7 @@ describe("Specifying single variant document tests", function () {
                         let stateVariables =
                             await win.returnAllStateVariables1();
                         return stateVariables["/c1"];
-                    })
+                    }),
                 );
 
                 cy.window().then(async (win) => {
@@ -4863,7 +4863,7 @@ describe("Specifying single variant document tests", function () {
                     cy.get(cesc2(`#/c1_choice2_input`)).click();
                     cy.get(cesc2(`#/c1v`)).should("have.text", textC1[1]);
                     cy.get(cesc2(`#/c1_choice1_input`)).should(
-                        "not.be.checked"
+                        "not.be.checked",
                     );
                     cy.get(cesc2(`#/c1_choice2_input`)).should("be.checked");
                 });
@@ -4902,7 +4902,7 @@ describe("Specifying single variant document tests", function () {
                         doenetML,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
 
@@ -4927,13 +4927,13 @@ describe("Specifying single variant document tests", function () {
                     `${m}{enter}`,
                     {
                         force: true,
-                    }
+                    },
                 );
                 cy.get(cesc("#\\/_mathinput2") + " textarea").type(
                     `${n}{enter}`,
                     {
                         force: true,
-                    }
+                    },
                 );
                 cy.get(cesc("#\\/_mathinput1_correct")).should("be.visible");
                 cy.get(cesc("#\\/_mathinput2_correct")).should("be.visible");
@@ -4948,7 +4948,7 @@ describe("Specifying single variant document tests", function () {
                         {
                             doenetML,
                         },
-                        "*"
+                        "*",
                     );
                 });
                 // to wait for page to load
@@ -4960,18 +4960,18 @@ describe("Specifying single variant document tests", function () {
                         let stateVariables =
                             await win.returnAllStateVariables1();
                         return stateVariables["/m"];
-                    })
+                    }),
                 );
 
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
                         stateVariables["/_selectfromsequence1"].stateValues
-                            .selectedIndices[0]
+                            .selectedIndices[0],
                     ).eq(indexChosen1);
                     expect(
                         stateVariables["/_selectfromsequence1"].stateValues
-                            .selectedIndices[0]
+                            .selectedIndices[0],
                     ).eq(indexChosen2);
                     expect(stateVariables["/m"].stateValues.value).eq(m);
                     expect(stateVariables["/n"].stateValues.value).eq(n);
@@ -4995,13 +4995,13 @@ describe("Specifying single variant document tests", function () {
                     `{end}{backspace}`,
                     {
                         force: true,
-                    }
+                    },
                 );
                 cy.get(cesc("#\\/_mathinput2") + " textarea").type(
                     `{end}{backspace}`,
                     {
                         force: true,
-                    }
+                    },
                 );
                 cy.get(cesc("#\\/_mathinput1_submit")).click();
                 cy.get(cesc("#\\/_mathinput2_submit")).click();
@@ -5044,7 +5044,7 @@ describe("Specifying single variant document tests", function () {
                         doenetML,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
 
@@ -5082,11 +5082,11 @@ describe("Specifying single variant document tests", function () {
                     `${m}{enter}`,
                     {
                         force: true,
-                    }
+                    },
                 );
                 cy.get(cesc("#\\/_mathinput2") + " textarea").type(
                     `${me.fromAst(x2).toString()}{enter}`,
-                    { force: true }
+                    { force: true },
                 );
                 cy.get(cesc("#\\/_textinput1_input")).type(`${l1}{enter}`);
                 cy.get(cesc("#\\/_mathinput1_correct")).should("be.visible");
@@ -5103,7 +5103,7 @@ describe("Specifying single variant document tests", function () {
                         {
                             doenetML,
                         },
-                        "*"
+                        "*",
                     );
                 });
                 // to wait for page to load
@@ -5115,34 +5115,34 @@ describe("Specifying single variant document tests", function () {
                         let stateVariables =
                             await win.returnAllStateVariables1();
                         return stateVariables["/m"];
-                    })
+                    }),
                 );
 
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
                         stateVariables["/_selectfromsequence1"].stateValues
-                            .selectedIndices
+                            .selectedIndices,
                     ).eqls(indicesChosen1);
                     expect(stateVariables["/m"].stateValues.value).eq(m);
                     expect(stateVariables["/n"].stateValues.value).eq(n);
                     expect(
                         stateVariables["/_selectfromsequence2"].stateValues
-                            .selectedIndices
+                            .selectedIndices,
                     ).eqls(indicesChosen2);
                     expect(
                         me
                             .fromAst(stateVariables["/x1"].stateValues.value)
-                            .equals(me.fromAst(x1))
+                            .equals(me.fromAst(x1)),
                     ).be.true;
                     expect(
                         me
                             .fromAst(stateVariables["/x2"].stateValues.value)
-                            .equals(me.fromAst(x2))
+                            .equals(me.fromAst(x2)),
                     ).be.true;
                     expect(
                         stateVariables["/_selectfromsequence1"].stateValues
-                            .selectedIndices
+                            .selectedIndices,
                     ).eqls(indicesChosen1);
                     expect(stateVariables["/l1"].stateValues.value).eq(l1);
                     expect(stateVariables["/l2"].stateValues.value).eq(l2);
@@ -5170,13 +5170,13 @@ describe("Specifying single variant document tests", function () {
                     `{end}{backspace}`,
                     {
                         force: true,
-                    }
+                    },
                 );
                 cy.get(cesc("#\\/_mathinput2") + " textarea").type(
                     `{end}{backspace}`,
                     {
                         force: true,
-                    }
+                    },
                 );
                 cy.get(cesc("#\\/_textinput1_input")).type(`{end}{backspace}`);
                 cy.get(cesc("#\\/_mathinput1_submit")).click();
@@ -5220,7 +5220,7 @@ describe("Specifying single variant document tests", function () {
       <text>1</text>${doenetML}`,
                     requestedVariantIndex: 1,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5271,39 +5271,39 @@ describe("Specifying single variant document tests", function () {
 
             cy.get(`label[for=${cesc2("/g/ci_choice1_input")}]`).should(
                 "have.text",
-                choices[choiceOrder[0] - 1]
+                choices[choiceOrder[0] - 1],
             );
             cy.get(`label[for=${cesc2("/g/ci_choice2_input")}]`).should(
                 "have.text",
-                choices[choiceOrder[1] - 1]
+                choices[choiceOrder[1] - 1],
             );
             cy.get(`label[for=${cesc2("/g/ci_choice3_input")}]`).should(
                 "have.text",
-                choices[choiceOrder[2] - 1]
+                choices[choiceOrder[2] - 1],
             );
             cy.get(`label[for=${cesc2("/g2/ci_choice1_input")}]`).should(
                 "have.text",
-                choices[choiceOrder[0] - 1]
+                choices[choiceOrder[0] - 1],
             );
             cy.get(`label[for=${cesc2("/g2/ci_choice2_input")}]`).should(
                 "have.text",
-                choices[choiceOrder[1] - 1]
+                choices[choiceOrder[1] - 1],
             );
             cy.get(`label[for=${cesc2("/g2/ci_choice3_input")}]`).should(
                 "have.text",
-                choices[choiceOrder[2] - 1]
+                choices[choiceOrder[2] - 1],
             );
             cy.get(`label[for=${cesc2("/g3/ci_choice1_input")}]`).should(
                 "have.text",
-                choices[choiceOrder[0] - 1]
+                choices[choiceOrder[0] - 1],
             );
             cy.get(`label[for=${cesc2("/g3/ci_choice2_input")}]`).should(
                 "have.text",
-                choices[choiceOrder[1] - 1]
+                choices[choiceOrder[1] - 1],
             );
             cy.get(`label[for=${cesc2("/g3/ci_choice3_input")}]`).should(
                 "have.text",
-                choices[choiceOrder[2] - 1]
+                choices[choiceOrder[2] - 1],
             );
 
             cy.get(cesc2(`#/g/_p2`)).should("have.text", `Enter ${n}. `);
@@ -5318,11 +5318,11 @@ describe("Specifying single variant document tests", function () {
 
             cy.get(cesc2(`#/g/_p1`)).should(
                 "have.text",
-                `Selected value: ${choices[choiceOrder[1] - 1]}`
+                `Selected value: ${choices[choiceOrder[1] - 1]}`,
             );
             cy.get(cesc2(`#/g2/_p1`)).should(
                 "have.text",
-                `Selected value: ${choices[choiceOrder[1] - 1]}`
+                `Selected value: ${choices[choiceOrder[1] - 1]}`,
             );
             cy.get(cesc2(`#/g3/_p1`)).should("have.text", `Selected value: `);
 
@@ -5333,15 +5333,15 @@ describe("Specifying single variant document tests", function () {
 
             cy.get(cesc2(`#/g/_p1`)).should(
                 "have.text",
-                `Selected value: ${choices[choiceOrder[1] - 1]}`
+                `Selected value: ${choices[choiceOrder[1] - 1]}`,
             );
             cy.get(cesc2(`#/g2/_p1`)).should(
                 "have.text",
-                `Selected value: ${choices[choiceOrder[1] - 1]}`
+                `Selected value: ${choices[choiceOrder[1] - 1]}`,
             );
             cy.get(cesc2(`#/g3/_p1`)).should(
                 "have.text",
-                `Selected value: ${choices[choiceOrder[0] - 1]}`
+                `Selected value: ${choices[choiceOrder[0] - 1]}`,
             );
 
             cy.get(mathinput2Anchor).type(`${n}{enter}`, { force: true });
@@ -5362,33 +5362,33 @@ describe("Specifying single variant document tests", function () {
                 expect(stateVariables["/g2/n"].stateValues.value).eq(n);
                 expect(stateVariables["/g3/n"].stateValues.value).eq(n);
                 expect(stateVariables["/g2/ci"].stateValues.choiceOrder).eqls(
-                    choiceOrder
+                    choiceOrder,
                 );
                 expect(stateVariables["/g3/ci"].stateValues.choiceOrder).eqls(
-                    choiceOrder
+                    choiceOrder,
                 );
 
                 expect(stateVariables["/g/ci"].stateValues.selectedValues).eqls(
-                    [choices[choiceOrder[1] - 1]]
+                    [choices[choiceOrder[1] - 1]],
                 );
                 expect(
-                    stateVariables["/g2/ci"].stateValues.selectedValues
+                    stateVariables["/g2/ci"].stateValues.selectedValues,
                 ).eqls([choices[choiceOrder[1] - 1]]);
                 expect(
-                    stateVariables["/g3/ci"].stateValues.selectedValues
+                    stateVariables["/g3/ci"].stateValues.selectedValues,
                 ).eqls([choices[choiceOrder[0] - 1]]);
 
                 expect(
-                    stateVariables["/g/ans"].stateValues.submittedResponses
+                    stateVariables["/g/ans"].stateValues.submittedResponses,
                 ).eqls([n]);
                 expect(
-                    stateVariables["/g2/ans"].stateValues.submittedResponses
+                    stateVariables["/g2/ans"].stateValues.submittedResponses,
                 ).eqls([n]);
                 expect(
-                    stateVariables["/g3/ans"].stateValues.submittedResponses
+                    stateVariables["/g3/ans"].stateValues.submittedResponses,
                 ).eqls([n]);
                 expect(
-                    stateVariables["/ans"].stateValues.submittedResponses
+                    stateVariables["/ans"].stateValues.submittedResponses,
                 ).eqls([m]);
             });
 
@@ -5402,7 +5402,7 @@ describe("Specifying single variant document tests", function () {
       <text>1</text>${doenetML}`,
                         requestedVariantIndex: 1,
                     },
-                    "*"
+                    "*",
                 );
             });
 
@@ -5414,7 +5414,7 @@ describe("Specifying single variant document tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     return stateVariables["/ans"];
-                })
+                }),
             );
 
             cy.window().then(async (win) => {
@@ -5426,36 +5426,36 @@ describe("Specifying single variant document tests", function () {
                 expect(stateVariables["/m"].stateValues.value).eq(m);
 
                 expect(stateVariables["/g/ci"].stateValues.choiceOrder).eqls(
-                    choiceOrder
+                    choiceOrder,
                 );
                 expect(stateVariables["/g2/ci"].stateValues.choiceOrder).eqls(
-                    choiceOrder
+                    choiceOrder,
                 );
                 expect(stateVariables["/g3/ci"].stateValues.choiceOrder).eqls(
-                    choiceOrder
+                    choiceOrder,
                 );
 
                 expect(stateVariables["/g/ci"].stateValues.selectedValues).eqls(
-                    [choices[choiceOrder[1] - 1]]
+                    [choices[choiceOrder[1] - 1]],
                 );
                 expect(
-                    stateVariables["/g2/ci"].stateValues.selectedValues
+                    stateVariables["/g2/ci"].stateValues.selectedValues,
                 ).eqls([choices[choiceOrder[1] - 1]]);
                 expect(
-                    stateVariables["/g3/ci"].stateValues.selectedValues
+                    stateVariables["/g3/ci"].stateValues.selectedValues,
                 ).eqls([choices[choiceOrder[0] - 1]]);
 
                 expect(
-                    stateVariables["/g/ans"].stateValues.submittedResponses
+                    stateVariables["/g/ans"].stateValues.submittedResponses,
                 ).eqls([n]);
                 expect(
-                    stateVariables["/g2/ans"].stateValues.submittedResponses
+                    stateVariables["/g2/ans"].stateValues.submittedResponses,
                 ).eqls([n]);
                 expect(
-                    stateVariables["/g3/ans"].stateValues.submittedResponses
+                    stateVariables["/g3/ans"].stateValues.submittedResponses,
                 ).eqls([n]);
                 expect(
-                    stateVariables["/ans"].stateValues.submittedResponses
+                    stateVariables["/ans"].stateValues.submittedResponses,
                 ).eqls([m]);
             });
 
@@ -5465,28 +5465,28 @@ describe("Specifying single variant document tests", function () {
 
             cy.get(cesc2(`#/g/_p1`)).should(
                 "have.text",
-                `Selected value: ${choices[choiceOrder[1] - 1]}`
+                `Selected value: ${choices[choiceOrder[1] - 1]}`,
             );
             cy.get(cesc2(`#/g2/_p1`)).should(
                 "have.text",
-                `Selected value: ${choices[choiceOrder[1] - 1]}`
+                `Selected value: ${choices[choiceOrder[1] - 1]}`,
             );
             cy.get(cesc2(`#/g3/_p1`)).should(
                 "have.text",
-                `Selected value: ${choices[choiceOrder[0] - 1]}`
+                `Selected value: ${choices[choiceOrder[0] - 1]}`,
             );
 
             cy.get(cesc2(`#/g/_p1`)).should(
                 "have.text",
-                `Selected value: ${choices[choiceOrder[1] - 1]}`
+                `Selected value: ${choices[choiceOrder[1] - 1]}`,
             );
             cy.get(cesc2(`#/g2/_p1`)).should(
                 "have.text",
-                `Selected value: ${choices[choiceOrder[1] - 1]}`
+                `Selected value: ${choices[choiceOrder[1] - 1]}`,
             );
             cy.get(cesc2(`#/g3/_p1`)).should(
                 "have.text",
-                `Selected value: ${choices[choiceOrder[0] - 1]}`
+                `Selected value: ${choices[choiceOrder[0] - 1]}`,
             );
 
             cy.get(answer1Correct).should("be.visible");
@@ -5498,7 +5498,7 @@ describe("Specifying single variant document tests", function () {
                 `{end}{backspace}{backspace}${n + 1}`,
                 {
                     force: true,
-                }
+                },
             );
             cy.get(answer2Submit).click();
             cy.get(answer1Incorrect).should("be.visible");
@@ -5515,7 +5515,7 @@ describe("Specifying single variant document tests", function () {
                 `{end}{backspace}{backspace}${n + 1}`,
                 {
                     force: true,
-                }
+                },
             );
             cy.get(answer3Submit).click();
             cy.get(answer3Incorrect).should("be.visible");
@@ -5529,7 +5529,7 @@ describe("Specifying single variant document tests", function () {
                 `{end}{backspace}{backspace}${m + 1}`,
                 {
                     force: true,
-                }
+                },
             );
             cy.get(answer4Submit).click();
             cy.get(answer4Incorrect).should("be.visible");
@@ -5579,7 +5579,7 @@ describe("Specifying single variant document tests", function () {
                         doenetML,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
             // to wait for page to load
@@ -5592,7 +5592,7 @@ describe("Specifying single variant document tests", function () {
 
                 let textinputName = cesc2(
                     stateVariables["/_answer1"].stateValues.inputChildren[0]
-                        .componentName
+                        .componentName,
                 );
                 let textinputAnchor = "#" + textinputName + "_input";
                 let textinputSubmitAnchor = "#" + textinputName + "_submit";
@@ -5603,10 +5603,10 @@ describe("Specifying single variant document tests", function () {
                 expect(stateVariables["/fruit"].stateValues.value).eq(fruit);
                 expect(
                     stateVariables["/_document1"].sharedParameters
-                        .allPossibleVariants
+                        .allPossibleVariants,
                 ).eqls(["apple", "orange"]);
                 expect(
-                    stateVariables["/_document1"].sharedParameters.variantName
+                    stateVariables["/_document1"].sharedParameters.variantName,
                 ).eq(fruit);
 
                 cy.get(textinputAnchor).type(`${fruit}{enter}`);
@@ -5616,11 +5616,11 @@ describe("Specifying single variant document tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/_answer1"].stateValues.creditAchieved
+                        stateVariables["/_answer1"].stateValues.creditAchieved,
                     ).eq(1);
                     expect(
                         stateVariables["/_answer1"].stateValues
-                            .submittedResponses
+                            .submittedResponses,
                     ).eqls([fruit]);
                 });
 
@@ -5633,7 +5633,7 @@ describe("Specifying single variant document tests", function () {
                             doenetML,
                             requestedVariantIndex: ind,
                         },
-                        "*"
+                        "*",
                     );
                 });
 
@@ -5646,7 +5646,7 @@ describe("Specifying single variant document tests", function () {
                         let stateVariables =
                             await win.returnAllStateVariables1();
                         return stateVariables["/_answer1"];
-                    })
+                    }),
                 );
 
                 cy.get(textinputAnchor).should("have.value", `${fruit}`);
@@ -5655,11 +5655,11 @@ describe("Specifying single variant document tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/_answer1"].stateValues.creditAchieved
+                        stateVariables["/_answer1"].stateValues.creditAchieved,
                     ).eq(1);
                     expect(
                         stateVariables["/_answer1"].stateValues
-                            .submittedResponses
+                            .submittedResponses,
                     ).eqls([fruit]);
                 });
 
@@ -5670,11 +5670,11 @@ describe("Specifying single variant document tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/_answer1"].stateValues.creditAchieved
+                        stateVariables["/_answer1"].stateValues.creditAchieved,
                     ).eq(0);
                     expect(
                         stateVariables["/_answer1"].stateValues
-                            .submittedResponses
+                            .submittedResponses,
                     ).eqls([fruit + "s"]);
                 });
 
@@ -5685,11 +5685,11 @@ describe("Specifying single variant document tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/_answer1"].stateValues.creditAchieved
+                        stateVariables["/_answer1"].stateValues.creditAchieved,
                     ).eq(1);
                     expect(
                         stateVariables["/_answer1"].stateValues
-                            .submittedResponses
+                            .submittedResponses,
                     ).eqls([fruit]);
                 });
             });
@@ -5754,7 +5754,7 @@ describe("Specifying single variant document tests", function () {
                     doenetML: doenetML1,
                     requestedVariantIndex: 1,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5783,7 +5783,7 @@ describe("Specifying single variant document tests", function () {
                     doenetML: doenetML2,
                     requestedVariantIndex: 1,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5809,7 +5809,7 @@ describe("Specifying single variant document tests", function () {
                     doenetML: doenetML3,
                     requestedVariantIndex: 1,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5846,7 +5846,7 @@ describe("Specifying single variant document tests", function () {
                     doenetML: doenetML4,
                     requestedVariantIndex: 1,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5881,7 +5881,7 @@ describe("Specifying single variant document tests", function () {
                     doenetML: "<text>2</text" + baseDoenetMLa,
                     requestedVariantIndex: 2,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5892,17 +5892,17 @@ describe("Specifying single variant document tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             values.push(stateVariables["/n"].stateValues.value);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("2");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(2);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("second");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
         });
 
@@ -5912,7 +5912,7 @@ describe("Specifying single variant document tests", function () {
                     doenetML: "<text>5</text" + baseDoenetMLa,
                     requestedVariantIndex: 5,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5923,17 +5923,17 @@ describe("Specifying single variant document tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             values.push(stateVariables["/n"].stateValues.value);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("5");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(5);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("e");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
         });
 
@@ -5951,7 +5951,7 @@ describe("Specifying single variant document tests", function () {
                     doenetML: "<text>1</text" + baseDoenetMLb,
                     requestedVariantIndex: 1,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5962,17 +5962,17 @@ describe("Specifying single variant document tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(values[0]);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("2");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(1);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("second");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["second", "e"]);
         });
 
@@ -5982,7 +5982,7 @@ describe("Specifying single variant document tests", function () {
                     doenetML: "<text>2</text" + baseDoenetMLb,
                     requestedVariantIndex: 2,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5993,17 +5993,17 @@ describe("Specifying single variant document tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(values[1]);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("5");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(2);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("e");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["second", "e"]);
         });
 
@@ -6021,7 +6021,7 @@ describe("Specifying single variant document tests", function () {
                     doenetML: "<text>1</text" + baseDoenetMLc,
                     requestedVariantIndex: 1,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6032,17 +6032,17 @@ describe("Specifying single variant document tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(values[0]);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("2");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(1);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("second");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["second", "c", "e", "f", "g", "i"]);
         });
 
@@ -6052,7 +6052,7 @@ describe("Specifying single variant document tests", function () {
                     doenetML: "<text>3</text" + baseDoenetMLc,
                     requestedVariantIndex: 3,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6064,22 +6064,22 @@ describe("Specifying single variant document tests", function () {
             expect(stateVariables["/n"].stateValues.value).eq(values[1]);
 
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("5");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(3);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("e");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["second", "c", "e", "f", "g", "i"]);
         });
 
         cy.log(
-            "get same variants when add variantsToInclude and variantsToExclude"
+            "get same variants when add variantsToInclude and variantsToExclude",
         );
 
         let baseDoenetMLd = `
@@ -6094,7 +6094,7 @@ describe("Specifying single variant document tests", function () {
                     doenetML: "<text>1</text" + baseDoenetMLd,
                     requestedVariantIndex: 1,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6105,17 +6105,17 @@ describe("Specifying single variant document tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(values[0]);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("2");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(1);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("second");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["second", "e", "g"]);
         });
 
@@ -6125,7 +6125,7 @@ describe("Specifying single variant document tests", function () {
                     doenetML: "<text>2</text" + baseDoenetMLd,
                     requestedVariantIndex: 2,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6137,17 +6137,17 @@ describe("Specifying single variant document tests", function () {
             expect(stateVariables["/n"].stateValues.value).eq(values[1]);
 
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("5");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(2);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("e");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["second", "e", "g"]);
         });
     });
@@ -6172,7 +6172,7 @@ describe("Specifying single variant document tests", function () {
                     doenetML: baseDoenetMLa,
                     requestedVariantIndex: 2,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6183,36 +6183,36 @@ describe("Specifying single variant document tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             values.push(stateVariables["/n"].stateValues.value);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("2");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(2);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("second");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
             expect(
-                stateVariables["/_document1"].sharedParameters.allVariantNames
+                stateVariables["/_document1"].sharedParameters.allVariantNames,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantSeed
+                stateVariables["/_problem1"].sharedParameters.variantSeed,
             ).eq("2");
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantIndex
+                stateVariables["/_problem1"].sharedParameters.variantIndex,
             ).eq(2);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantName
+                stateVariables["/_problem1"].sharedParameters.variantName,
             ).eq("second");
             expect(
                 stateVariables["/_problem1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
             expect(
-                stateVariables["/_problem1"].sharedParameters.allVariantNames
+                stateVariables["/_problem1"].sharedParameters.allVariantNames,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
         });
 
@@ -6222,7 +6222,7 @@ describe("Specifying single variant document tests", function () {
                     doenetML: baseDoenetMLa,
                     requestedVariantIndex: 5,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6234,36 +6234,36 @@ describe("Specifying single variant document tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             values.push(stateVariables["/n"].stateValues.value);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("5");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(5);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("e");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
             expect(
-                stateVariables["/_document1"].sharedParameters.allVariantNames
+                stateVariables["/_document1"].sharedParameters.allVariantNames,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantSeed
+                stateVariables["/_problem1"].sharedParameters.variantSeed,
             ).eq("5");
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantIndex
+                stateVariables["/_problem1"].sharedParameters.variantIndex,
             ).eq(5);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantName
+                stateVariables["/_problem1"].sharedParameters.variantName,
             ).eq("e");
             expect(
                 stateVariables["/_problem1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
             expect(
-                stateVariables["/_problem1"].sharedParameters.allVariantNames
+                stateVariables["/_problem1"].sharedParameters.allVariantNames,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
         });
 
@@ -6284,7 +6284,7 @@ describe("Specifying single variant document tests", function () {
                     doenetML: baseDoenetMLb,
                     requestedVariantIndex: 1,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6296,36 +6296,36 @@ describe("Specifying single variant document tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(values[0]);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("1");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(1);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("second");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["second", "e"]);
             expect(
-                stateVariables["/_document1"].sharedParameters.allVariantNames
+                stateVariables["/_document1"].sharedParameters.allVariantNames,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantSeed
+                stateVariables["/_problem1"].sharedParameters.variantSeed,
             ).eq("2");
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantIndex
+                stateVariables["/_problem1"].sharedParameters.variantIndex,
             ).eq(1);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantName
+                stateVariables["/_problem1"].sharedParameters.variantName,
             ).eq("second");
             expect(
                 stateVariables["/_problem1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["second", "e"]);
             expect(
-                stateVariables["/_problem1"].sharedParameters.allVariantNames
+                stateVariables["/_problem1"].sharedParameters.allVariantNames,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
         });
 
@@ -6335,7 +6335,7 @@ describe("Specifying single variant document tests", function () {
                     doenetML: baseDoenetMLb,
                     requestedVariantIndex: 2,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6347,36 +6347,36 @@ describe("Specifying single variant document tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(values[1]);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("2");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(2);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("e");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["second", "e"]);
             expect(
-                stateVariables["/_document1"].sharedParameters.allVariantNames
+                stateVariables["/_document1"].sharedParameters.allVariantNames,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantSeed
+                stateVariables["/_problem1"].sharedParameters.variantSeed,
             ).eq("5");
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantIndex
+                stateVariables["/_problem1"].sharedParameters.variantIndex,
             ).eq(2);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantName
+                stateVariables["/_problem1"].sharedParameters.variantName,
             ).eq("e");
             expect(
                 stateVariables["/_problem1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["second", "e"]);
             expect(
-                stateVariables["/_problem1"].sharedParameters.allVariantNames
+                stateVariables["/_problem1"].sharedParameters.allVariantNames,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
         });
 
@@ -6397,7 +6397,7 @@ describe("Specifying single variant document tests", function () {
                     doenetML: baseDoenetMLc,
                     requestedVariantIndex: 1,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6409,36 +6409,36 @@ describe("Specifying single variant document tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(values[0]);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("1");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(1);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("second");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["second", "c", "e", "f", "g", "i"]);
             expect(
-                stateVariables["/_document1"].sharedParameters.allVariantNames
+                stateVariables["/_document1"].sharedParameters.allVariantNames,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantSeed
+                stateVariables["/_problem1"].sharedParameters.variantSeed,
             ).eq("2");
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantIndex
+                stateVariables["/_problem1"].sharedParameters.variantIndex,
             ).eq(1);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantName
+                stateVariables["/_problem1"].sharedParameters.variantName,
             ).eq("second");
             expect(
                 stateVariables["/_problem1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["second", "c", "e", "f", "g", "i"]);
             expect(
-                stateVariables["/_problem1"].sharedParameters.allVariantNames
+                stateVariables["/_problem1"].sharedParameters.allVariantNames,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
         });
 
@@ -6448,7 +6448,7 @@ describe("Specifying single variant document tests", function () {
                     doenetML: baseDoenetMLc,
                     requestedVariantIndex: 3,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6461,41 +6461,41 @@ describe("Specifying single variant document tests", function () {
             expect(stateVariables["/n"].stateValues.value).eq(values[1]);
 
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("3");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(3);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("e");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["second", "c", "e", "f", "g", "i"]);
             expect(
-                stateVariables["/_document1"].sharedParameters.allVariantNames
+                stateVariables["/_document1"].sharedParameters.allVariantNames,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantSeed
+                stateVariables["/_problem1"].sharedParameters.variantSeed,
             ).eq("5");
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantIndex
+                stateVariables["/_problem1"].sharedParameters.variantIndex,
             ).eq(3);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantName
+                stateVariables["/_problem1"].sharedParameters.variantName,
             ).eq("e");
             expect(
                 stateVariables["/_problem1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["second", "c", "e", "f", "g", "i"]);
             expect(
-                stateVariables["/_problem1"].sharedParameters.allVariantNames
+                stateVariables["/_problem1"].sharedParameters.allVariantNames,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
         });
 
         cy.log(
-            "get same variants when add variantsToInclude and variantsToExclude"
+            "get same variants when add variantsToInclude and variantsToExclude",
         );
 
         let baseDoenetMLd = `
@@ -6513,7 +6513,7 @@ describe("Specifying single variant document tests", function () {
                     doenetML: baseDoenetMLd,
                     requestedVariantIndex: 1,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6525,36 +6525,36 @@ describe("Specifying single variant document tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(values[0]);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("1");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(1);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("second");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["second", "e", "g"]);
             expect(
-                stateVariables["/_document1"].sharedParameters.allVariantNames
+                stateVariables["/_document1"].sharedParameters.allVariantNames,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantSeed
+                stateVariables["/_problem1"].sharedParameters.variantSeed,
             ).eq("2");
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantIndex
+                stateVariables["/_problem1"].sharedParameters.variantIndex,
             ).eq(1);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantName
+                stateVariables["/_problem1"].sharedParameters.variantName,
             ).eq("second");
             expect(
                 stateVariables["/_problem1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["second", "e", "g"]);
             expect(
-                stateVariables["/_problem1"].sharedParameters.allVariantNames
+                stateVariables["/_problem1"].sharedParameters.allVariantNames,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
         });
 
@@ -6564,7 +6564,7 @@ describe("Specifying single variant document tests", function () {
                     doenetML: baseDoenetMLd,
                     requestedVariantIndex: 2,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6577,36 +6577,36 @@ describe("Specifying single variant document tests", function () {
             expect(stateVariables["/n"].stateValues.value).eq(values[1]);
 
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("2");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(2);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("e");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["second", "e", "g"]);
             expect(
-                stateVariables["/_document1"].sharedParameters.allVariantNames
+                stateVariables["/_document1"].sharedParameters.allVariantNames,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantSeed
+                stateVariables["/_problem1"].sharedParameters.variantSeed,
             ).eq("5");
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantIndex
+                stateVariables["/_problem1"].sharedParameters.variantIndex,
             ).eq(2);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantName
+                stateVariables["/_problem1"].sharedParameters.variantName,
             ).eq("e");
             expect(
                 stateVariables["/_problem1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["second", "e", "g"]);
             expect(
-                stateVariables["/_problem1"].sharedParameters.allVariantNames
+                stateVariables["/_problem1"].sharedParameters.allVariantNames,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
         });
     });
@@ -6732,7 +6732,7 @@ describe("Specifying single variant document tests", function () {
                     doenetML: "<text>2</text" + baseDoenetMLa,
                     requestedVariantIndex: 2,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6743,36 +6743,36 @@ describe("Specifying single variant document tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             values.push(stateVariables["/n"].stateValues.value);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("2");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(2);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("b");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"]);
             expect(
-                stateVariables["/_document1"].sharedParameters.allVariantNames
+                stateVariables["/_document1"].sharedParameters.allVariantNames,
             ).eqls(allDocVariants);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantSeed
+                stateVariables["/_problem1"].sharedParameters.variantSeed,
             ).eq("2");
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantIndex
+                stateVariables["/_problem1"].sharedParameters.variantIndex,
             ).eq(2);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantName
+                stateVariables["/_problem1"].sharedParameters.variantName,
             ).eq("second");
             expect(
                 stateVariables["/_problem1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
             expect(
-                stateVariables["/_problem1"].sharedParameters.allVariantNames
+                stateVariables["/_problem1"].sharedParameters.allVariantNames,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
         });
 
@@ -6782,7 +6782,7 @@ describe("Specifying single variant document tests", function () {
                     doenetML: "<text>5</text" + baseDoenetMLa,
                     requestedVariantIndex: 5,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6793,36 +6793,36 @@ describe("Specifying single variant document tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             values.push(stateVariables["/n"].stateValues.value);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("5");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(5);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("e");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"]);
             expect(
-                stateVariables["/_document1"].sharedParameters.allVariantNames
+                stateVariables["/_document1"].sharedParameters.allVariantNames,
             ).eqls(allDocVariants);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantSeed
+                stateVariables["/_problem1"].sharedParameters.variantSeed,
             ).eq("5");
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantIndex
+                stateVariables["/_problem1"].sharedParameters.variantIndex,
             ).eq(5);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantName
+                stateVariables["/_problem1"].sharedParameters.variantName,
             ).eq("e");
             expect(
                 stateVariables["/_problem1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
             expect(
-                stateVariables["/_problem1"].sharedParameters.allVariantNames
+                stateVariables["/_problem1"].sharedParameters.allVariantNames,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
         });
 
@@ -6842,7 +6842,7 @@ describe("Specifying single variant document tests", function () {
                     doenetML: "<text>1</text" + baseDoenetMLb,
                     requestedVariantIndex: 1,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6853,36 +6853,36 @@ describe("Specifying single variant document tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(values[0]);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("1");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(1);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("a");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["a", "b"]);
             expect(
-                stateVariables["/_document1"].sharedParameters.allVariantNames
+                stateVariables["/_document1"].sharedParameters.allVariantNames,
             ).eqls(allDocVariants);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantSeed
+                stateVariables["/_problem1"].sharedParameters.variantSeed,
             ).eq("2");
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantIndex
+                stateVariables["/_problem1"].sharedParameters.variantIndex,
             ).eq(1);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantName
+                stateVariables["/_problem1"].sharedParameters.variantName,
             ).eq("second");
             expect(
                 stateVariables["/_problem1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["second", "e"]);
             expect(
-                stateVariables["/_problem1"].sharedParameters.allVariantNames
+                stateVariables["/_problem1"].sharedParameters.allVariantNames,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
         });
 
@@ -6892,7 +6892,7 @@ describe("Specifying single variant document tests", function () {
                     doenetML: "<text>2</text" + baseDoenetMLb,
                     requestedVariantIndex: 2,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6903,36 +6903,36 @@ describe("Specifying single variant document tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(values[1]);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("2");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(2);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("b");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["a", "b"]);
             expect(
-                stateVariables["/_document1"].sharedParameters.allVariantNames
+                stateVariables["/_document1"].sharedParameters.allVariantNames,
             ).eqls(allDocVariants);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantSeed
+                stateVariables["/_problem1"].sharedParameters.variantSeed,
             ).eq("5");
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantIndex
+                stateVariables["/_problem1"].sharedParameters.variantIndex,
             ).eq(2);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantName
+                stateVariables["/_problem1"].sharedParameters.variantName,
             ).eq("e");
             expect(
                 stateVariables["/_problem1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["second", "e"]);
             expect(
-                stateVariables["/_problem1"].sharedParameters.allVariantNames
+                stateVariables["/_problem1"].sharedParameters.allVariantNames,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
         });
 
@@ -6952,7 +6952,7 @@ describe("Specifying single variant document tests", function () {
                     doenetML: "<text>1</text" + baseDoenetMLc,
                     requestedVariantIndex: 1,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6963,36 +6963,36 @@ describe("Specifying single variant document tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(values[0]);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("1");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(1);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("a");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["a", "b", "c", "d", "e", "f"]);
             expect(
-                stateVariables["/_document1"].sharedParameters.allVariantNames
+                stateVariables["/_document1"].sharedParameters.allVariantNames,
             ).eqls(allDocVariants);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantSeed
+                stateVariables["/_problem1"].sharedParameters.variantSeed,
             ).eq("2");
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantIndex
+                stateVariables["/_problem1"].sharedParameters.variantIndex,
             ).eq(1);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantName
+                stateVariables["/_problem1"].sharedParameters.variantName,
             ).eq("second");
             expect(
                 stateVariables["/_problem1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["second", "c", "e", "f", "g", "i"]);
             expect(
-                stateVariables["/_problem1"].sharedParameters.allVariantNames
+                stateVariables["/_problem1"].sharedParameters.allVariantNames,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
         });
 
@@ -7002,7 +7002,7 @@ describe("Specifying single variant document tests", function () {
                     doenetML: "<text>3</text" + baseDoenetMLc,
                     requestedVariantIndex: 3,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -7014,41 +7014,41 @@ describe("Specifying single variant document tests", function () {
             expect(stateVariables["/n"].stateValues.value).eq(values[1]);
 
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("3");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(3);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("c");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["a", "b", "c", "d", "e", "f"]);
             expect(
-                stateVariables["/_document1"].sharedParameters.allVariantNames
+                stateVariables["/_document1"].sharedParameters.allVariantNames,
             ).eqls(allDocVariants);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantSeed
+                stateVariables["/_problem1"].sharedParameters.variantSeed,
             ).eq("5");
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantIndex
+                stateVariables["/_problem1"].sharedParameters.variantIndex,
             ).eq(3);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantName
+                stateVariables["/_problem1"].sharedParameters.variantName,
             ).eq("e");
             expect(
                 stateVariables["/_problem1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["second", "c", "e", "f", "g", "i"]);
             expect(
-                stateVariables["/_problem1"].sharedParameters.allVariantNames
+                stateVariables["/_problem1"].sharedParameters.allVariantNames,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
         });
 
         cy.log(
-            "get same variants when add variantsToInclude and variantsToExclude"
+            "get same variants when add variantsToInclude and variantsToExclude",
         );
 
         let baseDoenetMLd = `
@@ -7065,7 +7065,7 @@ describe("Specifying single variant document tests", function () {
                     doenetML: "<text>1</text" + baseDoenetMLd,
                     requestedVariantIndex: 1,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -7076,36 +7076,36 @@ describe("Specifying single variant document tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(values[0]);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("1");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(1);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("a");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["a", "b", "c"]);
             expect(
-                stateVariables["/_document1"].sharedParameters.allVariantNames
+                stateVariables["/_document1"].sharedParameters.allVariantNames,
             ).eqls(allDocVariants);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantSeed
+                stateVariables["/_problem1"].sharedParameters.variantSeed,
             ).eq("2");
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantIndex
+                stateVariables["/_problem1"].sharedParameters.variantIndex,
             ).eq(1);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantName
+                stateVariables["/_problem1"].sharedParameters.variantName,
             ).eq("second");
             expect(
                 stateVariables["/_problem1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["second", "e", "g"]);
             expect(
-                stateVariables["/_problem1"].sharedParameters.allVariantNames
+                stateVariables["/_problem1"].sharedParameters.allVariantNames,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
         });
 
@@ -7115,7 +7115,7 @@ describe("Specifying single variant document tests", function () {
                     doenetML: "<text>2</text" + baseDoenetMLd,
                     requestedVariantIndex: 2,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -7127,36 +7127,36 @@ describe("Specifying single variant document tests", function () {
             expect(stateVariables["/n"].stateValues.value).eq(values[1]);
 
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("2");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(2);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("b");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["a", "b", "c"]);
             expect(
-                stateVariables["/_document1"].sharedParameters.allVariantNames
+                stateVariables["/_document1"].sharedParameters.allVariantNames,
             ).eqls(allDocVariants);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantSeed
+                stateVariables["/_problem1"].sharedParameters.variantSeed,
             ).eq("5");
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantIndex
+                stateVariables["/_problem1"].sharedParameters.variantIndex,
             ).eq(2);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantName
+                stateVariables["/_problem1"].sharedParameters.variantName,
             ).eq("e");
             expect(
                 stateVariables["/_problem1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["second", "e", "g"]);
             expect(
-                stateVariables["/_problem1"].sharedParameters.allVariantNames
+                stateVariables["/_problem1"].sharedParameters.allVariantNames,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
         });
     });

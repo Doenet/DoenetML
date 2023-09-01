@@ -3,7 +3,7 @@ export function flattenDeep(arr1) {
     return arr1.reduce(
         (acc, val) =>
             Array.isArray(val) ? acc.concat(flattenDeep(val)) : acc.concat(val),
-        []
+        [],
     );
 }
 
@@ -14,7 +14,7 @@ export function flattenLevels(arr1, levels) {
             Array.isArray(val) && levels > 1
                 ? acc.concat(flattenLevels(val, levels - 1))
                 : acc.concat(val),
-        []
+        [],
     );
 }
 
@@ -25,6 +25,6 @@ export function mapDeep(arr, f, iprefix = [], origArr) {
     return arr.map((v, i) =>
         Array.isArray(v)
             ? mapDeep(v, f, [...iprefix, i], origArr)
-            : f(v, [...iprefix, i], origArr)
+            : f(v, [...iprefix, i], origArr),
     );
 }

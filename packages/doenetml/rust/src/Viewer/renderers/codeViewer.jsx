@@ -7,7 +7,7 @@ import VisibilitySensor from "react-visibility-sensor-v2";
 export default React.memo(function CodeViewer(props) {
     let { name, SVs, children, actions, callAction } = useDoenetRenderer(
         props,
-        false
+        false,
     );
 
     let onChangeVisibility = (isVisible) => {

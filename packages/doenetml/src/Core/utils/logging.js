@@ -17,11 +17,11 @@ export function getLineCharRange(doenetMLrange, allNewlines) {
 
     let { line: lineBegin, character: charBegin } = findLineCharInfo(
         begin,
-        allNewlines
+        allNewlines,
     );
     let { line: lineEnd, character: charEnd } = findLineCharInfo(
         end,
-        allNewlines
+        allNewlines,
     );
 
     return { lineBegin, charBegin, lineEnd, charEnd };

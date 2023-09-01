@@ -24,7 +24,7 @@ describe("Point location validation tests", function () {
     <p>Credit for answer: $_answer1.creditAchieved</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -53,7 +53,7 @@ describe("Point location validation tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0
+                0,
             );
         });
 
@@ -66,7 +66,7 @@ describe("Point location validation tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0
+                0,
             );
         });
 
@@ -93,7 +93,7 @@ describe("Point location validation tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                1
+                1,
             );
         });
 
@@ -106,7 +106,7 @@ describe("Point location validation tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                1
+                1,
             );
         });
 
@@ -132,7 +132,7 @@ describe("Point location validation tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0
+                0,
             );
         });
 
@@ -145,7 +145,7 @@ describe("Point location validation tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0
+                0,
             );
         });
 
@@ -171,7 +171,7 @@ describe("Point location validation tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0
+                0,
             );
         });
 
@@ -184,7 +184,7 @@ describe("Point location validation tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0
+                0,
             );
         });
         cy.get(cesc("#\\/_answer1_submit"))
@@ -209,7 +209,7 @@ describe("Point location validation tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0
+                0,
             );
         });
 
@@ -222,7 +222,7 @@ describe("Point location validation tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0
+                0,
             );
         });
 
@@ -248,7 +248,7 @@ describe("Point location validation tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                1
+                1,
             );
         });
     });
@@ -278,7 +278,7 @@ describe("Point location validation tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -325,7 +325,7 @@ describe("Point location validation tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_point1"].stateValues.xs).eqls([5.9, 3.4]);
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                1
+                1,
             );
         });
 
@@ -339,7 +339,7 @@ describe("Point location validation tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -350,7 +350,7 @@ describe("Point location validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 return stateVariables["/_answer1"];
-            })
+            }),
         );
 
         cy.get(cesc("#\\/_answer1_submit")).should("not.exist");
@@ -366,7 +366,7 @@ describe("Point location validation tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_point1"].stateValues.xs).eqls([5.9, 3.4]);
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                1
+                1,
             );
         });
 
@@ -379,7 +379,7 @@ describe("Point location validation tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                1
+                1,
             );
         });
 
@@ -406,7 +406,7 @@ describe("Point location validation tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_point1"].stateValues.xs).eqls([-8.8, 1.3]);
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0
+                0,
             );
         });
 
@@ -420,7 +420,7 @@ describe("Point location validation tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -431,7 +431,7 @@ describe("Point location validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 return stateVariables["/_answer1"];
-            })
+            }),
         );
 
         cy.get(cesc("#\\/_answer1_submit")).should("not.exist");
@@ -447,7 +447,7 @@ describe("Point location validation tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_point1"].stateValues.xs).eqls([-8.8, 1.3]);
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0
+                0,
             );
         });
 
@@ -465,7 +465,7 @@ describe("Point location validation tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0
+                0,
             );
         });
 
@@ -494,7 +494,7 @@ describe("Point location validation tests", function () {
                 -9.5, -5.1,
             ]);
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0
+                0,
             );
         });
 
@@ -508,7 +508,7 @@ describe("Point location validation tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -519,7 +519,7 @@ describe("Point location validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 return stateVariables["/_answer1"];
-            })
+            }),
         );
 
         cy.get(cesc("#\\/_answer1_submit")).should("not.exist");
@@ -537,7 +537,7 @@ describe("Point location validation tests", function () {
                 -9.5, -5.1,
             ]);
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0
+                0,
             );
         });
     });
@@ -564,7 +564,7 @@ describe("Point location validation tests", function () {
     <p>Credit for answer: $_answer1.creditAchieved</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -593,7 +593,7 @@ describe("Point location validation tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0
+                0,
             );
         });
 
@@ -606,7 +606,7 @@ describe("Point location validation tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0
+                0,
             );
         });
 
@@ -633,7 +633,7 @@ describe("Point location validation tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                1
+                1,
             );
         });
 
@@ -646,7 +646,7 @@ describe("Point location validation tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                1
+                1,
             );
         });
 
@@ -672,7 +672,7 @@ describe("Point location validation tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0
+                0,
             );
         });
 
@@ -685,7 +685,7 @@ describe("Point location validation tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0
+                0,
             );
         });
 
@@ -712,7 +712,7 @@ describe("Point location validation tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                1
+                1,
             );
         });
     });
@@ -749,7 +749,7 @@ describe("Point location validation tests", function () {
     <p>Credit for answer: $_answer1.creditAchieved</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -778,7 +778,7 @@ describe("Point location validation tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0
+                0,
             );
         });
 
@@ -791,7 +791,7 @@ describe("Point location validation tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0
+                0,
             );
         });
 
@@ -818,7 +818,7 @@ describe("Point location validation tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                1
+                1,
             );
         });
 
@@ -838,7 +838,7 @@ describe("Point location validation tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                1
+                1,
             );
         });
 
@@ -856,7 +856,7 @@ describe("Point location validation tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                1
+                1,
             );
         });
 
@@ -869,7 +869,7 @@ describe("Point location validation tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                1
+                1,
             );
         });
         cy.get(cesc("#\\/_answer1_submit"))
@@ -894,7 +894,7 @@ describe("Point location validation tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.6
+                0.6,
             );
         });
 
@@ -914,7 +914,7 @@ describe("Point location validation tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.6
+                0.6,
             );
         });
 
@@ -932,7 +932,7 @@ describe("Point location validation tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0
+                0,
             );
         });
 
@@ -945,7 +945,7 @@ describe("Point location validation tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0
+                0,
             );
         });
         cy.get(cesc("#\\/_answer1_submit"))
@@ -970,7 +970,7 @@ describe("Point location validation tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.6
+                0.6,
             );
         });
 
@@ -983,7 +983,7 @@ describe("Point location validation tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.6
+                0.6,
             );
         });
         cy.get(cesc("#\\/_answer1_submit"))
@@ -1008,7 +1008,7 @@ describe("Point location validation tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                1
+                1,
             );
         });
     });
@@ -1047,7 +1047,7 @@ describe("Point location validation tests", function () {
     <p>Submitted responses: <math name="srs">$_answer1.submittedResponses</math></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1055,7 +1055,7 @@ describe("Point location validation tests", function () {
 
         cy.get(cesc("#\\/goal1") + " .mjx-mrow").should(
             "contain.text",
-            "(−4.1,7.4)"
+            "(−4.1,7.4)",
         );
 
         cy.get(cesc("#\\/_answer1_submit"))
@@ -1071,7 +1071,7 @@ describe("Point location validation tests", function () {
         cy.get(cesc("#\\/_answer1_submit")).click();
         cy.get(cesc(`#\\/srs`) + ` .mjx-mrow`).should(
             "contain.text",
-            "(4.9,−1.1),(−2.3,−3.4)"
+            "(4.9,−1.1),(−2.3,−3.4)",
         );
         cy.get(cesc("#\\/_answer1_submit")).should("not.exist");
         cy.get(cesc("#\\/_answer1_correct")).should("not.exist");
@@ -1088,14 +1088,14 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(4.9,-1.1),(-2.3,-3.4)"
+                    "(4.9,-1.1),(-2.3,-3.4)",
                 );
             });
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0
+                0,
             );
         });
 
@@ -1108,7 +1108,7 @@ describe("Point location validation tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0
+                0,
             );
         });
 
@@ -1138,14 +1138,14 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(-4.1,7.4),(-2.3,-3.4)"
+                    "(-4.1,7.4),(-2.3,-3.4)",
                 );
             });
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.5
+                0.5,
             );
         });
 
@@ -1158,7 +1158,7 @@ describe("Point location validation tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.5
+                0.5,
             );
         });
 
@@ -1187,13 +1187,13 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(-3.7,7),(-2.3,-3.4)"
+                    "(-3.7,7),(-2.3,-3.4)",
                 );
             });
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0
+                0,
             );
         });
 
@@ -1206,7 +1206,7 @@ describe("Point location validation tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0
+                0,
             );
         });
 
@@ -1236,14 +1236,14 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(-3.7,7),(-4.1,7.4)"
+                    "(-3.7,7),(-4.1,7.4)",
                 );
             });
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.5
+                0.5,
             );
         });
 
@@ -1256,7 +1256,7 @@ describe("Point location validation tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.5
+                0.5,
             );
         });
 
@@ -1287,14 +1287,14 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(6.8,9.1),(-4.1,7.4)"
+                    "(6.8,9.1),(-4.1,7.4)",
                 );
             });
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                1
+                1,
             );
         });
 
@@ -1307,7 +1307,7 @@ describe("Point location validation tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                1
+                1,
             );
         });
 
@@ -1337,14 +1337,14 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(6.8,9.1),(-9.9,-8.8)"
+                    "(6.8,9.1),(-9.9,-8.8)",
                 );
             });
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.5
+                0.5,
             );
         });
 
@@ -1357,7 +1357,7 @@ describe("Point location validation tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.5
+                0.5,
             );
         });
 
@@ -1387,14 +1387,14 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(6.8,9.1),(6.8,9.1)"
+                    "(6.8,9.1),(6.8,9.1)",
                 );
             });
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.5
+                0.5,
             );
         });
 
@@ -1407,7 +1407,7 @@ describe("Point location validation tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.5
+                0.5,
             );
         });
 
@@ -1437,14 +1437,14 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(0.1,-1.1),(6.8,9.1)"
+                    "(0.1,-1.1),(6.8,9.1)",
                 );
             });
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.5
+                0.5,
             );
         });
 
@@ -1457,7 +1457,7 @@ describe("Point location validation tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.5
+                0.5,
             );
         });
 
@@ -1487,14 +1487,14 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(-4.1,7.4),(6.8,9.1)"
+                    "(-4.1,7.4),(6.8,9.1)",
                 );
             });
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                1
+                1,
             );
         });
     });
@@ -1533,7 +1533,7 @@ describe("Point location validation tests", function () {
     <p>Submitted responses: <math name="srs">$_answer1.submittedResponses</math></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1580,14 +1580,14 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(4.9,-1.1),(-2.3,-3.4)"
+                    "(4.9,-1.1),(-2.3,-3.4)",
                 );
             });
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0
+                0,
             );
         });
 
@@ -1600,7 +1600,7 @@ describe("Point location validation tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0
+                0,
             );
         });
 
@@ -1630,14 +1630,14 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(-4.1,7.4),(-2.3,-3.4)"
+                    "(-4.1,7.4),(-2.3,-3.4)",
                 );
             });
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.5
+                0.5,
             );
         });
 
@@ -1650,7 +1650,7 @@ describe("Point location validation tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.5
+                0.5,
             );
         });
 
@@ -1679,13 +1679,13 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(-3.7,7),(-2.3,-3.4)"
+                    "(-3.7,7),(-2.3,-3.4)",
                 );
             });
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0
+                0,
             );
         });
 
@@ -1698,7 +1698,7 @@ describe("Point location validation tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0
+                0,
             );
         });
 
@@ -1728,14 +1728,14 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(-3.7,7),(-4.1,7.4)"
+                    "(-3.7,7),(-4.1,7.4)",
                 );
             });
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.5
+                0.5,
             );
         });
 
@@ -1748,7 +1748,7 @@ describe("Point location validation tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.5
+                0.5,
             );
         });
 
@@ -1779,14 +1779,14 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(6.8,9.1),(-4.1,7.4)"
+                    "(6.8,9.1),(-4.1,7.4)",
                 );
             });
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.5
+                0.5,
             );
         });
 
@@ -1799,7 +1799,7 @@ describe("Point location validation tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.5
+                0.5,
             );
         });
 
@@ -1829,14 +1829,14 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(6.8,9.1),(-9.9,-8.8)"
+                    "(6.8,9.1),(-9.9,-8.8)",
                 );
             });
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.5
+                0.5,
             );
         });
 
@@ -1849,7 +1849,7 @@ describe("Point location validation tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.5
+                0.5,
             );
         });
 
@@ -1879,14 +1879,14 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(6.8,9.1),(6.8,9.1)"
+                    "(6.8,9.1),(6.8,9.1)",
                 );
             });
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.5
+                0.5,
             );
         });
 
@@ -1899,7 +1899,7 @@ describe("Point location validation tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.5
+                0.5,
             );
         });
 
@@ -1929,14 +1929,14 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(0.1,-1.1),(6.8,9.1)"
+                    "(0.1,-1.1),(6.8,9.1)",
                 );
             });
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.5
+                0.5,
             );
         });
 
@@ -1949,7 +1949,7 @@ describe("Point location validation tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.5
+                0.5,
             );
         });
 
@@ -1979,14 +1979,14 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(-4.1,7.4),(6.8,9.1)"
+                    "(-4.1,7.4),(6.8,9.1)",
                 );
             });
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                1
+                1,
             );
         });
     });
@@ -2025,7 +2025,7 @@ describe("Point location validation tests", function () {
     <p>Submitted responses: <math name="srs">$_answer1.submittedResponses</math></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2033,7 +2033,7 @@ describe("Point location validation tests", function () {
 
         cy.get(cesc("#\\/goal1") + " .mjx-mrow").should(
             "contain.text",
-            "(−4.1,7.4)"
+            "(−4.1,7.4)",
         );
 
         cy.get(cesc("#\\/_answer1_submit"))
@@ -2062,14 +2062,14 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(4.9,-1.1),(-2.3,-3.4)"
+                    "(4.9,-1.1),(-2.3,-3.4)",
                 );
             });
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0
+                0,
             );
         });
 
@@ -2082,7 +2082,7 @@ describe("Point location validation tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0
+                0,
             );
         });
 
@@ -2112,14 +2112,14 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(-4.1,7.4),(-2.3,-3.4)"
+                    "(-4.1,7.4),(-2.3,-3.4)",
                 );
             });
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.5
+                0.5,
             );
         });
 
@@ -2132,7 +2132,7 @@ describe("Point location validation tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.5
+                0.5,
             );
         });
 
@@ -2161,13 +2161,13 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(-3.7,7),(-2.3,-3.4)"
+                    "(-3.7,7),(-2.3,-3.4)",
                 );
             });
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0
+                0,
             );
         });
 
@@ -2180,7 +2180,7 @@ describe("Point location validation tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0
+                0,
             );
         });
 
@@ -2210,14 +2210,14 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(-3.7,7),(-4.1,7.4)"
+                    "(-3.7,7),(-4.1,7.4)",
                 );
             });
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.5
+                0.5,
             );
         });
 
@@ -2230,7 +2230,7 @@ describe("Point location validation tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.5
+                0.5,
             );
         });
 
@@ -2261,14 +2261,14 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(6.8,9.1),(-4.1,7.4)"
+                    "(6.8,9.1),(-4.1,7.4)",
                 );
             });
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                1
+                1,
             );
         });
 
@@ -2281,7 +2281,7 @@ describe("Point location validation tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                1
+                1,
             );
         });
 
@@ -2311,14 +2311,14 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(6.8,9.1),(-9.9,-8.8)"
+                    "(6.8,9.1),(-9.9,-8.8)",
                 );
             });
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.5
+                0.5,
             );
         });
 
@@ -2331,7 +2331,7 @@ describe("Point location validation tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.5
+                0.5,
             );
         });
 
@@ -2361,14 +2361,14 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(6.8,9.1),(6.8,9.1)"
+                    "(6.8,9.1),(6.8,9.1)",
                 );
             });
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.5
+                0.5,
             );
         });
 
@@ -2381,7 +2381,7 @@ describe("Point location validation tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.5
+                0.5,
             );
         });
 
@@ -2411,14 +2411,14 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(0.1,-1.1),(6.8,9.1)"
+                    "(0.1,-1.1),(6.8,9.1)",
                 );
             });
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.5
+                0.5,
             );
         });
 
@@ -2431,7 +2431,7 @@ describe("Point location validation tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.5
+                0.5,
             );
         });
 
@@ -2461,14 +2461,14 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(-4.1,7.4),(6.8,9.1)"
+                    "(-4.1,7.4),(6.8,9.1)",
                 );
             });
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                1
+                1,
             );
         });
     });
@@ -2507,7 +2507,7 @@ describe("Point location validation tests", function () {
     <p>Submitted responses: <math name="srs">$_answer1.submittedResponses</math></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2515,7 +2515,7 @@ describe("Point location validation tests", function () {
 
         cy.get(cesc("#\\/goal1") + " .mjx-mrow").should(
             "contain.text",
-            "(−4.1,7.4)"
+            "(−4.1,7.4)",
         );
 
         cy.get(cesc("#\\/_answer1_submit"))
@@ -2544,14 +2544,14 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(4.9,-1.1),(-2.3,-3.4)"
+                    "(4.9,-1.1),(-2.3,-3.4)",
                 );
             });
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0
+                0,
             );
         });
 
@@ -2564,7 +2564,7 @@ describe("Point location validation tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0
+                0,
             );
         });
 
@@ -2594,14 +2594,14 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(-4.1,7.4),(-2.3,-3.4)"
+                    "(-4.1,7.4),(-2.3,-3.4)",
                 );
             });
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.5
+                0.5,
             );
         });
 
@@ -2614,7 +2614,7 @@ describe("Point location validation tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.5
+                0.5,
             );
         });
 
@@ -2643,13 +2643,13 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(-3.7,7),(-2.3,-3.4)"
+                    "(-3.7,7),(-2.3,-3.4)",
                 );
             });
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0
+                0,
             );
         });
 
@@ -2662,7 +2662,7 @@ describe("Point location validation tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0
+                0,
             );
         });
 
@@ -2692,14 +2692,14 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(-3.7,7),(-4.1,7.4)"
+                    "(-3.7,7),(-4.1,7.4)",
                 );
             });
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.5
+                0.5,
             );
         });
 
@@ -2712,7 +2712,7 @@ describe("Point location validation tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.5
+                0.5,
             );
         });
 
@@ -2743,14 +2743,14 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(6.8,9.1),(-4.1,7.4)"
+                    "(6.8,9.1),(-4.1,7.4)",
                 );
             });
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.5
+                0.5,
             );
         });
 
@@ -2763,7 +2763,7 @@ describe("Point location validation tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.5
+                0.5,
             );
         });
 
@@ -2793,14 +2793,14 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(6.8,9.1),(-9.9,-8.8)"
+                    "(6.8,9.1),(-9.9,-8.8)",
                 );
             });
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.5
+                0.5,
             );
         });
 
@@ -2813,7 +2813,7 @@ describe("Point location validation tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.5
+                0.5,
             );
         });
 
@@ -2843,14 +2843,14 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(6.8,9.1),(6.8,9.1)"
+                    "(6.8,9.1),(6.8,9.1)",
                 );
             });
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.5
+                0.5,
             );
         });
 
@@ -2863,7 +2863,7 @@ describe("Point location validation tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.5
+                0.5,
             );
         });
 
@@ -2893,14 +2893,14 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(0.1,-1.1),(6.8,9.1)"
+                    "(0.1,-1.1),(6.8,9.1)",
                 );
             });
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.5
+                0.5,
             );
         });
 
@@ -2913,7 +2913,7 @@ describe("Point location validation tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.5
+                0.5,
             );
         });
 
@@ -2943,14 +2943,14 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(-4.1,7.4),(6.8,9.1)"
+                    "(-4.1,7.4),(6.8,9.1)",
                 );
             });
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                1
+                1,
             );
         });
     });
@@ -2989,7 +2989,7 @@ describe("Point location validation tests", function () {
     <p>Submitted responses: <math name="srs">$_answer1.submittedResponses</math></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2997,7 +2997,7 @@ describe("Point location validation tests", function () {
 
         cy.get(cesc("#\\/goal1") + " .mjx-mrow").should(
             "contain.text",
-            "(−4.1,7.4)"
+            "(−4.1,7.4)",
         );
 
         cy.get(cesc("#\\/_answer1_submit"))
@@ -3026,14 +3026,14 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(4.9,-1.1),(-2.3,-3.4)"
+                    "(4.9,-1.1),(-2.3,-3.4)",
                 );
             });
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0
+                0,
             );
         });
 
@@ -3046,7 +3046,7 @@ describe("Point location validation tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0
+                0,
             );
         });
 
@@ -3076,14 +3076,14 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(-4.1,7.4),(-2.3,-3.4)"
+                    "(-4.1,7.4),(-2.3,-3.4)",
                 );
             });
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.5
+                0.5,
             );
         });
 
@@ -3096,7 +3096,7 @@ describe("Point location validation tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.5
+                0.5,
             );
         });
 
@@ -3125,13 +3125,13 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(-3.7,7),(-2.3,-3.4)"
+                    "(-3.7,7),(-2.3,-3.4)",
                 );
             });
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0
+                0,
             );
         });
 
@@ -3144,7 +3144,7 @@ describe("Point location validation tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0
+                0,
             );
         });
 
@@ -3174,14 +3174,14 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(-3.7,7),(-4.1,7.4)"
+                    "(-3.7,7),(-4.1,7.4)",
                 );
             });
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.5
+                0.5,
             );
         });
 
@@ -3194,7 +3194,7 @@ describe("Point location validation tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.5
+                0.5,
             );
         });
 
@@ -3225,14 +3225,14 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(6.8,9.1),(-4.1,7.4)"
+                    "(6.8,9.1),(-4.1,7.4)",
                 );
             });
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                1
+                1,
             );
         });
 
@@ -3245,7 +3245,7 @@ describe("Point location validation tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                1
+                1,
             );
         });
 
@@ -3275,14 +3275,14 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(6.8,9.1),(-9.9,-8.8)"
+                    "(6.8,9.1),(-9.9,-8.8)",
                 );
             });
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.5
+                0.5,
             );
         });
 
@@ -3295,7 +3295,7 @@ describe("Point location validation tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.5
+                0.5,
             );
         });
 
@@ -3325,14 +3325,14 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(6.8,9.1),(6.8,9.1)"
+                    "(6.8,9.1),(6.8,9.1)",
                 );
             });
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.5
+                0.5,
             );
         });
 
@@ -3345,7 +3345,7 @@ describe("Point location validation tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.5
+                0.5,
             );
         });
 
@@ -3375,14 +3375,14 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(0.1,-1.1),(6.8,9.1)"
+                    "(0.1,-1.1),(6.8,9.1)",
                 );
             });
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.5
+                0.5,
             );
         });
 
@@ -3395,7 +3395,7 @@ describe("Point location validation tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0.5
+                0.5,
             );
         });
 
@@ -3425,14 +3425,14 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(-4.1,7.4),(6.8,9.1)"
+                    "(-4.1,7.4),(6.8,9.1)",
                 );
             });
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                1
+                1,
             );
         });
     });
@@ -3471,7 +3471,7 @@ describe("Point location validation tests", function () {
     <p>Submitted responses: <math name="srs">$_answer1.submittedResponses</math></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3479,7 +3479,7 @@ describe("Point location validation tests", function () {
 
         cy.get(cesc("#\\/goal1") + " .mjx-mrow").should(
             "contain.text",
-            "(−4.1,7.4)"
+            "(−4.1,7.4)",
         );
 
         cy.get(cesc("#\\/_answer1_submit"))
@@ -3513,7 +3513,7 @@ describe("Point location validation tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0
+                0,
             );
         });
 
@@ -3548,7 +3548,7 @@ describe("Point location validation tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0
+                0,
             );
         });
 
@@ -3654,7 +3654,7 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(-3.7,7),(-4.1,7.4)"
+                    "(-3.7,7),(-4.1,7.4)",
                 );
             });
 
@@ -3685,7 +3685,7 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(6.8,9.1),(-4.1,7.4)"
+                    "(6.8,9.1),(-4.1,7.4)",
                 );
             });
 
@@ -3714,7 +3714,7 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(6.8,9.1),(-9.9,-8.8)"
+                    "(6.8,9.1),(-9.9,-8.8)",
                 );
             });
 
@@ -3744,7 +3744,7 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(6.8,9.1),(6.8,9.1)"
+                    "(6.8,9.1),(6.8,9.1)",
                 );
             });
 
@@ -3774,7 +3774,7 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(0.1,-1.1),(6.8,9.1)"
+                    "(0.1,-1.1),(6.8,9.1)",
                 );
             });
 
@@ -3803,7 +3803,7 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(-4.1,7.4),(6.8,9.1)"
+                    "(-4.1,7.4),(6.8,9.1)",
                 );
             });
 
@@ -3827,7 +3827,7 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(-4.1,7.4),(6.8,9.1),(3,1)"
+                    "(-4.1,7.4),(6.8,9.1),(3,1)",
                 );
             });
 
@@ -3856,7 +3856,7 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(-4.1,7.4),(6.8,9.1),(-4.1,7.4)"
+                    "(-4.1,7.4),(6.8,9.1),(-4.1,7.4)",
                 );
             });
 
@@ -3880,7 +3880,7 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(-4.1,7.4),(6.8,9.1)"
+                    "(-4.1,7.4),(6.8,9.1)",
                 );
             });
     });
@@ -3931,7 +3931,7 @@ describe("Point location validation tests", function () {
     <p>Submitted responses: <math name="srs">$_answer1.submittedResponses</math></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3939,7 +3939,7 @@ describe("Point location validation tests", function () {
 
         cy.get(cesc("#\\/goal1") + " .mjx-mrow").should(
             "contain.text",
-            "(−4.1,7.4)"
+            "(−4.1,7.4)",
         );
 
         cy.get(cesc("#\\/_answer1_submit"))
@@ -3973,7 +3973,7 @@ describe("Point location validation tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0
+                0,
             );
         });
 
@@ -4008,7 +4008,7 @@ describe("Point location validation tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_answer1"].stateValues.creditAchieved).eq(
-                0
+                0,
             );
         });
 
@@ -4114,7 +4114,7 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(-3.7,7),(-4.1,7.4)"
+                    "(-3.7,7),(-4.1,7.4)",
                 );
             });
 
@@ -4145,7 +4145,7 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(6.8,9.1),(-4.1,7.4)"
+                    "(6.8,9.1),(-4.1,7.4)",
                 );
             });
 
@@ -4174,7 +4174,7 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(6.8,9.1),(-9.9,-8.8)"
+                    "(6.8,9.1),(-9.9,-8.8)",
                 );
             });
 
@@ -4204,7 +4204,7 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(6.8,9.1),(6.8,9.1)"
+                    "(6.8,9.1),(6.8,9.1)",
                 );
             });
 
@@ -4234,7 +4234,7 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(0.1,-1.1),(6.8,9.1)"
+                    "(0.1,-1.1),(6.8,9.1)",
                 );
             });
 
@@ -4263,7 +4263,7 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(-4.1,7.4),(6.8,9.1)"
+                    "(-4.1,7.4),(6.8,9.1)",
                 );
             });
 
@@ -4287,7 +4287,7 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(-4.1,7.4),(6.8,9.1),(2,1),(1,2)"
+                    "(-4.1,7.4),(6.8,9.1),(2,1),(1,2)",
                 );
             });
 
@@ -4316,7 +4316,7 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(-4.1,7.4),(6.8,9.1),(6.8,9.1),(1,2)"
+                    "(-4.1,7.4),(6.8,9.1),(6.8,9.1),(1,2)",
                 );
             });
 
@@ -4340,7 +4340,7 @@ describe("Point location validation tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "(-4.1,7.4),(6.8,9.1)"
+                    "(-4.1,7.4),(6.8,9.1)",
                 );
             });
     });

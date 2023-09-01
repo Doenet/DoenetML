@@ -70,7 +70,7 @@ export default class Pluralize extends Text {
                 let makePlural;
                 if (dependencyValues.basedOnNumber !== null) {
                     makePlural = numberDesignatesPlural(
-                        dependencyValues.basedOnNumber
+                        dependencyValues.basedOnNumber,
                     );
                 }
 
@@ -151,7 +151,7 @@ export default class Pluralize extends Text {
                         if (
                             numbers[lastValueInd] &&
                             numberDesignatesPlural(
-                                Number(numbers[lastValueInd].normal)
+                                Number(numbers[lastValueInd].normal),
                             )
                         ) {
                             makePlural.push(true);
@@ -176,7 +176,7 @@ export default class Pluralize extends Text {
                         if (makePlural === true || makePlural[ind] === true) {
                             text2.replace(
                                 nounObj.text,
-                                dependencyValues.pluralForm
+                                dependencyValues.pluralForm,
                             );
                         }
                     }

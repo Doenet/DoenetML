@@ -26,7 +26,7 @@ describe("BooleanList Tag Tests", function () {
     <p><booleanlist maxNumber="6" copySource="_booleanlist2" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -34,11 +34,11 @@ describe("BooleanList Tag Tests", function () {
         cy.get(cesc("#\\/_p2")).should("have.text", "false, true, false");
         cy.get(cesc("#\\/_p3")).should(
             "have.text",
-            "true, false, true, false, false, false, true, false"
+            "true, false, true, false, false, false, true, false",
         );
         cy.get(cesc("#\\/_p4")).should(
             "have.text",
-            "true, false, true, false, false"
+            "true, false, true, false, false",
         );
     });
 
@@ -73,7 +73,7 @@ describe("BooleanList Tag Tests", function () {
     
         `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -82,80 +82,80 @@ describe("BooleanList Tag Tests", function () {
         cy.log("Test value displayed in browser");
         cy.get(cesc("#\\/_p1")).should(
             "have.text",
-            "true, false, false, false, false, true, false, false, true"
+            "true, false, false, false, false, true, false, false, true",
         );
 
         cy.log("Test internal values are set to the correct values");
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_booleanlist1"].stateValues.booleans[0]).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleanlist1"].stateValues.booleans[1]).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleanlist1"].stateValues.booleans[2]).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleanlist1"].stateValues.booleans[3]).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleanlist1"].stateValues.booleans[4]).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleanlist1"].stateValues.booleans[5]).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleanlist1"].stateValues.booleans[6]).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleanlist1"].stateValues.booleans[7]).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleanlist1"].stateValues.booleans[8]).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleanlist2"].stateValues.booleans[0]).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleanlist2"].stateValues.booleans[1]).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleanlist3"].stateValues.booleans[0]).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleanlist3"].stateValues.booleans[1]).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleanlist3"].stateValues.booleans[2]).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleanlist3"].stateValues.booleans[3]).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleanlist3"].stateValues.booleans[4]).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleanlist4"].stateValues.booleans[0]).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleanlist4"].stateValues.booleans[1]).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleanlist4"].stateValues.booleans[2]).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleanlist5"].stateValues.booleans[0]).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleanlist5"].stateValues.booleans[1]).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleanlist6"].stateValues.booleans[0]).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleanlist6"].stateValues.booleans[1]).eq(
-                true
+                true,
             );
         });
 
@@ -174,80 +174,80 @@ describe("BooleanList Tag Tests", function () {
         cy.log("Test value displayed in browser");
         cy.get(cesc("#\\/_p1")).should(
             "have.text",
-            "false, true, true, true, true, false, true, true, false"
+            "false, true, true, true, true, false, true, true, false",
         );
 
         cy.log("Test internal values are set to the correct values");
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_booleanlist1"].stateValues.booleans[0]).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleanlist1"].stateValues.booleans[1]).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleanlist1"].stateValues.booleans[2]).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleanlist1"].stateValues.booleans[3]).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleanlist1"].stateValues.booleans[4]).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleanlist1"].stateValues.booleans[5]).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleanlist1"].stateValues.booleans[6]).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleanlist1"].stateValues.booleans[7]).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleanlist1"].stateValues.booleans[8]).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleanlist2"].stateValues.booleans[0]).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleanlist2"].stateValues.booleans[1]).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleanlist3"].stateValues.booleans[0]).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleanlist3"].stateValues.booleans[1]).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleanlist3"].stateValues.booleans[2]).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleanlist3"].stateValues.booleans[3]).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleanlist3"].stateValues.booleans[4]).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleanlist4"].stateValues.booleans[0]).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleanlist4"].stateValues.booleans[1]).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleanlist4"].stateValues.booleans[2]).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleanlist5"].stateValues.booleans[0]).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleanlist5"].stateValues.booleans[1]).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleanlist6"].stateValues.booleans[0]).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleanlist6"].stateValues.booleans[1]).eq(
-                false
+                false,
             );
         });
     });
@@ -283,7 +283,7 @@ describe("BooleanList Tag Tests", function () {
     
         `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -292,80 +292,80 @@ describe("BooleanList Tag Tests", function () {
         cy.log("Test value displayed in browser");
         cy.get(cesc("#\\/_p1")).should(
             "have.text",
-            "true, false, false, false, false, true, false, false, true"
+            "true, false, false, false, false, true, false, false, true",
         );
 
         cy.log("Test internal values are set to the correct values");
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_booleanlist1"].stateValues.booleans[0]).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleanlist1"].stateValues.booleans[1]).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleanlist1"].stateValues.booleans[2]).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleanlist1"].stateValues.booleans[3]).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleanlist1"].stateValues.booleans[4]).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleanlist1"].stateValues.booleans[5]).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleanlist1"].stateValues.booleans[6]).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleanlist1"].stateValues.booleans[7]).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleanlist1"].stateValues.booleans[8]).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleanlist2"].stateValues.booleans[0]).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleanlist2"].stateValues.booleans[1]).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleanlist3"].stateValues.booleans[0]).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleanlist3"].stateValues.booleans[1]).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleanlist3"].stateValues.booleans[2]).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleanlist3"].stateValues.booleans[3]).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleanlist3"].stateValues.booleans[4]).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleanlist4"].stateValues.booleans[0]).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleanlist4"].stateValues.booleans[1]).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleanlist4"].stateValues.booleans[2]).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleanlist5"].stateValues.booleans[0]).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleanlist5"].stateValues.booleans[1]).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleanlist6"].stateValues.booleans[0]).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleanlist6"].stateValues.booleans[1]).eq(
-                true
+                true,
             );
         });
 
@@ -384,80 +384,80 @@ describe("BooleanList Tag Tests", function () {
         cy.log("Test value displayed in browser");
         cy.get(cesc("#\\/_p1")).should(
             "have.text",
-            "false, true, true, true, true, false, true, true, false"
+            "false, true, true, true, true, false, true, true, false",
         );
 
         cy.log("Test internal values are set to the correct values");
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_booleanlist1"].stateValues.booleans[0]).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleanlist1"].stateValues.booleans[1]).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleanlist1"].stateValues.booleans[2]).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleanlist1"].stateValues.booleans[3]).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleanlist1"].stateValues.booleans[4]).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleanlist1"].stateValues.booleans[5]).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleanlist1"].stateValues.booleans[6]).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleanlist1"].stateValues.booleans[7]).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleanlist1"].stateValues.booleans[8]).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleanlist2"].stateValues.booleans[0]).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleanlist2"].stateValues.booleans[1]).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleanlist3"].stateValues.booleans[0]).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleanlist3"].stateValues.booleans[1]).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleanlist3"].stateValues.booleans[2]).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleanlist3"].stateValues.booleans[3]).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleanlist3"].stateValues.booleans[4]).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleanlist4"].stateValues.booleans[0]).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleanlist4"].stateValues.booleans[1]).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleanlist4"].stateValues.booleans[2]).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleanlist5"].stateValues.booleans[0]).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleanlist5"].stateValues.booleans[1]).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleanlist6"].stateValues.booleans[0]).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleanlist6"].stateValues.booleans[1]).eq(
-                false
+                false,
             );
         });
     });
@@ -478,7 +478,7 @@ describe("BooleanList Tag Tests", function () {
 
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -487,22 +487,22 @@ describe("BooleanList Tag Tests", function () {
         cy.window().then(async (win) => {
             cy.get(cesc("#\\/_p1")).should(
                 "have.text",
-                "true, true, false, true, false"
+                "true, true, false, true, false",
             );
             cy.get(cesc("#\\/_p2")).should("have.text", "true, true, false");
             cy.get(cesc("#\\/_p3")).should(
                 "have.text",
-                "true, true, false, true, false"
+                "true, true, false, true, false",
             );
 
             cy.get(cesc("#\\/_p4")).should("have.text", "true, true, false");
             cy.get(cesc("#\\/_p5")).should(
                 "have.text",
-                "true, true, false, true"
+                "true, true, false, true",
             );
             cy.get(cesc("#\\/_p6")).should(
                 "have.text",
-                "true, true, false, true, false"
+                "true, true, false, true, false",
             );
 
             cy.log("Test internal values are set to the correct values");
@@ -562,7 +562,7 @@ describe("BooleanList Tag Tests", function () {
 
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -572,7 +572,7 @@ describe("BooleanList Tag Tests", function () {
             cy.get(cesc("#\\/_p1")).should("have.text", "true, true");
             cy.get(cesc("#\\/_p2")).should(
                 "have.text",
-                "true, true, false, true, false"
+                "true, true, false, true, false",
             );
 
             cy.window().then(async (win) => {
@@ -597,11 +597,11 @@ describe("BooleanList Tag Tests", function () {
             .blur();
         cy.get(cesc("#\\/_p1")).should(
             "have.text",
-            "true, true, false, true, false"
+            "true, true, false, true, false",
         );
         cy.get(cesc("#\\/_p2")).should(
             "have.text",
-            "true, true, false, true, false"
+            "true, true, false, true, false",
         );
 
         cy.window().then(async (win) => {
@@ -627,7 +627,7 @@ describe("BooleanList Tag Tests", function () {
         cy.get(cesc("#\\/_p2")).should("have.text", "true, true, false");
         cy.get(cesc("#\\/_p1")).should(
             "have.text",
-            "true, true, false, true, false"
+            "true, true, false, true, false",
         );
 
         cy.window().then(async (win) => {

@@ -39,7 +39,7 @@ describe("Video progress tests", function () {
   
     `,
                 },
-                "*"
+                "*",
             );
         });
 

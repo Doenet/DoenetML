@@ -33,7 +33,7 @@ describe("Copy Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -45,13 +45,13 @@ describe("Copy Tag Tests", function () {
         cy.get(cesc("#\\/p2")).should("have.text", "The text: ");
         cy.get(cesc("#\\/p4")).should(
             "have.text",
-            "Check attributes: false true false true true false"
+            "Check attributes: false true false true true false",
         );
 
         cy.get(cesc("#\\/p5")).should("have.text", "The text: secret");
         cy.get(cesc("#\\/p7")).should(
             "have.text",
-            "Check attributes: false false true false false true"
+            "Check attributes: false false true false false true",
         );
     });
 
@@ -105,7 +105,7 @@ describe("Copy Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -413,7 +413,7 @@ describe("Copy Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -701,7 +701,7 @@ describe("Copy Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -740,13 +740,13 @@ describe("Copy Tag Tests", function () {
             let mathinputoutsideAnchor =
                 cesc2("#" + mathinputoutsideName) + " textarea";
             let mathinputoutsideSubmitAnchor = cesc2(
-                "#" + mathinputoutsideName + "_submit"
+                "#" + mathinputoutsideName + "_submit",
             );
             let mathinputoutsideCorrectAnchor = cesc2(
-                "#" + mathinputoutsideName + "_correct"
+                "#" + mathinputoutsideName + "_correct",
             );
             let mathinputoutsideIncorrectAnchor = cesc2(
-                "#" + mathinputoutsideName + "_incorrect"
+                "#" + mathinputoutsideName + "_incorrect",
             );
             let mathinputoutsideFieldAnchor =
                 cesc2("#" + mathinputoutsideName) + " .mq-editable-field";
@@ -756,13 +756,13 @@ describe("Copy Tag Tests", function () {
                     .componentName;
             let mathinputp1Anchor = cesc2("#" + mathinputp1Name) + " textarea";
             let mathinputp1SubmitAnchor = cesc2(
-                "#" + mathinputp1Name + "_submit"
+                "#" + mathinputp1Name + "_submit",
             );
             let mathinputp1CorrectAnchor = cesc2(
-                "#" + mathinputp1Name + "_correct"
+                "#" + mathinputp1Name + "_correct",
             );
             let mathinputp1IncorrectAnchor = cesc2(
-                "#" + mathinputp1Name + "_incorrect"
+                "#" + mathinputp1Name + "_incorrect",
             );
             let mathinputp1FieldAnchor =
                 cesc2("#" + mathinputp1Name) + " .mq-editable-field";
@@ -772,13 +772,13 @@ describe("Copy Tag Tests", function () {
                     .componentName;
             let mathinputp2Anchor = cesc2("#" + mathinputp2Name) + " textarea";
             let mathinputp2SubmitAnchor = cesc2(
-                "#" + mathinputp2Name + "_submit"
+                "#" + mathinputp2Name + "_submit",
             );
             let mathinputp2CorrectAnchor = cesc2(
-                "#" + mathinputp2Name + "_correct"
+                "#" + mathinputp2Name + "_correct",
             );
             let mathinputp2IncorrectAnchor = cesc2(
-                "#" + mathinputp2Name + "_incorrect"
+                "#" + mathinputp2Name + "_incorrect",
             );
             let mathinputp2FieldAnchor =
                 cesc2("#" + mathinputp2Name) + " .mq-editable-field";
@@ -788,13 +788,13 @@ describe("Copy Tag Tests", function () {
                     .componentName;
             let mathinputp3Anchor = cesc2("#" + mathinputp3Name) + " textarea";
             let mathinputp3SubmitAnchor = cesc2(
-                "#" + mathinputp3Name + "_submit"
+                "#" + mathinputp3Name + "_submit",
             );
             let mathinputp3CorrectAnchor = cesc2(
-                "#" + mathinputp3Name + "_correct"
+                "#" + mathinputp3Name + "_correct",
             );
             let mathinputp3IncorrectAnchor = cesc2(
-                "#" + mathinputp3Name + "_incorrect"
+                "#" + mathinputp3Name + "_incorrect",
             );
             let mathinputp3FieldAnchor =
                 cesc2("#" + mathinputp3Name) + " .mq-editable-field";
@@ -804,13 +804,13 @@ describe("Copy Tag Tests", function () {
                     .componentName;
             let mathinputp4Anchor = cesc2("#" + mathinputp4Name) + " textarea";
             let mathinputp4SubmitAnchor = cesc2(
-                "#" + mathinputp4Name + "_submit"
+                "#" + mathinputp4Name + "_submit",
             );
             let mathinputp4CorrectAnchor = cesc2(
-                "#" + mathinputp4Name + "_correct"
+                "#" + mathinputp4Name + "_correct",
             );
             let mathinputp4IncorrectAnchor = cesc2(
-                "#" + mathinputp4Name + "_incorrect"
+                "#" + mathinputp4Name + "_incorrect",
             );
             let mathinputp4FieldAnchor =
                 cesc2("#" + mathinputp4Name) + " .mq-editable-field";
@@ -850,7 +850,7 @@ describe("Copy Tag Tests", function () {
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        "y"
+                        "y",
                     );
                 });
             cy.get(mathinputp2FieldAnchor).should("have.text", "");
@@ -909,7 +909,7 @@ describe("Copy Tag Tests", function () {
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        "z"
+                        "z",
                     );
                 });
             cy.get(mathinputp1FieldAnchor).should("have.text", "y");
@@ -970,7 +970,7 @@ describe("Copy Tag Tests", function () {
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        "a"
+                        "a",
                     );
                 });
             cy.get(mathinputp1FieldAnchor).should("have.text", "a");
@@ -1031,7 +1031,7 @@ describe("Copy Tag Tests", function () {
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        "b"
+                        "b",
                     );
                 });
             cy.get(mathinputp1FieldAnchor).should("have.text", "a");
@@ -1084,7 +1084,7 @@ describe("Copy Tag Tests", function () {
                 "{end}{backspace}q{enter}",
                 {
                     force: true,
-                }
+                },
             );
             cy.get(cesc2("#/m") + " .mjx-mrow")
                 .eq(0)
@@ -1139,7 +1139,7 @@ describe("Copy Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1178,13 +1178,13 @@ describe("Copy Tag Tests", function () {
             let mathinputoutsideAnchor =
                 cesc2("#" + mathinputoutsideName) + " textarea";
             let mathinputoutsideSubmitAnchor = cesc2(
-                "#" + mathinputoutsideName + "_submit"
+                "#" + mathinputoutsideName + "_submit",
             );
             let mathinputoutsideCorrectAnchor = cesc2(
-                "#" + mathinputoutsideName + "_correct"
+                "#" + mathinputoutsideName + "_correct",
             );
             let mathinputoutsideIncorrectAnchor = cesc2(
-                "#" + mathinputoutsideName + "_incorrect"
+                "#" + mathinputoutsideName + "_incorrect",
             );
             let mathinputoutsideFieldAnchor =
                 cesc2("#" + mathinputoutsideName) + " .mq-editable-field";
@@ -1194,13 +1194,13 @@ describe("Copy Tag Tests", function () {
                     .componentName;
             let mathinputp1Anchor = cesc2("#" + mathinputp1Name) + " textarea";
             let mathinputp1SubmitAnchor = cesc2(
-                "#" + mathinputp1Name + "_submit"
+                "#" + mathinputp1Name + "_submit",
             );
             let mathinputp1CorrectAnchor = cesc2(
-                "#" + mathinputp1Name + "_correct"
+                "#" + mathinputp1Name + "_correct",
             );
             let mathinputp1IncorrectAnchor = cesc2(
-                "#" + mathinputp1Name + "_incorrect"
+                "#" + mathinputp1Name + "_incorrect",
             );
             let mathinputp1FieldAnchor =
                 cesc2("#" + mathinputp1Name) + " .mq-editable-field";
@@ -1210,13 +1210,13 @@ describe("Copy Tag Tests", function () {
                     .componentName;
             let mathinputp2Anchor = cesc2("#" + mathinputp2Name) + " textarea";
             let mathinputp2SubmitAnchor = cesc2(
-                "#" + mathinputp2Name + "_submit"
+                "#" + mathinputp2Name + "_submit",
             );
             let mathinputp2CorrectAnchor = cesc2(
-                "#" + mathinputp2Name + "_correct"
+                "#" + mathinputp2Name + "_correct",
             );
             let mathinputp2IncorrectAnchor = cesc2(
-                "#" + mathinputp2Name + "_incorrect"
+                "#" + mathinputp2Name + "_incorrect",
             );
             let mathinputp2FieldAnchor =
                 cesc2("#" + mathinputp2Name) + " .mq-editable-field";
@@ -1226,13 +1226,13 @@ describe("Copy Tag Tests", function () {
                     .componentName;
             let mathinputp3Anchor = cesc2("#" + mathinputp3Name) + " textarea";
             let mathinputp3SubmitAnchor = cesc2(
-                "#" + mathinputp3Name + "_submit"
+                "#" + mathinputp3Name + "_submit",
             );
             let mathinputp3CorrectAnchor = cesc2(
-                "#" + mathinputp3Name + "_correct"
+                "#" + mathinputp3Name + "_correct",
             );
             let mathinputp3IncorrectAnchor = cesc2(
-                "#" + mathinputp3Name + "_incorrect"
+                "#" + mathinputp3Name + "_incorrect",
             );
             let mathinputp3FieldAnchor =
                 cesc2("#" + mathinputp3Name) + " .mq-editable-field";
@@ -1242,13 +1242,13 @@ describe("Copy Tag Tests", function () {
                     .componentName;
             let mathinputp4Anchor = cesc2("#" + mathinputp4Name) + " textarea";
             let mathinputp4SubmitAnchor = cesc2(
-                "#" + mathinputp4Name + "_submit"
+                "#" + mathinputp4Name + "_submit",
             );
             let mathinputp4CorrectAnchor = cesc2(
-                "#" + mathinputp4Name + "_correct"
+                "#" + mathinputp4Name + "_correct",
             );
             let mathinputp4IncorrectAnchor = cesc2(
-                "#" + mathinputp4Name + "_incorrect"
+                "#" + mathinputp4Name + "_incorrect",
             );
             let mathinputp4FieldAnchor =
                 cesc2("#" + mathinputp4Name) + " .mq-editable-field";
@@ -1288,7 +1288,7 @@ describe("Copy Tag Tests", function () {
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        "y"
+                        "y",
                     );
                 });
             cy.get(mathinputp2FieldAnchor).should("have.text", "");
@@ -1347,7 +1347,7 @@ describe("Copy Tag Tests", function () {
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        "z"
+                        "z",
                     );
                 });
             cy.get(mathinputp1FieldAnchor).should("have.text", "y");
@@ -1408,7 +1408,7 @@ describe("Copy Tag Tests", function () {
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        "a"
+                        "a",
                     );
                 });
             cy.get(mathinputp1FieldAnchor).should("have.text", "a");
@@ -1469,7 +1469,7 @@ describe("Copy Tag Tests", function () {
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        "b"
+                        "b",
                     );
                 });
             cy.get(mathinputp1FieldAnchor).should("have.text", "a");
@@ -1522,7 +1522,7 @@ describe("Copy Tag Tests", function () {
                 "{end}{backspace}q{enter}",
                 {
                     force: true,
-                }
+                },
             );
             cy.get(cesc2("#/m") + " .mjx-mrow")
                 .eq(0)
@@ -1571,7 +1571,7 @@ describe("Copy Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1907,7 +1907,7 @@ describe("Copy Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2248,7 +2248,7 @@ describe("Copy Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2389,7 +2389,7 @@ describe("Copy Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2407,13 +2407,13 @@ describe("Copy Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/g"].activeChildren.length).eq(1);
             expect(stateVariables["/g"].activeChildren[0].componentName).eq(
-                "/P"
+                "/P",
             );
             expect(stateVariables["/P"].stateValues.xs).eqls([0, 0]);
 
             expect(stateVariables["/g2"].activeChildren.length).eq(1);
             expect(stateVariables["/g2"].activeChildren[0].componentName).eq(
-                "/g2/P"
+                "/g2/P",
             );
             expect(stateVariables["/g2/P"].stateValues.xs).eqls([0, 0]);
 
@@ -2445,11 +2445,11 @@ describe("Copy Tag Tests", function () {
 
         cy.get(cesc2("#/g2Pcoords") + " .mjx-mrow").should(
             "contain.text",
-            "(7,6)"
+            "(7,6)",
         );
         cy.get(cesc2("#/Pcoords") + " .mjx-mrow").should(
             "contain.text",
-            "(3,5)"
+            "(3,5)",
         );
 
         cy.window().then(async (win) => {
@@ -2529,7 +2529,7 @@ describe("Copy Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2579,12 +2579,12 @@ describe("Copy Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/g1"].activeChildren.length).eq(1);
             expect(stateVariables["/g1"].activeChildren[0].componentName).eq(
-                "/P1"
+                "/P1",
             );
             expect(stateVariables["/P1"].stateValues.xs).eqls([1, 2]);
             expect(stateVariables["/g1a"].activeChildren.length).eq(2);
             expect(stateVariables["/g1a"].activeChildren[1].componentName).eq(
-                "/v1"
+                "/v1",
             );
             P1aName = stateVariables["/g1a"].activeChildren[0].componentName;
             expect(stateVariables[P1aName].stateValues.xs).eqls([1, 2]);
@@ -2602,15 +2602,15 @@ describe("Copy Tag Tests", function () {
 
             expect(stateVariables["/g2"].activeChildren.length).eq(1);
             expect(stateVariables["/g2"].activeChildren[0].componentName).eq(
-                "/P2"
+                "/P2",
             );
             expect(stateVariables["/P2"].stateValues.xs).eqls([1, 2]);
             expect(stateVariables["/g2a"].activeChildren.length).eq(2);
             expect(stateVariables["/g2a"].activeChildren[0].componentName).eq(
-                "/g2a/P2"
+                "/g2a/P2",
             );
             expect(stateVariables["/g2a"].activeChildren[1].componentName).eq(
-                "/g2a/v2"
+                "/g2a/v2",
             );
             expect(stateVariables["/g2a/P2"].stateValues.xs).eqls([1, 2]);
             expect(stateVariables["/g2a/v2"].stateValues.displacement).eqls([
@@ -2634,15 +2634,15 @@ describe("Copy Tag Tests", function () {
 
             expect(stateVariables["/g3"].activeChildren.length).eq(1);
             expect(stateVariables["/g3"].activeChildren[0].componentName).eq(
-                "/g3/P3"
+                "/g3/P3",
             );
             expect(stateVariables["/g3/P3"].stateValues.xs).eqls([1, 2]);
             expect(stateVariables["/g3a"].activeChildren.length).eq(2);
             expect(stateVariables["/g3a"].activeChildren[0].componentName).eq(
-                "/g3a/P3"
+                "/g3a/P3",
             );
             expect(stateVariables["/g3a"].activeChildren[1].componentName).eq(
-                "/g3a/v3"
+                "/g3a/v3",
             );
             expect(stateVariables["/g3a/P3"].stateValues.xs).eqls([1, 2]);
             expect(stateVariables["/g3a/v3"].stateValues.displacement).eqls([
@@ -2666,15 +2666,15 @@ describe("Copy Tag Tests", function () {
 
             expect(stateVariables["/g4"].activeChildren.length).eq(1);
             expect(stateVariables["/g4"].activeChildren[0].componentName).eq(
-                "/g4/P4"
+                "/g4/P4",
             );
             expect(stateVariables["/g4/P4"].stateValues.xs).eqls([1, 2]);
             expect(stateVariables["/g4a"].activeChildren.length).eq(2);
             expect(stateVariables["/g4a"].activeChildren[0].componentName).eq(
-                "/g4a/P4"
+                "/g4a/P4",
             );
             expect(stateVariables["/g4a"].activeChildren[1].componentName).eq(
-                "/v4"
+                "/v4",
             );
             expect(stateVariables["/g4a/P4"].stateValues.xs).eqls([1, 2]);
             expect(stateVariables["/v4"].stateValues.displacement).eqls([4, 5]);
@@ -2749,7 +2749,7 @@ describe("Copy Tag Tests", function () {
 
         cy.get(cesc2("#/v4displacement") + " .mjx-mrow").should(
             "contain.text",
-            "(7,2)"
+            "(7,2)",
         );
 
         cy.get(cesc2("#/P1coords") + " .mjx-mrow")
@@ -2893,7 +2893,7 @@ describe("Copy Tag Tests", function () {
 
         cy.get(cesc2("#/P4coords") + " .mjx-mrow").should(
             "contain.text",
-            "(7,6)"
+            "(7,6)",
         );
 
         cy.get(cesc2("#/P1coords") + " .mjx-mrow")
@@ -3061,7 +3061,7 @@ describe("Copy Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3278,7 +3278,7 @@ describe("Copy Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3478,14 +3478,14 @@ describe("Copy Tag Tests", function () {
             expect(stateVariables["/grp2/v"].stateValues.displacement).eqls(v);
             expect(stateVariables["/grp2/g3/P"].stateValues.xs).eqls(P);
             expect(stateVariables["/grp2/g3/v"].stateValues.displacement).eqls(
-                v
+                v,
             );
             expect(stateVariables["/grp2/g3/c"].stateValues.center).eqls(P);
             expect(stateVariables["/grp2/g3/l"].stateValues.endpoints[0]).eqls(
-                P
+                P,
             );
             expect(stateVariables["/grp2/g3/l"].stateValues.endpoints[1]).eqls(
-                vH
+                vH,
             );
             expect(stateVariables["/grp2/g4/P"].stateValues.xs).eqls(P);
             expect(stateVariables["/grp2/g5/P"].stateValues.xs).eqls(P);
@@ -3500,14 +3500,14 @@ describe("Copy Tag Tests", function () {
             expect(stateVariables["/grp3/v"].stateValues.displacement).eqls(v);
             expect(stateVariables["/grp3/g3/P"].stateValues.xs).eqls(P);
             expect(stateVariables["/grp3/g3/v"].stateValues.displacement).eqls(
-                v
+                v,
             );
             expect(stateVariables["/grp3/g3/c"].stateValues.center).eqls(P);
             expect(stateVariables["/grp3/g3/l"].stateValues.endpoints[0]).eqls(
-                P
+                P,
             );
             expect(stateVariables["/grp3/g3/l"].stateValues.endpoints[1]).eqls(
-                vH
+                vH,
             );
             expect(stateVariables["/grp3/g4/P"].stateValues.xs).eqls(P);
             expect(stateVariables["/grp3/g5/P"].stateValues.xs).eqls(P);
@@ -3516,43 +3516,43 @@ describe("Copy Tag Tests", function () {
             expect(stateVariables["/grp3/grp2/g/P"].stateValues.xs).eqls(P);
             expect(stateVariables["/grp3/grp2/g2/P"].stateValues.xs).eqls(P);
             expect(
-                stateVariables["/grp3/grp2/v"].stateValues.displacement
+                stateVariables["/grp3/grp2/v"].stateValues.displacement,
             ).eqls(v);
             expect(stateVariables["/grp3/grp2/g3/P"].stateValues.xs).eqls(P);
             expect(
-                stateVariables["/grp3/grp2/g3/v"].stateValues.displacement
+                stateVariables["/grp3/grp2/g3/v"].stateValues.displacement,
             ).eqls(v);
             expect(stateVariables["/grp3/grp2/g3/c"].stateValues.center).eqls(
-                P
+                P,
             );
             expect(
-                stateVariables["/grp3/grp2/g3/l"].stateValues.endpoints[0]
+                stateVariables["/grp3/grp2/g3/l"].stateValues.endpoints[0],
             ).eqls(P);
             expect(
-                stateVariables["/grp3/grp2/g3/l"].stateValues.endpoints[1]
+                stateVariables["/grp3/grp2/g3/l"].stateValues.endpoints[1],
             ).eqls(vH);
             expect(stateVariables["/grp3/grp2/g4/P"].stateValues.xs).eqls(P);
             expect(stateVariables["/grp3/grp2/g5/P"].stateValues.xs).eqls(P);
             expect(stateVariables["/grp3/grp2/g5/c"].stateValues.center).eqls(
-                c0
+                c0,
             );
             expect(stateVariables["/grp3/grp2/g6/P"].stateValues.xs).eqls(P);
             expect(stateVariables["/grp3/grp2/g6/c"].stateValues.center).eqls(
-                c0
+                c0,
             );
             expect(
-                stateVariables["/grp3/grp2/l"].stateValues.endpoints[0]
+                stateVariables["/grp3/grp2/l"].stateValues.endpoints[0],
             ).eqls(c0);
             expect(
-                stateVariables["/grp3/grp2/l"].stateValues.endpoints[1]
+                stateVariables["/grp3/grp2/l"].stateValues.endpoints[1],
             ).eqls(P);
             expect(stateVariables["/grp3/g7/P"].stateValues.xs).eqls(P);
             expect(stateVariables["/grp3/g7/c"].stateValues.center).eqls(c0);
             expect(stateVariables["/grp3/g7/l"].stateValues.endpoints[0]).eqls(
-                c0
+                c0,
             );
             expect(stateVariables["/grp3/g7/l"].stateValues.endpoints[1]).eqls(
-                P
+                P,
             );
             expect(stateVariables["/grp3/g7/v"].stateValues.head).eqls(vH);
             expect(stateVariables["/grp3/g7/v"].stateValues.tail).eqls(c0);
@@ -3586,7 +3586,7 @@ describe("Copy Tag Tests", function () {
 
         cy.get(cesc2("#/grp3ps/grp2ps/v7tail") + " .mjx-mrow").should(
             "contain.text",
-            "(" + c0 + ")"
+            "(" + c0 + ")",
         );
 
         cy.get(cesc2("#/P1coords") + " .mjx-mrow")
@@ -3777,14 +3777,14 @@ describe("Copy Tag Tests", function () {
             expect(stateVariables["/grp2/v"].stateValues.displacement).eqls(v);
             expect(stateVariables["/grp2/g3/P"].stateValues.xs).eqls(P);
             expect(stateVariables["/grp2/g3/v"].stateValues.displacement).eqls(
-                v
+                v,
             );
             expect(stateVariables["/grp2/g3/c"].stateValues.center).eqls(P);
             expect(stateVariables["/grp2/g3/l"].stateValues.endpoints[0]).eqls(
-                P
+                P,
             );
             expect(stateVariables["/grp2/g3/l"].stateValues.endpoints[1]).eqls(
-                vH
+                vH,
             );
             expect(stateVariables["/grp2/g4/P"].stateValues.xs).eqls(P);
             expect(stateVariables["/grp2/g5/P"].stateValues.xs).eqls(P);
@@ -3799,14 +3799,14 @@ describe("Copy Tag Tests", function () {
             expect(stateVariables["/grp3/v"].stateValues.displacement).eqls(v);
             expect(stateVariables["/grp3/g3/P"].stateValues.xs).eqls(P);
             expect(stateVariables["/grp3/g3/v"].stateValues.displacement).eqls(
-                v
+                v,
             );
             expect(stateVariables["/grp3/g3/c"].stateValues.center).eqls(P);
             expect(stateVariables["/grp3/g3/l"].stateValues.endpoints[0]).eqls(
-                P
+                P,
             );
             expect(stateVariables["/grp3/g3/l"].stateValues.endpoints[1]).eqls(
-                vH
+                vH,
             );
             expect(stateVariables["/grp3/g4/P"].stateValues.xs).eqls(P);
             expect(stateVariables["/grp3/g5/P"].stateValues.xs).eqls(P);
@@ -3815,43 +3815,43 @@ describe("Copy Tag Tests", function () {
             expect(stateVariables["/grp3/grp2/g/P"].stateValues.xs).eqls(P);
             expect(stateVariables["/grp3/grp2/g2/P"].stateValues.xs).eqls(P);
             expect(
-                stateVariables["/grp3/grp2/v"].stateValues.displacement
+                stateVariables["/grp3/grp2/v"].stateValues.displacement,
             ).eqls(v);
             expect(stateVariables["/grp3/grp2/g3/P"].stateValues.xs).eqls(P);
             expect(
-                stateVariables["/grp3/grp2/g3/v"].stateValues.displacement
+                stateVariables["/grp3/grp2/g3/v"].stateValues.displacement,
             ).eqls(v);
             expect(stateVariables["/grp3/grp2/g3/c"].stateValues.center).eqls(
-                P
+                P,
             );
             expect(
-                stateVariables["/grp3/grp2/g3/l"].stateValues.endpoints[0]
+                stateVariables["/grp3/grp2/g3/l"].stateValues.endpoints[0],
             ).eqls(P);
             expect(
-                stateVariables["/grp3/grp2/g3/l"].stateValues.endpoints[1]
+                stateVariables["/grp3/grp2/g3/l"].stateValues.endpoints[1],
             ).eqls(vH);
             expect(stateVariables["/grp3/grp2/g4/P"].stateValues.xs).eqls(P);
             expect(stateVariables["/grp3/grp2/g5/P"].stateValues.xs).eqls(P);
             expect(stateVariables["/grp3/grp2/g5/c"].stateValues.center).eqls(
-                c0
+                c0,
             );
             expect(stateVariables["/grp3/grp2/g6/P"].stateValues.xs).eqls(P);
             expect(stateVariables["/grp3/grp2/g6/c"].stateValues.center).eqls(
-                c0
+                c0,
             );
             expect(
-                stateVariables["/grp3/grp2/l"].stateValues.endpoints[0]
+                stateVariables["/grp3/grp2/l"].stateValues.endpoints[0],
             ).eqls(c0);
             expect(
-                stateVariables["/grp3/grp2/l"].stateValues.endpoints[1]
+                stateVariables["/grp3/grp2/l"].stateValues.endpoints[1],
             ).eqls(P);
             expect(stateVariables["/grp3/g7/P"].stateValues.xs).eqls(P);
             expect(stateVariables["/grp3/g7/c"].stateValues.center).eqls(c0);
             expect(stateVariables["/grp3/g7/l"].stateValues.endpoints[0]).eqls(
-                c0
+                c0,
             );
             expect(stateVariables["/grp3/g7/l"].stateValues.endpoints[1]).eqls(
-                P
+                P,
             );
             expect(stateVariables["/grp3/g7/v"].stateValues.head).eqls(vH);
             expect(stateVariables["/grp3/g7/v"].stateValues.tail).eqls(c0);
@@ -3888,7 +3888,7 @@ describe("Copy Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3903,15 +3903,15 @@ describe("Copy Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/g1"].activeChildren.length).eq(1);
             expect(stateVariables["/g1"].activeChildren[0].componentName).eq(
-                "/g1/P"
+                "/g1/P",
             );
             expect(stateVariables["/g1/P"].stateValues.xs).eqls([5, 6]);
             expect(stateVariables["/g2"].activeChildren.length).eq(2);
             expect(stateVariables["/g2"].activeChildren[0].componentName).eq(
-                "/g2/P"
+                "/g2/P",
             );
             expect(stateVariables["/g2"].activeChildren[1].componentName).eq(
-                "/g2/Q"
+                "/g2/Q",
             );
             expect(stateVariables["/g2/P"].stateValues.xs).eqls([5, 6]);
             expect(stateVariables["/g2/Q"].stateValues.xs).eqls([7, 8]);
@@ -3943,15 +3943,15 @@ describe("Copy Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/g1"].activeChildren.length).eq(1);
             expect(stateVariables["/g1"].activeChildren[0].componentName).eq(
-                "/g1/P"
+                "/g1/P",
             );
             expect(stateVariables["/g1/P"].stateValues.xs).eqls([10, 9]);
             expect(stateVariables["/g2"].activeChildren.length).eq(2);
             expect(stateVariables["/g2"].activeChildren[0].componentName).eq(
-                "/g2/P"
+                "/g2/P",
             );
             expect(stateVariables["/g2"].activeChildren[1].componentName).eq(
-                "/g2/Q"
+                "/g2/Q",
             );
             expect(stateVariables["/g2/P"].stateValues.xs).eqls([10, 9]);
             expect(stateVariables["/g2/Q"].stateValues.xs).eqls([8, 4]);
@@ -3974,15 +3974,15 @@ describe("Copy Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/g1"].activeChildren.length).eq(1);
             expect(stateVariables["/g1"].activeChildren[0].componentName).eq(
-                "/g1/P"
+                "/g1/P",
             );
             expect(stateVariables["/g1/P"].stateValues.xs).eqls([3, 4]);
             expect(stateVariables["/g2"].activeChildren.length).eq(2);
             expect(stateVariables["/g2"].activeChildren[0].componentName).eq(
-                "/g2/P"
+                "/g2/P",
             );
             expect(stateVariables["/g2"].activeChildren[1].componentName).eq(
-                "/g2/Q"
+                "/g2/Q",
             );
             expect(stateVariables["/g2/P"].stateValues.xs).eqls([3, 4]);
             expect(stateVariables["/g2/Q"].stateValues.xs).eqls([7, 8]);
@@ -4014,15 +4014,15 @@ describe("Copy Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/g1"].activeChildren.length).eq(1);
             expect(stateVariables["/g1"].activeChildren[0].componentName).eq(
-                "/g1/P"
+                "/g1/P",
             );
             expect(stateVariables["/g1/P"].stateValues.xs).eqls([6, 1]);
             expect(stateVariables["/g2"].activeChildren.length).eq(2);
             expect(stateVariables["/g2"].activeChildren[0].componentName).eq(
-                "/g2/P"
+                "/g2/P",
             );
             expect(stateVariables["/g2"].activeChildren[1].componentName).eq(
-                "/g2/Q"
+                "/g2/Q",
             );
             expect(stateVariables["/g2/P"].stateValues.xs).eqls([6, 1]);
             expect(stateVariables["/g2/Q"].stateValues.xs).eqls([9, 3]);
@@ -4031,7 +4031,7 @@ describe("Copy Tag Tests", function () {
         cy.log("switch back to first option from conditional content");
         cy.get(cesc2("#/n") + " textarea").type(
             "{end}{backspace}{backspace}0{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc2("#/pP") + " .mjx-mrow").should("contain.text", "(5,6)");
@@ -4046,15 +4046,15 @@ describe("Copy Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/g1"].activeChildren.length).eq(1);
             expect(stateVariables["/g1"].activeChildren[0].componentName).eq(
-                "/g1/P"
+                "/g1/P",
             );
             expect(stateVariables["/g1/P"].stateValues.xs).eqls([5, 6]);
             expect(stateVariables["/g2"].activeChildren.length).eq(2);
             expect(stateVariables["/g2"].activeChildren[0].componentName).eq(
-                "/g2/P"
+                "/g2/P",
             );
             expect(stateVariables["/g2"].activeChildren[1].componentName).eq(
-                "/g2/Q"
+                "/g2/Q",
             );
             expect(stateVariables["/g2/P"].stateValues.xs).eqls([5, 6]);
             expect(stateVariables["/g2/Q"].stateValues.xs).eqls([7, 8]);
@@ -4083,7 +4083,7 @@ describe("Copy Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4131,7 +4131,7 @@ describe("Copy Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4179,7 +4179,7 @@ describe("Copy Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4227,7 +4227,7 @@ describe("Copy Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4274,7 +4274,7 @@ describe("Copy Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4317,7 +4317,7 @@ describe("Copy Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4362,7 +4362,7 @@ describe("Copy Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4397,22 +4397,22 @@ describe("Copy Tag Tests", function () {
             expect(stateVariables["/t3"].stateValues.value).eq("hi");
 
             expect(stateVariables["/grp1/_text1"].stateValues.value).eq(
-                "apple"
+                "apple",
             );
             expect(stateVariables["/grp1/_text2"].stateValues.value).eq(
-                "banana"
+                "banana",
             );
             expect(stateVariables["/grp2/_text1"].stateValues.value).eq(
-                "apple"
+                "apple",
             );
             expect(stateVariables["/grp2/_text2"].stateValues.value).eq(
-                "banana"
+                "banana",
             );
             expect(stateVariables["/grp3/_text1"].stateValues.value).eq(
-                "apple"
+                "apple",
             );
             expect(stateVariables["/grp3/_text2"].stateValues.value).eq(
-                "banana"
+                "banana",
             );
 
             expect(stateVariables["/p"].stateValues.xs).eqls([3, 4]);
@@ -4431,7 +4431,7 @@ describe("Copy Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4444,14 +4444,14 @@ describe("Copy Tag Tests", function () {
             expect(stateVariables["/_copy1"]).eq(undefined);
 
             let secondTextComponentName =
-                stateVariables["/_document1"].activeChildren[3].componentName;
+                stateVariables["/_document1"].activeChildren[2].componentName;
             expect(
-                stateVariables[secondTextComponentName].stateValues.value
+                stateVariables[secondTextComponentName].stateValues.value,
             ).eq("hi");
 
             cy.get(cesc2("#" + secondTextComponentName)).should(
                 "have.text",
-                "hi"
+                "hi",
             );
         });
     });
@@ -4473,7 +4473,7 @@ describe("Copy Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4550,7 +4550,7 @@ describe("Copy Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4666,7 +4666,7 @@ describe("Copy Tag Tests", function () {
     <p name="p30">nothing: <copy source="P.xs[3]" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4819,7 +4819,7 @@ describe("Copy Tag Tests", function () {
     
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4935,7 +4935,7 @@ describe("Copy Tag Tests", function () {
 
         cy.get(cesc2("#/p29")).should(
             "have.text",
-            "\\left( \\frac{2}{3}, 3 \\right), \\left( 5, 6 \\right)"
+            "\\left( \\frac{2}{3}, 3 \\right), \\left( 5, 6 \\right)",
         );
         cy.get(cesc2("#/p30")).should("have.text", "\\frac{2}{3}, 5");
         cy.get(cesc2("#/p31")).should("have.text", "3, 6");
@@ -4946,7 +4946,7 @@ describe("Copy Tag Tests", function () {
 
         cy.get(cesc2("#/p36")).should(
             "have.text",
-            "\\left( \\frac{2}{3}, 3 \\right)"
+            "\\left( \\frac{2}{3}, 3 \\right)",
         );
         cy.get(cesc2("#/p37")).should("have.text", "\\frac{2}{3}");
         cy.get(cesc2("#/p38")).should("have.text", "3");
@@ -4987,7 +4987,7 @@ describe("Copy Tag Tests", function () {
 
         cy.get(cesc2("#/p29")).should(
             "have.text",
-            "\\left( 7, 8 \\right), \\left( 9, 0 \\right)"
+            "\\left( 7, 8 \\right), \\left( 9, 0 \\right)",
         );
 
         cy.get(cesc2("#/p1") + " .mjx-mrow")
@@ -5099,7 +5099,7 @@ describe("Copy Tag Tests", function () {
 
         cy.get(cesc2("#/p29")).should(
             "have.text",
-            "\\left( 7, 8 \\right), \\left( 9, 0 \\right)"
+            "\\left( 7, 8 \\right), \\left( 9, 0 \\right)",
         );
         cy.get(cesc2("#/p30")).should("have.text", "7, 9");
         cy.get(cesc2("#/p31")).should("have.text", "8, 0");
@@ -5202,7 +5202,7 @@ describe("Copy Tag Tests", function () {
     <p name="p50"><copy source="l.points[3][1]" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5318,7 +5318,7 @@ describe("Copy Tag Tests", function () {
 
         cy.get(cesc2("#/p29")).should(
             "have.text",
-            "\\left( \\frac{2}{3}, 3 \\right), \\left( 5, 6 \\right)"
+            "\\left( \\frac{2}{3}, 3 \\right), \\left( 5, 6 \\right)",
         );
         cy.get(cesc2("#/p30")).should("have.text", "\\frac{2}{3}, 5");
         cy.get(cesc2("#/p31")).should("have.text", "3, 6");
@@ -5329,7 +5329,7 @@ describe("Copy Tag Tests", function () {
 
         cy.get(cesc2("#/p36")).should(
             "have.text",
-            "\\left( \\frac{2}{3}, 3 \\right)"
+            "\\left( \\frac{2}{3}, 3 \\right)",
         );
         cy.get(cesc2("#/p37")).should("have.text", "\\frac{2}{3}");
         cy.get(cesc2("#/p38")).should("have.text", "3");
@@ -5370,7 +5370,7 @@ describe("Copy Tag Tests", function () {
 
         cy.get(cesc2("#/p29")).should(
             "have.text",
-            "\\left( 7, 8 \\right), \\left( 9, 0 \\right)"
+            "\\left( 7, 8 \\right), \\left( 9, 0 \\right)",
         );
 
         cy.get(cesc2("#/p1") + " .mjx-mrow")
@@ -5482,7 +5482,7 @@ describe("Copy Tag Tests", function () {
 
         cy.get(cesc2("#/p29")).should(
             "have.text",
-            "\\left( 7, 8 \\right), \\left( 9, 0 \\right)"
+            "\\left( 7, 8 \\right), \\left( 9, 0 \\right)",
         );
         cy.get(cesc2("#/p30")).should("have.text", "7, 9");
         cy.get(cesc2("#/p31")).should("have.text", "8, 0");
@@ -5573,7 +5573,7 @@ describe("Copy Tag Tests", function () {
     
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5747,7 +5747,7 @@ describe("Copy Tag Tests", function () {
 
         cy.get(cesc2("#/p36")).should(
             "have.text",
-            "0 = -23.1058 x - 3.0203 y + 120.4105"
+            "0 = -23.1058 x - 3.0203 y + 120.4105",
         );
         cy.get(cesc2("#/p37") + " .mjx-mrow")
             .eq(0)
@@ -5784,7 +5784,7 @@ describe("Copy Tag Tests", function () {
     
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5905,7 +5905,7 @@ describe("Copy Tag Tests", function () {
     <p name="p50"><number copysource="l.points[3][1]" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5963,30 +5963,30 @@ describe("Copy Tag Tests", function () {
 
         cy.get(cesc2("#/p29")).should(
             "have.text",
-            "\\left( \\frac{2}{3}, \\frac{3}{4} \\right), \\left( \\frac{5}{8}, \\frac{3}{5} \\right)"
+            "\\left( \\frac{2}{3}, \\frac{3}{4} \\right), \\left( \\frac{5}{8}, \\frac{3}{5} \\right)",
         );
         cy.get(cesc2("#/p30")).should(
             "have.text",
-            "\\frac{2}{3}, \\frac{5}{8}"
+            "\\frac{2}{3}, \\frac{5}{8}",
         );
         cy.get(cesc2("#/p31")).should(
             "have.text",
-            "\\frac{3}{4}, \\frac{3}{5}"
+            "\\frac{3}{4}, \\frac{3}{5}",
         );
         cy.get(cesc2("#/p32")).should("have.text", ", ");
         cy.get(cesc2("#/p33")).should(
             "have.text",
-            "\\frac{2}{3}, \\frac{5}{8}"
+            "\\frac{2}{3}, \\frac{5}{8}",
         );
         cy.get(cesc2("#/p34")).should(
             "have.text",
-            "\\frac{3}{4}, \\frac{3}{5}"
+            "\\frac{3}{4}, \\frac{3}{5}",
         );
         cy.get(cesc2("#/p35")).should("have.text", ", ");
 
         cy.get(cesc2("#/p36")).should(
             "have.text",
-            "\\left( \\frac{2}{3}, \\frac{3}{4} \\right)"
+            "\\left( \\frac{2}{3}, \\frac{3}{4} \\right)",
         );
         cy.get(cesc2("#/p37")).should("have.text", "\\frac{2}{3}");
         cy.get(cesc2("#/p38")).should("have.text", "\\frac{3}{4}");
@@ -6019,7 +6019,7 @@ describe("Copy Tag Tests", function () {
 
         cy.get(cesc2("#/p29")).should(
             "have.text",
-            "\\left( 7, 8 \\right), \\left( 9, 0 \\right)"
+            "\\left( 7, 8 \\right), \\left( 9, 0 \\right)",
         );
 
         cy.get(cesc2("#/p1") + " .mjx-mrow")
@@ -6073,7 +6073,7 @@ describe("Copy Tag Tests", function () {
 
         cy.get(cesc2("#/p29")).should(
             "have.text",
-            "\\left( 7, 8 \\right), \\left( 9, 0 \\right)"
+            "\\left( 7, 8 \\right), \\left( 9, 0 \\right)",
         );
         cy.get(cesc2("#/p30")).should("have.text", "7, 9");
         cy.get(cesc2("#/p31")).should("have.text", "8, 0");
@@ -6127,7 +6127,7 @@ describe("Copy Tag Tests", function () {
     
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6248,7 +6248,7 @@ describe("Copy Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6266,24 +6266,24 @@ describe("Copy Tag Tests", function () {
                 cy.get(cesc("#\\/pt")).should("contain.text", "are:  and .");
                 cy.get(cesc("#\\/pp")).should(
                     "contain.text",
-                    " from the line in that template is: ."
+                    " from the line in that template is: .",
                 );
                 cy.get(cesc("#\\/pc")).should(
                     "contain.text",
-                    "from that point is ."
+                    "from that point is .",
                 );
                 cy.get(cesc("#\\/pc2")).should(
                     "contain.text",
-                    "from that point is ."
+                    "from that point is .",
                 );
             } else {
                 cy.get(cesc("#\\/pt") + " .mjx-mrow").should(
                     "contain.text",
-                    `(${Pxs[tn - 1]},${Pys[tn - 1]})`
+                    `(${Pxs[tn - 1]},${Pys[tn - 1]})`,
                 );
                 cy.get(cesc("#\\/pt") + " .mjx-mrow").should(
                     "contain.text",
-                    `(${Qxs[tn - 1]},${Qys[tn - 1]})`
+                    `(${Qxs[tn - 1]},${Qys[tn - 1]})`,
                 );
                 cy.get(cesc("#\\/pt") + " .mjx-mrow")
                     .eq(1)
@@ -6295,7 +6295,7 @@ describe("Copy Tag Tests", function () {
                 if (pn === 1) {
                     cy.get(cesc("#\\/pp") + " .mjx-mrow").should(
                         "contain.text",
-                        `(${Pxs[tn - 1]},${Pys[tn - 1]})`
+                        `(${Pxs[tn - 1]},${Pys[tn - 1]})`,
                     );
                     cy.get(cesc("#\\/pp") + " .mjx-mrow")
                         .eq(1)
@@ -6303,11 +6303,11 @@ describe("Copy Tag Tests", function () {
                     if (cn === 1) {
                         cy.get(cesc("#\\/pc") + " .mjx-mrow").should(
                             "contain.text",
-                            `${Pxs[tn - 1]}`
+                            `${Pxs[tn - 1]}`,
                         );
                         cy.get(cesc("#\\/pc2") + " .mjx-mrow").should(
                             "contain.text",
-                            `${Pxs[tn - 1]}`
+                            `${Pxs[tn - 1]}`,
                         );
                         cy.get(cesc("#\\/pc") + " .mjx-mrow")
                             .eq(1)
@@ -6318,11 +6318,11 @@ describe("Copy Tag Tests", function () {
                     } else if (cn === 2) {
                         cy.get(cesc("#\\/pc") + " .mjx-mrow").should(
                             "contain.text",
-                            `${Pys[tn - 1]}`
+                            `${Pys[tn - 1]}`,
                         );
                         cy.get(cesc("#\\/pc2") + " .mjx-mrow").should(
                             "contain.text",
-                            `${Pys[tn - 1]}`
+                            `${Pys[tn - 1]}`,
                         );
                         cy.get(cesc("#\\/pc") + " .mjx-mrow")
                             .eq(1)
@@ -6333,17 +6333,17 @@ describe("Copy Tag Tests", function () {
                     } else {
                         cy.get(cesc("#\\/pc")).should(
                             "contain.text",
-                            "from that point is ."
+                            "from that point is .",
                         );
                         cy.get(cesc("#\\/pc2")).should(
                             "contain.text",
-                            "from that point is ."
+                            "from that point is .",
                         );
                     }
                 } else if (pn === 2) {
                     cy.get(cesc("#\\/pp") + " .mjx-mrow").should(
                         "contain.text",
-                        `(${Qxs[tn - 1]},${Qys[tn - 1]})`
+                        `(${Qxs[tn - 1]},${Qys[tn - 1]})`,
                     );
                     cy.get(cesc("#\\/pp") + " .mjx-mrow")
                         .eq(1)
@@ -6351,11 +6351,11 @@ describe("Copy Tag Tests", function () {
                     if (cn === 1) {
                         cy.get(cesc("#\\/pc") + " .mjx-mrow").should(
                             "contain.text",
-                            `${Qxs[tn - 1]}`
+                            `${Qxs[tn - 1]}`,
                         );
                         cy.get(cesc("#\\/pc2") + " .mjx-mrow").should(
                             "contain.text",
-                            `${Qxs[tn - 1]}`
+                            `${Qxs[tn - 1]}`,
                         );
                         cy.get(cesc("#\\/pc") + " .mjx-mrow")
                             .eq(1)
@@ -6366,11 +6366,11 @@ describe("Copy Tag Tests", function () {
                     } else if (cn === 2) {
                         cy.get(cesc("#\\/pc") + " .mjx-mrow").should(
                             "contain.text",
-                            `${Qys[tn - 1]}`
+                            `${Qys[tn - 1]}`,
                         );
                         cy.get(cesc("#\\/pc2") + " .mjx-mrow").should(
                             "contain.text",
-                            `${Qys[tn - 1]}`
+                            `${Qys[tn - 1]}`,
                         );
                         cy.get(cesc("#\\/pc") + " .mjx-mrow")
                             .eq(1)
@@ -6381,25 +6381,25 @@ describe("Copy Tag Tests", function () {
                     } else {
                         cy.get(cesc("#\\/pc")).should(
                             "contain.text",
-                            "from that point is ."
+                            "from that point is .",
                         );
                         cy.get(cesc("#\\/pc2")).should(
                             "contain.text",
-                            "from that point is ."
+                            "from that point is .",
                         );
                     }
                 } else {
                     cy.get(cesc("#\\/pp")).should(
                         "contain.text",
-                        " from the line in that template is: ."
+                        " from the line in that template is: .",
                     );
                     cy.get(cesc("#\\/pc")).should(
                         "contain.text",
-                        "from that point is ."
+                        "from that point is .",
                     );
                     cy.get(cesc("#\\/pc2")).should(
                         "contain.text",
-                        "from that point is ."
+                        "from that point is .",
                     );
                 }
             }
@@ -6490,7 +6490,7 @@ describe("Copy Tag Tests", function () {
     <p name="p14">Prop x from group: $grp.x</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6525,7 +6525,7 @@ describe("Copy Tag Tests", function () {
         cy.get(cesc2("#/p12")).should("have.text", "nothing: ");
         cy.get(cesc2("#/p13")).should(
             "have.text",
-            "Prop fixed from group: false, true, false, false, false"
+            "Prop fixed from group: false, true, false, false, false",
         );
         cy.get(cesc2("#/p14")).should("contain.text", "Prop x from group: x");
         cy.get(cesc2("#/p14")).should("contain.text", "x, 4");
@@ -6554,7 +6554,7 @@ describe("Copy Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6665,7 +6665,7 @@ describe("Copy Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6725,44 +6725,44 @@ describe("Copy Tag Tests", function () {
             expect(stateVariables["/mimplicit2"].activeChildren.length).eq(0);
             expect(stateVariables["/mimplicit3"].activeChildren.length).eq(0);
             expect(stateVariables["/mnotimplicit1"].activeChildren.length).eq(
-                2
+                2,
             );
             expect(stateVariables["/mnotimplicit2"].activeChildren.length).eq(
-                2
+                2,
             );
             expect(stateVariables["/mnotimplicit3"].activeChildren.length).eq(
-                2
+                2,
             );
             expect(stateVariables["/mnotimplicit4"].activeChildren.length).eq(
-                2
+                2,
             );
             expect(stateVariables["/mnotimplicit5"].activeChildren.length).eq(
-                2
+                2,
             );
             expect(stateVariables["/mnotimplicit6"].activeChildren.length).eq(
-                2
+                2,
             );
             expect(stateVariables["/msubimplicit1"].activeChildren.length).eq(
-                0
+                0,
             );
             expect(stateVariables["/msubimplicit2"].activeChildren.length).eq(
-                0
+                0,
             );
             expect(stateVariables["/msubimplicit3"].activeChildren.length).eq(
-                0
+                0,
             );
 
             expect(stateVariables["/nnotimplicit1"].activeChildren.length).eq(
-                2
+                2,
             );
             expect(stateVariables["/nnotimplicit2"].activeChildren.length).eq(
-                2
+                2,
             );
             expect(stateVariables["/nsubimplicit1"].activeChildren.length).eq(
-                0
+                0,
             );
             expect(stateVariables["/nsubimplicit2"].activeChildren.length).eq(
-                0
+                0,
             );
         });
     });
@@ -6805,7 +6805,7 @@ describe("Copy Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6865,44 +6865,44 @@ describe("Copy Tag Tests", function () {
             expect(stateVariables["/mimplicit2"].activeChildren.length).eq(0);
             expect(stateVariables["/mimplicit3"].activeChildren.length).eq(0);
             expect(stateVariables["/mnotimplicit1"].activeChildren.length).eq(
-                2
+                2,
             );
             expect(stateVariables["/mnotimplicit2"].activeChildren.length).eq(
-                2
+                2,
             );
             expect(stateVariables["/mnotimplicit3"].activeChildren.length).eq(
-                2
+                2,
             );
             expect(stateVariables["/mnotimplicit4"].activeChildren.length).eq(
-                2
+                2,
             );
             expect(stateVariables["/mnotimplicit5"].activeChildren.length).eq(
-                2
+                2,
             );
             expect(stateVariables["/mnotimplicit6"].activeChildren.length).eq(
-                2
+                2,
             );
             expect(stateVariables["/msubimplicit1"].activeChildren.length).eq(
-                0
+                0,
             );
             expect(stateVariables["/msubimplicit2"].activeChildren.length).eq(
-                0
+                0,
             );
             expect(stateVariables["/msubimplicit3"].activeChildren.length).eq(
-                0
+                0,
             );
 
             expect(stateVariables["/nnotimplicit1"].activeChildren.length).eq(
-                2
+                2,
             );
             expect(stateVariables["/nnotimplicit2"].activeChildren.length).eq(
-                2
+                2,
             );
             expect(stateVariables["/nsubimplicit1"].activeChildren.length).eq(
-                0
+                0,
             );
             expect(stateVariables["/nsubimplicit2"].activeChildren.length).eq(
-                0
+                0,
             );
         });
     });
@@ -6930,7 +6930,7 @@ describe("Copy Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -7027,7 +7027,7 @@ describe("Copy Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -7102,16 +7102,16 @@ describe("Copy Tag Tests", function () {
             expect(stateVariables[copymi1Name].componentType).eq("mathInput");
             expect(stateVariables[copymi2Name].componentType).eq("mathInput");
             expect(stateVariables[macroIndmi1Name].componentType).eq(
-                "mathInput"
+                "mathInput",
             );
             expect(stateVariables[macroIndmi2Name].componentType).eq(
-                "mathInput"
+                "mathInput",
             );
             expect(stateVariables[copyIndmi1Name].componentType).eq(
-                "mathInput"
+                "mathInput",
             );
             expect(stateVariables[copyIndmi2Name].componentType).eq(
-                "mathInput"
+                "mathInput",
             );
             expect(stateVariables[macroSubnamem1Name].componentType).eq("math");
             expect(stateVariables[macroSubnamem2Name].componentType).eq("math");
@@ -7126,10 +7126,10 @@ describe("Copy Tag Tests", function () {
             expect(stateVariables[copyIndmi1Name].stateValues.value).eq("x");
             expect(stateVariables[copyIndmi2Name].stateValues.value).eq("y");
             expect(stateVariables[macroSubnamem1Name].stateValues.value).eq(
-                "x"
+                "x",
             );
             expect(stateVariables[macroSubnamem2Name].stateValues.value).eq(
-                "y"
+                "y",
             );
             expect(stateVariables[copySubnamem1Name].stateValues.value).eq("x");
             expect(stateVariables[copySubnamem2Name].stateValues.value).eq("y");
@@ -7148,7 +7148,7 @@ describe("Copy Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -7157,20 +7157,20 @@ describe("Copy Tag Tests", function () {
 
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "\uff3f"
+            "\uff3f",
         );
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
             let mi3Anchor = cesc2(
-                "#" + stateVariables["/_p2"].activeChildren[0].componentName
+                "#" + stateVariables["/_p2"].activeChildren[0].componentName,
             );
             let m2Anchor = cesc2(
-                "#" + stateVariables["/_p2"].activeChildren[2].componentName
+                "#" + stateVariables["/_p2"].activeChildren[2].componentName,
             );
             let m3Anchor = cesc2(
-                "#" + stateVariables["/_p2"].activeChildren[4].componentName
+                "#" + stateVariables["/_p2"].activeChildren[4].componentName,
             );
 
             cy.get(m2Anchor + " .mjx-mrow").should("contain.text", "\uff3f");
@@ -7181,13 +7181,13 @@ describe("Copy Tag Tests", function () {
 
             cy.get(cesc("#\\/_mathinput2") + " .mq-editable-field").should(
                 "have.text",
-                "x"
+                "x",
             );
             cy.get(mi3Anchor + " .mq-editable-field").should("have.text", "x");
 
             cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
                 "contain.text",
-                "\uff3f"
+                "\uff3f",
             );
             cy.get(m2Anchor + " .mjx-mrow").should("contain.text", "\uff3f");
             cy.get(m3Anchor + " .mjx-mrow").should("contain.text", "\uff3f");
@@ -7197,7 +7197,7 @@ describe("Copy Tag Tests", function () {
 
             cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
                 "contain.text",
-                "x"
+                "x",
             );
             cy.get(m2Anchor + " .mjx-mrow").should("contain.text", "x");
             cy.get(m3Anchor + " .mjx-mrow").should("contain.text", "x");
@@ -7207,18 +7207,18 @@ describe("Copy Tag Tests", function () {
                 "{end}{backspace}y",
                 {
                     force: true,
-                }
+                },
             );
 
             cy.get(cesc("#\\/mi") + " .mq-editable-field").should(
                 "have.text",
-                "y"
+                "y",
             );
             cy.get(mi3Anchor + " .mq-editable-field").should("have.text", "y");
 
             cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
                 "contain.text",
-                "x"
+                "x",
             );
             cy.get(m2Anchor + " .mjx-mrow").should("contain.text", "x");
             cy.get(m3Anchor + " .mjx-mrow").should("contain.text", "x");
@@ -7228,7 +7228,7 @@ describe("Copy Tag Tests", function () {
 
             cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
                 "contain.text",
-                "y"
+                "y",
             );
             cy.get(m2Anchor + " .mjx-mrow").should("contain.text", "y");
             cy.get(m3Anchor + " .mjx-mrow").should("contain.text", "y");
@@ -7240,16 +7240,16 @@ describe("Copy Tag Tests", function () {
 
             cy.get(cesc("#\\/mi") + " .mq-editable-field").should(
                 "have.text",
-                "z"
+                "z",
             );
             cy.get(cesc("#\\/_mathinput2") + " .mq-editable-field").should(
                 "have.text",
-                "z"
+                "z",
             );
 
             cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
                 "contain.text",
-                "y"
+                "y",
             );
             cy.get(m2Anchor + " .mjx-mrow").should("contain.text", "y");
             cy.get(m3Anchor + " .mjx-mrow").should("contain.text", "y");
@@ -7259,7 +7259,7 @@ describe("Copy Tag Tests", function () {
 
             cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
                 "contain.text",
-                "z"
+                "z",
             );
             cy.get(m2Anchor + " .mjx-mrow").should("contain.text", "z");
             cy.get(m3Anchor + " .mjx-mrow").should("contain.text", "z");
@@ -7285,54 +7285,54 @@ describe("Copy Tag Tests", function () {
     <p name="withcommas2" copySource="withcommas" />
     `,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get(cesc2("#/default")).should(
             "have.text",
-            "Default: yes, no, maybe"
+            "Default: yes, no, maybe",
         );
         cy.get(cesc2("#/nocommas")).should(
             "have.text",
-            "No commas: yesnomaybe"
+            "No commas: yesnomaybe",
         );
         cy.get(cesc2("#/withcommas")).should(
             "have.text",
-            "With commas: yes, no, maybe"
+            "With commas: yes, no, maybe",
         );
         cy.get(cesc2("#/default2")).should(
             "have.text",
-            "Default: yes, no, maybe"
+            "Default: yes, no, maybe",
         );
         cy.get(cesc2("#/nocommas2")).should(
             "have.text",
-            "No commas: yesnomaybe"
+            "No commas: yesnomaybe",
         );
         cy.get(cesc2("#/withcommas2")).should(
             "have.text",
-            "With commas: yes, no, maybe"
+            "With commas: yes, no, maybe",
         );
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/default"].stateValues.text).eq(
-                "Default: yes, no, maybe"
+                "Default: yes, no, maybe",
             );
             expect(stateVariables["/nocommas"].stateValues.text).eq(
-                "No commas: yesnomaybe"
+                "No commas: yesnomaybe",
             );
             expect(stateVariables["/withcommas"].stateValues.text).eq(
-                "With commas: yes, no, maybe"
+                "With commas: yes, no, maybe",
             );
             expect(stateVariables["/default2"].stateValues.text).eq(
-                "Default: yes, no, maybe"
+                "Default: yes, no, maybe",
             );
             expect(stateVariables["/nocommas2"].stateValues.text).eq(
-                "No commas: yesnomaybe"
+                "No commas: yesnomaybe",
             );
             expect(stateVariables["/withcommas2"].stateValues.text).eq(
-                "With commas: yes, no, maybe"
+                "With commas: yes, no, maybe",
             );
         });
     });
@@ -7352,7 +7352,7 @@ describe("Copy Tag Tests", function () {
     <p name="withcommas2" copySource="withcommas" />
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -7366,22 +7366,22 @@ describe("Copy Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/default"].stateValues.text).eq(
-                "Default: 1, 3"
+                "Default: 1, 3",
             );
             expect(stateVariables["/nocommas"].stateValues.text).eq(
-                "No commas: 13"
+                "No commas: 13",
             );
             expect(stateVariables["/withcommas"].stateValues.text).eq(
-                "With commas: 1, 3"
+                "With commas: 1, 3",
             );
             expect(stateVariables["/default2"].stateValues.text).eq(
-                "Default: 1, 3"
+                "Default: 1, 3",
             );
             expect(stateVariables["/nocommas2"].stateValues.text).eq(
-                "No commas: 13"
+                "No commas: 13",
             );
             expect(stateVariables["/withcommas2"].stateValues.text).eq(
-                "With commas: 1, 3"
+                "With commas: 1, 3",
             );
         });
     });
@@ -7402,17 +7402,17 @@ describe("Copy Tag Tests", function () {
     Copy: <aslist name="nocommas2" copySource="nocommas" />
     `,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get(cesc2("#/_document1")).should(
             "contain.text",
-            "Override no commas: yes, no, maybe"
+            "Override no commas: yes, no, maybe",
         );
         cy.get(cesc2("#/_document1")).should(
             "contain.text",
-            "Copy: yes, no, maybe"
+            "Copy: yes, no, maybe",
         );
     });
 
@@ -7458,13 +7458,13 @@ describe("Copy Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get(cesc2("#/_document1")).should(
             "contain.text",
-            "In document: yes, no, maybe"
+            "In document: yes, no, maybe",
         );
         cy.get(cesc2("#/in_alert")).should("have.text", "yes, no, maybe");
         cy.get(cesc2("#/in_blockquote")).should("have.text", "yes, no, maybe");
@@ -7480,12 +7480,12 @@ describe("Copy Tag Tests", function () {
         cy.get(cesc2("#/in_hint_w_title")).click();
         cy.get(cesc2("#/in_hint_w_title")).should(
             "contain.text",
-            "yes, no, maybe"
+            "yes, no, maybe",
         );
         cy.get(cesc2("#/in_hint_wo_title")).click();
         cy.get(cesc2("#/in_hint_wo_title")).should(
             "contain.text",
-            "yes, no, maybe"
+            "yes, no, maybe",
         );
         cy.get(cesc2("#/in_label")).should("have.text", "yes, no, maybe");
         cy.get(cesc2("#/in_li")).should("have.text", "yes, no, maybe");
@@ -7495,15 +7495,15 @@ describe("Copy Tag Tests", function () {
         cy.get(cesc2("#/in_q")).should("have.text", "“yes, no, maybe”");
         cy.get(cesc2("#/in_section_w_title")).should(
             "contain.text",
-            "Title: yes, no, maybe"
+            "Title: yes, no, maybe",
         );
         cy.get(cesc2("#/in_section_w_title")).should(
             "contain.text",
-            "Text: yes, no, maybe"
+            "Text: yes, no, maybe",
         );
         cy.get(cesc2("#/in_section_wo_title")).should(
             "contain.text",
-            "yes, no, maybe"
+            "yes, no, maybe",
         );
         cy.get(cesc2("#/in_solution")).click();
         cy.get(cesc2("#/in_solution")).should("contain.text", "yes, no, maybe");
@@ -7513,37 +7513,37 @@ describe("Copy Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/in_alert"].stateValues.text).eq(
-                "yes, no, maybe"
+                "yes, no, maybe",
             );
             expect(stateVariables["/in_c"].stateValues.text).eq(
-                "yes, no, maybe"
+                "yes, no, maybe",
             );
             expect(stateVariables["/in_caption"].stateValues.text).eq(
-                "yes, no, maybe"
+                "yes, no, maybe",
             );
             expect(stateVariables["/in_cell"].stateValues.text).eq(
-                "yes, no, maybe"
+                "yes, no, maybe",
             );
             expect(stateVariables["/in_choice"].stateValues.text).eq(
-                "yes, no, maybe"
+                "yes, no, maybe",
             );
             expect(stateVariables["/in_em"].stateValues.text).eq(
-                "yes, no, maybe"
+                "yes, no, maybe",
             );
             expect(stateVariables["/in_footnote"].stateValues.text).eq(
-                "yes, no, maybe"
+                "yes, no, maybe",
             );
             expect(stateVariables["/in_label"].stateValues.text).eq(
-                "yes, no, maybe"
+                "yes, no, maybe",
             );
             expect(stateVariables["/in_p"].stateValues.text).eq(
-                "yes, no, maybe"
+                "yes, no, maybe",
             );
             expect(stateVariables["/in_text"].stateValues.text).eq(
-                "yes, no, maybe"
+                "yes, no, maybe",
             );
             expect(stateVariables["/sec_title"].stateValues.text).eq(
-                "Title: yes, no, maybe"
+                "Title: yes, no, maybe",
             );
         });
     });
@@ -7572,7 +7572,7 @@ describe("Copy Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -7595,7 +7595,7 @@ describe("Copy Tag Tests", function () {
         <number copySource="ans.submittedResponse" name="num" />
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -7628,7 +7628,7 @@ describe("Copy Tag Tests", function () {
     <p>piece of copy of copy of copy nn: <text name="cNccNt" copySource="cNccN/t" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -7682,7 +7682,7 @@ describe("Copy Tag Tests", function () {
     <p>piece of copy of copy of copy nn: $(cNccN/t{name="cNccNt"})</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 

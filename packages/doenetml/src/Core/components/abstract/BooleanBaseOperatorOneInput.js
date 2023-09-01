@@ -34,7 +34,7 @@ export default class BooleanOperatorOneInput extends BooleanComponent {
                 return {
                     setValue: {
                         value: constructor.applyBooleanOperator(
-                            dependencyValues.value
+                            dependencyValues.value,
                         ),
                     },
                 };

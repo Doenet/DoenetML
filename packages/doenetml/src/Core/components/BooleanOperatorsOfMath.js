@@ -14,7 +14,7 @@ export class IsInteger extends BooleanBaseOperatorOfMath {
                     }
                     if (values.length !== 1) {
                         console.warn(
-                            "IsInteger requires exactly one math child"
+                            "IsInteger requires exactly one math child",
                         );
                         return null;
                     }
@@ -57,7 +57,7 @@ export class IsNumber extends BooleanBaseOperatorOfMath {
                     }
                     if (values.length !== 1) {
                         console.warn(
-                            "IsNumber requires exactly one math child"
+                            "IsNumber requires exactly one math child",
                         );
                         return null;
                     }
@@ -132,7 +132,7 @@ export class IsBetween extends BooleanBaseOperatorOfMath {
                             }
                             if (values.length !== 1) {
                                 console.warn(
-                                    "IsBetween requires exactly one math child"
+                                    "IsBetween requires exactly one math child",
                                 );
                                 return null;
                             }

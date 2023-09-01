@@ -225,7 +225,7 @@ class Union extends Subset {
                 val instanceof Union
                     ? acc.concat(val.subsets)
                     : acc.concat(val),
-            []
+            [],
         );
 
         this.subsets = [];
@@ -422,7 +422,7 @@ class OpenInterval extends Interval {
     intersectWithOpenInterval(that) {
         return new OpenInterval(
             Math.max(this.left, that.left),
-            Math.min(this.right, that.right)
+            Math.min(this.right, that.right),
         );
     }
 

@@ -124,7 +124,7 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
                             desiredValues.length !== dependencyValues.numSamples
                         ) {
                             throw Error(
-                                "Number of values specified for selectRandomNumber must match number to select"
+                                "Number of values specified for selectRandomNumber must match number to select",
                             );
                         }
 

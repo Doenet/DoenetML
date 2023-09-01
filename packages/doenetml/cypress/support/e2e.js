@@ -56,9 +56,9 @@ const dragTo = (subject, to, opts) => {
                 Object.assign(
                     {},
                     { clientX: coords.x, clientY: coords.y },
-                    { bubbles: true, cancelable: true }
-                )
-            )
+                    { bubbles: true, cancelable: true },
+                ),
+            ),
         );
     };
 
@@ -100,7 +100,7 @@ const dragTo = (subject, to, opts) => {
 
                             return Cypress.Promise.delay(opts.delay);
                         },
-                        { concurrency: 1 }
+                        { concurrency: 1 },
                     );
                 }
             }).then(() => {

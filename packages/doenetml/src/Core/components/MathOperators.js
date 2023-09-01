@@ -257,7 +257,7 @@ function makePeriodic({ value, lowerValue, upperValue }) {
 
     return me.fromAst(
         lowerValue +
-            me.math.mod(numericValue - lowerValue, upperValue - lowerValue)
+            me.math.mod(numericValue - lowerValue, upperValue - lowerValue),
     );
 }
 
@@ -316,11 +316,11 @@ export class Round extends MathBaseOperatorOneInput {
 
                         if (dependencyValues.numDigits !== null) {
                             return valueWithNumbers.round_numbers_to_precision(
-                                dependencyValues.numDigits
+                                dependencyValues.numDigits,
                             );
                         } else {
                             return valueWithNumbers.round_numbers_to_decimals(
-                                dependencyValues.numDecimals
+                                dependencyValues.numDecimals,
                             );
                         }
                     },
@@ -426,8 +426,8 @@ export class ConvertSetToList extends MathBaseOperatorOneInput {
                                     !distinctElements.some((x) =>
                                         value.context.equalsViaSyntax(
                                             value.context.fromAst(x),
-                                            value.context.fromAst(v)
-                                        )
+                                            value.context.fromAst(v),
+                                        ),
                                     )
                                 ) {
                                     distinctElements.push(v);
@@ -714,7 +714,7 @@ export class Variance extends MathBaseOperator {
                     numericOperator: function (inputs) {
                         return calculateNumericVariance(
                             inputs,
-                            dependencyValues.population
+                            dependencyValues.population,
                         );
                     },
                 },
@@ -733,7 +733,7 @@ export class Variance extends MathBaseOperator {
                     mathOperator: function (inputs) {
                         return calculateSymbolicVariance(
                             inputs,
-                            dependencyValues.population
+                            dependencyValues.population,
                         );
                     },
                 },
@@ -798,8 +798,8 @@ export class StandardDeviation extends Variance {
                     return Math.sqrt(
                         calculateNumericVariance(
                             inputs,
-                            dependencyValues.population
-                        )
+                            dependencyValues.population,
+                        ),
                     );
                 },
             },
@@ -815,7 +815,7 @@ export class StandardDeviation extends Variance {
                         "sqrt",
                         calculateSymbolicVariance(
                             inputs,
-                            dependencyValues.population
+                            dependencyValues.population,
                         ).tree,
                     ]);
                 },
@@ -865,7 +865,7 @@ export class Min extends MathBaseOperator {
                     numericOperator: function (inputs) {
                         return inputs.reduce(
                             (a, c) => Math.min(a, c),
-                            Infinity
+                            Infinity,
                         );
                     },
                 },
@@ -958,7 +958,7 @@ export class Max extends MathBaseOperator {
                     numericOperator: function (inputs) {
                         return inputs.reduce(
                             (a, c) => Math.max(a, c),
-                            -Infinity
+                            -Infinity,
                         );
                     },
                 },

@@ -33,7 +33,7 @@ const TextNoSelect = styled.text`
 export default React.memo(function subsetOfReals(props) {
     let { name, id, SVs, actions, callAction } = useDoenetRenderer(
         props,
-        false
+        false,
     );
     let [mode, setMode] = useState("add remove points");
     let bounds = useRef(null);
@@ -128,14 +128,14 @@ export default React.memo(function subsetOfReals(props) {
                 y2="45"
                 style={{ stroke: "black", strokeWidth: "1" }}
                 shapeRendering="geometricPrecision"
-            />
+            />,
         );
         let number = numbers.shift();
 
         labels.push(
             <TextNoSelect key={"label" + x} x={x} y="66" textAnchor="middle">
                 {number}
-            </TextNoSelect>
+            </TextNoSelect>,
         );
     }
 
@@ -163,7 +163,7 @@ export default React.memo(function subsetOfReals(props) {
                 stroke="black"
                 strokeWidth="1"
                 fill={currentFillColor}
-            />
+            />,
         );
     }
 
@@ -195,7 +195,7 @@ export default React.memo(function subsetOfReals(props) {
                         stroke: currentFillColor,
                         strokeWidth: "1",
                     }}
-                />
+                />,
             );
         }
 
@@ -210,7 +210,7 @@ export default React.memo(function subsetOfReals(props) {
                         stroke: currentFillColor,
                         strokeWidth: "1",
                     }}
-                />
+                />,
             );
         }
         storedLines.push(
@@ -221,7 +221,7 @@ export default React.memo(function subsetOfReals(props) {
                 x2={higherLine}
                 y2="40"
                 style={{ stroke: currentFillColor, strokeWidth: "8" }}
-            />
+            />,
         );
     }
 

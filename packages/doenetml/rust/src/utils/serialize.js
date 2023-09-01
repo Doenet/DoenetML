@@ -26,6 +26,6 @@ let nanInfinityReviver = function (key, value) {
 export function serializedComponentsReviver(key, value) {
     return me.reviver(
         key,
-        subsets.Subset.reviver(key, nanInfinityReviver(key, value))
+        subsets.Subset.reviver(key, nanInfinityReviver(key, value)),
     );
 }

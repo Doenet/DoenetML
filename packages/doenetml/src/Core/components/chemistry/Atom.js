@@ -37,7 +37,7 @@ export default class Atom extends InlineComponent {
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions()
+            returnRoundingStateVariableDefinitions(),
         );
 
         let selectedStyleDefinition =
@@ -770,7 +770,7 @@ export default class Atom extends InlineComponent {
                 let orbitalDiagram;
                 if (dependencyValues.electronConfiguration) {
                     orbitalDiagram = electronConfigurationToOrbitalDiagram(
-                        dependencyValues.electronConfiguration
+                        dependencyValues.electronConfiguration,
                     );
                 } else {
                     orbitalDiagram = null;

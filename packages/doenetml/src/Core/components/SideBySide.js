@@ -183,7 +183,7 @@ export class SideBySide extends BlockComponent {
                                     dependencyValues.widthAttr.stateValues.componentSize.size;
                                 thisAbsolute = Boolean(
                                     dependencyValues.widthAttr.stateValues
-                                        .componentSize.isAbsolute
+                                        .componentSize.isAbsolute,
                                 );
                             } else {
                                 allWidthsSpecified[ind] = null;
@@ -199,7 +199,7 @@ export class SideBySide extends BlockComponent {
                                     ].size;
                                 thisAbsolute = Boolean(
                                     dependencyValues.widthsAttr.stateValues
-                                        .componentSizes[ind].isAbsolute
+                                        .componentSizes[ind].isAbsolute,
                                 );
                             } else {
                                 allWidthsSpecified[ind] = null;
@@ -237,7 +237,7 @@ export class SideBySide extends BlockComponent {
 
                 // treat any non-numeric widths as being unspecified
                 allWidthsSpecified = allWidthsSpecified.map((x) =>
-                    Number.isFinite(x) ? x : null
+                    Number.isFinite(x) ? x : null,
                 );
 
                 return {
@@ -363,7 +363,7 @@ export class SideBySide extends BlockComponent {
                         }
                         marginsAbsolute = Boolean(
                             dependencyValues.marginsAttr.stateValues
-                                .componentSizes[0].isAbsolute
+                                .componentSizes[0].isAbsolute,
                         );
                     }
                     allMarginsSpecified = [margin, margin];
@@ -375,7 +375,7 @@ export class SideBySide extends BlockComponent {
                         // two (or more) components of marginsAttr
                         marginsAbsolute = Boolean(
                             dependencyValues.marginsAttr.stateValues
-                                .componentSizes[0].isAbsolute
+                                .componentSizes[0].isAbsolute,
                         );
                     } else {
                         marginsAbsolute = false;
@@ -386,7 +386,7 @@ export class SideBySide extends BlockComponent {
                     ) {
                         secondMarginAbsolute = Boolean(
                             dependencyValues.marginsAttr.stateValues
-                                .componentSizes[1].isAbsolute
+                                .componentSizes[1].isAbsolute,
                         );
                     } else {
                         secondMarginAbsolute = false;
@@ -396,7 +396,7 @@ export class SideBySide extends BlockComponent {
                         dependencyValues.marginsAttr.stateValues.componentSizes
                             .slice(0, 2)
                             .map((x) =>
-                                x && Number.isFinite(x.size) ? x.size : null
+                                x && Number.isFinite(x.size) ? x.size : null,
                             );
                 }
 
@@ -825,7 +825,7 @@ export class SideBySide extends BlockComponent {
                             .componentSize1 &&
                         Number.isFinite(
                             globalDependencyValues.marginsAttr.stateValues
-                                .componentSize1.size
+                                .componentSize1.size,
                         )
                     )
                 ) {
@@ -1055,7 +1055,7 @@ export class SideBySide extends BlockComponent {
                         }
                         if (
                             !["top", "middle", "bottom"].includes(
-                                valigns[arrayKey]
+                                valigns[arrayKey],
                             )
                         ) {
                             valigns[arrayKey] = "top";
@@ -1241,8 +1241,8 @@ export class SbsGroup extends BlockComponent {
                     setValue: {
                         maxNPanelsPerRow: me.math.max(
                             dependencyValues.sideBySideChildren.map(
-                                (x) => x.stateValues.numPanels
-                            )
+                                (x) => x.stateValues.numPanels,
+                            ),
                         ),
                     },
                     checkForActualChange: { maxNPanelsPerRow: true },
@@ -1537,7 +1537,7 @@ export class SbsGroup extends BlockComponent {
                         }
                         absolute = Boolean(
                             globalDependencyValues.marginsAttr.stateValues
-                                .componentSize1.isAbsolute
+                                .componentSize1.isAbsolute,
                         );
                     }
                     for (let arrayKey of arrayKeys) {
@@ -1562,7 +1562,7 @@ export class SbsGroup extends BlockComponent {
                             let absolute = Boolean(
                                 globalDependencyValues.marginsAttr.stateValues[
                                     `componentSize${Number(arrayKey) + 1}`
-                                ].isAbsolute
+                                ].isAbsolute,
                             );
 
                             specifiedMargins[arrayKey] = margin;
@@ -1602,7 +1602,7 @@ export class SbsGroup extends BlockComponent {
                             .componentSize1 &&
                         Number.isFinite(
                             globalDependencyValues.marginsAttr.stateValues
-                                .componentSize1.size
+                                .componentSize1.size,
                         )
                     )
                 ) {
@@ -2146,7 +2146,7 @@ export class SbsGroup extends BlockComponent {
                         }
                         if (
                             !["top", "middle", "bottom"].includes(
-                                valigns[arrayKey]
+                                valigns[arrayKey],
                             )
                         ) {
                             valigns[arrayKey] = "top";

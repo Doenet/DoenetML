@@ -3,7 +3,7 @@ import me from "math-expressions";
 export default function periodicSetEquality(
     expr,
     other,
-    { min_elements_match = 3, match_partial = false } = {}
+    { min_elements_match = 3, match_partial = false } = {},
 ) {
     // expr must be a discrete infinite set
     if (!is_periodic_set(expr)) return false;
@@ -95,7 +95,7 @@ export default function periodicSetEquality(
         }
 
         number_list = number_list.map((x) =>
-            me.fromAst(x).evaluate_to_constant()
+            me.fromAst(x).evaluate_to_constant(),
         );
 
         // use me.math.mod rather than % so it always non-negative
@@ -409,7 +409,7 @@ function sequence_from_discrete_infinite(expr, n_elements) {
                 "+",
                 ["*", period, min_index + i],
                 offset,
-            ])
+            ]),
         );
     }
 

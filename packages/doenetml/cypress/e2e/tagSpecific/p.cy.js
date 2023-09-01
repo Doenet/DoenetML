@@ -15,7 +15,7 @@ describe("P Tag Tests", function () {
   <p>Bye, paragraph 2</p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -33,7 +33,7 @@ describe("P Tag Tests", function () {
   <p>math in paragraph: <math simplify>x+x</math></p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -59,7 +59,7 @@ describe("P Tag Tests", function () {
     <p><text>Hello</text> <math>x</math></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
