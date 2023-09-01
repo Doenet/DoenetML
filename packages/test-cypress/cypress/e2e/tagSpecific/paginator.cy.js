@@ -1,5 +1,5 @@
 import me from "math-expressions";
-import { cesc, cesc2 } from "../../../src/utils/url";
+import { cesc, cesc2 } from "../../../../doenetml/src/utils/url";
 
 describe("Paginator Tag Tests", function () {
     beforeEach(() => {

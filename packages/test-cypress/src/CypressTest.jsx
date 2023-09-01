@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
-import { DoenetML } from "../../DoenetML.jsx";
+import { DoenetML } from "@doenet/doenetml";
 import { useLocation, useNavigate } from "react-router";
-import Button from "../../uiComponents/Button";
+import Button from "./uiComponents/Button";
 
 export function CypressTest() {
     // console.log("===Test")

@@ -1,10 +1,10 @@
 import me from "math-expressions";
-import { cesc } from "../../../src/utils/url";
+import { cesc } from "../../../../doenetml/src/utils/url";
 
 describe("Angle Tag Tests", function () {
     beforeEach(() => {
         cy.clearIndexedDB();
-        cy.visit("/src/Tools/cypressTest/");
+        cy.visit("/");
     });
 
     it("angle determined by three points, 45-45-90 triangle", () => {

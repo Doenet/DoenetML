@@ -13,6 +13,6 @@ export default defineConfig({
             });
         },
 
-        baseUrl: "http://localhost:8012",
+        baseUrl: "http://localhost:4173",
     },
 });
