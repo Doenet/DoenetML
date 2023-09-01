@@ -41,16 +41,27 @@ export default class Latex extends TextComponent {
                     },
                 };
             }
-            let value = "";
+
+            let pieces = [];
             for (let comp of dependencyValues.mathTextLikeChildren) {
                 if (typeof comp === "string") {
-                    value += comp;
+                    let comptrim = comp.trim();
+                    if (comptrim) {
+                        pieces.push(comptrim);
+                    }
                 } else if (comp.stateValues.latex !== undefined) {
-                    value += comp.stateValues.latex;
+                    let latex = comp.stateValues.latex.trim();
+                    if (latex) {
+                        pieces.push(latex);
+                    }
                 } else {
-                    value += comp.stateValues.text;
+                    let text = comp.stateValues.text.trim();
+                    if (text) {
+                        pieces.push(text);
+                    }
                 }
             }
+            let value = pieces.join(" ");
             return { setValue: { value } };
         };
 

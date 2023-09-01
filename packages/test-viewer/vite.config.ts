@@ -21,6 +21,13 @@ export default defineConfig({
                     ),
                     dest: "doenetml-worker/",
                 },
+                {
+                    src: path.join(
+                        require.resolve("@doenet/doenetml"),
+                        "../fonts/*",
+                    ),
+                    dest: "fonts/",
+                },
             ],
         }),
     ],
