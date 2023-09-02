@@ -1,10 +1,10 @@
-import { createFunctionFromDefinition } from "../../../src/Core/utils/function";
-import { cesc } from "../../../src/utils/url";
+import { createFunctionFromDefinition } from "../../../../utils/src/components/function";
+import { cesc } from "../../../../utils/src/url/url";
 
 describe("Parameterized Curve Tag Tests", function () {
     beforeEach(() => {
         cy.clearIndexedDB();
-        cy.visit("/src/Tools/cypressTest/");
+        cy.visit("/");
     });
 
     it("sugar a parameterization in terms of x", () => {
@@ -126,7 +126,7 @@ describe("Parameterized Curve Tag Tests", function () {
             expect(stateVariables["/_curve1"].stateValues.parMin).eq(-10);
             expect(stateVariables["/_curve1"].stateValues.parMax).eq(10);
             expect(stateVariables["/_curve1"].stateValues.label).eq(
-                "\\((5 x^3, 3 x^5)\\)",
+                "\\(( 5 x^ 3 , 3 x^ 5 )\\)",
             );
             let f1 = createFunctionFromDefinition(
                 stateVariables["/_curve1"].stateValues.fDefinitions[0],

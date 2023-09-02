@@ -3,7 +3,7 @@ import {
     convertValueToMathExpression,
     normalizeMathExpression,
     vectorOperators,
-} from "./math";
+} from "../math/mathexpressions";
 import { find_effective_domain } from "./domain";
 
 export function createFunctionFromDefinition(fDefinition) {

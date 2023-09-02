@@ -1,9 +1,9 @@
-import { cesc, cesc2 } from "../../../src/utils/url";
+import { cesc, cesc2 } from "../../../../utils/src/url/url";
 
 describe("Conditional Content Tag Tests", function () {
     beforeEach(() => {
         cy.clearIndexedDB();
-        cy.visit("/src/Tools/cypressTest/");
+        cy.visit("/");
     });
 
     // tests without cases or else

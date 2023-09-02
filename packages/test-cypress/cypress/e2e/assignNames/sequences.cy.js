@@ -1,10 +1,10 @@
 import me from "math-expressions";
-import { cesc } from "../../../src/utils/url";
+import { cesc } from "../../../../utils/src/url/url";
 
 describe("sequence and map assignName Tests", function () {
     beforeEach(() => {
         cy.clearIndexedDB();
-        cy.visit("/src/Tools/cypressTest/");
+        cy.visit("/");
     });
 
     it("assignNames to dynamic copied sequence", () => {

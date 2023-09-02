@@ -1,4 +1,4 @@
-import { cesc, cesc2 } from "../../../src/utils/url";
+import { cesc, cesc2 } from "../../../../utils/src/url/url";
 
 function pointInDOM([m, n]) {
     let str = "(";
@@ -20,7 +20,7 @@ function pointInDOM([m, n]) {
 describe("Curve Tag Bezier Tests", function () {
     beforeEach(() => {
         cy.clearIndexedDB();
-        cy.visit("/src/Tools/cypressTest/");
+        cy.visit("/");
     });
 
     function checkBezierCurve({

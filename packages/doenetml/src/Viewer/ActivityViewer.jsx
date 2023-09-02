@@ -4,7 +4,14 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faExclamationCircle } from "@fortawesome/free-solid-svg-icons";
 import axios from "axios";
 import { get as idb_get, set as idb_set } from "idb-keyval";
-import { cidFromText, retrieveTextFileForCid } from "@doenet/utils";
+import {
+    cidFromText,
+    retrieveTextFileForCid,
+    findAllNewlines,
+    getLineCharRange,
+    printDoenetMLrange,
+    cesc,
+} from "@doenet/utils";
 import { nanoid } from "nanoid";
 import {
     calculateOrderAndVariants,
@@ -16,13 +23,7 @@ import { Button } from "@doenet/ui-components";
 import { ButtonGroup } from "@doenet/ui-components";
 import { ActionButton } from "@doenet/ui-components";
 import { clear as idb_clear } from "idb-keyval";
-import { cesc } from "../utils/url";
 import { returnAllPossibleVariants } from "../Core/utils/returnAllPossibleVariants";
-import {
-    findAllNewlines,
-    getLineCharRange,
-    printDoenetMLrange,
-} from "../Core/utils/logging";
 
 const sendAlert = (msg, type) => console.log(msg);
 

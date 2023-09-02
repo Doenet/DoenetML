@@ -2,7 +2,7 @@ import me from "math-expressions";
 import {
     find_effective_domain,
     find_effective_domains_piecewise_children,
-} from "./domain";
+} from "@doenet/utils";
 import { mathExpressionFromSubsetValue } from "@doenet/utils";
 
 export function find_local_global_minima({

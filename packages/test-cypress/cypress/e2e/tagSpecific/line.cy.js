@@ -1,5 +1,5 @@
 import me from "math-expressions";
-import { cesc, cesc2 } from "../../../src/utils/url";
+import { cesc, cesc2 } from "../../../../utils/src/url/url";
 
 function nInDOM(n) {
     if (n < 0) {
@@ -280,7 +280,7 @@ async function testLineCopiedTwiceBaseOnSlope({
 describe("Line Tag Tests", function () {
     beforeEach(() => {
         cy.clearIndexedDB();
-        cy.visit("/src/Tools/cypressTest/");
+        cy.visit("/");
     });
 
     it("move points copied by line", () => {

@@ -1,9 +1,9 @@
-import { cesc } from "../../../src/utils/url";
+import { cesc } from "../../../../utils/src/url/url";
 
 describe("Point location validation tests", function () {
     beforeEach(() => {
         cy.clearIndexedDB();
-        cy.visit("/src/Tools/cypressTest/");
+        cy.visit("/");
     });
 
     it("point in first quadrant", () => {

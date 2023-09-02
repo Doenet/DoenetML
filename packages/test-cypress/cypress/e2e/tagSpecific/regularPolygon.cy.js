@@ -6,7 +6,7 @@ import {
 describe("Regular Polygon Tag Tests", function () {
     beforeEach(() => {
         cy.clearIndexedDB();
-        cy.visit("/src/Tools/cypressTest/");
+        cy.visit("/");
     });
 
     it("regular polygon with no parameters (gives triangle)", () => {

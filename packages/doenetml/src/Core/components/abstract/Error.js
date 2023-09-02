@@ -1,4 +1,4 @@
-import { printDoenetMLrange } from "../../utils/logging";
+import { printDoenetMLrange } from "@doenet/utils";
 import BlockComponent from "./BlockComponent";
 
 export default class ErrorComponent extends BlockComponent {

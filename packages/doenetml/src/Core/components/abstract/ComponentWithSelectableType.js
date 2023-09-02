@@ -1,6 +1,7 @@
 import BaseComponent from "./BaseComponent";
 import me from "math-expressions";
-import { convertValueToMathExpression, textToAst } from "../../utils/math";
+import { textToAst } from "../../utils/math";
+import { convertValueToMathExpression } from "@doenet/utils";
 import { breakEmbeddedStringsIntoParensPieces } from "../commonsugar/breakstrings";
 import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "../commonsugar/lists";
 

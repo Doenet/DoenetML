@@ -1,14 +1,17 @@
 import Function from "./Function";
-import { subsets, mathExpressionFromSubsetValue } from "@doenet/utils";
+import {
+    subsets,
+    mathExpressionFromSubsetValue,
+    returnPiecewiseNumericalFunctionFromChildren,
+    find_effective_domains_piecewise_children,
+} from "@doenet/utils";
 import me from "math-expressions";
-import { returnPiecewiseNumericalFunctionFromChildren } from "../utils/function";
 import { roundForDisplay } from "../utils/math";
 import { returnRoundingAttributeComponentShadowing } from "../utils/rounding";
 import {
     find_maxima_of_piecewise,
     find_minima_of_piecewise,
 } from "../utils/extrema";
-import { find_effective_domains_piecewise_children } from "../utils/domain";
 
 export default class PiecewiseFunction extends Function {
     static componentType = "piecewiseFunction";

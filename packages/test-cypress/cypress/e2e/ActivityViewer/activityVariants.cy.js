@@ -1,10 +1,10 @@
-import { numberToLetters } from "../../../src/Core/utils/sequence";
-import { cesc, cesc2 } from "../../../src/utils/url";
+import { numberToLetters } from "../../../../utils/src/components/sequence";
+import { cesc, cesc2 } from "../../../../utils/src/url/url";
 
 describe("Activity variants tests", function () {
     beforeEach(() => {
         cy.clearIndexedDB();
-        cy.visit("/src/Tools/cypressTest/");
+        cy.visit("/");
     });
 
     it("Variants from single page, no variant control in page", () => {

@@ -1,10 +1,10 @@
 import me from "math-expressions";
-import { cesc, cesc2 } from "../../../../doenetml/src/utils/url";
+import { cesc, cesc2 } from "../../../../utils/src/url/url";
 
 describe("SelectRandomNumbers Tag Tests", function () {
     beforeEach(() => {
         cy.clearIndexedDB();
-        cy.visit("/src/Tools/cypressTest/");
+        cy.visit("/");
     });
 
     it("no parameters, select single uniform random number from 0 to 1", () => {

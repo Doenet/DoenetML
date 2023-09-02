@@ -1,10 +1,10 @@
 import me from "math-expressions";
-import { cesc, cesc2 } from "../../../src/utils/url";
+import { cesc, cesc2 } from "../../../../utils/src/url/url";
 
 describe("Integer Tag Tests", function () {
     beforeEach(() => {
         cy.clearIndexedDB();
-        cy.visit("/src/Tools/cypressTest/");
+        cy.visit("/");
     });
 
     it("1.2+1.1", () => {

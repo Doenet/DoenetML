@@ -1,9 +1,9 @@
-import { cesc } from "../../../src/utils/url";
+import { cesc } from "../../../../utils/src/url/url";
 
 describe("Graph Reference Test 2", function () {
     beforeEach(() => {
         cy.clearIndexedDB();
-        cy.visit("/src/Tools/cypressTest/");
+        cy.visit("/");
     });
 
     it("graph referenced multiple ways 2", () => {

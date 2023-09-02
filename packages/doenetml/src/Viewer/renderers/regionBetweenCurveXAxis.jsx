@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState, useRef } from "react";
 import useDoenetRenderer from "../useDoenetRenderer";
 import { BoardContext, LINE_LAYER_OFFSET } from "./graph";
-import { createFunctionFromDefinition } from "../../Core/utils/function";
+import { createFunctionFromDefinition } from "@doenet/utils";
 import { PageContext } from "../PageViewer";
 
 export default React.memo(function RegionBetweenCurveXAxis(props) {

@@ -16,7 +16,7 @@ import "./booleanInput.css";
 import { MathJax } from "better-react-mathjax";
 import { BoardContext } from "./graph";
 import me from "math-expressions";
-import { getPositionFromAnchorByCoordinate } from "../../Core/utils/graphical";
+import { getPositionFromAnchorByCoordinate } from "./utils/graph";
 
 // Moved most of checkWorkStyle styling into Button
 const Button = styled.button`

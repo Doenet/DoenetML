@@ -1,10 +1,10 @@
 import me from "math-expressions";
-import { cesc, cesc2 } from "../../../src/utils/url";
+import { cesc, cesc2 } from "../../../../utils/src/url/url";
 
 describe("Point Tag Tests 2", function () {
     beforeEach(() => {
         cy.clearIndexedDB();
-        cy.visit("/src/Tools/cypressTest/");
+        cy.visit("/");
     });
 
     it("points depending on each other", () => {
@@ -9128,7 +9128,7 @@ describe("Point Tag Tests 2", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/P"].stateValues.label).eq(
-                "We have \\(x^{1.0} + y^{2.0}\\)",
+                "We have \\(x^{ 1.0 } + y^{ 2.0 }\\)",
             );
             expect(stateVariables["/P"].stateValues.labelHasLatex).eq(true);
 
@@ -9138,7 +9138,7 @@ describe("Point Tag Tests 2", function () {
             expect(stateVariables["/Q"].stateValues.labelHasLatex).eq(false);
 
             expect(stateVariables["/R"].stateValues.label).eq(
-                "We have \\(x^{1.0} + y^{2.0}\\) and \\(\\left( 5, 6 \\right)\\)",
+                "We have \\(x^{ 1.0 } + y^{ 2.0 }\\) and \\(\\left( 5, 6 \\right)\\)",
             );
             expect(stateVariables["/R"].stateValues.labelHasLatex).eq(true);
 
@@ -9201,7 +9201,7 @@ describe("Point Tag Tests 2", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/P"].stateValues.label).eq(
-                "We have \\(x^{3.1} + y^{2.7}\\)",
+                "We have \\(x^{ 3.1 } + y^{ 2.7 }\\)",
             );
             expect(stateVariables["/P"].stateValues.labelHasLatex).eq(true);
 
@@ -9211,7 +9211,7 @@ describe("Point Tag Tests 2", function () {
             expect(stateVariables["/Q"].stateValues.labelHasLatex).eq(false);
 
             expect(stateVariables["/R"].stateValues.label).eq(
-                "We have \\(x^{3.1} + y^{2.7}\\) and \\(\\left( 0.17, 0.67 \\right)\\)",
+                "We have \\(x^{ 3.1 } + y^{ 2.7 }\\) and \\(\\left( 0.17, 0.67 \\right)\\)",
             );
             expect(stateVariables["/R"].stateValues.labelHasLatex).eq(true);
 
@@ -9268,7 +9268,7 @@ describe("Point Tag Tests 2", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/P"].stateValues.label).eq(
-                "We have \\(x^{1.0} + y^{2.0}\\)",
+                "We have \\(x^{ 1.0 } + y^{ 2.0 }\\)",
             );
             expect(stateVariables["/P"].stateValues.labelHasLatex).eq(true);
 
@@ -9306,7 +9306,7 @@ describe("Point Tag Tests 2", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/P"].stateValues.label).eq(
-                "We have \\(x^{3.1} + y^{2.7}\\)",
+                "We have \\(x^{ 3.1 } + y^{ 2.7 }\\)",
             );
             expect(stateVariables["/P"].stateValues.labelHasLatex).eq(true);
 

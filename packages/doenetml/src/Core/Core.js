@@ -11,13 +11,16 @@ import {
     serializedComponentsReviver,
     deepCompare,
     deepClone,
+    assignDoenetMLRange,
+    findAllNewlines,
+    getLineCharRange,
+    flattenDeep,
 } from "@doenet/utils";
 import {
     convertAttributesForComponentType,
     postProcessCopy,
     verifyReplacementsMatchSpecifiedType,
 } from "./utils/copy";
-import { flattenDeep, mapDeep } from "./utils/array";
 import { DependencyHandler } from "./Dependencies";
 import {
     preprocessMathInverseDefinition,
@@ -29,11 +32,6 @@ import createComponentInfoObjects from "./utils/componentInfoObjects";
 import { get as idb_get, set as idb_set } from "idb-keyval";
 import axios from "axios";
 import { gatherVariantComponents, getNumVariants } from "./utils/variants";
-import {
-    assignDoenetMLRange,
-    findAllNewlines,
-    getLineCharRange,
-} from "./utils/logging";
 
 // string to componentClass: this.componentInfoObjects.allComponentClasses["string"]
 // componentClass to string: componentClass.componentType

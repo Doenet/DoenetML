@@ -2,7 +2,7 @@ import GraphicalComponent from "./abstract/GraphicalComponent";
 import { returnBreakStringsSugarFunction } from "./commonsugar/breakstrings";
 
 import me from "math-expressions";
-import { returnBezierFunctions } from "../utils/function";
+import { returnBezierFunctions } from "@doenet/utils";
 import {
     returnRoundingAttributeComponentShadowing,
     returnRoundingAttributes,

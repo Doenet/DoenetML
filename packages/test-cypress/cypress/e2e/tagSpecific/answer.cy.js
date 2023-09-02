@@ -1,9 +1,9 @@
-import { cesc, cesc2 } from "../../../src/utils/url";
+import { cesc, cesc2 } from "../../../../utils/src/url/url";
 
 describe("Answer Tag Tests", function () {
     beforeEach(() => {
         cy.clearIndexedDB();
-        cy.visit("/src/Tools/cypressTest/");
+        cy.visit("/");
     });
 
     it("answer sugar from one string", () => {
@@ -2480,7 +2480,7 @@ describe("Answer Tag Tests", function () {
         });
     });
 
-    it.only("answer sugar from one macro with createComponentOfType text", () => {
+    it("answer sugar from one macro with createComponentOfType text", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {

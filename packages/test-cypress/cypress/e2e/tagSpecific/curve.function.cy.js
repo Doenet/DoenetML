@@ -1,10 +1,10 @@
-import { createFunctionFromDefinition } from "../../../src/Core/utils/function";
-import { cesc } from "../../../src/utils/url";
+import { createFunctionFromDefinition } from "../../../../utils/src/components/function";
+import { cesc } from "../../../../utils/src/url/url";
 
 describe("Function curve Tag Tests", function () {
     beforeEach(() => {
         cy.clearIndexedDB();
-        cy.visit("/src/Tools/cypressTest/");
+        cy.visit("/");
     });
 
     it("a function of x", () => {

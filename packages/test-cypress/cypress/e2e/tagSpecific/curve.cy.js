@@ -1,11 +1,11 @@
 import me from "math-expressions";
-import { createFunctionFromDefinition } from "../../../src/Core/utils/function";
-import { cesc } from "../../../src/utils/url";
+import { createFunctionFromDefinition } from "../../../../utils/src/components/function";
+import { cesc } from "../../../../utils/src/url/url";
 
 describe("Curve Tag Tests", function () {
     beforeEach(() => {
         cy.clearIndexedDB();
-        cy.visit("/src/Tools/cypressTest/");
+        cy.visit("/");
     });
 
     it("spline through four points, as string with copy", () => {
@@ -121,7 +121,7 @@ describe("Curve Tag Tests", function () {
                 0.8,
             );
             expect(stateVariables["/_curve1"].stateValues.label).eq(
-                "Hi \\((-1,2), (2, -2), (2(-2), -4), (5,6)\\)",
+                "Hi \\((-1,2), (2, -2 ), (2( -2 ), -4), (5,6)\\)",
             );
             let f1 = createFunctionFromDefinition(
                 stateVariables["/_curve1"].stateValues.fDefinitions[0],
@@ -155,7 +155,7 @@ describe("Curve Tag Tests", function () {
                 0.8,
             );
             expect(stateVariables["/_curve1"].stateValues.label).eq(
-                "Hi \\((-1,2), (2, 4), (2(4), -4), (5,6)\\)",
+                "Hi \\((-1,2), (2, 4 ), (2( 4 ), -4), (5,6)\\)",
             );
             let f1 = createFunctionFromDefinition(
                 stateVariables["/_curve1"].stateValues.fDefinitions[0],

@@ -6,9 +6,8 @@ import {
     roundForDisplay,
     stripLatex,
     normalizeLatexString,
-    convertValueToMathExpression,
 } from "../utils/math";
-import { deepCompare } from "@doenet/utils";
+import { deepCompare, convertValueToMathExpression } from "@doenet/utils";
 import {
     returnRoundingAttributeComponentShadowing,
     returnRoundingAttributes,

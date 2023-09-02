@@ -3,8 +3,12 @@ import {
     ancestorsIncludingComposites,
     gatherDescendants,
 } from "./utils/descendants";
-import { getLineCharRange } from "./utils/logging";
-import { retrieveTextFileForCid, deepClone, deepCompare } from "@doenet/utils";
+import {
+    retrieveTextFileForCid,
+    deepClone,
+    deepCompare,
+    getLineCharRange,
+} from "@doenet/utils";
 
 const dependencyTypeArray = [];
 

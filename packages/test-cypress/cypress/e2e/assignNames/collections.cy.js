@@ -1,11 +1,11 @@
 import me from "math-expressions";
-import { flattenDeep } from "../../../src/Core/utils/array";
-import { cesc } from "../../../src/utils/url";
+import { flattenDeep } from "../../../../utils/src/math/array";
+import { cesc } from "../../../../utils/src/url/url";
 
 describe("Collection assignName Tests", function () {
     beforeEach(() => {
         cy.clearIndexedDB();
-        cy.visit("/src/Tools/cypressTest/");
+        cy.visit("/");
     });
 
     it("name points and coords off a graph", () => {

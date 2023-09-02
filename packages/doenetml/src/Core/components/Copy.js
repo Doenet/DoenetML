@@ -5,9 +5,8 @@ import {
     postProcessCopy,
     verifyReplacementsMatchSpecifiedType,
 } from "../utils/copy";
-import { flattenDeep, flattenLevels } from "../utils/array";
+import { flattenDeep, flattenLevels, deepClone } from "@doenet/utils";
 import { getUniqueIdentifierFromBase } from "../utils/naming";
-import { deepClone } from "@doenet/utils";
 
 export default class Copy extends CompositeComponent {
     static componentType = "copy";

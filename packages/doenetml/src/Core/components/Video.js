@@ -4,7 +4,7 @@ import {
     orderedWidthMidpoints,
     widthsBySize,
     sizePossibilities,
-} from "../utils/size";
+} from "@doenet/utils";
 
 export default class Video extends BlockComponent {
     constructor(args) {

@@ -1,10 +1,10 @@
 import me from "math-expressions";
-import { cesc } from "../../../src/utils/url";
+import { cesc } from "../../../../utils/src/url/url";
 
 describe("Substitute Tag Tests", function () {
     beforeEach(() => {
         cy.clearIndexedDB();
-        cy.visit("/src/Tools/cypressTest/");
+        cy.visit("/");
     });
 
     it("substitute into string sugared to math", () => {

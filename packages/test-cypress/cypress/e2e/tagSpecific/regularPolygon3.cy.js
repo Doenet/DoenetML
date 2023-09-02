@@ -1,4 +1,4 @@
-import { cesc, cesc2 } from "../../../src/utils/url";
+import { cesc, cesc2 } from "../../../../utils/src/url/url";
 import {
     runRegularPolygonTests,
     setupRegularPolygonScene,
@@ -7,7 +7,7 @@ import {
 describe("Regular Polygon Tag Tests 3", function () {
     beforeEach(() => {
         cy.clearIndexedDB();
-        cy.visit("/src/Tools/cypressTest/");
+        cy.visit("/");
     });
 
     it("specify center and one vertex for triangle", () => {

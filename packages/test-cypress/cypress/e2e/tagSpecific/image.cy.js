@@ -1,10 +1,10 @@
-import { widthsBySize } from "../../../src/Core/utils/size";
-import { cesc, cesc2 } from "../../../src/utils/url";
+import { widthsBySize } from "../../../../utils/src/components/size";
+import { cesc, cesc2 } from "../../../../utils/src/url/url";
 
 describe("Image Tag Tests", function () {
     beforeEach(() => {
         cy.clearIndexedDB();
-        cy.visit("/src/Tools/cypressTest/");
+        cy.visit("/");
     });
 
     it("image from external source", () => {

@@ -1,5 +1,9 @@
 import me from "math-expressions";
-import { subsets, buildSubsetFromMathExpression } from "@doenet/utils";
+
+import {
+    subsets,
+    buildSubsetFromMathExpression,
+} from "../math/subset-of-reals";
 
 export function find_effective_domain({
     domain,

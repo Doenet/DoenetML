@@ -1,5 +1,5 @@
 import me from "math-expressions";
-import { cesc, cesc2 } from "../../../src/utils/url";
+import { cesc, cesc2 } from "../../../../utils/src/url/url";
 
 function nInDOM(n) {
     if (n < 0) {
@@ -12,7 +12,7 @@ function nInDOM(n) {
 describe("Vector Tag Tests", function () {
     beforeEach(() => {
         cy.clearIndexedDB();
-        cy.visit("/src/Tools/cypressTest/");
+        cy.visit("/");
     });
 
     async function testVectorCopiedHTD({

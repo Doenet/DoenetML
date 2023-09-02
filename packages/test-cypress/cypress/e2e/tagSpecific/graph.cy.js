@@ -1,11 +1,11 @@
-import { createFunctionFromDefinition } from "../../../src/Core/utils/function";
-import { widthsBySize } from "../../../src/Core/utils/size";
-import { cesc, cesc2 } from "../../../src/utils/url";
+import { createFunctionFromDefinition } from "../../../../utils/src/components/function";
+import { widthsBySize } from "../../../../utils/src/components/size";
+import { cesc, cesc2 } from "../../../../utils/src/url/url";
 
 describe("Graph Tag Tests", function () {
     beforeEach(() => {
         cy.clearIndexedDB();
-        cy.visit("/src/Tools/cypressTest/");
+        cy.visit("/");
     });
 
     it.skip("string sugared to curve in graph", () => {

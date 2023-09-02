@@ -4,11 +4,8 @@ import {
     breakEmbeddedStringByCommas,
     returnBreakStringsSugarFunction,
 } from "./commonsugar/breakstrings";
-import {
-    convertValueToMathExpression,
-    roundForDisplay,
-    vectorOperators,
-} from "../utils/math";
+import { roundForDisplay } from "../utils/math";
+import { convertValueToMathExpression, vectorOperators } from "@doenet/utils";
 import { returnTextStyleDescriptionDefinitions } from "../utils/style";
 import {
     returnRoundingAttributeComponentShadowing,

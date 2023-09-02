@@ -1,10 +1,10 @@
 import me from "math-expressions";
-import { cesc, cesc2 } from "../../../src/utils/url";
+import { cesc, cesc2 } from "../../../../utils/src/url/url";
 
 describe("Basic copy assignName Tests", function () {
     beforeEach(() => {
         cy.clearIndexedDB();
-        cy.visit("/src/Tools/cypressTest/");
+        cy.visit("/");
     });
 
     // Note: this isn't using assignNames anymore given changes to how copies work

@@ -1,6 +1,6 @@
 import me from "math-expressions";
-import { createFunctionFromDefinition } from "../../../src/Core/utils/function";
-import { cesc, cesc2 } from "../../../src/utils/url";
+import { createFunctionFromDefinition } from "../../../../utils/src/components/function";
+import { cesc, cesc2 } from "../../../../utils/src/url/url";
 
 function nInDOM(n) {
     if (n < 0) {
@@ -13,7 +13,7 @@ function nInDOM(n) {
 describe("Piecewise Function Tag Tests", function () {
     beforeEach(() => {
         cy.clearIndexedDB();
-        cy.visit("/src/Tools/cypressTest/");
+        cy.visit("/");
     });
 
     it("heaviside function", () => {

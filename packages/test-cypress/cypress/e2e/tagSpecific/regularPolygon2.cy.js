@@ -6,7 +6,7 @@ import {
 describe("Regular Polygon Tag Tests 2", function () {
     beforeEach(() => {
         cy.clearIndexedDB();
-        cy.visit("/src/Tools/cypressTest/");
+        cy.visit("/");
     });
 
     it("specify radius for square", () => {

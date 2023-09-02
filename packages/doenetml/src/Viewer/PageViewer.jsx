@@ -9,6 +9,7 @@ import { nanoid } from "nanoid";
 import {
     serializedComponentsReplacer,
     serializedComponentsReviver,
+    cesc,
 } from "@doenet/utils";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faExclamationCircle } from "@fortawesome/free-solid-svg-icons";
@@ -16,7 +17,6 @@ import { rendererState } from "./useDoenetRenderer";
 import { atom, atomFamily, useRecoilCallback, useRecoilValue } from "recoil";
 import { get as idb_get, set as idb_set } from "idb-keyval";
 import axios from "axios";
-import { cesc } from "../utils/url";
 import { doenetGlobalConfig } from "../global-config";
 
 const rendererUpdatesToIgnore = atomFamily({

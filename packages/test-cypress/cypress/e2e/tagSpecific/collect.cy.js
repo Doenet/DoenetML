@@ -1,4 +1,4 @@
-import { cesc, cesc2 } from "../../../src/utils/url";
+import { cesc, cesc2 } from "../../../../utils/src/url/url";
 
 function nInDOM(n) {
     if (n < 0) {
@@ -11,7 +11,7 @@ function nInDOM(n) {
 describe("Collect Tag Tests", function () {
     beforeEach(() => {
         cy.clearIndexedDB();
-        cy.visit("/src/Tools/cypressTest/");
+        cy.visit("/");
     });
 
     it("collect points from graphs", () => {

@@ -1,4 +1,4 @@
-import { cesc } from "../../../src/utils/url";
+import { cesc } from "../../../../utils/src/url/url";
 
 function cesc2(s) {
     return cesc(cesc(s));
@@ -7,7 +7,7 @@ function cesc2(s) {
 describe("TextInput Tag Tests", function () {
     beforeEach(() => {
         cy.clearIndexedDB();
-        cy.visit("/src/Tools/cypressTest/");
+        cy.visit("/");
     });
 
     it("textinput references", () => {

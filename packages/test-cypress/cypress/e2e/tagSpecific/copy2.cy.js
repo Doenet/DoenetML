@@ -1,4 +1,4 @@
-import { cesc, cesc2 } from "../../../src/utils/url";
+import { cesc, cesc2 } from "../../../../utils/src/url/url";
 
 function nInDOM(n) {
     if (n < 0) {
@@ -11,7 +11,7 @@ function nInDOM(n) {
 describe("Copy Tag Tests", function () {
     beforeEach(() => {
         cy.clearIndexedDB();
-        cy.visit("/src/Tools/cypressTest/");
+        cy.visit("/");
     });
 
     it("source attributes to ignore", () => {
@@ -4564,7 +4564,7 @@ describe("Copy Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/P"].stateValues.xs).eqls([1, 2]);
-            expect(stateVariables["/P"].stateValues.label).eq("\\(V_1\\)");
+            expect(stateVariables["/P"].stateValues.label).eq("\\(V_ 1\\)");
         });
 
         cy.log("change to vertex 2");
@@ -4582,7 +4582,7 @@ describe("Copy Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/P"].stateValues.xs).eqls([5, 2]);
-            expect(stateVariables["/P"].stateValues.label).eq("\\(V_2\\)");
+            expect(stateVariables["/P"].stateValues.label).eq("\\(V_ 2\\)");
         });
 
         cy.log("invalid vertex");
@@ -4616,7 +4616,7 @@ describe("Copy Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/P"].stateValues.xs).eqls([5, 8]);
-            expect(stateVariables["/P"].stateValues.label).eq("\\(V_3\\)");
+            expect(stateVariables["/P"].stateValues.label).eq("\\(V_ 3\\)");
         });
     });
 

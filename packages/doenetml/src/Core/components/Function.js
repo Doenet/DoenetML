@@ -3,19 +3,18 @@ import GraphicalComponent from "./abstract/GraphicalComponent";
 import me from "math-expressions";
 import {
     mergeListsWithOtherContainers,
-    normalizeMathExpression,
     returnNVariables,
     roundForDisplay,
-    vectorOperators,
 } from "../utils/math";
 import {
+    vectorOperators,
     returnInterpolatedFunction,
     returnNumericalFunctionFromFormula,
     returnNumericalFunctionFromReevaluatedFormula,
     returnReturnDerivativesOfInterpolatedFunction,
     returnSymbolicFunctionFromFormula,
     returnSymbolicFunctionFromReevaluatedFormula,
-} from "../utils/function";
+} from "@doenet/utils";
 import { returnTextStyleDescriptionDefinitions } from "../utils/style";
 import {
     returnRoundingAttributeComponentShadowing,

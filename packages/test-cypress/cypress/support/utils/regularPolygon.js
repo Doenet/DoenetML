@@ -1,4 +1,4 @@
-import { cesc } from "../../../src/utils/url";
+import { cesc } from "../../../../utils/src/url/url";
 
 export function setupRegularPolygonScene({ attributes }) {
     let attributesString = Object.keys(attributes)

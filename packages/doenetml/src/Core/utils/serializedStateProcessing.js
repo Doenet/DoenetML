@@ -1,9 +1,8 @@
 import me from "math-expressions";
 import { createUniqueName } from "./naming";
-import { flattenDeep } from "./array";
 import { breakEmbeddedStringByCommas } from "../components/commonsugar/breakstrings";
 import { parseAndCompile } from "@doenet/parser";
-import { retrieveTextFileForCid, deepClone } from "@doenet/utils";
+import { retrieveTextFileForCid, deepClone, flattenDeep } from "@doenet/utils";
 import { returnDeprecationMessage } from "./doenetMLversion";
 
 export async function expandDoenetMLsToFullSerializedComponents({

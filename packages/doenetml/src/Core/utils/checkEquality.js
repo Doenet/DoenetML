@@ -1,6 +1,9 @@
 import me from "math-expressions";
-import { deepCompare } from "@doenet/utils";
-import { normalizeMathExpression, vectorOperators } from "./math";
+import {
+    deepCompare,
+    normalizeMathExpression,
+    vectorOperators,
+} from "@doenet/utils";
 import periodicSetEquality from "./periodicSetEquality";
 
 const nonTupleVectorOperators = ["vector", "altvector"];

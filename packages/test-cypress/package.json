@@ -24,7 +24,9 @@
         "react-dom": "^18.2.0",
         "styled-components": "^5.3.11"
     },
-    "dependencies": {},
+    "dependencies": {
+        "@doenet/utils": "^*"
+    },
     "devDependencies": {
         "vite": "^4.3.9"
     }

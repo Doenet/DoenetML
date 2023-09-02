@@ -1,5 +1,5 @@
 import BaseComponent from "./abstract/BaseComponent";
-import { convertValueToMathExpression } from "../utils/math";
+import { convertValueToMathExpression } from "@doenet/utils";
 import { applyConstraintFromComponentConstraints } from "../utils/constraints";
 
 export default class Constraints extends BaseComponent {
