@@ -1,10 +1,7 @@
 import GraphicalComponent from "./abstract/GraphicalComponent";
 import me from "math-expressions";
-import {
-    returnNVariables,
-    convertValueToMathExpression,
-    roundForDisplay,
-} from "../utils/math";
+import { returnNVariables, roundForDisplay } from "../utils/math";
+import { convertValueToMathExpression } from "@doenet/utils";
 import { returnTextStyleDescriptionDefinitions } from "../utils/style";
 import {
     returnRoundingAttributeComponentShadowing,

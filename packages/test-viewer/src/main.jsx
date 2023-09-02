@@ -1,11 +1,16 @@
 import React from "react";
-import ReactDOM from "react-dom/client";
+import { createRoot } from "react-dom/client";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import TestViewer from "./test/testViewer";
-import { DoenetML } from "@doenet/doenetml";
 import "@doenet/doenetml/style.css";
 
-ReactDOM.createRoot(document.getElementById("root")).render(
-    <TestViewer DoenetML={DoenetML} />,
+const root = createRoot(document.getElementById("root"));
+root.render(
+    <Router>
+        <Routes>
+            <Route path="*" element={<TestViewer />} />
+        </Routes>
+    </Router>,
 );
 
 // Hot Module Replacement (HMR) - Remove this snippet to remove HMR.

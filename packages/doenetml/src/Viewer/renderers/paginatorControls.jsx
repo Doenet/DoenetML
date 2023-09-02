@@ -1,6 +1,6 @@
 import React from "react";
 import useDoenetRenderer from "../useDoenetRenderer";
-import Button from "../../uiComponents/Button";
+import { Button } from "@doenet/ui-components";
 
 export default React.memo(function PaginatorControls(props) {
     let { name, id, SVs, actions, callAction } = useDoenetRenderer(

@@ -1,6 +1,7 @@
 import { normalizeIndex } from "../utils/table";
 import BlockComponent from "./abstract/BlockComponent";
-import { textToAst, vectorOperators } from "../utils/math";
+import { textToAst } from "../utils/math";
+import { vectorOperators } from "@doenet/utils";
 import me from "math-expressions";
 import { HyperFormula } from "hyperformula";
 

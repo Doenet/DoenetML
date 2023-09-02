@@ -1,10 +1,9 @@
 import InlineComponent from "./abstract/InlineComponent";
-import { deepCompare } from "../utils/deepFunctions";
 import { renameStateVariable } from "../utils/stateVariables";
 import {
     serializedComponentsReplacer,
     serializedComponentsReviver,
-} from "../utils/serializedStateProcessing";
+} from "@doenet/utils";
 import sha1 from "crypto-js/sha1";
 import Base64 from "crypto-js/enc-base64";
 import stringify from "json-stringify-deterministic";

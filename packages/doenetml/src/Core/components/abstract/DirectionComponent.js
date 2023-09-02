@@ -6,10 +6,7 @@
 // Then, one can add an adapter from that state variable to componentType _directionComponent.
 
 import me from "math-expressions";
-import {
-    convertValueToMathExpression,
-    vectorOperators,
-} from "../../utils/math";
+import { convertValueToMathExpression, vectorOperators } from "@doenet/utils";
 import {
     returnRoundingAttributeComponentShadowing,
     returnRoundingStateVariableDefinitions,

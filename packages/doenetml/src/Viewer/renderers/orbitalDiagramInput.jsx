@@ -1,6 +1,6 @@
 import React, { createRef, useEffect, useState } from "react";
 import useDoenetRenderer from "../useDoenetRenderer";
-import Button from "../../uiComponents/Button";
+import { Button } from "@doenet/ui-components";
 import styled from "styled-components";
 import VisibilitySensor from "react-visibility-sensor-v2";
 

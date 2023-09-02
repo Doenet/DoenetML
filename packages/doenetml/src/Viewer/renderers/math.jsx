@@ -4,8 +4,8 @@ import useDoenetRenderer from "../useDoenetRenderer";
 import { MathJax } from "better-react-mathjax";
 import me from "math-expressions";
 import { textRendererStyle } from "../../Core/utils/style";
-import { getPositionFromAnchorByCoordinate } from "../../Core/utils/graphical";
-import { cesc } from "../../utils/url";
+import { getPositionFromAnchorByCoordinate } from "./utils/graph";
+import { cesc } from "@doenet/utils";
 import { PageContext } from "../PageViewer";
 
 export default React.memo(function MathComponent(props) {

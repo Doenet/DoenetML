@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { atomFamily, useRecoilValue, useSetRecoilState } from "recoil";
-// import { serializedComponentsReviver } from '../../Core/utils/serializedStateProcessing';
+// import { serializedComponentsReviver } from '@doenet/utils';
 import { renderersloadComponent } from "./PageViewer";
-import { cesc } from "../utils/url";
+import { cesc } from "@doenet/utils";
 
 export const rendererState = atomFamily({
     key: "rendererState",

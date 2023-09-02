@@ -6,7 +6,7 @@ import {
     sizePossibilities,
     widthFractions,
     percentWidthsBySize,
-} from "../utils/size";
+} from "@doenet/utils";
 import me from "math-expressions";
 import { returnSelectedStyleStateVariableDefinition } from "../utils/style";
 import {

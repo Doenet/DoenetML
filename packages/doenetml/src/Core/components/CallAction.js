@@ -1,4 +1,4 @@
-import { deepClone } from "../utils/deepFunctions";
+import { deepClone } from "@doenet/utils";
 import {
     moveGraphicalObjectWithAnchorAction,
     returnAnchorAttributes,

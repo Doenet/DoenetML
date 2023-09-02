@@ -2,7 +2,7 @@ import MathComponent from "./Math";
 import {
     buildSubsetFromMathExpression,
     mathExpressionFromSubsetValue,
-} from "../utils/subset-of-reals";
+} from "@doenet/utils";
 import { renameStateVariable } from "../utils/stateVariables";
 import me from "math-expressions";
 export default class SubsetOfReals extends MathComponent {

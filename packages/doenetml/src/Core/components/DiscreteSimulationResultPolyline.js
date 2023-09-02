@@ -1,6 +1,6 @@
 import GraphicalComponent from "./abstract/GraphicalComponent";
 import me from "math-expressions";
-import { vectorOperators } from "../utils/math";
+import { vectorOperators } from "@doenet/utils";
 
 export default class DiscreteSimulationResultPolyline extends GraphicalComponent {
     constructor(args) {

@@ -1,5 +1,5 @@
 import CompositeComponent from "./abstract/CompositeComponent";
-import { deepClone } from "../utils/deepFunctions";
+import { deepClone } from "@doenet/utils";
 import { processAssignNames } from "../utils/serializedStateProcessing";
 import {
     convertAttributesForComponentType,

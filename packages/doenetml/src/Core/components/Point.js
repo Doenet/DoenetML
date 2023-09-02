@@ -1,12 +1,12 @@
 import GraphicalComponent from "./abstract/GraphicalComponent";
 import me from "math-expressions";
+import { roundForDisplay } from "../utils/math";
+import { breakEmbeddedStringByCommas } from "./commonsugar/breakstrings";
 import {
     convertValueToMathExpression,
-    roundForDisplay,
     vectorOperators,
-} from "../utils/math";
-import { breakEmbeddedStringByCommas } from "./commonsugar/breakstrings";
-import { deepClone } from "../utils/deepFunctions";
+    deepClone,
+} from "@doenet/utils";
 import { returnTextStyleDescriptionDefinitions } from "../utils/style";
 import {
     returnRoundingAttributeComponentShadowing,

@@ -1,6 +1,6 @@
 import MathComponent from "./Math";
 import me from "math-expressions";
-import { deepClone } from "../utils/deepFunctions";
+import { deepClone } from "@doenet/utils";
 import {
     returnRoundingAttributeComponentShadowing,
     returnRoundingStateVariableDefinitions,

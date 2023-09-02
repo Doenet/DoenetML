@@ -1,14 +1,11 @@
 import React, { useState } from "react";
-import type { DoenetML } from "@doenet/doenetml";
 // @ts-ignore
-import doenetML from "./testCode.doenet?raw";
-import Button from "../uiComponents/Button";
+import { DoenetML } from "@doenet/doenetml";
+// @ts-ignore
+import doenetMLstring from "./testCode.doenet?raw";
+import { Button } from "@doenet/ui-components";
 
-export default function TestViewer({
-    DoenetML,
-}: {
-    DoenetML: typeof DoenetML;
-}) {
+export default function TestViewer() {
     const defaultTestSettings = {
         requestedVariantIndex: 1,
         showCorrectness: true,
@@ -150,7 +147,7 @@ export default function TestViewer({
             </div>
             <DoenetML
                 key={"doenetml" + updateNumber}
-                doenetML={doenetML}
+                doenetML={doenetMLstring}
                 flags={{
                     showCorrectness,
                     readOnly,

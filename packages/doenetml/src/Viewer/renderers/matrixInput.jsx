@@ -1,8 +1,9 @@
 import React, { useRef } from "react";
 import useDoenetRenderer from "../useDoenetRenderer";
 // import me from 'math-expressions';
-import ActionButton from "../../uiComponents/ActionButton";
-import ActionButtonGroup from "../../uiComponents/ActionButtonGroup";
+import { ActionButton } from "@doenet/ui-components";
+import { ActionButtonGroup } from "@doenet/ui-components";
+
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faCheck,

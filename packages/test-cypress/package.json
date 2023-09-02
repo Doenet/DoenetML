@@ -1,0 +1,34 @@
+{
+    "name": "@doenet/test-cypress",
+    "type": "module",
+    "description": "Endpoint to run cypress DoenetML tests",
+    "version": "*",
+    "license": "AGPL-3.0-or-later",
+    "homepage": "https://github.com/Doenet/DoenetML#readme",
+    "private": true,
+    "repository": "github:Doenet/DoenetML",
+    "files": [
+        "/dist"
+    ],
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "test": "echo \"No tests \"",
+        "preview": "vite preview",
+        "test-cypress": "cypress open",
+        "test-cypress-all": "cypress run -b 'chrome' --config video=false --headless",
+        "test-cypress-parallel": "cypress-parallel -s test-cypress-all -t 4 -d cypress/e2e -n ../../node_modules/cypress-multi-reporters"
+    },
+    "peerDependencies": {
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "styled-components": "^5.3.11"
+    },
+    "dependencies": {
+        "@doenet/utils": "^*"
+    },
+    "devDependencies": {
+        "cypress-vite": "^1.4.2",
+        "vite": "^4.3.9"
+    }
+}

@@ -1,13 +1,16 @@
 import Input from "./abstract/Input";
 import me from "math-expressions";
-import { deepClone, deepCompare } from "../utils/deepFunctions";
 import {
+    deepClone,
+    deepCompare,
     convertValueToMathExpression,
+    vectorOperators,
+} from "@doenet/utils";
+import {
     getFromLatex,
     normalizeLatexString,
     roundForDisplay,
     stripLatex,
-    vectorOperators,
 } from "../utils/math";
 import CompositeComponent from "./abstract/CompositeComponent";
 import BaseComponent from "./abstract/BaseComponent";

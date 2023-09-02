@@ -1,6 +1,6 @@
 import GraphicalComponent from "./abstract/GraphicalComponent";
 import me from "math-expressions";
-import { convertValueToMathExpression, vectorOperators } from "../utils/math";
+import { convertValueToMathExpression, vectorOperators } from "@doenet/utils";
 import {
     returnRoundingAttributeComponentShadowing,
     returnRoundingAttributes,

@@ -1,5 +1,5 @@
 import { enumerateCombinations } from "./enumeration";
-import { numberToLetters } from "./sequence";
+import { numberToLetters } from "@doenet/utils";
 
 export function getVariantsForDescendantsForUniqueVariants({
     variantIndex,

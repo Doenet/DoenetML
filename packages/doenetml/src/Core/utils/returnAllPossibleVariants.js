@@ -1,4 +1,4 @@
-import { numberToLetters } from "./sequence.js";
+import { numberToLetters } from "@doenet/utils";
 import * as serializeFunctions from "./serializedStateProcessing.js";
 import createComponentInfoObjects from "./componentInfoObjects.js";
 import { getNumVariants } from "./variants.js";

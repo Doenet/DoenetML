@@ -4,7 +4,7 @@ import {
     returnAnchorStateVariableDefinition,
 } from "../utils/graphical";
 import { returnLabelStateVariableDefinitions } from "../utils/label";
-import { normalizeMathExpression } from "../utils/math";
+import { normalizeMathExpression } from "@doenet/utils";
 import {
     addStandardTriggeringStateVariableDefinitions,
     returnStandardTriggeringAttributes,
