@@ -1,4 +1,4 @@
-import { cesc } from "../../../../utils/src/url/url";
+import { cesc } from "@doenet/utils";
 
 describe("Single Character Tag Tests", function () {
     beforeEach(() => {

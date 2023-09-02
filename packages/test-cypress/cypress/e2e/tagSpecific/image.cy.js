@@ -1,5 +1,4 @@
-import { widthsBySize } from "../../../../utils/src/components/size";
-import { cesc, cesc2 } from "../../../../utils/src/url/url";
+import { cesc, cesc2, widthsBySize } from "@doenet/utils";
 
 describe("Image Tag Tests", function () {
     beforeEach(() => {

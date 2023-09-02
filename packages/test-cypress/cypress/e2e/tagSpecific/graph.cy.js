@@ -1,6 +1,9 @@
-import { createFunctionFromDefinition } from "../../../../utils/src/components/function";
-import { widthsBySize } from "../../../../utils/src/components/size";
-import { cesc, cesc2 } from "../../../../utils/src/url/url";
+import {
+    cesc,
+    cesc2,
+    widthsBySize,
+    createFunctionFromDefinition,
+} from "@doenet/utils";
 
 describe("Graph Tag Tests", function () {
     beforeEach(() => {

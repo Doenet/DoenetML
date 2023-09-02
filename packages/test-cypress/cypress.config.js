@@ -1,4 +1,5 @@
 import { defineConfig } from "cypress";
+import vitePreprocessor from "cypress-vite";
 
 export default defineConfig({
     numTestsKeptInMemory: 20,
@@ -11,6 +12,7 @@ export default defineConfig({
                 }
                 return launchOptions;
             });
+            on("file:preprocessor", vitePreprocessor());
         },
 
         baseUrl: "http://localhost:4173",

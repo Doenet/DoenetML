@@ -1,6 +1,5 @@
 import me from "math-expressions";
-import { numberToLetters } from "../../../../utils/src/components/sequence";
-import { cesc, cesc2 } from "../../../../utils/src/url/url";
+import { cesc, cesc2, numberToLetters } from "@doenet/utils";
 
 describe("Specifying single variant document tests", function () {
     beforeEach(() => {

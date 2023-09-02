@@ -1,4 +1,4 @@
-import { cesc, cesc2 } from "../../../../utils/src/url/url";
+import { cesc, cesc2 } from "@doenet/utils";
 
 describe("BooleanInput Tag Tests", function () {
     beforeEach(() => {

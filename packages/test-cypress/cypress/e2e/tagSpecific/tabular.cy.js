@@ -1,4 +1,4 @@
-import { cesc2 } from "../../../../utils/src/url/url";
+import { cesc2 } from "@doenet/utils";
 
 describe("Tabular Tag Tests", function () {
     beforeEach(() => {

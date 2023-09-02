@@ -1,4 +1,4 @@
-import { cesc } from "../../../../utils/src/url/url";
+import { cesc } from "@doenet/utils";
 
 describe("matching patterns answer tests", function () {
     beforeEach(() => {

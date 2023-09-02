@@ -28,6 +28,7 @@
         "@doenet/utils": "^*"
     },
     "devDependencies": {
+        "cypress-vite": "^1.4.2",
         "vite": "^4.3.9"
     }
 }

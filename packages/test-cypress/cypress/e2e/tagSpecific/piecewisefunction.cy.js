@@ -1,6 +1,5 @@
 import me from "math-expressions";
-import { createFunctionFromDefinition } from "../../../../utils/src/components/function";
-import { cesc, cesc2 } from "../../../../utils/src/url/url";
+import { cesc, cesc2, createFunctionFromDefinition } from "@doenet/utils";
 
 function nInDOM(n) {
     if (n < 0) {

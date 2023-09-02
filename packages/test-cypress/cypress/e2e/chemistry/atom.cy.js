@@ -1,5 +1,5 @@
 import me from "math-expressions";
-import { cesc } from "../../../../utils/src/url/url";
+import { cesc } from "@doenet/utils";
 
 describe("Atom Tests", function () {
     beforeEach(() => {

@@ -1,5 +1,4 @@
-import { numberToLetters } from "../../../../utils/src/components/sequence";
-import { cesc, cesc2 } from "../../../../utils/src/url/url";
+import { cesc, cesc2, numberToLetters } from "@doenet/utils";
 
 describe("selects assignName Tests", function () {
     beforeEach(() => {

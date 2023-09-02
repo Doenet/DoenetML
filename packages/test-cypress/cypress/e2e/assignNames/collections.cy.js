@@ -1,6 +1,5 @@
 import me from "math-expressions";
-import { flattenDeep } from "../../../../utils/src/math/array";
-import { cesc } from "../../../../utils/src/url/url";
+import { cesc, flattenDeep } from "@doenet/utils";
 
 describe("Collection assignName Tests", function () {
     beforeEach(() => {
