@@ -7,6 +7,9 @@ export default class ListOfNumberLists extends InlineComponent {
     static includeBlankStringChildren = true;
     static removeBlankStringChildrenPostSugar = true;
 
+    // Include children that can be added due to sugar
+    static additionalSchemaChildren = ["math", "string"];
+
     static returnSugarInstructions() {
         let sugarInstructions = [];
 

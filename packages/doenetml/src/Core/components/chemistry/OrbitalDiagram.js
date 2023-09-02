@@ -24,6 +24,9 @@ export default class OrbitalDiagram extends BlockComponent {
         return attributes;
     }
 
+    // Include children that can be added due to sugar
+    static additionalSchemaChildren = ["string", "math", "number"];
+
     static returnSugarInstructions() {
         let sugarInstructions = [
             {

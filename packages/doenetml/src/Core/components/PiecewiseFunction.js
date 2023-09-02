@@ -30,6 +30,9 @@ export default class PiecewiseFunction extends Function {
         return attributes;
     }
 
+    // Include children that can be added due to sugar, remove options from function
+    static additionalSchemaChildren = [];
+
     static returnSugarInstructions() {
         return [];
     }
