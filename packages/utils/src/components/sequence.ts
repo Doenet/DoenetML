@@ -1,4 +1,4 @@
-export function lettersToNumber(letters) {
+export function lettersToNumber(letters: string) {
     try {
         letters = letters.toUpperCase();
     } catch (e) {
@@ -20,7 +20,7 @@ export function lettersToNumber(letters) {
     return number;
 }
 
-export function numberToLetters(number, lowercase) {
+export function numberToLetters(number: number, lowercase: boolean) {
     number--;
     let offset = 65;
     if (lowercase) {

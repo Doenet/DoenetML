@@ -12,11 +12,11 @@ export const orderedPercentWidthMidpoints = fractionMidpoints.map(
     (x) => x * 100,
 );
 
-export const widthsBySize = {};
+export const widthsBySize: Record<string, number> = {};
 sizePossibilities.forEach(
     (x, i) => (widthsBySize[x] = Math.floor(widthFractions[i] * maxWidth)),
 );
-export const percentWidthsBySize = {};
+export const percentWidthsBySize: Record<string, number> = {};
 sizePossibilities.forEach(
     (x, i) => (percentWidthsBySize[x] = Math.round(widthFractions[i] * 100)),
 );
