@@ -1,5 +1,4 @@
 import { prng_alea } from "esm-seedrandom";
-import { retrieveTextFileForCid } from "../Core/utils/retrieveTextFile";
 import { returnAllPossibleVariants } from "../Core/utils/returnAllPossibleVariants";
 import { parseAndCompile } from "@doenet/parser";
 import { enumerateCombinations } from "../Core/utils/enumeration";
@@ -9,8 +8,7 @@ import {
     countComponentTypes,
     expandDoenetMLsToFullSerializedComponents,
 } from "../Core/utils/serializedStateProcessing";
-import { deepClone } from "../Core/utils/deepFunctions";
-import { cidFromText } from "../Core/utils/cid";
+import { cidFromText, retrieveTextFileForCid } from "@doenet/utils";
 
 let rngClass = prng_alea;
 

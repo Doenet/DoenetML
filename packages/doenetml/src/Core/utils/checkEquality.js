@@ -1,5 +1,5 @@
 import me from "math-expressions";
-import { deepCompare } from "./deepFunctions";
+import { deepCompare } from "@doenet/utils";
 import { normalizeMathExpression, vectorOperators } from "./math";
 import periodicSetEquality from "./periodicSetEquality";
 

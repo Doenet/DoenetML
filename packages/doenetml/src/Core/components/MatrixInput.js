@@ -1,6 +1,6 @@
 import Input from "./abstract/Input";
 import me from "math-expressions";
-import { deepClone, deepCompare } from "../utils/deepFunctions";
+import { deepClone, deepCompare } from "@doenet/utils";
 import {
     convertValueToMathExpression,
     getFromLatex,

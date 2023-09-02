@@ -6,7 +6,7 @@ import {
     vectorOperators,
 } from "../utils/math";
 import { breakEmbeddedStringByCommas } from "./commonsugar/breakstrings";
-import { deepClone } from "../utils/deepFunctions";
+import { deepClone } from "@doenet/utils";
 import { returnTextStyleDescriptionDefinitions } from "../utils/style";
 import {
     returnRoundingAttributeComponentShadowing,

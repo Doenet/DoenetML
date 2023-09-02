@@ -1,12 +1,10 @@
 import readOnlyProxyHandler from "./ReadOnlyProxyHandler";
-import { deepClone, deepCompare } from "./utils/deepFunctions";
 import {
     ancestorsIncludingComposites,
     gatherDescendants,
 } from "./utils/descendants";
 import { getLineCharRange } from "./utils/logging";
-import { retrieveTextFileForCid } from "./utils/retrieveTextFile";
-import { convertComponentTarget } from "./utils/serializedStateProcessing";
+import { retrieveTextFileForCid, deepClone, deepCompare } from "@doenet/utils";
 
 const dependencyTypeArray = [];
 

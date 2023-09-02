@@ -1,11 +1,9 @@
 import me from "math-expressions";
 import { createUniqueName } from "./naming";
 import { flattenDeep } from "./array";
-import { deepClone } from "./deepFunctions";
 import { breakEmbeddedStringByCommas } from "../components/commonsugar/breakstrings";
 import { parseAndCompile } from "@doenet/parser";
-import subsets from "./subset-of-reals";
-import { retrieveTextFileForCid } from "./retrieveTextFile";
+import { retrieveTextFileForCid, deepClone } from "@doenet/utils";
 import { returnDeprecationMessage } from "./doenetMLversion";
 
 export async function expandDoenetMLsToFullSerializedComponents({
@@ -4082,38 +4080,6 @@ export function convertComponentTarget({
     }
 
     return absoluteName;
-}
-
-export function serializedComponentsReplacer(key, value) {
-    if (value !== value) {
-        return { objectType: "special-numeric", stringValue: "NaN" };
-    } else if (value === Infinity) {
-        return { objectType: "special-numeric", stringValue: "Infinity" };
-    } else if (value === -Infinity) {
-        return { objectType: "special-numeric", stringValue: "-Infinity" };
-    }
-    return value;
-}
-
-let nanInfinityReviver = function (key, value) {
-    if (value && value.objectType === "special-numeric") {
-        if (value.stringValue === "NaN") {
-            return NaN;
-        } else if (value.stringValue === "Infinity") {
-            return Infinity;
-        } else if (value.stringValue === "-Infinity") {
-            return -Infinity;
-        }
-    }
-
-    return value;
-};
-
-export function serializedComponentsReviver(key, value) {
-    return me.reviver(
-        key,
-        subsets.Subset.reviver(key, nanInfinityReviver(key, value)),
-    );
 }
 
 // processAssignNames creates component names for an array of components

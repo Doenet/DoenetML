@@ -1,13 +1,13 @@
 import base32 from "hi-base32";
 
-export async function cidFromText(text) {
+export async function cidFromText(text: string) {
     let encoder = new TextEncoder();
     let data = encoder.encode(text);
 
     return await cidFromArrayBuffer(data);
 }
 
-export async function cidFromArrayBuffer(data) {
+export async function cidFromArrayBuffer(data: ArrayBuffer) {
     let hashBuffer = await crypto.subtle.digest("SHA-256", data);
 
     let cidArray = new Uint8Array(36);

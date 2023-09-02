@@ -1,7 +1,7 @@
 {
-    "name": "@doenet/ui-components",
+    "name": "@doenet/utils",
     "type": "module",
-    "description": "Buttons for the UI",
+    "description": "Common DoenetML utility functions",
     "version": "*",
     "license": "AGPL-3.0-or-later",
     "homepage": "https://github.com/Doenet/DoenetML#readme",

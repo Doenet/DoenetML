@@ -5,7 +5,7 @@ import {
 } from "../utils/copy";
 import { processAssignNames } from "../utils/serializedStateProcessing";
 import { replacementFromProp } from "./Copy";
-import { deepClone } from "../utils/deepFunctions";
+import { deepClone } from "@doenet/utils";
 
 export default class Collect extends CompositeComponent {
     static componentType = "collect";

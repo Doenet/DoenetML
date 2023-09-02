@@ -7,7 +7,7 @@ import {
 } from "../utils/copy";
 import { flattenDeep, flattenLevels } from "../utils/array";
 import { getUniqueIdentifierFromBase } from "../utils/naming";
-import { deepClone } from "../utils/deepFunctions";
+import { deepClone } from "@doenet/utils";
 
 export default class Copy extends CompositeComponent {
     static componentType = "copy";

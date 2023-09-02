@@ -9,7 +9,7 @@ import { nanoid } from "nanoid";
 import {
     serializedComponentsReplacer,
     serializedComponentsReviver,
-} from "../Core/utils/serializedStateProcessing";
+} from "@doenet/utils";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faExclamationCircle } from "@fortawesome/free-solid-svg-icons";
 import { rendererState } from "./useDoenetRenderer";

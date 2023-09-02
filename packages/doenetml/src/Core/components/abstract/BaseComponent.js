@@ -1,6 +1,6 @@
 import createStateProxyHandler from "../../StateProxyHandler";
 import { flattenDeep, mapDeep } from "../../utils/array";
-import { deepClone } from "../../utils/deepFunctions";
+import { deepClone } from "@doenet/utils";
 import { enumerateCombinations } from "../../utils/enumeration";
 import { gatherVariantComponents } from "../../utils/variants";
 import { returnDefaultGetArrayKeysFromVarName } from "../../utils/stateVariables";

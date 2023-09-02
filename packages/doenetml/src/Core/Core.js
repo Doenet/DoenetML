@@ -5,8 +5,13 @@ import { prng_alea } from "esm-seedrandom";
 import me from "math-expressions";
 import { createUniqueName, getNamespaceFromName } from "./utils/naming";
 import * as serializeFunctions from "./utils/serializedStateProcessing";
-import { deepCompare, deepClone } from "./utils/deepFunctions";
 import createStateProxyHandler from "./StateProxyHandler";
+import {
+    serializedComponentsReplacer,
+    serializedComponentsReviver,
+    deepCompare,
+    deepClone,
+} from "@doenet/utils";
 import {
     convertAttributesForComponentType,
     postProcessCopy,
@@ -20,7 +25,6 @@ import {
 } from "./utils/math";
 import { returnDefaultGetArrayKeysFromVarName } from "./utils/stateVariables";
 import { nanoid } from "nanoid";
-import { cidFromText } from "./utils/cid";
 import createComponentInfoObjects from "./utils/componentInfoObjects";
 import { get as idb_get, set as idb_set } from "idb-keyval";
 import axios from "axios";
@@ -137,9 +141,9 @@ export default class Core {
             stateVariableUpdatesForMissingComponents: JSON.parse(
                 JSON.stringify(
                     stateVariableChanges,
-                    serializeFunctions.serializedComponentsReplacer,
+                    serializedComponentsReplacer,
                 ),
-                serializeFunctions.serializedComponentsReviver,
+                serializedComponentsReviver,
             ),
             stateVariablesToEvaluate: [],
         };
@@ -151,11 +155,8 @@ export default class Core {
         this.newErrorWarning = true;
 
         this.cumulativeStateVariableChanges = JSON.parse(
-            JSON.stringify(
-                stateVariableChanges,
-                serializeFunctions.serializedComponentsReplacer,
-            ),
-            serializeFunctions.serializedComponentsReviver,
+            JSON.stringify(stateVariableChanges, serializedComponentsReplacer),
+            serializedComponentsReviver,
         );
 
         this.requestedVariantIndex = requestedVariantIndex;
@@ -409,13 +410,11 @@ export default class Core {
 
         this.canonicalGeneratedVariantString = JSON.stringify(
             await this.document.stateValues.generatedVariantInfo,
-            serializeFunctions.serializedComponentsReplacer,
+            serializedComponentsReplacer,
         );
         this.canonicalItemVariantStrings = (
             await this.document.stateValues.itemVariantInfo
-        ).map((x) =>
-            JSON.stringify(x, serializeFunctions.serializedComponentsReplacer),
-        );
+        ).map((x) => JSON.stringify(x, serializedComponentsReplacer));
 
         // Note: coreInfo is fixed even though this.rendererTypesInDocument could change
         // Note 2: both canonical variant strings and original rendererTypesInDocument
@@ -431,7 +430,7 @@ export default class Core {
 
         this.coreInfoString = JSON.stringify(
             this.coreInfo,
-            serializeFunctions.serializedComponentsReplacer,
+            serializedComponentsReplacer,
         );
 
         this.messageViewerReady();
@@ -11178,17 +11177,14 @@ export default class Core {
             activityVariantIndex: this.activityVariantIndex,
             pageVariantIndex: this.requestedVariant.index,
             verb: event.verb,
-            object: JSON.stringify(
-                event.object,
-                serializeFunctions.serializedComponentsReplacer,
-            ),
+            object: JSON.stringify(event.object, serializedComponentsReplacer),
             result: JSON.stringify(
                 removeFunctionsMathExpressionClass(event.result),
-                serializeFunctions.serializedComponentsReplacer,
+                serializedComponentsReplacer,
             ),
             context: JSON.stringify(
                 event.context,
-                serializeFunctions.serializedComponentsReplacer,
+                serializedComponentsReplacer,
             ),
             timestamp: new Date().toISOString().slice(0, 19).replace("T", " "),
             version: "0.1.1",
@@ -12761,11 +12757,11 @@ export default class Core {
             coreInfo: this.coreInfoString,
             coreState: JSON.stringify(
                 this.cumulativeStateVariableChanges,
-                serializeFunctions.serializedComponentsReplacer,
+                serializedComponentsReplacer,
             ),
             rendererState: JSON.stringify(
                 this.rendererState,
-                serializeFunctions.serializedComponentsReplacer,
+                serializedComponentsReplacer,
             ),
             pageNumber: this.pageNumber,
             attemptNumber: this.attemptNumber,
@@ -12888,15 +12884,15 @@ export default class Core {
                         {
                             coreState: JSON.parse(
                                 data.coreState,
-                                serializeFunctions.serializedComponentsReviver,
+                                serializedComponentsReviver,
                             ),
                             rendererState: JSON.parse(
                                 data.rendererState,
-                                serializeFunctions.serializedComponentsReviver,
+                                serializedComponentsReviver,
                             ),
                             coreInfo: JSON.parse(
                                 data.coreInfo,
-                                serializeFunctions.serializedComponentsReviver,
+                                serializedComponentsReviver,
                             ),
                             saveId: data.saveId,
                         },

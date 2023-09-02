@@ -5,6 +5,7 @@
     "description": "Monorepo for the DoenetML project",
     "workspaces": [
         "./packages/ui-components",
+        "./packages/utils",
         "./packages/parser",
         "./packages/doenetml-worker",
         "./packages/virtual-keyboard",

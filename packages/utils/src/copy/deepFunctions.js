@@ -1,5 +1,5 @@
 import me from "math-expressions";
-import subsets from "./subset-of-reals";
+import { subsets } from "../math/subset-of-reals";
 
 // from https://stackoverflow.com/a/40293777
 export function deepClone(obj, BaseComponent, hash) {

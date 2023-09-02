@@ -1,7 +1,5 @@
 import Function from "./Function";
-import subsets, {
-    mathExpressionFromSubsetValue,
-} from "../utils/subset-of-reals";
+import { subsets, mathExpressionFromSubsetValue } from "@doenet/utils";
 import me from "math-expressions";
 import { returnPiecewiseNumericalFunctionFromChildren } from "../utils/function";
 import { roundForDisplay } from "../utils/math";

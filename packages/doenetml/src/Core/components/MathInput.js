@@ -8,7 +8,7 @@ import {
     normalizeLatexString,
     convertValueToMathExpression,
 } from "../utils/math";
-import { deepCompare } from "../utils/deepFunctions";
+import { deepCompare } from "@doenet/utils";
 import {
     returnRoundingAttributeComponentShadowing,
     returnRoundingAttributes,

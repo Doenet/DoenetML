@@ -1,8 +1,12 @@
 import { cidFromText } from "./cid";
 
-const textByCid = {};
+const textByCid: Record<string, string> = {};
 
-export function retrieveTextFileForCid(cid, ext = "doenet", useIPFS = false) {
+export function retrieveTextFileForCid(
+    cid: string,
+    ext = "doenet",
+    useIPFS = false,
+) {
     if (textByCid[cid] !== undefined) {
         return Promise.resolve(textByCid[cid]);
     }
@@ -26,12 +30,12 @@ export function retrieveTextFileForCid(cid, ext = "doenet", useIPFS = false) {
         let promiseIPFS = resultIPFS.promise;
         let controllerIPFS = resultIPFS.controller;
 
-        let controllerServer;
+        let controllerServer: AbortController;
 
         let rejectedIPFS = false;
         let rejectedServer = false;
 
-        let timeoutId;
+        let timeoutId: number;
 
         promiseIPFS
             .then((res) => {
@@ -55,7 +59,7 @@ export function retrieveTextFileForCid(cid, ext = "doenet", useIPFS = false) {
                 }
             });
 
-        timeoutId = setTimeout(() => {
+        timeoutId = window.setTimeout(() => {
             // if the timer wasn't cleared then IPFS has not yet retrieved
             // so start retrieving from the server
             let resultServer = retrieveTextFileFromServer(cid, ext);
@@ -78,7 +82,7 @@ export function retrieveTextFileForCid(cid, ext = "doenet", useIPFS = false) {
                         reject(e);
                     } else {
                         // give IPFS server 5 more seconds to retrieve
-                        timeoutId = setTimeout(() => {
+                        timeoutId = window.setTimeout(() => {
                             controllerIPFS.abort();
                             reject(e);
                         }, 5000);
@@ -88,7 +92,7 @@ export function retrieveTextFileForCid(cid, ext = "doenet", useIPFS = false) {
     });
 }
 
-function retrieveTextFileFromIPFS(cid) {
+function retrieveTextFileFromIPFS(cid: string) {
     let controller = new AbortController();
     let signal = controller.signal;
 
@@ -121,7 +125,7 @@ function retrieveTextFileFromIPFS(cid) {
     return { promise, controller };
 }
 
-function retrieveTextFileFromServer(cid, ext) {
+function retrieveTextFileFromServer(cid: string, ext: string) {
     let controller = new AbortController();
     let signal = controller.signal;
 

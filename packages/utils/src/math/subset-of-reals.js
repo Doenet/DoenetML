@@ -8,7 +8,7 @@
 */
 
 import me from "math-expressions";
-import { deepCompare } from "./deepFunctions";
+import { deepCompare } from "../copy/deepFunctions";
 
 /**
  * Exported module
@@ -44,6 +44,8 @@ class Subset {
             subsetType: this.constructor.subsetType,
         };
     }
+
+    is_subset_of_reals = true;
 
     static reviver(key, value) {
         if (
@@ -518,7 +520,7 @@ class ClosedOpenInterval extends Interval {
 }
 
 /** **************************************************************/
-const theModule = {
+export const subsets = {
     Subset,
     EmptySet,
     RealLine,
@@ -532,7 +534,6 @@ const theModule = {
 };
 
 /** **************************************************************/
-export default theModule;
 
 function buildSubsetFromIntervals(tree, variable) {
     if (!Array.isArray(tree)) {

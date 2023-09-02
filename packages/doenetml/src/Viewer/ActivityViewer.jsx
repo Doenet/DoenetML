@@ -1,11 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { retrieveTextFileForCid } from "../Core/utils/retrieveTextFile";
 import { PageViewer } from "./PageViewer";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faExclamationCircle } from "@fortawesome/free-solid-svg-icons";
 import axios from "axios";
 import { get as idb_get, set as idb_set } from "idb-keyval";
-import { cidFromText } from "../Core/utils/cid";
+import { cidFromText, retrieveTextFileForCid } from "@doenet/utils";
 import { nanoid } from "nanoid";
 import {
     calculateOrderAndVariants,

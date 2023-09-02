@@ -1,7 +1,11 @@
 import axios from "axios";
 import { cidFromArrayBuffer } from "./cid";
 
-export async function retrieveMediaForCid(cid, mimeType, useIPFS = false) {
+export async function retrieveMediaForCid(
+    cid: string,
+    mimeType: string,
+    useIPFS = false,
+) {
     if (useIPFS) {
         try {
             return await retrieveMediaFromIPFS(cid);
@@ -22,7 +26,7 @@ export async function retrieveMediaForCid(cid, mimeType, useIPFS = false) {
     return retrieveMediaFromServer(cid, mimeType);
 }
 
-async function retrieveMediaFromIPFS(cid) {
+async function retrieveMediaFromIPFS(cid: string) {
     let controller = new AbortController();
     let signal = controller.signal;
 
@@ -62,7 +66,7 @@ async function retrieveMediaFromIPFS(cid) {
     }
 }
 
-async function retrieveMediaFromServer(cid, mimeType) {
+async function retrieveMediaFromServer(cid: string, mimeType: string) {
     try {
         let extension = extensionFromMimeType(mimeType);
 
@@ -89,7 +93,7 @@ async function retrieveMediaFromServer(cid, mimeType) {
     }
 }
 
-function extensionFromMimeType(mimeType) {
+function extensionFromMimeType(mimeType: string) {
     if (mimeType === "image/png") {
         return "png";
     } else if (mimeType === "image/jpeg") {
