@@ -28,6 +28,9 @@ export default class MathOperator extends MathComponent {
         return attributes;
     }
 
+    // Include children that can be added due to sugar
+    static additionalSchemaChildren = ["string"];
+
     static returnSugarInstructions() {
         let sugarInstructions = super.returnSugarInstructions();
 

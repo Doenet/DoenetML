@@ -4,6 +4,9 @@ export default class BooleanBaseOperatorOfMath extends BooleanComponent {
     static componentType = "_booleanOperatorOfMath";
     static rendererType = "boolean";
 
+    // Include children that can be added due to sugar
+    static additionalSchemaChildren = ["string"];
+
     static returnSugarInstructions() {
         let sugarInstructions = [];
 

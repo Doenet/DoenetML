@@ -37,6 +37,9 @@ export default class Point extends GraphicalComponent {
     static primaryStateVariableForDefinition = "coordsShadow";
     static stateVariableToBeShadowed = "coords";
 
+    // Include children that can be added due to sugar
+    static additionalSchemaChildren = ["number", "math", "string"];
+
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.draggable = {

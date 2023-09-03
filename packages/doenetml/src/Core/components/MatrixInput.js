@@ -147,6 +147,9 @@ export class MatrixInput extends Input {
         return attributes;
     }
 
+    // Although will actually take any math, the schema shows just matrix
+    static additionalSchemaChildren = ["matrix"];
+
     static returnSugarInstructions() {
         let sugarInstructions = super.returnSugarInstructions();
 
@@ -171,10 +174,12 @@ export class MatrixInput extends Input {
             {
                 group: "matrixComponentInputs",
                 componentTypes: ["_matrixComponentInput"],
+                excludeFromSchema: true,
             },
             {
                 group: "maths",
                 componentTypes: ["math"],
+                excludeFromSchema: true,
             },
         ];
     }

@@ -33,6 +33,9 @@ export default class Function extends InlineComponent {
 
     static primaryStateVariableForDefinition = "numericalfShadow";
 
+    // Include children that can be added due to sugar
+    static additionalSchemaChildren = ["string"];
+
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 

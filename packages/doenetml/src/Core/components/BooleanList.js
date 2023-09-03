@@ -34,6 +34,9 @@ export default class BooleanList extends InlineComponent {
         return attributes;
     }
 
+    // Include children that can be added due to sugar
+    static additionalSchemaChildren = ["math", "number", "string"];
+
     static returnSugarInstructions() {
         let sugarInstructions = super.returnSugarInstructions();
         let groupIntoBooleansSeparatedBySpaces =

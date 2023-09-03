@@ -6,6 +6,9 @@ export default class BooleanOperator extends BooleanComponent {
 
     static descendantCompositesMustHaveAReplacement = false;
 
+    // Include children that can be added due to sugar
+    static additionalSchemaChildren = ["string"];
+
     static returnSugarInstructions() {
         let sugarInstructions = super.returnSugarInstructions();
 
