@@ -141,6 +141,14 @@ export function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
                         position: lezerNodeToPosition(node, offsetMap),
                     },
                 ];
+            case "Ampersand":
+                return [
+                    {
+                        type: "text",
+                        value: "&",
+                        position: lezerNodeToPosition(node, offsetMap),
+                    },
+                ];
             case "CharacterReference":
             case "EntityReference":
                 return [
@@ -212,7 +220,6 @@ export function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
             case "TagName":
             case "StartTag":
             case "StartCloseTag":
-            case "InvalidEntity":
                 return [];
             case "MismatchedCloseTag": {
                 const parent = node.parent;

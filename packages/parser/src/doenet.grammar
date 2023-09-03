@@ -7,6 +7,7 @@ entity {
   Text |
   EntityReference |
   CharacterReference |
+  Ampersand |
   Cdata |
   Element |
   Comment |
@@ -43,8 +44,8 @@ Element {
 }
 
 AttributeValue {
-  "\"" (doubleQuoteAttributeContent | EntityReference | CharacterReference | InvalidEntity)* "\"" |
-  "'" (singleQuoteAttributeContent | EntityReference | CharacterReference | InvalidEntity)* "'"
+  "\"" (doubleQuoteAttributeContent | EntityReference | CharacterReference | Ampersand)* "\"" |
+  "'" (singleQuoteAttributeContent | EntityReference | CharacterReference | Ampersand)* "'"
 }
 
 Comment { "<!--" commentContent* "-->" }
@@ -93,13 +94,14 @@ Cdata { cdataStart cdataContent* "]]>" }
 
   Is { "=" }
 
-  EntityReference { "&" ![#; ]+ ";" }
+  // See https://www.w3.org/TR/2006/REC-xml11-20060816/#sec-references
+  EntityReference { "&" identifier ";" }
 
-  CharacterReference { "&#" ![; ]+ ";" }
+  CharacterReference { ("&#x" $[0-9a-fA-F]+ ";" | "&#" $[0-9]+ ";") }
 
-  InvalidEntity { "&" }
+  Ampersand { "&" }
 
-  @precedence { CharacterReference, EntityReference, InvalidEntity }
+  @precedence { CharacterReference, EntityReference, Ampersand }
 
   Text { ("<" space | "<=" | ![<&])+ }
 

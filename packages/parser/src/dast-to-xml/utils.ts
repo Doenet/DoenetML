@@ -1,4 +1,5 @@
 import { stringifyEntitiesLight } from "stringify-entities";
+import { DastNodes } from "../types";
 
 /**
  * Escape a string.
@@ -39,4 +40,41 @@ export function clean(value: string) {
 export function name(value: string) {
     const subset = ["\t", "\n", " ", '"', "&", "'", "/", "<", "=", ">"];
     return escape(value, subset);
+}
+
+/**
+ * Merge adjacent text nodes in an array
+ */
+export function mergeAdjacentTextInArray(nodes: DastNodes[]): DastNodes[] {
+    const needsMerging = nodes.some(
+        (n, i) => n.type === "text" && nodes[i + 1]?.type === "text",
+    );
+    if (!needsMerging) {
+        return nodes;
+    }
+    const ret: DastNodes[] = [];
+    for (let i = 0; i < nodes.length; i++) {
+        let node = nodes[i];
+        let nextNode = nodes[i + 1];
+        if (!nextNode) {
+            ret.push(node);
+            continue;
+        }
+        if (node.type === "text" && nextNode.type === "text") {
+            node = { ...node };
+            ret.push(node);
+            while (nextNode?.type === "text") {
+                node.value += nextNode.value;
+                if (node.position && nextNode.position) {
+                    node.position.end = nextNode.position.end;
+                }
+                i++;
+                nextNode = nodes[i + 1];
+            }
+        } else {
+            ret.push(node);
+        }
+    }
+
+    return ret;
 }

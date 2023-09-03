@@ -100,9 +100,25 @@ exports[`DAST > xml-doenet-ampersand-1.doenet prints correctly in Xml format and
 `;
 
 exports[`DAST > xml-doenet-ampersand-1.doenet prints correctly in Xml format and Doenet format 2`] = `
-"&lt; &#x25; &#x25 -- this one is okay.
+"&amp;lt; &amp;#x25; &#x25 -- this one is okay.
 (an amp followed by text with a semi colon should be an amp.)"
 `;
+
+exports[`DAST > xml-doenet-ampersand-2.doenet prints correctly in Xml format and Doenet format 1`] = `
+"&amp;
+&amp;
+&amp;amp"
+`;
+
+exports[`DAST > xml-doenet-ampersand-2.doenet prints correctly in Xml format and Doenet format 2`] = `
+"&
+&
+&amp"
+`;
+
+exports[`DAST > xml-doenet-ampersand-3.doenet prints correctly in Xml format and Doenet format 1`] = `"&amp;"`;
+
+exports[`DAST > xml-doenet-ampersand-3.doenet prints correctly in Xml format and Doenet format 2`] = `"&"`;
 
 exports[`DAST > xml-doenet-attributes-1.doenet prints correctly in Xml format and Doenet format 1`] = `"<foo bar=\\"true\\"} baz=\\"hi\\" bang=\\"there\\" />"`;
 

@@ -1,7 +1,7 @@
 // Code modified from xast-util-to-xml MIT License https://github.com/syntax-tree/xast-util-to-xml
 import { ccount } from "ccount";
 import { DastElement, DastNodes, PrintOptions } from "../types";
-import { clean, escape, name } from "./utils";
+import { escape, mergeAdjacentTextInArray, name } from "./utils";
 
 /**
  * Serialize a xast tree to XML.
@@ -29,7 +29,9 @@ export function nodesToXml(
     options: PrintOptions,
 ): string {
     if (Array.isArray(node)) {
-        return node.map((child) => nodesToXml(child, options)).join("");
+        return mergeAdjacentTextInArray(node)
+            .map((child) => nodesToXml(child, options))
+            .join("");
     }
 
     const type = node && node.type;

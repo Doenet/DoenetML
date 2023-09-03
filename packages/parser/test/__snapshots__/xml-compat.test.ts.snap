@@ -26,9 +26,13 @@ exports[`Xml files parse correctly > xml-12.doenet parses correctly 1`] = `"Docu
 
 exports[`Xml files parse correctly > xml-doenet-ampersand-1.doenet parses correctly 1`] = `"Document(EntityReference,Text,EntityReference,Text,EntityReference,Text)"`;
 
+exports[`Xml files parse correctly > xml-doenet-ampersand-2.doenet parses correctly 1`] = `"Document(Ampersand,Text,EntityReference,Text,Ampersand,Text)"`;
+
+exports[`Xml files parse correctly > xml-doenet-ampersand-3.doenet parses correctly 1`] = `"Document(Ampersand)"`;
+
 exports[`Xml files parse correctly > xml-doenet-attributes-1.doenet parses correctly 1`] = `"Document(Element(SelfClosingTag(StartTag,TagName,Attribute(AttributeName),Attribute(AttributeName,Is,AttributeValue),Attribute(AttributeName,Is,AttributeValue),SelfCloseEndTag)))"`;
 
-exports[`Xml files parse correctly > xml-doenet-attributes-2.doenet parses correctly 1`] = `"Document(Element(SelfClosingTag(StartTag,TagName,Attribute(AttributeName,Is,AttributeValue),Attribute(AttributeName,Is,AttributeValue(InvalidEntity)),SelfCloseEndTag)))"`;
+exports[`Xml files parse correctly > xml-doenet-attributes-2.doenet parses correctly 1`] = `"Document(Element(SelfClosingTag(StartTag,TagName,Attribute(AttributeName,Is,AttributeValue),Attribute(AttributeName,Is,AttributeValue(Ampersand)),SelfCloseEndTag)))"`;
 
 exports[`Xml files parse correctly > xml-doenet-lessthan-in-text-1.doenet parses correctly 1`] = `"Document(Element(OpenTag(StartTag,TagName,EndTag),Text,CloseTag(StartCloseTag,TagName,EndTag)))"`;
 
