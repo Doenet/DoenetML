@@ -63,6 +63,7 @@ export const BREAK_AROUND_ELEMENTS = new Set([
     "solution",
     "hint",
     "choice",
+    "graph"
 ]);
 
 /**
@@ -74,4 +75,5 @@ export const ALWAYS_BREAK_ELEMENTS = new Set([
     "ol",
     "ul",
     "dl",
+    "graph"
 ]);

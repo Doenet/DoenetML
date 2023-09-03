@@ -1,11 +1,11 @@
-<p>Use this to test DoenetML</p>
-<graph showNavigation="false">
+<CodeEditor showResults resultsLocation="left" showFormatter>
+  <p>Use this to <m>a < b</m>test DoenetML</p> <graph showNavigation>
 
-  <line through="(-8,8) (9,6)" />
-  <line through="(0,4)" slope="1/2" styleNumber="2" />
+    <line through="(-8,8) (9,6)" />
+    <line through="(0,4)" slope="1/2" styleNumber="2" />
 
-  <line equation="y=2x-8" styleNumber="3" />
-  <line equation="x=-6" styleNumber="4" />
-  
-</graph>
-<CodeEditor showResults resultsLocation="left" />
+    <line equation="y=2x-8" styleNumber="3" />
+    <line equation="x=-6" styleNumber="4" />
+    
+  </graph>
+</CodeEditor>

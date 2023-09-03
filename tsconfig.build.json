@@ -34,6 +34,7 @@
         "paths": {
             "@doenet/parser": ["./packages/parser/dist"],
             "@doenet/doenetml": ["./packages/doenetml/dist"],
+            "@doenet/codemirror": ["./packages/codemirror/dist"],
             "@doenet/*": ["./packages/*/dist"]
         }
     }

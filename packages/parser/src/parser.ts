@@ -1,5 +1,8 @@
 import type { SyntaxNode, TreeCursor } from "@lezer/common";
 import { parser } from "./generated-assets/lezer-doenet";
+export { toXml } from "./dast-to-xml/dast-util-to-xml";
+export { lezerToDast } from "./lezer-to-dast/lezer-to-dast";
+export { prettyPrint } from "./pretty-printer";
 
 // Re-export parser for CodeMirror instances
 export { parser };
@@ -356,7 +359,7 @@ export function parseAndCompile(inText: string) {
             let attrRanges: AttrRange = {};
             while (cursor.nextSibling()) {
                 if (cursor.name === "SelfCloseEndTag") {
-                    continue
+                    continue;
                 }
                 //All of the siblings must be Attributes, but we're checking just in case the grammar changes
                 if (cursor.name !== "Attribute") {

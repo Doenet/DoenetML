@@ -69,6 +69,14 @@ export default class CodeEditor extends BlockComponent {
             public: true,
         };
 
+        attributes.showFormatter = {
+            createComponentOfType: "boolean",
+            createStateVariable: "showFormatter",
+            defaultValue: false,
+            forRenderer: true,
+            public: true,
+        };
+
         attributes.resultsLocation = {
             createComponentOfType: "text",
             createStateVariable: "resultsLocation",
