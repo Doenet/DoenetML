@@ -6,6 +6,9 @@ export default class Matrix extends MathComponent {
     static componentType = "matrix";
     static rendererType = "math";
 
+    // Include children that can be added due to sugar
+    static additionalSchemaChildren = ["row", "column"];
+
     static returnChildGroups() {
         return [
             {
@@ -19,6 +22,7 @@ export default class Matrix extends MathComponent {
             {
                 group: "maths",
                 componentTypes: ["math"],
+                excludeFromSchema: true,
             },
         ];
     }

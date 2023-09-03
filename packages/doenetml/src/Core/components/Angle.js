@@ -13,6 +13,9 @@ export default class Angle extends GraphicalComponent {
 
     static canBeInList = true;
 
+    // Include children that can be added due to sugar
+    static additionalSchemaChildren = ["number", "math", "string"];
+
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.radius = {

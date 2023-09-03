@@ -203,6 +203,9 @@ export default class Award extends BaseComponent {
         }
     }
 
+    // Include children that can be added due to sugar
+    static additionalSchemaChildren = ["string"];
+
     static returnSugarInstructions() {
         let sugarInstructions = super.returnSugarInstructions();
 

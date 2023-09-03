@@ -21,6 +21,9 @@ export default class BestFitLine extends Line {
         return attributes;
     }
 
+    // Include children that can be added due to sugar (delete those from line)
+    static additionalSchemaChildren = [];
+
     static returnSugarInstructions() {
         return [];
     }
