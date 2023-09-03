@@ -1,6 +1,7 @@
 import InlineComponent from "./abstract/InlineComponent";
 import me from "math-expressions";
-import { normalizeMathExpression, returnNVariables } from "../utils/math";
+import { returnNVariables } from "../utils/math";
+import { normalizeMathExpression } from "@doenet/utils";
 // import nerdamer from 'nerdamer'
 // import 'nerdamer/Algebra.js'
 // import 'nerdamer/Calculus.js'

@@ -1,8 +1,6 @@
 import BlockComponent from "./abstract/BlockComponent";
 import me from "math-expressions";
-import subsets, {
-    buildSubsetFromMathExpression,
-} from "../utils/subset-of-reals";
+import { subsets, buildSubsetFromMathExpression } from "@doenet/utils";
 
 export default class SubsetOfRealsInput extends BlockComponent {
     constructor(args) {

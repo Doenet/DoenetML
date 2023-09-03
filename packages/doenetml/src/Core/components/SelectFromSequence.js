@@ -4,10 +4,11 @@ import { processAssignNames } from "../utils/serializedStateProcessing";
 import { getFromText } from "../utils/math";
 import {
     calculateSequenceParameters,
-    lettersToNumber,
     returnSequenceValueForIndex,
     returnSequenceValues,
 } from "../utils/sequence";
+import { lettersToNumber } from "@doenet/utils";
+
 import { convertAttributesForComponentType } from "../utils/copy";
 import { returnRoundingAttributes } from "../utils/rounding";
 import {

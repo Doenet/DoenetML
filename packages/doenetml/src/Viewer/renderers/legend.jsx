@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useRef } from "react";
 import useDoenetRenderer from "../useDoenetRenderer";
 import { BoardContext } from "./graph";
-import { deepCompare } from "../../Core/utils/deepFunctions";
+import { deepCompare } from "@doenet/utils";
 
 export default React.memo(function Legend(props) {
     let { name, id, SVs } = useDoenetRenderer(props);

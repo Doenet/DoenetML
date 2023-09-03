@@ -1,4 +1,5 @@
-import { roundForDisplay, vectorOperators } from "../utils/math";
+import { roundForDisplay } from "../utils/math";
+import { vectorOperators } from "@doenet/utils";
 import {
     returnRoundingAttributes,
     returnRoundingStateVariableDefinitions,

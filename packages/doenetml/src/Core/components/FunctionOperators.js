@@ -1,7 +1,7 @@
 import FunctionBaseOperator from "./abstract/FunctionBaseOperator";
 import me from "math-expressions";
-import { returnNVariables, vectorOperators } from "../utils/math";
-import { functionOperatorDefinitions } from "../utils/function";
+import { returnNVariables } from "../utils/math";
+import { vectorOperators, functionOperatorDefinitions } from "@doenet/utils";
 
 export class ClampFunction extends FunctionBaseOperator {
     static componentType = "clampFunction";

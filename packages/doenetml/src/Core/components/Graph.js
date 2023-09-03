@@ -6,7 +6,7 @@ import {
     orderedWidthMidpoints,
     widthsBySize,
     sizePossibilities,
-} from "../utils/size";
+} from "@doenet/utils";
 import {
     returnRoundingAttributeComponentShadowing,
     returnRoundingAttributes,

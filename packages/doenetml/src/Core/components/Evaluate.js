@@ -3,7 +3,7 @@ import me from "math-expressions";
 import {
     returnNumericFunctionForEvaluate,
     returnSymbolicFunctionForEvaluate,
-} from "../utils/function";
+} from "@doenet/utils";
 import {
     returnRoundingAttributeComponentShadowing,
     returnRoundingStateVariableDefinitions,

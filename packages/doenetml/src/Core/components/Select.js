@@ -3,7 +3,7 @@ import {
     enumerateSelectionCombinations,
     enumerateCombinations,
 } from "../utils/enumeration";
-import { deepClone } from "../utils/deepFunctions";
+import { deepClone } from "@doenet/utils";
 import {
     markToCreateAllUniqueNames,
     processAssignNames,

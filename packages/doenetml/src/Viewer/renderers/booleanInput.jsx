@@ -10,13 +10,13 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { rendererState } from "../useDoenetRenderer";
 import { useSetRecoilState } from "recoil";
-import ToggleButton from "../../uiComponents/ToggleButton";
+import { ToggleButton } from "@doenet/ui-components";
 import styled from "styled-components";
 import "./booleanInput.css";
 import { MathJax } from "better-react-mathjax";
 import { BoardContext } from "./graph";
 import me from "math-expressions";
-import { getPositionFromAnchorByCoordinate } from "../../Core/utils/graphical";
+import { getPositionFromAnchorByCoordinate } from "./utils/graph";
 
 // Moved most of checkWorkStyle styling into Button
 const Button = styled.button`

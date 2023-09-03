@@ -3,16 +3,18 @@ import me from "math-expressions";
 import {
     getFromText,
     getFromLatex,
-    convertValueToMathExpression,
-    normalizeMathExpression,
     roundForDisplay,
     mergeListsWithOtherContainers,
     preprocessMathInverseDefinition,
     superSubscriptsToUnicode,
     unicodeToSuperSubscripts,
-    vectorOperators,
 } from "../utils/math";
-import { flattenDeep } from "../utils/array";
+import {
+    normalizeMathExpression,
+    convertValueToMathExpression,
+    vectorOperators,
+    flattenDeep,
+} from "@doenet/utils";
 import {
     returnSelectedStyleStateVariableDefinition,
     returnTextStyleDescriptionDefinitions,

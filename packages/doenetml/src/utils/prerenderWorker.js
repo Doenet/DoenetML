@@ -1,6 +1,8 @@
 import axios from "axios";
-import { retrieveTextFileForCid } from "../Core/utils/retrieveTextFile";
-import { serializedComponentsReplacer } from "../Core/utils/serializedStateProcessing";
+import {
+    retrieveTextFileForCid,
+    serializedComponentsReplacer,
+} from "@doenet/utils";
 import {
     calculateOrderAndVariants,
     determineNumberOfActivityVariants,

@@ -2,7 +2,7 @@
     "name": "@doenet/virtual-keyboard",
     "type": "module",
     "description": "VirtualKeyboard component for DoenetML",
-    "version": "0.6.0-alpha3",
+    "version": "*",
     "license": "AGPL-3.0-or-later",
     "homepage": "https://github.com/Doenet/DoenetML#readme",
     "private": false,

@@ -1,28 +1,29 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { retrieveTextFileForCid } from "../Core/utils/retrieveTextFile";
 import { PageViewer } from "./PageViewer";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faExclamationCircle } from "@fortawesome/free-solid-svg-icons";
 import axios from "axios";
 import { get as idb_get, set as idb_set } from "idb-keyval";
-import { cidFromText } from "../Core/utils/cid";
+import {
+    cidFromText,
+    retrieveTextFileForCid,
+    findAllNewlines,
+    getLineCharRange,
+    printDoenetMLrange,
+    cesc,
+} from "@doenet/utils";
 import { nanoid } from "nanoid";
 import {
     calculateOrderAndVariants,
     parseActivityDefinition,
 } from "../utils/activityUtils";
 import VisibilitySensor from "react-visibility-sensor-v2";
-import Button from "../uiComponents/Button";
-import ActionButton from "../uiComponents/ActionButton";
-import ButtonGroup from "../uiComponents/ButtonGroup";
+
+import { Button } from "@doenet/ui-components";
+import { ButtonGroup } from "@doenet/ui-components";
+import { ActionButton } from "@doenet/ui-components";
 import { clear as idb_clear } from "idb-keyval";
-import { cesc } from "../utils/url";
 import { returnAllPossibleVariants } from "../Core/utils/returnAllPossibleVariants";
-import {
-    findAllNewlines,
-    getLineCharRange,
-    printDoenetMLrange,
-} from "../Core/utils/logging";
 
 const sendAlert = (msg, type) => console.log(msg);
 

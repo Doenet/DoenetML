@@ -3,7 +3,7 @@ import me from "math-expressions";
 import {
     returnNumericalFunctionFromFormula,
     returnSymbolicFunctionFromFormula,
-} from "../../utils/function";
+} from "@doenet/utils";
 import { returnRoundingAttributeComponentShadowing } from "../../utils/rounding";
 import { returnWrapNonLabelsSugarFunction } from "../../utils/label";
 

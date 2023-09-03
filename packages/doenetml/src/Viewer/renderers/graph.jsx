@@ -5,7 +5,7 @@ import me from "math-expressions";
 import VisibilitySensor from "react-visibility-sensor-v2";
 import JXG from "./jsxgraph-distrib/jsxgraphcore.mjs";
 // import JXG from './jsxgraph';
-import { cesc } from "../../utils/url";
+import { cesc } from "@doenet/utils";
 
 export const BoardContext = createContext();
 

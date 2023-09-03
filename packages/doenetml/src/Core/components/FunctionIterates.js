@@ -1,6 +1,6 @@
 import InlineComponent from "./abstract/InlineComponent";
 import me from "math-expressions";
-import { vectorOperators } from "../utils/math";
+import { vectorOperators } from "@doenet/utils";
 import {
     returnRoundingAttributeComponentShadowing,
     returnRoundingAttributes,

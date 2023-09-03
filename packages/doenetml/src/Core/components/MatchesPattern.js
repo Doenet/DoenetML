@@ -1,5 +1,5 @@
 import BooleanComponent from "./Boolean";
-import { numberToLetters } from "../utils/sequence";
+import { numberToLetters } from "@doenet/utils";
 import me from "math-expressions";
 
 export default class MatchesPattern extends BooleanComponent {

@@ -1,7 +1,8 @@
 import InlineComponent from "./abstract/InlineComponent";
 import me from "math-expressions";
 import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "./commonsugar/lists";
-import { convertValueToMathExpression, roundForDisplay } from "../utils/math";
+import { roundForDisplay } from "../utils/math";
+import { convertValueToMathExpression } from "@doenet/utils";
 import {
     returnRoundingAttributeComponentShadowing,
     returnRoundingAttributes,

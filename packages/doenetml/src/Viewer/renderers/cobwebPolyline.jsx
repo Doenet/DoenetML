@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useRef } from "react";
 import useDoenetRenderer from "../useDoenetRenderer";
 import { BoardContext, LINE_LAYER_OFFSET, VERTEX_LAYER_OFFSET } from "./graph";
-import { createFunctionFromDefinition } from "../../Core/utils/function";
+import { createFunctionFromDefinition } from "@doenet/utils";
 
 export default React.memo(function CobwebPolyline(props) {
     let { name, id, SVs, actions, sourceOfUpdate, callAction } =

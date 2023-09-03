@@ -5,7 +5,7 @@ import {
     appliedFunctionSymbolsDefault,
     numberToMathExpression,
 } from "./math";
-import { deepCompare } from "./deepFunctions";
+import { deepCompare } from "@doenet/utils";
 
 const appliedFunctionSymbolsWithBooleanOperators = [
     ...appliedFunctionSymbolsDefault,
