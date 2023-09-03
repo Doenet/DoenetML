@@ -1,0 +1,222 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`DAST > xml-1.doenet prints correctly in Xml format and Doenet format 1`] = `"<foo />"`;
+
+exports[`DAST > xml-1.doenet prints correctly in Xml format and Doenet format 2`] = `"<foo />"`;
+
+exports[`DAST > xml-2.doenet prints correctly in Xml format and Doenet format 1`] = `"<foo>bar</foo>"`;
+
+exports[`DAST > xml-2.doenet prints correctly in Xml format and Doenet format 2`] = `"<foo>bar</foo>"`;
+
+exports[`DAST > xml-3.doenet prints correctly in Xml format and Doenet format 1`] = `"<a><b>c</b><d /></a>"`;
+
+exports[`DAST > xml-3.doenet prints correctly in Xml format and Doenet format 2`] = `"<a><b>c</b><d /></a>"`;
+
+exports[`DAST > xml-4.doenet prints correctly in Xml format and Doenet format 1`] = `"<a foo=\\"bar\\" />"`;
+
+exports[`DAST > xml-4.doenet prints correctly in Xml format and Doenet format 2`] = `"<a foo=\\"bar\\" />"`;
+
+exports[`DAST > xml-5.doenet prints correctly in Xml format and Doenet format 1`] = `"<a x=\\"one\\" y=\\"two\\" z=\\"three\\" />"`;
+
+exports[`DAST > xml-5.doenet prints correctly in Xml format and Doenet format 2`] = `"<a x=\\"one\\" y=\\"two\\" z=\\"three\\" />"`;
+
+exports[`DAST > xml-6.doenet prints correctly in Xml format and Doenet format 1`] = `"<a attr=\\"one&amp;amp;two\\">&amp;C</a>"`;
+
+exports[`DAST > xml-6.doenet prints correctly in Xml format and Doenet format 2`] = `"<a attr=\\"one&amp;two\\">&C</a>"`;
+
+exports[`DAST > xml-7.doenet prints correctly in Xml format and Doenet format 1`] = `
+"<!DOCTYPE html>
+<doc />"
+`;
+
+exports[`DAST > xml-7.doenet prints correctly in Xml format and Doenet format 2`] = `
+"<!DOCTYPE html>
+<doc />"
+`;
+
+exports[`DAST > xml-8.doenet prints correctly in Xml format and Doenet format 1`] = `"<?foo?><bar><?baz?></bar>"`;
+
+exports[`DAST > xml-8.doenet prints correctly in Xml format and Doenet format 2`] = `"<?foo?><bar><?baz?></bar>"`;
+
+exports[`DAST > xml-8b.doenet prints correctly in Xml format and Doenet format 1`] = `"<?foo?>"`;
+
+exports[`DAST > xml-8b.doenet prints correctly in Xml format and Doenet format 2`] = `"<?foo?>"`;
+
+exports[`DAST > xml-9.doenet prints correctly in Xml format and Doenet format 1`] = `
+"<!--top comment -->
+<element><!-- inner comment --> text</element>
+<!-- c-->"
+`;
+
+exports[`DAST > xml-9.doenet prints correctly in Xml format and Doenet format 2`] = `
+"<!--top comment -->
+<element><!-- inner comment --> text</element>
+<!-- c-->"
+`;
+
+exports[`DAST > xml-10.doenet prints correctly in Xml format and Doenet format 1`] = `"<doc><![CDATA[ hello ]]></doc>"`;
+
+exports[`DAST > xml-10.doenet prints correctly in Xml format and Doenet format 2`] = `"<doc><![CDATA[ hello ]]></doc>"`;
+
+exports[`DAST > xml-12.doenet prints correctly in Xml format and Doenet format 1`] = `"<xml:foo ns:bar=\\"xx\\">yy</xml:foo>"`;
+
+exports[`DAST > xml-12.doenet prints correctly in Xml format and Doenet format 2`] = `"<xml:foo ns:bar=\\"xx\\">yy</xml:foo>"`;
+
+exports[`DAST > xml-bad-1.doenet prints correctly in Xml format and Doenet format 1`] = `"<a></a>"`;
+
+exports[`DAST > xml-bad-1.doenet prints correctly in Xml format and Doenet format 2`] = `"<a></a>"`;
+
+exports[`DAST > xml-bad-2.doenet prints correctly in Xml format and Doenet format 1`] = `"<a><b><c /></b></a>"`;
+
+exports[`DAST > xml-bad-2.doenet prints correctly in Xml format and Doenet format 2`] = `"<a><b><c /></b></a>"`;
+
+exports[`DAST > xml-bad-3.doenet prints correctly in Xml format and Doenet format 1`] = `"<doc> <foo bar=\\"10\\"> blah  </foo></doc>"`;
+
+exports[`DAST > xml-bad-3.doenet prints correctly in Xml format and Doenet format 2`] = `"<doc> <foo bar=\\"10\\"> blah  </foo></doc>"`;
+
+exports[`DAST > xml-bad-4.doenet prints correctly in Xml format and Doenet format 1`] = `""`;
+
+exports[`DAST > xml-bad-4.doenet prints correctly in Xml format and Doenet format 2`] = `""`;
+
+exports[`DAST > xml-bad-5.doenet prints correctly in Xml format and Doenet format 1`] = `"<foo />"`;
+
+exports[`DAST > xml-bad-5.doenet prints correctly in Xml format and Doenet format 2`] = `"<foo />"`;
+
+exports[`DAST > xml-bad-6.doenet prints correctly in Xml format and Doenet format 1`] = `"<foo bar=\\">&amp;lt;/foo>\\"></foo>"`;
+
+exports[`DAST > xml-bad-6.doenet prints correctly in Xml format and Doenet format 2`] = `"<foo bar=\\">&amp;lt;/foo>\\"></foo>"`;
+
+exports[`DAST > xml-bad-7.doenet prints correctly in Xml format and Doenet format 1`] = `"<foo baz=\\"true\\"} bar=\\">&amp;lt;/foo>\\"></foo>"`;
+
+exports[`DAST > xml-bad-7.doenet prints correctly in Xml format and Doenet format 2`] = `"<foo baz bar=\\">&amp;lt;/foo>\\"></foo>"`;
+
+exports[`DAST > xml-bad-8.doenet prints correctly in Xml format and Doenet format 1`] = `"<y f=\\"true\\"} z=\\"true\\"}></y>"`;
+
+exports[`DAST > xml-bad-8.doenet prints correctly in Xml format and Doenet format 2`] = `"<y f z></y>"`;
+
+exports[`DAST > xml-doenet-ampersand-1.doenet prints correctly in Xml format and Doenet format 1`] = `
+"&amp;lt; &amp;#x25; &amp;#x25 -- this one is okay.
+(an amp followed by text with a semi colon should be an amp.)"
+`;
+
+exports[`DAST > xml-doenet-ampersand-1.doenet prints correctly in Xml format and Doenet format 2`] = `
+"&lt; &#x25; &#x25 -- this one is okay.
+(an amp followed by text with a semi colon should be an amp.)"
+`;
+
+exports[`DAST > xml-doenet-attributes-1.doenet prints correctly in Xml format and Doenet format 1`] = `"<foo bar=\\"true\\"} baz=\\"hi\\" bang=\\"there\\" />"`;
+
+exports[`DAST > xml-doenet-attributes-1.doenet prints correctly in Xml format and Doenet format 2`] = `"<foo bar baz=\\"hi\\" bang=\\"there\\" />"`;
+
+exports[`DAST > xml-doenet-attributes-2.doenet prints correctly in Xml format and Doenet format 1`] = `"<foo bar='\\"there\\"' baz=\\"&amp;amp;hi\\" />"`;
+
+exports[`DAST > xml-doenet-attributes-2.doenet prints correctly in Xml format and Doenet format 2`] = `"<foo bar='\\"there\\"' baz=\\"&amp;hi\\" />"`;
+
+exports[`DAST > xml-doenet-lessthan-in-text-1.doenet prints correctly in Xml format and Doenet format 1`] = `"<math>2 &lt; 3</math>"`;
+
+exports[`DAST > xml-doenet-lessthan-in-text-1.doenet prints correctly in Xml format and Doenet format 2`] = `"<math>2 < 3</math>"`;
+
+exports[`DAST > xml-doenet-lessthan-in-text-2.doenet prints correctly in Xml format and Doenet format 1`] = `"<math>2 &lt;= 3</math>"`;
+
+exports[`DAST > xml-doenet-lessthan-in-text-2.doenet prints correctly in Xml format and Doenet format 2`] = `"<math>2 <= 3</math>"`;
+
+exports[`DAST > xml-doenet-lessthan-in-text-3.doenet prints correctly in Xml format and Doenet format 1`] = `
+"<math>
+2
+&lt;
+3
+</math>"
+`;
+
+exports[`DAST > xml-doenet-lessthan-in-text-3.doenet prints correctly in Xml format and Doenet format 2`] = `
+"<math>
+2
+<
+3
+</math>"
+`;
+
+exports[`DAST > xml-doenet-no-root.doenet prints correctly in Xml format and Doenet format 1`] = `
+"hi
+<foo />
+<bar />
+there"
+`;
+
+exports[`DAST > xml-doenet-no-root.doenet prints correctly in Xml format and Doenet format 2`] = `
+"hi
+<foo />
+<bar />
+there"
+`;
+
+exports[`Prettier > pretty-print-1.doenet pretty-prints correctly in Xml format and Doenet format 1`] = `
+"<text>a</text>
+<p><textlist name=\\"tl1\\" maxNumber=\\"$mn1\\">a b c d e</textlist></p>
+<p><textlist copysource=\\"tl1\\" maxNumber=\\"$mn2\\" name=\\"tl2\\" /></p>
+
+<p>Maximum number 2: <mathinput name=\\"mn2\\" /></p>
+<p>
+    This is a really long sentence that is supposed to wrap eventually. Though,
+    it is not supposed to rap musically...
+</p>
+<p>another p</p>
+
+<p>
+    Maximum number 1: <mathinput
+        name=\\"mn1\\"
+        prefill=\\"2\\"
+        prop3=\\"xxx\\"
+        prop4=\\"true\\"
+    />
+</p>
+
+<choiceinput name=\\"ci\\">
+    <choice>yes</choice>
+    <choice>no</choice>
+    <choice>maybe</choice>
+</choiceinput>
+
+In document: $ci.choiceTexts <alert name=\\"in_alert\\">$ci.choiceTexts</alert>
+<blockquote name=\\"in_blockquote\\">$ci.choiceTexts</blockquote>
+<c name=\\"in_c\\">$ci.choiceTexts</c><caption name=\\"in_caption\\">$ci.choiceTexts</caption><cell
+    name=\\"in_cell\\"
+>$ci.choiceTexts</cell>
+<choice name=\\"in_choice\\">$ci.choiceTexts</choice>
+<span name=\\"in_span\\">$ci.choiceTexts</span><em name=\\"in_em\\">$ci.choiceTexts</em>
+<feedback name=\\"in_feedback\\">$ci.choiceTexts</feedback>
+<footnote name=\\"in_footnote\\">$ci.choiceTexts</footnote>
+<hint name=\\"in_hint_w_title\\">
+    <title>A title</title>
+    $ci.choiceTexts
+</hint>
+<hint name=\\"in_hint_wo_title\\">$ci.choiceTexts</hint>
+<label name=\\"in_label\\">$ci.choiceTexts</label>
+<ul>
+    <li name=\\"in_li2\\">$ci.choiceTexts</li>
+</ul>
+<p name=\\"in_p\\">$ci.choiceTexts</p>
+<pre name=\\"in_pre\\">$ci.choiceTexts
+      x
+        y
+      </pre>
+<p name=\\"in_q\\"><q>$ci.choiceTexts</q></p>
+<section name=\\"in_section_w_title\\">
+    <title name=\\"sec_title\\">Title: $ci.choiceTexts</title>
+    Text: $ci.choiceTexts
+</section>
+<section name=\\"in_section_wo_title\\">
+    $ci.choiceTexts
+</section>
+<solution name=\\"in_solution\\">$ci.choiceTexts</solution>
+<p name=\\"in_sq\\"><sq>$ci.choiceTexts</sq></p>
+
+<text name=\\"in_text\\">$ci.choiceTexts</text>
+
+<ol>
+    <li name=\\"in_li\\">$ci.choiceTexts</li>
+    <li name=\\"in_li\\">$ci.choiceTexts</li>
+
+    <li name=\\"in_li\\">$ci.choiceTexts</li>
+</ol>"
+`;

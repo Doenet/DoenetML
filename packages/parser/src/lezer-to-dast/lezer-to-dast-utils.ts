@@ -93,8 +93,6 @@ export function lezerNodeToPosition(
     start: { offset: number };
     end: { offset: number };
 } {
-    // XXX This is only temporary to clean up debug output
-    return undefined as any;
     const { rowMap, columnMap } = offsetToPositionMap;
     const { from, to } = node;
     return {
