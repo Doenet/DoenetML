@@ -26,10 +26,13 @@
         "@lezer/generator": "^0.15.2",
         "@lezer/lr": "^0.15.5",
         "@types/xast": "^2.0.0",
+        "peggy": "^3.0.2",
+        "prettier-plugin-pegjs": "^2.0.2",
         "unified": "^11.0.2",
         "xast-util-to-xml": "^4.0.0"
     },
     "devDependencies": {
+        "esbuild": "^0.19.2",
         "glob": "^10.3.3",
         "vite": "^4.4.9",
         "vite-plugin-dts": "^3.5.2"

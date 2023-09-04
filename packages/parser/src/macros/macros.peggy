@@ -1,0 +1,181 @@
+{
+    function withPosition<const T>(node: T) {
+        const { start, end } = location();
+        return { position: { start, end }, ...node };
+    }
+}
+
+top = (Macro / FunctionMacro / Text)*
+
+// Identifiers. Scoped identifiers can only be used inside of `$(..)` notation.
+Ident = $[a-zA-Z0-9_]+
+
+ScopedIdent = $[a-zA-Z0-9_-]+
+
+// A PathPart cannot have slashes or `..` in it
+PathPart
+    = name:Ident index:PropIndex* {
+            return withPosition({ type: "pathPart", name, index });
+        }
+
+ScopedPathPart
+    = name:ScopedIdent index:PropIndex* {
+            return withPosition({ type: "pathPart", name, index });
+        }
+
+// A FullPath can have slashes and `..` in it. It may also start with a slash.
+EmptyPathPart
+    = "" { return withPosition({ type: "pathPart", name: "", index: [] }); }
+
+FullPath
+    = start:EmptyPathPart rest:("/" @ScopedPathPartOrDD)+ {
+            return [start, ...rest];
+        }
+    / start:ScopedPathPartOrDD rest:("/" @ScopedPathPartOrDD)* {
+            return [start, ...rest];
+        }
+
+ScopedPathPartOrDD
+    = ScopedPathPart
+    / ".." { return withPosition({ type: "pathPart", name: "..", index: [] }); }
+
+// Pops can be accessed with a `.`
+PropAccess
+    = "." prop:PartialPathMacro {
+            const { type, ...rest } = prop;
+            return withPosition({ ...rest, type: "propAccess" });
+        }
+
+ScopedPropAccess
+    = "." prop:ScopedPartialPathMacro {
+            const { type, ...rest } = prop;
+            return withPosition({ ...rest, type: "propAccess" });
+        }
+
+//
+// Macros
+//
+Macro
+    = "$" "(" @FullPathMacro ")"
+    / "$" @PartialPathMacro
+
+// A macro where the path cannot have slashes or `..` in it.
+PartialPathMacro
+    = path:PathPart attributes:PropAttrs? accessedProp:PropAccess? {
+            return withPosition({
+                type: "macro",
+                path: [path],
+                attributes,
+                accessedProp,
+            });
+        }
+
+ScopedPartialPathMacro
+    = path:ScopedPathPart attributes:PropAttrs? accessedProp:ScopedPropAccess? {
+            return withPosition({
+                type: "macro",
+                path: [path],
+                attributes,
+                accessedProp,
+            });
+        }
+
+// A macro where the path can have slashes and `..` in it.
+FullPathMacro
+    = path:FullPath attributes:PropAttrs? accessedProp:ScopedPropAccess? {
+            return withPosition({
+                type: "macro",
+                path,
+                attributes,
+                accessedProp,
+            });
+        }
+
+//
+// Functions
+//
+
+// Functions are very similar to macros except they cannot have attrs or accessedProps
+// but they do take comma-separated arguments.
+FunctionMacro
+    = "$$" "(" path:FullPath ")" input:FunctionInput? {
+            return withPosition({
+                type: "function",
+                path,
+                input,
+            });
+        }
+    / "$$" path:PathPart input:FunctionInput? {
+            return withPosition({
+                type: "function",
+                path: [path],
+                input,
+            });
+        }
+
+FunctionInput = "(" _? @FunctionArgumentList _? ")"
+
+FunctionArgumentList
+    = start:FunctionArgument rest:(_? "," _? @FunctionArgument)* {
+            return [start, ...rest];
+        }
+
+FunctionArgument
+    = Macro
+    / FunctionMacro
+    / TextWithoutClosingParenOrComma
+    / EmptyString
+
+PropAttrs = "{" _? @(@Attr _?)* "}"
+
+PropIndex
+    = "[" _? value:(Macro / TextWithoutClosingSquareBrace) _? "]" {
+            return withPosition({ type: "index", value });
+        }
+
+// Attribute stuff
+Attr
+    = name:AttrName _? "=" _? children:AttrValue {
+            return withPosition({ type: "attribute", name, children });
+        }
+    / name:AttrName {
+            return withPosition({
+                type: "attribute",
+                name,
+                children: [],
+            });
+        }
+
+AttrName = $[a-zA-Z0-9_:-]+
+
+AttrValue
+    = "\"" @(Macro / FunctionMacro / TextWithoutDoubleQuote)* "\""
+    / "'" @(Macro / FunctionMacro / TextWithoutQuote)* "'"
+
+// Different types of text with various restrictions
+Text = value:($[^$]+ / .) { return withPosition({ type: "text", value }); }
+
+EmptyString
+    = "" {
+            return withPosition({
+                type: "text",
+                value: "",
+                position: location(),
+            });
+        }
+
+TextWithoutClosingParenOrComma
+    = value:($[^),$]+ / [^),]) { return withPosition({ type: "text", value }); }
+
+TextWithoutQuote
+    = value:$([^'$]+ / [^']) { return withPosition({ type: "text", value }); }
+
+TextWithoutClosingSquareBrace
+    = value:$([^\]$]+ / [^\]]) { return withPosition({ type: "text", value }); }
+
+TextWithoutDoubleQuote
+    = value:($[^"$]+ / [^"]) { return withPosition({ type: "text", value }); }
+
+_ = $[ \t\r\n]+
+
+EOF = !.
