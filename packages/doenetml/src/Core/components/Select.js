@@ -3,7 +3,7 @@ import {
     enumerateSelectionCombinations,
     enumerateCombinations,
 } from "../utils/enumeration";
-import { deepClone } from "../utils/deepFunctions";
+import { deepClone } from "@doenet/utils";
 import {
     markToCreateAllUniqueNames,
     processAssignNames,
@@ -59,6 +59,9 @@ export default class Select extends CompositeComponent {
         return attributes;
     }
 
+    // Include children that can be added due to sugar
+    static additionalSchemaChildren = ["string"];
+
     static returnSugarInstructions() {
         let sugarInstructions = super.returnSugarInstructions();
 
@@ -72,7 +75,7 @@ export default class Select extends CompositeComponent {
                 !matchedChildren.every(
                     (child) =>
                         typeof child === "string" ||
-                        child.doenetAttributes?.createdFromMacro
+                        child.doenetAttributes?.createdFromMacro,
                 )
             ) {
                 return { success: false };
@@ -277,7 +280,7 @@ export default class Select extends CompositeComponent {
                     for (let variantName in availableVariants) {
                         if (
                             !dependencyValues.allVariantNames.includes(
-                                variantName
+                                variantName,
                             )
                         ) {
                             let errorMessageVariants =
@@ -393,18 +396,18 @@ export default class Select extends CompositeComponent {
                             dependencyValues.numToSelect
                         ) {
                             throw Error(
-                                "Number of indices specified for select must match number to select"
+                                "Number of indices specified for select must match number to select",
                             );
                         }
                         desiredIndices = desiredIndices.map(Number);
                         if (!desiredIndices.every(Number.isInteger)) {
                             throw Error(
-                                "All indices specified for select must be integers"
+                                "All indices specified for select must be integers",
                             );
                         }
                         let n = dependencyValues.nOptions;
                         desiredIndices = desiredIndices.map(
-                            (x) => ((((x - 1) % n) + n) % n) + 1
+                            (x) => ((((x - 1) % n) + n) % n) + 1,
                         );
 
                         return {
@@ -483,17 +486,17 @@ export default class Select extends CompositeComponent {
 
                 // normalize selectWeights to sum to 1
                 let selectWeightByChild = dependencyValues.optionChildren.map(
-                    (x) => x.stateValues.selectWeight
+                    (x) => x.stateValues.selectWeight,
                 );
                 let totalWeight = selectWeightByChild.reduce((a, c) => a + c);
                 selectWeightByChild = selectWeightByChild.map(
-                    (x) => x / totalWeight
+                    (x) => x / totalWeight,
                 );
 
                 //https://stackoverflow.com/a/44081700
                 let cumulativeWeights = selectWeightByChild.reduce(
                     (a, x, i) => [...a, x + (a[i - 1] || 0)],
-                    []
+                    [],
                 );
                 let indsRemaining = [
                     ...Array(cumulativeWeights.length).keys(),
@@ -527,14 +530,14 @@ export default class Select extends CompositeComponent {
                         selectWeightByChild.splice(end, 1);
                         indsRemaining.splice(end, 1);
                         totalWeight = selectWeightByChild.reduce(
-                            (a, c) => a + c
+                            (a, c) => a + c,
                         );
                         selectWeightByChild = selectWeightByChild.map(
-                            (x) => x / totalWeight
+                            (x) => x / totalWeight,
                         );
                         cumulativeWeights = selectWeightByChild.reduce(
                             (a, x, i) => [...a, x + (a[i - 1] || 0)],
-                            []
+                            [],
                         );
                     }
                 }
@@ -561,7 +564,7 @@ export default class Select extends CompositeComponent {
                 variantDescendants: {
                     dependencyType: "descendant",
                     componentTypes: Object.keys(
-                        componentInfoObjects.componentTypesCreatingVariants
+                        componentInfoObjects.componentTypesCreatingVariants,
                     ),
                     variableNames: [
                         "isVariantComponent",
@@ -585,12 +588,12 @@ export default class Select extends CompositeComponent {
                 for (let descendant of dependencyValues.variantDescendants) {
                     if (descendant.stateValues.isVariantComponent) {
                         subvariants.push(
-                            descendant.stateValues.generatedVariantInfo
+                            descendant.stateValues.generatedVariantInfo,
                         );
                     } else if (descendant.stateValues.generatedVariantInfo) {
                         subvariants.push(
                             ...descendant.stateValues.generatedVariantInfo
-                                .subvariants
+                                .subvariants,
                         );
                     }
                 }
@@ -606,7 +609,7 @@ export default class Select extends CompositeComponent {
                         if (previousSubvariants[ind].subvariants) {
                             subvariants[ind] = Object.assign(
                                 {},
-                                subvariants[ind]
+                                subvariants[ind],
                             );
                             subvariants[ind].subvariants =
                                 previousSubvariants[ind].subvariants;
@@ -673,14 +676,14 @@ export default class Select extends CompositeComponent {
             let selectedChild = components[selectedChildName];
 
             let serializedGrandchildren = deepClone(
-                await selectedChild.stateValues.serializedChildren
+                await selectedChild.stateValues.serializedChildren,
             );
             let serializedChild = {
                 componentType: "option",
                 state: { rendered: true },
                 doenetAttributes: Object.assign(
                     {},
-                    selectedChild.doenetAttributes
+                    selectedChild.doenetAttributes,
                 ),
                 children: serializedGrandchildren,
                 originalName: selectedChildName,
@@ -788,13 +791,13 @@ export default class Select extends CompositeComponent {
 
                 if (!(Number.isInteger(numToSelect) && numToSelect >= 0)) {
                     console.log(
-                        `cannot determine unique variants of selectFromSequence as numToSelect isn't a non-negative integer.`
+                        `cannot determine unique variants of selectFromSequence as numToSelect isn't a non-negative integer.`,
                     );
                     return { success: false };
                 }
             } else {
                 console.log(
-                    `cannot determine unique variants of selectFromSequence as numToSelect isn't constant number.`
+                    `cannot determine unique variants of selectFromSequence as numToSelect isn't constant number.`,
                 );
                 return { success: false };
             }
@@ -820,13 +823,13 @@ export default class Select extends CompositeComponent {
                     withReplacement = withReplacementComponent.state.value;
                 } else {
                     console.log(
-                        `cannot determine unique variants of selectFromSequence as withReplacement isn't constant boolean.`
+                        `cannot determine unique variants of selectFromSequence as withReplacement isn't constant boolean.`,
                     );
                     return { success: false };
                 }
             } else {
                 console.log(
-                    `cannot determine unique variants of selectFromSequence as withReplacement isn't constant boolean.`
+                    `cannot determine unique variants of selectFromSequence as withReplacement isn't constant boolean.`,
                 );
                 return { success: false };
             }
@@ -839,7 +842,7 @@ export default class Select extends CompositeComponent {
             ) {
                 // uniqueVariants disabled if have a child with selectWeight or selectForVariants specified
                 console.log(
-                    `Unique variants for select disabled if have an option with selectWeight or selectForVariants specified`
+                    `Unique variants for select disabled if have an option with selectWeight or selectForVariants specified`,
                 );
                 return { success: false };
             }
@@ -883,7 +886,7 @@ export default class Select extends CompositeComponent {
             numVariants = 1;
         } else if (withReplacement || numToSelect === 1) {
             let numberOfOptionsPerSelection = numVariantsByChild.reduce(
-                (a, c) => a + c
+                (a, c) => a + c,
             );
             numVariants = Math.pow(numberOfOptionsPerSelection, numToSelect);
         } else {
@@ -980,7 +983,7 @@ export default class Select extends CompositeComponent {
             combination: x,
             numberOfPossibilities: x.reduce(
                 (a, c) => a * numVariantsByChild[c],
-                1
+                1,
             ),
         }));
 
@@ -1007,7 +1010,7 @@ export default class Select extends CompositeComponent {
                 .map((ind) => combinationsAvailable[ind])
                 .reduce(
                     (a, c) => Math.min(a, c.numberOfPossibilities),
-                    Infinity
+                    Infinity,
                 );
 
             let chunksize = minNumPos - possibilitiesUsed;
@@ -1027,7 +1030,7 @@ export default class Select extends CompositeComponent {
                 combinationsLeft = combinationsLeft.filter(
                     (ind) =>
                         combinationsAvailable[ind].numberOfPossibilities >
-                        possibilitiesUsed
+                        possibilitiesUsed,
                 );
                 nCombinationsLeft = combinationsLeft.length;
             }
@@ -1041,7 +1044,7 @@ export default class Select extends CompositeComponent {
 
         let indicesForEachChild = enumerateCombinations({
             numberOfOptionsByIndex: selectedCombination.map(
-                (x) => numVariantsByChild[x]
+                (x) => numVariantsByChild[x],
             ),
             maxNumber: variantIndexOfSelected,
         })[variantIndexOfSelected - 1].map((x) => x + 1);

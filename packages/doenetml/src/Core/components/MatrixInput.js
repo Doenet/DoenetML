@@ -1,13 +1,16 @@
 import Input from "./abstract/Input";
 import me from "math-expressions";
-import { deepClone, deepCompare } from "../utils/deepFunctions";
 import {
+    deepClone,
+    deepCompare,
     convertValueToMathExpression,
+    vectorOperators,
+} from "@doenet/utils";
+import {
     getFromLatex,
     normalizeLatexString,
     roundForDisplay,
     stripLatex,
-    vectorOperators,
 } from "../utils/math";
 import CompositeComponent from "./abstract/CompositeComponent";
 import BaseComponent from "./abstract/BaseComponent";
@@ -102,6 +105,8 @@ export class MatrixInput extends Input {
             createStateVariable: "format",
             defaultValue: "text",
             public: true,
+            toLowerCase: true,
+            validValues: ["text", "latex"],
         };
         attributes.functionSymbols = {
             createComponentOfType: "textList",
@@ -142,6 +147,9 @@ export class MatrixInput extends Input {
         return attributes;
     }
 
+    // Although will actually take any math, the schema shows just matrix
+    static additionalSchemaChildren = ["matrix"];
+
     static returnSugarInstructions() {
         let sugarInstructions = super.returnSugarInstructions();
 
@@ -166,10 +174,12 @@ export class MatrixInput extends Input {
             {
                 group: "matrixComponentInputs",
                 componentTypes: ["_matrixComponentInput"],
+                excludeFromSchema: true,
             },
             {
                 group: "maths",
                 componentTypes: ["math"],
+                excludeFromSchema: true,
             },
         ];
     }
@@ -182,7 +192,7 @@ export class MatrixInput extends Input {
             returnRoundingStateVariableDefinitions({
                 displayDigitsDefault: 10,
                 displaySmallAsZeroDefault: 0,
-            })
+            }),
         );
 
         stateVariableDefinitions.valueChanged = {
@@ -203,7 +213,7 @@ export class MatrixInput extends Input {
                         {
                             setEssentialValue: "valueChanged",
                             value: Boolean(
-                                desiredStateVariableValues.valueChanged
+                                desiredStateVariableValues.valueChanged,
                             ),
                         },
                     ],
@@ -336,7 +346,7 @@ export class MatrixInput extends Input {
                         {
                             setEssentialValue: "immediateValueChanged",
                             value: Boolean(
-                                desiredStateVariableValues.immediateValueChanged
+                                desiredStateVariableValues.immediateValueChanged,
                             ),
                         },
                     ],
@@ -546,7 +556,7 @@ export class MatrixInput extends Input {
                         if (desiredNumRows < currentNumRows) {
                             let newTree = deepClone(originalTree).slice(
                                 0,
-                                desiredNumRows + 1
+                                desiredNumRows + 1,
                             );
                             instructions.push({
                                 setDependency: "valueOriginal",
@@ -578,7 +588,7 @@ export class MatrixInput extends Input {
                         }
                     } else {
                         let valueTree = deepClone(
-                            (await stateValues.value).tree
+                            (await stateValues.value).tree,
                         );
                         let previousNumRows = valueTree[1][1];
                         valueTree[1][1] = desiredNumRows;
@@ -739,7 +749,7 @@ export class MatrixInput extends Input {
                             let newTree = deepClone(originalTree);
                             newTree[1] = newTree[1].slice(
                                 0,
-                                desiredNumColumns + 1
+                                desiredNumColumns + 1,
                             );
                             instructions.push({
                                 setDependency: "valueOriginal",
@@ -772,7 +782,7 @@ export class MatrixInput extends Input {
                         }
                     } else {
                         let valueTree = deepClone(
-                            (await stateValues.value).tree
+                            (await stateValues.value).tree,
                         );
                         let previousNumColumns = valueTree[1][2];
                         valueTree[1][2] = desiredNumColumns;
@@ -846,7 +856,7 @@ export class MatrixInput extends Input {
                 let accumulatedComponents = [];
                 if (previousValues.accumulatedComponents) {
                     accumulatedComponents = deepClone(
-                        previousValues.accumulatedComponents
+                        previousValues.accumulatedComponents,
                     );
                 }
                 let originalTree = dependencyValues.valueOriginal.tree;
@@ -981,7 +991,7 @@ export class MatrixInput extends Input {
                                 ) {
                                     let arrayKey = `${rowInd},${colInd}`;
                                     componentValues[arrayKey] = me.fromAst(
-                                        originalData[rowInd + 1][colInd + 1]
+                                        originalData[rowInd + 1][colInd + 1],
                                     );
                                 }
                             }
@@ -998,7 +1008,7 @@ export class MatrixInput extends Input {
                         let numOverlapRows = Math.min(numRows, originalNumRows);
                         let numOverlapColumns = Math.min(
                             numColumns,
-                            originalNumColumns
+                            originalNumColumns,
                         );
 
                         // copy original values from overlap between original size and current size
@@ -1014,7 +1024,7 @@ export class MatrixInput extends Input {
                             ) {
                                 let arrayKey = `${rowInd},${colInd}`;
                                 componentValues[arrayKey] = me.fromAst(
-                                    originalData[rowInd + 1][colInd + 1]
+                                    originalData[rowInd + 1][colInd + 1],
                                 );
                             }
                         }
@@ -1038,7 +1048,7 @@ export class MatrixInput extends Input {
                                         accumVal === undefined
                                             ? globalDependencyValues
                                                   .defaultEntry.tree
-                                            : accumVal
+                                            : accumVal,
                                     );
                                 }
                             }
@@ -1066,7 +1076,7 @@ export class MatrixInput extends Input {
                                         accumVal === undefined
                                             ? globalDependencyValues
                                                   .defaultEntry.tree
-                                            : accumVal
+                                            : accumVal,
                                     );
                                 }
                             }
@@ -1087,7 +1097,7 @@ export class MatrixInput extends Input {
                             if (rowInd < numRowsFound) {
                                 let arrayKey = `${rowInd},${0}`;
                                 componentValues[arrayKey] = me.fromAst(
-                                    operands[rowInd]
+                                    operands[rowInd],
                                 );
                                 minCol = 1;
                             }
@@ -1108,7 +1118,7 @@ export class MatrixInput extends Input {
                                     accumVal === undefined
                                         ? globalDependencyValues.defaultEntry
                                               .tree
-                                        : accumVal
+                                        : accumVal,
                                 );
                             }
                         }
@@ -1146,7 +1156,7 @@ export class MatrixInput extends Input {
                                 ) {
                                     let arrayKey = `${0},${colInd}`;
                                     componentValues[arrayKey] = me.fromAst(
-                                        operands[colInd]
+                                        operands[colInd],
                                     );
                                 }
                                 minCol = operands.length;
@@ -1163,7 +1173,7 @@ export class MatrixInput extends Input {
                                     accumVal === undefined
                                         ? globalDependencyValues.defaultEntry
                                               .tree
-                                        : accumVal
+                                        : accumVal,
                                 );
                             }
                         }
@@ -1196,7 +1206,7 @@ export class MatrixInput extends Input {
                         componentValues[arrayKey] = me.fromAst(
                             accumVal === undefined
                                 ? globalDependencyValues.defaultEntry.tree
-                                : accumVal
+                                : accumVal,
                         );
                     }
                 }
@@ -1269,8 +1279,9 @@ export class MatrixInput extends Input {
                             for (let rowInd = 0; rowInd < numRows; rowInd++) {
                                 valueData[rowInd].push(
                                     ...Array(numColumns - 1).fill(
-                                        globalDependencyValues.defaultEntry.tree
-                                    )
+                                        globalDependencyValues.defaultEntry
+                                            .tree,
+                                    ),
                                 );
                             }
                         }
@@ -1284,8 +1295,8 @@ export class MatrixInput extends Input {
                             // pad first row with blanks
                             valueData[0].push(
                                 ...Array(numColumns - valueData[0].length).fill(
-                                    globalDependencyValues.defaultEntry.tree
-                                )
+                                    globalDependencyValues.defaultEntry.tree,
+                                ),
                             );
                         }
 
@@ -1293,8 +1304,9 @@ export class MatrixInput extends Input {
                             for (let rowInd = 1; rowInd < numRows; rowInd++) {
                                 valueData.push(
                                     Array(numColumns).fill(
-                                        globalDependencyValues.defaultEntry.tree
-                                    )
+                                        globalDependencyValues.defaultEntry
+                                            .tree,
+                                    ),
                                 );
                             }
                         }
@@ -1314,10 +1326,11 @@ export class MatrixInput extends Input {
                             ) {
                                 valueData[rowInd].push(
                                     ...Array(
-                                        numColumns - valueData[rowInd].length
+                                        numColumns - valueData[rowInd].length,
                                     ).fill(
-                                        globalDependencyValues.defaultEntry.tree
-                                    )
+                                        globalDependencyValues.defaultEntry
+                                            .tree,
+                                    ),
                                 );
                             }
                         }
@@ -1330,8 +1343,9 @@ export class MatrixInput extends Input {
                             ) {
                                 valueData.push(
                                     Array(numColumns).fill(
-                                        globalDependencyValues.defaultEntry.tree
-                                    )
+                                        globalDependencyValues.defaultEntry
+                                            .tree,
+                                    ),
                                 );
                             }
                         }
@@ -1342,8 +1356,8 @@ export class MatrixInput extends Input {
                             // pad first row with blanks
                             valueData[0].push(
                                 ...Array(numColumns - 1).fill(
-                                    globalDependencyValues.defaultEntry.tree
-                                )
+                                    globalDependencyValues.defaultEntry.tree,
+                                ),
                             );
                         }
 
@@ -1351,8 +1365,9 @@ export class MatrixInput extends Input {
                             for (let rowInd = 1; rowInd < numRows; rowInd++) {
                                 valueData.push(
                                     Array(numColumns).fill(
-                                        globalDependencyValues.defaultEntry.tree
-                                    )
+                                        globalDependencyValues.defaultEntry
+                                            .tree,
+                                    ),
                                 );
                             }
                         }
@@ -1362,7 +1377,7 @@ export class MatrixInput extends Input {
                 for (let arrayKey in desiredStateVariableValues.componentValues) {
                     let [rowInd, colInd] = arrayKey.split(",");
                     valueData[rowInd][colInd] = convertValueToMathExpression(
-                        desiredStateVariableValues.componentValues[arrayKey]
+                        desiredStateVariableValues.componentValues[arrayKey],
                     ).tree;
                 }
 
@@ -1502,7 +1517,9 @@ export class MatrixInput extends Input {
                                     let arrayKey = `${rowInd},${colInd}`;
                                     componentImmediateValues[arrayKey] =
                                         me.fromAst(
-                                            originalData[rowInd + 1][colInd + 1]
+                                            originalData[rowInd + 1][
+                                                colInd + 1
+                                            ],
                                         );
                                 }
                             }
@@ -1519,7 +1536,7 @@ export class MatrixInput extends Input {
                         let numOverlapRows = Math.min(numRows, originalNumRows);
                         let numOverlapColumns = Math.min(
                             numColumns,
-                            originalNumColumns
+                            originalNumColumns,
                         );
 
                         // copy original values from overlap between original size and current size
@@ -1535,7 +1552,7 @@ export class MatrixInput extends Input {
                             ) {
                                 let arrayKey = `${rowInd},${colInd}`;
                                 componentImmediateValues[arrayKey] = me.fromAst(
-                                    originalData[rowInd + 1][colInd + 1]
+                                    originalData[rowInd + 1][colInd + 1],
                                 );
                             }
                         }
@@ -1560,7 +1577,7 @@ export class MatrixInput extends Input {
                                             accumVal === undefined
                                                 ? globalDependencyValues
                                                       .defaultEntry.tree
-                                                : accumVal
+                                                : accumVal,
                                         );
                                 }
                             }
@@ -1589,7 +1606,7 @@ export class MatrixInput extends Input {
                                             accumVal === undefined
                                                 ? globalDependencyValues
                                                       .defaultEntry.tree
-                                                : accumVal
+                                                : accumVal,
                                         );
                                 }
                             }
@@ -1610,7 +1627,7 @@ export class MatrixInput extends Input {
                             if (rowInd < numRowsFound) {
                                 let arrayKey = `${rowInd},${0}`;
                                 componentImmediateValues[arrayKey] = me.fromAst(
-                                    operands[rowInd]
+                                    operands[rowInd],
                                 );
                                 minCol = 1;
                             }
@@ -1631,7 +1648,7 @@ export class MatrixInput extends Input {
                                     accumVal === undefined
                                         ? globalDependencyValues.defaultEntry
                                               .tree
-                                        : accumVal
+                                        : accumVal,
                                 );
                             }
                         }
@@ -1685,7 +1702,7 @@ export class MatrixInput extends Input {
                                     accumVal === undefined
                                         ? globalDependencyValues.defaultEntry
                                               .tree
-                                        : accumVal
+                                        : accumVal,
                                 );
                             }
                         }
@@ -1719,7 +1736,7 @@ export class MatrixInput extends Input {
                         componentImmediateValues[arrayKey] = me.fromAst(
                             accumVal === undefined
                                 ? globalDependencyValues.defaultEntry.tree
-                                : accumVal
+                                : accumVal,
                         );
                     }
                 }
@@ -1765,7 +1782,7 @@ export class MatrixInput extends Input {
 
                 if (workspace.immediateValueData) {
                     immediateValueData = workspace.immediateValueData.map(
-                        (x) => [...x]
+                        (x) => [...x],
                     );
                 } else {
                     let originalTree =
@@ -1795,8 +1812,9 @@ export class MatrixInput extends Input {
                             for (let rowInd = 0; rowInd < numRows; rowInd++) {
                                 immediateValueData[rowInd].push(
                                     ...Array(numColumns - 1).fill(
-                                        globalDependencyValues.defaultEntry.tree
-                                    )
+                                        globalDependencyValues.defaultEntry
+                                            .tree,
+                                    ),
                                 );
                             }
                         }
@@ -1812,8 +1830,10 @@ export class MatrixInput extends Input {
                             // pad first row with blanks
                             immediateValueData[0].push(
                                 ...Array(
-                                    numColumns - immediateValueData[0].length
-                                ).fill(globalDependencyValues.defaultEntry.tree)
+                                    numColumns - immediateValueData[0].length,
+                                ).fill(
+                                    globalDependencyValues.defaultEntry.tree,
+                                ),
                             );
                         }
 
@@ -1821,8 +1841,9 @@ export class MatrixInput extends Input {
                             for (let rowInd = 1; rowInd < numRows; rowInd++) {
                                 immediateValueData.push(
                                     Array(numColumns).fill(
-                                        globalDependencyValues.defaultEntry.tree
-                                    )
+                                        globalDependencyValues.defaultEntry
+                                            .tree,
+                                    ),
                                 );
                             }
                         }
@@ -1843,10 +1864,11 @@ export class MatrixInput extends Input {
                                 immediateValueData[rowInd].push(
                                     ...Array(
                                         numColumns -
-                                            immediateValueData[rowInd].length
+                                            immediateValueData[rowInd].length,
                                     ).fill(
-                                        globalDependencyValues.defaultEntry.tree
-                                    )
+                                        globalDependencyValues.defaultEntry
+                                            .tree,
+                                    ),
                                 );
                             }
                         }
@@ -1859,8 +1881,9 @@ export class MatrixInput extends Input {
                             ) {
                                 immediateValueData.push(
                                     Array(numColumns).fill(
-                                        globalDependencyValues.defaultEntry.tree
-                                    )
+                                        globalDependencyValues.defaultEntry
+                                            .tree,
+                                    ),
                                 );
                             }
                         }
@@ -1871,8 +1894,8 @@ export class MatrixInput extends Input {
                             // pad first row with blanks
                             immediateValueData[0].push(
                                 ...Array(numColumns - 1).fill(
-                                    globalDependencyValues.defaultEntry.tree
-                                )
+                                    globalDependencyValues.defaultEntry.tree,
+                                ),
                             );
                         }
 
@@ -1880,8 +1903,9 @@ export class MatrixInput extends Input {
                             for (let rowInd = 1; rowInd < numRows; rowInd++) {
                                 immediateValueData.push(
                                     Array(numColumns).fill(
-                                        globalDependencyValues.defaultEntry.tree
-                                    )
+                                        globalDependencyValues.defaultEntry
+                                            .tree,
+                                    ),
                                 );
                             }
                         }
@@ -1894,7 +1918,7 @@ export class MatrixInput extends Input {
                         convertValueToMathExpression(
                             desiredStateVariableValues.componentImmediateValues[
                                 arrayKey
-                            ]
+                            ],
                         ).tree;
                 }
 
@@ -2132,7 +2156,7 @@ export class MatrixInput extends Input {
                                 if (
                                     Array.isArray(originalTree[1]) &&
                                     vectorOperators.includes(
-                                        originalTree[1][0]
+                                        originalTree[1][0],
                                     ) &&
                                     ((operator === "^" &&
                                         originalTree[2] === "T") ||
@@ -2277,7 +2301,7 @@ export class MatrixInput extends Input {
                                 if (
                                     Array.isArray(originalTree[1]) &&
                                     vectorOperators.includes(
-                                        originalTree[1][0]
+                                        originalTree[1][0],
                                     ) &&
                                     ((operator === "^" &&
                                         originalTree[2] === "T") ||
@@ -2436,7 +2460,7 @@ export class MatrixInput extends Input {
                         // array of "rowInd,i", where i=0, ..., arraySize[1]-1
                         return Array.from(
                             Array(arraySize[1]),
-                            (_, i) => rowInd + "," + i
+                            (_, i) => rowInd + "," + i,
                         );
                     } else {
                         return [];
@@ -2458,7 +2482,7 @@ export class MatrixInput extends Input {
                         // array of "i,colInd", where i=0, ..., arraySize[1]-1
                         return Array.from(
                             Array(arraySize[0]),
-                            (_, i) => i + "," + colInd
+                            (_, i) => i + "," + colInd,
                         );
                     } else {
                         return [];
@@ -2480,8 +2504,8 @@ export class MatrixInput extends Input {
                         keys.push(
                             ...Array.from(
                                 Array(arraySize[1]),
-                                (_, i) => rowInd + "," + i
-                            )
+                                (_, i) => rowInd + "," + i,
+                            ),
                         );
                     }
                     return keys;
@@ -2559,7 +2583,7 @@ export class MatrixInput extends Input {
                         for (let i = 0; i < arraySize[0]; i++) {
                             for (let j = 0; j < arraySize[1]; j++) {
                                 matrix[`${i},${j}`] = me.fromAst(
-                                    matVals[i + 1][j + 1]
+                                    matVals[i + 1][j + 1],
                                 );
                             }
                         }
@@ -2601,7 +2625,7 @@ export class MatrixInput extends Input {
                         ) {
                             workspace.desiredMatrix[arrayKey] =
                                 convertValueToMathExpression(
-                                    desiredStateVariableValues.matrix[arrayKey]
+                                    desiredStateVariableValues.matrix[arrayKey],
                                 );
                         } else if (
                             workspace.desiredMatrix[arrayKey] === undefined
@@ -2620,7 +2644,7 @@ export class MatrixInput extends Input {
                         desiredValue = [tree[0]];
                         for (let ind = 0; ind < arraySize[0]; ind++) {
                             desiredValue.push(
-                                workspace.desiredMatrix[ind + ",0"].tree
+                                workspace.desiredMatrix[ind + ",0"].tree,
                             );
                         }
                     } else if (tree[0] === "matrix") {
@@ -2630,7 +2654,7 @@ export class MatrixInput extends Input {
                             let row = ["tuple"];
                             for (let j = 0; j < arraySize[1]; j++) {
                                 row.push(
-                                    workspace.desiredMatrix[`${i},${j}`].tree
+                                    workspace.desiredMatrix[`${i},${j}`].tree,
                                 );
                             }
                             desiredMatrixVals.push(row);
@@ -2649,7 +2673,7 @@ export class MatrixInput extends Input {
                         let desiredVector = [tree[1][0]];
                         for (let ind = 0; ind < arraySize[1]; ind++) {
                             desiredVector.push(
-                                workspace.desiredMatrix["0," + ind].tree
+                                workspace.desiredMatrix["0," + ind].tree,
                             );
                         }
                         desiredValue = [tree[0], desiredVector];
@@ -2761,7 +2785,7 @@ export class MatrixInput extends Input {
         {
             stateVariable: "value",
             stateVariablesToShadow: Object.keys(
-                returnRoundingStateVariableDefinitions()
+                returnRoundingStateVariableDefinitions(),
             ),
         },
     ];
@@ -3509,11 +3533,11 @@ export default class MatrixComponentInput extends BaseComponent {
                     essentialValues.rawRendererValue === undefined ||
                     !deepCompare(
                         essentialValues.lastValueForDisplay.tree,
-                        dependencyValues.valueForDisplay.tree
+                        dependencyValues.valueForDisplay.tree,
                     )
                 ) {
                     let rawRendererValue = stripLatex(
-                        dependencyValues.valueForDisplay.toLatex()
+                        dependencyValues.valueForDisplay.toLatex(),
                     );
                     if (rawRendererValue === "\uff3f") {
                         rawRendererValue = "";
@@ -3590,12 +3614,10 @@ export default class MatrixComponentInput extends BaseComponent {
                         });
                     }
 
-                    let currentMath = await calculateMathExpressionFromLatex(
-                        currentValue
-                    );
-                    let desiredMath = await calculateMathExpressionFromLatex(
-                        desiredValue
-                    );
+                    let currentMath =
+                        await calculateMathExpressionFromLatex(currentValue);
+                    let desiredMath =
+                        await calculateMathExpressionFromLatex(desiredValue);
 
                     // use deepCompare of trees rather than equalsViaSyntax
                     // so even tiny numerical differences that within double precision are detected
@@ -3619,7 +3641,7 @@ export default class MatrixComponentInput extends BaseComponent {
                     });
 
                     let currentMath = await calculateMathExpressionFromLatex(
-                        essentialValues.rawRendererValue
+                        essentialValues.rawRendererValue,
                     );
 
                     // use deepCompare of trees rather than equalsViaSyntax
@@ -3627,11 +3649,11 @@ export default class MatrixComponentInput extends BaseComponent {
                     if (
                         !deepCompare(
                             desiredStateVariableValues.rawRendererValue.tree,
-                            currentMath.tree
+                            currentMath.tree,
                         )
                     ) {
                         let desiredValue = stripLatex(
-                            desiredStateVariableValues.rawRendererValue.toLatex()
+                            desiredStateVariableValues.rawRendererValue.toLatex(),
                         );
                         if (desiredValue === "\uff3f") {
                             desiredValue = "";
@@ -3696,7 +3718,7 @@ export default class MatrixComponentInput extends BaseComponent {
             if (
                 !deepCompare(
                     (await this.stateValues.value).tree,
-                    immediateValue.tree
+                    immediateValue.tree,
                 )
             ) {
                 let updateInstructions = [

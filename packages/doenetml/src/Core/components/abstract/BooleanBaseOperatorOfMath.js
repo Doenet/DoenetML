@@ -4,6 +4,9 @@ export default class BooleanBaseOperatorOfMath extends BooleanComponent {
     static componentType = "_booleanOperatorOfMath";
     static rendererType = "boolean";
 
+    // Include children that can be added due to sugar
+    static additionalSchemaChildren = ["string"];
+
     static returnSugarInstructions() {
         let sugarInstructions = [];
 
@@ -14,7 +17,7 @@ export default class BooleanBaseOperatorOfMath extends BooleanComponent {
                     (child) =>
                         typeof child === "string" ||
                         (child.doenetAttributes &&
-                            child.doenetAttributes.createdFromMacro)
+                            child.doenetAttributes.createdFromMacro),
                 )
             ) {
                 return { success: false };
@@ -90,8 +93,8 @@ export default class BooleanBaseOperatorOfMath extends BooleanComponent {
                     setValue: {
                         value: dependencyValues.booleanOperator(
                             dependencyValues.mathChildren.map(
-                                (x) => x.stateValues.value
-                            )
+                                (x) => x.stateValues.value,
+                            ),
                         ),
                     },
                 };

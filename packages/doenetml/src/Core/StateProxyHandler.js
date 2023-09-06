@@ -11,7 +11,7 @@ export default function createStateProxyHandler() {
                         createArrayProxyHandler({
                             variable: prop,
                             numDimensions: result.numDimensions,
-                        })
+                        }),
                     );
                 } else {
                     result = result.value;
@@ -58,10 +58,10 @@ function createArrayProxyHandler({
                                           variable: this.variable,
                                           numDimensions: this.numDimensions,
                                           indicesSoFar: this.indicesSoFar,
-                                      })
+                                      }),
                                   )
-                                : x
-                        )
+                                : x,
+                        ),
                     );
             }
 
@@ -77,7 +77,7 @@ function createArrayProxyHandler({
                         variable: this.variable,
                         numDimensions: this.numDimensions - 1,
                         indicesSoFar: [...this.indicesSoFar, index],
-                    })
+                    }),
                 );
             }
             return result;

@@ -4,10 +4,11 @@ import { processAssignNames } from "../utils/serializedStateProcessing";
 import { getFromText } from "../utils/math";
 import {
     calculateSequenceParameters,
-    lettersToNumber,
     returnSequenceValueForIndex,
     returnSequenceValues,
 } from "../utils/sequence";
+import { lettersToNumber } from "@doenet/utils";
+
 import { convertAttributesForComponentType } from "../utils/copy";
 import { returnRoundingAttributes } from "../utils/rounding";
 import {
@@ -77,17 +78,18 @@ export default class SelectFromSequence extends Sequence {
                     let excludedCombinations =
                         dependencyValues.excludeCombinations.stateValues.lists
                             .map((x) =>
-                                x.slice(0, dependencyValues.numToSelect)
+                                x.slice(0, dependencyValues.numToSelect),
                             )
                             .filter(
-                                (x) => x.length === dependencyValues.numToSelect
+                                (x) =>
+                                    x.length === dependencyValues.numToSelect,
                             );
 
                     if (dependencyValues.type === "number") {
                         while (true) {
                             let result =
                                 mergeContainingNumberCombinations(
-                                    excludedCombinations
+                                    excludedCombinations,
                                 );
                             if (result.merged) {
                                 excludedCombinations = result.combinations;
@@ -334,13 +336,13 @@ export default class SelectFromSequence extends Sequence {
 
                 if (!(Number.isInteger(numToSelect) && numToSelect >= 0)) {
                     console.log(
-                        `cannot determine unique variants of selectFromSequence as numToSelect isn't a non-negative integer.`
+                        `cannot determine unique variants of selectFromSequence as numToSelect isn't a non-negative integer.`,
                     );
                     return { success: false };
                 }
             } else {
                 console.log(
-                    `cannot determine unique variants of selectFromSequence as numToSelect isn't constant number.`
+                    `cannot determine unique variants of selectFromSequence as numToSelect isn't constant number.`,
                 );
                 return { success: false };
             }
@@ -366,13 +368,13 @@ export default class SelectFromSequence extends Sequence {
                     withReplacement = withReplacementComponent.state.value;
                 } else {
                     console.log(
-                        `cannot determine unique variants of selectFromSequence as withReplacement isn't constant boolean.`
+                        `cannot determine unique variants of selectFromSequence as withReplacement isn't constant boolean.`,
                     );
                     return { success: false };
                 }
             } else {
                 console.log(
-                    `cannot determine unique variants of selectFromSequence as withReplacement isn't constant boolean.`
+                    `cannot determine unique variants of selectFromSequence as withReplacement isn't constant boolean.`,
                 );
                 return { success: false };
             }
@@ -400,7 +402,7 @@ export default class SelectFromSequence extends Sequence {
                     from = Number(fromComponent2.children[0]);
                     if (!Number.isFinite(from)) {
                         console.log(
-                            `cannot determine unique variants of selectFromSequence of number type as from isn't a number.`
+                            `cannot determine unique variants of selectFromSequence of number type as from isn't a number.`,
                         );
                         return { success: false };
                     }
@@ -408,7 +410,7 @@ export default class SelectFromSequence extends Sequence {
                     from = lettersToNumber(fromComponent2.children[0]);
                     if (!Number.isFinite(from)) {
                         console.log(
-                            `cannot determine unique variants of selectFromSequence of letters type as from isn't a combination of letters.`
+                            `cannot determine unique variants of selectFromSequence of letters type as from isn't a combination of letters.`,
                         );
                         return { success: false };
                     }
@@ -420,7 +422,7 @@ export default class SelectFromSequence extends Sequence {
                         from = fromText(fromComponent2.children[0]);
                     } catch (e) {
                         console.log(
-                            `cannot determine unique variants of selectFromSequence of math type as from isn't a valid math expression.`
+                            `cannot determine unique variants of selectFromSequence of math type as from isn't a valid math expression.`,
                         );
                         return { success: false };
                     }
@@ -428,7 +430,7 @@ export default class SelectFromSequence extends Sequence {
                 sequencePars.from = from;
             } else {
                 console.log(
-                    `cannot determine unique variants of selectFromSequence as from isn't a constant.`
+                    `cannot determine unique variants of selectFromSequence as from isn't a constant.`,
                 );
                 return { success: false };
             }
@@ -449,7 +451,7 @@ export default class SelectFromSequence extends Sequence {
                     to = Number(toComponent2.children[0]);
                     if (!Number.isFinite(to)) {
                         console.log(
-                            `cannot determine unique variants of selectFromSequence of number type as to isn't a number.`
+                            `cannot determine unique variants of selectFromSequence of number type as to isn't a number.`,
                         );
                         return { success: false };
                     }
@@ -457,7 +459,7 @@ export default class SelectFromSequence extends Sequence {
                     to = lettersToNumber(toComponent2.children[0]);
                     if (!Number.isFinite(to)) {
                         console.log(
-                            `cannot determine unique variants of selectFromSequence of letters type as to isn't a combination of letters.`
+                            `cannot determine unique variants of selectFromSequence of letters type as to isn't a combination of letters.`,
                         );
                         return { success: false };
                     }
@@ -469,7 +471,7 @@ export default class SelectFromSequence extends Sequence {
                         to = fromText(toComponent2.children[0]);
                     } catch (e) {
                         console.log(
-                            `cannot determine unique variants of selectFromSequence of math type as to isn't a valid math expression.`
+                            `cannot determine unique variants of selectFromSequence of math type as to isn't a valid math expression.`,
                         );
                         return { success: false };
                     }
@@ -477,7 +479,7 @@ export default class SelectFromSequence extends Sequence {
                 sequencePars.to = to;
             } else {
                 console.log(
-                    `cannot determine unique variants of selectFromSequence as to isn't a constant.`
+                    `cannot determine unique variants of selectFromSequence as to isn't a constant.`,
                 );
                 return { success: false };
             }
@@ -496,7 +498,7 @@ export default class SelectFromSequence extends Sequence {
                     step = Number(stepComponent.children[0]);
                     if (!Number.isFinite(step)) {
                         console.log(
-                            `cannot determine unique variants of selectFromSequence of number type as step isn't a number.`
+                            `cannot determine unique variants of selectFromSequence of number type as step isn't a number.`,
                         );
                         return { success: false };
                     }
@@ -504,7 +506,7 @@ export default class SelectFromSequence extends Sequence {
                     step = Number(stepComponent.children[0]);
                     if (!Number.isInteger(step)) {
                         console.log(
-                            `cannot determine unique variants of selectFromSequence of letters type as step isn't an integer.`
+                            `cannot determine unique variants of selectFromSequence of letters type as step isn't an integer.`,
                         );
                         return { success: false };
                     }
@@ -516,7 +518,7 @@ export default class SelectFromSequence extends Sequence {
                         step = fromText(stepComponent.children[0]);
                     } catch (e) {
                         console.log(
-                            `cannot determine unique variants of selectFromSequence of math type as step isn't a valid math expression.`
+                            `cannot determine unique variants of selectFromSequence of math type as step isn't a valid math expression.`,
                         );
                         return { success: false };
                     }
@@ -524,7 +526,7 @@ export default class SelectFromSequence extends Sequence {
                 sequencePars.step = step;
             } else {
                 console.log(
-                    `cannot determine unique variants of selectFromSequence as step isn't a constant.`
+                    `cannot determine unique variants of selectFromSequence as step isn't a constant.`,
                 );
                 return { success: false };
             }
@@ -540,14 +542,14 @@ export default class SelectFromSequence extends Sequence {
                 let length = Number(lengthComponent.children[0]);
                 if (!Number.isInteger(length)) {
                     console.log(
-                        `cannot determine unique variants of selectFromSequence as length isn't an integer.`
+                        `cannot determine unique variants of selectFromSequence as length isn't an integer.`,
                     );
                     return { success: false };
                 }
                 sequencePars.length = length;
             } else {
                 console.log(
-                    `cannot determine unique variants of selectFromSequence as length isn't a constant.`
+                    `cannot determine unique variants of selectFromSequence as length isn't a constant.`,
                 );
                 return { success: false };
             }
@@ -555,7 +557,7 @@ export default class SelectFromSequence extends Sequence {
 
         if (serializedComponent.attributes.excludeCombinations) {
             console.log(
-                "have not implemented unique variants of a selectFromSequence with excludeCombinations"
+                "have not implemented unique variants of a selectFromSequence with excludeCombinations",
             );
             return { success: false };
         }
@@ -567,7 +569,7 @@ export default class SelectFromSequence extends Sequence {
         if (excludeComponent) {
             if (sequenceType === "math") {
                 console.log(
-                    "have not implemented unique variants of a selectFromSequence of type math with exclude"
+                    "have not implemented unique variants of a selectFromSequence of type math with exclude",
                 );
                 return { success: false };
             }
@@ -575,27 +577,27 @@ export default class SelectFromSequence extends Sequence {
                 !excludeComponent.children.every(
                     (x) =>
                         x.children?.length === 1 &&
-                        typeof x.children[0] === "string"
+                        typeof x.children[0] === "string",
                 )
             ) {
                 console.log(
-                    "have not implemented unique variants of a selectFromSequence with non-constant exclude"
+                    "have not implemented unique variants of a selectFromSequence with non-constant exclude",
                 );
                 return { success: false };
             }
             if (sequenceType === "letters") {
                 excludes = excludeComponent.children.map((x) =>
-                    lettersToNumber(x.children[0])
+                    lettersToNumber(x.children[0]),
                 );
             } else {
                 excludes = excludeComponent.children.map((x) =>
-                    Number(x.children[0])
+                    Number(x.children[0]),
                 );
             }
 
             if (!excludes.every(Number.isFinite)) {
                 console.log(
-                    "have not implemented unique variants of a selectFromSequence with non-constant exclude"
+                    "have not implemented unique variants of a selectFromSequence with non-constant exclude",
                 );
                 return { success: false };
             }
@@ -622,7 +624,7 @@ export default class SelectFromSequence extends Sequence {
                 sortResults = sortResultsComponent.state.value;
             } else {
                 console.log(
-                    `cannot determine unique variants of selectFromSequence as sortResults isn't a constant.`
+                    `cannot determine unique variants of selectFromSequence as sortResults isn't a constant.`,
                 );
                 return { success: false };
             }
@@ -630,7 +632,7 @@ export default class SelectFromSequence extends Sequence {
 
         if (sortResults && numToSelect > 1) {
             console.log(
-                "have not implemented unique variants of a selectFromSequence with sortResults"
+                "have not implemented unique variants of a selectFromSequence with sortResults",
             );
             return { success: false };
         }
@@ -833,7 +835,7 @@ function makeSelection({ dependencyValues }) {
             }
             let n = dependencyValues.length;
             desiredIndices = desiredIndices.map(
-                (x) => ((((x - 1) % n) + n) % n) + 1
+                (x) => ((((x - 1) % n) + n) % n) + 1,
             );
 
             let selectedValues = [];
@@ -953,7 +955,7 @@ function makeSelection({ dependencyValues }) {
         if (dependencyValues.withReplacement) {
             numPossibilitiesLowerBound = Math.pow(
                 numPossibilitiesLowerBound,
-                dependencyValues.numToSelect
+                dependencyValues.numToSelect,
             );
         } else {
             let n = numPossibilitiesLowerBound;
@@ -986,7 +988,7 @@ function makeSelection({ dependencyValues }) {
             if (dependencyValues.withReplacement) {
                 numPossibilities = Math.pow(
                     numPossibilities,
-                    dependencyValues.numToSelect
+                    dependencyValues.numToSelect,
                 );
             } else {
                 let n = numPossibilities;
@@ -999,14 +1001,14 @@ function makeSelection({ dependencyValues }) {
                 if (
                     dependencyValues.type === "number" &&
                     dependencyValues.excludedCombinations.some((x) =>
-                        x.some(Number.isNaN)
+                        x.some(Number.isNaN),
                     )
                 ) {
                     let numDuplicated = estimateNumberOfDuplicateCombinations(
                         dependencyValues.excludedCombinations,
                         dependencyValues.length -
                             dependencyValues.exclude.length,
-                        dependencyValues.withReplacement
+                        dependencyValues.withReplacement,
                     );
 
                     numCombinationsExcluded -= numDuplicated;
@@ -1122,7 +1124,7 @@ function makeSelection({ dependencyValues }) {
         } else if (dependencyValues.type === "letters") {
             // sort according to their numerical value, not as words
             combinedList.sort(
-                (a, b) => lettersToNumber(a.value) - lettersToNumber(b.value)
+                (a, b) => lettersToNumber(a.value) - lettersToNumber(b.value),
             );
         }
 
@@ -1244,7 +1246,7 @@ function selectValuesAndIndices({
             let ind = Math.floor(rand * numPossibleValues);
 
             selectedIndices.push(
-                possibleValuesAndIndices[ind].originalIndex + 1
+                possibleValuesAndIndices[ind].originalIndex + 1,
             );
             selectedValues.push(possibleValuesAndIndices[ind].value);
         }
@@ -1266,7 +1268,7 @@ function selectValuesAndIndices({
 
     let selectedValuesAndIndices = possibleValuesAndIndices.slice(
         0,
-        numToSelect
+        numToSelect,
     );
     selectedValues = selectedValuesAndIndices.map((x) => x.value);
     selectedIndices = selectedValuesAndIndices.map((x) => x.originalIndex + 1);

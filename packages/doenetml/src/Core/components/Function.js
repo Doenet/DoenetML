@@ -3,19 +3,18 @@ import GraphicalComponent from "./abstract/GraphicalComponent";
 import me from "math-expressions";
 import {
     mergeListsWithOtherContainers,
-    normalizeMathExpression,
     returnNVariables,
     roundForDisplay,
-    vectorOperators,
 } from "../utils/math";
 import {
+    vectorOperators,
     returnInterpolatedFunction,
     returnNumericalFunctionFromFormula,
     returnNumericalFunctionFromReevaluatedFormula,
     returnReturnDerivativesOfInterpolatedFunction,
     returnSymbolicFunctionFromFormula,
     returnSymbolicFunctionFromReevaluatedFormula,
-} from "../utils/function";
+} from "@doenet/utils";
 import { returnTextStyleDescriptionDefinitions } from "../utils/style";
 import {
     returnRoundingAttributeComponentShadowing,
@@ -33,6 +32,9 @@ export default class Function extends InlineComponent {
     static rendererType = "math";
 
     static primaryStateVariableForDefinition = "numericalfShadow";
+
+    // Include children that can be added due to sugar
+    static additionalSchemaChildren = ["string"];
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
@@ -286,7 +288,7 @@ export default class Function extends InlineComponent {
                             dependencyValues.through ||
                                 dependencyValues.minima ||
                                 dependencyValues.maxima ||
-                                dependencyValues.extrema
+                                dependencyValues.extrema,
                         ),
                     },
                 };
@@ -336,7 +338,7 @@ export default class Function extends InlineComponent {
                             numInputs: Math.max(
                                 1,
                                 dependencyValues.variablesAttr.stateValues
-                                    .numComponents
+                                    .numComponents,
                             ),
                         },
                     };
@@ -451,7 +453,7 @@ export default class Function extends InlineComponent {
                     let specifiedDomain =
                         globalDependencyValues.domainAttr.stateValues.intervals.slice(
                             0,
-                            numInputs
+                            numInputs,
                         );
                     if (specifiedDomain.length !== numInputs) {
                         let warning = {
@@ -480,7 +482,7 @@ export default class Function extends InlineComponent {
                         !specifiedDomain.every(
                             (interval) =>
                                 Array.isArray(interval.tree) &&
-                                interval.tree[0] === "interval"
+                                interval.tree[0] === "interval",
                         )
                     ) {
                         let warning = {
@@ -514,7 +516,7 @@ export default class Function extends InlineComponent {
                         ["tuple", false, false],
                     ]);
                     let domain = Array(globalDependencyValues.numInputs).fill(
-                        infDomain
+                        infDomain,
                     );
                     return { setValue: { domain } };
                 }
@@ -814,7 +816,7 @@ export default class Function extends InlineComponent {
                         setValue: {
                             variables: returnNVariables(
                                 arraySize[0],
-                                variablesSpecified
+                                variablesSpecified,
                             ),
                         },
                     };
@@ -836,7 +838,7 @@ export default class Function extends InlineComponent {
                     return {
                         setValue: {
                             variables: Array(arraySize[0]).fill(
-                                globalDependencyValues.parentVariableForChild
+                                globalDependencyValues.parentVariableForChild,
                             ),
                         },
                     };
@@ -897,7 +899,7 @@ export default class Function extends InlineComponent {
                 return {
                     setValue: {
                         mathChildCreatedBySugar: Boolean(
-                            dependencyValues.mathChildCreatedBySugar
+                            dependencyValues.mathChildCreatedBySugar,
                         ),
                     },
                 };
@@ -976,7 +978,7 @@ export default class Function extends InlineComponent {
                 // In this case, if the value is NaN, set haveNaNChildToReevaluate = true.
                 if (dependencyValues.mathChildMathChildren?.length > 0) {
                     let variables = dependencyValues.variables.map(
-                        (x) => x.subscripts_to_strings().tree
+                        (x) => x.subscripts_to_strings().tree,
                     );
 
                     // Formula is based on a math child that has math children.
@@ -991,12 +993,12 @@ export default class Function extends InlineComponent {
                                             .subscripts_to_strings()
                                             .variables(),
                                     ],
-                                    []
+                                    [],
                                 );
 
                             if (
                                 inputVariables.some((invar) =>
-                                    variables.includes(invar)
+                                    variables.includes(invar),
                                 )
                             ) {
                                 // The inputMaths to the <evaluate> contain a function variable.
@@ -1005,7 +1007,7 @@ export default class Function extends InlineComponent {
 
                                 if (
                                     containsNaN(
-                                        mathGrandChild.stateValues.value.tree
+                                        mathGrandChild.stateValues.value.tree,
                                     )
                                 ) {
                                     return {
@@ -1025,7 +1027,7 @@ export default class Function extends InlineComponent {
                     // i.e., it was a direct child of the <function>.
 
                     let variables = dependencyValues.variables.map(
-                        (x) => x.subscripts_to_strings().tree
+                        (x) => x.subscripts_to_strings().tree,
                     );
 
                     let mathChild = dependencyValues.mathChild[0];
@@ -1035,12 +1037,12 @@ export default class Function extends InlineComponent {
                                 ...a,
                                 ...c.subscripts_to_strings().variables(),
                             ],
-                            []
+                            [],
                         );
 
                     if (
                         inputVariables.some((invar) =>
-                            variables.includes(invar)
+                            variables.includes(invar),
                         )
                     ) {
                         // The inputMaths to the <evaluate> contain a function variable.
@@ -1227,7 +1229,7 @@ export default class Function extends InlineComponent {
                             (v) => ({
                                 x: v[0],
                                 y: v[1],
-                            })
+                            }),
                         );
                 }
                 return {
@@ -1252,7 +1254,7 @@ export default class Function extends InlineComponent {
                             (v) => ({
                                 x: v[0],
                                 y: v[1],
-                            })
+                            }),
                         );
                 }
                 return {
@@ -1277,7 +1279,7 @@ export default class Function extends InlineComponent {
                             (v) => ({
                                 x: v[0],
                                 y: v[1],
-                            })
+                            }),
                         );
                 }
                 return {
@@ -1506,7 +1508,7 @@ export default class Function extends InlineComponent {
                         globalDependencyValues.mathChildMathChildren?.length > 0
                     ) {
                         let variables = globalDependencyValues.variables.map(
-                            (x) => x.subscripts_to_strings().tree
+                            (x) => x.subscripts_to_strings().tree,
                         );
 
                         let evaluateChildrenToReevaluate = {};
@@ -1530,12 +1532,12 @@ export default class Function extends InlineComponent {
                                                 .subscripts_to_strings()
                                                 .variables(),
                                         ],
-                                        []
+                                        [],
                                     );
 
                                 if (
                                     inputVariables.some((invar) =>
-                                        variables.includes(invar)
+                                        variables.includes(invar),
                                     )
                                 ) {
                                     // The inputMaths to the <evaluate> contain a function variable.
@@ -1553,7 +1555,7 @@ export default class Function extends InlineComponent {
                                                 (x) =>
                                                     x
                                                         .subscripts_to_strings()
-                                                        .f()
+                                                        .f(),
                                             ),
                                     };
                                     needToReevaluate = true;
@@ -1584,14 +1586,14 @@ export default class Function extends InlineComponent {
                             if (Object.keys(subsMapping).length > 0) {
                                 formulaExpressionWithCodes =
                                     formulaExpressionWithCodes.substitute(
-                                        subsMapping
+                                        subsMapping,
                                     );
                             }
 
                             formulaExpressionWithCodes = me.fromAst(
                                 mergeListsWithOtherContainers(
-                                    formulaExpressionWithCodes.tree
-                                )
+                                    formulaExpressionWithCodes.tree,
+                                ),
                             );
 
                             // At this point, formulaExpressionWithCodes contains only those codes from
@@ -1614,7 +1616,7 @@ export default class Function extends InlineComponent {
                                                 globalDependencyValues.variables,
                                             domain: globalDependencyValues.domain,
                                             component: arrayKey,
-                                        }
+                                        },
                                     );
                             }
                             return {
@@ -1630,7 +1632,7 @@ export default class Function extends InlineComponent {
                         // i.e., it was a direct child of the <function>.
 
                         let variables = globalDependencyValues.variables.map(
-                            (x) => x.subscripts_to_strings().tree
+                            (x) => x.subscripts_to_strings().tree,
                         );
 
                         let mathChild = globalDependencyValues.mathChild[0];
@@ -1640,12 +1642,12 @@ export default class Function extends InlineComponent {
                                     ...a,
                                     ...c.subscripts_to_strings().variables(),
                                 ],
-                                []
+                                [],
                             );
 
                         if (
                             inputVariables.some((invar) =>
-                                variables.includes(invar)
+                                variables.includes(invar),
                             )
                         ) {
                             // The inputMaths to the <evaluate> contain a function variable.
@@ -1664,7 +1666,8 @@ export default class Function extends InlineComponent {
                                         mathChild.stateValues.fReevaluate,
                                     inputMathFs:
                                         mathChild.stateValues.inputMaths.map(
-                                            (x) => x.subscripts_to_strings().f()
+                                            (x) =>
+                                                x.subscripts_to_strings().f(),
                                         ),
                                 },
                             };
@@ -1685,7 +1688,7 @@ export default class Function extends InlineComponent {
                                                 globalDependencyValues.variables,
                                             domain: globalDependencyValues.domain,
                                             component: arrayKey,
-                                        }
+                                        },
                                     );
                             }
                             return {
@@ -1731,8 +1734,8 @@ export default class Function extends InlineComponent {
                                 let input = x.evaluate_to_constant();
                                 return me.fromAst(
                                     globalDependencyValues.numericalfShadow(
-                                        input
-                                    )
+                                        input,
+                                    ),
                                 );
                             };
                         } else {
@@ -1934,7 +1937,7 @@ export default class Function extends InlineComponent {
                         globalDependencyValues.mathChildMathChildren?.length > 0
                     ) {
                         let variables = globalDependencyValues.variables.map(
-                            (x) => x.subscripts_to_strings().tree
+                            (x) => x.subscripts_to_strings().tree,
                         );
 
                         let evaluateChildrenToReevaluate = {};
@@ -1958,12 +1961,12 @@ export default class Function extends InlineComponent {
                                                 .subscripts_to_strings()
                                                 .variables(),
                                         ],
-                                        []
+                                        [],
                                     );
 
                                 if (
                                     inputVariables.some((invar) =>
-                                        variables.includes(invar)
+                                        variables.includes(invar),
                                     )
                                 ) {
                                     // The inputMaths to the <evaluate> contain a function variable.
@@ -1981,7 +1984,7 @@ export default class Function extends InlineComponent {
                                                 (x) =>
                                                     x
                                                         .subscripts_to_strings()
-                                                        .f()
+                                                        .f(),
                                             ),
                                     };
                                     needToReevaluate = true;
@@ -2012,14 +2015,14 @@ export default class Function extends InlineComponent {
                             if (Object.keys(subsMapping).length > 0) {
                                 formulaExpressionWithCodes =
                                     formulaExpressionWithCodes.substitute(
-                                        subsMapping
+                                        subsMapping,
                                     );
                             }
 
                             formulaExpressionWithCodes = me.fromAst(
                                 mergeListsWithOtherContainers(
-                                    formulaExpressionWithCodes.tree
-                                )
+                                    formulaExpressionWithCodes.tree,
+                                ),
                             );
 
                             // At this point, formulaExpressionWithCodes contains only those codes from
@@ -2039,7 +2042,7 @@ export default class Function extends InlineComponent {
                                                 globalDependencyValues.variables,
                                             domain: globalDependencyValues.domain,
                                             component: arrayKey,
-                                        }
+                                        },
                                     );
                             }
                             return {
@@ -2055,7 +2058,7 @@ export default class Function extends InlineComponent {
                         // i.e., it was a direct child of the <function>.
 
                         let variables = globalDependencyValues.variables.map(
-                            (x) => x.subscripts_to_strings().tree
+                            (x) => x.subscripts_to_strings().tree,
                         );
 
                         let mathChild = globalDependencyValues.mathChild[0];
@@ -2065,12 +2068,12 @@ export default class Function extends InlineComponent {
                                     ...a,
                                     ...c.subscripts_to_strings().variables(),
                                 ],
-                                []
+                                [],
                             );
 
                         if (
                             inputVariables.some((invar) =>
-                                variables.includes(invar)
+                                variables.includes(invar),
                             )
                         ) {
                             // The inputMaths to the <evaluate> contain a function variable.
@@ -2089,7 +2092,8 @@ export default class Function extends InlineComponent {
                                         mathChild.stateValues.fReevaluate,
                                     inputMathFs:
                                         mathChild.stateValues.inputMaths.map(
-                                            (x) => x.subscripts_to_strings().f()
+                                            (x) =>
+                                                x.subscripts_to_strings().f(),
                                         ),
                                 },
                             };
@@ -2107,7 +2111,7 @@ export default class Function extends InlineComponent {
                                                 globalDependencyValues.variables,
                                             domain: globalDependencyValues.domain,
                                             component: arrayKey,
-                                        }
+                                        },
                                     );
                             }
                             return {
@@ -2332,7 +2336,7 @@ export default class Function extends InlineComponent {
                                     globalDependencyValues.interpolationPoints,
                                 domain: globalDependencyValues.domain
                                     ? globalDependencyValues.domain.map(
-                                          (x) => x.tree
+                                          (x) => x.tree,
                                       )
                                     : null,
                             };
@@ -2366,7 +2370,7 @@ export default class Function extends InlineComponent {
                         globalDependencyValues.mathChildMathChildren?.length > 0
                     ) {
                         let variables = globalDependencyValues.variables.map(
-                            (x) => x.subscripts_to_strings().tree
+                            (x) => x.subscripts_to_strings().tree,
                         );
 
                         let evaluateChildrenToReevaluate = {};
@@ -2392,12 +2396,12 @@ export default class Function extends InlineComponent {
                                                 .subscripts_to_strings()
                                                 .variables(),
                                         ],
-                                        []
+                                        [],
                                     );
 
                                 if (
                                     inputVariables.some((invar) =>
-                                        variables.includes(invar)
+                                        variables.includes(invar),
                                     )
                                 ) {
                                     // The inputMaths to the <evaluate> contain a function variable.
@@ -2442,14 +2446,14 @@ export default class Function extends InlineComponent {
                             if (Object.keys(subsMapping).length > 0) {
                                 formulaExpressionWithCodes =
                                     formulaExpressionWithCodes.substitute(
-                                        subsMapping
+                                        subsMapping,
                                     );
                             }
 
                             formulaExpressionWithCodes = me.fromAst(
                                 mergeListsWithOtherContainers(
-                                    formulaExpressionWithCodes.tree
-                                )
+                                    formulaExpressionWithCodes.tree,
+                                ),
                             );
 
                             // At this point, formulaExpressionWithCodes contains only those codes from
@@ -2467,11 +2471,11 @@ export default class Function extends InlineComponent {
                                     numInputs: globalDependencyValues.numInputs,
                                     variables:
                                         globalDependencyValues.variables.map(
-                                            (x) => x.tree
+                                            (x) => x.tree,
                                         ),
                                     domain: globalDependencyValues.domain
                                         ? globalDependencyValues.domain.map(
-                                              (x) => x.tree
+                                              (x) => x.tree,
                                           )
                                         : null,
                                     component: arrayKey,
@@ -2490,7 +2494,7 @@ export default class Function extends InlineComponent {
                         // i.e., it was a direct child of the <function>.
 
                         let variables = globalDependencyValues.variables.map(
-                            (x) => x.subscripts_to_strings().tree
+                            (x) => x.subscripts_to_strings().tree,
                         );
 
                         let mathChild = globalDependencyValues.mathChild[0];
@@ -2500,12 +2504,12 @@ export default class Function extends InlineComponent {
                                     ...a,
                                     ...c.subscripts_to_strings().variables(),
                                 ],
-                                []
+                                [],
                             );
 
                         if (
                             inputVariables.some((invar) =>
-                                variables.includes(invar)
+                                variables.includes(invar),
                             )
                         ) {
                             // The inputMaths to the <evaluate> contain a function variable.
@@ -2538,11 +2542,11 @@ export default class Function extends InlineComponent {
                                     numInputs: globalDependencyValues.numInputs,
                                     variables:
                                         globalDependencyValues.variables.map(
-                                            (x) => x.tree
+                                            (x) => x.tree,
                                         ),
                                     domain: globalDependencyValues.domain
                                         ? globalDependencyValues.domain.map(
-                                              (x) => x.tree
+                                              (x) => x.tree,
                                           )
                                         : null,
                                     component: arrayKey,
@@ -2560,13 +2564,13 @@ export default class Function extends InlineComponent {
                             functionType: "formula",
                             formula: globalDependencyValues.formula.tree,
                             variables: globalDependencyValues.variables.map(
-                                (x) => x.tree
+                                (x) => x.tree,
                             ),
                             numInputs: globalDependencyValues.numInputs,
                             numOutputs: globalDependencyValues.numOutputs,
                             domain: globalDependencyValues.domain
                                 ? globalDependencyValues.domain.map(
-                                      (x) => x.tree
+                                      (x) => x.tree,
                                   )
                                 : null,
                             component: arrayKey,
@@ -2600,13 +2604,13 @@ export default class Function extends InlineComponent {
                             functionType: "formula",
                             formula: globalDependencyValues.formula.tree,
                             variables: globalDependencyValues.variables.map(
-                                (x) => x.tree
+                                (x) => x.tree,
                             ),
                             numInputs: globalDependencyValues.numInputs,
                             numOutputs: globalDependencyValues.numOutputs,
                             domain: globalDependencyValues.domain
                                 ? globalDependencyValues.domain.map(
-                                      (x) => x.tree
+                                      (x) => x.tree,
                                   )
                                 : null,
                             component: arrayKey,
@@ -2965,7 +2969,7 @@ export default class Function extends InlineComponent {
             }) {
                 if (
                     ["minimum", "minimumLocation", "minimumValue"].includes(
-                        arrayEntryPrefix
+                        arrayEntryPrefix,
                     )
                 ) {
                     let pointInd = Number(varEnding) - 1;
@@ -3454,7 +3458,7 @@ export default class Function extends InlineComponent {
             }) {
                 if (
                     ["maximum", "maximumLocation", "maximumValue"].includes(
-                        arrayEntryPrefix
+                        arrayEntryPrefix,
                     )
                 ) {
                     let pointInd = Number(varEnding) - 1;
@@ -3873,7 +3877,7 @@ export default class Function extends InlineComponent {
             }) {
                 if (
                     ["extremum", "extremumLocation", "extremumValue"].includes(
-                        arrayEntryPrefix
+                        arrayEntryPrefix,
                     )
                 ) {
                     let pointInd = Number(varEnding) - 1;
@@ -4071,7 +4075,7 @@ export default class Function extends InlineComponent {
                         setValue: {
                             returnNumericalDerivatives:
                                 returnReturnDerivativesOfInterpolatedFunction(
-                                    dependencyValues
+                                    dependencyValues,
                                 ),
                         },
                     };
@@ -4083,13 +4087,13 @@ export default class Function extends InlineComponent {
                     ) {
                         // check if variables are the same
                         let functionVariables = dependencyValues.variables.map(
-                            (x) => x.subscripts_to_strings().tree
+                            (x) => x.subscripts_to_strings().tree,
                         );
                         let childVariables =
                             dependencyValues.functionChild[0].stateValues
                                 .variables;
                         let childVariablesTrans = childVariables.map(
-                            (x) => x.subscripts_to_strings().tree
+                            (x) => x.subscripts_to_strings().tree,
                         );
 
                         let variableMapping = {};
@@ -4117,7 +4121,7 @@ export default class Function extends InlineComponent {
                             };
                         } else {
                             let returnNumericalDerivatives = function (
-                                derivVariables
+                                derivVariables,
                             ) {
                                 let mappedDerivVariables = [];
 
@@ -4131,13 +4135,13 @@ export default class Function extends InlineComponent {
                                     } else {
                                         // have a mapping, but
                                         mappedDerivVariables.push(
-                                            me.fromAst("\uff3f")
+                                            me.fromAst("\uff3f"),
                                         );
                                     }
                                 }
 
                                 return dependencyValues.functionChild[0].stateValues.returnNumericalDerivatives(
-                                    mappedDerivVariables
+                                    mappedDerivVariables,
                                 );
                             };
 
@@ -4221,13 +4225,13 @@ export default class Function extends InlineComponent {
                     ) {
                         // check if variables are the same
                         let functionVariables = dependencyValues.variables.map(
-                            (x) => x.subscripts_to_strings().tree
+                            (x) => x.subscripts_to_strings().tree,
                         );
                         let childVariables =
                             dependencyValues.functionChild[0].stateValues
                                 .variables;
                         let childVariablesTrans = childVariables.map(
-                            (x) => x.subscripts_to_strings().tree
+                            (x) => x.subscripts_to_strings().tree,
                         );
 
                         let variableMapping = {};
@@ -4295,7 +4299,7 @@ export default class Function extends InlineComponent {
             stateVariable: "formula",
             componentType: "math",
             stateVariablesToShadow: Object.keys(
-                returnRoundingStateVariableDefinitions()
+                returnRoundingStateVariableDefinitions(),
             ),
         },
     ];

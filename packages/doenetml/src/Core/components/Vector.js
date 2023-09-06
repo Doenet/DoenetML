@@ -4,11 +4,8 @@ import {
     breakEmbeddedStringByCommas,
     returnBreakStringsSugarFunction,
 } from "./commonsugar/breakstrings";
-import {
-    convertValueToMathExpression,
-    roundForDisplay,
-    vectorOperators,
-} from "../utils/math";
+import { roundForDisplay } from "../utils/math";
+import { convertValueToMathExpression, vectorOperators } from "@doenet/utils";
 import { returnTextStyleDescriptionDefinitions } from "../utils/style";
 import {
     returnRoundingAttributeComponentShadowing,
@@ -90,6 +87,9 @@ export default class Vector extends GraphicalComponent {
 
         return attributes;
     }
+
+    // Include children that can be added due to sugar
+    static additionalSchemaChildren = ["number", "math", "string"];
 
     static returnSugarInstructions() {
         let sugarInstructions = super.returnSugarInstructions();
@@ -229,7 +229,7 @@ export default class Vector extends GraphicalComponent {
                     group: "pointsAndVectors",
                     componentTypes: ["point", "vector"],
                 },
-            ]
+            ],
         );
 
         return childGroups;
@@ -240,7 +240,7 @@ export default class Vector extends GraphicalComponent {
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions()
+            returnRoundingStateVariableDefinitions(),
         );
 
         let styleDescriptionDefinitions =
@@ -415,7 +415,7 @@ export default class Vector extends GraphicalComponent {
                         {
                             setEssentialValue: "displacementShadow",
                             value: convertValueToMathExpression(
-                                desiredStateVariableValues.displacementShadow
+                                desiredStateVariableValues.displacementShadow,
                             ),
                         },
                     ],
@@ -444,7 +444,7 @@ export default class Vector extends GraphicalComponent {
                         {
                             setEssentialValue: "headShadow",
                             value: convertValueToMathExpression(
-                                desiredStateVariableValues.headShadow
+                                desiredStateVariableValues.headShadow,
                             ),
                         },
                     ],
@@ -473,7 +473,7 @@ export default class Vector extends GraphicalComponent {
                         {
                             setEssentialValue: "tailShadow",
                             value: convertValueToMathExpression(
-                                desiredStateVariableValues.tailShadow
+                                desiredStateVariableValues.tailShadow,
                             ),
                         },
                     ],
@@ -1278,7 +1278,7 @@ export default class Vector extends GraphicalComponent {
                                 } else {
                                     displacement[arrayKey] =
                                         prescribedDisplacement.get_component(
-                                            ind
+                                            ind,
                                         );
                                 }
                             }
@@ -1340,7 +1340,7 @@ export default class Vector extends GraphicalComponent {
                             // not based on displacement or head, use essential value
                             essentialDisplacement[arrayKey] = {
                                 defaultValue: me.fromAst(
-                                    arrayKey === "0" ? 1 : 0
+                                    arrayKey === "0" ? 1 : 0,
                                 ),
                             };
                         }
@@ -1481,7 +1481,7 @@ export default class Vector extends GraphicalComponent {
                                             [arrayKey]:
                                                 convertValueToMathExpression(
                                                     desiredStateVariableValues
-                                                        .displacement[arrayKey]
+                                                        .displacement[arrayKey],
                                                 ),
                                         },
                                     });
@@ -1507,7 +1507,7 @@ export default class Vector extends GraphicalComponent {
                                 .add(
                                     desiredStateVariableValues.displacement[
                                         arrayKey
-                                    ]
+                                    ],
                                 )
                                 .simplify(),
                         });
@@ -1521,7 +1521,7 @@ export default class Vector extends GraphicalComponent {
                                 [arrayKey]: convertValueToMathExpression(
                                     desiredStateVariableValues.displacement[
                                         arrayKey
-                                    ]
+                                    ],
                                 ),
                             },
                         });
@@ -1659,7 +1659,7 @@ export default class Vector extends GraphicalComponent {
                         } else if (globalDependencyValues.headShadow !== null) {
                             head[arrayKey] =
                                 globalDependencyValues.headShadow.get_component(
-                                    Number(arrayKey)
+                                    Number(arrayKey),
                                 );
                         }
                     } else {
@@ -1873,7 +1873,7 @@ export default class Vector extends GraphicalComponent {
                     } else if (globalDependencyValues.tailShadow !== null) {
                         tail[arrayKey] =
                             globalDependencyValues.tailShadow.get_component(
-                                Number(arrayKey)
+                                Number(arrayKey),
                             );
                     } else {
                         // if made it to here, basedOnTail is false
@@ -1957,7 +1957,7 @@ export default class Vector extends GraphicalComponent {
                                     .subtract(
                                         desiredStateVariableValues.tail[
                                             arrayKey
-                                        ]
+                                        ],
                                     )
                                     .simplify(),
                             });
@@ -1973,7 +1973,7 @@ export default class Vector extends GraphicalComponent {
                                     [arrayKey]: convertValueToMathExpression(
                                         desiredStateVariableValues.tail[
                                             arrayKey
-                                        ]
+                                        ],
                                     ),
                                 },
                             });
@@ -2109,7 +2109,7 @@ export default class Vector extends GraphicalComponent {
 
                 for (let dim = 0; dim < dependencyValues.numDimensions; dim++) {
                     desiredDisplacement.push(
-                        me.fromAst(dir[dim] * desiredMagnitude)
+                        me.fromAst(dir[dim] * desiredMagnitude),
                     );
                 }
 
@@ -2367,21 +2367,21 @@ export default class Vector extends GraphicalComponent {
             stateVariable: "displacementCoords",
             componentType: "_directionComponent",
             stateVariablesToShadow: Object.keys(
-                returnRoundingStateVariableDefinitions()
+                returnRoundingStateVariableDefinitions(),
             ),
         },
         {
             stateVariable: "displacementCoords",
             componentType: "coords",
             stateVariablesToShadow: Object.keys(
-                returnRoundingStateVariableDefinitions()
+                returnRoundingStateVariableDefinitions(),
             ),
         },
         {
             stateVariable: "displacementCoords",
             componentType: "point",
             stateVariablesToShadow: Object.keys(
-                returnRoundingStateVariableDefinitions()
+                returnRoundingStateVariableDefinitions(),
             ),
         },
     ];
@@ -2428,10 +2428,10 @@ export default class Vector extends GraphicalComponent {
                 if (headcoords === undefined) {
                     // use current value of head
                     // if head isn't supposed to change
-                    let numericalEndpoints = await this.stateValues
-                        .numericalEndpoints;
+                    let numericalEndpoints =
+                        await this.stateValues.numericalEndpoints;
                     displacement = tailcoords.map(
-                        (x, i) => numericalEndpoints[1][i] - x
+                        (x, i) => numericalEndpoints[1][i] - x,
                     );
                 } else {
                     displacement = tailcoords.map((x, i) => headcoords[i] - x);
@@ -2460,10 +2460,10 @@ export default class Vector extends GraphicalComponent {
                 // however, head would move if not based on head
                 // so give instructions to change displacement to keep head fixed
                 if (!(await this.stateValues.basedOnHead)) {
-                    let numericalEndpoints = await this.stateValues
-                        .numericalEndpoints;
+                    let numericalEndpoints =
+                        await this.stateValues.numericalEndpoints;
                     let displacement = tailcoords.map(
-                        (x, i) => numericalEndpoints[1][i] - x
+                        (x, i) => numericalEndpoints[1][i] - x,
                     );
                     updateInstructions.push({
                         updateType: "updateValue",
@@ -2511,10 +2511,10 @@ export default class Vector extends GraphicalComponent {
                     (await this.stateValues.basedOnHead) &&
                     (await this.stateValues.basedOnDisplacement)
                 ) {
-                    let numericalEndpoints = await this.stateValues
-                        .numericalEndpoints;
+                    let numericalEndpoints =
+                        await this.stateValues.numericalEndpoints;
                     let displacement = headcoords.map(
-                        (x, i) => x - numericalEndpoints[0][i]
+                        (x, i) => x - numericalEndpoints[0][i],
                     );
                     updateInstructions.push({
                         updateType: "updateValue",
@@ -2571,8 +2571,8 @@ export default class Vector extends GraphicalComponent {
             (await this.stateValues.basedOnHead)
         ) {
             let numericalPoints = [tailcoords, headcoords];
-            let resultingNumericalPoints = await this.stateValues
-                .numericalEndpoints;
+            let resultingNumericalPoints =
+                await this.stateValues.numericalEndpoints;
 
             let pointsChanged = [];
             let numPointsChanged = 0;
@@ -2602,7 +2602,7 @@ export default class Vector extends GraphicalComponent {
                         newNumericalPoints.push(resultingNumericalPoints[i]);
                     } else {
                         newNumericalPoints.push(
-                            numericalPoints[i].map((v, j) => v - changevec1[j])
+                            numericalPoints[i].map((v, j) => v - changevec1[j]),
                         );
                     }
                 }

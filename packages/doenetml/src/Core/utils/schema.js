@@ -71,6 +71,8 @@ export function getSchema() {
         inheritedOrAdaptedTypes[type1] = inherited;
     }
 
+    // Remove abstract components from the schema
+    // (Use shallow copy as we still need them in componentInfoObjects for other functionality.)
     componentClasses = { ...componentClasses };
     for (let type in componentClasses) {
         if (type[0] === "_") {
@@ -82,6 +84,7 @@ export function getSchema() {
 
     for (let type in componentClasses) {
         let children = [];
+        let acceptsStringChildren = false;
 
         // All components have the name and copySource attributes,
         // even though they aren't in the attributes object
@@ -143,6 +146,13 @@ export function getSchema() {
                     if (type2 in inheritedOrAdaptedTypes) {
                         children.push(...inheritedOrAdaptedTypes[type2]);
                     }
+                    if (
+                        type2 === "string" ||
+                        type2 === "_base" ||
+                        type2 === "_inline"
+                    ) {
+                        acceptsStringChildren = true;
+                    }
                 }
             }
         }
@@ -159,6 +169,13 @@ export function getSchema() {
                 if (type2 in inheritedOrAdaptedTypes) {
                     children.push(...inheritedOrAdaptedTypes[type2]);
                 }
+                if (
+                    type2 === "string" ||
+                    type2 === "_base" ||
+                    type2 === "_inline"
+                ) {
+                    acceptsStringChildren = true;
+                }
             }
         }
 
@@ -169,6 +186,7 @@ export function getSchema() {
             children,
             attributes,
             top: !cClass.inSchemaOnlyInheritAs,
+            acceptsStringChildren,
         });
     }
 
@@ -210,7 +228,7 @@ function checkIfInheritOrAdapt({
     for (let n = 0; n < numAdapters; n++) {
         let adapterComponentType = startingClass.getAdapterComponentType(
             n,
-            componentInfoObjects.publicStateVariableInfo
+            componentInfoObjects.publicStateVariableInfo,
         );
 
         let adapterClass =

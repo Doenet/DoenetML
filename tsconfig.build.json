@@ -33,7 +33,8 @@
         "skipLibCheck": true,
         "paths": {
             "@doenet/parser": ["./packages/parser/dist"],
-            "@doenet/*": ["./packages/*"]
+            "@doenet/doenetml": ["./packages/doenetml/dist"],
+            "@doenet/*": ["./packages/*/dist"]
         }
     }
 }

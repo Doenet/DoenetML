@@ -1,7 +1,8 @@
 import InlineComponent from "./abstract/InlineComponent";
 import me from "math-expressions";
 import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "./commonsugar/lists";
-import { convertValueToMathExpression, roundForDisplay } from "../utils/math";
+import { roundForDisplay } from "../utils/math";
+import { convertValueToMathExpression } from "@doenet/utils";
 import {
     returnRoundingAttributeComponentShadowing,
     returnRoundingAttributes,
@@ -79,6 +80,9 @@ export default class MathList extends InlineComponent {
         return attributes;
     }
 
+    // Include children that can be added due to sugar
+    static additionalSchemaChildren = ["string"];
+
     static returnSugarInstructions() {
         let sugarInstructions = super.returnSugarInstructions();
 
@@ -114,7 +118,7 @@ export default class MathList extends InlineComponent {
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions()
+            returnRoundingStateVariableDefinitions(),
         );
 
         // set overrideChildHide so that children are hidden
@@ -311,7 +315,7 @@ export default class MathList extends InlineComponent {
                     numComponents = maxNum;
                     childIndexByArrayKey = childIndexByArrayKey.slice(
                         0,
-                        maxNum
+                        maxNum,
                     );
                 }
 
@@ -481,7 +485,7 @@ export default class MathList extends InlineComponent {
                                 ) {
                                     workspace.desiredMaths[i] =
                                         convertValueToMathExpression(
-                                            desiredStateVariableValues.maths[i]
+                                            desiredStateVariableValues.maths[i],
                                         );
                                 } else if (
                                     workspace.desiredMaths[i] === undefined
@@ -492,7 +496,7 @@ export default class MathList extends InlineComponent {
                                 }
 
                                 desiredTree.push(
-                                    workspace.desiredMaths[i].tree
+                                    workspace.desiredMaths[i].tree,
                                 );
                                 arrayKeysAddressed.push(i.toString());
                             }
@@ -685,7 +689,7 @@ export default class MathList extends InlineComponent {
                     instructions.push({
                         setDependency: dependencyNamesByKey[arrayKey].math,
                         desiredValue: me.fromAst(
-                            desiredStateVariableValues.numbers[arrayKey]
+                            desiredStateVariableValues.numbers[arrayKey],
                         ),
                     });
                 }
@@ -774,7 +778,7 @@ export default class MathList extends InlineComponent {
                                     latexs.push(
                                         childValue
                                             .get_component(i)
-                                            .toLatex(params)
+                                            .toLatex(params),
                                     );
                                 }
                             } else {
@@ -789,7 +793,7 @@ export default class MathList extends InlineComponent {
                         roundForDisplay({
                             value: x,
                             dependencyValues,
-                        }).toLatex(params)
+                        }).toLatex(params),
                     );
                 }
 
@@ -864,7 +868,7 @@ export default class MathList extends InlineComponent {
                                     i++
                                 ) {
                                     texts.push(
-                                        childValue.get_component(i).toString()
+                                        childValue.get_component(i).toString(),
                                     );
                                 }
                             } else {
@@ -876,7 +880,7 @@ export default class MathList extends InlineComponent {
                     }
                 } else if (dependencyValues.mathsShadow !== null) {
                     texts = dependencyValues.mathsShadow.map((x) =>
-                        x.toString()
+                        x.toString(),
                     );
                 }
 
@@ -934,7 +938,7 @@ export default class MathList extends InlineComponent {
                         let componentNamesToAdd =
                             child.stateValues.componentNamesInList.slice(
                                 0,
-                                numComponentsLeft
+                                numComponentsLeft,
                             );
 
                         componentNamesInList.push(...componentNamesToAdd);
@@ -1019,7 +1023,7 @@ export default class MathList extends InlineComponent {
                 for (let child of dependencyValues.mathAndMathListChildren) {
                     let numComponentsLeft = Math.max(
                         0,
-                        numComponentsToDisplay - numComponentsSoFar
+                        numComponentsToDisplay - numComponentsSoFar,
                     );
                     if (numComponentsLeft > 0) {
                         numChildrenToRender++;
@@ -1036,7 +1040,7 @@ export default class MathList extends InlineComponent {
 
                         let numComponentsForMathListChild = Math.min(
                             numComponentsLeft,
-                            mathListChild.stateValues.numComponents
+                            mathListChild.stateValues.numComponents,
                         );
 
                         numComponentsToDisplayByChild[
@@ -1088,14 +1092,14 @@ export default class MathList extends InlineComponent {
         {
             stateVariable: "math",
             stateVariablesToShadow: Object.keys(
-                returnRoundingStateVariableDefinitions()
+                returnRoundingStateVariableDefinitions(),
             ),
         },
         {
             stateVariable: "numbers",
             componentType: "numberList",
             stateVariablesToShadow: Object.keys(
-                returnRoundingStateVariableDefinitions()
+                returnRoundingStateVariableDefinitions(),
             ),
         },
         "text",

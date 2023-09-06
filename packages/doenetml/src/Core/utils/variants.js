@@ -1,5 +1,5 @@
 import { enumerateCombinations } from "./enumeration";
-import { numberToLetters } from "./sequence";
+import { numberToLetters } from "@doenet/utils";
 
 export function getVariantsForDescendantsForUniqueVariants({
     variantIndex,
@@ -14,7 +14,7 @@ export function getVariantsForDescendantsForUniqueVariants({
     }
 
     let numVariantsByDescendant = descendantVariantComponents.map(
-        (x) => x.variants.numVariants
+        (x) => x.variants.numVariants,
     );
 
     let indices = enumerateCombinations({
@@ -78,10 +78,10 @@ export function setUpVariantSeedAndRng({
 
     sharedParameters.variantSeed = variantSeed;
     sharedParameters.variantRng = new sharedParameters.rngClass(
-        sharedParameters.variantSeed
+        sharedParameters.variantSeed,
     );
     sharedParameters.subpartVariantRng = new sharedParameters.rngClass(
-        sharedParameters.variantSeed + "s"
+        sharedParameters.variantSeed + "s",
     );
 
     // if subvariants were specified, add those the corresponding descendants
@@ -152,7 +152,7 @@ export function gatherVariantComponents({
         // is a variant component
         if (
             serializedComponent.children.some(
-                (x) => x.componentType === "variantControl"
+                (x) => x.componentType === "variantControl",
             )
         ) {
             serializedComponent.variants.isVariantComponent = true;
@@ -203,7 +203,7 @@ export function getNumVariants({ serializedComponent, componentInfoObjects }) {
         // if have a single child that is a section, use variants from that section
 
         let nonBlankChildren = serializedComponent.children.filter(
-            (x) => x.componentType || x.trim() !== ""
+            (x) => x.componentType || x.trim() !== "",
         );
 
         if (
@@ -282,7 +282,7 @@ export function determineVariantsForSection({
     if (variantControlChild?.attributes.variantNames) {
         specifiedVariantNames =
             variantControlChild.attributes.variantNames.component.children.map(
-                (x) => x.toLowerCase()
+                (x) => x.toLowerCase(),
             );
     }
 
@@ -329,7 +329,7 @@ export function determineVariantsForSection({
     if (variantsToInclude) {
         if (variantsToInclude.length === 0) {
             throw Error(
-                "Cannot specify a blank variantsToInclude attribute of a variantControl"
+                "Cannot specify a blank variantsToInclude attribute of a variantControl",
             );
         }
 
@@ -341,7 +341,7 @@ export function determineVariantsForSection({
         for (let variant of variantsToInclude) {
             if (!variantNames.includes(variant)) {
                 throw Error(
-                    `Cannot include variant ${variant} as ${variant} is a not variant name`
+                    `Cannot include variant ${variant} as ${variant} is a not variant name`,
                 );
             }
         }
@@ -355,7 +355,7 @@ export function determineVariantsForSection({
         for (let variant of variantsToExclude) {
             if (!variantNames.includes(variant)) {
                 throw Error(
-                    `Cannot exclude variant ${variant} as ${variant} is not a variant name`
+                    `Cannot exclude variant ${variant} as ${variant} is not a variant name`,
                 );
             }
         }
@@ -365,16 +365,16 @@ export function determineVariantsForSection({
 
     if (variantsToInclude) {
         variantsToInclude = variantsToInclude.filter(
-            (x) => !variantsToExclude.includes(x)
+            (x) => !variantsToExclude.includes(x),
         );
     } else {
         variantsToInclude = [...variantNames].filter(
-            (x) => !variantsToExclude.includes(x)
+            (x) => !variantsToExclude.includes(x),
         );
     }
 
     let variantsToIncludeUniqueIndices = variantsToInclude.map(
-        (variant) => variantNames.indexOf(variant) + 1
+        (variant) => variantNames.indexOf(variant) + 1,
     );
 
     // determine seeds
@@ -409,7 +409,7 @@ export function determineVariantsForSection({
     }
 
     let variantsToIncludeSeeds = variantsToIncludeUniqueIndices.map(
-        (i) => variantSeeds[i - 1]
+        (i) => variantSeeds[i - 1],
     );
 
     // determine if use unique variants
@@ -466,7 +466,7 @@ export function determineVariantsForSection({
     let numVariants = allPossibleVariants.length;
     if (numVariants === 0) {
         throw Error(
-            "No variants selected based on variantsToInclude, variantsToExclude, and the number of variants available"
+            "No variants selected based on variantsToInclude, variantsToExclude, and the number of variants available",
         );
     }
 

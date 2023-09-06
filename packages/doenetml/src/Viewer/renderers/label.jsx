@@ -4,7 +4,7 @@ import useDoenetRenderer from "../useDoenetRenderer";
 import { MathJax } from "better-react-mathjax";
 import me from "math-expressions";
 import { textRendererStyle } from "../../Core/utils/style";
-import { getPositionFromAnchorByCoordinate } from "../../Core/utils/graphical";
+import { getPositionFromAnchorByCoordinate } from "./utils/graph";
 import { PageContext } from "../PageViewer";
 
 export default React.memo(function Label(props) {
@@ -120,7 +120,7 @@ export default React.memo(function Label(props) {
         jsxLabelAttributes.anchor = newAnchorPointJXG;
 
         let { anchorx, anchory } = getPositionFromAnchorByCoordinate(
-            SVs.positionFromAnchor
+            SVs.positionFromAnchor,
         );
         jsxLabelAttributes.anchorx = anchorx;
         jsxLabelAttributes.anchory = anchory;
@@ -129,7 +129,7 @@ export default React.memo(function Label(props) {
         let newLabelJXG = board.create(
             "text",
             [0, 0, SVs.value],
-            jsxLabelAttributes
+            jsxLabelAttributes,
         );
         newLabelJXG.isDraggable = !fixLocation.current;
 
@@ -261,11 +261,11 @@ export default React.memo(function Label(props) {
 
             calculatedX.current = Math.min(
                 xmaxAdjusted,
-                Math.max(xminAdjusted, calculatedX.current)
+                Math.max(xminAdjusted, calculatedX.current),
             );
             calculatedY.current = Math.min(
                 ymaxAdjusted,
-                Math.max(yminAdjusted, calculatedY.current)
+                Math.max(yminAdjusted, calculatedY.current),
             );
 
             callAction({
@@ -280,11 +280,11 @@ export default React.memo(function Label(props) {
 
             newLabelJXG.relativeCoords.setCoordinates(
                 JXG.COORDS_BY_USER,
-                [0, 0]
+                [0, 0],
             );
             newAnchorPointJXG.coords.setCoordinates(
                 JXG.COORDS_BY_USER,
-                lastPositionFromCore.current
+                lastPositionFromCore.current,
             );
         });
 
@@ -368,11 +368,11 @@ export default React.memo(function Label(props) {
         } else {
             labelJXG.current.relativeCoords.setCoordinates(
                 JXG.COORDS_BY_USER,
-                [0, 0]
+                [0, 0],
             );
             anchorPointJXG.current.coords.setCoordinates(
                 JXG.COORDS_BY_USER,
-                anchorCoords
+                anchorCoords,
             );
 
             labelJXG.current.setText(SVs.value);
@@ -437,7 +437,7 @@ export default React.memo(function Label(props) {
 
             if (SVs.positionFromAnchor !== previousPositionFromAnchor.current) {
                 let { anchorx, anchory } = getPositionFromAnchorByCoordinate(
-                    SVs.positionFromAnchor
+                    SVs.positionFromAnchor,
                 );
                 labelJXG.current.visProp.anchorx = anchorx;
                 labelJXG.current.visProp.anchory = anchory;

@@ -1,4 +1,4 @@
-import { deepClone } from "../utils/deepFunctions";
+import { deepClone } from "@doenet/utils";
 import {
     moveGraphicalObjectWithAnchorAction,
     returnAnchorAttributes,
@@ -40,7 +40,7 @@ export default class CallAction extends InlineComponent {
                 if (
                     !componentInfoObjects.componentIsSpecifiedType(
                         child,
-                        "label"
+                        "label",
                     )
                 ) {
                     keepSerializedInds.push(ind);
@@ -81,7 +81,7 @@ export default class CallAction extends InlineComponent {
         Object.assign(attributes, returnAnchorAttributes());
 
         let triggerAttributes = returnStandardTriggeringAttributes(
-            "callActionIfTriggerNewlyTrue"
+            "callActionIfTriggerNewlyTrue",
         );
 
         Object.assign(attributes, triggerAttributes);
@@ -111,7 +111,7 @@ export default class CallAction extends InlineComponent {
 
         addStandardTriggeringStateVariableDefinitions(
             stateVariableDefinitions,
-            "callAction"
+            "callAction",
         );
 
         let labelDefinitions = returnLabelStateVariableDefinitions();
@@ -190,12 +190,12 @@ export default class CallAction extends InlineComponent {
                 args.serializedComponents = deepClone(this.serializedChildren);
             }
             if (this.attributes.number) {
-                args.number = await this.attributes.number.component.stateValues
-                    .value;
+                args.number =
+                    await this.attributes.number.component.stateValues.value;
             }
             if (this.attributes.numbers) {
-                args.numbers = await this.attributes.numbers.component
-                    .stateValues.numbers;
+                args.numbers =
+                    await this.attributes.numbers.component.stateValues.numbers;
             }
 
             if (actionId) {

@@ -21,6 +21,9 @@ export default class BestFitLine extends Line {
         return attributes;
     }
 
+    // Include children that can be added due to sugar (delete those from line)
+    static additionalSchemaChildren = [];
+
     static returnSugarInstructions() {
         return [];
     }
@@ -263,7 +266,7 @@ export default class BestFitLine extends Line {
                         // array of "datumInd,i", where i=0, ..., arraySize[1]-1
                         return Array.from(
                             Array(arraySize[1]),
-                            (_, i) => datumInd + "," + i
+                            (_, i) => datumInd + "," + i,
                         );
                     } else {
                         return [];

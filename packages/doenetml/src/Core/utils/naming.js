@@ -19,7 +19,7 @@ export function createUniqueName(componentType, longNameId) {
 
 export function getUniqueIdentifierFromBase(
     uniqueIdentifierBase,
-    uniqueIdentifiersUsed
+    uniqueIdentifiersUsed,
 ) {
     let postfix = 1;
     let uniqueIdentifier = uniqueIdentifierBase + postfix;
@@ -38,7 +38,7 @@ export function getNamespaceFromName(componentName) {
     let lastSlash = componentName.lastIndexOf("/");
     if (lastSlash === -1) {
         throw Error(
-            `Encountered name ${componentName} that doesn't include a slash`
+            `Encountered name ${componentName} that doesn't include a slash`,
         );
     }
     return componentName.slice(0, lastSlash + 1);

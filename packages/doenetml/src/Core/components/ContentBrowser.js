@@ -1,4 +1,4 @@
-import { cesc } from "../../utils/url";
+import { cesc } from "@doenet/utils";
 import Template from "./Template";
 import BlockComponent from "./abstract/BlockComponent";
 
@@ -69,7 +69,7 @@ export class ContentBrowser extends BlockComponent {
                 }
 
                 items.sort((a, b) =>
-                    a.label.toLowerCase().localeCompare(b.label.toLowerCase())
+                    a.label.toLowerCase().localeCompare(b.label.toLowerCase()),
                 );
 
                 let itemsByInitial = {};

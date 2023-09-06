@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useRef } from "react";
 import useDoenetRenderer from "../useDoenetRenderer";
 import { BoardContext, LINE_LAYER_OFFSET, VERTEX_LAYER_OFFSET } from "./graph";
-import { createFunctionFromDefinition } from "../../Core/utils/function";
+import { createFunctionFromDefinition } from "@doenet/utils";
 
 export default React.memo(function CobwebPolyline(props) {
     let { name, id, SVs, actions, sourceOfUpdate, callAction } =
@@ -57,7 +57,7 @@ export default React.memo(function CobwebPolyline(props) {
         curveJXG.current = board.create(
             "functiongraph",
             [f],
-            functionAttributes
+            functionAttributes,
         );
 
         let diagonalAttributes = {
@@ -76,7 +76,7 @@ export default React.memo(function CobwebPolyline(props) {
                 [0, 0],
                 [1, 1],
             ],
-            diagonalAttributes
+            diagonalAttributes,
         );
 
         let validCoords = true;
@@ -157,8 +157,8 @@ export default React.memo(function CobwebPolyline(props) {
                 board.create(
                     "point",
                     [...SVs.numericalVertices[i]],
-                    pointAttributes
-                )
+                    pointAttributes,
+                ),
             );
         }
 
@@ -172,7 +172,7 @@ export default React.memo(function CobwebPolyline(props) {
         let newPolylineJXG = board.create(
             "curve",
             [x, y],
-            jsxPolylineAttributes
+            jsxPolylineAttributes,
         );
 
         for (let i = 0; i < SVs.numPoints; i++) {
@@ -182,7 +182,7 @@ export default React.memo(function CobwebPolyline(props) {
             pointsJXG.current[i].on("keydown", (e) => keyDownHandler(i, e));
             pointsJXG.current[i].on(
                 "down",
-                (x) => (draggedPoint.current = null)
+                (x) => (draggedPoint.current = null),
             );
         }
 
@@ -317,7 +317,7 @@ export default React.memo(function CobwebPolyline(props) {
                 for (let i = previousNPoints.current; i < SVs.numPoints; i++) {
                     let pointAttributes = Object.assign(
                         {},
-                        jsxPointAttributes.current
+                        jsxPointAttributes.current,
                     );
                     if (i === 0) {
                         pointAttributes.name = `(${varName}_0,0)`;
@@ -337,21 +337,21 @@ export default React.memo(function CobwebPolyline(props) {
                         board.create(
                             "point",
                             [...SVs.numericalVertices[i]],
-                            pointAttributes
-                        )
+                            pointAttributes,
+                        ),
                     );
 
                     pointsJXG.current[i].on("drag", (e) => dragHandler(i, e));
                     pointsJXG.current[i].on("up", (x) => upHandler(i));
                     pointsJXG.current[i].on("keyfocusout", () =>
-                        keyFocusOutHandler(i)
+                        keyFocusOutHandler(i),
                     );
                     pointsJXG.current[i].on("keydown", (e) =>
-                        keyDownHandler(i, e)
+                        keyDownHandler(i, e),
                     );
                     pointsJXG.current[i].on(
                         "down",
-                        (x) => (draggedPoint.current = null)
+                        (x) => (draggedPoint.current = null),
                     );
                 }
             } else if (SVs.numPoints < previousNPoints.current) {

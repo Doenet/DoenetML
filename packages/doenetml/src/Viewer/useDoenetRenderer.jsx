@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { atomFamily, useRecoilValue, useSetRecoilState } from "recoil";
-// import { serializedComponentsReviver } from '../../Core/utils/serializedStateProcessing';
+// import { serializedComponentsReviver } from '@doenet/utils';
 import { renderersloadComponent } from "./PageViewer";
-import { cesc } from "../utils/url";
+import { cesc } from "@doenet/utils";
 
 export const rendererState = atomFamily({
     key: "rendererState",
@@ -19,7 +19,7 @@ export const rendererState = atomFamily({
 // TODO: potentially remove initializeChildrenOnConstruction
 export default function useDoenetRenderer(
     props,
-    initializeChildrenOnConstruction = true
+    initializeChildrenOnConstruction = true,
 ) {
     let actions = props.componentInstructions.actions;
     let componentName = props.componentInstructions.componentName;
@@ -42,7 +42,7 @@ export default function useDoenetRenderer(
     for (let childInstructions of childrenInstructions) {
         let child = createChildFromInstructions(
             childInstructions,
-            loadMoreRenderers
+            loadMoreRenderers,
         );
         children.push(child);
     }
@@ -51,7 +51,7 @@ export default function useDoenetRenderer(
         if (Object.keys(renderersToLoad).length > 0) {
             renderersloadComponent(
                 Object.values(renderersToLoad),
-                Object.keys(renderersToLoad)
+                Object.keys(renderersToLoad),
             ).then((newRendererClasses) => {
                 Object.assign(props.rendererClasses, newRendererClasses);
                 setRenderersToLoad({});

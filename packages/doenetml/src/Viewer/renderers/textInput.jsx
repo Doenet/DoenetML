@@ -15,7 +15,7 @@ import styled from "styled-components";
 import { MathJax } from "better-react-mathjax";
 import { BoardContext } from "./graph";
 import me from "math-expressions";
-import { getPositionFromAnchorByCoordinate } from "../../Core/utils/graphical";
+import { getPositionFromAnchorByCoordinate } from "./utils/graph";
 
 // Moved most of checkWorkStyle styling into Button
 const Button = styled.button`
@@ -277,7 +277,7 @@ export default function TextInput(props) {
         jsxInputAttributes.anchor = newAnchorPointJXG;
 
         let { anchorx, anchory } = getPositionFromAnchorByCoordinate(
-            SVs.positionFromAnchor
+            SVs.positionFromAnchor,
         );
         jsxInputAttributes.anchorx = anchorx;
         jsxInputAttributes.anchory = anchory;
@@ -286,7 +286,7 @@ export default function TextInput(props) {
         let newInputJXG = board.create(
             "input",
             [0, 0, rendererValue, SVs.label],
-            jsxInputAttributes
+            jsxInputAttributes,
         );
         newInputJXG.isDraggable = !fixLocation.current;
 
@@ -412,11 +412,11 @@ export default function TextInput(props) {
 
             calculatedX.current = Math.min(
                 xmaxAdjusted,
-                Math.max(xminAdjusted, calculatedX.current)
+                Math.max(xminAdjusted, calculatedX.current),
             );
             calculatedY.current = Math.min(
                 ymaxAdjusted,
-                Math.max(yminAdjusted, calculatedY.current)
+                Math.max(yminAdjusted, calculatedY.current),
             );
 
             callAction({
@@ -431,11 +431,11 @@ export default function TextInput(props) {
 
             newInputJXG.relativeCoords.setCoordinates(
                 JXG.COORDS_BY_USER,
-                [0, 0]
+                [0, 0],
             );
             newAnchorPointJXG.coords.setCoordinates(
                 JXG.COORDS_BY_USER,
-                lastPositionFromCore.current
+                lastPositionFromCore.current,
             );
         });
 
@@ -476,20 +476,20 @@ export default function TextInput(props) {
     function deleteInputJXG() {
         inputJXG.current.rendNodeInput.removeEventListener(
             "input",
-            onChangeHandler
+            onChangeHandler,
         );
         inputJXG.current.rendNodeInput.removeEventListener(
             "keypress",
-            handleKeyPress
+            handleKeyPress,
         );
         inputJXG.current.rendNodeInput.removeEventListener(
             "keydown",
-            handleKeyDown
+            handleKeyDown,
         );
         inputJXG.current.rendNodeInput.removeEventListener("blur", handleBlur);
         inputJXG.current.rendNodeInput.removeEventListener(
             "focus",
-            handleFocus
+            handleFocus,
         );
 
         inputJXG.current.off("drag");
@@ -525,11 +525,11 @@ export default function TextInput(props) {
 
             inputJXG.current.relativeCoords.setCoordinates(
                 JXG.COORDS_BY_USER,
-                [0, 0]
+                [0, 0],
             );
             anchorPointJXG.current.coords.setCoordinates(
                 JXG.COORDS_BY_USER,
-                anchorCoords
+                anchorCoords,
             );
 
             inputJXG.current.setText(SVs.label);
@@ -570,7 +570,7 @@ export default function TextInput(props) {
 
             if (SVs.positionFromAnchor !== previousPositionFromAnchor.current) {
                 let { anchorx, anchory } = getPositionFromAnchorByCoordinate(
-                    SVs.positionFromAnchor
+                    SVs.positionFromAnchor,
                 );
                 inputJXG.current.visProp.anchorx = anchorx;
                 inputJXG.current.visProp.anchory = anchory;
@@ -606,7 +606,7 @@ export default function TextInput(props) {
 
     if (disabled) {
         checkWorkStyle.backgroundColor = getComputedStyle(
-            document.documentElement
+            document.documentElement,
         ).getPropertyValue("--mainGray");
         checkWorkStyle.cursor = "not-allowed";
         checkWorkStyle.color = "black";
@@ -650,7 +650,7 @@ export default function TextInput(props) {
             if (SVs.showCorrectness) {
                 if (validationState === "correct") {
                     checkWorkStyle.backgroundColor = getComputedStyle(
-                        document.documentElement
+                        document.documentElement,
                     ).getPropertyValue("--mainGreen");
                     checkWorkButton = (
                         <Button id={id + "_correct"} style={checkWorkStyle}>
@@ -672,7 +672,7 @@ export default function TextInput(props) {
                 } else {
                     //incorrect
                     checkWorkStyle.backgroundColor = getComputedStyle(
-                        document.documentElement
+                        document.documentElement,
                     ).getPropertyValue("--mainRed");
                     checkWorkButton = (
                         <Button id={id + "_incorrect"} style={checkWorkStyle}>

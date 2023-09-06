@@ -13,6 +13,9 @@ export default class Angle extends GraphicalComponent {
 
     static canBeInList = true;
 
+    // Include children that can be added due to sugar
+    static additionalSchemaChildren = ["number", "math", "string"];
+
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.radius = {
@@ -82,7 +85,7 @@ export default class Angle extends GraphicalComponent {
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions()
+            returnRoundingStateVariableDefinitions(),
         );
 
         stateVariableDefinitions.betweenLinesName = {
@@ -180,7 +183,7 @@ export default class Angle extends GraphicalComponent {
                         // array of "pointInd,i", where i=0, ..., arraySize[1]-1
                         return Array.from(
                             Array(arraySize[1]),
-                            (_, i) => pointInd + "," + i
+                            (_, i) => pointInd + "," + i,
                         );
                     } else {
                         return [];
@@ -281,10 +284,10 @@ export default class Angle extends GraphicalComponent {
 
                         let points = {
                             "0,0": me.fromAst(
-                                pointNearOrigin.x1 + Math.cos(angleOfLine)
+                                pointNearOrigin.x1 + Math.cos(angleOfLine),
                             ),
                             "0,1": me.fromAst(
-                                pointNearOrigin.x2 + Math.sin(angleOfLine)
+                                pointNearOrigin.x2 + Math.sin(angleOfLine),
                             ),
                             "1,0": me.fromAst(pointNearOrigin.x1),
                             "1,1": me.fromAst(pointNearOrigin.x2),
@@ -317,10 +320,10 @@ export default class Angle extends GraphicalComponent {
                         let desiredAngle = angleOfLine + radians;
 
                         points["2,0"] = me.fromAst(
-                            pointNearOrigin.x1 + Math.cos(desiredAngle)
+                            pointNearOrigin.x1 + Math.cos(desiredAngle),
                         );
                         points["2,1"] = me.fromAst(
-                            pointNearOrigin.x2 + Math.sin(desiredAngle)
+                            pointNearOrigin.x2 + Math.sin(desiredAngle),
                         );
                         return { setValue: { points } };
                     } else {
@@ -331,7 +334,7 @@ export default class Angle extends GraphicalComponent {
 
                         let lineIntersection = calculateLineIntersection(
                             line1,
-                            line2
+                            line2,
                         );
 
                         if (lineIntersection === undefined) {
@@ -724,7 +727,7 @@ export default class Angle extends GraphicalComponent {
         {
             stateVariable: "radians",
             stateVariablesToShadow: Object.keys(
-                returnRoundingStateVariableDefinitions()
+                returnRoundingStateVariableDefinitions(),
             ),
         },
     ];
@@ -736,7 +739,7 @@ function calculateLineIntersection(line1, line2) {
         line2.stateValues.numDimensions !== 2
     ) {
         console.log(
-            "Calculating angle between two lines implemented only in 2D"
+            "Calculating angle between two lines implemented only in 2D",
         );
         return;
     }
@@ -760,7 +763,7 @@ function calculateLineIntersection(line1, line2) {
         )
     ) {
         console.log(
-            "Calculating angle between two lines implemented only for constant coefficients"
+            "Calculating angle between two lines implemented only for constant coefficients",
         );
         return;
     }

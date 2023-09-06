@@ -4,7 +4,7 @@ import {
     returnAnchorStateVariableDefinition,
 } from "../utils/graphical";
 import { returnLabelStateVariableDefinitions } from "../utils/label";
-import { normalizeMathExpression } from "../utils/math";
+import { normalizeMathExpression } from "@doenet/utils";
 import {
     addStandardTriggeringStateVariableDefinitions,
     returnStandardTriggeringAttributes,
@@ -98,7 +98,7 @@ export default class UpdateValue extends InlineComponent {
         Object.assign(attributes, returnAnchorAttributes());
 
         let triggerAttributes = returnStandardTriggeringAttributes(
-            "updateValueIfTriggerNewlyTrue"
+            "updateValueIfTriggerNewlyTrue",
         );
 
         Object.assign(attributes, triggerAttributes);
@@ -132,7 +132,7 @@ export default class UpdateValue extends InlineComponent {
 
         addStandardTriggeringStateVariableDefinitions(
             stateVariableDefinitions,
-            "updateValue"
+            "updateValue",
         );
 
         let labelDefinitions = returnLabelStateVariableDefinitions();

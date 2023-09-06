@@ -1,4 +1,4 @@
-import { printDoenetMLrange } from "../../utils/logging";
+import { printDoenetMLrange } from "@doenet/utils";
 import BlockComponent from "./BlockComponent";
 
 export default class ErrorComponent extends BlockComponent {
@@ -79,7 +79,7 @@ export default class ErrorComponent extends BlockComponent {
             definition({ dependencyValues }) {
                 let showMessage = !dependencyValues.childErrors.some(
                     (child) =>
-                        child.stateValues.message === dependencyValues.message
+                        child.stateValues.message === dependencyValues.message,
                 );
 
                 return { setValue: { showMessage } };

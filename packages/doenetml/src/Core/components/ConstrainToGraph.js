@@ -98,7 +98,7 @@ export default class ConstrainToGraph extends ConstraintComponent {
 
                             let x1constrained = Math.max(
                                 lowerBound,
-                                Math.min(upperBound, x1)
+                                Math.min(upperBound, x1),
                             );
                             return {
                                 constrained: true,
@@ -142,7 +142,7 @@ export default class ConstrainToGraph extends ConstraintComponent {
 
                             let x2constrained = Math.max(
                                 lowerBound,
-                                Math.min(upperBound, x2)
+                                Math.min(upperBound, x2),
                             );
                             return {
                                 constrained: true,

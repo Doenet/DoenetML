@@ -3,16 +3,18 @@ import me from "math-expressions";
 import {
     getFromText,
     getFromLatex,
-    convertValueToMathExpression,
-    normalizeMathExpression,
     roundForDisplay,
     mergeListsWithOtherContainers,
     preprocessMathInverseDefinition,
     superSubscriptsToUnicode,
     unicodeToSuperSubscripts,
-    vectorOperators,
 } from "../utils/math";
-import { flattenDeep } from "../utils/array";
+import {
+    normalizeMathExpression,
+    convertValueToMathExpression,
+    vectorOperators,
+    flattenDeep,
+} from "@doenet/utils";
 import {
     returnSelectedStyleStateVariableDefinition,
     returnTextStyleDescriptionDefinitions,
@@ -252,7 +254,7 @@ export default class MathComponent extends InlineComponent {
                 if (dependencyValues.unorderedAttr === null) {
                     if (dependencyValues.mathChildren.length > 0) {
                         let unordered = dependencyValues.mathChildren.every(
-                            (x) => x.stateValues.unordered
+                            (x) => x.stateValues.unordered,
                         );
                         return { setValue: { unordered } };
                     } else {
@@ -322,7 +324,7 @@ export default class MathComponent extends InlineComponent {
                         .compositeReplacementRange) {
                         if (
                             dependencyValues.sourcesAreFunctionSymbols.includes(
-                                compositeInfo.target
+                                compositeInfo.target,
                             )
                         ) {
                             for (
@@ -464,12 +466,12 @@ export default class MathComponent extends InlineComponent {
                         } else {
                             if (stringCodes.prevCode) {
                                 thisString = thisString.split(
-                                    stringCodes.prevCode
+                                    stringCodes.prevCode,
                                 )[1];
                             }
                             if (stringCodes.nextCode) {
                                 thisString = thisString.split(
-                                    stringCodes.nextCode
+                                    stringCodes.nextCode,
                                 )[0];
                             }
                             instructions.push({
@@ -632,7 +634,7 @@ export default class MathComponent extends InlineComponent {
                         {
                             setDependency: "value",
                             desiredValue: me.fromAst(
-                                desiredStateVariableValues.number
+                                desiredStateVariableValues.number,
                             ),
                         },
                     ],
@@ -730,8 +732,8 @@ export default class MathComponent extends InlineComponent {
                             0,
                             dependencyValues.parentNComponentsToDisplayByChild[
                                 componentName
-                            ] + 1
-                        )
+                            ] + 1,
+                        ),
                     );
                 }
 
@@ -931,8 +933,8 @@ export default class MathComponent extends InlineComponent {
                 try {
                     expr = fromText(
                         unicodeToSuperSubscripts(
-                            desiredStateVariableValues.text
-                        )
+                            desiredStateVariableValues.text,
+                        ),
                     );
                 } catch (e) {
                     return { success: false };
@@ -1219,7 +1221,7 @@ export default class MathComponent extends InlineComponent {
                     if (desiredStateVariableValues.vector[ind] !== undefined) {
                         workspace.desiredVector[ind] =
                             convertValueToMathExpression(
-                                desiredStateVariableValues.vector[ind]
+                                desiredStateVariableValues.vector[ind],
                             );
                     } else if (workspace.desiredVector[ind] === undefined) {
                         workspace.desiredVector[ind] = (
@@ -1242,7 +1244,7 @@ export default class MathComponent extends InlineComponent {
                             let desiredMatrixVals = ["tuple"];
                             for (let ind = 0; ind < arraySize[0]; ind++) {
                                 desiredMatrixVals.push(
-                                    workspace.desiredVector[ind]
+                                    workspace.desiredVector[ind],
                                 );
                             }
                             desiredMatrixVals = ["tuple", desiredMatrixVals];
@@ -1457,7 +1459,7 @@ export default class MathComponent extends InlineComponent {
                         // array of "rowInd,i", where i=0, ..., arraySize[1]-1
                         return Array.from(
                             Array(arraySize[1]),
-                            (_, i) => rowInd + "," + i
+                            (_, i) => rowInd + "," + i,
                         );
                     } else {
                         return [];
@@ -1479,7 +1481,7 @@ export default class MathComponent extends InlineComponent {
                         // array of "i,colInd", where i=0, ..., arraySize[1]-1
                         return Array.from(
                             Array(arraySize[0]),
-                            (_, i) => i + "," + colInd
+                            (_, i) => i + "," + colInd,
                         );
                     } else {
                         return [];
@@ -1501,8 +1503,8 @@ export default class MathComponent extends InlineComponent {
                         keys.push(
                             ...Array.from(
                                 Array(arraySize[1]),
-                                (_, i) => rowInd + "," + i
-                            )
+                                (_, i) => rowInd + "," + i,
+                            ),
                         );
                     }
                     return keys;
@@ -1576,7 +1578,7 @@ export default class MathComponent extends InlineComponent {
                         for (let i = 0; i < arraySize[0]; i++) {
                             for (let j = 0; j < arraySize[1]; j++) {
                                 matrix[`${i},${j}`] = me.fromAst(
-                                    matVals[i + 1][j + 1]
+                                    matVals[i + 1][j + 1],
                                 );
                             }
                         }
@@ -1618,7 +1620,7 @@ export default class MathComponent extends InlineComponent {
                         ) {
                             workspace.desiredMatrix[arrayKey] =
                                 convertValueToMathExpression(
-                                    desiredStateVariableValues.matrix[arrayKey]
+                                    desiredStateVariableValues.matrix[arrayKey],
                                 );
                         } else if (
                             workspace.desiredMatrix[arrayKey] === undefined
@@ -1637,7 +1639,7 @@ export default class MathComponent extends InlineComponent {
                         desiredValue = [tree[0]];
                         for (let ind = 0; ind < arraySize[0]; ind++) {
                             desiredValue.push(
-                                workspace.desiredMatrix[ind + ",0"].tree
+                                workspace.desiredMatrix[ind + ",0"].tree,
                             );
                         }
                     } else if (tree[0] === "matrix") {
@@ -1647,7 +1649,7 @@ export default class MathComponent extends InlineComponent {
                             let row = ["tuple"];
                             for (let j = 0; j < arraySize[1]; j++) {
                                 row.push(
-                                    workspace.desiredMatrix[`${i},${j}`].tree
+                                    workspace.desiredMatrix[`${i},${j}`].tree,
                                 );
                             }
                             desiredMatrixVals.push(row);
@@ -1666,7 +1668,7 @@ export default class MathComponent extends InlineComponent {
                         let desiredVector = [tree[1][0]];
                         for (let ind = 0; ind < arraySize[1]; ind++) {
                             desiredVector.push(
-                                workspace.desiredMatrix["0," + ind].tree
+                                workspace.desiredMatrix["0," + ind].tree,
                             );
                         }
                         desiredValue = [tree[0], desiredVector];
@@ -1702,7 +1704,7 @@ export default class MathComponent extends InlineComponent {
         {
             stateVariable: "number",
             stateVariablesToShadow: Object.keys(
-                returnRoundingStateVariableDefinitions()
+                returnRoundingStateVariableDefinitions(),
             ),
         },
         "text",
@@ -1717,7 +1719,7 @@ export default class MathComponent extends InlineComponent {
             stateVariable: "value",
             componentType: "_directionComponent",
             stateVariablesToShadow: Object.keys(
-                returnRoundingStateVariableDefinitions()
+                returnRoundingStateVariableDefinitions(),
             ),
         },
     ];
@@ -1806,7 +1808,7 @@ function calculateExpressionWithCodes({ dependencyValues, changes }) {
             let expr;
             try {
                 expr = me.fromLatex(
-                    dependencyValues.displayedMathChildren[0].stateValues.latex
+                    dependencyValues.displayedMathChildren[0].stateValues.latex,
                 );
             } catch (e) {
                 expr = me.fromAst("\uff3f");
@@ -1837,8 +1839,8 @@ function calculateExpressionWithCodes({ dependencyValues, changes }) {
     let functionSymbols = [...dependencyValues.functionSymbols];
     functionSymbols.push(
         ...dependencyValues.mathChildrenFunctionSymbols.map(
-            (x) => dependencyValues.codePre + x
-        )
+            (x) => dependencyValues.codePre + x,
+        ),
     );
 
     if (inputString === "") {
@@ -1856,7 +1858,7 @@ function calculateExpressionWithCodes({ dependencyValues, changes }) {
             } catch (e) {
                 expressionWithCodes = me.fromAst("\uFF3F"); // long underscore
                 console.log(
-                    "Invalid value for a math of text format: " + inputString
+                    "Invalid value for a math of text format: " + inputString,
                 );
             }
         } else if (dependencyValues.format === "latex") {
@@ -1871,7 +1873,7 @@ function calculateExpressionWithCodes({ dependencyValues, changes }) {
             } catch (e) {
                 expressionWithCodes = me.fromAst("\uFF3F"); // long underscore
                 console.log(
-                    "Invalid value for a math of latex format: " + inputString
+                    "Invalid value for a math of latex format: " + inputString,
                 );
             }
         }
@@ -1956,7 +1958,7 @@ function createInputStringFromChildrenSub({
                             mathIndByChild,
                             format,
                             codePre,
-                        })
+                        }),
                     );
                 }
                 if (potentialListComponents) {
@@ -1965,8 +1967,8 @@ function createInputStringFromChildrenSub({
                     newPotentialListComponents.push(
                         ...potentialListComponents.slice(
                             lastChildInd - startInd + 1,
-                            rangeFirstInd - startInd
-                        )
+                            rangeFirstInd - startInd,
+                        ),
                     );
                 }
             }
@@ -1979,7 +1981,7 @@ function createInputStringFromChildrenSub({
 
             // We remove the replacement range of the current composite (any all earlier ones)
             let subReplacementRange = compositeReplacementRange.slice(
-                rangeInd + 1
+                rangeInd + 1,
             );
 
             let {
@@ -1997,7 +1999,7 @@ function createInputStringFromChildrenSub({
             });
 
             let allAreListComponents = potentialListComponentsInRange.every(
-                (x) => x
+                (x) => x,
             );
 
             if (
@@ -2029,7 +2031,7 @@ function createInputStringFromChildrenSub({
                             if (prevChild.length > 0) {
                                 if (
                                     !["{", "[", "(", "|", ","].includes(
-                                        prevChild[prevChild.length - 1]
+                                        prevChild[prevChild.length - 1],
                                     )
                                 ) {
                                     // The string to the left did not contain one of the delimiters,
@@ -2068,7 +2070,7 @@ function createInputStringFromChildrenSub({
                                     }
                                     if (
                                         !["}", "]", ")", "|", ","].includes(
-                                            nextChar
+                                            nextChar,
                                         )
                                     ) {
                                         // The string to the right did not contain one of the delimiters,
@@ -2119,7 +2121,7 @@ function createInputStringFromChildrenSub({
                     mathIndByChild,
                     format,
                     codePre,
-                })
+                }),
             );
         }
 
@@ -2129,8 +2131,8 @@ function createInputStringFromChildrenSub({
             newPotentialListComponents.push(
                 ...potentialListComponents.slice(
                     lastChildInd - startInd + 1,
-                    endInd - startInd + 1
-                )
+                    endInd - startInd + 1,
+                ),
             );
         }
     }
@@ -2338,14 +2340,14 @@ function determineCanBeModified({ dependencyValues }) {
     // include codePre in code for whole expression, as we know codePre is not in math expression
     let codeForExpression = dependencyValues.codePre + "expr";
     let tree = me.utils.unflattenLeft(
-        dependencyValues.expressionWithCodes.tree
+        dependencyValues.expressionWithCodes.tree,
     );
 
     let result = checkForLinearExpression(
         tree,
         variables,
         codeForExpression,
-        constants
+        constants,
     );
 
     if (result.foundLinear) {
@@ -2400,7 +2402,7 @@ function checkForLinearExpression(
     variables,
     inverseTree,
     constants = [],
-    components = []
+    components = [],
 ) {
     // Check if tree is a linear expression in variables.
     // Each component of container must be a linear expression in just one variable.
@@ -2428,7 +2430,7 @@ function checkForLinearExpression(
             tree,
             variables,
             inverseTree,
-            components
+            components,
         );
     }
 
@@ -2446,7 +2448,7 @@ function checkForLinearExpression(
                 variables,
                 inverseTree,
                 constants,
-                new_components
+                new_components,
             );
             if (res.foundLinear) {
                 numLinear++;
@@ -2478,7 +2480,7 @@ function checkForLinearExpression(
             tree,
             variables,
             inverseTree,
-            components
+            components,
         );
     }
 }
@@ -2488,7 +2490,7 @@ function checkForScalarLinearExpression(
     tree,
     variables,
     inverseTree,
-    components = []
+    components = [],
 ) {
     if (typeof tree === "string" && variables.includes(tree)) {
         let mappings = {};
@@ -2514,7 +2516,7 @@ function checkForScalarLinearExpression(
             operands[0],
             variables,
             inverseTree,
-            components
+            components,
         );
     }
     if (operator === "+") {
@@ -2525,7 +2527,7 @@ function checkForScalarLinearExpression(
                 operands[1],
                 variables,
                 inverseTree,
-                components
+                components,
             );
         } else if (
             me.variables(operands[1]).every((v) => !variables.includes(v))
@@ -2536,7 +2538,7 @@ function checkForScalarLinearExpression(
                 operands[0],
                 variables,
                 inverseTree,
-                components
+                components,
             );
         } else {
             // neither operand was a constant
@@ -2555,7 +2557,7 @@ function checkForScalarLinearExpression(
                 operands[1],
                 variables,
                 inverseTree,
-                components
+                components,
             );
         } else if (
             me.variables(operands[1]).every((v) => !variables.includes(v)) &&
@@ -2568,7 +2570,7 @@ function checkForScalarLinearExpression(
                 operands[0],
                 variables,
                 inverseTree,
-                components
+                components,
             );
         } else {
             // neither operand was a constant
@@ -2583,7 +2585,7 @@ function checkForScalarLinearExpression(
                 operands[0],
                 variables,
                 inverseTree,
-                components
+                components,
             );
         } else {
             // second operand was not a constant
@@ -2625,7 +2627,7 @@ async function invertMath({
     }
 
     let desiredExpression = convertValueToMathExpression(
-        desiredStateVariableValues.unnormalizedValue
+        desiredStateVariableValues.unnormalizedValue,
     );
 
     let result = await preprocessMathInverseDefinition({
@@ -2766,7 +2768,7 @@ async function invertMath({
                 newExpressionWithCodes =
                     newExpressionWithCodes.substitute_component(
                         components,
-                        expressionPieces[piece]
+                        expressionPieces[piece],
                     );
             }
 
@@ -2792,17 +2794,18 @@ async function getExpressionPieces({ expression, stateValues }) {
     if (!matching) {
         matching = me.utils.match(
             expression.tuples_to_vectors().tree,
-            me.fromAst(template).tuples_to_vectors().tree
+            me.fromAst(template).tuples_to_vectors().tree,
         );
         if (!matching) {
             matching = me.utils.match(
                 expression.to_intervals().tree,
-                me.fromAst(template).to_intervals().tree
+                me.fromAst(template).to_intervals().tree,
             );
             if (!matching) {
                 matching = me.utils.match(
                     expression.tuples_to_vectors().to_intervals().tree,
-                    me.fromAst(template).tuples_to_vectors().to_intervals().tree
+                    me.fromAst(template).tuples_to_vectors().to_intervals()
+                        .tree,
                 );
                 if (!matching) {
                     return false;

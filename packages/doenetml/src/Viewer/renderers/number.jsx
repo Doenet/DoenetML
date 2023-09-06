@@ -5,7 +5,7 @@ import { BoardContext, TEXT_LAYER_OFFSET } from "./graph";
 import useDoenetRenderer from "../useDoenetRenderer";
 import me from "math-expressions";
 import { textRendererStyle } from "../../Core/utils/style";
-import { getPositionFromAnchorByCoordinate } from "../../Core/utils/graphical";
+import { getPositionFromAnchorByCoordinate } from "./utils/graph";
 import { PageContext } from "../PageViewer";
 
 export default React.memo(function NumberComponent(props) {
@@ -119,7 +119,7 @@ export default React.memo(function NumberComponent(props) {
         jsxNumberAttributes.anchor = newAnchorPointJXG;
 
         let { anchorx, anchory } = getPositionFromAnchorByCoordinate(
-            SVs.positionFromAnchor
+            SVs.positionFromAnchor,
         );
         jsxNumberAttributes.anchorx = anchorx;
         jsxNumberAttributes.anchory = anchory;
@@ -128,7 +128,7 @@ export default React.memo(function NumberComponent(props) {
         let newNumberJXG = board.create(
             "text",
             [0, 0, SVs.text],
-            jsxNumberAttributes
+            jsxNumberAttributes,
         );
         newNumberJXG.isDraggable = !fixLocation.current;
 
@@ -260,11 +260,11 @@ export default React.memo(function NumberComponent(props) {
 
             calculatedX.current = Math.min(
                 xmaxAdjusted,
-                Math.max(xminAdjusted, calculatedX.current)
+                Math.max(xminAdjusted, calculatedX.current),
             );
             calculatedY.current = Math.min(
                 ymaxAdjusted,
-                Math.max(yminAdjusted, calculatedY.current)
+                Math.max(yminAdjusted, calculatedY.current),
             );
 
             callAction({
@@ -279,11 +279,11 @@ export default React.memo(function NumberComponent(props) {
 
             newNumberJXG.relativeCoords.setCoordinates(
                 JXG.COORDS_BY_USER,
-                [0, 0]
+                [0, 0],
             );
             newAnchorPointJXG.coords.setCoordinates(
                 JXG.COORDS_BY_USER,
-                lastPositionFromCore.current
+                lastPositionFromCore.current,
             );
         });
 
@@ -353,11 +353,11 @@ export default React.memo(function NumberComponent(props) {
         } else {
             numberJXG.current.relativeCoords.setCoordinates(
                 JXG.COORDS_BY_USER,
-                [0, 0]
+                [0, 0],
             );
             anchorPointJXG.current.coords.setCoordinates(
                 JXG.COORDS_BY_USER,
-                anchorCoords
+                anchorCoords,
             );
 
             numberJXG.current.setText(SVs.text);
@@ -422,7 +422,7 @@ export default React.memo(function NumberComponent(props) {
 
             if (SVs.positionFromAnchor !== previousPositionFromAnchor.current) {
                 let { anchorx, anchory } = getPositionFromAnchorByCoordinate(
-                    SVs.positionFromAnchor
+                    SVs.positionFromAnchor,
                 );
                 numberJXG.current.visProp.anchorx = anchorx;
                 numberJXG.current.visProp.anchory = anchory;

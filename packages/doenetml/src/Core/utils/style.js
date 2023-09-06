@@ -299,7 +299,7 @@ export function returnStyleDefinitionStateVariables() {
             for (let styleNumber in startingStateVariableDefinitions) {
                 styleDefinitions[styleNumber] = Object.assign(
                     {},
-                    startingStateVariableDefinitions[styleNumber]
+                    startingStateVariableDefinitions[styleNumber],
                 );
             }
 
@@ -308,7 +308,7 @@ export function returnStyleDefinitionStateVariables() {
                 styleDefinitionChildren.push(
                     ...dependencyValues[
                         `styleDefinitionsOf${child.componentName}`
-                    ]
+                    ],
                 );
             }
 
@@ -328,7 +328,7 @@ export function returnStyleDefinitionStateVariables() {
 
                     let theNewDef = Object.assign(
                         {},
-                        newStyleDefs[styleNumber]
+                        newStyleDefs[styleNumber],
                     );
 
                     for (let item of coloredItems) {

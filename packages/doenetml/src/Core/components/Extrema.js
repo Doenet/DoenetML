@@ -22,6 +22,9 @@ export class Extremum extends BaseComponent {
         return attributes;
     }
 
+    // Include children that can be added due to sugar
+    static additionalSchemaChildren = ["math", "number", "string"];
+
     static returnSugarInstructions() {
         let sugarInstructions = super.returnSugarInstructions();
 
@@ -179,7 +182,7 @@ export class Extremum extends BaseComponent {
                         console.log(
                             "Cannot determine " +
                                 componentClass.componentType +
-                                " from a point that isn't 2D"
+                                " from a point that isn't 2D",
                         );
                         location = null;
                         value = null;

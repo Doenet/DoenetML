@@ -6,10 +6,7 @@
 // Then, one can add an adapter from that state variable to componentType _directionComponent.
 
 import me from "math-expressions";
-import {
-    convertValueToMathExpression,
-    vectorOperators,
-} from "../../utils/math";
+import { convertValueToMathExpression, vectorOperators } from "@doenet/utils";
 import {
     returnRoundingAttributeComponentShadowing,
     returnRoundingStateVariableDefinitions,
@@ -21,6 +18,9 @@ export default class DirectionComponent extends BaseComponent {
     static rendererType = undefined;
 
     static primaryStateVariableForDefinition = "directionShadow";
+
+    // Include children that can be added due to sugar
+    static additionalSchemaChildren = ["math", "string"];
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
@@ -70,7 +70,7 @@ export default class DirectionComponent extends BaseComponent {
                     group: "directions",
                     componentTypes: ["_directionComponent"],
                 },
-            ]
+            ],
         );
 
         return childGroups;
@@ -81,7 +81,7 @@ export default class DirectionComponent extends BaseComponent {
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions()
+            returnRoundingStateVariableDefinitions(),
         );
 
         stateVariableDefinitions.directionShadow = {
@@ -102,7 +102,7 @@ export default class DirectionComponent extends BaseComponent {
                         {
                             setEssentialValue: "directionShadow",
                             value: convertValueToMathExpression(
-                                desiredStateVariableValues.directionShadow
+                                desiredStateVariableValues.directionShadow,
                             ),
                         },
                     ],
@@ -271,7 +271,7 @@ export default class DirectionComponent extends BaseComponent {
                         let len = Math.sqrt(len2);
                         for (let dim = 0; dim < nDim; dim++) {
                             direction[dim.toString()] = me.fromAst(
-                                numericalDirection[dim] / len
+                                numericalDirection[dim] / len,
                             );
                         }
                     } else {
@@ -303,7 +303,7 @@ export default class DirectionComponent extends BaseComponent {
                     }
                     if (Number.isFinite(unnormalizedMagnitude)) {
                         unnormalizedMagnitude = Math.sqrt(
-                            unnormalizedMagnitude
+                            unnormalizedMagnitude,
                         );
                     } else {
                         unnormalizedMagnitude = 1;

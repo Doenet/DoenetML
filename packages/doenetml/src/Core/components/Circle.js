@@ -63,7 +63,7 @@ export default class Circle extends Curve {
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions()
+            returnRoundingStateVariableDefinitions(),
         );
 
         stateVariableDefinitions.styleDescription = {
@@ -492,7 +492,7 @@ export default class Circle extends Curve {
                         // array of "pointInd,i", where i=0, ..., arraySize[1]-1
                         return Array.from(
                             Array(arraySize[1]),
-                            (_, i) => pointInd + "," + i
+                            (_, i) => pointInd + "," + i,
                         );
                     } else {
                         return [];
@@ -709,7 +709,7 @@ export default class Circle extends Curve {
                 // process instructions in reverse order
                 // so that the x-coordinates is processed last and takes precedence
                 for (let arrayKey of Object.keys(
-                    desiredStateVariableValues.prescribedCenter
+                    desiredStateVariableValues.prescribedCenter,
                 ).reverse()) {
                     if (dependencyValuesByKey[arrayKey].centerAttr !== null) {
                         instructions.push({
@@ -857,7 +857,7 @@ export default class Circle extends Curve {
                             {
                                 setDependency: "prescribedRadius",
                                 desiredValue: me.fromAst(
-                                    desiredStateVariableValues.numericalPrescribedRadius
+                                    desiredStateVariableValues.numericalPrescribedRadius,
                                 ),
                             },
                         ],
@@ -929,7 +929,7 @@ export default class Circle extends Curve {
                             dependencyNamesByKey[arrayKey].prescribedCenterX,
                         desiredValue: me.fromAst(
                             desiredStateVariableValues
-                                .numericalPrescribedCenter[arrayKey]
+                                .numericalPrescribedCenter[arrayKey],
                         ),
                     });
                 }
@@ -951,7 +951,7 @@ export default class Circle extends Curve {
             definition({ dependencyValues }) {
                 let haveNonNumericalPrescribedCenter =
                     dependencyValues.numericalPrescribedCenter.some(
-                        (x) => !Number.isFinite(x)
+                        (x) => !Number.isFinite(x),
                     );
 
                 return {
@@ -1190,7 +1190,7 @@ export default class Circle extends Curve {
                         if (A !== 0) {
                             numericalCenter = [-B / (2 * A), -C / (2 * A)];
                             numericalRadius = Math.sqrt(
-                                (B * B + C * C - 4 * A * D) / (4 * A * A)
+                                (B * B + C * C - 4 * A * D) / (4 * A * A),
                             );
                         } else {
                             // collinear non-identical points, can't make a circle
@@ -1388,7 +1388,7 @@ export default class Circle extends Curve {
                         setValue: {
                             numericalRadius: Math.max(
                                 0,
-                                dependencyValues.numericalPrescribedRadius
+                                dependencyValues.numericalPrescribedRadius,
                             ),
                         },
                     };
@@ -1418,14 +1418,14 @@ export default class Circle extends Curve {
                                 pt[0] -
                                     dependencyValues
                                         .numericalPrescribedCenter[0],
-                                2
+                                2,
                             ) +
                                 Math.pow(
                                     pt[1] -
                                         dependencyValues
                                             .numericalPrescribedCenter[1],
-                                    2
-                                )
+                                    2,
+                                ),
                         );
                         return { setValue: { numericalRadius } };
                     } else {
@@ -1480,7 +1480,7 @@ export default class Circle extends Curve {
                                 setDependency: "numericalPrescribedRadius",
                                 desiredValue: Math.max(
                                     0,
-                                    desiredStateVariableValues.numericalRadius
+                                    desiredStateVariableValues.numericalRadius,
                                 ),
                             },
                         ],
@@ -1496,7 +1496,7 @@ export default class Circle extends Curve {
                                     setDependency: "essentialRadius",
                                     desiredValue: Math.max(
                                         0,
-                                        desiredStateVariableValues.numericalRadius
+                                        desiredStateVariableValues.numericalRadius,
                                     ),
                                 },
                             ],
@@ -1504,7 +1504,7 @@ export default class Circle extends Curve {
                     } else if (dependencyValues.numThroughPoints === 1) {
                         let numericalRadius = Math.max(
                             0,
-                            desiredStateVariableValues.numericalRadius
+                            desiredStateVariableValues.numericalRadius,
                         );
 
                         let theta = (await stateValues.throughAngles)[0];
@@ -1542,7 +1542,7 @@ export default class Circle extends Curve {
                                 setDependency: "essentialRadius",
                                 desiredValue: Math.max(
                                     0,
-                                    desiredStateVariableValues.numericalRadius
+                                    desiredStateVariableValues.numericalRadius,
                                 ),
                             },
                         ],
@@ -1552,7 +1552,7 @@ export default class Circle extends Curve {
 
                     let numericalRadius = Math.max(
                         0,
-                        desiredStateVariableValues.numericalRadius
+                        desiredStateVariableValues.numericalRadius,
                     );
 
                     for (
@@ -2066,7 +2066,7 @@ export default class Circle extends Curve {
                         dependencyValues.numThroughPoints > 0 &&
                         dependencyValues.numericalRadius > 0 &&
                         dependencyValues.numericalCenter.every((x) =>
-                            Number.isFinite(x)
+                            Number.isFinite(x),
                         )
                     )
                 ) {
@@ -2084,8 +2084,8 @@ export default class Circle extends Curve {
                     throughAngles.push(
                         Math.atan2(
                             pt[1] - dependencyValues.numericalCenter[1],
-                            pt[0] - dependencyValues.numericalCenter[0]
-                        )
+                            pt[0] - dependencyValues.numericalCenter[0],
+                        ),
                     );
                 }
 
@@ -2161,7 +2161,7 @@ export default class Circle extends Curve {
                     return {
                         setValue: {
                             radius: me.fromAst(
-                                dependencyValues.numericalRadius
+                                dependencyValues.numericalRadius,
                             ),
                         },
                     };
@@ -2576,11 +2576,13 @@ export default class Circle extends Curve {
                     for (let arrayKey of arrayKeys) {
                         if (
                             Number.isFinite(
-                                dependencyValuesByKey[arrayKey].numericalCenterX
+                                dependencyValuesByKey[arrayKey]
+                                    .numericalCenterX,
                             )
                         ) {
                             center[arrayKey] = me.fromAst(
-                                dependencyValuesByKey[arrayKey].numericalCenterX
+                                dependencyValuesByKey[arrayKey]
+                                    .numericalCenterX,
                             );
                         } else {
                             center[arrayKey] =
@@ -2594,13 +2596,13 @@ export default class Circle extends Curve {
 
                 if (
                     globalDependencyValues.numericalCenter.every((x) =>
-                        Number.isFinite(x)
+                        Number.isFinite(x),
                     )
                 ) {
                     return {
                         setValue: {
                             center: globalDependencyValues.numericalCenter.map(
-                                (x) => me.fromAst(x)
+                                (x) => me.fromAst(x),
                             ),
                         },
                     };
@@ -2782,7 +2784,7 @@ export default class Circle extends Curve {
                 if (
                     desiredCenterIsNumeric &&
                     globalDependencyValues.numericalCenter.every((x) =>
-                        Number.isFinite(x)
+                        Number.isFinite(x),
                     )
                 ) {
                     return {
@@ -2895,8 +2897,8 @@ export default class Circle extends Curve {
         let instructions = [];
 
         let numThroughPoints = await this.stateValues.numThroughPoints;
-        let numericalPrescribedCenter = await this.stateValues
-            .numericalPrescribedCenter;
+        let numericalPrescribedCenter =
+            await this.stateValues.numericalPrescribedCenter;
 
         if (numThroughPoints <= 1 || numericalPrescribedCenter.length > 0) {
             instructions.push({
@@ -2979,19 +2981,19 @@ export default class Circle extends Curve {
         // which will keep the radius of the circle fixed
 
         let resultingCenter = await this.stateValues.numericalCenter;
-        let resultingNumericalThroughPoints = await this.stateValues
-            .numericalThroughPoints;
+        let resultingNumericalThroughPoints =
+            await this.stateValues.numericalThroughPoints;
         let tol = 1e-6;
 
         if (numericalPrescribedCenter.length > 0 && numThroughPoints === 1) {
             // center and one through point
 
             let throughPointUnchanged = numericalThroughPoints[0].every(
-                (v, i) => v === resultingNumericalThroughPoints[0][i]
+                (v, i) => v === resultingNumericalThroughPoints[0][i],
             );
 
             let centerUnchanged = center.every(
-                (v, i) => v === resultingCenter[i]
+                (v, i) => v === resultingCenter[i],
             );
 
             if (throughPointUnchanged && !centerUnchanged) {
@@ -3052,8 +3054,8 @@ export default class Circle extends Curve {
                     !pt.every(
                         (v, i) =>
                             Math.abs(
-                                v - resultingNumericalThroughPoints[ind][i]
-                            ) < tol
+                                v - resultingNumericalThroughPoints[ind][i],
+                            ) < tol,
                     )
                 ) {
                     throughPointsChanged.push(ind);
@@ -3084,7 +3086,7 @@ export default class Circle extends Curve {
 
                         if (
                             !changevec1.every(
-                                (v, i) => Math.abs(v - changevec2[i]) < tol
+                                (v, i) => Math.abs(v - changevec2[i]) < tol,
                             )
                         ) {
                             relationshipPreserved = false;
@@ -3108,7 +3110,7 @@ export default class Circle extends Curve {
                     for (let i = 0; i < numThroughPoints; i++) {
                         if (throughPointsChanged.includes(i)) {
                             newNumericalThroughPoints.push(
-                                resultingNumericalThroughPoints[i]
+                                resultingNumericalThroughPoints[i],
                             );
                         } else {
                             let theta = throughAngles[i];
@@ -3189,7 +3191,7 @@ function circleFromTwoNumericalPoints({ point1, point2 }) {
     let ycenter = (point1[1] + point2[1]) / 2;
     let numericalCenter = [xcenter, ycenter];
     let numericalRadius = Math.sqrt(
-        Math.pow(xcenter - point1[0], 2) + Math.pow(ycenter - point1[1], 2)
+        Math.pow(xcenter - point1[0], 2) + Math.pow(ycenter - point1[1], 2),
     );
     return { numericalCenter, numericalRadius };
 }

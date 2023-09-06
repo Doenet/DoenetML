@@ -42,7 +42,7 @@ export function adjustPointLabelPosition(labelPosition, nearEdgeOfGraph) {
         if (
             labelPosition.substring(
                 labelPosition.length - 4,
-                labelPosition.length
+                labelPosition.length,
             ) === "left"
         ) {
             labelPosition =
@@ -56,7 +56,7 @@ export function adjustPointLabelPosition(labelPosition, nearEdgeOfGraph) {
         if (
             labelPosition.substring(
                 labelPosition.length - 5,
-                labelPosition.length
+                labelPosition.length,
             ) === "right"
         ) {
             labelPosition =
@@ -156,4 +156,38 @@ export function normalizePointStyle(style, offGraphIndicatorSides) {
     } else {
         return style;
     }
+}
+
+export function getPositionFromAnchorByCoordinate(positionFromAnchor) {
+    let anchorx, anchory;
+    if (positionFromAnchor === "center") {
+        anchorx = "middle";
+        anchory = "middle";
+    } else if (positionFromAnchor === "lowerleft") {
+        anchorx = "right";
+        anchory = "top";
+    } else if (positionFromAnchor === "lowerright") {
+        anchorx = "left";
+        anchory = "top";
+    } else if (positionFromAnchor === "upperleft") {
+        anchorx = "right";
+        anchory = "bottom";
+    } else if (positionFromAnchor === "upperright") {
+        anchorx = "left";
+        anchory = "bottom";
+    } else if (positionFromAnchor === "bottom") {
+        anchorx = "middle";
+        anchory = "top";
+    } else if (positionFromAnchor === "top") {
+        anchorx = "middle";
+        anchory = "bottom";
+    } else if (positionFromAnchor === "right") {
+        anchorx = "left";
+        anchory = "middle";
+    } else {
+        // positionFromAnchor === left
+        anchorx = "right";
+        anchory = "middle";
+    }
+    return { anchorx, anchory };
 }

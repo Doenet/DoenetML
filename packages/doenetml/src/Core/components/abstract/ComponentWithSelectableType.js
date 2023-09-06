@@ -1,6 +1,7 @@
 import BaseComponent from "./BaseComponent";
 import me from "math-expressions";
-import { convertValueToMathExpression, textToAst } from "../../utils/math";
+import { textToAst } from "../../utils/math";
+import { convertValueToMathExpression } from "@doenet/utils";
 import { breakEmbeddedStringsIntoParensPieces } from "../commonsugar/breakstrings";
 import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "../commonsugar/lists";
 
@@ -48,7 +49,7 @@ export class ComponentWithSelectableType extends BaseComponent {
             // remove blank string if componentType isn't text
             if (componentType !== "text") {
                 matchedChildren = matchedChildren.filter(
-                    (x) => typeof x !== "string" || x.trim() !== ""
+                    (x) => typeof x !== "string" || x.trim() !== "",
                 );
             }
 
@@ -105,7 +106,7 @@ export class ComponentWithSelectableType extends BaseComponent {
                     type = "number";
                 } else if (
                     !["number", "letters", "math", "text", "boolean"].includes(
-                        type
+                        type,
                     )
                 ) {
                     warnings.push({
@@ -229,7 +230,7 @@ export class ComponentListWithSelectableType extends ComponentWithSelectableType
                     type = "number";
                 } else if (
                     !["number", "letters", "math", "text", "boolean"].includes(
-                        type
+                        type,
                     )
                 ) {
                     warnings.push({
@@ -372,7 +373,7 @@ export class ComponentListWithSelectableType extends ComponentWithSelectableType
                         }
                         values[arrayKey] = convertValueToType(
                             value,
-                            globalDependencyValues.type
+                            globalDependencyValues.type,
                         );
                     }
                 }
@@ -392,6 +393,9 @@ export class ComponentListWithSelectableType extends ComponentWithSelectableType
 
 export class ComponentListOfListsWithSelectableType extends ComponentWithSelectableType {
     static componentType = "_componentListOfListsWithSelectableType";
+
+    // Include children that can be added due to sugar
+    static additionalSchemaChildren = ["_base"];
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
@@ -543,8 +547,8 @@ export class ComponentListOfListsWithSelectableType extends ComponentWithSelecta
                                 (x) =>
                                     convertValueToType(
                                         x,
-                                        globalDependencyValues.type
-                                    )
+                                        globalDependencyValues.type,
+                                    ),
                             );
                         }
                     }

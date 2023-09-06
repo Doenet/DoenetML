@@ -210,7 +210,7 @@ export default function MathInput(props) {
         if (validationState.current === "unvalidated") {
             if (SVs.disabled) {
                 checkWorkStyle.backgroundColor = getComputedStyle(
-                    document.documentElement
+                    document.documentElement,
                 ).getPropertyValue("--mainGray");
                 checkWorkStyle.cursor = "not-allowed";
             }
@@ -243,7 +243,7 @@ export default function MathInput(props) {
             if (SVs.showCorrectness) {
                 if (validationState.current === "correct") {
                     checkWorkStyle.backgroundColor = getComputedStyle(
-                        document.documentElement
+                        document.documentElement,
                     ).getPropertyValue("--mainGreen");
                     checkWorkButton = (
                         <Button id={name + "_correct"} style={checkWorkStyle}>
@@ -266,7 +266,7 @@ export default function MathInput(props) {
                 } else {
                     //incorrect
                     checkWorkStyle.backgroundColor = getComputedStyle(
-                        document.documentElement
+                        document.documentElement,
                     ).getPropertyValue("--mainRed");
                     checkWorkButton = (
                         <Button id={name + "_incorrect"} style={checkWorkStyle}>

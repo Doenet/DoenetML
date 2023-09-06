@@ -1,0 +1,25 @@
+{
+    "name": "@doenet/utils",
+    "type": "module",
+    "description": "Common DoenetML utility functions",
+    "version": "1.0.0",
+    "license": "AGPL-3.0-or-later",
+    "homepage": "https://github.com/Doenet/DoenetML#readme",
+    "private": false,
+    "repository": "github:Doenet/DoenetML",
+    "files": [
+        "/dist"
+    ],
+    "exports": {
+        ".": {
+            "import": "./dist/index.js"
+        }
+    },
+    "scripts": {
+        "dev": "vite",
+        "watch": "vite build --watch",
+        "build": "vite build"
+    },
+    "dependencies": {},
+    "devDependencies": {}
+}

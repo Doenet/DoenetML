@@ -52,7 +52,7 @@ export class ComponentSize extends InlineComponent {
 
                         let childrenForNumber = matchedChildren.slice(
                             0,
-                            matchedChildren.length - 1
+                            matchedChildren.length - 1,
                         );
                         if (rest.length > 0) {
                             childrenForNumber.push(rest);
@@ -504,6 +504,9 @@ export class ComponentSizeList extends BaseComponent {
     // when another component has a attribute that is a componentSizeList,
     // use the componentSizes state variable to populate that attribute
     static stateVariableToBeShadowed = "componentSizes";
+
+    // Include children that can be added due to sugar
+    static additionalSchemaChildren = ["string", "number"];
 
     static returnSugarInstructions() {
         let sugarInstructions = super.returnSugarInstructions();

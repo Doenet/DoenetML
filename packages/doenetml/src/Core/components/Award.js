@@ -172,7 +172,7 @@ export default class Award extends BaseComponent {
                     absoluteTarget = target;
                 } else if (target.slice(0, 3) === "../") {
                     let adjustedNameSpace = getNamespaceFromName(
-                        nameSpace.slice(0, nameSpace.length - 1)
+                        nameSpace.slice(0, nameSpace.length - 1),
                     );
                     let adjustedTarget = target.slice(3);
                     while (adjustedTarget.slice(0, 3) === "../") {
@@ -183,8 +183,8 @@ export default class Award extends BaseComponent {
                         adjustedNameSpace = getNamespaceFromName(
                             adjustedNameSpace.slice(
                                 0,
-                                adjustedNameSpace.length - 1
-                            )
+                                adjustedNameSpace.length - 1,
+                            ),
                         );
                         adjustedTarget = adjustedTarget.slice(3);
                     }
@@ -197,11 +197,14 @@ export default class Award extends BaseComponent {
                 addResponsesToDescendantsWithTarget(
                     serializedChildren,
                     target,
-                    absoluteTarget
+                    absoluteTarget,
                 );
             }
         }
     }
+
+    // Include children that can be added due to sugar
+    static additionalSchemaChildren = ["string"];
 
     static returnSugarInstructions() {
         let sugarInstructions = super.returnSugarInstructions();
@@ -553,7 +556,7 @@ export default class Award extends BaseComponent {
 
                 fractionSatisfiedIfSubmit = Math.max(
                     0,
-                    Math.min(1, fractionSatisfiedIfSubmit)
+                    Math.min(1, fractionSatisfiedIfSubmit),
                 );
 
                 let creditAchievedIfSubmit = 0;
@@ -875,7 +878,7 @@ function evaluateLogicDirectlyFromChildren({ dependencyValues, usedDefault }) {
 function addResponsesToDescendantsWithTarget(
     components,
     target,
-    absoluteTarget
+    absoluteTarget,
 ) {
     for (let component of components) {
         let propsOrDAttrs = component.props;
@@ -910,7 +913,7 @@ function addResponsesToDescendantsWithTarget(
             addResponsesToDescendantsWithTarget(
                 component.children,
                 target,
-                absoluteTarget
+                absoluteTarget,
             );
         }
     }

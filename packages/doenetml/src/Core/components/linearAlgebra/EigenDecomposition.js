@@ -32,7 +32,7 @@ export default class EigenDecomposition extends BaseComponent {
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions()
+            returnRoundingStateVariableDefinitions(),
         );
 
         stateVariableDefinitions.decomposition = {
@@ -156,7 +156,7 @@ export default class EigenDecomposition extends BaseComponent {
 
                 for (let i = 0; i < arraySize[0]; i++) {
                     eigenvalues.push(
-                        globalDependencyValues.decomposition.values[i]
+                        globalDependencyValues.decomposition.values[i],
                     );
                 }
 
@@ -242,7 +242,7 @@ export default class EigenDecomposition extends BaseComponent {
                         // array of "eigenvectorInd,i", where i=0, ..., arraySize[1]-1
                         return Array.from(
                             Array(arraySize[1]),
-                            (_, i) => eigenvectorInd + "," + i
+                            (_, i) => eigenvectorInd + "," + i,
                         );
                     } else {
                         return [];

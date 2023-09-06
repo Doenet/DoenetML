@@ -81,8 +81,8 @@ export function enumerateCombinations({
             g.push(
                 me.math.gcd(
                     numberOfOptionsByIndex[ind1],
-                    numberOfOptionsByIndex[ind2]
-                )
+                    numberOfOptionsByIndex[ind2],
+                ),
             );
         }
         gcds.push(g);
@@ -147,8 +147,8 @@ export function enumerateCombinations({
                 m.push(
                     me.math.lcm(
                         numberOfOptionsByIndex[ind1],
-                        numberOfOptionsByIndex[ind2]
-                    )
+                        numberOfOptionsByIndex[ind2],
+                    ),
                 );
             } else {
                 m.push(null); // be sure to skip those with gcd == 1

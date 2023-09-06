@@ -21,7 +21,7 @@ export default React.memo(function ContentPicker(props) {
     ContentPicker.baseStateVariable = "selectedIndices";
 
     const [rendererSelectedIndices, setRendererSelectedIndices] = useState(
-        SVs.selectedIndices
+        SVs.selectedIndices,
     );
 
     const setRendererState = useSetRecoilState(rendererState(rendererName));
@@ -60,7 +60,7 @@ export default React.memo(function ContentPicker(props) {
         if (e.target.value) {
             newSelectedIndices = Array.from(
                 e.target.selectedOptions,
-                (option) => Number(option.value)
+                (option) => Number(option.value),
             );
         }
 
@@ -108,7 +108,7 @@ export default React.memo(function ContentPicker(props) {
             options.push(
                 <optgroup label={topic} key={topic}>
                     {optionsList}
-                </optgroup>
+                </optgroup>,
             );
         }
     } else {

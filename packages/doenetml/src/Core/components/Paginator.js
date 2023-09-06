@@ -85,8 +85,8 @@ export class Paginator extends BlockComponent {
                                         1,
                                         Math.min(
                                             dependencyValues.numPages,
-                                            initialPageNumber
-                                        )
+                                            initialPageNumber,
+                                        ),
                                     );
                                 }
                             },
@@ -105,7 +105,7 @@ export class Paginator extends BlockComponent {
                 }
 
                 let desiredPageNumber = Number(
-                    desiredStateVariableValues.currentPage
+                    desiredStateVariableValues.currentPage,
                 );
                 if (!Number.isInteger(desiredPageNumber)) {
                     return { success: false };
@@ -113,7 +113,7 @@ export class Paginator extends BlockComponent {
 
                 desiredPageNumber = Math.max(
                     1,
-                    Math.min(await stateValues.numPages, desiredPageNumber)
+                    Math.min(await stateValues.numPages, desiredPageNumber),
                 );
 
                 return {
@@ -162,7 +162,7 @@ export class Paginator extends BlockComponent {
 
         let pageNumber = Math.max(
             1,
-            Math.min(await this.stateValues.numPages, number)
+            Math.min(await this.stateValues.numPages, number),
         );
 
         let updateInstructions = [
@@ -216,8 +216,8 @@ export class PaginatorControls extends BlockComponent {
         Object.defineProperty(this.externalActions, "setPage", {
             enumerable: true,
             get: async function () {
-                let paginatorComponentName = await this.stateValues
-                    .paginatorComponentName;
+                let paginatorComponentName =
+                    await this.stateValues.paginatorComponentName;
                 if (paginatorComponentName) {
                     return {
                         componentName: paginatorComponentName,

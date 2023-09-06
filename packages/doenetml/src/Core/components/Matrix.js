@@ -6,6 +6,9 @@ export default class Matrix extends MathComponent {
     static componentType = "matrix";
     static rendererType = "math";
 
+    // Include children that can be added due to sugar
+    static additionalSchemaChildren = ["row", "column"];
+
     static returnChildGroups() {
         return [
             {
@@ -19,6 +22,7 @@ export default class Matrix extends MathComponent {
             {
                 group: "maths",
                 componentTypes: ["math"],
+                excludeFromSchema: true,
             },
         ];
     }
@@ -98,7 +102,7 @@ export default class Matrix extends MathComponent {
                     matchedChildren.length > 1 ||
                     !componentInfoObjects.componentIsSpecifiedType(
                         matchedChildren[0],
-                        "math"
+                        "math",
                     )
                 ) {
                     newChildren = [
@@ -136,7 +140,7 @@ export default class Matrix extends MathComponent {
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions()
+            returnRoundingStateVariableDefinitions(),
         );
 
         stateVariableDefinitions.unordered = {
@@ -206,8 +210,8 @@ export default class Matrix extends MathComponent {
                         numColumns = Math.max(
                             1,
                             ...dependencyValues.rowChildren.map(
-                                (x) => x.stateValues.numComponents
-                            )
+                                (x) => x.stateValues.numComponents,
+                            ),
                         );
                     }
                 } else if (dependencyValues.colChildren.length > 0) {
@@ -218,8 +222,8 @@ export default class Matrix extends MathComponent {
                         numRows = Math.max(
                             1,
                             ...dependencyValues.colChildren.map(
-                                (x) => x.stateValues.numComponents
-                            )
+                                (x) => x.stateValues.numComponents,
+                            ),
                         );
                     }
                 } else if (dependencyValues.mathChildren.length === 1) {
@@ -517,7 +521,7 @@ export default class Matrix extends MathComponent {
                         j++
                     ) {
                         desiredMatrix[`${i},${j}`] = me.fromAst(
-                            desiredTree[2][i + 1][j + 1]
+                            desiredTree[2][i + 1][j + 1],
                         );
                     }
                 }

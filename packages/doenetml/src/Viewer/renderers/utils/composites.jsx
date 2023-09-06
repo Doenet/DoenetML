@@ -1,5 +1,5 @@
 import React from "react";
-import { cesc } from "../../../utils/url";
+import { cesc } from "@doenet/utils";
 
 // If consecutive children are from a composite with asList set,
 // then display those children separated by commas.
@@ -61,14 +61,14 @@ function addCommasForCompositeRangesSub({
         if (rangeFirstInd > lastChildInd && rangeLastInd <= endInd) {
             if (lastChildInd + 1 < rangeFirstInd) {
                 newChildren.push(
-                    ...children.slice(lastChildInd + 1, rangeFirstInd)
+                    ...children.slice(lastChildInd + 1, rangeFirstInd),
                 );
                 if (potentialListComponents) {
                     newPotentialListComponents.push(
                         ...potentialListComponents.slice(
                             lastChildInd - startInd + 1,
-                            rangeFirstInd - startInd
-                        )
+                            rangeFirstInd - startInd,
+                        ),
                     );
                 }
             }
@@ -81,7 +81,7 @@ function addCommasForCompositeRangesSub({
 
             // We remove the replacement range of the current composite (any all earlier ones)
             let subReplacementRange = compositeReplacementActiveRange.slice(
-                rangeInd + 1
+                rangeInd + 1,
             );
 
             let {
@@ -98,16 +98,16 @@ function addCommasForCompositeRangesSub({
 
             potentialListComponentsInRange =
                 potentialListComponentsInRange.filter(
-                    (x, i) => childrenInRange[i] !== null
+                    (x, i) => childrenInRange[i] !== null,
                 );
             childrenInRange = childrenInRange.filter((x) => x !== null);
 
             let allListComponents = potentialListComponentsInRange.every(
-                (x) => x
+                (x) => x,
             );
 
             let isBlankStringChild = childrenInRange.map(
-                (child) => typeof child === "string" && child.trim() === ""
+                (child) => typeof child === "string" && child.trim() === "",
             );
 
             if (
@@ -135,7 +135,7 @@ function addCommasForCompositeRangesSub({
                             removeEndingBlankString(
                                 newChildrenInRange[
                                     newChildrenInRange.length - 1
-                                ]
+                                ],
                             );
                         newChildrenInRange.push(", ");
                     }
@@ -169,8 +169,8 @@ function addCommasForCompositeRangesSub({
             newPotentialListComponents.push(
                 ...potentialListComponents.slice(
                     lastChildInd - startInd + 1,
-                    endInd - startInd + 1
-                )
+                    endInd - startInd + 1,
+                ),
             );
         }
     }

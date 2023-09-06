@@ -39,7 +39,7 @@ export default class Parabola extends Curve {
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions()
+            returnRoundingStateVariableDefinitions(),
         );
 
         let curveStateVariableDefinitions =
@@ -228,7 +228,7 @@ export default class Parabola extends Curve {
                         // array of "pointInd,i", where i=0, ..., arraySize[1]-1
                         return Array.from(
                             Array(arraySize[1]),
-                            (_, i) => pointInd + "," + i
+                            (_, i) => pointInd + "," + i,
                         );
                     } else {
                         return [];
@@ -494,11 +494,11 @@ export default class Parabola extends Curve {
                 setValue: {
                     pointsAreNumerical:
                         dependencyValues.numericalThroughPoints.every((x) =>
-                            Number.isFinite(x[0])
+                            Number.isFinite(x[0]),
                         ) &&
                         (!dependencyValues.numericalPrescribedVertex ||
                             Number.isFinite(
-                                dependencyValues.numericalPrescribedVertex[0]
+                                dependencyValues.numericalPrescribedVertex[0],
                             )),
                 },
                 checkForActualChange: { pointsAreNumerical: true },
@@ -835,7 +835,7 @@ export default class Parabola extends Curve {
 
                 if (desiredStateVariableValues.a !== undefined) {
                     let numerical = findNumericalValue(
-                        desiredStateVariableValues.a
+                        desiredStateVariableValues.a,
                     );
                     if (numerical.success) {
                         desiredNumericalValues.a = numerical.value;
@@ -845,7 +845,7 @@ export default class Parabola extends Curve {
                 }
                 if (desiredStateVariableValues.b !== undefined) {
                     let numerical = findNumericalValue(
-                        desiredStateVariableValues.b
+                        desiredStateVariableValues.b,
                     );
                     if (numerical.success) {
                         desiredNumericalValues.b = numerical.value;
@@ -855,7 +855,7 @@ export default class Parabola extends Curve {
                 }
                 if (desiredStateVariableValues.c !== undefined) {
                     let numerical = findNumericalValue(
-                        desiredStateVariableValues.c
+                        desiredStateVariableValues.c,
                     );
                     if (numerical.success) {
                         desiredNumericalValues.c = numerical.value;
@@ -1245,12 +1245,12 @@ export default class Parabola extends Curve {
                 ) {
                     vertex[0] = me.fromAst(
                         -globalDependencyValues.b /
-                            (2 * globalDependencyValues.a)
+                            (2 * globalDependencyValues.a),
                     );
                     vertex[1] = me.fromAst(
                         globalDependencyValues.c -
                             globalDependencyValues.b ** 2 /
-                                (4 * globalDependencyValues.a)
+                                (4 * globalDependencyValues.a),
                     );
                 } else {
                     vertex[0] = me.fromAst("\uff3f");

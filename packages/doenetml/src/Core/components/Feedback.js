@@ -55,7 +55,7 @@ export default class Feedback extends BlockComponent {
                         setValue: {
                             updateWithComponentNames:
                                 dependencyValues.updateWith.map(
-                                    (x) => x.absoluteName
+                                    (x) => x.absoluteName,
                                 ),
                         },
                     };

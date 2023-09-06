@@ -1,16 +1,25 @@
 import React from "react";
-import ReactDOM from "react-dom/client";
+import { createRoot } from "react-dom/client";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import TestViewer from "./test/testViewer";
+import "@doenet/doenetml/style.css";
 
-ReactDOM.createRoot(document.getElementById("root")).render(<TestViewer />);
+const root = createRoot(document.getElementById("root"));
+root.render(
+    <Router>
+        <Routes>
+            <Route path="*" element={<TestViewer />} />
+        </Routes>
+    </Router>,
+);
 
 // Hot Module Replacement (HMR) - Remove this snippet to remove HMR.
 // Learn more: https://www.snowpack.dev/concepts/hot-module-replacement
 if (import.meta.hot) {
-  // console.log(">>>import.meta.hot")
-  // import.meta.hot.accept(({module}) => {
-  //   console.log(">>>ACCEPT CALLED!!!!!!!!!")
-  // }
-  // );
-  import.meta.hot.accept();
+    // console.log(">>>import.meta.hot")
+    // import.meta.hot.accept(({module}) => {
+    //   console.log(">>>ACCEPT CALLED!!!!!!!!!")
+    // }
+    // );
+    import.meta.hot.accept();
 }

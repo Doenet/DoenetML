@@ -4,7 +4,7 @@ import { parseAndCompile } from "../Parser/parser";
 
 export function parseActivityDefinition(activityDefDoenetML) {
     let serializedDefinition = parseAndCompile(activityDefDoenetML).filter(
-        (x) => typeof x !== "string" || /\S/.test(x)
+        (x) => typeof x !== "string" || /\S/.test(x),
     );
 
     if (
@@ -86,7 +86,7 @@ export function parseActivityDefinition(activityDefDoenetML) {
 
         if (documentProps.numberofvariants) {
             jsonDefinition.numberOfVariants = Number(
-                documentProps.numberofvariants
+                documentProps.numberofvariants,
             );
             delete documentProps.numberofvariants;
         }
@@ -95,7 +95,7 @@ export function parseActivityDefinition(activityDefDoenetML) {
             return {
                 success: false,
                 message: `Invalid activity definition: invalid document attributes: ${Object.keys(
-                    documentProps
+                    documentProps,
                 ).join(", ")}`,
             };
         }
@@ -191,7 +191,7 @@ export function parseActivityDefinition(activityDefDoenetML) {
 
         // remove blank string children
         let orderChildren = order.children.filter(
-            (x) => typeof x !== "string" || /\S/.test(x)
+            (x) => typeof x !== "string" || /\S/.test(x),
         );
 
         let content = [];
@@ -256,7 +256,7 @@ export function parseActivityDefinition(activityDefDoenetML) {
         if (page.children.length > 0) {
             let pageDoenetML = activityDefDoenetML.slice(
                 page.range.openEnd + 1,
-                page.range.closeBegin
+                page.range.closeBegin,
             );
 
             if (page.children[0].componentType?.toLowerCase() !== "document") {
@@ -299,7 +299,7 @@ export async function determineNumberOfActivityVariants(activityDefinition) {
                 returnAllPossibleVariants({
                     cid: page.cid,
                     doenetML: page.doenetML,
-                })
+                }),
             );
         }
 
@@ -307,7 +307,7 @@ export async function determineNumberOfActivityVariants(activityDefinition) {
 
         numberOfVariants = pageVariantsResult.reduce(
             (a, c) => a * c.allPossibleVariants.length,
-            1
+            1,
         );
 
         numberOfVariants = Math.min(1000, numberOfVariants);

@@ -34,6 +34,9 @@ export default class BooleanList extends InlineComponent {
         return attributes;
     }
 
+    // Include children that can be added due to sugar
+    static additionalSchemaChildren = ["math", "number", "string"];
+
     static returnSugarInstructions() {
         let sugarInstructions = super.returnSugarInstructions();
         let groupIntoBooleansSeparatedBySpaces =
@@ -139,7 +142,7 @@ export default class BooleanList extends InlineComponent {
                     numComponents = maxNum;
                     childIndexByArrayKey = childIndexByArrayKey.slice(
                         0,
-                        maxNum
+                        maxNum,
                     );
                 }
 
@@ -316,7 +319,7 @@ export default class BooleanList extends InlineComponent {
                         })
                     ) {
                         componentNamesInList.push(
-                            ...child.stateValues.componentNamesInList
+                            ...child.stateValues.componentNamesInList,
                         );
                     } else {
                         componentNamesInList.push(child.componentName);
@@ -328,7 +331,7 @@ export default class BooleanList extends InlineComponent {
                     maxNum = Math.max(0, Math.floor(maxNum));
                     componentNamesInList = componentNamesInList.slice(
                         0,
-                        maxNum
+                        maxNum,
                     );
                 }
 
@@ -386,7 +389,7 @@ export default class BooleanList extends InlineComponent {
                 for (let child of dependencyValues.booleanAndBooleanListChildren) {
                     let numComponentsLeft = Math.max(
                         0,
-                        numComponentsToDisplay - numComponentsSoFar
+                        numComponentsToDisplay - numComponentsSoFar,
                     );
                     if (numComponentsLeft > 0) {
                         numChildrenToRender++;
@@ -403,7 +406,7 @@ export default class BooleanList extends InlineComponent {
 
                         let numComponentsForBooleanListChild = Math.min(
                             numComponentsLeft,
-                            booleanListChild.stateValues.numComponents
+                            booleanListChild.stateValues.numComponents,
                         );
 
                         numComponentsToDisplayByChild[

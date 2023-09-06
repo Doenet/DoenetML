@@ -6,7 +6,7 @@ import {
     sizePossibilities,
     widthFractions,
     percentWidthsBySize,
-} from "../utils/size";
+} from "@doenet/utils";
 import me from "math-expressions";
 import { returnSelectedStyleStateVariableDefinition } from "../utils/style";
 import {
@@ -179,7 +179,7 @@ export default class Image extends BlockComponent {
                                 dependencyValues.graphAncestor.stateValues
                                     .xscale;
                             midpoints = orderedPercentWidthMidpoints.map(
-                                (x) => (x / 100) * xscale
+                                (x) => (x / 100) * xscale,
                             );
                         } else {
                             midpoints = orderedWidthMidpoints;

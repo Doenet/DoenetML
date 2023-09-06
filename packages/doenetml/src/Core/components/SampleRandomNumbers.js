@@ -188,7 +188,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
             definition({ dependencyValues }) {
                 if (
                     !["discreteuniform", "uniform"].includes(
-                        dependencyValues.type
+                        dependencyValues.type,
                     )
                 ) {
                     return {
@@ -238,7 +238,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
                         } else {
                             let targetFrom = 0;
                             numDiscreteValues = Math.floor(
-                                (to - targetFrom) / step + 1
+                                (to - targetFrom) / step + 1,
                             );
                             if (numDiscreteValues < 1) {
                                 numDiscreteValues = 0;
@@ -261,7 +261,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
                         // if discrete uniform, adjust to make integer number of steps
                         if (dependencyValues.type === "discreteuniform") {
                             numDiscreteValues = Math.floor(
-                                (to - from) / step + 1
+                                (to - from) / step + 1,
                             );
                             if (numDiscreteValues < 1) {
                                 numDiscreteValues = 0;
@@ -343,7 +343,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
                     let numOrigValues = Math.round(
                         (dependencyValues.to - dependencyValues.from) /
                             dependencyValues.step +
-                            1
+                            1,
                     );
                     for (let i = 0; i < numOrigValues; i++) {
                         let val =
@@ -429,7 +429,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
                         let numOrigValues = Math.round(
                             (dependencyValues.to - dependencyValues.from) /
                                 dependencyValues.step +
-                                1
+                                1,
                         );
                         for (let i = 0; i < numOrigValues; i++) {
                             let val =
@@ -642,7 +642,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
         let replacements = [];
 
         for (let value of (await component.stateValues.sampledValues).slice(
-            startNum
+            startNum,
         )) {
             let attributesFromComposite = {};
 
@@ -738,7 +738,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
         // update values of the remainder of the replacements
         let numUpdate = Math.min(
             component.replacements.length,
-            sampledValues.length
+            sampledValues.length,
         );
 
         for (let ind = 0; ind < numUpdate; ind++) {
@@ -768,7 +768,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
         let seedForRandomNumbers =
             sharedParameters.variantRng().toString().slice(2, 8) + +new Date();
         sharedParameters.rngWithDateSeed = new sharedParameters.rngClass(
-            seedForRandomNumbers
+            seedForRandomNumbers,
         );
     }
 

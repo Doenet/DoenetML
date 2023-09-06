@@ -13,16 +13,17 @@
     "exports": {
         ".": {
             "import": "./dist/doenetml.js",
-            "require": "./dist/doenetml.umd.cjs"
+            "require": "./dist/doenetml.js"
+        },
+        "./*": {
+            "import": "./dist/*"
         }
     },
     "scripts": {
         "dev": "vite",
         "build": "vite build",
         "preview": "vite preview",
-        "test-cypress": "cypress open",
-        "test-cypress-all": "cypress run -b 'chrome' --config video=false --headless",
-        "test-cypress-parallel": "cypress-parallel -s test-cypress-all -t 4 -d cypress/e2e -n ../../node_modules/cypress-multi-reporters",
+        "test": "echo \"No tests \"",
         "lint": "eslint src --ext js,jsx --report-unused-disable-directives --max-warnings 0"
     },
     "peerDependencies": {
@@ -40,7 +41,7 @@
         "@handsontable/react": "^12.4.0",
         "axios": "^0.27.2",
         "better-react-mathjax": "^2.0.1",
-        "compromise": "^14.9.0",
+        "compromise": "^13.11.4",
         "compromise-numbers": "^1.4.0",
         "copy-to-clipboard": "^3.3.2",
         "crypto-js": "^4.1.1",

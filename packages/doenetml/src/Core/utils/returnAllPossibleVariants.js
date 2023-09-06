@@ -1,4 +1,4 @@
-import { numberToLetters } from "./sequence.js";
+import { numberToLetters } from "@doenet/utils";
 import * as serializeFunctions from "./serializedStateProcessing.js";
 import createComponentInfoObjects from "./componentInfoObjects.js";
 import { getNumVariants } from "./variants.js";
@@ -56,7 +56,7 @@ export async function returnAllPossibleVariants({
         allPossibleVariants = variantNames;
     } else {
         allPossibleVariants = [...Array(numVariants).keys()].map((x) =>
-            indexToLowercaseLetters(x + 1)
+            indexToLowercaseLetters(x + 1),
         );
     }
 

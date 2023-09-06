@@ -1,6 +1,6 @@
 import React, { createRef, useEffect, useState } from "react";
 import useDoenetRenderer from "../useDoenetRenderer";
-import Button from "../../uiComponents/Button";
+import { Button } from "@doenet/ui-components";
 import styled from "styled-components";
 import VisibilitySensor from "react-visibility-sensor-v2";
 
@@ -117,7 +117,7 @@ export default React.memo(function orbitalDiagramInput(props) {
                 setSelectedBox={setSelectedBox}
                 deselect={deselect}
                 name={id}
-            />
+            />,
         );
     }
 
@@ -286,7 +286,7 @@ const OrbitalRow = React.memo(function OrbitalRow({
                 isSelected={isSelected}
                 setSelectedBox={setSelectedBox}
                 name={name}
-            />
+            />,
         );
     }
 

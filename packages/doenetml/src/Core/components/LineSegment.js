@@ -1,6 +1,6 @@
 import GraphicalComponent from "./abstract/GraphicalComponent";
 import me from "math-expressions";
-import { convertValueToMathExpression } from "../utils/math";
+import { convertValueToMathExpression } from "@doenet/utils";
 import {
     returnRoundingAttributeComponentShadowing,
     returnRoundingAttributes,
@@ -66,7 +66,7 @@ export default class LineSegment extends GraphicalComponent {
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions()
+            returnRoundingStateVariableDefinitions(),
         );
 
         stateVariableDefinitions.styleDescription = {
@@ -283,7 +283,7 @@ export default class LineSegment extends GraphicalComponent {
                         // array of "pointInd,i", where i=0, ..., arraySize[1]-1
                         return Array.from(
                             Array(arraySize[1]),
-                            (_, i) => pointInd + "," + i
+                            (_, i) => pointInd + "," + i,
                         );
                     } else {
                         return [];
@@ -591,10 +591,14 @@ export default class LineSegment extends GraphicalComponent {
 
                 for (let dim = 0; dim < dependencyValues.numDimensions; dim++) {
                     desiredEndpoint1.push(
-                        me.fromAst(midpoint[dim] + dir[dim] * halfDesiredlength)
+                        me.fromAst(
+                            midpoint[dim] + dir[dim] * halfDesiredlength,
+                        ),
                     );
                     desiredEndpoint2.push(
-                        me.fromAst(midpoint[dim] - dir[dim] * halfDesiredlength)
+                        me.fromAst(
+                            midpoint[dim] - dir[dim] * halfDesiredlength,
+                        ),
                     );
                 }
 
@@ -788,7 +792,7 @@ export default class LineSegment extends GraphicalComponent {
             stateVariable: "parallelCoords",
             componentType: "_directionComponent",
             stateVariablesToShadow: Object.keys(
-                returnRoundingStateVariableDefinitions()
+                returnRoundingStateVariableDefinitions(),
             ),
         },
     ];
@@ -880,8 +884,8 @@ export default class LineSegment extends GraphicalComponent {
         // to make line segment just translate in this case
         if (point1coords !== undefined && point2coords !== undefined) {
             let numericalPoints = [point1coords, point2coords];
-            let resultingNumericalPoints = await this.stateValues
-                .numericalEndpoints;
+            let resultingNumericalPoints =
+                await this.stateValues.numericalEndpoints;
 
             let pointsChanged = [];
             let numPointsChanged = 0;
@@ -914,7 +918,7 @@ export default class LineSegment extends GraphicalComponent {
                         newNumericalPoints.push(resultingNumericalPoints[i]);
                     } else {
                         newNumericalPoints.push(
-                            numericalPoints[i].map((v, j) => v - changevec1[j])
+                            numericalPoints[i].map((v, j) => v - changevec1[j]),
                         );
                     }
                 }
@@ -922,10 +926,10 @@ export default class LineSegment extends GraphicalComponent {
                 let newPointComponents = {};
                 for (let ind in newNumericalPoints) {
                     newPointComponents[ind + ",0"] = me.fromAst(
-                        newNumericalPoints[ind][0]
+                        newNumericalPoints[ind][0],
                     );
                     newPointComponents[ind + ",1"] = me.fromAst(
-                        newNumericalPoints[ind][1]
+                        newNumericalPoints[ind][1],
                     );
                 }
 

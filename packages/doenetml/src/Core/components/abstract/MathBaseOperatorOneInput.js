@@ -47,7 +47,7 @@ export default class MathOperatorOneInput extends MathComponent {
                 return {
                     setValue: {
                         unnormalizedValue: dependencyValues.mathOperator(
-                            dependencyValues.value
+                            dependencyValues.value,
                         ),
                     },
                 };
@@ -59,7 +59,7 @@ export default class MathOperatorOneInput extends MathComponent {
             }) {
                 if (dependencyValues.inverseMathOperator) {
                     let newValue = dependencyValues.inverseMathOperator(
-                        desiredStateVariableValues.unnormalizedValue
+                        desiredStateVariableValues.unnormalizedValue,
                     );
                     return {
                         success: true,

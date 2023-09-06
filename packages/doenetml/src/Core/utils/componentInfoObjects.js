@@ -62,7 +62,7 @@ export default function createComponentInfoObjects() {
             return false;
         }
         return baseClass.isPrototypeOf(
-            allComponentClasses[inheritedComponentType]
+            allComponentClasses[inheritedComponentType],
         );
     }
 
@@ -97,7 +97,7 @@ export default function createComponentInfoObjects() {
         componentTypeIsSpecifiedType(comp.componentType, specifiedCType) ||
         componentTypeIsSpecifiedType(
             comp.attributes?.createComponentOfType?.primitive,
-            specifiedCType
+            specifiedCType,
         );
 
     return {

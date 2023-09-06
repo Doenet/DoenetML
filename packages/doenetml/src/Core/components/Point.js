@@ -1,12 +1,12 @@
 import GraphicalComponent from "./abstract/GraphicalComponent";
 import me from "math-expressions";
+import { roundForDisplay } from "../utils/math";
+import { breakEmbeddedStringByCommas } from "./commonsugar/breakstrings";
 import {
     convertValueToMathExpression,
-    roundForDisplay,
     vectorOperators,
-} from "../utils/math";
-import { breakEmbeddedStringByCommas } from "./commonsugar/breakstrings";
-import { deepClone } from "../utils/deepFunctions";
+    deepClone,
+} from "@doenet/utils";
 import { returnTextStyleDescriptionDefinitions } from "../utils/style";
 import {
     returnRoundingAttributeComponentShadowing,
@@ -36,6 +36,9 @@ export default class Point extends GraphicalComponent {
     // and use wrapping components to create points from those
     static primaryStateVariableForDefinition = "coordsShadow";
     static stateVariableToBeShadowed = "coords";
+
+    // Include children that can be added due to sugar
+    static additionalSchemaChildren = ["number", "math", "string"];
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
@@ -239,7 +242,7 @@ export default class Point extends GraphicalComponent {
                     group: "constraints",
                     componentTypes: ["constraints"],
                 },
-            ]
+            ],
         );
 
         return childGroups;
@@ -250,7 +253,7 @@ export default class Point extends GraphicalComponent {
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions()
+            returnRoundingStateVariableDefinitions(),
         );
 
         let styleDescriptionDefinitions =
@@ -468,7 +471,7 @@ export default class Point extends GraphicalComponent {
                     ) {
                         numDimensions = Math.max(
                             coordsTree.length - 1,
-                            numDimensions
+                            numDimensions,
                         );
                     } else {
                         numDimensions = Math.max(1, numDimensions);
@@ -487,7 +490,7 @@ export default class Point extends GraphicalComponent {
                                 numDimensions: Math.max(
                                     dependencyValues.xs.stateValues
                                         .numComponents,
-                                    numDimensions
+                                    numDimensions,
                                 ),
                             },
                         };
@@ -498,7 +501,7 @@ export default class Point extends GraphicalComponent {
                                 numDimensions: Math.max(
                                     dependencyValues.pointOrVectorChild[0]
                                         .stateValues.numDimensions,
-                                    numDimensions
+                                    numDimensions,
                                 ),
                             },
                         };
@@ -727,10 +730,10 @@ export default class Point extends GraphicalComponent {
                 }
 
                 for (let arrayKey of Object.keys(
-                    desiredStateVariableValues.unconstrainedXs
+                    desiredStateVariableValues.unconstrainedXs,
                 ).reverse()) {
                     let desiredValue = convertValueToMathExpression(
-                        desiredStateVariableValues.unconstrainedXs[arrayKey]
+                        desiredStateVariableValues.unconstrainedXs[arrayKey],
                     );
 
                     let component = dependencyValuesByKey[arrayKey].component;
@@ -858,11 +861,11 @@ export default class Point extends GraphicalComponent {
                         let varEnding = Number(arrayKey) + 1;
                         xs[arrayKey] = convertValueToMathExpression(
                             dependencyValuesByKey[arrayKey].constraintsChild[0]
-                                .stateValues["constraintResult" + varEnding]
+                                .stateValues["constraintResult" + varEnding],
                         );
                     } else {
                         xs[arrayKey] = convertValueToMathExpression(
-                            dependencyValuesByKey[arrayKey].unconstrainedX
+                            dependencyValuesByKey[arrayKey].unconstrainedX,
                         );
                     }
                 }
@@ -892,7 +895,7 @@ export default class Point extends GraphicalComponent {
 
                 let instructions = [];
                 for (let arrayKey of Object.keys(
-                    desiredStateVariableValues.xs
+                    desiredStateVariableValues.xs,
                 ).reverse()) {
                     if (!dependencyValuesByKey[arrayKey]) {
                         continue;
@@ -1227,7 +1230,7 @@ export default class Point extends GraphicalComponent {
         {
             stateVariable: "coords",
             stateVariablesToShadow: Object.keys(
-                returnRoundingStateVariableDefinitions()
+                returnRoundingStateVariableDefinitions(),
             ),
         },
     ];

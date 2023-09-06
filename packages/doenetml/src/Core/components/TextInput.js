@@ -91,6 +91,9 @@ export default class Textinput extends Input {
         return attributes;
     }
 
+    // Include children that can be added due to sugar
+    static additionalSchemaChildren = ["string"];
+
     static returnSugarInstructions() {
         let sugarInstructions = super.returnSugarInstructions();
 
@@ -210,7 +213,7 @@ export default class Textinput extends Input {
                         {
                             setEssentialValue: "valueChanged",
                             value: Boolean(
-                                desiredStateVariableValues.valueChanged
+                                desiredStateVariableValues.valueChanged,
                             ),
                         },
                     ],
@@ -336,7 +339,7 @@ export default class Textinput extends Input {
                         {
                             setEssentialValue: "immediateValueChanged",
                             value: Boolean(
-                                desiredStateVariableValues.immediateValueChanged
+                                desiredStateVariableValues.immediateValueChanged,
                             ),
                         },
                     ],

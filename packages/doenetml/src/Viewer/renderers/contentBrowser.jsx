@@ -3,7 +3,7 @@ import useDoenetRenderer from "../useDoenetRenderer";
 import VisibilitySensor from "react-visibility-sensor-v2";
 import { useLocation } from "react-router";
 import { Link } from "react-router-dom";
-import { cesc } from "../../utils/url";
+import { cesc } from "@doenet/utils";
 import { addCommasForCompositeRanges } from "./utils/composites";
 
 export default React.memo(function ContentBrowser(props) {
@@ -112,7 +112,7 @@ export default React.memo(function ContentBrowser(props) {
                     >
                         {itemInfo.label}
                     </Link>
-                </td>
+                </td>,
             );
         }
         labelRows.push(<tr key={rowInd}>{row}</tr>);

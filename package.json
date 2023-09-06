@@ -4,10 +4,13 @@
     "version": "1.0.0",
     "description": "Monorepo for the DoenetML project",
     "workspaces": [
+        "./packages/ui-components",
+        "./packages/utils",
         "./packages/parser",
         "./packages/doenetml-worker",
         "./packages/virtual-keyboard",
         "./packages/codemirror",
+        "./packages/doenetml",
         "./packages/*"
     ],
     "scripts": {
@@ -26,13 +29,12 @@
     "homepage": "https://github.com/Doenet/DoenetML/README.md",
     "devDependencies": {
         "jsdom": "^22.1.0",
-        "prettier": "^3.0.0",
-        "typescript": "^5.1.6",
-        "vitest": "^0.34.1"
+        "prettier": "^3.0.2",
+        "typescript": "^5.2.2",
+        "vitest": "^0.34.3"
     },
     "prettier": {
         "tabWidth": 4
     },
-    "dependencies": {
-    }
+    "dependencies": {}
 }

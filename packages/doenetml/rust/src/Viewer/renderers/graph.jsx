@@ -80,14 +80,14 @@ export default React.memo(function Graph(props) {
                 let xscale = Math.abs(xmax - xmin);
                 let yscale = Math.abs(ymax - ymin);
                 let diffs = newBoundingbox.map((v, i) =>
-                    Math.abs(v - previousBoundingbox.current[i])
+                    Math.abs(v - previousBoundingbox.current[i]),
                 );
                 if (
                     Math.max(
                         diffs[0] / xscale,
                         diffs[1] / yscale,
                         diffs[2] / xscale,
-                        diffs[3] / yscale
+                        diffs[3] / yscale,
                     ) > 1e-12
                 ) {
                     previousBoundingbox.current = newBoundingbox;
@@ -169,7 +169,7 @@ export default React.memo(function Graph(props) {
                     [0, 0],
                     [1, 0],
                 ],
-                xaxisOptions
+                xaxisOptions,
             );
 
             // change default ticks function to decreasing starting tick size
@@ -178,14 +178,14 @@ export default React.memo(function Graph(props) {
 
                 b = this.getLowerAndUpperBounds(
                     this.getZeroCoordinates(),
-                    "ticksdistance"
+                    "ticksdistance",
                 );
                 dist = b.upper - b.lower;
 
                 // only change from JSXgraph: 0.6 * dist became 0.2 * dist
                 delta = Math.pow(
                     10,
-                    Math.floor(Math.log(0.2 * dist) / Math.LN10)
+                    Math.floor(Math.log(0.2 * dist) / Math.LN10),
                 );
                 if (dist <= 6 * delta) {
                     delta *= 0.5;
@@ -200,7 +200,7 @@ export default React.memo(function Graph(props) {
             // don't have access to Mat and Type)
             xaxis.current.defaultTicks.generateEquidistantTicks = function (
                 coordsZero,
-                bounds
+                bounds,
             ) {
                 var tickPosition,
                     eps2 = 1e-6,
@@ -222,7 +222,7 @@ export default React.memo(function Graph(props) {
                     ticksDelta = this.adjustTickDistance(
                         ticksDelta,
                         coordsZero,
-                        deltas
+                        deltas,
                     );
 
                     // Only change from JSXgraph function:
@@ -256,7 +256,7 @@ export default React.memo(function Graph(props) {
                             coordsZero,
                             tickPosition,
                             ticksDelta,
-                            deltas
+                            deltas,
                         );
                     }
                     tickPosition += ticksDelta;
@@ -276,7 +276,7 @@ export default React.memo(function Graph(props) {
                             coordsZero,
                             tickPosition,
                             ticksDelta,
-                            deltas
+                            deltas,
                         );
                     }
                     tickPosition -= ticksDelta;
@@ -356,7 +356,7 @@ export default React.memo(function Graph(props) {
                     [0, 0],
                     [0, 1],
                 ],
-                yaxisOptions
+                yaxisOptions,
             );
 
             // change default ticks function to decreasing starting tick size
@@ -365,14 +365,14 @@ export default React.memo(function Graph(props) {
 
                 b = this.getLowerAndUpperBounds(
                     this.getZeroCoordinates(),
-                    "ticksdistance"
+                    "ticksdistance",
                 );
                 dist = b.upper - b.lower;
 
                 // only change from JSXgraph: 0.6 * dist became 0.2 * dist
                 delta = Math.pow(
                     10,
-                    Math.floor(Math.log(0.2 * dist) / Math.LN10)
+                    Math.floor(Math.log(0.2 * dist) / Math.LN10),
                 );
                 if (dist <= 6 * delta) {
                     delta *= 0.5;
@@ -387,7 +387,7 @@ export default React.memo(function Graph(props) {
             // don't have access to Mat and Type)
             yaxis.current.defaultTicks.generateEquidistantTicks = function (
                 coordsZero,
-                bounds
+                bounds,
             ) {
                 var tickPosition,
                     eps2 = 1e-6,
@@ -409,7 +409,7 @@ export default React.memo(function Graph(props) {
                     ticksDelta = this.adjustTickDistance(
                         ticksDelta,
                         coordsZero,
-                        deltas
+                        deltas,
                     );
 
                     // Only change from JSXgraph function:
@@ -443,7 +443,7 @@ export default React.memo(function Graph(props) {
                             coordsZero,
                             tickPosition,
                             ticksDelta,
-                            deltas
+                            deltas,
                         );
                     }
                     tickPosition += ticksDelta;
@@ -463,7 +463,7 @@ export default React.memo(function Graph(props) {
                             coordsZero,
                             tickPosition,
                             ticksDelta,
-                            deltas
+                            deltas,
                         );
                     }
                     tickPosition -= ticksDelta;

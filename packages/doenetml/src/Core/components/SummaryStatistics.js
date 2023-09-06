@@ -54,7 +54,7 @@ export default class SummaryStatistics extends BlockComponent {
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions()
+            returnRoundingStateVariableDefinitions(),
         );
 
         stateVariableDefinitions.statisticsToDisplay = {
@@ -88,7 +88,7 @@ export default class SummaryStatistics extends BlockComponent {
 
                 let desiredStats =
                     dependencyValues.statisticsToDisplayPrelim.map((x) =>
-                        x.toLowerCase()
+                        x.toLowerCase(),
                     );
 
                 if (desiredStats.includes("default")) {
@@ -167,7 +167,7 @@ export default class SummaryStatistics extends BlockComponent {
                 if (dependencyValues.dataFrame) {
                     let dataFrame = dependencyValues.dataFrame;
                     let colInd = dataFrame.columnNames.indexOf(
-                        dependencyValues.desiredColumn
+                        dependencyValues.desiredColumn,
                     );
                     if (colInd !== -1) {
                         columnName = dependencyValues.desiredColumn;
@@ -411,7 +411,7 @@ export default class SummaryStatistics extends BlockComponent {
                 if (dependencyValues.dataColumn) {
                     quartile1 = me.math.quantileSeq(
                         dependencyValues.dataColumn,
-                        0.25
+                        0.25,
                     );
                 }
                 return { setValue: { quartile1 } };
@@ -436,7 +436,7 @@ export default class SummaryStatistics extends BlockComponent {
                 if (dependencyValues.dataColumn) {
                     quartile3 = me.math.quantileSeq(
                         dependencyValues.dataColumn,
-                        0.75
+                        0.75,
                     );
                 }
                 return { setValue: { quartile3 } };

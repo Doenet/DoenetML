@@ -1,5 +1,4 @@
 import Input from "./abstract/Input";
-import { deepCompare } from "../utils/deepFunctions";
 import me from "math-expressions";
 import {
     enumerateCombinations,
@@ -224,7 +223,7 @@ export default class Choiceinput extends Input {
                 let choiceOrder;
                 if (!dependencyValues.shuffleOrder) {
                     choiceOrder = [...Array(numChoices).keys()].map(
-                        (x) => x + 1
+                        (x) => x + 1,
                     );
                 } else {
                     // if desiredIndices is specfied, use those
@@ -241,12 +240,12 @@ export default class Choiceinput extends Input {
                             desiredChoiceOrder = desiredChoiceOrder.map(Number);
                             if (!desiredChoiceOrder.every(Number.isInteger)) {
                                 throw Error(
-                                    "All indices specified for choiceInput must be integers"
+                                    "All indices specified for choiceInput must be integers",
                                 );
                             }
                             if (
                                 !desiredChoiceOrder.every(
-                                    (x) => x >= 1 && x <= numChoices
+                                    (x) => x >= 1 && x <= numChoices,
                                 )
                             ) {
                                 warnings.push({
@@ -265,13 +264,13 @@ export default class Choiceinput extends Input {
                     }
 
                     let variantRng = dependencyValues.rngClass(
-                        dependencyValues.variantSeed + "co"
+                        dependencyValues.variantSeed + "co",
                     );
 
                     // shuffle order every time get new children
                     // https://stackoverflow.com/a/12646864
                     choiceOrder = [...Array(numChoices).keys()].map(
-                        (x) => x + 1
+                        (x) => x + 1,
                     );
                     for (let i = numChoices - 1; i > 0; i--) {
                         const rand = variantRng();
@@ -307,7 +306,7 @@ export default class Choiceinput extends Input {
                 variantDescendants: {
                     dependencyType: "descendant",
                     componentTypes: Object.keys(
-                        componentInfoObjects.componentTypesCreatingVariants
+                        componentInfoObjects.componentTypesCreatingVariants,
                     ),
                     variableNames: [
                         "isVariantComponent",
@@ -335,12 +334,12 @@ export default class Choiceinput extends Input {
                 for (let descendant of dependencyValues.variantDescendants) {
                     if (descendant.stateValues.isVariantComponent) {
                         subvariants.push(
-                            descendant.stateValues.generatedVariantInfo
+                            descendant.stateValues.generatedVariantInfo,
                         );
                     } else if (descendant.stateValues.generatedVariantInfo) {
                         subvariants.push(
                             ...descendant.stateValues.generatedVariantInfo
-                                .subvariants
+                                .subvariants,
                         );
                     }
                 }
@@ -377,7 +376,7 @@ export default class Choiceinput extends Input {
             definition: function ({ dependencyValues }) {
                 let numChoices = dependencyValues.choiceChildren.length;
                 let choiceChildrenOrdered = dependencyValues.choiceOrder.map(
-                    (i) => dependencyValues.choiceChildren[i - 1]
+                    (i) => dependencyValues.choiceChildren[i - 1],
                 );
 
                 return {
@@ -424,13 +423,13 @@ export default class Choiceinput extends Input {
             arrayDefinitionByKey({ globalDependencyValues }) {
                 let choiceChildrenOrdered =
                     globalDependencyValues.choiceOrder.map(
-                        (i) => globalDependencyValues.choiceChildren[i - 1]
+                        (i) => globalDependencyValues.choiceChildren[i - 1],
                     );
 
                 return {
                     setValue: {
                         choiceTexts: choiceChildrenOrdered.map(
-                            (x) => x.stateValues.text
+                            (x) => x.stateValues.text,
                         ),
                     },
                 };
@@ -472,13 +471,13 @@ export default class Choiceinput extends Input {
             arrayDefinitionByKey({ globalDependencyValues }) {
                 let choiceChildrenOrdered =
                     globalDependencyValues.choiceOrder.map(
-                        (i) => globalDependencyValues.choiceChildren[i - 1]
+                        (i) => globalDependencyValues.choiceChildren[i - 1],
                     );
 
                 return {
                     setValue: {
                         choiceMaths: choiceChildrenOrdered.map(
-                            (x) => x.stateValues.math
+                            (x) => x.stateValues.math,
                         ),
                     },
                 };
@@ -514,13 +513,13 @@ export default class Choiceinput extends Input {
             arrayDefinitionByKey({ globalDependencyValues }) {
                 let choiceChildrenOrdered =
                     globalDependencyValues.choiceOrder.map(
-                        (i) => globalDependencyValues.choiceChildren[i - 1]
+                        (i) => globalDependencyValues.choiceChildren[i - 1],
                     );
 
                 return {
                     setValue: {
                         choicePreselects: choiceChildrenOrdered.map(
-                            (x) => x.stateValues.preSelect
+                            (x) => x.stateValues.preSelect,
                         ),
                     },
                 };
@@ -557,13 +556,13 @@ export default class Choiceinput extends Input {
             arrayDefinitionByKey({ globalDependencyValues }) {
                 let choiceChildrenOrdered =
                     globalDependencyValues.choiceOrder.map(
-                        (i) => globalDependencyValues.choiceChildren[i - 1]
+                        (i) => globalDependencyValues.choiceChildren[i - 1],
                     );
 
                 return {
                     setValue: {
                         choicesDisabled: choiceChildrenOrdered.map(
-                            (x) => x.stateValues.disabled
+                            (x) => x.stateValues.disabled,
                         ),
                     },
                 };
@@ -600,13 +599,13 @@ export default class Choiceinput extends Input {
             arrayDefinitionByKey({ globalDependencyValues }) {
                 let choiceChildrenOrdered =
                     globalDependencyValues.choiceOrder.map(
-                        (i) => globalDependencyValues.choiceChildren[i - 1]
+                        (i) => globalDependencyValues.choiceChildren[i - 1],
                     );
 
                 return {
                     setValue: {
                         choicesHidden: choiceChildrenOrdered.map(
-                            (x) => x.stateValues.hidden
+                            (x) => x.stateValues.hidden,
                         ),
                     },
                 };
@@ -626,7 +625,7 @@ export default class Choiceinput extends Input {
                 if (
                     dependencyValues.choiceChildren.length > 0 &&
                     dependencyValues.choiceChildren.every(
-                        (x) => x.stateValues.math
+                        (x) => x.stateValues.math,
                     )
                 ) {
                     componentType = "math";
@@ -658,12 +657,12 @@ export default class Choiceinput extends Input {
             }),
             definition({ dependencyValues }) {
                 let choiceChildrenOrdered = dependencyValues.choiceOrder.map(
-                    (i) => dependencyValues.choiceChildren[i - 1]
+                    (i) => dependencyValues.choiceChildren[i - 1],
                 );
 
                 if (dependencyValues.bindValueTo !== null) {
                     let choiceTexts = choiceChildrenOrdered.map((x) =>
-                        x.stateValues.text.toLowerCase().trim()
+                        x.stateValues.text.toLowerCase().trim(),
                     );
                     if (dependencyValues.bindValueTo.stateValues.value) {
                         if (dependencyValues.selectMultiple) {
@@ -678,7 +677,7 @@ export default class Choiceinput extends Input {
                                 if (
                                     ind !== -1 &&
                                     !indicesMatchedByBoundValue.includes(
-                                        ind + 1
+                                        ind + 1,
                                     )
                                 ) {
                                     indicesMatchedByBoundValue.push(ind + 1);
@@ -690,7 +689,7 @@ export default class Choiceinput extends Input {
                             let ind = choiceTexts.indexOf(
                                 dependencyValues.bindValueTo.stateValues.value
                                     .toLowerCase()
-                                    .trim()
+                                    .trim(),
                             );
                             if (ind !== -1) {
                                 return {
@@ -725,7 +724,7 @@ export default class Choiceinput extends Input {
                         {
                             setEssentialValue: "valueChanged",
                             value: Boolean(
-                                desiredStateVariableValues.valueChanged
+                                desiredStateVariableValues.valueChanged,
                             ),
                         },
                     ],
@@ -785,13 +784,13 @@ export default class Choiceinput extends Input {
                                 get defaultValue() {
                                     let ind =
                                         dependencyValues.choicePreselects.indexOf(
-                                            true
+                                            true,
                                         );
                                     if (ind !== -1) {
                                         return [ind + 1];
                                     } else if (
                                         Number.isInteger(
-                                            dependencyValues.preselectChoice
+                                            dependencyValues.preselectChoice,
                                         )
                                     ) {
                                         return [
@@ -824,14 +823,14 @@ export default class Choiceinput extends Input {
                     ) {
                         let choiceChildrenOrdered =
                             dependencyValues.choiceOrder.map(
-                                (i) => dependencyValues.choiceChildren[i - 1]
+                                (i) => dependencyValues.choiceChildren[i - 1],
                             );
                         let selectedTexts = [];
                         for (let ind of desiredStateVariableValues.allSelectedIndices) {
                             let selectedChild = choiceChildrenOrdered[ind - 1];
                             if (selectedChild) {
                                 selectedTexts.push(
-                                    selectedChild.stateValues.text
+                                    selectedChild.stateValues.text,
                                 );
                             }
                         }
@@ -935,7 +934,7 @@ export default class Choiceinput extends Input {
                 if (selectMultiple) {
                     if (
                         !Array.isArray(
-                            desiredStateVariableValues.selectedIndices
+                            desiredStateVariableValues.selectedIndices,
                         )
                     ) {
                         newSelectedIndices = [
@@ -1082,7 +1081,7 @@ export default class Choiceinput extends Input {
                                     return a;
                                 }
                             },
-                            []
+                            [],
                         );
 
                         // sort
@@ -1135,7 +1134,7 @@ export default class Choiceinput extends Input {
                         }
                     } else {
                         ind = globalDependencyValues.choiceTexts.indexOf(
-                            desiredVal?.toLowerCase().trim()
+                            desiredVal?.toLowerCase().trim(),
                         );
                     }
                     return ind;
@@ -1171,7 +1170,7 @@ export default class Choiceinput extends Input {
             }),
             definition({ dependencyValues }) {
                 let childIndicesSelected = dependencyValues.selectedIndices.map(
-                    (x) => dependencyValues.choiceOrder[x - 1]
+                    (x) => dependencyValues.choiceOrder[x - 1],
                 );
 
                 return { setValue: { childIndicesSelected } };
@@ -1266,7 +1265,7 @@ export default class Choiceinput extends Input {
             definition({ dependencyValues }) {
                 let submittedIndices = [];
                 let choiceChildrenOrdered = dependencyValues.choiceOrder.map(
-                    (i) => dependencyValues.choiceChildren[i - 1]
+                    (i) => dependencyValues.choiceChildren[i - 1],
                 );
 
                 for (let [
@@ -1294,7 +1293,7 @@ export default class Choiceinput extends Input {
                         setDependency: "choiceChildren",
                         desiredValue:
                             desiredStateVariableValues.submittedIndices.includes(
-                                ind + 1
+                                ind + 1,
                             ),
                         variableIndex: 0,
                         childIndex: choiceInd - 1,
@@ -1327,7 +1326,7 @@ export default class Choiceinput extends Input {
             }),
             definition({ dependencyValues }) {
                 let choiceChildrenOrdered = dependencyValues.choiceOrder.map(
-                    (i) => dependencyValues.choiceChildren[i - 1]
+                    (i) => dependencyValues.choiceChildren[i - 1],
                 );
 
                 let feedbacks = [];
@@ -1462,7 +1461,7 @@ export default class Choiceinput extends Input {
                 result: {
                     response: selectedIndices,
                     responseText: selectedIndices.map(
-                        (i) => choiceTexts[i - 1]
+                        (i) => choiceTexts[i - 1],
                     ),
                 },
             };
@@ -1532,7 +1531,7 @@ export default class Choiceinput extends Input {
                         child.attributes.numComponents?.primitive !== undefined
                     ) {
                         let newChoices = Number(
-                            child.attributes.numComponents?.primitive
+                            child.attributes.numComponents?.primitive,
                         );
                         if (Number.isInteger(newChoices) && newChoices >= 0) {
                             numChoices += newChoices;

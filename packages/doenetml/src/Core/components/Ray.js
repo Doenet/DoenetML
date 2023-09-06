@@ -1,6 +1,6 @@
 import GraphicalComponent from "./abstract/GraphicalComponent";
 import me from "math-expressions";
-import { convertValueToMathExpression, vectorOperators } from "../utils/math";
+import { convertValueToMathExpression, vectorOperators } from "@doenet/utils";
 import {
     returnRoundingAttributeComponentShadowing,
     returnRoundingAttributes,
@@ -50,7 +50,7 @@ export default class Ray extends GraphicalComponent {
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions()
+            returnRoundingStateVariableDefinitions(),
         );
 
         stateVariableDefinitions.styleDescription = {
@@ -139,7 +139,7 @@ export default class Ray extends GraphicalComponent {
                         {
                             setEssentialValue: "directionShadow",
                             value: convertValueToMathExpression(
-                                desiredStateVariableValues.directionShadow
+                                desiredStateVariableValues.directionShadow,
                             ),
                         },
                     ],
@@ -168,7 +168,7 @@ export default class Ray extends GraphicalComponent {
                         {
                             setEssentialValue: "throughShadow",
                             value: convertValueToMathExpression(
-                                desiredStateVariableValues.throughShadow
+                                desiredStateVariableValues.throughShadow,
                             ),
                         },
                     ],
@@ -197,7 +197,7 @@ export default class Ray extends GraphicalComponent {
                         {
                             setEssentialValue: "endpointShadow",
                             value: convertValueToMathExpression(
-                                desiredStateVariableValues.endpointShadow
+                                desiredStateVariableValues.endpointShadow,
                             ),
                         },
                     ],
@@ -837,7 +837,7 @@ export default class Ray extends GraphicalComponent {
                         ) {
                             direction[arrayKey] =
                                 globalDependencyValues.directionShadow.get_component(
-                                    Number(arrayKey)
+                                    Number(arrayKey),
                                 );
                         }
                     } else if (globalDependencyValues.basedOnThrough) {
@@ -918,7 +918,7 @@ export default class Ray extends GraphicalComponent {
                                 .add(
                                     desiredStateVariableValues.direction[
                                         arrayKey
-                                    ]
+                                    ],
                                 )
                                 .simplify(),
                         });
@@ -932,7 +932,7 @@ export default class Ray extends GraphicalComponent {
                                 [arrayKey]: convertValueToMathExpression(
                                     desiredStateVariableValues.direction[
                                         arrayKey
-                                    ]
+                                    ],
                                 ),
                             },
                         });
@@ -1085,7 +1085,7 @@ export default class Ray extends GraphicalComponent {
                         ) {
                             through[arrayKey] =
                                 globalDependencyValues.throughShadow.get_component(
-                                    Number(arrayKey)
+                                    Number(arrayKey),
                                 );
                         }
                     } else {
@@ -1154,7 +1154,7 @@ export default class Ray extends GraphicalComponent {
                                 arrayKey
                             ]
                                 .subtract(
-                                    dependencyValuesByKey[arrayKey].endpointX
+                                    dependencyValuesByKey[arrayKey].endpointX,
                                 )
                                 .simplify(),
                         });
@@ -1310,7 +1310,7 @@ export default class Ray extends GraphicalComponent {
                     } else if (globalDependencyValues.endpointShadow !== null) {
                         endpoint[arrayKey] =
                             globalDependencyValues.endpointShadow.get_component(
-                                Number(arrayKey)
+                                Number(arrayKey),
                             );
                     } else {
                         // if made it to here, basedOnEndpoint is false
@@ -1325,7 +1325,7 @@ export default class Ray extends GraphicalComponent {
                                 arrayKey
                             ].throughX
                                 .subtract(
-                                    dependencyValuesByKey[arrayKey].directionX
+                                    dependencyValuesByKey[arrayKey].directionX,
                                 )
                                 .simplify();
                         } else {
@@ -1399,7 +1399,7 @@ export default class Ray extends GraphicalComponent {
                                     .subtract(
                                         desiredStateVariableValues.endpoint[
                                             arrayKey
-                                        ]
+                                        ],
                                     )
                                     .simplify(),
                             });
@@ -1415,7 +1415,7 @@ export default class Ray extends GraphicalComponent {
                                     [arrayKey]: convertValueToMathExpression(
                                         desiredStateVariableValues.endpoint[
                                             arrayKey
-                                        ]
+                                        ],
                                     ),
                                 },
                             });
@@ -1655,7 +1655,7 @@ export default class Ray extends GraphicalComponent {
             stateVariable: "directionCoords",
             componentType: "_directionComponent",
             stateVariablesToShadow: Object.keys(
-                returnRoundingStateVariableDefinitions()
+                returnRoundingStateVariableDefinitions(),
             ),
         },
     ];
@@ -1682,14 +1682,14 @@ export default class Ray extends GraphicalComponent {
                 if (throughcoords === undefined) {
                     // use current value of through
                     // if through isn't supposed to change
-                    let numericalThroughpoint = await this.stateValues
-                        .numericalThroughpoint;
+                    let numericalThroughpoint =
+                        await this.stateValues.numericalThroughpoint;
                     direction = endpointcoords.map(
-                        (x, i) => numericalThroughpoint[i] - x
+                        (x, i) => numericalThroughpoint[i] - x,
                     );
                 } else {
                     direction = endpointcoords.map(
-                        (x, i) => throughcoords[i] - x
+                        (x, i) => throughcoords[i] - x,
                     );
                 }
 
@@ -1714,10 +1714,10 @@ export default class Ray extends GraphicalComponent {
                 // however, through would move if not based on through
                 // so give instructions to change direction to keep through fixed
                 if (!(await this.stateValues.basedOnThrough)) {
-                    let numericalThroughpoint = await this.stateValues
-                        .numericalThroughpoint;
+                    let numericalThroughpoint =
+                        await this.stateValues.numericalThroughpoint;
                     let direction = endpointcoords.map(
-                        (x, i) => numericalThroughpoint[i] - x
+                        (x, i) => numericalThroughpoint[i] - x,
                     );
                     updateInstructions.push({
                         updateType: "updateValue",
@@ -1746,7 +1746,7 @@ export default class Ray extends GraphicalComponent {
                     endpointcoords = await this.stateValues.numericalEndpoint;
                 }
                 let direction = endpointcoords.map(
-                    (x, i) => throughcoords[i] - x
+                    (x, i) => throughcoords[i] - x,
                 );
                 updateInstructions.push({
                     updateType: "updateValue",
@@ -1764,10 +1764,10 @@ export default class Ray extends GraphicalComponent {
                     (await this.stateValues.basedOnThrough) &&
                     (await this.stateValues.basedOnDirection)
                 ) {
-                    let numericalEndpoint = await this.stateValues
-                        .numericalEndpoint;
+                    let numericalEndpoint =
+                        await this.stateValues.numericalEndpoint;
                     let direction = throughcoords.map(
-                        (x, i) => x - numericalEndpoint[i]
+                        (x, i) => x - numericalEndpoint[i],
                     );
                     updateInstructions.push({
                         updateType: "updateValue",
@@ -1859,7 +1859,7 @@ export default class Ray extends GraphicalComponent {
                         newNumericalPoints.push(resultingNumericalPoints[i]);
                     } else {
                         newNumericalPoints.push(
-                            numericalPoints[i].map((v, j) => v - changevec1[j])
+                            numericalPoints[i].map((v, j) => v - changevec1[j]),
                         );
                     }
                 }

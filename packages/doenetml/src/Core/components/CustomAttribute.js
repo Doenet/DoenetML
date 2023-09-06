@@ -147,7 +147,7 @@ export default class CustomAttribute extends CompositeComponent {
         // in which case setting via custom attributes won't work
         let containerClass = componentForAttribute.constructor;
         let containerAttrNames = Object.keys(
-            containerClass.createAttributesObject()
+            containerClass.createAttributesObject(),
         ).map((x) => x.toLowerCase());
         containerAttrNames.push("name", "target", "assignnames");
         if (containerAttrNames.includes(SVattributeName.toLowerCase())) {
@@ -175,7 +175,7 @@ export default class CustomAttribute extends CompositeComponent {
         if (serializedComponent.children) {
             serializeFunctions.applyMacros(
                 serializedComponent.children,
-                componentInfoObjects
+                componentInfoObjects,
             );
             if (newNamespace) {
                 // modify targets to go back one namespace

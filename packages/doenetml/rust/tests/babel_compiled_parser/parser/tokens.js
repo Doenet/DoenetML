@@ -126,7 +126,7 @@ export const startTag = new ExternalTokenizer(
     },
     {
         contextual: true,
-    }
+    },
 );
 
 function scanTo(type, end) {

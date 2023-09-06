@@ -172,10 +172,10 @@ var __webpack_modules__ = {
                         !0 === t
                             ? ((this.scrCoords[0] = e(s[0])),
                               (this.scrCoords[1] = e(
-                                  s[0] * r[1] + s[1] * i.unitX
+                                  s[0] * r[1] + s[1] * i.unitX,
                               )),
                               (this.scrCoords[2] = e(
-                                  s[0] * r[2] - s[2] * i.unitY
+                                  s[0] * r[2] - s[2] * i.unitY,
                               )))
                             : ((this.scrCoords[0] = s[0]),
                               (this.scrCoords[1] =
@@ -270,7 +270,7 @@ var __webpack_modules__ = {
                     (this.initialCoords = new h.Z(
                         l.Z.COORDS_BY_USER,
                         t,
-                        this.board
+                        this.board,
                     )),
                     (this.position = null),
                     (this.isConstrained = !1),
@@ -352,13 +352,13 @@ var __webpack_modules__ = {
                                 (m = o.Z.projectPointToCircle(
                                     this,
                                     x,
-                                    this.board
+                                    this.board,
                                 )),
                                 (v =
                                     o.Z.rad(
                                         [x.center.X() + 1, x.center.Y()],
                                         x.center,
-                                        this
+                                        this,
                                     ) / E);
                         else if (x.elementClass === l.Z.OBJECT_CLASS_LINE) {
                             if (this.onPolygon) {
@@ -374,7 +374,7 @@ var __webpack_modules__ = {
                                         (o.Z.projectPointToLine(
                                             this,
                                             x,
-                                            this.board
+                                            this.board,
                                         ).usrCoords[t] -
                                             e[t]) /
                                         s),
@@ -411,7 +411,7 @@ var __webpack_modules__ = {
                                     : ((m = o.Z.projectPointToLine(
                                           this,
                                           x,
-                                          this.board
+                                          this.board,
                                       )),
                                       (e = e.usrCoords.slice(0)),
                                       (i = i.usrCoords.slice(0)),
@@ -469,7 +469,7 @@ var __webpack_modules__ = {
                                 (m = (C = o.Z.projectPointToTurtle(
                                     this,
                                     x,
-                                    this.board
+                                    this.board,
                                 ))[0]),
                                 (v = C[1]);
                         else if (x.elementClass === l.Z.OBJECT_CLASS_CURVE)
@@ -480,23 +480,23 @@ var __webpack_modules__ = {
                                 (m = o.Z.projectPointToCircle(
                                     this,
                                     x,
-                                    this.board
+                                    this.board,
                                 )),
                                     (_ = o.Z.rad(
                                         x.radiuspoint,
                                         x.center,
-                                        this
+                                        this,
                                     )),
                                     (u = 0),
                                     (p = o.Z.rad(
                                         x.radiuspoint,
                                         x.center,
-                                        x.anglepoint
+                                        x.anglepoint,
                                     )),
                                     (v = _),
                                     (("minor" ===
                                         (Z = c.Z.evaluate(
-                                            x.visProp.selection
+                                            x.visProp.selection,
                                         )) &&
                                         p > Math.PI) ||
                                         ("major" === Z && p < Math.PI)) &&
@@ -531,21 +531,21 @@ var __webpack_modules__ = {
                                     for (t = 0; t < w.length; t++)
                                         w[t].updateTransformMatrix(),
                                             (g = r.Z.inverse(
-                                                w[t].transformMat
+                                                w[t].transformMat,
                                             )),
                                             (y = r.Z.matVecMult(g, y));
                                     for (
                                         f = new h.Z(
                                             l.Z.COORDS_BY_USER,
                                             y,
-                                            this.board
+                                            this.board,
                                         ).usrCoords,
                                             y = (b = o.Z.projectCoordsToCurve(
                                                 f[1],
                                                 f[2],
                                                 this.position || 0,
                                                 w[w.length - 1],
-                                                this.board
+                                                this.board,
                                             ))[0].usrCoords,
                                             t = w.length - 2;
                                         t >= 0;
@@ -553,12 +553,12 @@ var __webpack_modules__ = {
                                     )
                                         y = r.Z.matVecMult(
                                             w[t].transformMat,
-                                            y
+                                            y,
                                         );
                                     b[0] = new h.Z(
                                         l.Z.COORDS_BY_USER,
                                         y,
-                                        this.board
+                                        this.board,
                                     );
                                 } else
                                     x.updateTransformMatrix(),
@@ -567,21 +567,21 @@ var __webpack_modules__ = {
                                         (f = new h.Z(
                                             l.Z.COORDS_BY_USER,
                                             y,
-                                            this.board
+                                            this.board,
                                         ).usrCoords),
                                         (b = o.Z.projectCoordsToCurve(
                                             f[1],
                                             f[2],
                                             this.position || 0,
                                             x,
-                                            this.board
+                                            this.board,
                                         ));
                                 (m = b[0]), (v = b[1]);
                             } else
                                 (m = (C = o.Z.projectPointToCurve(
                                     this,
                                     x,
-                                    this.board
+                                    this.board,
                                 ))[0]),
                                     (v = C[1]);
                         else
@@ -589,13 +589,13 @@ var __webpack_modules__ = {
                                 ((m = o.Z.projectPointToPoint(
                                     this,
                                     x,
-                                    this.board
+                                    this.board,
                                 )),
                                 (v = this.position));
                         this.coords.setCoordinates(
                             l.Z.COORDS_BY_USER,
                             m.usrCoords,
-                            O
+                            O,
                         ),
                             (this.position = v);
                     },
@@ -635,7 +635,7 @@ var __webpack_modules__ = {
                                         : Math.abs(e[0]) < r.Z.eps
                                         ? ((s = Math.min(
                                               Math.abs(this.position),
-                                              1 - r.Z.eps
+                                              1 - r.Z.eps,
                                           )),
                                           (s /= 1 - s),
                                           this.position < 0 && (s = -s),
@@ -647,7 +647,7 @@ var __webpack_modules__ = {
                                         : Math.abs(t[0]) < r.Z.eps
                                         ? ((s = Math.max(
                                               this.position,
-                                              r.Z.eps
+                                              r.Z.eps,
                                           )),
                                           (s =
                                               (s = Math.min(s, 2 - r.Z.eps)) > 1
@@ -674,7 +674,7 @@ var __webpack_modules__ = {
                                     (n = o.Z.projectPointToTurtle(
                                         this,
                                         g,
-                                        this.board
+                                        this.board,
                                     )[0].usrCoords);
                             else if (
                                 g.elementClass === l.Z.OBJECT_CLASS_CURVE
@@ -697,15 +697,15 @@ var __webpack_modules__ = {
                                               l.Z.COORDS_BY_USER,
                                               [
                                                   m[m.length - 1].Z(
-                                                      this.position
+                                                      this.position,
                                                   ),
                                                   m[m.length - 1].X(
-                                                      this.position
+                                                      this.position,
                                                   ),
                                                   m[m.length - 1].Y(
-                                                      this.position
+                                                      this.position,
                                                   ),
-                                              ]
+                                              ],
                                           )
                                         : this.coords.setCoordinates(
                                               l.Z.COORDS_BY_USER,
@@ -713,7 +713,7 @@ var __webpack_modules__ = {
                                                   g.Z(this.position),
                                                   g.X(this.position),
                                                   g.Y(this.position),
-                                              ]
+                                              ],
                                           ),
                                     g.type === l.Z.OBJECT_TYPE_ARC ||
                                         g.type === l.Z.OBJECT_TYPE_SECTOR)
@@ -721,13 +721,13 @@ var __webpack_modules__ = {
                                     (p = o.Z.rad(
                                         [g.center.X() + 1, g.center.Y()],
                                         g.center,
-                                        g.radiuspoint
+                                        g.radiuspoint,
                                     )),
                                         (_ = 0),
                                         (b = o.Z.rad(
                                             g.radiuspoint,
                                             g.center,
-                                            g.anglepoint
+                                            g.anglepoint,
                                         )),
                                         (("minor" === g.visProp.selection &&
                                             b > Math.PI) ||
@@ -751,12 +751,12 @@ var __webpack_modules__ = {
                                             g.center.X() +
                                                 i *
                                                     Math.cos(
-                                                        this.position * v + p
+                                                        this.position * v + p,
                                                     ),
                                             g.center.Y() +
                                                 i *
                                                     Math.sin(
-                                                        this.position * v + p
+                                                        this.position * v + p,
                                                     ),
                                         ]);
                                 else if ((this.updateConstraint(), u))
@@ -764,7 +764,7 @@ var __webpack_modules__ = {
                                         n = o.Z.projectPointToCurve(
                                             this,
                                             m[m.length - 1],
-                                            this.board
+                                            this.board,
                                         )[0].usrCoords,
                                             d = m.length - 2;
                                         d >= 0;
@@ -774,27 +774,27 @@ var __webpack_modules__ = {
                                             l.Z.COORDS_BY_USER,
                                             r.Z.matVecMult(
                                                 m[d].transformMat,
-                                                n
+                                                n,
                                             ),
-                                            this.board
+                                            this.board,
                                         ).usrCoords;
                                 else
                                     n = o.Z.projectPointToCurve(
                                         this,
                                         g,
-                                        this.board
+                                        this.board,
                                     )[0].usrCoords;
                             } else
                                 c.Z.isPoint(g) &&
                                     (n = o.Z.projectPointToPoint(
                                         this,
                                         g,
-                                        this.board
+                                        this.board,
                                     ).usrCoords);
                             this.coords.setCoordinates(
                                 l.Z.COORDS_BY_USER,
                                 n,
-                                !1
+                                !1,
                             );
                         } else this.needsUpdateFromParent = !0;
                     },
@@ -803,7 +803,7 @@ var __webpack_modules__ = {
                             ? (this.visPropCalc.visible &&
                                   ((this.isReal = !isNaN(
                                       this.coords.usrCoords[1] +
-                                          this.coords.usrCoords[2]
+                                          this.coords.usrCoords[2],
                                   )),
                                   (this.isReal =
                                       Math.abs(this.coords.usrCoords[0]) >
@@ -871,7 +871,7 @@ var __webpack_modules__ = {
                             for (
                                 n = c.Z.evaluate(this.visProp.attractorunit),
                                     a = c.Z.evaluate(
-                                        this.visProp.attractordistance
+                                        this.visProp.attractordistance,
                                     ),
                                     e = 0;
                                 e < r;
@@ -891,17 +891,17 @@ var __webpack_modules__ = {
                                     ((s = o.Z.projectPointToPoint(
                                         this,
                                         i,
-                                        this.board
+                                        this.board,
                                     )),
                                     (u =
                                         "screen" === n
                                             ? s.distance(
                                                   l.Z.COORDS_BY_SCREEN,
-                                                  this.coords
+                                                  this.coords,
                                               )
                                             : s.distance(
                                                   l.Z.COORDS_BY_USER,
-                                                  this.coords
+                                                  this.coords,
                                               )) < a &&
                                         u < p &&
                                         ((p = u), (_ = s)));
@@ -909,7 +909,7 @@ var __webpack_modules__ = {
                             null !== _ &&
                                 this.coords.setCoordinates(
                                     l.Z.COORDS_BY_USER,
-                                    _.usrCoords
+                                    _.usrCoords,
                                 );
                         }
                         return this;
@@ -939,49 +939,49 @@ var __webpack_modules__ = {
                                             ? (i = o.Z.projectPointToPoint(
                                                   this,
                                                   e,
-                                                  this.board
+                                                  this.board,
                                               ))
                                             : e.elementClass ===
                                               l.Z.OBJECT_CLASS_LINE
                                             ? ((s = o.Z.projectCoordsToSegment(
                                                   this.coords.usrCoords,
                                                   e.point1.coords.usrCoords,
-                                                  e.point2.coords.usrCoords
+                                                  e.point2.coords.usrCoords,
                                               )),
                                               (i =
                                                   !c.Z.evaluate(
-                                                      e.visProp.straightfirst
+                                                      e.visProp.straightfirst,
                                                   ) && s[1] < 0
                                                       ? e.point1.coords
                                                       : !c.Z.evaluate(
                                                             e.visProp
-                                                                .straightlast
+                                                                .straightlast,
                                                         ) && s[1] > 1
                                                       ? e.point2.coords
                                                       : new h.Z(
                                                             l.Z.COORDS_BY_USER,
                                                             s[0],
-                                                            this.board
+                                                            this.board,
                                                         )))
                                             : e.elementClass ===
                                               l.Z.OBJECT_CLASS_CIRCLE
                                             ? (i = o.Z.projectPointToCircle(
                                                   this,
                                                   e,
-                                                  this.board
+                                                  this.board,
                                               ))
                                             : e.elementClass ===
                                               l.Z.OBJECT_CLASS_CURVE
                                             ? (i = o.Z.projectPointToCurve(
                                                   this,
                                                   e,
-                                                  this.board
+                                                  this.board,
                                               )[0])
                                             : e.type === l.Z.OBJECT_TYPE_TURTLE
                                             ? (i = o.Z.projectPointToTurtle(
                                                   this,
                                                   e,
-                                                  this.board
+                                                  this.board,
                                               )[0])
                                             : e.type ===
                                                   l.Z.OBJECT_TYPE_POLYGON &&
@@ -989,19 +989,19 @@ var __webpack_modules__ = {
                                                   l.Z.COORDS_BY_USER,
                                                   o.Z.projectCoordsToPolygon(
                                                       this.coords.usrCoords,
-                                                      e
+                                                      e,
                                                   ),
-                                                  this.board
+                                                  this.board,
                                               )),
                                         (r =
                                             "screen" === n
                                                 ? i.distance(
                                                       l.Z.COORDS_BY_SCREEN,
-                                                      this.coords
+                                                      this.coords,
                                                   )
                                                 : i.distance(
                                                       l.Z.COORDS_BY_USER,
-                                                      this.coords
+                                                      this.coords,
                                                   )) < a)
                                     ) {
                                         (this.type === l.Z.OBJECT_TYPE_GLIDER &&
@@ -1037,7 +1037,7 @@ var __webpack_modules__ = {
                                 c.Z.evaluate(this.visProp.islabel)
                                     ? ((o = a.Z.subtract(
                                           s.scrCoords,
-                                          d.scrCoords
+                                          d.scrCoords,
                                       )),
                                       (this.relativeCoords.scrCoords[1] +=
                                           o[1]),
@@ -1045,7 +1045,7 @@ var __webpack_modules__ = {
                                           o[2]))
                                     : ((o = a.Z.subtract(
                                           s.usrCoords,
-                                          d.usrCoords
+                                          d.usrCoords,
                                       )),
                                       (this.relativeCoords.usrCoords[1] +=
                                           o[1]),
@@ -1070,10 +1070,10 @@ var __webpack_modules__ = {
                                     l.Z.COORDS_BY_USER,
                                     r.Z.matVecMult(
                                         r.Z.inverse(
-                                            this.transformations[i].matrix
+                                            this.transformations[i].matrix,
                                         ),
-                                        n
-                                    )
+                                        n,
+                                    ),
                                 );
                         return (
                             this.prepareUpdate().update(),
@@ -1090,7 +1090,7 @@ var __webpack_modules__ = {
                             (i = this.board.create(
                                 "transform",
                                 e.usrCoords.slice(1),
-                                { type: "translate" }
+                                { type: "translate" },
                             )),
                             this.transformations.length > 0 &&
                             this.transformations[
@@ -1128,17 +1128,17 @@ var __webpack_modules__ = {
                             )
                                 (r = s.Z.Math.Geometry.distPointLine(
                                     this.coords.usrCoords,
-                                    o.borders[i].stdform
+                                    o.borders[i].stdform,
                                 )) < e && ((e = r), (t = o.borders[i]));
                             (o = this.board.select(t)), (n = !0);
                         }
                         if (!c.Z.exists(o))
                             throw new Error(
-                                "JSXGraph: slide object undefined."
+                                "JSXGraph: slide object undefined.",
                             );
                         if (o.type === l.Z.OBJECT_TYPE_TICKS)
                             throw new Error(
-                                "JSXGraph: gliders on ticks are not possible."
+                                "JSXGraph: gliders on ticks are not possible.",
                             );
                         return (
                             (this.slideObject = this.board.select(t)),
@@ -1152,7 +1152,7 @@ var __webpack_modules__ = {
                             (this.onPolygon = n),
                             (this.generatePolynomial = function () {
                                 return this.slideObject.generatePolynomial(
-                                    this
+                                    this,
                                 );
                             }),
                             this.updateGlider(),
@@ -1260,7 +1260,7 @@ var __webpack_modules__ = {
                                           i,
                                           !0,
                                           null,
-                                          !0
+                                          !0,
                                       )),
                                       this.addParentsFromJCFunctions([s[e]]),
                                       2 === t.length &&
@@ -1281,7 +1281,7 @@ var __webpack_modules__ = {
                                           c.Z.isArray(t)
                                               ? this.coords.setCoordinates(
                                                     l.Z.COORDS_BY_USER,
-                                                    t
+                                                    t,
                                                 )
                                               : (this.coords = t),
                                           this
@@ -1295,7 +1295,7 @@ var __webpack_modules__ = {
                                       return (
                                           this.coords.setCoordinates(
                                               l.Z.COORDS_BY_USER,
-                                              [this.XEval(), this.YEval()]
+                                              [this.XEval(), this.YEval()],
                                           ),
                                           this
                                       );
@@ -1316,7 +1316,7 @@ var __webpack_modules__ = {
                                                   this.ZEval(),
                                                   this.XEval(),
                                                   this.YEval(),
-                                              ]
+                                              ],
                                           ),
                                           this
                                       );
@@ -1334,7 +1334,7 @@ var __webpack_modules__ = {
                             ? new h.Z(
                                   l.Z.COORDS_BY_SCREEN,
                                   t.slice(0, 2),
-                                  this.board
+                                  this.board,
                               )
                             : new h.Z(l.Z.COORDS_BY_USER, t, this.board)),
                             this.element.addChild(this),
@@ -1354,7 +1354,7 @@ var __webpack_modules__ = {
                                                   e.scrCoords[1],
                                               0,
                                           ],
-                                          this.board
+                                          this.board,
                                       ).usrCoords[1])
                                     : ((e = this.element.getTextAnchor()),
                                       this.relativeCoords.usrCoords[1] +
@@ -1375,7 +1375,7 @@ var __webpack_modules__ = {
                                                       .scrCoords[2] +
                                                   e.scrCoords[2],
                                           ],
-                                          this.board
+                                          this.board,
                                       ).usrCoords[2])
                                     : ((e = this.element.getTextAnchor()),
                                       this.relativeCoords.usrCoords[2] +
@@ -1384,7 +1384,7 @@ var __webpack_modules__ = {
                             (this.ZEval = c.Z.createFunction(
                                 1,
                                 this.board,
-                                ""
+                                "",
                             )),
                             (this.updateConstraint = function () {
                                 this.coords.setCoordinates(l.Z.COORDS_BY_USER, [
@@ -1429,7 +1429,7 @@ var __webpack_modules__ = {
                                     function () {
                                         o._anim(s, r);
                                     },
-                                    i
+                                    i,
                                 )),
                                 c.Z.exists(this.intervalCount) ||
                                     (this.intervalCount = 0)),
@@ -1480,10 +1480,10 @@ var __webpack_modules__ = {
                                 for (r = n.Z.Neville(u), s = 0; s < p; s++)
                                     (d[s] = []),
                                         (d[s][0] = r[0](
-                                            ((p - s) / p) * r[3]()
+                                            ((p - s) / p) * r[3](),
                                         )),
                                         (d[s][1] = r[1](
-                                            ((p - s) / p) * r[3]()
+                                            ((p - s) / p) * r[3](),
                                         ));
                             else {
                                 for (o = t.length - 1, s = 0; s < p; ++s)
@@ -1525,7 +1525,7 @@ var __webpack_modules__ = {
                                 return i.effect && "<>" === i.effect
                                     ? Math.pow(
                                           Math.sin(((t / n) * Math.PI) / 2),
-                                          2
+                                          2,
                                       )
                                     : t / n;
                             };
@@ -1533,13 +1533,13 @@ var __webpack_modules__ = {
                             !c.Z.exists(e) ||
                             0 === e ||
                             Math.abs(
-                                t.usrCoords[0] - this.coords.usrCoords[0]
+                                t.usrCoords[0] - this.coords.usrCoords[0],
                             ) > r.Z.eps
                         )
                             return (
                                 this.setPosition(
                                     l.Z.COORDS_BY_USER,
-                                    t.usrCoords
+                                    t.usrCoords,
                                 ),
                                 this.board.update(this)
                             );
@@ -1615,10 +1615,10 @@ var __webpack_modules__ = {
                                   (d =
                                       this.slideObject.point2.coords.scrCoords),
                                   (i = Math.round(
-                                      ((d[1] - c[1]) * this.intervalCount) / e
+                                      ((d[1] - c[1]) * this.intervalCount) / e,
                                   )),
                                   (s = Math.round(
-                                      ((d[2] - c[2]) * this.intervalCount) / e
+                                      ((d[2] - c[2]) * this.intervalCount) / e,
                                   )),
                                   t > 0
                                       ? (n = this.slideObject.point1)
@@ -1630,7 +1630,7 @@ var __webpack_modules__ = {
                                       [
                                           n.coords.scrCoords[1] + i,
                                           n.coords.scrCoords[2] + s,
-                                      ]
+                                      ],
                                   ))
                                 : this.slideObject.elementClass ===
                                   l.Z.OBJECT_CLASS_CURVE
@@ -1638,20 +1638,20 @@ var __webpack_modules__ = {
                                       t > 0
                                           ? Math.round(
                                                 (this.intervalCount / e) *
-                                                    this.board.canvasWidth
+                                                    this.board.canvasWidth,
                                             )
                                           : Math.round(
                                                 ((e - this.intervalCount) / e) *
-                                                    this.board.canvasWidth
+                                                    this.board.canvasWidth,
                                             )),
                                   this.coords.setCoordinates(
                                       l.Z.COORDS_BY_SCREEN,
-                                      [a, 0]
+                                      [a, 0],
                                   ),
                                   (u = o.Z.projectPointToCurve(
                                       this,
                                       this.slideObject,
-                                      this.board
+                                      this.board,
                                   )),
                                   (this.coords = u[0]),
                                   (this.position = u[1]))
@@ -1672,7 +1672,7 @@ var __webpack_modules__ = {
                                           this.slideObject.center.coords
                                               .usrCoords[2] +
                                               h * Math.sin(r),
-                                      ]
+                                      ],
                                   )),
                             this.board.update(this),
                             this
@@ -1716,7 +1716,7 @@ var __webpack_modules__ = {
                             return !1;
                         (n = new t(e, [0, 0], s, r, o)).addTransform(
                             i[0],
-                            i[1]
+                            i[1],
                         ),
                             (n.isDraggable = !1);
                     }
@@ -1982,7 +1982,7 @@ var __webpack_modules__ = {
                                     h.animationData[i][a - o - 1] = c.Z.hsv2rgb(
                                         s[0] + (o + 1) * n,
                                         s[1] + (o + 1) * l,
-                                        s[2] + (o + 1) * d
+                                        s[2] + (o + 1) * d,
                                     );
                             },
                             u = function (t, e, i, s) {
@@ -2062,7 +2062,7 @@ var __webpack_modules__ = {
                                         d.Z.exists(o[e].rendNode) &&
                                         "inherit" ===
                                             d.Z.evaluate(
-                                                o[e].visProp.visible
+                                                o[e].visProp.visible,
                                             ) &&
                                         o[e].setDisplayRendNode(t);
                             else
@@ -2115,12 +2115,12 @@ var __webpack_modules__ = {
                                         d.Z.exists(o[e]) &&
                                             "inherit" ===
                                                 d.Z.evaluate(
-                                                    o[e].visProp.visible
+                                                    o[e].visProp.visible,
                                                 ) &&
                                             o[e]
                                                 .prepareUpdate()
                                                 .updateVisibility(
-                                                    this.visPropCalc.visible
+                                                    this.visPropCalc.visible,
                                                 );
                                 else
                                     d.Z.exists(o) &&
@@ -2129,7 +2129,7 @@ var __webpack_modules__ = {
                                         o
                                             .prepareUpdate()
                                             .updateVisibility(
-                                                this.visPropCalc.visible
+                                                this.visPropCalc.visible,
                                             );
                             d.Z.exists(this.label) &&
                                 d.Z.exists(this.label.visProp) &&
@@ -2185,7 +2185,7 @@ var __webpack_modules__ = {
                                 for (s = 0; s < r.length; s++)
                                     d.Z.isObject(t[r[s]]) &&
                                         (t[r[s]] = this.resolveShortcuts(
-                                            t[r[s]]
+                                            t[r[s]],
                                         ));
                             }
                         return t;
@@ -2243,7 +2243,7 @@ var __webpack_modules__ = {
                                     if (
                                         ((this.visProp[n] = d.Z.merge(
                                             this.visProp[n],
-                                            a
+                                            a,
                                         )),
                                         this.type === r.Z.OBJECT_TYPE_TICKS &&
                                             d.Z.exists(this.labels))
@@ -2280,7 +2280,7 @@ var __webpack_modules__ = {
                                                 this,
                                                 this.needsRegularUpdate
                                                     ? "auto"
-                                                    : "static"
+                                                    : "static",
                                             );
                                         break;
                                     case "labelcolor":
@@ -2297,7 +2297,7 @@ var __webpack_modules__ = {
                                                 this.board.renderer.setObjectStrokeColor(
                                                     this.label,
                                                     a,
-                                                    l
+                                                    l,
                                                 )),
                                             this.elementClass ===
                                                 r.Z.OBJECT_CLASS_TEXT &&
@@ -2307,7 +2307,7 @@ var __webpack_modules__ = {
                                                 this.board.renderer.setObjectStrokeColor(
                                                     this,
                                                     a,
-                                                    l
+                                                    l,
                                                 ));
                                         break;
                                     case "infoboxtext":
@@ -2321,11 +2321,11 @@ var __webpack_modules__ = {
                                             ("true" === a || a)),
                                             this.setDisplayRendNode(
                                                 d.Z.evaluate(
-                                                    this.visProp.visible
-                                                )
+                                                    this.visProp.visible,
+                                                ),
                                             ),
                                             d.Z.evaluate(
-                                                this.visProp.visible
+                                                this.visProp.visible,
                                             ) &&
                                                 d.Z.exists(this.updateSize) &&
                                                 this.updateSize();
@@ -2334,7 +2334,7 @@ var __webpack_modules__ = {
                                         d.Z.isPoint(this) &&
                                             ((this.visProp.face = a),
                                             this.board.renderer.changePointStyle(
-                                                this
+                                                this,
                                             ));
                                         break;
                                     case "trace":
@@ -2347,7 +2347,7 @@ var __webpack_modules__ = {
                                     case "gradient":
                                         (this.visProp.gradient = a),
                                             this.board.renderer.setGradient(
-                                                this
+                                                this,
                                             );
                                         break;
                                     case "gradientsecondcolor":
@@ -2357,14 +2357,14 @@ var __webpack_modules__ = {
                                             (this.visProp.gradientsecondopacity =
                                                 a[1]),
                                             this.board.renderer.updateGradient(
-                                                this
+                                                this,
                                             );
                                         break;
                                     case "gradientsecondopacity":
                                         (this.visProp.gradientsecondopacity =
                                             a),
                                             this.board.renderer.updateGradient(
-                                                this
+                                                this,
                                             );
                                         break;
                                     case "withlabel":
@@ -2393,7 +2393,7 @@ var __webpack_modules__ = {
                                             r.Z.OBJECT_CLASS_TEXT &&
                                             "internal" ===
                                                 d.Z.evaluate(
-                                                    this.visProp.display
+                                                    this.visProp.display,
                                                 )) ||
                                             this.type ===
                                                 r.Z.OBJECT_TYPE_IMAGE) &&
@@ -2430,7 +2430,7 @@ var __webpack_modules__ = {
                                     case "layer":
                                         this.board.renderer.setLayer(
                                             this,
-                                            d.Z.evaluate(a)
+                                            d.Z.evaluate(a),
                                         ),
                                             this._set(n, a);
                                         break;
@@ -2438,7 +2438,7 @@ var __webpack_modules__ = {
                                         d.Z.exists(this.rendNode) &&
                                             (this.rendNode.setAttribute(
                                                 "tabindex",
-                                                a
+                                                a,
                                             ),
                                             this._set(n, a));
                                         break;
@@ -2459,7 +2459,7 @@ var __webpack_modules__ = {
                                 }
                                 this.triggerEventHandlers(
                                     ["attribute:" + n],
-                                    [p, a, this]
+                                    [p, a, this],
                                 );
                             }
                         return (
@@ -2503,13 +2503,13 @@ var __webpack_modules__ = {
                     remove: function () {
                         return (
                             this.board.renderer.remove(
-                                this.board.renderer.getElementById(this.id)
+                                this.board.renderer.getElementById(this.id),
                             ),
                             this.hasLabel &&
                                 this.board.renderer.remove(
                                     this.board.renderer.getElementById(
-                                        this.label.id
-                                    )
+                                        this.label.id,
+                                    ),
                                 ),
                             this
                         );
@@ -2546,7 +2546,7 @@ var __webpack_modules__ = {
                             s.Z.elements.text
                                 ? (((t = d.Z.deepCopy(
                                       this.visProp.label,
-                                      null
+                                      null,
                                   )).id = this.id + "Label"),
                                   (t.isLabel = !0),
                                   (t.anchor = this),
@@ -2563,14 +2563,14 @@ var __webpack_modules__ = {
                                                       : e.name;
                                               },
                                           ],
-                                          t
+                                          t,
                                       )),
                                       (this.label.needsUpdate = !0),
                                       (this.label.dump = !1),
                                       this.label.fullUpdate(),
                                       (this.hasLabel = !0)))
                                 : s.Z.debug(
-                                      "JSXGraph: Can't create label: text element is not available. Make sure you include base/text"
+                                      "JSXGraph: Can't create label: text element is not available. Make sure you include base/text",
                                   ),
                             this
                         );
@@ -2652,7 +2652,7 @@ var __webpack_modules__ = {
                                             return -a.Y();
                                         },
                                     ],
-                                    { type: "translate" }
+                                    { type: "translate" },
                                 )),
                                 (i = this.board.create(
                                     "transform",
@@ -2664,7 +2664,7 @@ var __webpack_modules__ = {
                                             return a.Y();
                                         },
                                     ],
-                                    { type: "translate" }
+                                    { type: "translate" },
                                 )),
                                 (s = this.board.create(
                                     "transform",
@@ -2678,7 +2678,7 @@ var __webpack_modules__ = {
                                             return 1;
                                         },
                                     ],
-                                    { type: "scale" }
+                                    { type: "scale" },
                                 )),
                                 (o = this.board.create(
                                     "transform",
@@ -2692,7 +2692,7 @@ var __webpack_modules__ = {
                                             return 1;
                                         },
                                     ],
-                                    { type: "scale" }
+                                    { type: "scale" },
                                 )),
                                 (n = this.board.create(
                                     "transform",
@@ -2704,7 +2704,7 @@ var __webpack_modules__ = {
                                             );
                                         },
                                     ],
-                                    { type: "rotate" }
+                                    { type: "rotate" },
                                 )),
                                 e.bindTo(this),
                                 s.bindTo(this),
@@ -2718,7 +2718,7 @@ var __webpack_modules__ = {
                         return (
                             s.Z.deprecated(
                                 "highlightStrokeColor()",
-                                "setAttribute()"
+                                "setAttribute()",
                             ),
                             this.setAttribute({ highlightStrokeColor: t }),
                             this
@@ -2749,7 +2749,7 @@ var __webpack_modules__ = {
                         return (
                             s.Z.deprecated(
                                 "highlightFillColor()",
-                                "setAttribute()"
+                                "setAttribute()",
                             ),
                             this.setAttribute({ highlightFillColor: t }),
                             this
@@ -2851,10 +2851,10 @@ var __webpack_modules__ = {
                                             i++
                                         )
                                             d.Z.exists(
-                                                this.ticks[e].labels[i]
+                                                this.ticks[e].labels[i],
                                             ) &&
                                                 this.board.removeObject(
-                                                    this.ticks[e].labels[i]
+                                                    this.ticks[e].labels[i],
                                                 );
                                     delete this.ticks[e];
                                     break;
@@ -2915,14 +2915,14 @@ var __webpack_modules__ = {
                                         (h = new s.Z.Coords(
                                             r.Z.COORDS_BY_USER,
                                             [n, a],
-                                            this.board
+                                            this.board,
                                         )),
                                         (!b ||
                                             h.distance(
                                                 "screen" === g
                                                     ? r.Z.COORDS_BY_SCREEN
                                                     : r.Z.COORDS_BY_USER,
-                                                this.coords
+                                                this.coords,
                                             ) < m) &&
                                             ((i = n),
                                             (o = a),
@@ -2939,7 +2939,7 @@ var __webpack_modules__ = {
                                                     : o > c && (o -= f)),
                                             this.coords.setCoordinates(
                                                 r.Z.COORDS_BY_USER,
-                                                [i, o]
+                                                [i, o],
                                             ))))),
                             this
                         );
@@ -2986,7 +2986,7 @@ var __webpack_modules__ = {
                     addEvent: s.Z.shortcut(s.Z.GeometryElement.prototype, "on"),
                     removeEvent: s.Z.shortcut(
                         s.Z.GeometryElement.prototype,
-                        "off"
+                        "off",
                     ),
                     __evt__over: function (t) {},
                     __evt__mouseover: function (t) {},
@@ -3034,12 +3034,12 @@ var __webpack_modules__ = {
                     t,
                     i,
                     r.Z.OBJECT_TYPE_TEXT,
-                    r.Z.OBJECT_CLASS_TEXT
+                    r.Z.OBJECT_CLASS_TEXT,
                 ),
                     (this.element = this.board.select(i.anchor)),
                     this.coordsConstructor(
                         e,
-                        h.Z.evaluate(this.visProp.islabel)
+                        h.Z.evaluate(this.visProp.islabel),
                     ),
                     (this.content = ""),
                     (this.plaintext = ""),
@@ -3078,10 +3078,10 @@ var __webpack_modules__ = {
                                     l.Z.inverse(
                                         this.board.renderer.joinTransforms(
                                             this,
-                                            this.transformations
-                                        )
+                                            this.transformations,
+                                        ),
                                     ),
-                                    [1, t, e]
+                                    [1, t, e],
                                 ))[1]),
                                 (e = i[2])),
                             (s =
@@ -3133,16 +3133,16 @@ var __webpack_modules__ = {
                                                   this.replaceSup(
                                                       this.convertGeonextAndSketchometry2CSS(
                                                           s,
-                                                          !1
-                                                      )
-                                                  )
+                                                          !1,
+                                                      ),
+                                                  ),
                                               ));
                             };
                         else if (
                             (h.Z.isNumber(t)
                                 ? (this.content = h.Z.toFixed(
                                       t,
-                                      h.Z.evaluate(this.visProp.digits)
+                                      h.Z.evaluate(this.visProp.digits),
                                   ))
                                 : h.Z.isString(t) &&
                                   r &&
@@ -3153,10 +3153,10 @@ var __webpack_modules__ = {
                                             this.valueTagToJessieCode(t)),
                                         (this.content = this.content.replace(
                                             /\\/g,
-                                            "\\\\"
+                                            "\\\\",
                                         )))
                                       : (this.content = this.poorMansTeX(
-                                            this.valueTagToJessieCode(t)
+                                            this.valueTagToJessieCode(t),
                                         )),
                                   (a = !0)),
                             a)
@@ -3165,7 +3165,7 @@ var __webpack_modules__ = {
                                 this.content,
                                 !0,
                                 "",
-                                !1
+                                !1,
                             )).deps)
                                 this.addParents(e.deps[i]),
                                     e.deps[i].addChild(this);
@@ -3273,7 +3273,7 @@ var __webpack_modules__ = {
                                 t
                                     .substr(i)
                                     .replace(/_(.?)/, "<sub>$1</sub>")).indexOf(
-                                "_"
+                                "_",
                             );
                         return t;
                     },
@@ -3296,7 +3296,7 @@ var __webpack_modules__ = {
                                     .substr(i)
                                     .replace(
                                         /\^(.?)/,
-                                        "<sup>$1</sup>"
+                                        "<sup>$1</sup>",
                                     )).indexOf("^");
                         return t;
                     },
@@ -3320,11 +3320,11 @@ var __webpack_modules__ = {
                                       -(e - i.usrCoords[2]) * this.board.unitY),
                                   this.relativeCoords.setCoordinates(
                                       r.Z.COORDS_BY_SCREEN,
-                                      [s, o]
+                                      [s, o],
                                   ))
                                 : this.coords.setCoordinates(
                                       r.Z.COORDS_BY_USER,
-                                      [t, e]
+                                      [t, e],
                                   ),
                             this.fullUpdate(),
                             this
@@ -3338,7 +3338,7 @@ var __webpack_modules__ = {
                                   h.Z.evaluate(this.visProp.display) &&
                                   h.Z.isString(this.plaintext) &&
                                   (this.plaintext = this.utf8_decode(
-                                      this.plaintext
+                                      this.plaintext,
                                   )),
                               this.checkForSizeUpdate(),
                               this.needsSizeUpdate && this.updateSize(),
@@ -3373,19 +3373,19 @@ var __webpack_modules__ = {
                             ((o = (t = (t = (t = (t = (t = (t = (t = (t = (t =
                                 (t = (t = t || "").replace(/\r/g, "")).replace(
                                     /\n/g,
-                                    ""
+                                    "",
                                 )).replace(/"/g, "'")).replace(
                                 /'/g,
-                                "\\'"
+                                "\\'",
                             )).replace(/&amp;arc;/g, "&ang;")).replace(
                                 /<arc\s*\/>/g,
-                                "&ang;"
+                                "&ang;",
                             )).replace(/&lt;arc\s*\/&gt;/g, "&ang;")).replace(
                                 /&lt;sqrt\s*\/&gt;/g,
-                                "&radic;"
+                                "&radic;",
                             )).replace(/&lt;value&gt;/g, "<value>")).replace(
                                 /&lt;\/value&gt;/g,
-                                "</value>"
+                                "</value>",
                             )).indexOf("<value>")),
                             (a = t.indexOf("</value>")),
                             o >= 0)
@@ -3394,22 +3394,22 @@ var __webpack_modules__ = {
                                 (l +=
                                     ' + "' +
                                     this.replaceSub(
-                                        this.replaceSup(t.slice(0, o))
+                                        this.replaceSup(t.slice(0, o)),
                                     ) +
                                     '"'),
                                     (r = (r = t.slice(o + 7, a)).replace(
                                         /\s+/g,
-                                        ""
+                                        "",
                                     )),
                                     !0 === e && (r = this.expandShortMath(r)),
                                     (s = (s = (s = i
                                         ? r
                                         : n.Z.geonext2JS(
                                               r,
-                                              this.board
+                                              this.board,
                                           )).replace(/\\"/g, "'")).replace(
                                         /\\'/g,
-                                        "'"
+                                        "'",
                                     )).indexOf("toFixed") < 0 &&
                                     h.Z.isNumber(
                                         h.Z.bind(
@@ -3417,22 +3417,22 @@ var __webpack_modules__ = {
                                                 s,
                                                 !0,
                                                 "",
-                                                !1
+                                                !1,
                                             ),
-                                            this
-                                        )()
+                                            this,
+                                        )(),
                                     )
                                         ? (l +=
                                               "+(" +
                                               s +
                                               ").toFixed(" +
                                               h.Z.evaluate(
-                                                  this.visProp.digits
+                                                  this.visProp.digits,
                                               ) +
                                               ")")
                                         : (l += "+(" + s + ")"),
                                     (o = (t = t.slice(a + 8)).indexOf(
-                                        "<value>"
+                                        "<value>",
                                     )),
                                     (a = t.indexOf("</value>"));
                         return (
@@ -3442,7 +3442,7 @@ var __webpack_modules__ = {
                                 '"'),
                             (l = (l = (l =
                                 this.convertGeonextAndSketchometry2CSS(
-                                    l
+                                    l,
                                 )).replace(/&amp;/g, "&")).replace(/"/g, "'"))
                         );
                     },
@@ -3456,12 +3456,12 @@ var __webpack_modules__ = {
                         if (
                             ((s = (t = (t = (t = (t = (t = t || "").replace(
                                 /\r/g,
-                                ""
+                                "",
                             )).replace(/\n/g, "")).replace(
                                 /&lt;value&gt;/g,
-                                "<value>"
+                                "<value>",
                             )).replace(/&lt;\/value&gt;/g, "</value>")).indexOf(
-                                "<value>"
+                                "<value>",
                             )),
                             (r = t.indexOf("</value>")),
                             s >= 0)
@@ -3470,12 +3470,12 @@ var __webpack_modules__ = {
                                 o.push(n + this.escapeTicks(t.slice(0, s)) + n),
                                     (i = (i = t.slice(s + 7, r)).replace(
                                         /\s+/g,
-                                        ""
+                                        "",
                                     )),
                                     (e = (e = i = this.expandShortMath(i))
                                         .replace(/\\"/g, "'")
                                         .replace(/\\'/g, "'")).indexOf(
-                                        "toFixed"
+                                        "toFixed",
                                     ) < 0 &&
                                     h.Z.isNumber(
                                         h.Z.bind(
@@ -3483,23 +3483,23 @@ var __webpack_modules__ = {
                                                 e,
                                                 !0,
                                                 "",
-                                                !1
+                                                !1,
                                             ),
-                                            this
-                                        )()
+                                            this,
+                                        )(),
                                     )
                                         ? o.push(
                                               "(" +
                                                   e +
                                                   ").toFixed(" +
                                                   h.Z.evaluate(
-                                                      this.visProp.digits
+                                                      this.visProp.digits,
                                                   ) +
-                                                  ")"
+                                                  ")",
                                           )
                                         : o.push("(" + e + ")"),
                                     (s = (t = t.slice(r + 8)).indexOf(
-                                        "<value>"
+                                        "<value>",
                                     )),
                                     (r = t.indexOf("</value>"));
                         return (
@@ -3516,7 +3516,7 @@ var __webpack_modules__ = {
                                 .replace(/&lt;sqrt\s*\/*&gt;/g, "&radic;")),
                             this.convertGeonextAndSketchometry2CSS(
                                 this.replaceSub(this.replaceSup(t)),
-                                !0
+                                !0,
                             )
                         );
                     },
@@ -3531,16 +3531,16 @@ var __webpack_modules__ = {
                             h.Z.isString(t) &&
                                 (t = (t = (t = (t = t.replace(
                                     /(<|&lt;)overline(>|&gt;)/g,
-                                    "<span style=text-decoration:overline;>"
+                                    "<span style=text-decoration:overline;>",
                                 )).replace(
                                     /(<|&lt;)\/overline(>|&gt;)/g,
-                                    "</span>"
+                                    "</span>",
                                 )).replace(
                                     /(<|&lt;)arrow(>|&gt;)/g,
-                                    "<span style=text-decoration:overline;>"
+                                    "<span style=text-decoration:overline;>",
                                 )).replace(
                                     /(<|&lt;)\/arrow(>|&gt;)/g,
-                                    "</span>"
+                                    "</span>",
                                 )),
                             t
                         );
@@ -3555,10 +3555,10 @@ var __webpack_modules__ = {
                                     (s = this.escapeTicks(s))),
                                 (t = (t = t.replace(
                                     /(<|&lt;)sketchofont(>|&gt;)/g,
-                                    i
+                                    i,
                                 )).replace(
                                     /(<|&lt;)\/sketchofont(>|&gt;)/g,
-                                    s
+                                    s,
                                 ))),
                             t
                         );
@@ -3574,13 +3574,13 @@ var __webpack_modules__ = {
                             i = null;
                         t = (t = t.replace(
                             /&lt;value&gt;/g,
-                            "<value>"
+                            "<value>",
                         )).replace(/&lt;\/value&gt;/g, "</value>");
                         do {
                             null !==
                                 (i = (e =
                                     /<value>([\w\s*/^\-+()[\],<>=!]+)<\/value>/).exec(
-                                    t
+                                    t,
                                 )) &&
                                 (n.Z.findDependencies(this, i[1], this.board),
                                 (t = (t = t.substr(i.index)).replace(e, "")));
@@ -3718,7 +3718,7 @@ var __webpack_modules__ = {
                                     i + p,
                                     s - _,
                                     g,
-                                    m
+                                    m,
                                 )))
                         )
                             return this;
@@ -3778,7 +3778,7 @@ var __webpack_modules__ = {
                                 typeof e[0] +
                                 "' and '" +
                                 typeof e[1] +
-                                "'.\nPossible parent types: [x,y], [z,x,y], [element,transformation]"
+                                "'.\nPossible parent types: [x,y], [z,x,y], [element,transformation]",
                         );
                     return (
                         0 !== o.rotate &&
@@ -3802,7 +3802,7 @@ var __webpack_modules__ = {
                                 typeof e[0] +
                                 "' and '" +
                                 typeof e[1] +
-                                "'.\nPossible parents are: [[x,y], [min, start, max]]"
+                                "'.\nPossible parents are: [[x,y], [min, start, max]]",
                         );
                     (n.anchor = n.parent || n.anchor),
                         (n.fixed = n.fixed || !0),
@@ -3904,7 +3904,7 @@ var __webpack_modules__ = {
                         return (
                             s.deprecated(
                                 "JXG.getReference()",
-                                "Board.select()"
+                                "Board.select()",
                             ),
                             t.select(e)
                         );
@@ -3944,7 +3944,7 @@ var __webpack_modules__ = {
                                     : "object" == typeof document &&
                                       document.getElementById("debug") &&
                                       (document.getElementById(
-                                          "debug"
+                                          "debug",
                                       ).innerHTML += i + "<br/>");
                     },
                     debugWST: function (t) {
@@ -3954,7 +3954,7 @@ var __webpack_modules__ = {
                                 e.stack &&
                                 (s.debugInt("stacktrace"),
                                 s.debugInt(
-                                    e.stack.split("\n").slice(1).join("\n")
+                                    e.stack.split("\n").slice(1).join("\n"),
                                 ));
                     },
                     debugLine: function (t) {
@@ -3964,7 +3964,7 @@ var __webpack_modules__ = {
                                 e.stack &&
                                 s.debugInt(
                                     "Called from",
-                                    e.stack.split("\n").slice(2, 3).join("\n")
+                                    e.stack.split("\n").slice(2, 3).join("\n"),
                                 );
                     },
                     debug: function (t) {
@@ -3995,7 +3995,7 @@ var __webpack_modules__ = {
                         return (
                             s.Z.deprecated(
                                 "Geometry.angle()",
-                                "Geometry.rad()"
+                                "Geometry.rad()",
                             ),
                             t.coords
                                 ? ((h[0] = t.coords.usrCoords[1]),
@@ -4060,7 +4060,7 @@ var __webpack_modules__ = {
                                           0.5 * (u[1] + _[1]),
                                           0.5 * (u[2] + _[2]),
                                       ],
-                                      s
+                                      s,
                                   )
                                 : ((c = u[1] - p[1]),
                                   (d = u[2] - p[2]),
@@ -4168,7 +4168,7 @@ var __webpack_modules__ = {
                     circumcenterMidpoint: function () {
                         s.Z.deprecated(
                             "Geometry.circumcenterMidpoint()",
-                            "Geometry.circumcenter()"
+                            "Geometry.circumcenter()",
                         ),
                             this.circumcenter.apply(this, arguments);
                     },
@@ -4199,7 +4199,7 @@ var __webpack_modules__ = {
                             new o.Z(
                                 r.Z.COORDS_BY_USER,
                                 n.Z.crossProduct(c, d),
-                                s
+                                s,
                             )
                         );
                     },
@@ -4254,7 +4254,7 @@ var __webpack_modules__ = {
                                         ? -1 / 0
                                         : Math.atan2(
                                               t[2] - e[2],
-                                              t[1] - e[1]
+                                              t[1] - e[1],
                                           )) -
                                     (i[2] === e[2] && i[1] === e[1]
                                         ? -1 / 0
@@ -4357,7 +4357,7 @@ var __webpack_modules__ = {
                                 (c = (l = this.meetLineBoard(
                                     _,
                                     t.board,
-                                    s
+                                    s,
                                 ))[0]),
                                 (d = l[1]),
                                 !o && !a)
@@ -4387,12 +4387,12 @@ var __webpack_modules__ = {
                                 f &&
                                     e.setCoordinates(
                                         r.Z.COORDS_BY_USER,
-                                        f.usrCoords
+                                        f.usrCoords,
                                     ),
                                 b &&
                                     i.setCoordinates(
                                         r.Z.COORDS_BY_USER,
-                                        b.usrCoords
+                                        b.usrCoords,
                                     );
                         }
                     },
@@ -4425,7 +4425,7 @@ var __webpack_modules__ = {
                                               },
                                           },
                                           t,
-                                          t.board
+                                          t.board,
                                       )),
                                       (l = this.projectPointToLine(
                                           {
@@ -4434,7 +4434,7 @@ var __webpack_modules__ = {
                                               },
                                           },
                                           t,
-                                          t.board
+                                          t.board,
                                       )))
                                     : ((a = this.projectPointToLine(
                                           {
@@ -4443,7 +4443,7 @@ var __webpack_modules__ = {
                                               },
                                           },
                                           t,
-                                          t.board
+                                          t.board,
                                       )),
                                       (l = this.projectPointToLine(
                                           {
@@ -4452,7 +4452,7 @@ var __webpack_modules__ = {
                                               },
                                           },
                                           t,
-                                          t.board
+                                          t.board,
                                       ))),
                                 !f && !b)
                             ) {
@@ -4460,15 +4460,15 @@ var __webpack_modules__ = {
                                     if (
                                         ((s = e.distance(
                                             r.Z.COORDS_BY_USER,
-                                            i
+                                            i,
                                         )),
                                         Math.abs(
                                             e.distance(r.Z.COORDS_BY_USER, a) +
                                                 a.distance(
                                                     r.Z.COORDS_BY_USER,
-                                                    i
+                                                    i,
                                                 ) -
-                                                s
+                                                s,
                                         ) > n.Z.eps)
                                     )
                                         return;
@@ -4477,9 +4477,9 @@ var __webpack_modules__ = {
                                             e.distance(r.Z.COORDS_BY_USER, l) +
                                                 l.distance(
                                                     r.Z.COORDS_BY_USER,
-                                                    i
+                                                    i,
                                                 ) -
-                                                s
+                                                s,
                                         ) > n.Z.eps
                                     )
                                         return;
@@ -4509,12 +4509,12 @@ var __webpack_modules__ = {
                                 p &&
                                     e.setCoordinates(
                                         r.Z.COORDS_BY_USER,
-                                        p.usrCoords
+                                        p.usrCoords,
                                     ),
                                 _ &&
                                     i.setCoordinates(
                                         r.Z.COORDS_BY_USER,
-                                        _.usrCoords
+                                        _.usrCoords,
                                     );
                         }
                     },
@@ -4646,7 +4646,7 @@ var __webpack_modules__ = {
                                 ? ((c = (u = new o.Z(
                                       r.Z.COORDS_BY_USER,
                                       [t, e],
-                                      this.board
+                                      this.board,
                                   )).scrCoords[1]),
                                   (d = u.scrCoords[2]))
                                 : ((c = t), (d = e)),
@@ -4700,7 +4700,7 @@ var __webpack_modules__ = {
                                               i,
                                               a,
                                               e.board,
-                                              h.Z.evaluate(c)
+                                              h.Z.evaluate(c),
                                           );
                                       }
                                     : e.type === r.Z.OBJECT_TYPE_POLYGON ||
@@ -4709,16 +4709,16 @@ var __webpack_modules__ = {
                                         ? function () {
                                               var t,
                                                   s = h.Z.evaluate(
-                                                      e.visProp.straightfirst
+                                                      e.visProp.straightfirst,
                                                   ),
                                                   r = h.Z.evaluate(
-                                                      e.visProp.straightlast
+                                                      e.visProp.straightlast,
                                                   ),
                                                   o = h.Z.evaluate(
-                                                      i.visProp.straightfirst
+                                                      i.visProp.straightfirst,
                                                   ),
                                                   n = h.Z.evaluate(
-                                                      i.visProp.straightlast
+                                                      i.visProp.straightlast,
                                                   );
                                               return (
                                                   (t = !(
@@ -4730,7 +4730,7 @@ var __webpack_modules__ = {
                                                       e,
                                                       a,
                                                       e.board,
-                                                      t
+                                                      t,
                                                   )
                                               );
                                           }
@@ -4739,16 +4739,16 @@ var __webpack_modules__ = {
                                         ? function () {
                                               var t,
                                                   s = h.Z.evaluate(
-                                                      e.visProp.straightfirst
+                                                      e.visProp.straightfirst,
                                                   ),
                                                   r = h.Z.evaluate(
-                                                      e.visProp.straightlast
+                                                      e.visProp.straightlast,
                                                   ),
                                                   o = h.Z.evaluate(
-                                                      i.visProp.straightfirst
+                                                      i.visProp.straightfirst,
                                                   ),
                                                   n = h.Z.evaluate(
-                                                      i.visProp.straightlast
+                                                      i.visProp.straightlast,
                                                   );
                                               return (
                                                   (t = !(
@@ -4760,7 +4760,7 @@ var __webpack_modules__ = {
                                                       i,
                                                       a,
                                                       e.board,
-                                                      t
+                                                      t,
                                                   )
                                               );
                                           }
@@ -4769,7 +4769,7 @@ var __webpack_modules__ = {
                                                   e,
                                                   i,
                                                   a,
-                                                  e.board
+                                                  e.board,
                                               );
                                           }
                                     : e.elementClass ===
@@ -4779,16 +4779,16 @@ var __webpack_modules__ = {
                                           var t,
                                               s,
                                               n = h.Z.evaluate(
-                                                  e.visProp.straightfirst
+                                                  e.visProp.straightfirst,
                                               ),
                                               l = h.Z.evaluate(
-                                                  e.visProp.straightlast
+                                                  e.visProp.straightlast,
                                               ),
                                               d = h.Z.evaluate(
-                                                  i.visProp.straightfirst
+                                                  i.visProp.straightfirst,
                                               ),
                                               u = h.Z.evaluate(
-                                                  i.visProp.straightlast
+                                                  i.visProp.straightlast,
                                               );
                                           return h.Z.evaluate(c) ||
                                               (n && l && d && u)
@@ -4796,13 +4796,13 @@ var __webpack_modules__ = {
                                                     e.stdform,
                                                     i.stdform,
                                                     a,
-                                                    e.board
+                                                    e.board,
                                                 )
                                               : ((t = p.meetSegmentSegment(
                                                     e.point1.coords.usrCoords,
                                                     e.point2.coords.usrCoords,
                                                     i.point1.coords.usrCoords,
-                                                    i.point2.coords.usrCoords
+                                                    i.point2.coords.usrCoords,
                                                 )),
                                                 (s =
                                                     (!n && t[1] < 0) ||
@@ -4814,7 +4814,7 @@ var __webpack_modules__ = {
                                                 new o.Z(
                                                     r.Z.COORDS_BY_USER,
                                                     s,
-                                                    e.board
+                                                    e.board,
                                                 ));
                                       }
                                     : function () {
@@ -4825,7 +4825,7 @@ var __webpack_modules__ = {
                                                   e.stdform,
                                                   i.stdform,
                                                   a,
-                                                  e.board
+                                                  e.board,
                                               ),
                                               b = !0;
                                           return h.Z.evaluate(c)
@@ -4833,16 +4833,16 @@ var __webpack_modules__ = {
                                               : (e.elementClass !==
                                                     r.Z.OBJECT_CLASS_LINE ||
                                                     ((t = h.Z.evaluate(
-                                                        e.visProp.straightfirst
+                                                        e.visProp.straightfirst,
                                                     )),
                                                     (l = h.Z.evaluate(
-                                                        e.visProp.straightlast
+                                                        e.visProp.straightlast,
                                                     )),
                                                     (t && l) ||
                                                         ((_ = p.affineRatio(
                                                             e.point1.coords,
                                                             e.point2.coords,
-                                                            f
+                                                            f,
                                                         )),
                                                         !(
                                                             (!l &&
@@ -4856,16 +4856,16 @@ var __webpack_modules__ = {
                                                 (i.elementClass !==
                                                     r.Z.OBJECT_CLASS_LINE ||
                                                     ((t = h.Z.evaluate(
-                                                        i.visProp.straightfirst
+                                                        i.visProp.straightfirst,
                                                     )),
                                                     (l = h.Z.evaluate(
-                                                        i.visProp.straightlast
+                                                        i.visProp.straightlast,
                                                     )),
                                                     (t && l) ||
                                                         ((_ = p.affineRatio(
                                                             i.point1.coords,
                                                             i.point2.coords,
-                                                            f
+                                                            f,
                                                         )),
                                                         !(
                                                             (!l &&
@@ -4884,13 +4884,13 @@ var __webpack_modules__ = {
                                                   ? new o.Z(
                                                         s.Z.COORDS_BY_USER,
                                                         [0, NaN, NaN],
-                                                        e.board
+                                                        e.board,
                                                     )
                                                   : f
                                               : new o.Z(
                                                     s.Z.COORDS_BY_USER,
                                                     [0, NaN, NaN],
-                                                    e.board
+                                                    e.board,
                                                 );
                                       }
                                 : function () {
@@ -4899,7 +4899,7 @@ var __webpack_modules__ = {
                                           i,
                                           a,
                                           l,
-                                          e.board
+                                          e.board,
                                       );
                                   }
                         );
@@ -4908,7 +4908,7 @@ var __webpack_modules__ = {
                         var i = this.rad(
                                 t.radiuspoint,
                                 t.center,
-                                e.usrCoords.slice(1)
+                                e.usrCoords.slice(1),
                             ),
                             s = 0,
                             r = this.rad(t.radiuspoint, t.center, t.anglepoint),
@@ -4979,12 +4979,12 @@ var __webpack_modules__ = {
                                 (s = new o.Z(
                                     r.Z.COORDS_BY_SCREEN,
                                     s.slice(1),
-                                    e
+                                    e,
                                 )),
                                 (a = new o.Z(
                                     r.Z.COORDS_BY_SCREEN,
                                     a.slice(1),
-                                    e
+                                    e,
                                 )),
                             ]
                         );
@@ -4999,7 +4999,7 @@ var __webpack_modules__ = {
                         var a, l, c, d, u, p, _, f, b;
                         return e[4] < n.Z.eps
                             ? Math.abs(
-                                  n.Z.innerProduct([1, e[6], e[7]], t, 3)
+                                  n.Z.innerProduct([1, e[6], e[7]], t, 3),
                               ) < n.Z.eps
                                 ? new o.Z(r.Z.COORDS_BY_USER, e.slice(6, 8), s)
                                 : new o.Z(r.Z.COORDS_BY_USER, [NaN, NaN], s)
@@ -5029,7 +5029,7 @@ var __webpack_modules__ = {
                                                   -b[0] * -u[1] - d * u[0],
                                                   -b[0] * u[0] - d * u[1],
                                               ],
-                                              s
+                                              s,
                                           )
                                         : new o.Z(
                                               r.Z.COORDS_BY_USER,
@@ -5037,7 +5037,7 @@ var __webpack_modules__ = {
                                                   -b[1] * -u[1] - d * u[0],
                                                   -b[1] * u[0] - d * u[1],
                                               ],
-                                              s
+                                              s,
                                           ))
                                   : new o.Z(r.Z.COORDS_BY_USER, [0, 0, 0], s));
                     },
@@ -5046,14 +5046,14 @@ var __webpack_modules__ = {
                         return t[4] < n.Z.eps
                             ? Math.abs(
                                   this.distance(t.slice(6, 2), e.slice(6, 8)) -
-                                      e[4]
+                                      e[4],
                               ) < n.Z.eps
                                 ? new o.Z(r.Z.COORDS_BY_USER, t.slice(6, 8), s)
                                 : new o.Z(r.Z.COORDS_BY_USER, [0, 0, 0], s)
                             : e[4] < n.Z.eps
                             ? Math.abs(
                                   this.distance(e.slice(6, 2), t.slice(6, 8)) -
-                                      t[4]
+                                      t[4],
                               ) < n.Z.eps
                                 ? new o.Z(r.Z.COORDS_BY_USER, e.slice(6, 8), s)
                                 : new o.Z(r.Z.COORDS_BY_USER, [0, 0, 0], s)
@@ -5079,14 +5079,14 @@ var __webpack_modules__ = {
                                           t,
                                           e,
                                           h.Z.evaluate(i),
-                                          s
+                                          s,
                                       )
                                     : 3 === t.bezierDegree ||
                                       3 === e.bezierDegree
                                     ? this.meetBezierCurveRedBlueSegments(
                                           t,
                                           e,
-                                          i
+                                          i,
                                       )
                                     : this.meetCurveRedBlueSegments(t, e, i)),
                             new o.Z(r.Z.COORDS_BY_USER, c, n)
@@ -5160,7 +5160,7 @@ var __webpack_modules__ = {
                                 (l = a.Z.root(d, [
                                     Math.max(l - b, t.minX()),
                                     Math.min(l + b, t.maxX()),
-                                ]))
+                                ])),
                             )),
                             (f = isNaN(C) || Math.abs(C) > P ? 0 : 1),
                             new o.Z(r.Z.COORDS_BY_USER, [f, t.X(l), t.Y(l)], s)
@@ -5224,14 +5224,14 @@ var __webpack_modules__ = {
                                                       ].usrCoords.slice(1),
                                                   ],
                                                   [g.slice(1), m.slice(1)],
-                                                  a
+                                                  a,
                                               )
                                             : [
                                                   this.meetSegmentSegment(
                                                       d,
                                                       u,
                                                       g,
-                                                      m
+                                                      m,
                                                   ),
                                               ],
                                         c = 0;
@@ -5247,7 +5247,7 @@ var __webpack_modules__ = {
                                                 : (_ = new o.Z(
                                                       r.Z.COORDS_BY_USER,
                                                       p[0],
-                                                      s
+                                                      s,
                                                   ));
                                         v += 1;
                                     }
@@ -5288,7 +5288,7 @@ var __webpack_modules__ = {
                                             o,
                                             n,
                                             a,
-                                            l
+                                            l,
                                         ))[1] >= 0 &&
                                         c[2] >= 0 &&
                                         ((c[1] < 1 && c[2] < 1) ||
@@ -5348,7 +5348,7 @@ var __webpack_modules__ = {
                                 this.distance(
                                     l[0].coords.usrCoords,
                                     l[d - 1].coords.usrCoords,
-                                    3
+                                    3,
                                 ) < n.Z.eps &&
                                 l.pop(),
                             (d = (c = s.Z.Math.Clip._getPath(e, a)).length) >
@@ -5356,7 +5356,7 @@ var __webpack_modules__ = {
                                 this.distance(
                                     c[0].coords.usrCoords,
                                     c[d - 1].coords.usrCoords,
-                                    3
+                                    3,
                                 ) <
                                     n.Z.eps * n.Z.eps &&
                                 c.pop(),
@@ -5369,13 +5369,13 @@ var __webpack_modules__ = {
                                   (u = s.Z.Math.Clip.findIntersections(
                                       l,
                                       c,
-                                      a
+                                      a,
                                   )[0]).length
                                       ? u[p].coords
                                       : new o.Z(
                                             r.Z.COORDS_BY_USER,
                                             [0, 0, 0],
-                                            a
+                                            a,
                                         ))
                         );
                     },
@@ -5393,7 +5393,7 @@ var __webpack_modules__ = {
                                     c.point1.coords.usrCoords,
                                     c.point2.coords.usrCoords,
                                     e.point1.coords.usrCoords,
-                                    e.point2.coords.usrCoords
+                                    e.point2.coords.usrCoords,
                                 )),
                                 (!n || (l[2] >= 0 && l[2] < 1)) &&
                                     l[1] >= 0 &&
@@ -5445,25 +5445,25 @@ var __webpack_modules__ = {
                                       t[0][0],
                                       t[1][0],
                                       t[2][0],
-                                      t[3][0]
+                                      t[3][0],
                                   )),
                                   (e[1] = Math.max(
                                       t[0][1],
                                       t[1][1],
                                       t[2][1],
-                                      t[3][1]
+                                      t[3][1],
                                   )),
                                   (e[2] = Math.max(
                                       t[0][0],
                                       t[1][0],
                                       t[2][0],
-                                      t[3][0]
+                                      t[3][0],
                                   )),
                                   (e[3] = Math.min(
                                       t[0][1],
                                       t[1][1],
                                       t[2][1],
-                                      t[3][1]
+                                      t[3][1],
                                   )))
                                 : ((e[0] = Math.min(t[0][0], t[1][0])),
                                   (e[1] = Math.max(t[0][1], t[1][1])),
@@ -5531,40 +5531,40 @@ var __webpack_modules__ = {
                                           this._bezierMeetSubdivision(
                                               h,
                                               n,
-                                              i + 1
+                                              i + 1,
                                           ),
                                           0,
-                                          0
+                                          0,
                                       ),
                                       this._bezierListConcat(
                                           f,
                                           this._bezierMeetSubdivision(
                                               h,
                                               a,
-                                              i + 1
+                                              i + 1,
                                           ),
                                           0,
-                                          0.5
+                                          0.5,
                                       ),
                                       this._bezierListConcat(
                                           f,
                                           this._bezierMeetSubdivision(
                                               l,
                                               n,
-                                              i + 1
+                                              i + 1,
                                           ),
                                           0.5,
-                                          0
+                                          0,
                                       ),
                                       this._bezierListConcat(
                                           f,
                                           this._bezierMeetSubdivision(
                                               l,
                                               a,
-                                              i + 1
+                                              i + 1,
                                           ),
                                           0.5,
-                                          0.5
+                                          0.5,
                                       ),
                                       f)
                                     : ((p = [1].concat(t[0])),
@@ -5575,7 +5575,7 @@ var __webpack_modules__ = {
                                           p,
                                           _,
                                           d,
-                                          u
+                                          u,
                                       ))[1] >= 0 &&
                                       c[2] >= 0 &&
                                       c[1] <= 1 &&
@@ -5610,18 +5610,18 @@ var __webpack_modules__ = {
                                       this._bezierLineMeetSubdivision(
                                           a,
                                           e,
-                                          i + 1
+                                          i + 1,
                                       ),
-                                      0
+                                      0,
                                   ),
                                   this._bezierListConcat(
                                       _,
                                       this._bezierLineMeetSubdivision(
                                           h,
                                           e,
-                                          i + 1
+                                          i + 1,
                                       ),
-                                      0.5
+                                      0.5,
                                   ),
                                   _)
                                 : ((u = [1].concat(t[0])),
@@ -5632,7 +5632,7 @@ var __webpack_modules__ = {
                                       u,
                                       p,
                                       c,
-                                      d
+                                      d,
                                   ))[1] >= 0 &&
                                   l[1] <= 1 &&
                                   (!s || (l[2] >= 0 && l[2] <= 1))
@@ -5650,7 +5650,7 @@ var __webpack_modules__ = {
                                           t,
                                           e,
                                           0,
-                                          i
+                                          i,
                                       )).sort(function (t, e) {
                                 return 1e7 * (t[1] - e[1]) + (t[2] - e[2]);
                             }),
@@ -5724,7 +5724,7 @@ var __webpack_modules__ = {
                                         (f =
                                             this.meetBeziersegmentBeziersegment(
                                                 d,
-                                                u
+                                                u,
                                             )).length
                                     )
                                         continue;
@@ -5790,7 +5790,7 @@ var __webpack_modules__ = {
                                 d = this.rad(
                                     t.slice(1),
                                     e.slice(1),
-                                    i.slice(1)
+                                    i.slice(1),
                                 ),
                                 -1 === r && (d = 2 * Math.PI - d),
                                 (o = t)[1] /= o[0],
@@ -5835,7 +5835,7 @@ var __webpack_modules__ = {
                                 (g = l[1] - E),
                                 (m = l[2] - O),
                                 (C = Math.sqrt(
-                                    (f + g) * (f + g) + (b + m) * (b + m)
+                                    (f + g) * (f + g) + (b + m) * (b + m),
                                 )),
                                 (v =
                                     Math.abs(m - b) > n.Z.eps
@@ -5879,12 +5879,12 @@ var __webpack_modules__ = {
                             h.Z.isPoint(t)
                                 ? ((s = t.coords.distance(
                                       r.Z.COORDS_BY_USER,
-                                      e.center.coords
+                                      e.center.coords,
                                   )),
                                   (a = t.coords.usrCoords))
                                 : ((s = t.distance(
                                       r.Z.COORDS_BY_USER,
-                                      e.center.coords
+                                      e.center.coords,
                                   )),
                                   (a = t.usrCoords)),
                             Math.abs(s) < n.Z.eps && (s = n.Z.eps),
@@ -5907,7 +5907,7 @@ var __webpack_modules__ = {
                             new o.Z(
                                 r.Z.COORDS_BY_USER,
                                 n.Z.crossProduct(a, e.stdform),
-                                i
+                                i,
                             )
                         );
                     },
@@ -5941,7 +5941,7 @@ var __webpack_modules__ = {
                                         r[1] * r[1] + r[2] * r[2]
                                     );
                                 },
-                                [0, 1]
+                                [0, 1],
                             )),
                             [[1, e.X(r + i), e.Y(r + i)], r]
                         );
@@ -6004,7 +6004,7 @@ var __webpack_modules__ = {
                                               this.projectCoordsToBeziersegment(
                                                   b,
                                                   s,
-                                                  u
+                                                  u,
                                               ))
                                         : ((Z = [
                                               s.Z(d + 1),
@@ -6014,7 +6014,7 @@ var __webpack_modules__ = {
                                           (C = this.projectCoordsToSegment(
                                               b,
                                               v,
-                                              Z
+                                              Z,
                                           ))),
                                         (f = C[1]),
                                         (g = C[0]),
@@ -6080,7 +6080,7 @@ var __webpack_modules__ = {
                                 (c = new o.Z(
                                     r.Z.COORDS_BY_USER,
                                     [s.X(i), s.Y(i)],
-                                    n
+                                    n,
                                 ));
                         }
                         return [s.updateTransform(c), i];
@@ -6098,7 +6098,7 @@ var __webpack_modules__ = {
                                 (o = s.Z.Math.Geometry.projectCoordsToSegment(
                                     t,
                                     e.vertices[i].coords.usrCoords,
-                                    e.vertices[i + 1].coords.usrCoords
+                                    e.vertices[i + 1].coords.usrCoords,
                                 ))[1] && o[1] <= 1
                                 ? ((r = s.Z.Math.Geometry.distance(o[0], t, 3)),
                                   (n = o[0]))
@@ -6106,13 +6106,13 @@ var __webpack_modules__ = {
                                 ? ((r = s.Z.Math.Geometry.distance(
                                       e.vertices[i].coords.usrCoords,
                                       t,
-                                      3
+                                      3,
                                   )),
                                   (n = e.vertices[i].coords.usrCoords))
                                 : ((r = s.Z.Math.Geometry.distance(
                                       e.vertices[i + 1].coords.usrCoords,
                                       t,
-                                      3
+                                      3,
                                   )),
                                   (n = e.vertices[i + 1].coords.usrCoords)),
                                 r < l && ((a = n.slice(0)), (l = r));
@@ -6140,7 +6140,7 @@ var __webpack_modules__ = {
                                 (f = _[1]),
                                 (d = this.distance(
                                     s.usrCoords,
-                                    t.coords.usrCoords
+                                    t.coords.usrCoords,
                                 )) < m &&
                                     ((a = s.usrCoords[1]),
                                     (l = s.usrCoords[2]),
@@ -6175,13 +6175,13 @@ var __webpack_modules__ = {
                                 r[0] * l[r[2]] &&
                                 (((s = n.Z.crossProduct(
                                     [1, l[r[3]], l[r[4]]],
-                                    [1, l[r[5]], l[r[6]]]
+                                    [1, l[r[5]], l[r[6]]],
                                 ))[3] = 0),
                                 (s = n.Z.normalize(s)),
                                 (h = this.projectPointToLine(
                                     { coords: h },
                                     { stdform: s },
-                                    o
+                                    o,
                                 )));
                         return h;
                     },
@@ -6213,7 +6213,7 @@ var __webpack_modules__ = {
                                             (i = n.Z.Geometry.rad(
                                                 [t[0].X() + 1, t[0].Y()],
                                                 t[0],
-                                                t[o % e]
+                                                t[o % e],
                                             ))),
                                         isNaN(p)
                                             ? p
@@ -6365,14 +6365,14 @@ var __webpack_modules__ = {
                         if (r.Z.IntervalArithmetic.isInterval(t)) {
                             if (!r.Z.IntervalArithmetic.isSingleton(t))
                                 throw new TypeError(
-                                    "JXG.Math.IntervalArithmetic: interval `lo` must be a singleton"
+                                    "JXG.Math.IntervalArithmetic: interval `lo` must be a singleton",
                                 );
                             this.lo = t.lo;
                         } else this.lo = t;
                         if (r.Z.IntervalArithmetic.isInterval(e)) {
                             if (!r.Z.IntervalArithmetic.isSingleton(e))
                                 throw new TypeError(
-                                    "JXG.Math.IntervalArithmetic: interval `hi` must be a singleton"
+                                    "JXG.Math.IntervalArithmetic: interval `hi` must be a singleton",
                                 );
                             this.hi = e.hi;
                         } else this.hi = e;
@@ -6394,7 +6394,7 @@ var __webpack_modules__ = {
                 bounded: function (t, e) {
                     return this.set(
                         r.Z.IntervalArithmetic.prev(t),
-                        r.Z.IntervalArithmetic.next(e)
+                        r.Z.IntervalArithmetic.next(e),
                     );
                 },
                 boundedSingleton: function (t) {
@@ -6403,7 +6403,7 @@ var __webpack_modules__ = {
                 assign: function (t, e) {
                     if ("number" != typeof t || "number" != typeof e)
                         throw new TypeError(
-                            "JXG.Math.Interval#assign: arguments must be numbers"
+                            "JXG.Math.Interval#assign: arguments must be numbers",
                         );
                     return isNaN(t) || isNaN(e) || t > e
                         ? this.setEmpty()
@@ -6412,19 +6412,19 @@ var __webpack_modules__ = {
                 setEmpty: function () {
                     return this.set(
                         Number.POSITIVE_INFINITY,
-                        Number.NEGATIVE_INFINITY
+                        Number.NEGATIVE_INFINITY,
                     );
                 },
                 setWhole: function () {
                     return this.set(
                         Number.NEGATIVE_INFINITY,
-                        Number.POSITIVE_INFINITY
+                        Number.POSITIVE_INFINITY,
                     );
                 },
                 open: function (t, e) {
                     return this.assign(
                         r.Z.IntervalArithmetic.next(t),
-                        r.Z.IntervalArithmetic.prev(e)
+                        r.Z.IntervalArithmetic.prev(e),
                     );
                 },
                 halfOpenLeft: function (t, e) {
@@ -6461,7 +6461,7 @@ var __webpack_modules__ = {
                             o.Z.isNumber(e) && (e = this.Interval(e)),
                             new a(
                                 this.addLo(t.lo, e.lo),
-                                this.addHi(t.hi, e.hi)
+                                this.addHi(t.hi, e.hi),
                             )
                         );
                     },
@@ -6471,7 +6471,7 @@ var __webpack_modules__ = {
                             o.Z.isNumber(e) && (e = this.Interval(e)),
                             new a(
                                 this.subLo(t.lo, e.hi),
-                                this.subHi(t.hi, e.lo)
+                                this.subHi(t.hi, e.lo),
                             )
                         );
                     },
@@ -6493,11 +6493,11 @@ var __webpack_modules__ = {
                                               ? n > 0
                                                   ? ((h.lo = Math.min(
                                                         this.mulLo(i, n),
-                                                        this.mulLo(s, r)
+                                                        this.mulLo(s, r),
                                                     )),
                                                     (h.hi = Math.max(
                                                         this.mulHi(i, r),
-                                                        this.mulHi(s, n)
+                                                        this.mulHi(s, n),
                                                     )))
                                                   : ((h.lo = this.mulLo(s, r)),
                                                     (h.hi = this.mulHi(i, r)))
@@ -6616,11 +6616,11 @@ var __webpack_modules__ = {
                             : t.hi < 0
                             ? new a(
                                   Number.NEGATIVE_INFINITY,
-                                  this.divHi(t.hi, e)
+                                  this.divHi(t.hi, e),
                               )
                             : new a(
                                   this.divLo(t.lo, e),
-                                  Number.POSITIVE_INFINITY
+                                  Number.POSITIVE_INFINITY,
                               );
                     },
                     divNegative: function (t, e) {
@@ -6631,11 +6631,11 @@ var __webpack_modules__ = {
                             : t.hi < 0
                             ? new a(
                                   this.divLo(t.hi, e),
-                                  Number.POSITIVE_INFINITY
+                                  Number.POSITIVE_INFINITY,
                               )
                             : new a(
                                   Number.NEGATIVE_INFINITY,
-                                  this.divHi(t.lo, e)
+                                  this.divHi(t.lo, e),
                               );
                     },
                     divZero: function (t) {
@@ -6667,17 +6667,17 @@ var __webpack_modules__ = {
                                         ? this.WHOLE
                                         : new a(
                                               Number.NEGATIVE_INFINITY,
-                                              this.divHi(1, t.lo)
+                                              this.divHi(1, t.lo),
                                           )
                                     : 0 !== t.hi
                                     ? new a(
                                           this.divLo(1, t.hi),
-                                          Number.POSITIVE_INFINITY
+                                          Number.POSITIVE_INFINITY,
                                       )
                                     : this.EMPTY.clone()
                                 : new a(
                                       this.divLo(1, t.hi),
-                                      this.divHi(1, t.lo)
+                                      this.divHi(1, t.lo),
                                   )
                         );
                     },
@@ -6707,18 +6707,18 @@ var __webpack_modules__ = {
                                 ? 1 == (1 & e)
                                     ? new a(
                                           -this.powLo(-t.lo, e),
-                                          this.powHi(t.hi, e)
+                                          this.powHi(t.hi, e),
                                       )
                                     : new a(
                                           0,
-                                          this.powHi(Math.max(-t.lo, t.hi), e)
+                                          this.powHi(Math.max(-t.lo, t.hi), e),
                                       )
                                 : new a(
                                       this.powLo(t.lo, e),
-                                      this.powHi(t.hi, e)
+                                      this.powHi(t.hi, e),
                                   )
                             : (console.warn(
-                                  "power is not an integer, you should use nth-root instead, returning an empty interval"
+                                  "power is not an integer, you should use nth-root instead, returning an empty interval",
                               ),
                               this.EMPTY.clone());
                     },
@@ -6755,7 +6755,7 @@ var __webpack_modules__ = {
                                       : new a(0, n))
                                 : new a(
                                       this.powLo(t.lo, i),
-                                      this.powHi(t.hi, i)
+                                      this.powHi(t.hi, i),
                                   )
                         );
                     },
@@ -6818,7 +6818,7 @@ var __webpack_modules__ = {
                             throw new Error("Interval#unions do not overlap");
                         return new a(
                             Math.min(t.lo, e.lo),
-                            Math.max(t.hi, e.hi)
+                            Math.max(t.hi, e.hi),
                         );
                     },
                     difference: function (t, e) {
@@ -6827,7 +6827,7 @@ var __webpack_modules__ = {
                         if (this.intervalsOverlap(t, e)) {
                             if (t.lo < e.lo && e.hi < t.hi)
                                 throw new Error(
-                                    "Interval.difference: difference creates multiple intervals"
+                                    "Interval.difference: difference creates multiple intervals",
                                 );
                             return (e.lo <= t.lo && e.hi === 1 / 0) ||
                                 (e.hi >= t.hi && e.lo === -1 / 0)
@@ -7199,15 +7199,15 @@ var __webpack_modules__ = {
                 }),
                 (s.Z.Math.IntervalArithmetic.PI = new a(
                     r.Z.IntervalArithmetic.piLow,
-                    r.Z.IntervalArithmetic.piHigh
+                    r.Z.IntervalArithmetic.piHigh,
                 )),
                 (s.Z.Math.IntervalArithmetic.PI_HALF = new a(
                     r.Z.IntervalArithmetic.piHalfLow,
-                    r.Z.IntervalArithmetic.piHalfHigh
+                    r.Z.IntervalArithmetic.piHalfHigh,
                 )),
                 (s.Z.Math.IntervalArithmetic.PI_TWICE = new a(
                     r.Z.IntervalArithmetic.piTwiceLow,
-                    r.Z.IntervalArithmetic.piTwiceHigh
+                    r.Z.IntervalArithmetic.piTwiceHigh,
                 )),
                 (s.Z.Math.IntervalArithmetic.ZERO = new a(0)),
                 (s.Z.Math.IntervalArithmetic.ONE = new a(1)),
@@ -7712,7 +7712,7 @@ var __webpack_modules__ = {
                         c = t.length > 0 ? t[0].length : 0;
                     if (c !== e.length || c !== t.length)
                         throw new Error(
-                            "JXG.Math.Numerics.Gauss: Dimensions don't match. A must be a square matrix and b must be of the same length as A."
+                            "JXG.Math.Numerics.Gauss: Dimensions don't match. A must be a square matrix and b must be of the same length as A.",
                         );
                     for (a = [], h = e.slice(0, c), i = 0; i < c; i++)
                         a[i] = t[i].slice(0, c);
@@ -7732,7 +7732,7 @@ var __webpack_modules__ = {
                                         a[i][o] -= a[i][s] * a[s][o];
                         if (Math.abs(a[s][s]) < l)
                             throw new Error(
-                                "JXG.Math.Numerics.Gauss(): The given matrix seems to be singular."
+                                "JXG.Math.Numerics.Gauss(): The given matrix seems to be singular.",
                             );
                     }
                     return this.backwardSolve(a, h, !0), h;
@@ -7844,7 +7844,7 @@ var __webpack_modules__ = {
                                             0.5 *
                                             Math.atan2(
                                                 2 * f[e][i],
-                                                f[e][e] - f[i][i]
+                                                f[e][e] - f[i][i],
                                             ),
                                             o = Math.sin(r),
                                             a = Math.cos(r),
@@ -7905,7 +7905,7 @@ var __webpack_modules__ = {
                         case "simpson":
                             if (h % 2 > 0)
                                 throw new Error(
-                                    "JSXGraph:  INT_SIMPSON requires config.number_of_nodes dividable by 2."
+                                    "JSXGraph:  INT_SIMPSON requires config.number_of_nodes dividable by 2.",
                                 );
                             for (
                                 n = h / 2,
@@ -7923,7 +7923,7 @@ var __webpack_modules__ = {
                         default:
                             if (h % 4 > 0)
                                 throw new Error(
-                                    "JSXGraph: Error in INT_MILNE: config.number_of_nodes must be a multiple of 4"
+                                    "JSXGraph: Error in INT_MILNE: config.number_of_nodes must be a multiple of 4",
                                 );
                             for (
                                 n = 0.25 * h,
@@ -8270,7 +8270,7 @@ var __webpack_modules__ = {
                             0.1690047266392679, 0.19035057806478542,
                             0.20443294007529889, 0.20948214108472782,
                         ],
-                        i
+                        i,
                     );
                 },
                 GaussKronrod21: function (t, e, i) {
@@ -8298,7 +8298,7 @@ var __webpack_modules__ = {
                             0.14277593857706009, 0.14773910490133849,
                             0.1494455540029169,
                         ],
-                        i
+                        i,
                     );
                 },
                 GaussKronrod31: function (t, e, i) {
@@ -8332,7 +8332,7 @@ var __webpack_modules__ = {
                             0.09664272698362368, 0.09917359872179196,
                             0.10076984552387559, 0.10133000701479154,
                         ],
-                        i
+                        i,
                     );
                 },
                 _workspace: function (t, e) {
@@ -8486,12 +8486,12 @@ var __webpack_modules__ = {
                     if (
                         (O > E.limit &&
                             s.Z.warn(
-                                "iteration limit exceeds available workspace"
+                                "iteration limit exceeds available workspace",
                             ),
                         w <= 0 &&
                             (x < 50 * n.Z.eps || x < 5e-29) &&
                             s.Z.warn(
-                                "tolerance cannot be acheived with given epsabs and epsrel"
+                                "tolerance cannot be acheived with given epsabs and epsrel",
                             ),
                         (h = S.apply(this, [t, e, T])),
                         (l = T.abserr),
@@ -8504,7 +8504,7 @@ var __webpack_modules__ = {
                         return (
                             h,
                             s.Z.warn(
-                                "cannot reach tolerance because of roundoff error on first attempt"
+                                "cannot reach tolerance because of roundoff error on first attempt",
                             ),
                             -1 / 0
                         );
@@ -8513,7 +8513,7 @@ var __webpack_modules__ = {
                         return (
                             h,
                             s.Z.warn(
-                                "a maximum of one iteration was insufficient"
+                                "a maximum of one iteration was insufficient",
                             ),
                             -1 / 0
                         );
@@ -8697,7 +8697,7 @@ var __webpack_modules__ = {
                     for (s = 0; s < o - 2; s++)
                         c.push(
                             (6 * (e[s + 2] - e[s + 1])) / l[s + 1] -
-                                (6 * (e[s + 1] - e[s])) / l[s]
+                                (6 * (e[s + 1] - e[s])) / l[s],
                         );
                     for (
                         n.push(2 * (l[0] + l[1])), a.push(c[0]), s = 0;
@@ -8890,7 +8890,7 @@ var __webpack_modules__ = {
                                                     var e = this.X() - t.X(),
                                                         i = this.Y() - t.Y();
                                                     return Math.sqrt(
-                                                        e * e + i * i
+                                                        e * e + i * i,
                                                     );
                                                 },
                                             },
@@ -8917,7 +8917,7 @@ var __webpack_modules__ = {
                                                     var e = this.X() - t.X(),
                                                         i = this.Y() - t.Y();
                                                     return Math.sqrt(
-                                                        e * e + i * i
+                                                        e * e + i * i,
                                                     );
                                                 },
                                             },
@@ -8961,7 +8961,7 @@ var __webpack_modules__ = {
                                                   s[d + 1][e](),
                                                   s[d + 2][e](),
                                                   a * f,
-                                                  a * b
+                                                  a * b,
                                               )))
                                             : (l[e][d] = c._initCubicPoly(
                                                   s[d + 1][e](),
@@ -8971,7 +8971,7 @@ var __webpack_modules__ = {
                                                           s[d][e]()),
                                                   a *
                                                       (s[d + 3][e]() -
-                                                          s[d + 1][e]())
+                                                          s[d + 1][e]()),
                                               ));
                                 return isNaN(r)
                                     ? NaN
@@ -9022,7 +9022,7 @@ var __webpack_modules__ = {
                             throw new Error(
                                 "JSXGraph: Can't create regressionPolynomial from degree of type'" +
                                     typeof t +
-                                    "'."
+                                    "'.",
                             );
                         o = function () {
                             return t;
@@ -9052,7 +9052,7 @@ var __webpack_modules__ = {
                             )
                         )
                             throw new Error(
-                                "JSXGraph: Can't create regressionPolynomial. Wrong parameters."
+                                "JSXGraph: Can't create regressionPolynomial. Wrong parameters.",
                             );
                         l = 2;
                     }
@@ -9097,7 +9097,7 @@ var __webpack_modules__ = {
                                         s,
                                         Z,
                                         "x",
-                                        3
+                                        3,
                                     ));
                             }
                             for (v = s[Z], u = Z - 1; u >= 0; u--)
@@ -9337,7 +9337,7 @@ var __webpack_modules__ = {
                     return (
                         s.Z.deprecated(
                             "Numerics.riemannsum()",
-                            "Numerics.riemann()"
+                            "Numerics.riemann()",
                         ),
                         this.riemann(t, e, i, r, o)[2]
                     );
@@ -9449,7 +9449,7 @@ var __webpack_modules__ = {
                     if (r.Z.isArray(e)) {
                         if (e.length < 2)
                             throw new Error(
-                                "JXG.Math.Numerics.fzero: length of array x0 has to be at least two."
+                                "JXG.Math.Numerics.fzero: length of array x0 has to be at least two.",
                             );
                         (s = e[0]),
                             (h = t.call(i, s)),
@@ -9535,7 +9535,7 @@ var __webpack_modules__ = {
                     if (r.Z.isArray(e)) {
                         if (e.length < 2)
                             throw new Error(
-                                "JXG.Math.Numerics.fzero: length of array x0 has to be at least two."
+                                "JXG.Math.Numerics.fzero: length of array x0 has to be at least two.",
                             );
                         (s = e[0]),
                             (o = t.call(i, s)),
@@ -9606,7 +9606,7 @@ var __webpack_modules__ = {
                         O = 0;
                     if (!r.Z.isArray(e) || e.length < 2)
                         throw new Error(
-                            "JXG.Math.Numerics.fminbr: length of array x0 has to be at least two."
+                            "JXG.Math.Numerics.fminbr: length of array x0 has to be at least two.",
                         );
                     for (
                         a = h = (s = e[0]) + C * ((o = e[1]) - s),
@@ -9786,7 +9786,7 @@ var __webpack_modules__ = {
                     return (
                         s.Z.deprecated(
                             "Numerics.RamerDouglasPeuker()",
-                            "Numerics.RamerDouglasPeucker()"
+                            "Numerics.RamerDouglasPeucker()",
                         ),
                         this.RamerDouglasPeucker(t, e)
                     );
@@ -9817,7 +9817,7 @@ var __webpack_modules__ = {
                                 t[i - 1].usrCoords,
                                 t[i].usrCoords,
                                 t[i + 1].usrCoords,
-                            ])
+                            ]),
                         )),
                             isNaN(o) ||
                                 ((d = { v: o, idx: i }),
@@ -9847,7 +9847,7 @@ var __webpack_modules__ = {
                                         t[l].usrCoords,
                                         t[a].usrCoords,
                                         t[h].usrCoords,
-                                    ])
+                                    ]),
                                 )),
                                 (u[a].node.v = o >= n ? o : n)),
                             null !== (c = u[h].rt) &&
@@ -9856,7 +9856,7 @@ var __webpack_modules__ = {
                                         t[a].usrCoords,
                                         t[h].usrCoords,
                                         t[c].usrCoords,
-                                    ])
+                                    ]),
                                 )),
                                 (u[h].node.v = o >= n ? o : n));
                     _ = [t[(i = 0)]];
@@ -9950,7 +9950,7 @@ var __webpack_modules__ = {
                 weightedMean: function (t, e) {
                     if (t.length !== e.length)
                         throw new Error(
-                            "JSXGraph error (Math.Statistics.weightedMean): Array dimension mismatch."
+                            "JSXGraph error (Math.Statistics.weightedMean): Array dimension mismatch.",
                         );
                     return t.length > 0 ? this.mean(this.multiply(t, e)) : 0;
                 },
@@ -10109,7 +10109,7 @@ var __webpack_modules__ = {
                                     (t[i].usrCoords[1] - t[e].usrCoords[1]));
                         (s[e] = this.median(o)),
                             n.push(
-                                t[e].usrCoords[2] - s[e] * t[e].usrCoords[1]
+                                t[e].usrCoords[2] - s[e] * t[e].usrCoords[1],
                             );
                     }
                     return [this.median(n), this.median(s), -1];
@@ -11437,45 +11437,45 @@ var __webpack_modules__ = {
                     var e = s.Z.Options;
                     (e.point.fillColor = n.Z.rgb2bw(e.point.fillColor)),
                         (e.point.highlightFillColor = n.Z.rgb2bw(
-                            e.point.highlightFillColor
+                            e.point.highlightFillColor,
                         )),
                         (e.point.strokeColor = n.Z.rgb2bw(e.point.strokeColor)),
                         (e.point.highlightStrokeColor = n.Z.rgb2bw(
-                            e.point.highlightStrokeColor
+                            e.point.highlightStrokeColor,
                         )),
                         (e.line.fillColor = n.Z.rgb2bw(e.line.fillColor)),
                         (e.line.highlightFillColor = n.Z.rgb2bw(
-                            e.line.highlightFillColor
+                            e.line.highlightFillColor,
                         )),
                         (e.line.strokeColor = n.Z.rgb2bw(e.line.strokeColor)),
                         (e.line.highlightStrokeColor = n.Z.rgb2bw(
-                            e.line.highlightStrokeColor
+                            e.line.highlightStrokeColor,
                         )),
                         (e.circle.fillColor = n.Z.rgb2bw(e.circle.fillColor)),
                         (e.circle.highlightFillColor = n.Z.rgb2bw(
-                            e.circle.highlightFillColor
+                            e.circle.highlightFillColor,
                         )),
                         (e.circle.strokeColor = n.Z.rgb2bw(
-                            e.circle.strokeColor
+                            e.circle.strokeColor,
                         )),
                         (e.circle.highlightStrokeColor = n.Z.rgb2bw(
-                            e.circle.highlightStrokeColor
+                            e.circle.highlightStrokeColor,
                         )),
                         (e.arc.fillColor = n.Z.rgb2bw(e.arc.fillColor)),
                         (e.arc.highlightFillColor = n.Z.rgb2bw(
-                            e.arc.highlightFillColor
+                            e.arc.highlightFillColor,
                         )),
                         (e.arc.strokeColor = n.Z.rgb2bw(e.arc.strokeColor)),
                         (e.arc.highlightStrokeColor = n.Z.rgb2bw(
-                            e.arc.highlightStrokeColor
+                            e.arc.highlightStrokeColor,
                         )),
                         (e.polygon.fillColor = n.Z.rgb2bw(e.polygon.fillColor)),
                         (e.polygon.highlightFillColor = n.Z.rgb2bw(
-                            e.polygon.highlightFillColor
+                            e.polygon.highlightFillColor,
                         )),
                         (e.sector.fillColor = n.Z.rgb2bw(e.sector.fillColor)),
                         (e.sector.highlightFillColor = n.Z.rgb2bw(
-                            e.sector.highlightFillColor
+                            e.sector.highlightFillColor,
                         )),
                         (e.curve.strokeColor = n.Z.rgb2bw(e.curve.strokeColor)),
                         (e.grid.gridColor = n.Z.rgb2bw(e.grid.gridColor)),
@@ -11502,7 +11502,7 @@ var __webpack_modules__ = {
                             throw new Error(
                                 "JSXGraph: Error while parsing expression '" +
                                     t +
-                                    "'"
+                                    "'",
                             );
                         if (
                             ((r = c),
@@ -11517,7 +11517,7 @@ var __webpack_modules__ = {
                                     (i -= 1);
                             if (0 !== e)
                                 throw new Error(
-                                    "JSXGraph: Missing '(' in expression"
+                                    "JSXGraph: Missing '(' in expression",
                                 );
                             for (
                                 o = "", a = l.substring(0, i + 1), h = i;
@@ -11527,7 +11527,7 @@ var __webpack_modules__ = {
                                 (o = RegExp.$1 + o), (h -= 1);
                             o = (o += l.substring(i + 1, l.length)).replace(
                                 /([()+*%^\-/\][])/g,
-                                "\\$1"
+                                "\\$1",
                             );
                         } else o = "[\\w\\.]+";
                         if (d.match(/^([\w.]*\()/)) {
@@ -11542,11 +11542,11 @@ var __webpack_modules__ = {
                                     (i += 1);
                             if (0 !== e)
                                 throw new Error(
-                                    "JSXGraph: Missing ')' in expression"
+                                    "JSXGraph: Missing ')' in expression",
                                 );
                             n = (n = d.substring(0, i)).replace(
                                 /([()+*%^\-/[\]])/g,
-                                "\\$1"
+                                "\\$1",
                             );
                         } else n = "[\\w\\.]+";
                         (u = new RegExp("(" + o + ")\\^(" + n + ")")),
@@ -11625,7 +11625,7 @@ var __webpack_modules__ = {
                                 (s = t.indexOf(")", a + 2)) >= 0 &&
                                 ((r = (r = t.slice(a + 2, s)).replace(
                                     /\\(['"])?/g,
-                                    "$1"
+                                    "$1",
                                 )),
                                 (o = e.elementsByName[r]) &&
                                     (t =
@@ -11640,7 +11640,7 @@ var __webpack_modules__ = {
                             (s = t.indexOf(",", a + 5)) >= 0 &&
                             ((r = (r = t.slice(a + 5, s)).replace(
                                 /\\(['"])?/g,
-                                "$1"
+                                "$1",
                             )),
                             (o = e.elementsByName[r]) &&
                                 (t = t.slice(0, a + 5) + l(o.id) + t.slice(s))),
@@ -11649,7 +11649,7 @@ var __webpack_modules__ = {
                             (s = t.indexOf(")", a + 1)) >= 0 &&
                                 ((r = (r = t.slice(a + 1, s)).replace(
                                     /\\(['"])?/g,
-                                    "$1"
+                                    "$1",
                                 )),
                                 (o = e.elementsByName[r]) &&
                                     (t =
@@ -11664,7 +11664,7 @@ var __webpack_modules__ = {
                                 (s = t.indexOf(",", a + 4)) >= 0 &&
                                 ((r = (r = t.slice(a + 4, s)).replace(
                                     /\\(['"])?/g,
-                                    "$1"
+                                    "$1",
                                 )),
                                 (o = e.elementsByName[r]) &&
                                     (t =
@@ -11676,7 +11676,7 @@ var __webpack_modules__ = {
                                 (s = t.indexOf(",", a + 1)) >= 0 &&
                                     ((r = (r = t.slice(a + 1, s)).replace(
                                         /\\(['"])?/g,
-                                        "$1"
+                                        "$1",
                                     )),
                                     (o = e.elementsByName[r]) &&
                                         (t =
@@ -11688,7 +11688,7 @@ var __webpack_modules__ = {
                                 (s = t.indexOf(")", a + 1)) >= 0 &&
                                     ((r = (r = t.slice(a + 1, s)).replace(
                                         /\\(['"])?/g,
-                                        "$1"
+                                        "$1",
                                     )),
                                     (o = e.elementsByName[r]) &&
                                         (t =
@@ -11763,7 +11763,7 @@ var __webpack_modules__ = {
                         s = t =
                             (t = (t = t.replace(/&lt;/g, "<")).replace(
                                 /&gt;/g,
-                                ">"
+                                ">",
                             )).replace(/&amp;/g, "&"),
                             s = this.replaceNameById(s, e),
                             s = this.replaceIf(s),
@@ -11775,15 +11775,15 @@ var __webpack_modules__ = {
                     )
                         (i = new RegExp(
                             ["(\\W|^)(", o[r], ")"].join(""),
-                            "ig"
+                            "ig",
                         )),
                             (s = s.replace(i, ["$1", n[r]].join("")));
                     return (s = (s = (s = (s = (s = s.replace(
                         /True/g,
-                        "true"
+                        "true",
                     )).replace(/False/g, "false")).replace(
                         /fasle/g,
-                        "false"
+                        "false",
                     )).replace(/Pi/g, "PI")).replace(/"/g, "'"));
                 },
                 findDependencies: function (t, e, i) {
@@ -11796,13 +11796,13 @@ var __webpack_modules__ = {
                                 o.Z.evaluate(s[n].visProp.islabel)) ||
                                 ((h = (h = n.replace(/\[/g, "\\[")).replace(
                                     /\]/g,
-                                    "\\]"
+                                    "\\]",
                                 )),
                                 (a = new RegExp(
                                     "\\(([\\w\\[\\]'_ ]+,)*(" +
                                         h +
                                         ")(,[\\w\\[\\]'_ ]+)*\\)",
-                                    "g"
+                                    "g",
                                 )),
                                 e.search(a) >= 0 && s[n].addChild(t)));
                 },
@@ -11812,15 +11812,15 @@ var __webpack_modules__ = {
                         (i = t =
                             (t = (t = t.replace(/&lt;/g, "<")).replace(
                                 /&gt;/g,
-                                ">"
+                                ">",
                             )).replace(/&amp;/g, "&")),
                         (i = (i = (i = (i = this.replaceNameById(
                             i,
                             e,
-                            !0
+                            !0,
                         )).replace(/True/g, "true")).replace(
                             /False/g,
-                            "false"
+                            "false",
                         )).replace(/fasle/g, "false"))
                     );
                 },
@@ -11830,7 +11830,7 @@ var __webpack_modules__ = {
         254: (
             __unused_webpack_module,
             __webpack_exports__,
-            __webpack_require__
+            __webpack_require__,
         ) => {
             __webpack_require__.d(__webpack_exports__, {
                 Z: () => __WEBPACK_DEFAULT_EXPORT__,
@@ -11856,15 +11856,15 @@ var __webpack_modules__ = {
                 (Object.create = function (t, e) {
                     if ("object" != typeof t && "function" != typeof t)
                         throw new TypeError(
-                            "Object prototype may only be an Object: " + t
+                            "Object prototype may only be an Object: " + t,
                         );
                     if (null === t)
                         throw new Error(
-                            "This browser's implementation of Object.create is a shim and doesn't support 'null' as the first argument."
+                            "This browser's implementation of Object.create is a shim and doesn't support 'null' as the first argument.",
                         );
                     if (void 0 !== e)
                         throw new Error(
-                            "This browser's implementation of Object.create is a shim and doesn't support a second argument."
+                            "This browser's implementation of Object.create is a shim and doesn't support a second argument.",
                         );
                     function i() {}
                     return (i.prototype = t), new i();
@@ -11913,7 +11913,7 @@ var __webpack_modules__ = {
                         (this.CA = new _jxg__WEBPACK_IMPORTED_MODULE_0__.Z.CA(
                             this.node,
                             this.createNode,
-                            this
+                            this,
                         )),
                     (this.code = ""),
                     "string" == typeof t && this.parse(t, e);
@@ -11932,7 +11932,7 @@ var __webpack_modules__ = {
                             return (
                                 "node_const" == r.type &&
                                     _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.isNumber(
-                                        r.value
+                                        r.value,
                                     ) &&
                                     (r.isMath = !0),
                                 (r.line = this.parCurLine),
@@ -11985,7 +11985,7 @@ var __webpack_modules__ = {
                                                   void 0 ===
                                                       (r =
                                                           _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.exists(
-                                                              s
+                                                              s,
                                                           )
                                                               ? s
                                                               : {}).name &&
@@ -12010,7 +12010,7 @@ var __webpack_modules__ = {
                         letvar: function (t, e) {
                             this.builtIn[t] &&
                                 this._warn(
-                                    '"' + t + '" is a predefined value.'
+                                    '"' + t + '" is a predefined value.',
                                 ),
                                 (this.scope.locals[t] = e);
                         },
@@ -12018,7 +12018,7 @@ var __webpack_modules__ = {
                             for (var e = this.scope; null !== e; ) {
                                 if (
                                     _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.exists(
-                                        e.locals[t]
+                                        e.locals[t],
                                     )
                                 )
                                     return e;
@@ -12031,7 +12031,7 @@ var __webpack_modules__ = {
                                 if (
                                     _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.indexOf(
                                         e.args,
-                                        t
+                                        t,
                                     ) > -1
                                 )
                                     return e;
@@ -12055,7 +12055,7 @@ var __webpack_modules__ = {
                                 ((e =
                                     _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.def(
                                         e,
-                                        !1
+                                        !1,
                                     )),
                                 null !== (s = this.isLocalVariable(t)))
                             )
@@ -12075,7 +12075,7 @@ var __webpack_modules__ = {
                             for (var e = this.scope; null !== e; ) {
                                 if (
                                     _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.exists(
-                                        e.locals[t]
+                                        e.locals[t],
                                     )
                                 )
                                     return e.locals[t];
@@ -12089,12 +12089,12 @@ var __webpack_modules__ = {
                                 (e =
                                     _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.def(
                                         e,
-                                        !1
+                                        !1,
                                     )),
                                 (i =
                                     _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.def(
                                         i,
-                                        !1
+                                        !1,
                                     )),
                                 null !== this.isParameter(t)
                                     ? t
@@ -12107,40 +12107,40 @@ var __webpack_modules__ = {
                                           "'].concat([a, props])); })"
                                         : (i &&
                                               this._error(
-                                                  "Syntax error (attribute values are allowed with element creators only)"
+                                                  "Syntax error (attribute values are allowed with element creators only)",
                                               ),
                                           this.isBuiltIn(t)
                                               ? ((r =
                                                     this.builtIn[t].src ||
                                                     this.builtIn[t]),
                                                 _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.isNumber(
-                                                    r
+                                                    r,
                                                 ) || r.match(/board\.select/)
                                                     ? r
                                                     : ((t = r.split(".").pop()),
                                                       _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.exists(
-                                                          this.board.mathLib
+                                                          this.board.mathLib,
                                                       ) &&
                                                       null !==
                                                           (s = new RegExp(
-                                                              "^Math." + t
+                                                              "^Math." + t,
                                                           )).exec(r)
                                                           ? r.replace(
                                                                 s,
                                                                 "$jc$.board.mathLib." +
-                                                                    t
+                                                                    t,
                                                             )
                                                           : _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.exists(
                                                                 this.board
-                                                                    .mathLibJXG
+                                                                    .mathLibJXG,
                                                             ) &&
                                                             null !==
                                                                 (s = new RegExp(
-                                                                    "^JXG.Math."
+                                                                    "^JXG.Math.",
                                                                 )).exec(r)
                                                           ? r.replace(
                                                                 s,
-                                                                "$jc$.board.mathLibJXG."
+                                                                "$jc$.board.mathLibJXG.",
                                                             )
                                                           : r))
                                               : this.isMathMethod(t)
@@ -12149,7 +12149,7 @@ var __webpack_modules__ = {
                                               ? ""
                                               : (_utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.isId(
                                                     this.board,
-                                                    t
+                                                    t,
                                                 )
                                                     ? ((r =
                                                           "$jc$.board.objects['" +
@@ -12161,7 +12161,7 @@ var __webpack_modules__ = {
                                                           (r += ".Value()"))
                                                     : _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.isName(
                                                           this.board,
-                                                          t
+                                                          t,
                                                       )
                                                     ? ((r =
                                                           "$jc$.board.elementsByName['" +
@@ -12174,7 +12174,7 @@ var __webpack_modules__ = {
                                                           (r += ".Value()"))
                                                     : _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.isGroup(
                                                           this.board,
-                                                          t
+                                                          t,
                                                       ) &&
                                                       (r =
                                                           "$jc$.board.groups['" +
@@ -12237,8 +12237,8 @@ var __webpack_modules__ = {
                                                 scope.argtypes.push(
                                                     that.resolveType(
                                                         list[i],
-                                                        node
-                                                    )
+                                                        node,
+                                                    ),
                                                 );
                                             return fun;
                                         } catch (t) {
@@ -12247,7 +12247,7 @@ var __webpack_modules__ = {
                                                     "error compiling function\n\n" +
                                                         str +
                                                         "\n\n" +
-                                                        t.toString()
+                                                        t.toString(),
                                                 ),
                                                 function () {}
                                             );
@@ -12283,15 +12283,15 @@ var __webpack_modules__ = {
                                         return _that.compile(
                                             _that.replaceIDs(
                                                 _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.deepCopy(
-                                                    node
-                                                )
-                                            )
+                                                    node,
+                                                ),
+                                            ),
                                         );
                                     })),
                                 (fun.deps = {}),
                                 this.collectDependencies(
                                     node.children[1],
-                                    fun.deps
+                                    fun.deps,
                                 ),
                                 fun
                             );
@@ -12304,7 +12304,7 @@ var __webpack_modules__ = {
                                     _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.deepCopy(
                                         i,
                                         arguments[e],
-                                        !0
+                                        !0,
                                     );
                             return i;
                         },
@@ -12322,7 +12322,7 @@ var __webpack_modules__ = {
                                   ("X" !== e && "Y" !== e)
                                     ? t.type && t.elementClass && t.visProp
                                         ? _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.exists(
-                                              t[t.methodMap[e]]
+                                              t[t.methodMap[e]],
                                           ) &&
                                           "function" != typeof t[t.methodMap[e]]
                                             ? (t[t.methodMap[e]] = i)
@@ -12341,7 +12341,7 @@ var __webpack_modules__ = {
                                                     i,
                                                     this.board,
                                                     null,
-                                                    !0
+                                                    !0,
                                                 )),
                                             (t[e + "jc"] = i)),
                                       (t[e].origin = i),
@@ -12353,7 +12353,7 @@ var __webpack_modules__ = {
                                         t.setPosition(
                                             _base_constants__WEBPACK_IMPORTED_MODULE_1__
                                                 .Z.COORDS_BY_USER,
-                                            [s, r]
+                                            [s, r],
                                         ))
                                       : !t.isDraggable ||
                                         ("function" != typeof i &&
@@ -12390,7 +12390,7 @@ var __webpack_modules__ = {
                             try {
                                 for (
                                     _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.exists(
-                                        i
+                                        i,
                                     ) || (i = !1),
                                         r = 0;
                                     r < h.length;
@@ -12400,7 +12400,7 @@ var __webpack_modules__ = {
                                         (h[r] =
                                             _jxg__WEBPACK_IMPORTED_MODULE_0__.Z.GeonextParser.geonext2JS(
                                                 h[r],
-                                                this.board
+                                                this.board,
                                             )),
                                         l.push(h[r]);
                                 switch (
@@ -12410,7 +12410,7 @@ var __webpack_modules__ = {
                                         ((n = this.CA.expandDerivatives(
                                             n,
                                             null,
-                                            n
+                                            n,
                                         )),
                                         (n = this.CA.removeTrivialNodes(n))),
                                     e)
@@ -12451,17 +12451,17 @@ var __webpack_modules__ = {
                                 (e =
                                     _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.def(
                                         e,
-                                        !0
+                                        !0,
                                     )),
                                 (i =
                                     _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.def(
                                         i,
-                                        ""
+                                        "",
                                     )),
                                 (s =
                                     _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.def(
                                         s,
-                                        !1
+                                        !1,
                                     )),
                                 (r =
                                     (e
@@ -12482,7 +12482,7 @@ var __webpack_modules__ = {
                                             t.children[1][0].value
                                         ]),
                                     _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.exists(
-                                        i
+                                        i,
                                     ) &&
                                         "" !== i.name &&
                                         ((t.type = "node_var"),
@@ -12490,7 +12490,7 @@ var __webpack_modules__ = {
                                         (t.children.length = 0),
                                         delete t.replaced)),
                                 _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.isArray(
-                                    t
+                                    t,
                                 ))
                             )
                                 for (e = 0; e < t.length; e++)
@@ -12498,10 +12498,10 @@ var __webpack_modules__ = {
                             if (t.children)
                                 for (e = t.children.length; e > 0; e--)
                                     _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.exists(
-                                        t.children[e - 1]
+                                        t.children[e - 1],
                                     ) &&
                                         (t.children[e - 1] = this.replaceIDs(
-                                            t.children[e - 1]
+                                            t.children[e - 1],
                                         ));
                             return t;
                         },
@@ -12517,15 +12517,15 @@ var __webpack_modules__ = {
                                       (this.isLHS
                                           ? this.letvar(i, !0)
                                           : !_utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.exists(
-                                                this.getvar(i, !0)
+                                                this.getvar(i, !0),
                                             ) &&
                                             _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.exists(
-                                                this.board.elementsByName[i]
+                                                this.board.elementsByName[i],
                                             ) &&
                                             (t =
                                                 this.createReplacementNode(t))),
                                 _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.isArray(
-                                    t
+                                    t,
                                 ))
                             )
                                 for (e = 0; e < t.length; e++)
@@ -12533,10 +12533,10 @@ var __webpack_modules__ = {
                             if (t.children)
                                 for (e = t.children.length; e > 0; e--)
                                     _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.exists(
-                                        t.children[e - 1]
+                                        t.children[e - 1],
                                     ) &&
                                         (t.children[e - 1] = this.replaceNames(
-                                            t.children[e - 1]
+                                            t.children[e - 1],
                                         ));
                             return (
                                 "node_op" === t.type &&
@@ -12554,7 +12554,7 @@ var __webpack_modules__ = {
                                     "node_op",
                                     "op_execfun",
                                     this.createNode("node_var", "$"),
-                                    [this.createNode("node_str", i.id)]
+                                    [this.createNode("node_str", i.id)],
                                 )).replaced = !0),
                                 t
                             );
@@ -12563,7 +12563,7 @@ var __webpack_modules__ = {
                             var i, s, r, o;
                             if (
                                 _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.isArray(
-                                    t
+                                    t,
                                 )
                             )
                                 for (o = t.length, i = 0; i < o; i++)
@@ -12588,11 +12588,11 @@ var __webpack_modules__ = {
                             )
                                 for (i = t.children.length; i > 0; i--)
                                     _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.exists(
-                                        t.children[i - 1]
+                                        t.children[i - 1],
                                     ) &&
                                         this.collectDependencies(
                                             t.children[i - 1],
-                                            e
+                                            e,
                                         );
                         },
                         resolveProperty: function (t, e, i) {
@@ -12600,34 +12600,34 @@ var __webpack_modules__ = {
                                 (i =
                                     _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.def(
                                         i,
-                                        !1
+                                        !1,
                                     )),
                                 t &&
                                     t.methodMap &&
                                     (_utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.exists(
-                                        t.subs
+                                        t.subs,
                                     ) &&
                                     _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.exists(
-                                        t.subs[e]
+                                        t.subs[e],
                                     )
                                         ? (t = t.subs)
                                         : _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.exists(
-                                              t.methodMap[e]
+                                              t.methodMap[e],
                                           )
                                         ? (e = t.methodMap[e])
                                         : ((t = t.visProp),
                                           (e = e.toLowerCase()))),
                                 _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.isFunction(
-                                    t
+                                    t,
                                 ) &&
                                     this._error(
-                                        "Accessing function properties is not allowed."
+                                        "Accessing function properties is not allowed.",
                                     ),
                                 _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.exists(
-                                    t
+                                    t,
                                 ) || this._error(t + " is not an object"),
                                 _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.exists(
-                                    t[e]
+                                    t[e],
                                 ) || this._error("unknown property " + e),
                                 i && "function" == typeof t[e]
                                     ? function () {
@@ -12640,7 +12640,7 @@ var __webpack_modules__ = {
                             var i, s;
                             if (
                                 _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.isArray(
-                                    e
+                                    e,
                                 )
                             )
                                 for (i = 0; i < e.length; i++)
@@ -12697,7 +12697,7 @@ var __webpack_modules__ = {
                                     "op_extvalue" !== t.value
                                 )
                                     throw new Error(
-                                        "Syntax error: Invalid left-hand side of assignment."
+                                        "Syntax error: Invalid left-hand side of assignment.",
                                     );
                                 e = {
                                     o: this.execute(t.children[0]),
@@ -12723,7 +12723,7 @@ var __webpack_modules__ = {
                                     "op_extvalue" !== t.value
                                 )
                                     throw new Error(
-                                        "Syntax error: Invalid left-hand side of assignment."
+                                        "Syntax error: Invalid left-hand side of assignment.",
                                     );
                                 i = [
                                     this.compile(t.children[0], e),
@@ -12759,7 +12759,7 @@ var __webpack_modules__ = {
                                                 this.execute(t.children[0]),
                                                 t.children[1] &&
                                                     (e = this.execute(
-                                                        t.children[1]
+                                                        t.children[1],
                                                     ));
                                             break;
                                         case "op_assign":
@@ -12771,20 +12771,20 @@ var __webpack_modules__ = {
                                                     i.o.methodMap &&
                                                     "label" === i.what &&
                                                     this._error(
-                                                        "Left-hand side of assignment is read-only."
+                                                        "Left-hand side of assignment is read-only.",
                                                     ),
                                                 (e = this.execute(
-                                                    t.children[1]
+                                                    t.children[1],
                                                 )),
                                                 i.o !== this.scope.locals ||
                                                 (_utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.isArray(
-                                                    i.o
+                                                    i.o,
                                                 ) &&
                                                     "number" == typeof i.what)
                                                     ? this.setProp(
                                                           i.o,
                                                           i.what,
-                                                          e
+                                                          e,
                                                       )
                                                     : this.letvar(i.what, e),
                                                 (this.lhs[this.scope.id] = 0);
@@ -12792,7 +12792,7 @@ var __webpack_modules__ = {
                                         case "op_if":
                                             this.execute(t.children[0]) &&
                                                 (e = this.execute(
-                                                    t.children[1]
+                                                    t.children[1],
                                                 ));
                                             break;
                                         case "op_conditional":
@@ -12859,8 +12859,8 @@ var __webpack_modules__ = {
                                             )
                                                 e.push(
                                                     this.execute(
-                                                        t.children[0][s]
-                                                    )
+                                                        t.children[0][s],
+                                                    ),
                                                 );
                                             break;
                                         case "op_extvalue":
@@ -12869,10 +12869,10 @@ var __webpack_modules__ = {
                                                     "number" ==
                                                         typeof (s =
                                                             this.execute(
-                                                                t.children[1]
+                                                                t.children[1],
                                                             )) &&
                                                     Math.abs(
-                                                        Math.round(s) - s
+                                                        Math.round(s) - s,
                                                     ) <
                                                         _math_math__WEBPACK_IMPORTED_MODULE_3__
                                                             .Z.eps
@@ -12882,7 +12882,7 @@ var __webpack_modules__ = {
                                         case "op_return":
                                             if (0 !== this.scope)
                                                 return this.execute(
-                                                    t.children[0]
+                                                    t.children[0],
                                                 );
                                             this._error("Unexpected return.");
                                             break;
@@ -12891,11 +12891,11 @@ var __webpack_modules__ = {
                                                 "node_var" ===
                                                     t.children[1].type ||
                                                 this._error(
-                                                    "execute: In a map only function calls and mathematical expressions are allowed."
+                                                    "execute: In a map only function calls and mathematical expressions are allowed.",
                                                 ),
                                                 ((h =
                                                     this.defineFunction(
-                                                        t
+                                                        t,
                                                     )).isMap = !0),
                                                 (e = h);
                                             break;
@@ -12911,7 +12911,7 @@ var __webpack_modules__ = {
                                                 this.pscope++,
                                                 (n = t.children[1]),
                                                 _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.exists(
-                                                    t.children[2]
+                                                    t.children[2],
                                                 ))
                                             )
                                                 if (t.children[3])
@@ -12926,51 +12926,51 @@ var __webpack_modules__ = {
                                                             _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.deepCopy(
                                                                 l,
                                                                 this.execute(
-                                                                    a[s]
+                                                                    a[s],
                                                                 ),
-                                                                !0
+                                                                !0,
                                                             );
                                                 else
                                                     l = this.execute(
-                                                        t.children[2]
+                                                        t.children[2],
                                                     );
                                             for (
                                                 t.children[0]._isFunctionName =
                                                     !0,
                                                     h = this.execute(
-                                                        t.children[0]
+                                                        t.children[0],
                                                     ),
                                                     delete t.children[0]
                                                         ._isFunctionName,
                                                     c = h && h.sc ? h.sc : this,
                                                     !h.creator &&
                                                         _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.exists(
-                                                            t.children[2]
+                                                            t.children[2],
                                                         ) &&
                                                         this._error(
-                                                            "Unexpected value. Only element creators are allowed to have a value after the function call."
+                                                            "Unexpected value. Only element creators are allowed to have a value after the function call.",
                                                         ),
                                                     s = 0;
                                                 s < n.length;
                                                 s++
                                             )
                                                 _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.exists(
-                                                    h.scope
+                                                    h.scope,
                                                 ) &&
                                                 _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.exists(
-                                                    h.scope.argtypes
+                                                    h.scope.argtypes,
                                                 ) &&
                                                 "function" ===
                                                     h.scope.argtypes[s]
                                                     ? ((n[s]._isFunctionName =
                                                           !0),
                                                       (d[s] = this.execute(
-                                                          n[s]
+                                                          n[s],
                                                       )),
                                                       delete n[s]
                                                           ._isFunctionName)
                                                     : (d[s] = this.execute(
-                                                          n[s]
+                                                          n[s],
                                                       )),
                                                     this.dpstack[
                                                         this.pscope
@@ -12993,7 +12993,7 @@ var __webpack_modules__ = {
                                                         for (
                                                             (e = h(
                                                                 d,
-                                                                l
+                                                                l,
                                                             )).jcLineStart = r,
                                                                 e.jcLineEnd =
                                                                     t.eline,
@@ -13010,14 +13010,14 @@ var __webpack_modules__ = {
                                                             ];
                                                     } catch (t) {
                                                         this._error(
-                                                            t.toString()
+                                                            t.toString(),
                                                         );
                                                     }
                                                 } else
                                                     this._error(
                                                         "Function '" +
                                                             h +
-                                                            "' is undefined."
+                                                            "' is undefined.",
                                                     );
                                             else e = h.apply(c, d);
                                             this.dpstack.pop(), this.pscope--;
@@ -13028,26 +13028,26 @@ var __webpack_modules__ = {
                                                 (e = this.resolveProperty(
                                                     r,
                                                     i,
-                                                    !1
+                                                    !1,
                                                 )),
                                                 _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.exists(
-                                                    e
+                                                    e,
                                                 ) && (e.sc = r);
                                             break;
                                         case "op_use":
                                             this._warn(
-                                                "Use of the 'use' operator is deprecated."
+                                                "Use of the 'use' operator is deprecated.",
                                             ),
                                                 this.use(
-                                                    t.children[0].toString()
+                                                    t.children[0].toString(),
                                                 );
                                             break;
                                         case "op_delete":
                                             this._warn(
-                                                "Use of the 'delete' operator is deprecated. Please use the remove() function."
+                                                "Use of the 'delete' operator is deprecated. Please use the remove() function.",
                                             ),
                                                 (i = this.getvar(
-                                                    t.children[0]
+                                                    t.children[0],
                                                 )),
                                                 (e = this.del(i));
                                             break;
@@ -13065,11 +13065,11 @@ var __webpack_modules__ = {
                                             e =
                                                 Math.abs(
                                                     this.execute(
-                                                        t.children[0]
+                                                        t.children[0],
                                                     ) -
                                                         this.execute(
-                                                            t.children[1]
-                                                        )
+                                                            t.children[1],
+                                                        ),
                                                 ) <
                                                 _math_math__WEBPACK_IMPORTED_MODULE_3__
                                                     .Z.eps;
@@ -13110,43 +13110,43 @@ var __webpack_modules__ = {
                                         case "op_add":
                                             e = this.add(
                                                 this.execute(t.children[0]),
-                                                this.execute(t.children[1])
+                                                this.execute(t.children[1]),
                                             );
                                             break;
                                         case "op_sub":
                                             e = this.sub(
                                                 this.execute(t.children[0]),
-                                                this.execute(t.children[1])
+                                                this.execute(t.children[1]),
                                             );
                                             break;
                                         case "op_div":
                                             e = this.div(
                                                 this.execute(t.children[0]),
-                                                this.execute(t.children[1])
+                                                this.execute(t.children[1]),
                                             );
                                             break;
                                         case "op_mod":
                                             e = this.mod(
                                                 this.execute(t.children[0]),
                                                 this.execute(t.children[1]),
-                                                !0
+                                                !0,
                                             );
                                             break;
                                         case "op_mul":
                                             e = this.mul(
                                                 this.execute(t.children[0]),
-                                                this.execute(t.children[1])
+                                                this.execute(t.children[1]),
                                             );
                                             break;
                                         case "op_exp":
                                             e = this.pow(
                                                 this.execute(t.children[0]),
-                                                this.execute(t.children[1])
+                                                this.execute(t.children[1]),
                                             );
                                             break;
                                         case "op_neg":
                                             e = this.neg(
-                                                this.execute(t.children[0])
+                                                this.execute(t.children[0]),
                                             );
                                     }
                                     break;
@@ -13154,7 +13154,7 @@ var __webpack_modules__ = {
                                     e = this.getvar(
                                         t.value,
                                         !1,
-                                        t._isFunctionName
+                                        t._isFunctionName,
                                     );
                                     break;
                                 case "node_const":
@@ -13178,7 +13178,7 @@ var __webpack_modules__ = {
                                 o = "";
                             if (
                                 (_utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.exists(
-                                    e
+                                    e,
                                 ) || (e = !1),
                                 !t)
                             )
@@ -13190,22 +13190,22 @@ var __webpack_modules__ = {
                                             t.children[0] &&
                                                 (o = this.compile(
                                                     t.children[0],
-                                                    e
+                                                    e,
                                                 )),
                                                 t.children[1] &&
                                                     (o += this.compile(
                                                         t.children[1],
-                                                        e
+                                                        e,
                                                     ));
                                             break;
                                         case "op_assign":
                                             e
                                                 ? ((i = this.getLHSCompiler(
                                                       t.children[0],
-                                                      e
+                                                      e,
                                                   )),
                                                   _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.isArray(
-                                                      i
+                                                      i,
                                                   )
                                                       ? (o =
                                                             "$jc$.setProp(" +
@@ -13215,11 +13215,11 @@ var __webpack_modules__ = {
                                                             ", " +
                                                             this.compile(
                                                                 t.children[1],
-                                                                e
+                                                                e,
                                                             ) +
                                                             ");\n")
                                                       : (this.isLocalVariable(
-                                                            i
+                                                            i,
                                                         ) !== this.scope &&
                                                             (this.scope.locals[
                                                                 i
@@ -13232,17 +13232,17 @@ var __webpack_modules__ = {
                                                             "'] = " +
                                                             this.compile(
                                                                 t.children[1],
-                                                                e
+                                                                e,
                                                             ) +
                                                             ";\n")))
                                                 : (o =
                                                       (i = this.compile(
-                                                          t.children[0]
+                                                          t.children[0],
                                                       )) +
                                                       " = " +
                                                       this.compile(
                                                           t.children[1],
-                                                          e
+                                                          e,
                                                       ) +
                                                       ";\n");
                                             break;
@@ -13263,7 +13263,7 @@ var __webpack_modules__ = {
                                                     " else " +
                                                     this.compile(
                                                         t.children[2],
-                                                        e
+                                                        e,
                                                     ));
                                             break;
                                         case "op_conditional":
@@ -13276,7 +13276,7 @@ var __webpack_modules__ = {
                                                     "):(" +
                                                     this.compile(
                                                         t.children[2],
-                                                        e
+                                                        e,
                                                     ) +
                                                     "))");
                                             break;
@@ -13304,7 +13304,7 @@ var __webpack_modules__ = {
                                                 "; " +
                                                 this.compile(
                                                     t.children[2],
-                                                    e
+                                                    e,
                                                 ).slice(0, -2) +
                                                 ") {\n" +
                                                 this.compile(t.children[3], e) +
@@ -13315,11 +13315,11 @@ var __webpack_modules__ = {
                                                 (o =
                                                     this.compile(
                                                         t.children[0],
-                                                        e
+                                                        e,
                                                     ) + ", "),
                                                 (o += this.compile(
                                                     t.children[1],
-                                                    e
+                                                    e,
                                                 ));
                                             break;
                                         case "op_prop":
@@ -13343,8 +13343,8 @@ var __webpack_modules__ = {
                                                 r.push(
                                                     this.compile(
                                                         t.children[0][s],
-                                                        e
-                                                    )
+                                                        e,
+                                                    ),
                                                 );
                                             o = "[" + r.join(", ") + "]";
                                             break;
@@ -13366,7 +13366,7 @@ var __webpack_modules__ = {
                                                 "node_var" ===
                                                     t.children[1].type ||
                                                 this._error(
-                                                    "compile: In a map only function calls and mathematical expressions are allowed."
+                                                    "compile: In a map only function calls and mathematical expressions are allowed.",
                                                 ),
                                                 (r = t.children[0]),
                                                 (o = e
@@ -13375,7 +13375,7 @@ var __webpack_modules__ = {
                                                       ") { return " +
                                                       this.compile(
                                                           t.children[1],
-                                                          e
+                                                          e,
                                                       ) +
                                                       "; })"
                                                     : "map (" +
@@ -13383,7 +13383,7 @@ var __webpack_modules__ = {
                                                       ") -> " +
                                                       this.compile(
                                                           t.children[1],
-                                                          e
+                                                          e,
                                                       ));
                                             break;
                                         case "op_function":
@@ -13396,7 +13396,7 @@ var __webpack_modules__ = {
                                                       ") " +
                                                       this.compile(
                                                           t.children[1],
-                                                          e
+                                                          e,
                                                       )),
                                                 this.popScope();
                                             break;
@@ -13414,8 +13414,8 @@ var __webpack_modules__ = {
                                                     r.push(
                                                         this.compile(
                                                             t.children[2][s],
-                                                            e
-                                                        )
+                                                            e,
+                                                        ),
                                                     );
                                                 i = e
                                                     ? "$jc$.mergeAttributes(" +
@@ -13434,8 +13434,8 @@ var __webpack_modules__ = {
                                                 r.push(
                                                     this.compile(
                                                         t.children[1][s],
-                                                        e
-                                                    )
+                                                        e,
+                                                    ),
                                                 );
                                             (o =
                                                 this.compile(t.children[0], e) +
@@ -13456,7 +13456,7 @@ var __webpack_modules__ = {
                                                         "$jc$.board.objects[" +
                                                         this.compile(
                                                             t.children[1][0],
-                                                            e
+                                                            e,
                                                         ) +
                                                         "]");
                                             break;
@@ -13468,21 +13468,21 @@ var __webpack_modules__ = {
                                                     ? "$jc$.resolveProperty(" +
                                                       this.compile(
                                                           t.children[0],
-                                                          e
+                                                          e,
                                                       ) +
                                                       ", '" +
                                                       t.children[1] +
                                                       "', true)"
                                                     : this.compile(
                                                           t.children[0],
-                                                          e
+                                                          e,
                                                       ) +
                                                       "." +
                                                       t.children[1];
                                             break;
                                         case "op_use":
                                             this._warn(
-                                                "Use of the 'use' operator is deprecated."
+                                                "Use of the 'use' operator is deprecated.",
                                             ),
                                                 (o = e
                                                     ? "$jc$.use('"
@@ -13493,7 +13493,7 @@ var __webpack_modules__ = {
                                             break;
                                         case "op_delete":
                                             this._warn(
-                                                "Use of the 'delete' operator is deprecated. Please use the remove() function."
+                                                "Use of the 'delete' operator is deprecated. Please use the remove() function.",
                                             ),
                                                 (o = e
                                                     ? "$jc$.del("
@@ -13501,7 +13501,7 @@ var __webpack_modules__ = {
                                                 (o +=
                                                     this.compile(
                                                         t.children[0],
-                                                        e
+                                                        e,
                                                     ) + ")");
                                             break;
                                         case "op_eq":
@@ -13533,23 +13533,23 @@ var __webpack_modules__ = {
                                                 ? "$jc$.gt(" +
                                                   this.compile(
                                                       t.children[0],
-                                                      e
+                                                      e,
                                                   ) +
                                                   ", " +
                                                   this.compile(
                                                       t.children[1],
-                                                      e
+                                                      e,
                                                   ) +
                                                   ")"
                                                 : "(" +
                                                   this.compile(
                                                       t.children[0],
-                                                      e
+                                                      e,
                                                   ) +
                                                   " > " +
                                                   this.compile(
                                                       t.children[1],
-                                                      e
+                                                      e,
                                                   ) +
                                                   ")";
                                             break;
@@ -13558,23 +13558,23 @@ var __webpack_modules__ = {
                                                 ? "$jc$.lt(" +
                                                   this.compile(
                                                       t.children[0],
-                                                      e
+                                                      e,
                                                   ) +
                                                   ", " +
                                                   this.compile(
                                                       t.children[1],
-                                                      e
+                                                      e,
                                                   ) +
                                                   ")"
                                                 : "(" +
                                                   this.compile(
                                                       t.children[0],
-                                                      e
+                                                      e,
                                                   ) +
                                                   " < " +
                                                   this.compile(
                                                       t.children[1],
-                                                      e
+                                                      e,
                                                   ) +
                                                   ")";
                                             break;
@@ -13583,23 +13583,23 @@ var __webpack_modules__ = {
                                                 ? "$jc$.geq(" +
                                                   this.compile(
                                                       t.children[0],
-                                                      e
+                                                      e,
                                                   ) +
                                                   ", " +
                                                   this.compile(
                                                       t.children[1],
-                                                      e
+                                                      e,
                                                   ) +
                                                   ")"
                                                 : "(" +
                                                   this.compile(
                                                       t.children[0],
-                                                      e
+                                                      e,
                                                   ) +
                                                   " >= " +
                                                   this.compile(
                                                       t.children[1],
-                                                      e
+                                                      e,
                                                   ) +
                                                   ")";
                                             break;
@@ -13608,23 +13608,23 @@ var __webpack_modules__ = {
                                                 ? "$jc$.leq(" +
                                                   this.compile(
                                                       t.children[0],
-                                                      e
+                                                      e,
                                                   ) +
                                                   ", " +
                                                   this.compile(
                                                       t.children[1],
-                                                      e
+                                                      e,
                                                   ) +
                                                   ")"
                                                 : "(" +
                                                   this.compile(
                                                       t.children[0],
-                                                      e
+                                                      e,
                                                   ) +
                                                   " <= " +
                                                   this.compile(
                                                       t.children[1],
-                                                      e
+                                                      e,
                                                   ) +
                                                   ")";
                                             break;
@@ -13655,23 +13655,23 @@ var __webpack_modules__ = {
                                                 ? "$jc$.add(" +
                                                   this.compile(
                                                       t.children[0],
-                                                      e
+                                                      e,
                                                   ) +
                                                   ", " +
                                                   this.compile(
                                                       t.children[1],
-                                                      e
+                                                      e,
                                                   ) +
                                                   ")"
                                                 : "(" +
                                                   this.compile(
                                                       t.children[0],
-                                                      e
+                                                      e,
                                                   ) +
                                                   " + " +
                                                   this.compile(
                                                       t.children[1],
-                                                      e
+                                                      e,
                                                   ) +
                                                   ")";
                                             break;
@@ -13680,23 +13680,23 @@ var __webpack_modules__ = {
                                                 ? "$jc$.sub(" +
                                                   this.compile(
                                                       t.children[0],
-                                                      e
+                                                      e,
                                                   ) +
                                                   ", " +
                                                   this.compile(
                                                       t.children[1],
-                                                      e
+                                                      e,
                                                   ) +
                                                   ")"
                                                 : "(" +
                                                   this.compile(
                                                       t.children[0],
-                                                      e
+                                                      e,
                                                   ) +
                                                   " - " +
                                                   this.compile(
                                                       t.children[1],
-                                                      e
+                                                      e,
                                                   ) +
                                                   ")";
                                             break;
@@ -13705,23 +13705,23 @@ var __webpack_modules__ = {
                                                 ? "$jc$.div(" +
                                                   this.compile(
                                                       t.children[0],
-                                                      e
+                                                      e,
                                                   ) +
                                                   ", " +
                                                   this.compile(
                                                       t.children[1],
-                                                      e
+                                                      e,
                                                   ) +
                                                   ")"
                                                 : "(" +
                                                   this.compile(
                                                       t.children[0],
-                                                      e
+                                                      e,
                                                   ) +
                                                   " / " +
                                                   this.compile(
                                                       t.children[1],
-                                                      e
+                                                      e,
                                                   ) +
                                                   ")";
                                             break;
@@ -13730,23 +13730,23 @@ var __webpack_modules__ = {
                                                 ? "$jc$.mod(" +
                                                   this.compile(
                                                       t.children[0],
-                                                      e
+                                                      e,
                                                   ) +
                                                   ", " +
                                                   this.compile(
                                                       t.children[1],
-                                                      e
+                                                      e,
                                                   ) +
                                                   ", true)"
                                                 : "(" +
                                                   this.compile(
                                                       t.children[0],
-                                                      e
+                                                      e,
                                                   ) +
                                                   " % " +
                                                   this.compile(
                                                       t.children[1],
-                                                      e
+                                                      e,
                                                   ) +
                                                   ")";
                                             break;
@@ -13755,23 +13755,23 @@ var __webpack_modules__ = {
                                                 ? "$jc$.mul(" +
                                                   this.compile(
                                                       t.children[0],
-                                                      e
+                                                      e,
                                                   ) +
                                                   ", " +
                                                   this.compile(
                                                       t.children[1],
-                                                      e
+                                                      e,
                                                   ) +
                                                   ")"
                                                 : "(" +
                                                   this.compile(
                                                       t.children[0],
-                                                      e
+                                                      e,
                                                   ) +
                                                   " * " +
                                                   this.compile(
                                                       t.children[1],
-                                                      e
+                                                      e,
                                                   ) +
                                                   ")";
                                             break;
@@ -13780,23 +13780,23 @@ var __webpack_modules__ = {
                                                 ? "$jc$.pow(" +
                                                   this.compile(
                                                       t.children[0],
-                                                      e
+                                                      e,
                                                   ) +
                                                   ", " +
                                                   this.compile(
                                                       t.children[1],
-                                                      e
+                                                      e,
                                                   ) +
                                                   ")"
                                                 : "(" +
                                                   this.compile(
                                                       t.children[0],
-                                                      e
+                                                      e,
                                                   ) +
                                                   "^" +
                                                   this.compile(
                                                       t.children[1],
-                                                      e
+                                                      e,
                                                   ) +
                                                   ")";
                                             break;
@@ -13805,13 +13805,13 @@ var __webpack_modules__ = {
                                                 ? "$jc$.neg(" +
                                                   this.compile(
                                                       t.children[0],
-                                                      e
+                                                      e,
                                                   ) +
                                                   ")"
                                                 : "(-" +
                                                   this.compile(
                                                       t.children[0],
-                                                      e
+                                                      e,
                                                   ) +
                                                   ")";
                                     }
@@ -13821,7 +13821,7 @@ var __webpack_modules__ = {
                                         ? this.getvarJS(
                                               t.value,
                                               !1,
-                                              t.withProps
+                                              t.withProps,
                                           )
                                         : t.value;
                                     break;
@@ -13844,14 +13844,14 @@ var __webpack_modules__ = {
                             var i = "";
                             return (
                                 _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.exists(
-                                    t
+                                    t,
                                 ) &&
                                 _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.exists(
-                                    t.getName
+                                    t.getName,
                                 )
                                     ? ((i = t.getName()),
                                       (_utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.exists(
-                                          i
+                                          i,
                                       ) &&
                                           "" !== i) ||
                                           !e ||
@@ -13875,10 +13875,10 @@ var __webpack_modules__ = {
                         area: function (t) {
                             return (
                                 (_utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.exists(
-                                    t
+                                    t,
                                 ) &&
                                     _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.exists(
-                                        t.Area
+                                        t.Area,
                                     )) ||
                                     this._error("Error: Can't calculate area."),
                                 t.Area()
@@ -13887,13 +13887,13 @@ var __webpack_modules__ = {
                         dist: function (t, e) {
                             return (
                                 (_utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.exists(
-                                    t
+                                    t,
                                 ) &&
                                     _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.exists(
-                                        t.Dist
+                                        t.Dist,
                                     )) ||
                                     this._error(
-                                        "Error: Can't calculate distance."
+                                        "Error: Can't calculate distance.",
                                     ),
                                 t.Dist(e)
                             );
@@ -13901,13 +13901,13 @@ var __webpack_modules__ = {
                         radius: function (t) {
                             return (
                                 (_utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.exists(
-                                    t
+                                    t,
                                 ) &&
                                     _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.exists(
-                                        t.Radius
+                                        t.Radius,
                                     )) ||
                                     this._error(
-                                        "Error: Can't calculate radius."
+                                        "Error: Can't calculate radius.",
                                     ),
                                 t.Radius()
                             );
@@ -13917,29 +13917,29 @@ var __webpack_modules__ = {
                             if (
                                 ((t =
                                     _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.evalSlider(
-                                        t
+                                        t,
                                     )),
                                 (e =
                                     _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.evalSlider(
-                                        e
+                                        e,
                                     )),
                                 _math_ia__WEBPACK_IMPORTED_MODULE_4__.Z.isInterval(
-                                    t
+                                    t,
                                 ) ||
                                     _math_ia__WEBPACK_IMPORTED_MODULE_4__.Z.isInterval(
-                                        e
+                                        e,
                                     ))
                             )
                                 r = _math_ia__WEBPACK_IMPORTED_MODULE_4__.Z.add(
                                     t,
-                                    e
+                                    e,
                                 );
                             else if (
                                 _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.isArray(
-                                    t
+                                    t,
                                 ) &&
                                 _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.isArray(
-                                    e
+                                    e,
                                 )
                             )
                                 for (
@@ -13952,24 +13952,24 @@ var __webpack_modules__ = {
                                     r[i] = t[i] + e[i];
                             else
                                 _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.isNumber(
-                                    t
+                                    t,
                                 ) &&
                                 _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.isNumber(
-                                    e
+                                    e,
                                 )
                                     ? (r = t + e)
                                     : _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.isString(
-                                          t
+                                          t,
                                       ) ||
                                       _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.isString(
-                                          e
+                                          e,
                                       )
                                     ? (r = t.toString() + e.toString())
                                     : this._error(
                                           "Operation + not defined on operands " +
                                               typeof t +
                                               " and " +
-                                              typeof e
+                                              typeof e,
                                       );
                             return r;
                         },
@@ -13978,29 +13978,29 @@ var __webpack_modules__ = {
                             if (
                                 ((t =
                                     _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.evalSlider(
-                                        t
+                                        t,
                                     )),
                                 (e =
                                     _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.evalSlider(
-                                        e
+                                        e,
                                     )),
                                 _math_ia__WEBPACK_IMPORTED_MODULE_4__.Z.isInterval(
-                                    t
+                                    t,
                                 ) ||
                                     _math_ia__WEBPACK_IMPORTED_MODULE_4__.Z.isInterval(
-                                        e
+                                        e,
                                     ))
                             )
                                 r = _math_ia__WEBPACK_IMPORTED_MODULE_4__.Z.sub(
                                     t,
-                                    e
+                                    e,
                                 );
                             else if (
                                 _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.isArray(
-                                    t
+                                    t,
                                 ) &&
                                 _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.isArray(
-                                    e
+                                    e,
                                 )
                             )
                                 for (
@@ -14013,17 +14013,17 @@ var __webpack_modules__ = {
                                     r[i] = t[i] - e[i];
                             else
                                 _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.isNumber(
-                                    t
+                                    t,
                                 ) &&
                                 _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.isNumber(
-                                    e
+                                    e,
                                 )
                                     ? (r = t - e)
                                     : this._error(
                                           "Operation - not defined on operands " +
                                               typeof t +
                                               " and " +
-                                              typeof e
+                                              typeof e,
                                       );
                             return r;
                         },
@@ -14032,31 +14032,31 @@ var __webpack_modules__ = {
                             if (
                                 ((t =
                                     _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.evalSlider(
-                                        t
+                                        t,
                                     )),
                                 _math_ia__WEBPACK_IMPORTED_MODULE_4__.Z.isInterval(
-                                    t
+                                    t,
                                 ))
                             )
                                 s =
                                     _math_ia__WEBPACK_IMPORTED_MODULE_4__.Z.negative(
-                                        t
+                                        t,
                                     );
                             else if (
                                 _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.isArray(
-                                    t
+                                    t,
                                 )
                             )
                                 for (i = t.length, s = [], e = 0; e < i; e++)
                                     s[e] = -t[e];
                             else
                                 _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.isNumber(
-                                    t
+                                    t,
                                 )
                                     ? (s = -t)
                                     : this._error(
                                           "Unary operation - not defined on operand " +
-                                              typeof t
+                                              typeof t,
                                       );
                             return s;
                         },
@@ -14065,36 +14065,36 @@ var __webpack_modules__ = {
                             if (
                                 ((t =
                                     _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.evalSlider(
-                                        t
+                                        t,
                                     )),
                                 (e =
                                     _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.evalSlider(
-                                        e
+                                        e,
                                     )),
                                 _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.isArray(
-                                    t
+                                    t,
                                 ) &&
                                     _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.isNumber(
-                                        e
+                                        e,
                                     ) &&
                                     ((i = t), (e = t = e)),
                                 _math_ia__WEBPACK_IMPORTED_MODULE_4__.Z.isInterval(
-                                    t
+                                    t,
                                 ) ||
                                     _math_ia__WEBPACK_IMPORTED_MODULE_4__.Z.isInterval(
-                                        e
+                                        e,
                                     ))
                             )
                                 r = _math_ia__WEBPACK_IMPORTED_MODULE_4__.Z.mul(
                                     t,
-                                    e
+                                    e,
                                 );
                             else if (
                                 _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.isArray(
-                                    t
+                                    t,
                                 ) &&
                                 _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.isArray(
-                                    e
+                                    e,
                                 )
                             )
                                 (s = Math.min(t.length, e.length)),
@@ -14102,31 +14102,31 @@ var __webpack_modules__ = {
                                         _math_math__WEBPACK_IMPORTED_MODULE_3__.Z.innerProduct(
                                             t,
                                             e,
-                                            s
+                                            s,
                                         ));
                             else if (
                                 _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.isNumber(
-                                    t
+                                    t,
                                 ) &&
                                 _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.isArray(
-                                    e
+                                    e,
                                 )
                             )
                                 for (s = e.length, r = [], i = 0; i < s; i++)
                                     r[i] = t * e[i];
                             else
                                 _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.isNumber(
-                                    t
+                                    t,
                                 ) &&
                                 _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.isNumber(
-                                    e
+                                    e,
                                 )
                                     ? (r = t * e)
                                     : this._error(
                                           "Operation * not defined on operands " +
                                               typeof t +
                                               " and " +
-                                              typeof e
+                                              typeof e,
                                       );
                             return r;
                         },
@@ -14135,46 +14135,46 @@ var __webpack_modules__ = {
                             if (
                                 ((t =
                                     _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.evalSlider(
-                                        t
+                                        t,
                                     )),
                                 (e =
                                     _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.evalSlider(
-                                        e
+                                        e,
                                     )),
                                 _math_ia__WEBPACK_IMPORTED_MODULE_4__.Z.isInterval(
-                                    t
+                                    t,
                                 ) ||
                                     _math_ia__WEBPACK_IMPORTED_MODULE_4__.Z.isInterval(
-                                        e
+                                        e,
                                     ))
                             )
                                 r = _math_ia__WEBPACK_IMPORTED_MODULE_4__.Z.div(
                                     t,
-                                    e
+                                    e,
                                 );
                             else if (
                                 _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.isArray(
-                                    t
+                                    t,
                                 ) &&
                                 _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.isNumber(
-                                    e
+                                    e,
                                 )
                             )
                                 for (s = t.length, r = [], i = 0; i < s; i++)
                                     r[i] = t[i] / e;
                             else
                                 _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.isNumber(
-                                    t
+                                    t,
                                 ) &&
                                 _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.isNumber(
-                                    e
+                                    e,
                                 )
                                     ? (r = t / e)
                                     : this._error(
                                           "Operation * not defined on operands " +
                                               typeof t +
                                               " and " +
-                                              typeof e
+                                              typeof e,
                                       );
                             return r;
                         },
@@ -14183,29 +14183,29 @@ var __webpack_modules__ = {
                             if (
                                 ((t =
                                     _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.evalSlider(
-                                        t
+                                        t,
                                     )),
                                 (e =
                                     _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.evalSlider(
-                                        e
+                                        e,
                                     )),
                                 _math_ia__WEBPACK_IMPORTED_MODULE_4__.Z.isInterval(
-                                    t
+                                    t,
                                 ) ||
                                     _math_ia__WEBPACK_IMPORTED_MODULE_4__.Z.isInterval(
-                                        e
+                                        e,
                                     ))
                             )
                                 return _math_ia__WEBPACK_IMPORTED_MODULE_4__.Z.fmod(
                                     t,
-                                    e
+                                    e,
                                 );
                             if (
                                 _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.isArray(
-                                    t
+                                    t,
                                 ) &&
                                 _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.isNumber(
-                                    e
+                                    e,
                                 )
                             )
                                 for (s = t.length, r = [], i = 0; i < s; i++)
@@ -14213,26 +14213,26 @@ var __webpack_modules__ = {
                                         _math_math__WEBPACK_IMPORTED_MODULE_3__.Z.mod(
                                             t[i],
                                             e,
-                                            !0
+                                            !0,
                                         );
                             else
                                 _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.isNumber(
-                                    t
+                                    t,
                                 ) &&
                                 _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.isNumber(
-                                    e
+                                    e,
                                 )
                                     ? (r =
                                           _math_math__WEBPACK_IMPORTED_MODULE_3__.Z.mod(
                                               t,
                                               e,
-                                              !0
+                                              !0,
                                           ))
                                     : this._error(
                                           "Operation * not defined on operands " +
                                               typeof t +
                                               " and " +
-                                              typeof e
+                                              typeof e,
                                       );
                             return r;
                         },
@@ -14240,73 +14240,73 @@ var __webpack_modules__ = {
                             return (
                                 (t =
                                     _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.evalSlider(
-                                        t
+                                        t,
                                     )),
                                 (e =
                                     _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.evalSlider(
-                                        e
+                                        e,
                                     )),
                                 _math_ia__WEBPACK_IMPORTED_MODULE_4__.Z.isInterval(
-                                    t
+                                    t,
                                 ) ||
                                 _math_ia__WEBPACK_IMPORTED_MODULE_4__.Z.isInterval(
-                                    e
+                                    e,
                                 )
                                     ? _math_ia__WEBPACK_IMPORTED_MODULE_4__.Z.pow(
                                           t,
-                                          e
+                                          e,
                                       )
                                     : _math_math__WEBPACK_IMPORTED_MODULE_3__.Z.pow(
                                           t,
-                                          e
+                                          e,
                                       )
                             );
                         },
                         lt: function (t, e) {
                             return _math_ia__WEBPACK_IMPORTED_MODULE_4__.Z.isInterval(
-                                t
+                                t,
                             ) ||
                                 _math_ia__WEBPACK_IMPORTED_MODULE_4__.Z.isInterval(
-                                    e
+                                    e,
                                 )
                                 ? _math_ia__WEBPACK_IMPORTED_MODULE_4__.Z.lt(
                                       t,
-                                      e
+                                      e,
                                   )
                                 : t < e;
                         },
                         leq: function (t, e) {
                             return _math_ia__WEBPACK_IMPORTED_MODULE_4__.Z.isInterval(
-                                t
+                                t,
                             ) ||
                                 _math_ia__WEBPACK_IMPORTED_MODULE_4__.Z.isInterval(
-                                    e
+                                    e,
                                 )
                                 ? _math_ia__WEBPACK_IMPORTED_MODULE_4__.Z.leq(
                                       t,
-                                      e
+                                      e,
                                   )
                                 : t <= e;
                         },
                         gt: function (t, e) {
                             return _math_ia__WEBPACK_IMPORTED_MODULE_4__.Z.isInterval(
-                                t
+                                t,
                             ) ||
                                 _math_ia__WEBPACK_IMPORTED_MODULE_4__.Z.isInterval(
-                                    e
+                                    e,
                                 )
                                 ? _math_ia__WEBPACK_IMPORTED_MODULE_4__.Z.gt(
                                       t,
-                                      e
+                                      e,
                                   )
                                 : t > e;
                         },
                         geq: function (t, e) {
                             return _math_ia__WEBPACK_IMPORTED_MODULE_4__.Z.isInterval(
-                                t
+                                t,
                             ) ||
                                 _math_ia__WEBPACK_IMPORTED_MODULE_4__.Z.isInterval(
-                                    e
+                                    e,
                                 )
                                 ? Intervalt.geq(t, e)
                                 : t >= e;
@@ -14314,7 +14314,7 @@ var __webpack_modules__ = {
                         randint: function (t, e, i) {
                             return (
                                 _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.exists(
-                                    i
+                                    i,
                                 ) || (i = 1),
                                 Math.round((Math.random() * (e - t)) / i) * i +
                                     t
@@ -14322,7 +14322,7 @@ var __webpack_modules__ = {
                         },
                         DDD: function (t) {
                             console.log(
-                                "Dummy derivative function. This should never appear!"
+                                "Dummy derivative function. This should never appear!",
                             );
                         },
                         ifthen: function (t, e, i) {
@@ -14331,10 +14331,10 @@ var __webpack_modules__ = {
                         del: function (t) {
                             "object" == typeof t &&
                                 _jxg__WEBPACK_IMPORTED_MODULE_0__.Z.exists(
-                                    t.type
+                                    t.type,
                                 ) &&
                                 _jxg__WEBPACK_IMPORTED_MODULE_0__.Z.exists(
-                                    t.elementClass
+                                    t.elementClass,
                                 ) &&
                                 this.board.removeObject(t);
                         },
@@ -14347,7 +14347,7 @@ var __webpack_modules__ = {
                                     .boards)
                                     if (
                                         _jxg__WEBPACK_IMPORTED_MODULE_0__.Z.boards.hasOwnProperty(
-                                            e
+                                            e,
                                         ) &&
                                         _jxg__WEBPACK_IMPORTED_MODULE_0__.Z
                                             .boards[e].container === t
@@ -14373,7 +14373,7 @@ var __webpack_modules__ = {
                                     (e =
                                         _utils_type__WEBPACK_IMPORTED_MODULE_7__.Z.def(
                                             e,
-                                            -1
+                                            -1,
                                         ))
                                         ? this.scope
                                         : this.scopes[e];
@@ -14571,7 +14571,7 @@ var __webpack_modules__ = {
                                         }
                                         if (!(_.indexOf(t) >= 0))
                                             return _jxg__WEBPACK_IMPORTED_MODULE_0__.Z.isFunction(
-                                                i
+                                                i,
                                             )
                                                 ? {
                                                       name: t,
@@ -14580,7 +14580,7 @@ var __webpack_modules__ = {
                                                       origin: e,
                                                   }
                                                 : _jxg__WEBPACK_IMPORTED_MODULE_0__.Z.isNumber(
-                                                      i
+                                                      i,
                                                   )
                                                 ? {
                                                       name: t,
@@ -14592,7 +14592,7 @@ var __webpack_modules__ = {
                                                       void 0 !== i &&
                                                       console.error(
                                                           "undefined type",
-                                                          i
+                                                          i,
                                                       )
                                                   );
                                     },
@@ -14607,24 +14607,24 @@ var __webpack_modules__ = {
                                 t[s] === e[r]
                                     ? ((o = p(e[r], "Math")),
                                       _jxg__WEBPACK_IMPORTED_MODULE_0__.Z.exists(
-                                          o
+                                          o,
                                       ) && i.push(o),
                                       s++,
                                       r++)
                                     : !_jxg__WEBPACK_IMPORTED_MODULE_0__.Z.exists(
-                                          e[r]
+                                          e[r],
                                       ) ||
                                       t[s]
                                           .toLowerCase()
                                           .localeCompare(e[r].toLowerCase()) < 0
                                     ? ((o = p(t[s], "jc")),
                                       _jxg__WEBPACK_IMPORTED_MODULE_0__.Z.exists(
-                                          o
+                                          o,
                                       ) && i.push(o),
                                       s++)
                                     : ((o = p(e[r], "Math")),
                                       _jxg__WEBPACK_IMPORTED_MODULE_0__.Z.exists(
-                                          o
+                                          o,
                                       ) && i.push(o),
                                       r++);
                             for (
@@ -14672,7 +14672,7 @@ var __webpack_modules__ = {
                         _warn: function (t) {
                             "object" == typeof console
                                 ? console.log(
-                                      "Warning(" + this.line + "): " + t
+                                      "Warning(" + this.line + "): " + t,
                                   )
                                 : _utils_env__WEBPACK_IMPORTED_MODULE_8__.Z
                                       .isBrowser &&
@@ -14680,7 +14680,7 @@ var __webpack_modules__ = {
                                   null !==
                                       document.getElementById(this.warnLog) &&
                                   (document.getElementById(
-                                      this.warnLog
+                                      this.warnLog,
                                   ).innerHTML +=
                                       "Warning(" +
                                       this.line +
@@ -14698,7 +14698,7 @@ var __webpack_modules__ = {
                                   })
                                 : console.log("Log: ", arguments);
                         },
-                    }
+                    },
                 );
             var parser = (function () {
                 var t = function (t, e, i, s) {
@@ -15067,7 +15067,7 @@ var __webpack_modules__ = {
                                         "node_op",
                                         "op_if",
                                         o[a - 2],
-                                        o[a]
+                                        o[a],
                                     );
                                     break;
                                 case 3:
@@ -15077,7 +15077,7 @@ var __webpack_modules__ = {
                                         "op_if_else",
                                         o[a - 4],
                                         o[a - 2],
-                                        o[a]
+                                        o[a],
                                     );
                                     break;
                                 case 4:
@@ -15086,7 +15086,7 @@ var __webpack_modules__ = {
                                         "node_op",
                                         "op_while",
                                         o[a - 2],
-                                        o[a]
+                                        o[a],
                                     );
                                     break;
                                 case 5:
@@ -15097,7 +15097,7 @@ var __webpack_modules__ = {
                                         o[a - 6],
                                         o[a - 4],
                                         o[a - 2],
-                                        o[a]
+                                        o[a],
                                     );
                                     break;
                                 case 6:
@@ -15106,7 +15106,7 @@ var __webpack_modules__ = {
                                         "node_op",
                                         "op_do",
                                         o[a - 5],
-                                        o[a - 2]
+                                        o[a - 2],
                                     );
                                     break;
                                 case 7:
@@ -15114,7 +15114,7 @@ var __webpack_modules__ = {
                                         lt(n[a - 1]),
                                         "node_op",
                                         "op_use",
-                                        o[a]
+                                        o[a],
                                     );
                                     break;
                                 case 8:
@@ -15122,7 +15122,7 @@ var __webpack_modules__ = {
                                         lt(n[a - 1]),
                                         "node_op",
                                         "op_delete",
-                                        o[a]
+                                        o[a],
                                     );
                                     break;
                                 case 9:
@@ -15130,7 +15130,7 @@ var __webpack_modules__ = {
                                         lt(n[a - 1]),
                                         "node_op",
                                         "op_return",
-                                        void 0
+                                        void 0,
                                     );
                                     break;
                                 case 10:
@@ -15138,7 +15138,7 @@ var __webpack_modules__ = {
                                         lt(n[a - 2]),
                                         "node_op",
                                         "op_return",
-                                        o[a - 1]
+                                        o[a - 1],
                                     );
                                     break;
                                 case 11:
@@ -15146,7 +15146,7 @@ var __webpack_modules__ = {
                                     this.$ = ht.createNode(
                                         lt(n[a]),
                                         "node_op",
-                                        "op_none"
+                                        "op_none",
                                     );
                                     break;
                                 case 12:
@@ -15159,7 +15159,7 @@ var __webpack_modules__ = {
                                         "node_op",
                                         "op_none",
                                         o[a - 1],
-                                        o[a]
+                                        o[a],
                                     );
                                     break;
                                 case 15:
@@ -15203,7 +15203,7 @@ var __webpack_modules__ = {
                                         "node_op",
                                         "op_assign",
                                         o[a - 2],
-                                        o[a]
+                                        o[a],
                                     )),
                                         (this.$.isMath = !1);
                                     break;
@@ -15214,7 +15214,7 @@ var __webpack_modules__ = {
                                         "op_conditional",
                                         o[a - 4],
                                         o[a - 2],
-                                        o[a]
+                                        o[a],
                                     )),
                                         (this.$.isMath = !1);
                                     break;
@@ -15224,7 +15224,7 @@ var __webpack_modules__ = {
                                         "node_op",
                                         "op_or",
                                         o[a - 2],
-                                        o[a]
+                                        o[a],
                                     )),
                                         (this.$.isMath = !1);
                                     break;
@@ -15234,7 +15234,7 @@ var __webpack_modules__ = {
                                         "node_op",
                                         "op_and",
                                         o[a - 2],
-                                        o[a]
+                                        o[a],
                                     )),
                                         (this.$.isMath = !1);
                                     break;
@@ -15244,7 +15244,7 @@ var __webpack_modules__ = {
                                         "node_op",
                                         "op_eq",
                                         o[a - 2],
-                                        o[a]
+                                        o[a],
                                     )),
                                         (this.$.isMath = !1);
                                     break;
@@ -15254,7 +15254,7 @@ var __webpack_modules__ = {
                                         "node_op",
                                         "op_neq",
                                         o[a - 2],
-                                        o[a]
+                                        o[a],
                                     )),
                                         (this.$.isMath = !1);
                                     break;
@@ -15264,7 +15264,7 @@ var __webpack_modules__ = {
                                         "node_op",
                                         "op_approx",
                                         o[a - 2],
-                                        o[a]
+                                        o[a],
                                     )),
                                         (this.$.isMath = !1);
                                     break;
@@ -15274,7 +15274,7 @@ var __webpack_modules__ = {
                                         "node_op",
                                         "op_lt",
                                         o[a - 2],
-                                        o[a]
+                                        o[a],
                                     )),
                                         (this.$.isMath = !1);
                                     break;
@@ -15284,7 +15284,7 @@ var __webpack_modules__ = {
                                         "node_op",
                                         "op_gt",
                                         o[a - 2],
-                                        o[a]
+                                        o[a],
                                     )),
                                         (this.$.isMath = !1);
                                     break;
@@ -15294,7 +15294,7 @@ var __webpack_modules__ = {
                                         "node_op",
                                         "op_leq",
                                         o[a - 2],
-                                        o[a]
+                                        o[a],
                                     )),
                                         (this.$.isMath = !1);
                                     break;
@@ -15304,7 +15304,7 @@ var __webpack_modules__ = {
                                         "node_op",
                                         "op_geq",
                                         o[a - 2],
-                                        o[a]
+                                        o[a],
                                     )),
                                         (this.$.isMath = !1);
                                     break;
@@ -15314,7 +15314,7 @@ var __webpack_modules__ = {
                                         "node_op",
                                         "op_add",
                                         o[a - 2],
-                                        o[a]
+                                        o[a],
                                     )),
                                         (this.$.isMath = !0);
                                     break;
@@ -15324,7 +15324,7 @@ var __webpack_modules__ = {
                                         "node_op",
                                         "op_sub",
                                         o[a - 2],
-                                        o[a]
+                                        o[a],
                                     )),
                                         (this.$.isMath = !0);
                                     break;
@@ -15334,7 +15334,7 @@ var __webpack_modules__ = {
                                         "node_op",
                                         "op_mul",
                                         o[a - 2],
-                                        o[a]
+                                        o[a],
                                     )),
                                         (this.$.isMath = !0);
                                     break;
@@ -15344,7 +15344,7 @@ var __webpack_modules__ = {
                                         "node_op",
                                         "op_div",
                                         o[a - 2],
-                                        o[a]
+                                        o[a],
                                     )),
                                         (this.$.isMath = !0);
                                     break;
@@ -15354,7 +15354,7 @@ var __webpack_modules__ = {
                                         "node_op",
                                         "op_mod",
                                         o[a - 2],
-                                        o[a]
+                                        o[a],
                                     )),
                                         (this.$.isMath = !0);
                                     break;
@@ -15364,7 +15364,7 @@ var __webpack_modules__ = {
                                         "node_op",
                                         "op_exp",
                                         o[a - 2],
-                                        o[a]
+                                        o[a],
                                     )),
                                         (this.$.isMath = !0);
                                     break;
@@ -15373,7 +15373,7 @@ var __webpack_modules__ = {
                                         lt(n[a - 1]),
                                         "node_op",
                                         "op_not",
-                                        o[a]
+                                        o[a],
                                     )),
                                         (this.$.isMath = !1);
                                     break;
@@ -15382,7 +15382,7 @@ var __webpack_modules__ = {
                                         lt(n[a - 1]),
                                         "node_op",
                                         "op_neg",
-                                        o[a]
+                                        o[a],
                                     )),
                                         (this.$.isMath = !0);
                                     break;
@@ -15402,7 +15402,7 @@ var __webpack_modules__ = {
                                         "node_op",
                                         "op_property",
                                         o[a - 2],
-                                        o[a]
+                                        o[a],
                                     )),
                                         (this.$.isMath = !0);
                                     break;
@@ -15413,7 +15413,7 @@ var __webpack_modules__ = {
                                         "node_op",
                                         "op_extvalue",
                                         o[a - 3],
-                                        o[a - 1]
+                                        o[a - 1],
                                     )),
                                         (this.$.isMath = !0);
                                     break;
@@ -15421,7 +15421,7 @@ var __webpack_modules__ = {
                                     this.$ = ht.createNode(
                                         lt(n[a]),
                                         "node_var",
-                                        o[a]
+                                        o[a],
                                     );
                                     break;
                                 case 69:
@@ -15431,49 +15431,49 @@ var __webpack_modules__ = {
                                     this.$ = ht.createNode(
                                         lt(n[a]),
                                         "node_const",
-                                        null
+                                        null,
                                     );
                                     break;
                                 case 71:
                                     this.$ = ht.createNode(
                                         lt(n[a]),
                                         "node_const_bool",
-                                        !0
+                                        !0,
                                     );
                                     break;
                                 case 72:
                                     this.$ = ht.createNode(
                                         lt(n[a]),
                                         "node_const_bool",
-                                        !1
+                                        !1,
                                     );
                                     break;
                                 case 73:
                                     this.$ = ht.createNode(
                                         lt(n[a]),
                                         "node_str",
-                                        o[a].substring(1, o[a].length - 1)
+                                        o[a].substring(1, o[a].length - 1),
                                     );
                                     break;
                                 case 74:
                                     this.$ = ht.createNode(
                                         lt(n[a]),
                                         "node_const",
-                                        parseFloat(o[a])
+                                        parseFloat(o[a]),
                                     );
                                     break;
                                 case 75:
                                     this.$ = ht.createNode(
                                         lt(n[a]),
                                         "node_const",
-                                        NaN
+                                        NaN,
                                     );
                                     break;
                                 case 76:
                                     this.$ = ht.createNode(
                                         lt(n[a]),
                                         "node_const",
-                                        1 / 0
+                                        1 / 0,
                                     );
                                     break;
                                 case 77:
@@ -15481,7 +15481,7 @@ var __webpack_modules__ = {
                                         lt(n[a - 1]),
                                         "node_op",
                                         "op_array",
-                                        []
+                                        [],
                                     );
                                     break;
                                 case 78:
@@ -15489,7 +15489,7 @@ var __webpack_modules__ = {
                                         lt(n[a - 2]),
                                         "node_op",
                                         "op_array",
-                                        o[a - 1]
+                                        o[a - 1],
                                     );
                                     break;
                                 case 79:
@@ -15497,7 +15497,7 @@ var __webpack_modules__ = {
                                         lt(n[a - 1]),
                                         "node_op",
                                         "op_emptyobject",
-                                        {}
+                                        {},
                                     )),
                                         (this.$.needsBrackets = !0);
                                     break;
@@ -15506,7 +15506,7 @@ var __webpack_modules__ = {
                                         lt(n[a - 2]),
                                         "node_op",
                                         "op_proplst_val",
-                                        o[a - 1]
+                                        o[a - 1],
                                     )),
                                         (this.$.needsBrackets = !0);
                                     break;
@@ -15516,7 +15516,7 @@ var __webpack_modules__ = {
                                         "node_op",
                                         "op_proplst",
                                         o[a - 2],
-                                        o[a]
+                                        o[a],
                                     );
                                     break;
                                 case 83:
@@ -15525,7 +15525,7 @@ var __webpack_modules__ = {
                                         "node_op",
                                         "op_prop",
                                         o[a - 2],
-                                        o[a]
+                                        o[a],
                                     );
                                     break;
                                 case 87:
@@ -15535,7 +15535,7 @@ var __webpack_modules__ = {
                                         "node_op",
                                         "op_execfun",
                                         o[a - 1],
-                                        o[a]
+                                        o[a],
                                     )),
                                         (this.$.isMath = !0);
                                     break;
@@ -15547,7 +15547,7 @@ var __webpack_modules__ = {
                                         o[a - 2],
                                         o[a - 1],
                                         o[a],
-                                        !0
+                                        !0,
                                     )),
                                         (this.$.isMath = !1);
                                     break;
@@ -15568,7 +15568,7 @@ var __webpack_modules__ = {
                                     (this.$ = ht.createNode(
                                         lt(n[a]),
                                         "node_var",
-                                        o[a]
+                                        o[a],
                                     )),
                                         (this.$.isMath = !0);
                                     break;
@@ -15578,7 +15578,7 @@ var __webpack_modules__ = {
                                         "node_op",
                                         "op_function",
                                         [],
-                                        o[a]
+                                        o[a],
                                     )),
                                         (this.$.isMath = !1);
                                     break;
@@ -15588,7 +15588,7 @@ var __webpack_modules__ = {
                                         "node_op",
                                         "op_function",
                                         o[a - 2],
-                                        o[a]
+                                        o[a],
                                     )),
                                         (this.$.isMath = !1);
                                     break;
@@ -15598,7 +15598,7 @@ var __webpack_modules__ = {
                                         "node_op",
                                         "op_map",
                                         [],
-                                        o[a]
+                                        o[a],
                                     );
                                     break;
                                 case 103:
@@ -15607,7 +15607,7 @@ var __webpack_modules__ = {
                                         "node_op",
                                         "op_map",
                                         o[a - 3],
-                                        o[a]
+                                        o[a],
                                     );
                             }
                         },
@@ -15619,7 +15619,7 @@ var __webpack_modules__ = {
                                     82, 91, 93,
                                 ],
                                 e,
-                                { 3: 1, 4: 2 }
+                                { 3: 1, 4: 2 },
                             ),
                             { 1: [3] },
                             {
@@ -15698,7 +15698,7 @@ var __webpack_modules__ = {
                                     80, 82, 91, 93,
                                 ],
                                 e,
-                                { 4: 61 }
+                                { 4: 61 },
                             ),
                             { 8: [1, 62] },
                             { 8: [1, 63] },
@@ -15818,7 +15818,7 @@ var __webpack_modules__ = {
                                     83, 86,
                                 ],
                                 M,
-                                { 32: [1, 71], 57: N }
+                                { 32: [1, 71], 57: N },
                             ),
                             t(
                                 [
@@ -15827,7 +15827,7 @@ var __webpack_modules__ = {
                                     83, 86,
                                 ],
                                 [2, 26],
-                                { 34: [1, 73], 37: [1, 74] }
+                                { 34: [1, 73], 37: [1, 74] },
                             ),
                             t(A, [2, 54], {
                                 88: 77,
@@ -17020,7 +17020,7 @@ var __webpack_modules__ = {
                                     66, 83, 86,
                                 ],
                                 M,
-                                { 57: N }
+                                { 57: N },
                             ),
                             t(T, [2, 52]),
                             t(T, [2, 53]),
@@ -17032,7 +17032,7 @@ var __webpack_modules__ = {
                                     64, 65, 66, 74, 75, 76, 77, 78, 79, 80, 82,
                                     83, 86, 91, 93,
                                 ],
-                                [2, 12]
+                                [2, 12],
                             ),
                             { 10: [1, 156] },
                             { 10: [1, 157] },
@@ -17052,7 +17052,7 @@ var __webpack_modules__ = {
                                     65, 66, 83,
                                 ],
                                 [2, 88],
-                                { 86: [1, 162] }
+                                { 86: [1, 162] },
                             ),
                             t(T, [2, 94]),
                             t(T, [2, 96]),
@@ -17720,7 +17720,7 @@ var __webpack_modules__ = {
                             for (var f in this.yy)
                                 Object.prototype.hasOwnProperty.call(
                                     this.yy,
-                                    f
+                                    f,
                                 ) && (_.yy[f] = this.yy[f]);
                             p.setInput(t, _.yy),
                                 (_.yy.lexer = p),
@@ -17769,7 +17769,7 @@ var __webpack_modules__ = {
                                         this.terminals_[P] &&
                                             P > c &&
                                             x.push(
-                                                "'" + this.terminals_[P] + "'"
+                                                "'" + this.terminals_[P] + "'",
                                             );
                                     (T = p.showPosition
                                         ? "Parse error on line " +
@@ -17802,7 +17802,7 @@ var __webpack_modules__ = {
                                         "Parse Error: multiple actions possible at state: " +
                                             Z +
                                             ", token: " +
-                                            m
+                                            m,
                                     );
                                 switch (C[0]) {
                                     case 1:
@@ -17852,7 +17852,7 @@ var __webpack_modules__ = {
                                                         C[1],
                                                         s,
                                                         r,
-                                                    ].concat(u)
+                                                    ].concat(u),
                                                 )))
                                         )
                                             return y;
@@ -17959,17 +17959,17 @@ var __webpack_modules__ = {
                                 (this._input = t + this._input),
                                     (this.yytext = this.yytext.substr(
                                         0,
-                                        this.yytext.length - e
+                                        this.yytext.length - e,
                                     )),
                                     (this.offset -= e);
                                 var s = this.match.split(/(?:\r\n?|\n)/g);
                                 (this.match = this.match.substr(
                                     0,
-                                    this.match.length - 1
+                                    this.match.length - 1,
                                 )),
                                     (this.matched = this.matched.substr(
                                         0,
-                                        this.matched.length - 1
+                                        this.matched.length - 1,
                                     )),
                                     i.length - 1 &&
                                         (this.yylineno -= i.length - 1);
@@ -18011,7 +18011,7 @@ var __webpack_modules__ = {
                                               text: "",
                                               token: null,
                                               line: this.yylineno,
-                                          }
+                                          },
                                       );
                             },
                             less: function (t) {
@@ -18020,7 +18020,7 @@ var __webpack_modules__ = {
                             pastInput: function () {
                                 var t = this.matched.substr(
                                     0,
-                                    this.matched.length - this.match.length
+                                    this.matched.length - this.match.length,
                                 );
                                 return (
                                     (t.length > 20 ? "..." : "") +
@@ -18033,7 +18033,7 @@ var __webpack_modules__ = {
                                     t.length < 20 &&
                                         (t += this._input.substr(
                                             0,
-                                            20 - t.length
+                                            20 - t.length,
                                         )),
                                     (
                                         t.substr(0, 20) +
@@ -18104,7 +18104,7 @@ var __webpack_modules__ = {
                                     (this._more = !1),
                                     (this._backtrack = !1),
                                     (this._input = this._input.slice(
-                                        t[0].length
+                                        t[0].length,
                                     )),
                                     (this.matched += t[0]),
                                     (i = this.performAction.call(
@@ -18114,7 +18114,7 @@ var __webpack_modules__ = {
                                         e,
                                         this.conditionStack[
                                             this.conditionStack.length - 1
-                                        ]
+                                        ],
                                     )),
                                     this.done &&
                                         this._input &&
@@ -18141,7 +18141,7 @@ var __webpack_modules__ = {
                                 )
                                     if (
                                         (i = this._input.match(
-                                            this.rules[r[o]]
+                                            this.rules[r[o]],
                                         )) &&
                                         (!e || i[0].length > e[0].length)
                                     ) {
@@ -18176,7 +18176,7 @@ var __webpack_modules__ = {
                                               text: "",
                                               token: null,
                                               line: this.yylineno,
-                                          }
+                                          },
                                       );
                             },
                             lex: function () {
@@ -18877,7 +18877,7 @@ var __webpack_modules__ = {
                         ? t
                         : ((r = s.Z.rgbParser(t)),
                           (e = Math.floor(
-                              0.3 * r[0] + 0.59 * r[1] + 0.11 * r[2]
+                              0.3 * r[0] + 0.59 * r[1] + 0.11 * r[2],
                           )),
                           (t =
                               "#" +
@@ -19096,7 +19096,7 @@ var __webpack_modules__ = {
                             !!document.createElementNS &&
                             !!document.createElementNS(
                                 "http://www.w3.org/2000/svg",
-                                "svg"
+                                "svg",
                             ).createSVGRect
                         );
                     },
@@ -19161,7 +19161,7 @@ var __webpack_modules__ = {
                         return (
                             this.isApple() &&
                             navigator.userAgent.search(
-                                /Mobile\/[0-9A-Za-z.]*Safari/
+                                /Mobile\/[0-9A-Za-z.]*Safari/,
                             ) > -1
                         );
                     },
@@ -19171,7 +19171,7 @@ var __webpack_modules__ = {
                             window.clientInformation &&
                             window.clientInformation.appVersion &&
                             window.clientInformation.appVersion.indexOf(
-                                "MSAppHost"
+                                "MSAppHost",
                             ) > -1
                         );
                     },
@@ -19213,7 +19213,7 @@ var __webpack_modules__ = {
                         if ("object" != typeof document) return 0;
                         e = (t =
                             document.createElement("div")).getElementsByTagName(
-                            "i"
+                            "i",
                         );
                         do {
                             t.innerHTML =
@@ -19243,7 +19243,7 @@ var __webpack_modules__ = {
                             throw new Error(
                                 "\nJSXGraph: HTML container element '" +
                                     t +
-                                    "' not found."
+                                    "' not found.",
                             );
                         return "none" !== (s = i.style.display) && null !== s
                             ? i.clientWidth > 0 && i.clientHeight > 0
@@ -19302,24 +19302,24 @@ var __webpack_modules__ = {
                                         (n = r.Z.indexOf(
                                             o["x_internal" + e],
                                             i,
-                                            "origin"
+                                            "origin",
                                         ))
                                     ) {
                                         try {
                                             r.Z.exists(t) &&
                                                 r.Z.exists(
-                                                    t.removeEventListener
+                                                    t.removeEventListener,
                                                 ) &&
                                                 t.removeEventListener(
                                                     e,
                                                     o["x_internal" + e][n],
-                                                    !1
+                                                    !1,
                                                 ),
                                                 r.Z.exists(t) &&
                                                     r.Z.exists(t.detachEvent) &&
                                                     t.detachEvent(
                                                         "on" + e,
-                                                        o["x_internal" + e][n]
+                                                        o["x_internal" + e][n],
                                                     );
                                         } catch (t) {
                                             s.Z.debug(
@@ -19327,20 +19327,20 @@ var __webpack_modules__ = {
                                                     e +
                                                     " -- " +
                                                     i +
-                                                    ")"
+                                                    ")",
                                             );
                                         }
                                         o["x_internal" + e].splice(n, 1);
                                     } else
                                         s.Z.debug(
                                             "removeEvent: no such event function in internal list: " +
-                                                i
+                                                i,
                                         );
                                 else
                                     s.Z.debug(
                                         "owner[x_internal + " +
                                             e +
-                                            "] is not an array"
+                                            "] is not an array",
                                     );
                             else s.Z.debug("no such type: " + e);
                         else s.Z.debug("no such owner");
@@ -19357,11 +19357,11 @@ var __webpack_modules__ = {
                                     t,
                                     e,
                                     i["x_internal" + e][r].origin,
-                                    i
+                                    i,
                                 );
                             i["x_internal" + e].length > 0 &&
                                 s.Z.debug(
-                                    "removeAllEvents: Not all events could be removed."
+                                    "removeAllEvents: Not all events could be removed.",
                                 );
                         }
                     },
@@ -19413,7 +19413,7 @@ var __webpack_modules__ = {
                                         (o += i.clientTop - i.scrollTop)),
                                     r = (e = this.getCSSTransform(
                                         [r, o],
-                                        i
+                                        i,
                                     ))[0],
                                     o = e[1],
                                     s = s.parentNode;
@@ -19424,7 +19424,7 @@ var __webpack_modules__ = {
                                     (o += s.clientTop - s.scrollTop),
                                     (r = (e = this.getCSSTransform(
                                         [r, o],
-                                        s
+                                        s,
                                     ))[0]),
                                     (o = e[1]),
                                     (s = s.parentNode);
@@ -19447,7 +19447,7 @@ var __webpack_modules__ = {
                                       /-([a-z]|[0-9])/gi,
                                       function (t, e) {
                                           return e.toUpperCase();
-                                      }
+                                      },
                                   )),
                                   (i = t.style[e])),
                             i
@@ -19531,7 +19531,7 @@ var __webpack_modules__ = {
                             s =
                                 (l = c.defaultView.getComputedStyle(
                                     t,
-                                    null
+                                    null,
                                 )).getPropertyValue("-webkit-transform") ||
                                 l.getPropertyValue("-moz-transform") ||
                                 l.getPropertyValue("-ms-transform") ||
@@ -19612,7 +19612,7 @@ var __webpack_modules__ = {
                                     t +
                                     ":.*full.*screen.*#" +
                                     e +
-                                    ".*auto;.*transform:.*matrix"
+                                    ".*auto;.*transform:.*matrix",
                             );
                         for (
                             a = (h = i
@@ -19636,15 +19636,16 @@ var __webpack_modules__ = {
                                 0 === f &&
                                     ((r =
                                         document.createElement(
-                                            "style"
+                                            "style",
                                         )).appendChild(
-                                        document.createTextNode("")
+                                        document.createTextNode(""),
                                     ),
                                     i.appendChild(r),
                                     (f = i.styleSheets.length)),
                                 i.styleSheets[f - 1].cssRules.length > 0 &&
                                     v.test(
-                                        i.styleSheets[f - 1].cssRules[0].cssText
+                                        i.styleSheets[f - 1].cssRules[0]
+                                            .cssText,
                                     ) &&
                                     i.styleSheets[f - 1].deleteRule &&
                                     i.styleSheets[f - 1].deleteRule(0),
@@ -19659,10 +19660,10 @@ var __webpack_modules__ = {
                             } catch (t) {}
                         _ === m &&
                             (console.log(
-                                "JXG.scaleJSXGraphDiv: Could not add any CSS rule."
+                                "JXG.scaleJSXGraphDiv: Could not add any CSS rule.",
                             ),
                             console.log(
-                                "One possible reason could be that the id of the JSXGraph container does not start with a letter."
+                                "One possible reason could be that the id of the JSXGraph container does not start with a letter.",
                             ));
                     },
                 });
@@ -19705,7 +19706,7 @@ var __webpack_modules__ = {
                               ? ((i = r.Z.indexOf(
                                     this.eventHandlers[t],
                                     e,
-                                    "handler"
+                                    "handler",
                                 )) > -1 && this.eventHandlers[t].splice(i, 1),
                                 0 === this.eventHandlers[t].length &&
                                     delete this.eventHandlers[t])
@@ -19753,7 +19754,7 @@ var __webpack_modules__ = {
                                 (i = new n.Z(
                                     o.Z.COORDS_BY_USER,
                                     i.usrCoords,
-                                    i.board
+                                    i.board,
                                 )),
                             i
                         );
@@ -19927,7 +19928,7 @@ var __webpack_modules__ = {
                                     i,
                                     t.options,
                                     s,
-                                    r[n]
+                                    r[n],
                                 ))),
                             this.isArray(e[o]) && e[o].length > 1
                                 ? (d.push(t.create("point", e[o], h)),
@@ -19960,7 +19961,7 @@ var __webpack_modules__ = {
                                 (h = this.copyAttributes(
                                     i,
                                     t.board.options,
-                                    s
+                                    s,
                                 )),
                             o = 0;
                         o < a;
@@ -19973,7 +19974,7 @@ var __webpack_modules__ = {
                                     i,
                                     t.board.options,
                                     s,
-                                    r[n]
+                                    r[n],
                                 ))),
                             this.isArray(e[o]) && e[o].length > 1
                                 ? (d.push(t.create("point3d", e[o], h)),
@@ -20084,7 +20085,7 @@ var __webpack_modules__ = {
                               : ((e = e.toString().split("e")),
                                 +(
                                     (e = (e = Math[t](
-                                        +(e[0] + "e" + (e[1] ? +e[1] - i : -i))
+                                        +(e[0] + "e" + (e[1] ? +e[1] - i : -i)),
                                     ))
                                         .toString()
                                         .split("e"))[0] +
@@ -20426,7 +20427,7 @@ var __webpack_modules__ = {
                               function () {},
                               function (t) {
                                   return t;
-                              }
+                              },
                           )
                         : (t &&
                               "string" == typeof t &&
@@ -20613,7 +20614,7 @@ var __webpack_exports__ = {};
                                   return (
                                       "function" == typeof ActiveXObject &&
                                           (e = new ActiveXObject(
-                                              "MSXML.DomDocument"
+                                              "MSXML.DomDocument",
                                           )).loadXML(t),
                                       e
                                   );
@@ -21061,7 +21062,7 @@ var __webpack_exports__ = {};
                 (this.lastNumberOfEvaluations = 0),
                 h &&
                     console.log(
-                        "Experimental feature 'testForRoundingErrors' is activated."
+                        "Experimental feature 'testForRoundingErrors' is activated.",
                     ),
                 (u[0] = 0),
                 this.arraycopy(s, 0, u, 1, e),
@@ -21141,7 +21142,7 @@ var __webpack_exports__ = {};
                     console.log(
                         "The initial value of RHO is " +
                             J +
-                            " and PARMU is set to zero."
+                            " and PARMU is set to zero.",
                     ),
                     g = 0,
                     f = 1 / J,
@@ -21233,7 +21234,7 @@ var __webpack_exports__ = {};
                                                 q,
                                                 u,
                                                 1,
-                                                e
+                                                e,
                                             ) - (d === u ? 1 : 0)),
                                             (P = Math.max(P, Math.abs(f)));
                             if (P > 0.1) {
@@ -21252,7 +21253,7 @@ var __webpack_exports__ = {};
                                             Q,
                                             d,
                                             1,
-                                            e
+                                            e,
                                         );
                             }
                             for (
@@ -21282,7 +21283,7 @@ var __webpack_exports__ = {};
                                         et,
                                         p,
                                         1,
-                                        e
+                                        e,
                                     )),
                                         p < F &&
                                             ((f = tt[p][U]),
@@ -21308,7 +21309,7 @@ var __webpack_exports__ = {};
                                                 ot,
                                                 -1,
                                                 1,
-                                                e
+                                                e,
                                             ),
                                                 p = 1;
                                             p <= e;
@@ -21336,7 +21337,7 @@ var __webpack_exports__ = {};
                                         et,
                                         p,
                                         1,
-                                        e
+                                        e,
                                     )),
                                     p < F && (M = Math.max(M, c));
                             if (
@@ -21347,7 +21348,7 @@ var __webpack_exports__ = {};
                                     G = 2 * N,
                                         a >= 2 &&
                                             console.log(
-                                                "Increase in PARMU to " + G
+                                                "Increase in PARMU to " + G,
                                             ),
                                         A = tt[F][U] + G * tt[s][U],
                                         u = 1;
@@ -21379,7 +21380,7 @@ var __webpack_exports__ = {};
                             ++u
                         )
                             (f = Math.abs(
-                                this.DOT_PRODUCT_ROW_COL(Q, u, ot, -1, 1, e)
+                                this.DOT_PRODUCT_ROW_COL(Q, u, ot, -1, 1, e),
                             )) > R && ((m = u), (R = f)),
                                 (rt[u] = f * it[u]);
                         for (D = 1.1 * J, _ = 0, u = 1; u <= e; ++u)
@@ -21404,7 +21405,7 @@ var __webpack_exports__ = {};
                                             ot,
                                             -1,
                                             1,
-                                            e
+                                            e,
                                         ),
                                             p = 1;
                                         p <= e;
@@ -21444,7 +21445,7 @@ var __webpack_exports__ = {};
                                 "Reduction in RHO to " +
                                     J +
                                     "  and PARMU = " +
-                                    G
+                                    G,
                             ),
                             2 === a &&
                                 this.PrintIterationResult(
@@ -21453,7 +21454,7 @@ var __webpack_exports__ = {};
                                     tt[s][U],
                                     this.COL(q, U),
                                     e,
-                                    a
+                                    a,
                                 );
                     } else v = !1;
                 }
@@ -21463,7 +21464,7 @@ var __webpack_exports__ = {};
                     if (
                         (a >= 1 &&
                             console.log(
-                                "%nNormal return from subroutine COBYLA%n"
+                                "%nNormal return from subroutine COBYLA%n",
                             ),
                         H)
                     )
@@ -21476,13 +21477,13 @@ var __webpack_exports__ = {};
                 case this.MaxIterationsReached:
                     a >= 1 &&
                         console.log(
-                            "%nReturn from subroutine COBYLA because the MAXFUN limit has been reached.%n"
+                            "%nReturn from subroutine COBYLA because the MAXFUN limit has been reached.%n",
                         );
                     break;
                 case this.DivergingRoundingErrors:
                     a >= 1 &&
                         console.log(
-                            "%nReturn from subroutine COBYLA because rounding errors are becoming damaging.%n"
+                            "%nReturn from subroutine COBYLA because rounding errors are becoming damaging.%n",
                         );
             }
             for (p = 1; p <= e; ++p) r[p] = q[p][U];
@@ -21565,7 +21566,7 @@ var __webpack_exports__ = {};
                                           i,
                                           V,
                                           1,
-                                          t
+                                          t,
                                       )),
                             0 === u || f < d
                                 ? ((d = f), (j = $), (u = 3))
@@ -21583,7 +21584,7 @@ var __webpack_exports__ = {};
                                         C = W[(Z = l + 1)],
                                             y = this.DOT_PRODUCT(
                                                 this.PART(this.COL(U, l), 1, t),
-                                                this.PART(this.COL(i, C), 1, t)
+                                                this.PART(this.COL(i, C), 1, t),
                                             ),
                                             Y = Math.sqrt(y * y + F[Z] * F[Z]),
                                             P = F[Z] / Y,
@@ -21613,7 +21614,7 @@ var __webpack_exports__ = {};
                                         U,
                                         $ + 1,
                                         1,
-                                        t
+                                        t,
                                     ),
                                         l = 1;
                                     l <= t;
@@ -21686,16 +21687,16 @@ var __webpack_exports__ = {};
                                                     this.PART(
                                                         this.COL(U, l),
                                                         1,
-                                                        t
+                                                        t,
                                                     ),
                                                     this.PART(
                                                         this.COL(i, N),
                                                         1,
-                                                        t
-                                                    )
+                                                        t,
+                                                    ),
                                                 ),
                                                 Y = Math.sqrt(
-                                                    y * y + F[Z] * F[Z]
+                                                    y * y + F[Z] * F[Z],
                                                 ),
                                                 P = F[Z] / Y,
                                                 E = y / Y,
@@ -21717,7 +21718,7 @@ var __webpack_exports__ = {};
                                     0 ===
                                     (Y = this.DOT_PRODUCT(
                                         this.PART(this.COL(U, $), 1, t),
-                                        this.PART(this.COL(i, C), 1, t)
+                                        this.PART(this.COL(i, C), 1, t),
                                     ))
                                 )
                                     break t;
@@ -21728,7 +21729,7 @@ var __webpack_exports__ = {};
                                     l = $ - 1,
                                         y = this.DOT_PRODUCT(
                                             this.PART(this.COL(U, l), 1, t),
-                                            this.PART(this.COL(i, C), 1, t)
+                                            this.PART(this.COL(i, C), 1, t),
                                         ),
                                         Y = Math.sqrt(y * y + F[$] * F[$]),
                                         P = F[$] / Y,
@@ -21761,7 +21762,7 @@ var __webpack_exports__ = {};
                                                 i,
                                                 C,
                                                 1,
-                                                t
+                                                t,
                                             ) -
                                                 1) /
                                             F[$],
@@ -21801,7 +21802,7 @@ var __webpack_exports__ = {};
                                         i,
                                         C,
                                         1,
-                                        t
+                                        t,
                                     )),
                                     (a = Math.max(a, Y));
                         l = $;
@@ -21922,7 +21923,7 @@ var __webpack_exports__ = {};
                     t.points[o].setCoordinates(
                         i.Z.COORDS_BY_USER,
                         [t.X(n, a), t.Y(n, a)],
-                        !1
+                        !1,
                     ),
                     (t.points[o]._t = n),
                     (a = !0);
@@ -21998,7 +21999,7 @@ var __webpack_exports__ = {};
                 v.setCoordinates(
                     i.Z.COORDS_BY_USER,
                     [e.X(a, m), e.Y(a, m)],
-                    !1
+                    !1,
                 ),
                 (m = !0),
                 (d = v.scrCoords[1]),
@@ -22007,7 +22008,7 @@ var __webpack_exports__ = {};
                 v.setCoordinates(
                     i.Z.COORDS_BY_USER,
                     [e.X(a, m), e.Y(a, m)],
-                    !1
+                    !1,
                 ),
                 (h = v.scrCoords[1]),
                 (l = v.scrCoords[2]),
@@ -22019,7 +22020,7 @@ var __webpack_exports__ = {};
                     i.Z.COORDS_BY_SCREEN,
                     [d, u],
                     e.board,
-                    !1
+                    !1,
                 ));
             do {
                 for (
@@ -22040,7 +22041,7 @@ var __webpack_exports__ = {};
                             i.Z.COORDS_BY_USER,
                             [e.X(a, m), e.Y(a, m)],
                             !1,
-                            !0
+                            !0,
                         ),
                         (h = v.scrCoords[1]),
                         (l = v.scrCoords[2]),
@@ -22051,14 +22052,14 @@ var __webpack_exports__ = {};
                     x(
                         e.points[O - 2].scrCoords,
                         [h, l],
-                        e.points[O - 1].scrCoords
+                        e.points[O - 1].scrCoords,
                     ) < 0.015 &&
                     (O -= 1),
                     (e.points[O] = new c.Z(
                         i.Z.COORDS_BY_SCREEN,
                         [h, l],
                         e.board,
-                        !1
+                        !1,
                     )),
                     (e.points[O]._t = a),
                     (O += 1),
@@ -22102,7 +22103,7 @@ var __webpack_exports__ = {};
                 n.setCoordinates(
                     i.Z.COORDS_BY_USER,
                     [t.X(s, !0), t.Y(s, !0)],
-                    !1
+                    !1,
                 ),
                 (r = n.usrCoords),
                 !!(
@@ -22111,7 +22112,7 @@ var __webpack_exports__ = {};
                     n.setCoordinates(
                         i.Z.COORDS_BY_USER,
                         [t.X(s, !0), t.Y(s, !0)],
-                        !1
+                        !1,
                     ),
                     (r = n.usrCoords),
                     isNaN(r[1] + r[2]))
@@ -22165,7 +22166,7 @@ var __webpack_exports__ = {};
                         d.setCoordinates(
                             i.Z.COORDS_BY_USER,
                             [t.X(l, !0), t.Y(l, !0)],
-                            !1
+                            !1,
                         ),
                         (u = d.usrCoords),
                         (m = isNaN(u[1] + u[2])) ? (_ = l) : ((b = f), (f = l)),
@@ -22180,7 +22181,7 @@ var __webpack_exports__ = {};
                     return (
                         this._insertPoint_v2(
                             t,
-                            new c.Z(i.Z.COORDS_BY_USER, g, t.board, !1)
+                            new c.Z(i.Z.COORDS_BY_USER, g, t.board, !1),
                         ),
                         !0
                     );
@@ -22204,7 +22205,7 @@ var __webpack_exports__ = {};
                       f.setCoordinates(
                           i.Z.COORDS_BY_USER,
                           [t.X(h, !0), t.Y(h, !0)],
-                          !1
+                          !1,
                       ),
                       (l = f.scrCoords),
                       this._borderCase(t, e, r, l, s, o, h, n) ||
@@ -22228,9 +22229,9 @@ var __webpack_exports__ = {};
                                         i.Z.COORDS_BY_SCREEN,
                                         [NaN, NaN],
                                         t.board,
-                                        !1
+                                        !1,
                                     ),
-                                    h
+                                    h,
                                 )
                               : n <= _ || u
                               ? this._insertPoint_v2(t, f, h)
@@ -22274,13 +22275,13 @@ var __webpack_exports__ = {};
                 b.setCoordinates(
                     i.Z.COORDS_BY_USER,
                     [t.X(o, f), t.Y(o, f)],
-                    !1
+                    !1,
                 ),
                 (f = !0),
                 g.setCoordinates(
                     i.Z.COORDS_BY_USER,
                     [t.X(n, f), t.Y(n, f)],
-                    !1
+                    !1,
                 ),
                 (_ = this._findStartPoint(t, b.scrCoords, o, g.scrCoords, n)),
                 b.setCoordinates(i.Z.COORDS_BY_SCREEN, _[0], !1),
@@ -22310,7 +22311,7 @@ var __webpack_exports__ = {};
                 (((a = new c.Z(
                     i.Z.COORDS_BY_USER,
                     [n.left_x, n.left_y],
-                    t.board
+                    t.board,
                 ))._t = s),
                 t.points.push(a),
                 isNaN(n.left_x) ||
@@ -22326,7 +22327,7 @@ var __webpack_exports__ = {};
                 ((l = new c.Z(
                     i.Z.COORDS_BY_USER,
                     [n.right_x, n.right_y],
-                    t.board
+                    t.board,
                 ))._t = s),
                 t.points.push(l),
                 (this._lastScrCrds = l.copy("scrCoords")),
@@ -22387,7 +22388,7 @@ var __webpack_exports__ = {};
                     h.setCoordinates(
                         i.Z.COORDS_BY_USER,
                         [t.X(n, !0), t.Y(n, !0)],
-                        !1
+                        !1,
                     ),
                     !isNaN(h.scrCoords[0] + h.scrCoords[1] + h.scrCoords[2]))
                 )
@@ -22440,7 +22441,7 @@ var __webpack_exports__ = {};
                     d.setCoordinates(
                         i.Z.COORDS_BY_USER,
                         [t.X(l, !0), t.Y(l, !0)],
-                        !1
+                        !1,
                     ),
                     (u = d.usrCoords),
                     isNaN(u[1] + u[2]) ? (f = l) : (_, (_ = l)),
@@ -22457,16 +22458,16 @@ var __webpack_exports__ = {};
                     return -(
                         Math.sqrt(
                             (s[0] - i[0]) * (s[0] - i[0]) +
-                                (s[1] - i[1]) * (s[1] - i[1])
+                                (s[1] - i[1]) * (s[1] - i[1]),
                         ) +
                         Math.sqrt(
                             (r[0] - i[0]) * (r[0] - i[0]) +
-                                (r[1] - i[1]) * (r[1] - i[1])
+                                (r[1] - i[1]) * (r[1] - i[1]),
                         )
                     );
                 },
                 [e, i],
-                t
+                t,
             );
         },
         _getJumpPos: function (t, e, i) {
@@ -22478,7 +22479,7 @@ var __webpack_exports__ = {};
                     return -Math.abs((r[1] - s[1]) / (r[0] - s[0]));
                 },
                 [e, i],
-                t
+                t,
             );
         },
         _getLimits: function (t, e) {
@@ -22625,13 +22626,13 @@ var __webpack_exports__ = {};
                 f.setCoordinates(
                     i.Z.COORDS_BY_USER,
                     [t.X(o, _), t.Y(o, _)],
-                    !1
+                    !1,
                 ),
                 (_ = !0),
                 b.setCoordinates(
                     i.Z.COORDS_BY_USER,
                     [t.X(n, _), t.Y(n, _)],
-                    !1
+                    !1,
                 ),
                 (p = this._findStartPoint(t, f.scrCoords, o, b.scrCoords, n)),
                 f.setCoordinates(i.Z.COORDS_BY_SCREEN, p[0], !1),
@@ -23099,7 +23100,7 @@ var __webpack_exports__ = {};
                             this._insertPoint_v4(
                                 t,
                                 [1, c.x_values[o], c.y_values[o]],
-                                c.t_values[o]
+                                c.t_values[o],
                             );
                     p < u.length &&
                         (this.handleSingularity(t, c, u[p], _, f),
@@ -23187,7 +23188,7 @@ var __webpack_exports__ = {};
                           o[0][c],
                           r[0][d],
                           o[0][d],
-                          10
+                          10,
                       )),
                 b < -100
                     ? this._insertPoint_v4(t, [1, u, _], n)
@@ -23261,7 +23262,7 @@ var __webpack_exports__ = {};
                         this._insertPoint_v4(
                             t,
                             [1, c.x_values[o], c.y_values[o]],
-                            c.t_values[o]
+                            c.t_values[o],
                         ),
                             Math.max(0, o - 2),
                             o >= p + 3 &&
@@ -23276,34 +23277,34 @@ var __webpack_exports__ = {};
                                           ? this._insertPoint_v4(
                                                 t,
                                                 [1, g + E, Z.lo],
-                                                g + E
+                                                g + E,
                                             )
                                           : this._insertPoint_v4(
                                                 t,
                                                 [1, g + C - E, Z.hi],
-                                                g + C - E
+                                                g + C - E,
                                             )
                                       : (m = l.Z.fminbr(y, [g, g + C])) <
                                         (v = l.Z.fminbr(P, [g, g + C]))
                                       ? (this._insertPoint_v4(
                                             t,
                                             [1, t.X(m, !0), t.Y(m, !0)],
-                                            m
+                                            m,
                                         ),
                                         this._insertPoint_v4(
                                             t,
                                             [1, t.X(v, !0), t.Y(v, !0)],
-                                            v
+                                            v,
                                         ))
                                       : (this._insertPoint_v4(
                                             t,
                                             [1, t.X(v, !0), t.Y(v, !0)],
-                                            v
+                                            v,
                                         ),
                                         this._insertPoint_v4(
                                             t,
                                             [1, t.X(m, !0), t.Y(m, !0)],
-                                            m
+                                            m,
                                         )))
                                 : 0;
                     u < d.length &&
@@ -23406,8 +23407,8 @@ var __webpack_exports__ = {};
                                 f.push(
                                     Math.atan2(
                                         p[s] * l - u[s] * d,
-                                        u[s] * l + p[s] * d
-                                    )
+                                        u[s] * l + p[s] * d,
+                                    ),
                                 )),
                             s++,
                             (h = c) === n && (o = s),
@@ -23485,11 +23486,11 @@ var __webpack_exports__ = {};
                             return (
                                 (a = Math.atan2(r[0], s[0])),
                                 (x = (O = this.mp_n_sin_cos(
-                                    t.right_given() - a
+                                    t.right_given() - a,
                                 ))[0]),
                                 (w = O[1]),
                                 (T = (S = this.mp_n_sin_cos(
-                                    e.left_given() - a
+                                    e.left_given() - a,
                                 ))[0]),
                                 (M = S[1]),
                                 void this.mp_set_controls(
@@ -23500,7 +23501,7 @@ var __webpack_exports__ = {};
                                     w,
                                     x,
                                     -M,
-                                    T
+                                    T,
                                 )
                             );
                         (l[0] = _.right_given() - Math.atan2(r[0], s[0])),
@@ -23659,7 +23660,7 @@ var __webpack_exports__ = {};
             return Math.min(
                 4,
                 ((3 - s) * s * s * t + r * r * r) /
-                    (s * s * s * t + (3 - r) * r * r)
+                    (s * s * s * t + (3 - r) * r * r),
             );
         },
         mp_ab_vs_cd: function (t, e, i, s) {
@@ -23671,7 +23672,7 @@ var __webpack_exports__ = {};
                 (2 + Math.sqrt(2) * (t - i / 16) * (i - t / 16) * (e - s)) /
                     (1.5 *
                         r *
-                        (2 + (Math.sqrt(5) - 1) * e + (3 - Math.sqrt(5)) * s))
+                        (2 + (Math.sqrt(5) - 1) * e + (3 - Math.sqrt(5)) * s)),
             );
         },
         reduce_angle: function (t) {
@@ -24374,7 +24375,7 @@ var __webpack_exports__ = {};
                             P.charAt(i >> 18),
                             P.charAt((i >> 12) & 63),
                             P.charAt((i >> 6) & 63),
-                            P.charAt(63 & i)
+                            P.charAt(63 & i),
                         );
                 switch (r) {
                     case 1:
@@ -24383,7 +24384,7 @@ var __webpack_exports__ = {};
                                 P.charAt(i >> 2),
                                 P.charAt((i << 4) & 63),
                                 E,
-                                E
+                                E,
                             );
                         break;
                     case 2:
@@ -24394,7 +24395,7 @@ var __webpack_exports__ = {};
                                 P.charAt(i >> 10),
                                 P.charAt((i >> 4) & 63),
                                 P.charAt((i << 2) & 63),
-                                E
+                                E,
                             );
                 }
                 return n.join("");
@@ -24413,7 +24414,7 @@ var __webpack_exports__ = {};
                     0
                 )
                     throw new Error(
-                        "JSXGraph/utils/base64: Can't decode string (invalid input length)."
+                        "JSXGraph/utils/base64: Can't decode string (invalid input length).",
                     );
                 for (
                     i.charAt(r - 1) === E &&
@@ -24509,7 +24510,7 @@ var __webpack_exports__ = {};
                                     (o = r.fields[l]).namespace +
                                     ("object" ==
                                     typeof new Function(
-                                        "return " + o.namespace
+                                        "return " + o.namespace,
                                     )()
                                         ? "."
                                         : ".prototype.") +
@@ -24568,7 +24569,7 @@ var __webpack_exports__ = {};
                 (this.cb = t.Z.bind(this.cbp, this)),
                 window.XMLHttpRequest
                     ? (h = new XMLHttpRequest()).overrideMimeType(
-                          "text/plain; charset=iso-8859-1"
+                          "text/plain; charset=iso-8859-1",
                       )
                     : (h = new ActiveXObject("Microsoft.XMLHTTP")),
                 !(
@@ -24576,7 +24577,7 @@ var __webpack_exports__ = {};
                     (h.open("POST", n, !o),
                     h.setRequestHeader(
                         "Content-type",
-                        "application/x-www-form-urlencoded"
+                        "application/x-www-form-urlencoded",
                     ),
                     o ||
                         (h.onreadystatechange =
@@ -24603,7 +24604,7 @@ var __webpack_exports__ = {};
                 "load",
                 t.Z.Server.loadModule_cb,
                 { module: e },
-                !0
+                !0,
             );
         },
     }),
@@ -24706,7 +24707,7 @@ var __webpack_exports__ = {};
                 P = new c.Z(
                     i.Z.COORDS_BY_USR,
                     [t.canvasWidth, t.canvasHeight],
-                    t
+                    t,
                 ),
                 E = 1,
                 O = 0,
@@ -24717,7 +24718,7 @@ var __webpack_exports__ = {};
                 x.modules.geoloci === w)
             )
                 throw new Error(
-                    "JSXGraph: Unable to load JXG.Server module 'geoloci.py'."
+                    "JSXGraph: Unable to load JXG.Server module 'geoloci.py'.",
                 );
             if (
                 ((d = y.usrCoords[1]),
@@ -24760,7 +24761,7 @@ var __webpack_exports__ = {};
                             T = u.Z.rad(
                                 [1, 0],
                                 [0, 0],
-                                [h.symbolic.x, h.symbolic.y]
+                                [h.symbolic.x, h.symbolic.y],
                             ),
                             b = Math.cos(-T),
                             g = Math.sin(-T),
@@ -24833,7 +24834,7 @@ var __webpack_exports__ = {};
                 O,
                 S,
                 this.cb,
-                !0
+                !0,
             ),
             this.clearSymbolicCoordinates(t),
             Z))
@@ -24967,7 +24968,7 @@ var __webpack_exports__ = {};
                             "prev",
                             t[e]._prev.coords.usrCoords,
                             "next",
-                            t[e]._next.coords.usrCoords + i
+                            t[e]._next.coords.usrCoords + i,
                         );
                 } catch (i) {
                     console.log(e, t[e].coords.usrCoords);
@@ -24991,7 +24992,7 @@ var __webpack_exports__ = {};
                     "\n\t\t+:",
                     t._next.coords.usrCoords,
                     "\n\t\tn:",
-                    t.intersection ? t.neighbour.coords.usrCoords : "-"
+                    t.intersection ? t.neighbour.coords.usrCoords : "-",
                 ),
                 !t._end);
 
@@ -25096,12 +25097,12 @@ var __webpack_exports__ = {};
                                                 ? new c.Z(
                                                       i.Z.COORDS_BY_USER,
                                                       h,
-                                                      s
+                                                      s,
                                                   )
                                                 : new c.Z(
                                                       i.Z.COORDS_BY_USER,
                                                       d,
-                                                      s
+                                                      s,
                                                   ));
                                 else if (
                                     Z[1] === 1 / 0 &&
@@ -25120,7 +25121,7 @@ var __webpack_exports__ = {};
                                             Z[1],
                                             t,
                                             "S",
-                                            g
+                                            g,
                                         )),
                                         (v = new this.Vertex(
                                             a,
@@ -25128,7 +25129,7 @@ var __webpack_exports__ = {};
                                             Z[2],
                                             e,
                                             "C",
-                                            g
+                                            g,
                                         )),
                                         (m.neighbour = v),
                                         (v.neighbour = m),
@@ -25142,7 +25143,7 @@ var __webpack_exports__ = {};
                                             (a = new c.Z(
                                                 i.Z.COORDS_BY_USER,
                                                 d,
-                                                s
+                                                s,
                                             )),
                                             (Z[1] = b),
                                             (Z[2] = 0),
@@ -25152,7 +25153,7 @@ var __webpack_exports__ = {};
                                                 Z[1],
                                                 t,
                                                 "S",
-                                                g
+                                                g,
                                             )),
                                             (v = new this.Vertex(
                                                 a,
@@ -25160,7 +25161,7 @@ var __webpack_exports__ = {};
                                                 Z[2],
                                                 e,
                                                 "C",
-                                                g
+                                                g,
                                             )),
                                             (m.neighbour = v),
                                             (v.neighbour = m),
@@ -25175,7 +25176,7 @@ var __webpack_exports__ = {};
                                         Z[1],
                                         t,
                                         "S",
-                                        g
+                                        g,
                                     )),
                                     (v = new this.Vertex(
                                         a,
@@ -25183,7 +25184,7 @@ var __webpack_exports__ = {};
                                         Z[2],
                                         e,
                                         "C",
-                                        g
+                                        g,
                                     )),
                                     (m.neighbour = v),
                                     (v.neighbour = m),
@@ -25288,7 +25289,7 @@ var __webpack_exports__ = {};
                                   e,
                                   n,
                                   a.coords.usrCoords,
-                                  r
+                                  r,
                               )),
                               (t.delayedStatus = ["on", h]))
                             : 0 === f
@@ -25296,7 +25297,7 @@ var __webpack_exports__ = {};
                                   i,
                                   n,
                                   a.coords.usrCoords,
-                                  r
+                                  r,
                               )),
                               (t.delayedStatus = [h, "on"]))
                             : 0 === t.delayedStatus.length &&
@@ -25304,7 +25305,7 @@ var __webpack_exports__ = {};
                                   i,
                                   n,
                                   a.coords.usrCoords,
-                                  r
+                                  r,
                               ) !==
                               this._getPosition(e, n, a.coords.usrCoords, r)
                                   ? (t.data.type = "X")
@@ -25314,7 +25315,7 @@ var __webpack_exports__ = {};
                 ) {
                     l > 1e3 &&
                         console.log(
-                            "Clipping: _classifyDegenerateIntersections exit"
+                            "Clipping: _classifyDegenerateIntersections exit",
                         ),
                         s.Z.exists(t._tours) && delete t._tours;
                     break;
@@ -25355,7 +25356,7 @@ var __webpack_exports__ = {};
             ) {
                 if (i > 1e3) {
                     console.log(
-                        "Warning: _handleIntersectionChains: intersection chain reached maximum numbers of iterations"
+                        "Warning: _handleIntersectionChains: intersection chain reached maximum numbers of iterations",
                     );
                     break;
                 }
@@ -25404,8 +25405,8 @@ var __webpack_exports__ = {};
                                     u.Z.det3p(
                                         n[f].coords.usrCoords,
                                         n[(f + 1) % g].coords.usrCoords,
-                                        h
-                                    )
+                                        h,
+                                    ),
                                 ) < o.Z.eps
                             ) {
                                 m = !0;
@@ -25514,7 +25515,7 @@ var __webpack_exports__ = {};
                               "on",
                               e.data.pathname,
                               e.entry_exit,
-                              e.data.type
+                              e.data.type,
                           ),
                       !0)
                     : (e.intersection &&
@@ -25526,7 +25527,7 @@ var __webpack_exports__ = {};
                                   "on",
                                   e.data.pathname,
                                   e.entry_exit,
-                                  e.data.type
+                                  e.data.type,
                               )),
                       !1)
             );
@@ -25585,7 +25586,7 @@ var __webpack_exports__ = {};
                             return (
                                 console.log(
                                     "Tracing: emergency break - no neighbour!!!!!!!!!!!!!!!!!",
-                                    a
+                                    a,
                                 ),
                                 [[0], [0]]
                             );
@@ -25716,9 +25717,9 @@ var __webpack_exports__ = {};
                                     t.center.coords.usrCoords[2] +
                                         Math.sin(r * a) * n,
                                 ],
-                                e
+                                e,
                             ),
-                            r
+                            r,
                         );
                 else if (s.Z.isArray(t))
                     for (o = t.length, r = 0; r < o; r++)
@@ -25728,7 +25729,7 @@ var __webpack_exports__ = {};
                             ? this._addToList(
                                   p,
                                   new c.Z(i.Z.COORDS_BY_USER, t[r], e),
-                                  r
+                                  r,
                               )
                             : s.Z.exists(t[r].usrCoords) &&
                               this._addToList(p, t[r], r);
@@ -25742,7 +25743,7 @@ var __webpack_exports__ = {};
                             t.radiuspoint.coords.usrCoords[2] -
                                 t.center.coords.usrCoords[2],
                             t.radiuspoint.coords.usrCoords[1] -
-                                t.center.coords.usrCoords[1]
+                                t.center.coords.usrCoords[1],
                         ),
                         t.type === i.Z.OBJECT_TYPE_SECTOR &&
                             this._addToList(p, t.center.coords, 0),
@@ -25761,9 +25762,9 @@ var __webpack_exports__ = {};
                                 t.center.coords.usrCoords[2] +
                                     Math.sin(r * a + l) * n,
                             ],
-                            e
+                            e,
                         ),
-                        r + 1
+                        r + 1,
                     );
                 t.type === i.Z.OBJECT_TYPE_SECTOR &&
                     this._addToList(p, t.center.coords, d + 2);
@@ -25782,14 +25783,14 @@ var __webpack_exports__ = {};
                     u.Z.distance(
                         l[0].coords.usrCoords,
                         l[r - 1].coords.usrCoords,
-                        3
+                        3,
                     ) < o.Z.eps &&
                     l.pop(),
                 (r = (c = this._getPath(e, s)).length) > 0 &&
                     u.Z.distance(
                         c[0].coords.usrCoords,
                         c[r - 1].coords.usrCoords,
-                        3
+                        3,
                     ) <
                         o.Z.eps * o.Z.eps &&
                     c.pop(),
@@ -25827,7 +25828,7 @@ var __webpack_exports__ = {};
             var r;
             if (!s.Z.exists(t))
                 throw new Error(
-                    "JSXGraph error: In JXG.Math.Poly.monomial missing parameter 'ring'."
+                    "JSXGraph error: In JXG.Math.Poly.monomial missing parameter 'ring'.",
                 );
             for (
                 s.Z.isArray(i) || (i = []),
@@ -25845,7 +25846,7 @@ var __webpack_exports__ = {};
                 return new o.Z.Poly.Monomial(
                     this.ring,
                     this.coefficient,
-                    this.exponents
+                    this.exponents,
                 );
             },
             print: function () {
@@ -25860,7 +25861,7 @@ var __webpack_exports__ = {};
             var i;
             if (!s.Z.exists(t))
                 throw new Error(
-                    "JSXGraph error: In JXG.Math.Poly.polynomial missing parameter 'ring'."
+                    "JSXGraph error: In JXG.Math.Poly.polynomial missing parameter 'ring'.",
                 );
             (i = s.Z.exists(e) && s.Z.isString(e) ? void 0 : []),
                 (this.ring = t),
@@ -25883,7 +25884,7 @@ var __webpack_exports__ = {};
                 var e;
                 if (!s.Z.exists(t) || t.ring !== this.ring)
                     throw new Error(
-                        "JSXGraph error: In JXG.Math.Poly.polynomial.add either summand is undefined or rings don't match."
+                        "JSXGraph error: In JXG.Math.Poly.polynomial.add either summand is undefined or rings don't match.",
                     );
                 if (s.Z.isArray(t.exponents)) this.addSubMonomial(t, 1);
                 else
@@ -25894,7 +25895,7 @@ var __webpack_exports__ = {};
                 var e;
                 if (!s.Z.exists(t) || t.ring !== this.ring)
                     throw new Error(
-                        "JSXGraph error: In JXG.Math.Poly.polynomial.sub either summand is undefined or rings don't match."
+                        "JSXGraph error: In JXG.Math.Poly.polynomial.sub either summand is undefined or rings don't match.",
                     );
                 if (s.Z.isArray(t.exponents)) this.addSubMonomial(t, -1);
                 else
@@ -26037,32 +26038,32 @@ var __webpack_exports__ = {};
                                   ? (this.setObjectStrokeColor(
                                         t,
                                         t.visProp.highlightstrokecolor,
-                                        t.visProp.highlightstrokeopacity
+                                        t.visProp.highlightstrokeopacity,
                                     ),
                                     this.setObjectStrokeWidth(
                                         t,
-                                        t.visProp.highlightstrokewidth
+                                        t.visProp.highlightstrokewidth,
                                     ))
                                   : (this.setObjectStrokeColor(
                                         t,
                                         t.visProp.strokecolor,
-                                        t.visProp.strokeopacity
+                                        t.visProp.strokeopacity,
                                     ),
                                     this.setObjectStrokeWidth(
                                         t,
-                                        t.visProp.strokewidth
+                                        t.visProp.strokewidth,
                                     ))),
                           e.fill ||
                               (t.highlighted
                                   ? this.setObjectFillColor(
                                         t,
                                         t.visProp.highlightfillcolor,
-                                        t.visProp.highlightfillopacity
+                                        t.visProp.highlightfillopacity,
                                     )
                                   : this.setObjectFillColor(
                                         t,
                                         t.visProp.fillcolor,
-                                        t.visProp.fillopacity
+                                        t.visProp.fillopacity,
                                     )),
                           e.dash || this.setDashStyle(t, t.visProp),
                           e.shadow || this.setShadow(t),
@@ -26086,7 +26087,7 @@ var __webpack_exports__ = {};
                 (e = "o" === i ? "ellipse" : "[]" === i ? "rect" : "path"),
                     (t.rendNode = this.appendChildPrim(
                         this.createPrim(e, t.id),
-                        s.Z.evaluate(t.visProp.layer)
+                        s.Z.evaluate(t.visProp.layer),
                     )),
                     this.appendNodesToElement(t, e),
                     this._updateVisual(t, { dash: !0, shadow: !0 }, !0),
@@ -26115,7 +26116,7 @@ var __webpack_exports__ = {};
                               t.coords.scrCoords[1],
                               t.coords.scrCoords[2],
                               e,
-                              e
+                              e,
                           )
                         : "[]" === r
                         ? this.updateRectPrim(
@@ -26123,12 +26124,12 @@ var __webpack_exports__ = {};
                               t.coords.scrCoords[1] - i,
                               t.coords.scrCoords[2] - i,
                               2 * i,
-                              2 * i
+                              2 * i,
                           )
                         : this.updatePathPrim(
                               t.rendNode,
                               this.updatePathStringPoint(t, i, r),
-                              t.board
+                              t.board,
                           ),
                     this._updateVisual(t, { dash: !1, shadow: !1 }),
                     this.setShadow(t));
@@ -26144,7 +26145,7 @@ var __webpack_exports__ = {};
             drawLine: function (t) {
                 (t.rendNode = this.appendChildPrim(
                     this.createPrim("line", t.id),
-                    s.Z.evaluate(t.visProp.layer)
+                    s.Z.evaluate(t.visProp.layer),
                 )),
                     this.appendNodesToElement(t, "lines"),
                     this.updateLine(t);
@@ -26157,7 +26158,7 @@ var __webpack_exports__ = {};
             drawCurve: function (t) {
                 (t.rendNode = this.appendChildPrim(
                     this.createPrim("path", t.id),
-                    s.Z.evaluate(t.visProp.layer)
+                    s.Z.evaluate(t.visProp.layer),
                 )),
                     this.appendNodesToElement(t, "path"),
                     this.updateCurve(t);
@@ -26176,7 +26177,7 @@ var __webpack_exports__ = {};
                     e && n.highlightstrokewidth
                         ? Math.max(
                               s.Z.evaluate(n.highlightstrokewidth),
-                              s.Z.evaluate(n.strokewidth)
+                              s.Z.evaluate(n.strokewidth),
                           )
                         : s.Z.evaluate(n.strokewidth)),
                     (o = this.getArrowHeadData(t, r, a)),
@@ -26271,12 +26272,12 @@ var __webpack_exports__ = {};
                     (r = new c.Z(
                         i.Z.COORDS_BY_USER,
                         t.point1.coords.usrCoords,
-                        t.board
+                        t.board,
                     )),
                     (o = new c.Z(
                         i.Z.COORDS_BY_USER,
                         t.point2.coords.usrCoords,
-                        t.board
+                        t.board,
                     )),
                     (n = s.Z.evaluate(t.visProp.margin)),
                     u.Z.calcStraight(t, r, o, n),
@@ -26288,7 +26289,7 @@ var __webpack_exports__ = {};
                         r.scrCoords[2],
                         o.scrCoords[1],
                         o.scrCoords[2],
-                        t.board
+                        t.board,
                     ),
                     this
                 );
@@ -26299,12 +26300,12 @@ var __webpack_exports__ = {};
                         ? this.updatePathPrim(
                               t.rendNode,
                               this.updatePathStringBezierPrim(t),
-                              t.board
+                              t.board,
                           )
                         : this.updatePathPrim(
                               t.rendNode,
                               this.updatePathStringPrim(t),
-                              t.board
+                              t.board,
                           ),
                     this
                 );
@@ -26343,13 +26344,13 @@ var __webpack_exports__ = {};
                             i.Z.COORDS_BY_SCREEN,
                             [e.scrCoords[1] + n, e.scrCoords[2] + a],
                             !1,
-                            !0
+                            !0,
                         ),
                         s.setCoordinates(
                             i.Z.COORDS_BY_SCREEN,
                             [s.scrCoords[1] - h, s.scrCoords[2] - l],
                             !1,
-                            !0
+                            !0,
                         )),
                     this
                 );
@@ -26379,13 +26380,13 @@ var __webpack_exports__ = {};
                             i.Z.COORDS_BY_SCREEN,
                             [e.scrCoords[1] + l, e.scrCoords[2] + c],
                             !1,
-                            !0
+                            !0,
                         ),
                         r.setCoordinates(
                             i.Z.COORDS_BY_SCREEN,
                             [r.scrCoords[1] - d, r.scrCoords[2] - u],
                             !1,
-                            !0
+                            !0,
                         )),
                     this
                 );
@@ -26397,14 +26398,14 @@ var __webpack_exports__ = {};
                             t.rendNodeTriangleStart,
                             e.showFirst * e.strokeWidth,
                             t.rendNode,
-                            e.sizeFirst
+                            e.sizeFirst,
                         ),
                     e.evLast &&
                         this._setArrowWidth(
                             t.rendNodeTriangleEnd,
                             e.showLast * e.strokeWidth,
                             t.rendNode,
-                            e.sizeLast
+                            e.sizeLast,
                         ),
                     this
                 );
@@ -26413,7 +26414,7 @@ var __webpack_exports__ = {};
             drawTicks: function (t) {
                 (t.rendNode = this.appendChildPrim(
                     this.createPrim("path", t.id),
-                    s.Z.evaluate(t.visProp.layer)
+                    s.Z.evaluate(t.visProp.layer),
                 )),
                     this.appendNodesToElement(t, "path");
             },
@@ -26421,7 +26422,7 @@ var __webpack_exports__ = {};
             drawEllipse: function (t) {
                 (t.rendNode = this.appendChildPrim(
                     this.createPrim("ellipse", t.id),
-                    s.Z.evaluate(t.visProp.layer)
+                    s.Z.evaluate(t.visProp.layer),
                 )),
                     this.appendNodesToElement(t, "ellipse"),
                     this.updateEllipse(t);
@@ -26433,7 +26434,7 @@ var __webpack_exports__ = {};
                     !isNaN(
                         e +
                             t.center.coords.scrCoords[1] +
-                            t.center.coords.scrCoords[2]
+                            t.center.coords.scrCoords[2],
                     ) &&
                     e * t.board.unitX < 2e6 &&
                     this.updateEllipsePrim(
@@ -26441,13 +26442,13 @@ var __webpack_exports__ = {};
                         t.center.coords.scrCoords[1],
                         t.center.coords.scrCoords[2],
                         e * t.board.unitX,
-                        e * t.board.unitY
+                        e * t.board.unitY,
                     );
             },
             drawPolygon: function (t) {
                 (t.rendNode = this.appendChildPrim(
                     this.createPrim("polygon", t.id),
-                    s.Z.evaluate(t.visProp.layer)
+                    s.Z.evaluate(t.visProp.layer),
                 )),
                     this.appendNodesToElement(t, "polygon"),
                     this.updatePolygon(t);
@@ -26466,7 +26467,7 @@ var __webpack_exports__ = {};
                 "no" !== this.type
                     ? (((i =
                           this.container.ownerDocument.createElement(
-                              "div"
+                              "div",
                           )).style.position = "absolute"),
                       (i.className = s.Z.evaluate(t.visProp.cssclass)),
                       (o = s.Z.evaluate(t.visProp.layer)),
@@ -26506,7 +26507,7 @@ var __webpack_exports__ = {};
                     ) {
                         if (
                             (isNaN(
-                                i.coords.scrCoords[1] + i.coords.scrCoords[2]
+                                i.coords.scrCoords[1] + i.coords.scrCoords[2],
                             ) ||
                                 ((o = i.coords.scrCoords[1]),
                                 (o = Math.abs(o) < 1e6 ? o : 1e6),
@@ -26550,7 +26551,7 @@ var __webpack_exports__ = {};
                             } catch (t) {
                                 (n = i.rendNode.parentNode),
                                     i.rendNode.parentNode.removeChild(
-                                        i.rendNode
+                                        i.rendNode,
                                     ),
                                     (i.rendNode.innerHTML = p),
                                     n.appendChild(i.rendNode);
@@ -26582,7 +26583,7 @@ var __webpack_exports__ = {};
                                                 "#" + c,
                                                 "#" + l,
                                                 a,
-                                                h
+                                                h,
                                             ));
                                 } catch (e) {
                                     t.Z.debug("MathJax (not yet) loaded");
@@ -26591,7 +26592,7 @@ var __webpack_exports__ = {};
                                 try {
                                     katex.render(p, i.rendNode, {
                                         macros: s.Z.evaluate(
-                                            i.visProp.katexmacros
+                                            i.visProp.katexmacros,
                                         ),
                                         throwOnError: !1,
                                     });
@@ -26622,7 +26623,7 @@ var __webpack_exports__ = {};
                         (r = s.Z.trim(
                             n[0].replace(/-([a-z])/gi, function (t, e) {
                                 return e.toUpperCase();
-                            })
+                            }),
                         )),
                         (o = s.Z.trim(n[1])),
                         a.push({ key: r, val: o }));
@@ -26660,7 +26661,7 @@ var __webpack_exports__ = {};
                         if (
                             "" !==
                                 (u = s.Z.evaluate(
-                                    p[(i ? "highlight" : "") + m[d]]
+                                    p[(i ? "highlight" : "") + m[d]],
                                 )) &&
                             t.visPropOld[m[d]] !== u
                         ) {
@@ -26712,7 +26713,7 @@ var __webpack_exports__ = {};
                     t.coords.scrCoords[1],
                     t.coords.scrCoords[2] - t.size[1],
                     t.size[0],
-                    t.size[1]
+                    t.size[1],
                 ),
                     this.updateImageURL(t),
                     this.transformImage(t, t.transformations),
@@ -26737,14 +26738,14 @@ var __webpack_exports__ = {};
                         [s, n, 0],
                         [r, 0, -a],
                     ],
-                    l
+                    l,
                 ));
             },
             transformImage: function (t, e) {},
             updateImageURL: function (t) {},
             updateImageStyle: function (t, e) {
                 t.rendNode.className = s.Z.evaluate(
-                    e ? t.visProp.highlightcssclass : t.visProp.cssclass
+                    e ? t.visProp.highlightcssclass : t.visProp.cssclass,
                 );
             },
             drawForeignObject: function (t) {},
@@ -26797,7 +26798,7 @@ var __webpack_exports__ = {};
                               this.setObjectStrokeColor(t, e, r),
                               this.setObjectStrokeWidth(
                                   t,
-                                  t.board.options.elements.draft.strokeWidth
+                                  t.board.options.elements.draft.strokeWidth,
                               ));
                 }
             },
@@ -26807,18 +26808,18 @@ var __webpack_exports__ = {};
                         ? this.setObjectFillColor(
                               t,
                               t.visProp.fillcolor,
-                              t.visProp.fillopacity
+                              t.visProp.fillopacity,
                           )
                         : (t.type === i.Z.OBJECT_CLASS_POINT &&
                               this.setObjectFillColor(
                                   t,
                                   t.visProp.fillcolor,
-                                  t.visProp.fillopacity
+                                  t.visProp.fillopacity,
                               ),
                           this.setObjectStrokeColor(
                               t,
                               t.visProp.strokecolor,
-                              t.visProp.strokeopacity
+                              t.visProp.strokeopacity,
                           ),
                           this.setObjectStrokeWidth(t, t.visProp.strokewidth));
             },
@@ -26839,7 +26840,7 @@ var __webpack_exports__ = {};
                             this.setObjectFillColor(
                                 t,
                                 o.highlightfillcolor,
-                                o.highlightfillopacity
+                                o.highlightfillopacity,
                             ),
                                 e = 0;
                             e < t.borders.length;
@@ -26848,7 +26849,7 @@ var __webpack_exports__ = {};
                             this.setObjectStrokeColor(
                                 t.borders[e],
                                 t.borders[e].visProp.highlightstrokecolor,
-                                t.borders[e].visProp.highlightstrokeopacity
+                                t.borders[e].visProp.highlightstrokeopacity,
                             );
                     else
                         t.elementClass === i.Z.OBJECT_CLASS_TEXT
@@ -26858,22 +26859,22 @@ var __webpack_exports__ = {};
                               this.setObjectFillColor(
                                   t,
                                   o.highlightfillcolor,
-                                  o.highlightfillopacity
+                                  o.highlightfillopacity,
                               ))
                             : (this.setObjectStrokeColor(
                                   t,
                                   o.highlightstrokecolor,
-                                  o.highlightstrokeopacity
+                                  o.highlightstrokeopacity,
                               ),
                               this.setObjectFillColor(
                                   t,
                                   o.highlightfillcolor,
-                                  o.highlightfillopacity
+                                  o.highlightfillopacity,
                               ));
                     o.highlightstrokewidth &&
                         ((r = Math.max(
                             s.Z.evaluate(o.highlightstrokewidth),
-                            s.Z.evaluate(o.strokewidth)
+                            s.Z.evaluate(o.strokewidth),
                         )),
                         this.setObjectStrokeWidth(t, r),
                         (t.elementClass !== i.Z.OBJECT_CLASS_LINE &&
@@ -26895,7 +26896,7 @@ var __webpack_exports__ = {};
                             this.setObjectFillColor(
                                 t,
                                 o.fillcolor,
-                                o.fillopacity
+                                o.fillopacity,
                             ),
                                 e = 0;
                             e < t.borders.length;
@@ -26904,7 +26905,7 @@ var __webpack_exports__ = {};
                             this.setObjectStrokeColor(
                                 t.borders[e],
                                 t.borders[e].visProp.strokecolor,
-                                t.borders[e].visProp.strokeopacity
+                                t.borders[e].visProp.strokeopacity,
                             );
                     else
                         t.elementClass === i.Z.OBJECT_CLASS_TEXT
@@ -26914,17 +26915,17 @@ var __webpack_exports__ = {};
                               this.setObjectFillColor(
                                   t,
                                   o.fillcolor,
-                                  o.fillopacity
+                                  o.fillopacity,
                               ))
                             : (this.setObjectStrokeColor(
                                   t,
                                   o.strokecolor,
-                                  o.strokeopacity
+                                  o.strokeopacity,
                               ),
                               this.setObjectFillColor(
                                   t,
                                   o.fillcolor,
-                                  o.fillopacity
+                                  o.fillopacity,
                               ));
                     (r = s.Z.evaluate(o.strokewidth)),
                         this.setObjectStrokeWidth(t, r),
@@ -26961,7 +26962,7 @@ var __webpack_exports__ = {};
                                 function (e) {
                                     return s.Z.bind(a, t)(), !1;
                                 },
-                                t
+                                t,
                             ),
                             e.Z.addEvent(l, "mouseup", n, t),
                             e.Z.addEvent(l, "mousedown", n, t),
@@ -26973,7 +26974,7 @@ var __webpack_exports__ = {};
                     ((r = t.containerObj.ownerDocument),
                     (o = r.createElement("div")).setAttribute(
                         "id",
-                        t.container + "_navigationbar"
+                        t.container + "_navigationbar",
                     ),
                     (o.style.color = i.strokecolor),
                     (o.style.backgroundColor = i.fillcolor),
@@ -26992,7 +26993,7 @@ var __webpack_exports__ = {};
                             function () {
                                 t.toFullscreen(t.attr.fullscreen.id);
                             },
-                            t.container + "_navigation_fullscreen"
+                            t.container + "_navigation_fullscreen",
                         ),
                     t.attr.showscreenshot &&
                         a(
@@ -27002,7 +27003,7 @@ var __webpack_exports__ = {};
                                     t.renderer.screenshot(t, "", !1);
                                 }, 330);
                             },
-                            t.container + "_navigation_screenshot"
+                            t.container + "_navigation_screenshot",
                         ),
                     t.attr.showreload &&
                         a(
@@ -27010,7 +27011,7 @@ var __webpack_exports__ = {};
                             function () {
                                 t.reload();
                             },
-                            t.container + "_navigation_reload"
+                            t.container + "_navigation_reload",
                         ),
                     t.attr.showcleartraces &&
                         a(
@@ -27018,7 +27019,7 @@ var __webpack_exports__ = {};
                             function () {
                                 t.clearTraces();
                             },
-                            t.container + "_navigation_cleartraces"
+                            t.container + "_navigation_cleartraces",
                         ),
                     t.attr.shownavigation &&
                         (t.attr.showzoom &&
@@ -27028,22 +27029,22 @@ var __webpack_exports__ = {};
                         a(
                             "←",
                             t.clickLeftArrow,
-                            t.container + "_navigation_left"
+                            t.container + "_navigation_left",
                         ),
                         a(
                             "↓",
                             t.clickUpArrow,
-                            t.container + "_navigation_down"
+                            t.container + "_navigation_down",
                         ),
                         a(
                             "↑",
                             t.clickDownArrow,
-                            t.container + "_navigation_up"
+                            t.container + "_navigation_up",
                         ),
                         a(
                             "→",
                             t.clickRightArrow,
-                            t.container + "_navigation_right"
+                            t.container + "_navigation_right",
                         )));
             },
             getElementById: function (t) {
@@ -27114,7 +27115,7 @@ var __webpack_exports__ = {};
                                           31 !==
                                               y.asciiCharCodeAt(
                                                   t.responseText.slice(0, 1),
-                                                  0
+                                                  0,
                                               ))
                                           ? t.responseText
                                           : O.decode(jxgBinFileReader(t))),
@@ -27128,7 +27129,7 @@ var __webpack_exports__ = {};
                     throw new Error(
                         "JSXGraph: A problem occurred while trying to read remote file '" +
                             e +
-                            "'."
+                            "'.",
                     );
                 }
             } else t.Z.debug("AJAX not activated!");
@@ -27161,7 +27162,7 @@ var __webpack_exports__ = {};
                 new n(i, e).read();
             else if ("jessiecode" !== r)
                 throw new Error(
-                    "JSXGraph: There is no reader available for '" + r + "'."
+                    "JSXGraph: There is no reader available for '" + r + "'.",
                 );
             s.Z.isFunction(o) && o(i);
         },
@@ -27174,7 +27175,7 @@ var __webpack_exports__ = {};
             document &&
             document.write &&
             document.write(
-                '<script type="text/vbscript">\nFunction Base64Encode(inData)\n  Const Base64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"\n  Dim cOut, sOut, I\n  For I = 1 To LenB(inData) Step 3\n    Dim nGroup, pOut, sGroup\n    nGroup = &H10000 * AscB(MidB(inData, I, 1)) + _\n      &H100 * MyASC(MidB(inData, I + 1, 1)) + MyASC(MidB(inData, I + 2, 1))\n    nGroup = Oct(nGroup)\n    nGroup = String(8 - Len(nGroup), "0") & nGroup\n    pOut = Mid(Base64, CLng("&o" & Mid(nGroup, 1, 2)) + 1, 1) + _\n      Mid(Base64, CLng("&o" & Mid(nGroup, 3, 2)) + 1, 1) + _\n      Mid(Base64, CLng("&o" & Mid(nGroup, 5, 2)) + 1, 1) + _\n      Mid(Base64, CLng("&o" & Mid(nGroup, 7, 2)) + 1, 1)\n    sOut = sOut + pOut\n  Next\n  Select Case LenB(inData) Mod 3\n    Case 1: \'8 bit final\n      sOut = Left(sOut, Len(sOut) - 2) + "=="\n    Case 2: \'16 bit final\n      sOut = Left(sOut, Len(sOut) - 1) + "="\n  End Select\n  Base64Encode = sOut\nEnd Function\n\nFunction MyASC(OneChar)\n  If OneChar = "" Then MyASC = 0 Else MyASC = AscB(OneChar)\nEnd Function\n\nFunction jxgBinFileReader(xhr)\n    Dim byteString\n    Dim b64String\n    Dim i\n    byteString = xhr.responseBody\n    ReDim byteArray(LenB(byteString))\n    For i = 1 To LenB(byteString)\n        byteArray(i-1) = AscB(MidB(byteString, i, 1))\n    Next\n    b64String = Base64Encode(byteString)\n    jxgBinFileReader = b64String\nEnd Function\n</script>\n'
+                '<script type="text/vbscript">\nFunction Base64Encode(inData)\n  Const Base64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"\n  Dim cOut, sOut, I\n  For I = 1 To LenB(inData) Step 3\n    Dim nGroup, pOut, sGroup\n    nGroup = &H10000 * AscB(MidB(inData, I, 1)) + _\n      &H100 * MyASC(MidB(inData, I + 1, 1)) + MyASC(MidB(inData, I + 2, 1))\n    nGroup = Oct(nGroup)\n    nGroup = String(8 - Len(nGroup), "0") & nGroup\n    pOut = Mid(Base64, CLng("&o" & Mid(nGroup, 1, 2)) + 1, 1) + _\n      Mid(Base64, CLng("&o" & Mid(nGroup, 3, 2)) + 1, 1) + _\n      Mid(Base64, CLng("&o" & Mid(nGroup, 5, 2)) + 1, 1) + _\n      Mid(Base64, CLng("&o" & Mid(nGroup, 7, 2)) + 1, 1)\n    sOut = sOut + pOut\n  Next\n  Select Case LenB(inData) Mod 3\n    Case 1: \'8 bit final\n      sOut = Left(sOut, Len(sOut) - 2) + "=="\n    Case 2: \'16 bit final\n      sOut = Left(sOut, Len(sOut) - 1) + "="\n  End Select\n  Base64Encode = sOut\nEnd Function\n\nFunction MyASC(OneChar)\n  If OneChar = "" Then MyASC = 0 Else MyASC = AscB(OneChar)\nEnd Function\n\nFunction jxgBinFileReader(xhr)\n    Dim byteString\n    Dim b64String\n    Dim i\n    byteString = xhr.responseBody\n    ReDim byteArray(LenB(byteString))\n    For i = 1 To LenB(byteString)\n        byteArray(i-1) = AscB(MidB(byteString, i, 1))\n    Next\n    b64String = Base64Encode(byteString)\n    jxgBinFileReader = b64String\nEnd Function\n</script>\n',
             );
     const A = t.Z.FileReader;
     var k = __webpack_require__(632),
@@ -27293,7 +27294,7 @@ var __webpack_exports__ = {};
             e.Z.isBrowser && "no" !== n.type && null === this.containerObj)
         )
             throw new Error(
-                "\nJSXGraph: HTML container element '" + o + "' not found."
+                "\nJSXGraph: HTML container element '" + o + "' not found.",
             );
         (this.renderer = n),
             (this.grids = []),
@@ -27348,7 +27349,7 @@ var __webpack_exports__ = {};
             this.attr.showcopyright &&
                 this.renderer.displayCopyright(
                     i.Z.licenseText,
-                    parseInt(this.options.text.fontSize, 10)
+                    parseInt(this.options.text.fontSize, 10),
                 ),
             (this.needsFullUpdate = !1),
             (this.reducedUpdate = !1),
@@ -27613,7 +27614,7 @@ var __webpack_exports__ = {};
                     return (
                         ((t = [r.left * o, r.top * o])[0] += e.Z.getProp(
                             c,
-                            "border-left-width"
+                            "border-left-width",
                         )),
                         (t[1] += e.Z.getProp(c, "border-top-width")),
                         "vml" !== this.renderer.type &&
@@ -27707,8 +27708,8 @@ var __webpack_exports__ = {};
                                     ? c.push(
                                           d.Z.subtract(
                                               p.coords.scrCoords.slice(1),
-                                              [t, e]
-                                          )
+                                              [t, e],
+                                          ),
                                       )
                                     : c.push([0, 0])));
                 return (
@@ -27732,7 +27733,7 @@ var __webpack_exports__ = {};
                         (l[0].highlight(!0),
                         this.triggerEventHandlers(
                             ["mousehit", "hit"],
-                            [r, l[0]]
+                            [r, l[0]],
                         )),
                     l
                 );
@@ -27744,7 +27745,7 @@ var __webpack_exports__ = {};
                     u = new c.Z(
                         i.Z.COORDS_BY_SCREEN,
                         this.getScrCoordsOfMouse(t, e),
-                        this
+                        this,
                     );
                 r &&
                     r.obj &&
@@ -27753,19 +27754,19 @@ var __webpack_exports__ = {};
                     (this.drag_position = [u.scrCoords[1], u.scrCoords[2]]),
                     (this.drag_position = d.Z.add(
                         this.drag_position,
-                        this._drag_offset
+                        this._drag_offset,
                     )),
                     s.Z.exists(a.coords)
                         ? a.setPositionDirectly(
                               i.Z.COORDS_BY_SCREEN,
-                              this.drag_position
+                              this.drag_position,
                           )
                         : (this.displayInfobox(!1),
                           isNaN(r.targets[0].Xprev + r.targets[0].Yprev) ||
                               a.setPositionDirectly(
                                   i.Z.COORDS_BY_SCREEN,
                                   [u.scrCoords[1], u.scrCoords[2]],
-                                  [r.targets[0].Xprev, r.targets[0].Yprev]
+                                  [r.targets[0].Xprev, r.targets[0].Yprev],
                               ),
                           (r.targets[0].Xprev = u.scrCoords[1]),
                           (r.targets[0].Yprev = u.scrCoords[2])),
@@ -27822,12 +27823,12 @@ var __webpack_exports__ = {};
                         (P = new c.Z(
                             i.Z.COORDS_BY_SCREEN,
                             [C.Xprev, C.Yprev],
-                            this
+                            this,
                         ).usrCoords),
                         (a = new c.Z(
                             i.Z.COORDS_BY_SCREEN,
                             [y.Xprev, y.Yprev],
-                            this
+                            this,
                         ).usrCoords),
                         (n = new c.Z(i.Z.COORDS_BY_SCREEN, [y.X, y.Y], this)
                             .usrCoords),
@@ -27931,16 +27932,16 @@ var __webpack_exports__ = {};
                                 n.highlight(),
                                 this.triggerEventHandlers(
                                     ["mousehit", "hit"],
-                                    [i, n, r]
+                                    [i, n, r],
                                 )),
                             n.mouseover
                                 ? n.triggerEventHandlers(
                                       ["mousemove", "move"],
-                                      [i]
+                                      [i],
                                   )
                                 : (n.triggerEventHandlers(
                                       ["mouseover", "over"],
-                                      [i]
+                                      [i],
                                   ),
                                   (n.mouseover = !0)));
                 for (o = 0; o < l; o++)
@@ -27949,7 +27950,7 @@ var __webpack_exports__ = {};
                             (h[a] ||
                                 (n.triggerEventHandlers(
                                     ["mouseout", "out"],
-                                    [i]
+                                    [i],
                                 ),
                                 (n.mouseover = !1)));
             },
@@ -27982,7 +27983,7 @@ var __webpack_exports__ = {};
                     } catch (e) {
                         t.Z.debug(
                             "JSXGraph+ saveStartPos: obj.coords.usrCoords not available: " +
-                                e
+                                e,
                         );
                     }
                 for (n = a.length, o = 0; o < n; o++)
@@ -28057,7 +28058,7 @@ var __webpack_exports__ = {};
                             window,
                             "resize",
                             this.resizeListener,
-                            this
+                            this,
                         ),
                             this.startIntersectionObserver();
                     }
@@ -28077,14 +28078,14 @@ var __webpack_exports__ = {};
                                   window,
                                   "resize",
                                   this.resizeListener,
-                                  this
+                                  this,
                               ),
                               this.stopIntersectionObserver()),
                         e.Z.removeEvent(
                             window,
                             "scroll",
                             this.scrollListener,
-                            this
+                            this,
                         ));
             },
             addPointerEventHandlers: function () {
@@ -28095,37 +28096,37 @@ var __webpack_exports__ = {};
                               this.containerObj,
                               "MSPointerDown",
                               this.pointerDownListener,
-                              this
+                              this,
                           ),
                           e.Z.addEvent(
                               t,
                               "MSPointerMove",
                               this.pointerMoveListener,
-                              this
+                              this,
                           ))
                         : (e.Z.addEvent(
                               this.containerObj,
                               "pointerdown",
                               this.pointerDownListener,
-                              this
+                              this,
                           ),
                           e.Z.addEvent(
                               t,
                               "pointermove",
                               this.pointerMoveListener,
-                              this
+                              this,
                           )),
                         e.Z.addEvent(
                             this.containerObj,
                             "mousewheel",
                             this.mouseWheelListener,
-                            this
+                            this,
                         ),
                         e.Z.addEvent(
                             this.containerObj,
                             "DOMMouseScroll",
                             this.mouseWheelListener,
-                            this
+                            this,
                         ),
                         null !== this.containerObj &&
                             (this.containerObj.style.touchAction = "none"),
@@ -28139,25 +28140,25 @@ var __webpack_exports__ = {};
                         this.containerObj,
                         "mousedown",
                         this.mouseDownListener,
-                        this
+                        this,
                     ),
                         e.Z.addEvent(
                             t,
                             "mousemove",
                             this.mouseMoveListener,
-                            this
+                            this,
                         ),
                         e.Z.addEvent(
                             this.containerObj,
                             "mousewheel",
                             this.mouseWheelListener,
-                            this
+                            this,
                         ),
                         e.Z.addEvent(
                             this.containerObj,
                             "DOMMouseScroll",
                             this.mouseWheelListener,
-                            this
+                            this,
                         ),
                         (this.hasMouseHandlers = !0);
                 }
@@ -28169,13 +28170,13 @@ var __webpack_exports__ = {};
                         this.containerObj,
                         "touchstart",
                         this.touchStartListener,
-                        this
+                        this,
                     ),
                         e.Z.addEvent(
                             i,
                             "touchmove",
                             this.touchMoveListener,
-                            this
+                            this,
                         ),
                         (this.hasTouchHandlers = !0);
                 }
@@ -28195,7 +28196,7 @@ var __webpack_exports__ = {};
                             this.document,
                             i[t],
                             this.fullscreenListener,
-                            this
+                            this,
                         );
                     this.hasFullscreenEventHandlers = !0;
                 }
@@ -28208,19 +28209,19 @@ var __webpack_exports__ = {};
                         this.containerObj,
                         "keydown",
                         this.keyDownListener,
-                        this
+                        this,
                     ),
                     e.Z.addEvent(
                         this.containerObj,
                         "focusin",
                         this.keyFocusInListener,
-                        this
+                        this,
                     ),
                     e.Z.addEvent(
                         this.containerObj,
                         "focusout",
                         this.keyFocusOutListener,
-                        this
+                        this,
                     ),
                     (this.hasKeyboardHandlers = !0));
             },
@@ -28231,19 +28232,19 @@ var __webpack_exports__ = {};
                         this.containerObj,
                         "keydown",
                         this.keyDownListener,
-                        this
+                        this,
                     ),
                     e.Z.removeEvent(
                         this.containerObj,
                         "focusin",
                         this.keyFocusInListener,
-                        this
+                        this,
                     ),
                     e.Z.removeEvent(
                         this.containerObj,
                         "focusout",
                         this.keyFocusOutListener,
-                        this
+                        this,
                     ),
                     (this.hasKeyboardHandlers = !1));
             },
@@ -28262,7 +28263,7 @@ var __webpack_exports__ = {};
                             this.document,
                             i[t],
                             this.fullscreenListener,
-                            this
+                            this,
                         );
                     this.hasFullscreenEventHandlers = !1;
                 }
@@ -28275,37 +28276,37 @@ var __webpack_exports__ = {};
                               this.containerObj,
                               "MSPointerDown",
                               this.pointerDownListener,
-                              this
+                              this,
                           ),
                           e.Z.removeEvent(
                               t,
                               "MSPointerMove",
                               this.pointerMoveListener,
-                              this
+                              this,
                           ))
                         : (e.Z.removeEvent(
                               this.containerObj,
                               "pointerdown",
                               this.pointerDownListener,
-                              this
+                              this,
                           ),
                           e.Z.removeEvent(
                               t,
                               "pointermove",
                               this.pointerMoveListener,
-                              this
+                              this,
                           )),
                         e.Z.removeEvent(
                             this.containerObj,
                             "mousewheel",
                             this.mouseWheelListener,
-                            this
+                            this,
                         ),
                         e.Z.removeEvent(
                             this.containerObj,
                             "DOMMouseScroll",
                             this.mouseWheelListener,
-                            this
+                            this,
                         ),
                         this.hasPointerUp &&
                             (window.navigator.msPointerEnabled
@@ -28313,19 +28314,19 @@ var __webpack_exports__ = {};
                                       this.document,
                                       "MSPointerUp",
                                       this.pointerUpListener,
-                                      this
+                                      this,
                                   )
                                 : (e.Z.removeEvent(
                                       this.document,
                                       "pointerup",
                                       this.pointerUpListener,
-                                      this
+                                      this,
                                   ),
                                   e.Z.removeEvent(
                                       this.document,
                                       "pointercancel",
                                       this.pointerUpListener,
-                                      this
+                                      this,
                                   )),
                             (this.hasPointerUp = !1)),
                         (this.hasPointerHandlers = !1);
@@ -28338,33 +28339,33 @@ var __webpack_exports__ = {};
                         this.containerObj,
                         "mousedown",
                         this.mouseDownListener,
-                        this
+                        this,
                     ),
                         e.Z.removeEvent(
                             t,
                             "mousemove",
                             this.mouseMoveListener,
-                            this
+                            this,
                         ),
                         this.hasMouseUp &&
                             (e.Z.removeEvent(
                                 this.document,
                                 "mouseup",
                                 this.mouseUpListener,
-                                this
+                                this,
                             ),
                             (this.hasMouseUp = !1)),
                         e.Z.removeEvent(
                             this.containerObj,
                             "mousewheel",
                             this.mouseWheelListener,
-                            this
+                            this,
                         ),
                         e.Z.removeEvent(
                             this.containerObj,
                             "DOMMouseScroll",
                             this.mouseWheelListener,
-                            this
+                            this,
                         ),
                         (this.hasMouseHandlers = !1);
                 }
@@ -28376,20 +28377,20 @@ var __webpack_exports__ = {};
                         this.containerObj,
                         "touchstart",
                         this.touchStartListener,
-                        this
+                        this,
                     ),
                         e.Z.removeEvent(
                             t,
                             "touchmove",
                             this.touchMoveListener,
-                            this
+                            this,
                         ),
                         this.hasTouchEnd &&
                             (e.Z.removeEvent(
                                 this.document,
                                 "touchend",
                                 this.touchEndListener,
-                                this
+                                this,
                             ),
                             (this.hasTouchEnd = !1)),
                         (this.hasTouchHandlers = !1);
@@ -28399,7 +28400,7 @@ var __webpack_exports__ = {};
                 return (
                     this.moveOrigin(
                         this.origin.scrCoords[1] + 0.1 * this.canvasWidth,
-                        this.origin.scrCoords[2]
+                        this.origin.scrCoords[2],
                     ),
                     this
                 );
@@ -28408,7 +28409,7 @@ var __webpack_exports__ = {};
                 return (
                     this.moveOrigin(
                         this.origin.scrCoords[1] - 0.1 * this.canvasWidth,
-                        this.origin.scrCoords[2]
+                        this.origin.scrCoords[2],
                     ),
                     this
                 );
@@ -28417,7 +28418,7 @@ var __webpack_exports__ = {};
                 return (
                     this.moveOrigin(
                         this.origin.scrCoords[1],
-                        this.origin.scrCoords[2] - 0.1 * this.canvasHeight
+                        this.origin.scrCoords[2] - 0.1 * this.canvasHeight,
                     ),
                     this
                 );
@@ -28426,7 +28427,7 @@ var __webpack_exports__ = {};
                 return (
                     this.moveOrigin(
                         this.origin.scrCoords[1],
-                        this.origin.scrCoords[2] + 0.1 * this.canvasHeight
+                        this.origin.scrCoords[2] + 0.1 * this.canvasHeight,
                     ),
                     this
                 );
@@ -28453,7 +28454,7 @@ var __webpack_exports__ = {};
                     (h = u.Z.distance(
                         [t.touches[0].clientX, t.touches[0].clientY],
                         [t.touches[1].clientX, t.touches[1].clientY],
-                        2
+                        2,
                     )),
                     void 0 === t.scale && (t.scale = h / this.prevDist),
                     !!s.Z.exists(this.prevCoords) &&
@@ -28486,7 +28487,7 @@ var __webpack_exports__ = {};
                             (e = new c.Z(
                                 i.Z.COORDS_BY_SCREEN,
                                 this.getMousePosition(t, 0),
-                                this
+                                this,
                             )),
                             this.attr.pan.enabled &&
                             this.attr.pan.needtwofingers &&
@@ -28495,7 +28496,7 @@ var __webpack_exports__ = {};
                                   this.moveOrigin(
                                       e.scrCoords[1],
                                       e.scrCoords[2],
-                                      !0
+                                      !0,
                                   ))
                                 : this.attr.zoom.enabled &&
                                   Math.abs(a - 1) < 0.5 &&
@@ -28503,11 +28504,11 @@ var __webpack_exports__ = {};
                                       this.attr.zoom.pinchvertical) &&
                                       ((l = Math.abs(
                                           t.touches[0].clientX -
-                                              t.touches[1].clientX
+                                              t.touches[1].clientX,
                                       )),
                                       (d = Math.abs(
                                           t.touches[0].clientY -
-                                              t.touches[1].clientY
+                                              t.touches[1].clientY,
                                       )),
                                       (p = Math.abs(Math.atan2(d, l))),
                                       (b =
@@ -28543,7 +28544,7 @@ var __webpack_exports__ = {};
                     (this.prevDist = u.Z.distance(
                         [t.touches[0].clientX, t.touches[0].clientY],
                         [t.touches[1].clientX, t.touches[1].clientY],
-                        2
+                        2,
                     )),
                     (this.prevCoords = [
                         [t.touches[0].clientX, t.touches[0].clientY],
@@ -28640,19 +28641,19 @@ var __webpack_exports__ = {};
                                   this.document,
                                   "MSPointerUp",
                                   this.pointerUpListener,
-                                  this
+                                  this,
                               )
                             : (e.Z.addEvent(
                                   this.document,
                                   "pointerup",
                                   this.pointerUpListener,
-                                  this
+                                  this,
                               ),
                               e.Z.addEvent(
                                   this.document,
                                   "pointercancel",
                                   this.pointerUpListener,
-                                  this
+                                  this,
                               )),
                         (this.hasPointerUp = !0)),
                     this.hasMouseHandlers && this.removeMouseEventHandlers(),
@@ -28685,7 +28686,7 @@ var __webpack_exports__ = {};
                                 "pointerstartselecting",
                                 "startselecting",
                             ],
-                            [t]
+                            [t],
                         )
                     );
                 if (
@@ -28758,7 +28759,7 @@ var __webpack_exports__ = {};
                                 "pointerdown",
                                 "MSPointerDown",
                             ],
-                            [t]
+                            [t],
                         ),
                         !0)
                 );
@@ -28791,7 +28792,7 @@ var __webpack_exports__ = {};
                                 "moveselecting",
                                 "pointermoveselecting",
                             ],
-                            [t, this.mode]
+                            [t, this.mode],
                         );
                 else if (!this.mouseOriginMove(t))
                     if (this.mode === this.BOARD_MODE_DRAG) {
@@ -28811,13 +28812,13 @@ var __webpack_exports__ = {};
                                                   s[1],
                                                   this.touches[e],
                                                   t,
-                                                  o
+                                                  o,
                                               )
                                             : 2 === r.length &&
                                               (this.twoFingerMove(
                                                   this.touches[e],
                                                   t.pointerId,
-                                                  t
+                                                  t,
                                               ),
                                               (r[i].Xprev = s[0]),
                                               (r[i].Yprev = s[1]));
@@ -28834,7 +28835,7 @@ var __webpack_exports__ = {};
                 return (
                     this.triggerEventHandlers(
                         ["pointermove", "MSPointerMove", "move"],
-                        [t, this.mode]
+                        [t, this.mode],
                     ),
                     (this.updateQuality = this.BOARD_QUALITY_HIGH),
                     this.mode === this.BOARD_MODE_NONE
@@ -28849,7 +28850,7 @@ var __webpack_exports__ = {};
                 if (
                     (this.triggerEventHandlers(
                         ["touchend", "up", "pointerup", "MSPointerUp"],
-                        [t]
+                        [t],
                     ),
                     this.displayInfobox(!1),
                     t)
@@ -28873,7 +28874,7 @@ var __webpack_exports__ = {};
                                 "pointerstopselecting",
                                 "stopselecting",
                             ],
-                            [t]
+                            [t],
                         ),
                         this.stopSelectionMode();
                 else
@@ -28884,7 +28885,7 @@ var __webpack_exports__ = {};
                         o ||
                             (this.downObjects[i].triggerEventHandlers(
                                 ["touchend", "up", "pointerup", "MSPointerUp"],
-                                [t]
+                                [t],
                             ),
                             s.Z.exists(this.downObjects[i].coords) ||
                                 (this.downObjects[i].snapToGrid(),
@@ -28899,19 +28900,19 @@ var __webpack_exports__ = {};
                                   this.document,
                                   "MSPointerUp",
                                   this.pointerUpListener,
-                                  this
+                                  this,
                               )
                             : (e.Z.removeEvent(
                                   this.document,
                                   "pointerup",
                                   this.pointerUpListener,
-                                  this
+                                  this,
                               ),
                               e.Z.removeEvent(
                                   this.document,
                                   "pointercancel",
                                   this.pointerUpListener,
-                                  this
+                                  this,
                               )),
                         (this.hasPointerUp = !1)),
                     a && this.update(),
@@ -28938,7 +28939,7 @@ var __webpack_exports__ = {};
                             this.document,
                             "touchend",
                             this.touchEndListener,
-                            this
+                            this,
                         ),
                         (this.hasTouchEnd = !0)),
                         this.document.selection &&
@@ -28966,7 +28967,7 @@ var __webpack_exports__ = {};
                                 if (
                                     Math.abs(
                                         Math.pow(b[l].screenX - _[h].X, 2) +
-                                            Math.pow(b[l].screenY - _[h].Y, 2)
+                                            Math.pow(b[l].screenY - _[h].Y, 2),
                                     ) <
                                     f * f
                                 ) {
@@ -28989,13 +28990,13 @@ var __webpack_exports__ = {};
                                     this.touches[o].obj.name +
                                     " (" +
                                     this.touches[o].obj.id +
-                                    "). Removed the target."
+                                    "). Removed the target.",
                             ),
                             t.Z.debug(
                                 "eps = " +
                                     f +
                                     ", touchMax = " +
-                                    M.Z.precision.touchMax
+                                    M.Z.precision.touchMax,
                             ),
                             _.splice(o, 1));
                     }
@@ -29009,7 +29010,7 @@ var __webpack_exports__ = {};
                                 this._startSelecting(n),
                                 this.triggerEventHandlers(
                                     ["touchstartselecting", "startselecting"],
-                                    [r]
+                                    [r],
                                 ),
                                 r.preventDefault(),
                                 r.stopPropagation(),
@@ -29110,7 +29111,7 @@ var __webpack_exports__ = {};
                                 this._moveSelecting(s),
                                 this.triggerEventHandlers(
                                     ["touchmoves", "moveselecting"],
-                                    [e, this.mode]
+                                    [e, this.mode],
                                 );
                             break;
                         }
@@ -29122,7 +29123,7 @@ var __webpack_exports__ = {};
                                     if (
                                         (s = this.getMousePosition(
                                             e,
-                                            o[0].num
+                                            o[0].num,
                                         ))[0] < 0 ||
                                         s[0] > this.canvasWidth ||
                                         s[1] < 0 ||
@@ -29136,7 +29137,7 @@ var __webpack_exports__ = {};
                                             s[1],
                                             this.touches[i],
                                             e,
-                                            "touch"
+                                            "touch",
                                         );
                                 }
                             } else if (
@@ -29166,11 +29167,11 @@ var __webpack_exports__ = {};
                                     this.twoFingerMove(
                                         this.touches[i],
                                         o[0].num,
-                                        e
+                                        e,
                                     ),
                                     this.twoFingerMove(
                                         this.touches[i],
-                                        o[1].num
+                                        o[1].num,
                                     ),
                                     (o[0].Xprev = s[0]),
                                     (o[0].Yprev = s[1]),
@@ -29186,7 +29187,7 @@ var __webpack_exports__ = {};
                         this.displayInfobox(!1),
                     this.triggerEventHandlers(
                         ["touchmove", "move"],
-                        [e, this.mode]
+                        [e, this.mode],
                     ),
                     (this.options.precision.hasPoint =
                         this.options.precision.mouse),
@@ -29213,7 +29214,7 @@ var __webpack_exports__ = {};
                     this._stopSelecting(r),
                         this.triggerEventHandlers(
                             ["touchstopselecting", "stopselecting"],
-                            [r]
+                            [r],
                         ),
                         this.stopSelectionMode();
                 else if (p && p.length > 0) {
@@ -29231,7 +29232,7 @@ var __webpack_exports__ = {};
                                 if (
                                     Math.abs(
                                         Math.pow(p[a].screenX - c[n].X, 2) +
-                                            Math.pow(p[a].screenY - c[n].Y, 2)
+                                            Math.pow(p[a].screenY - c[n].Y, 2),
                                     ) <
                                     d * d
                                 ) {
@@ -29287,7 +29288,7 @@ var __webpack_exports__ = {};
                     h ||
                         (this.downObjects[o].triggerEventHandlers(
                             ["touchup", "up"],
-                            [r]
+                            [r],
                         ),
                         s.Z.exists(this.downObjects[o].coords) ||
                             (this.downObjects[o].snapToGrid(),
@@ -29302,7 +29303,7 @@ var __webpack_exports__ = {};
                                 this.document,
                                 "touchend",
                                 this.touchEndListener,
-                                this
+                                this,
                             ),
                             (this.hasTouchEnd = !1)),
                         this.dehighlightAll(),
@@ -29327,7 +29328,7 @@ var __webpack_exports__ = {};
                             this.document,
                             "mouseup",
                             this.mouseUpListener,
-                            this
+                            this,
                         ),
                         (this.hasMouseUp = !0),
                         (this._inputDevice = "mouse"),
@@ -29339,7 +29340,7 @@ var __webpack_exports__ = {};
                             ? (this._startSelecting(i),
                               void this.triggerEventHandlers(
                                   ["mousestartselecting", "startselecting"],
-                                  [t]
+                                  [t],
                               ))
                             : (0 ===
                               (r = this.initMoveObject(i[0], i[1], t, "mouse"))
@@ -29365,7 +29366,7 @@ var __webpack_exports__ = {};
                                     (this.mouse.targets[0].Zstart = []),
                                     this.saveStartPos(
                                         this.mouse.obj,
-                                        this.mouse.targets[0]
+                                        this.mouse.targets[0],
                                     ),
                                     t && t.preventDefault
                                         ? t.preventDefault()
@@ -29375,7 +29376,7 @@ var __webpack_exports__ = {};
                                   (o = this.mouseOriginMoveStart(t)),
                               this.triggerEventHandlers(
                                   ["mousedown", "down"],
-                                  [t]
+                                  [t],
                               ),
                               o)
                     );
@@ -29391,7 +29392,7 @@ var __webpack_exports__ = {};
                         ? (this._moveSelecting(e),
                           this.triggerEventHandlers(
                               ["mousemoveselecting", "moveselecting"],
-                              [t, this.mode]
+                              [t, this.mode],
                           ))
                         : this.mouseOriginMove(t) ||
                           (this.mode === this.BOARD_MODE_DRAG
@@ -29400,12 +29401,12 @@ var __webpack_exports__ = {};
                                     e[1],
                                     this.mouse,
                                     t,
-                                    "mouse"
+                                    "mouse",
                                 )
                               : this.highlightElements(e[0], e[1], t, -1),
                           this.triggerEventHandlers(
                               ["mousemove", "move"],
-                              [t, this.mode]
+                              [t, this.mode],
                           )),
                     (this.updateQuality = this.BOARD_QUALITY_HIGH);
             },
@@ -29428,14 +29429,14 @@ var __webpack_exports__ = {};
                     this._stopSelecting(t),
                         this.triggerEventHandlers(
                             ["mousestopselecting", "stopselecting"],
-                            [t]
+                            [t],
                         ),
                         this.stopSelectionMode();
                 else
                     for (i = 0; i < this.downObjects.length; i++)
                         this.downObjects[i].triggerEventHandlers(
                             ["mouseup", "up"],
-                            [t]
+                            [t],
                         );
                 (this.downObjects.length = 0),
                     this.hasMouseUp &&
@@ -29443,7 +29444,7 @@ var __webpack_exports__ = {};
                             this.document,
                             "mouseup",
                             this.mouseUpListener,
-                            this
+                            this,
                         ),
                         (this.hasMouseUp = !1)),
                     (this.mouse = null);
@@ -29460,7 +29461,7 @@ var __webpack_exports__ = {};
                     s = new c.Z(
                         i.Z.COORDS_BY_SCREEN,
                         this.getMousePosition(t),
-                        this
+                        this,
                     );
                 return (
                     e > 0
@@ -29529,7 +29530,7 @@ var __webpack_exports__ = {};
                                     ((u = d =
                                         1.1 *
                                         s.Z.evaluate(
-                                            o.visProp.attractordistance
+                                            o.visProp.attractordistance,
                                         )),
                                     "screen" ===
                                         s.Z.evaluate(o.visProp.attractorunit) &&
@@ -29564,11 +29565,11 @@ var __webpack_exports__ = {};
                                     o.setPositionDirectly(
                                         i.Z.COORDS_BY_USER,
                                         h,
-                                        [0, 0]
+                                        [0, 0],
                                     )),
                               this.triggerEventHandlers(
                                   ["keymove", "move"],
-                                  [e, this.mode]
+                                  [e, this.mode],
                               ),
                               o.triggerEventHandlers(["keydrag", "drag"], [e]),
                               (this.mode = this.BOARD_MODE_NONE))),
@@ -29605,16 +29606,16 @@ var __webpack_exports__ = {};
                         ((r = window.getComputedStyle(this.containerObj, null)),
                         (o =
                             parseFloat(
-                                r.getPropertyValue("border-left-width")
+                                r.getPropertyValue("border-left-width"),
                             ) +
                             parseFloat(
-                                r.getPropertyValue("border-right-width")
+                                r.getPropertyValue("border-right-width"),
                             )),
                         isNaN(o) || (t -= o),
                         (n =
                             parseFloat(r.getPropertyValue("border-top-width")) +
                             parseFloat(
-                                r.getPropertyValue("border-bottom-width")
+                                r.getPropertyValue("border-bottom-width"),
                             )),
                         isNaN(n) || (e -= n)),
                     t <= 0 ||
@@ -29625,7 +29626,7 @@ var __webpack_exports__ = {};
                             this.setBoundingBox(
                                 this.attr.boundingbox,
                                 this.keepaspectratio,
-                                "keep"
+                                "keep",
                             ),
                         (s.Z.exists(this._prevDim) &&
                             this._prevDim.w === t &&
@@ -29689,12 +29690,12 @@ var __webpack_exports__ = {};
                             isNaN(t.getBoundingBox()[0]) &&
                                 t.updateContainerDims();
                         },
-                        { root: null, rootMargin: "0px", threshold: 0.8 }
+                        { root: null, rootMargin: "0px", threshold: 0.8 },
                     )),
                         this.intersectionObserver.observe(t.containerObj);
                 } catch (t) {
                     console.log(
-                        "JSXGraph: IntersectionObserver not available in this browser."
+                        "JSXGraph: IntersectionObserver not available in this browser.",
                     );
                 }
             },
@@ -29732,7 +29733,7 @@ var __webpack_exports__ = {};
                             (n = s.Z.evaluate(t.visProp.infoboxdigits)),
                             this.infobox.setCoords(
                                 r + a / this.unitX,
-                                o + h / this.unitY
+                                o + h / this.unitY,
                             ),
                             "string" != typeof t.infoboxText
                                 ? ("auto" === n
@@ -29811,7 +29812,7 @@ var __webpack_exports__ = {};
                 return new c.Z(
                     i.Z.COORDS_BY_SCREEN,
                     [o, n],
-                    this
+                    this,
                 ).usrCoords.slice(1);
             },
             getAllUnderMouse: function (t) {
@@ -29863,7 +29864,7 @@ var __webpack_exports__ = {};
                         (h = new c.Z(
                             i.Z.COORDS_BY_SCREEN,
                             [this.canvasWidth, this.canvasHeight],
-                            this
+                            this,
                         ).usrCoords),
                         (a[1] < this.maxboundingbox[0] ||
                             a[2] > this.maxboundingbox[1] ||
@@ -29894,11 +29895,11 @@ var __webpack_exports__ = {};
                                 2 === r
                                     ? o.setPositionDirectly(
                                           i.Z.COORDS_BY_USER,
-                                          [s(), n]
+                                          [s(), n],
                                       )
                                     : o.setPositionDirectly(
                                           i.Z.COORDS_BY_USER,
-                                          [n, s()]
+                                          [n, s()],
                                       ),
                                 o.prepareUpdate().update();
                         };
@@ -29981,12 +29982,12 @@ var __webpack_exports__ = {};
                                         "property '" +
                                             c +
                                             "' in conditions not yet implemented:" +
-                                            a
+                                            a,
                                     );
                             }
                         else
                             t.Z.debug(
-                                "debug conditions: |" + h + "| undefined"
+                                "debug conditions: |" + h + "| undefined",
                             );
                         (u = (e = e.slice(p + 7)).indexOf("<data>")),
                             (p = e.indexOf("</data>"));
@@ -30007,7 +30008,7 @@ var __webpack_exports__ = {};
                     e = new c.Z(
                         i.Z.COORDS_BY_USER,
                         [this.options.grid.gridX, this.options.grid.gridY],
-                        this
+                        this,
                     ),
                     s = t.scrCoords[1] - e.scrCoords[1],
                     r = t.scrCoords[2] - e.scrCoords[2];
@@ -30060,7 +30061,7 @@ var __webpack_exports__ = {};
                               i[3] + a * (1 - l),
                           ],
                           this.keepaspectratio,
-                          "update"
+                          "update",
                       ),
                       this.applyZoom());
             },
@@ -30087,7 +30088,7 @@ var __webpack_exports__ = {};
                               i[3] + a * (1 - l),
                           ],
                           this.keepaspectratio,
-                          "update"
+                          "update",
                       ),
                       this.applyZoom());
             },
@@ -30098,7 +30099,7 @@ var __webpack_exports__ = {};
                         ? this.setBoundingBox(
                               this.attr.boundingbox,
                               this.keepaspectratio,
-                              "reset"
+                              "reset",
                           )
                         : ((e =
                               ((t = this.getBoundingBox())[2] - t[0]) *
@@ -30108,7 +30109,7 @@ var __webpack_exports__ = {};
                           this.setBoundingBox(
                               [t[0] + e, t[1] - i, t[2] - e, t[3] + i],
                               this.keepaspectratio,
-                              "reset"
+                              "reset",
                           )),
                     this.applyZoom()
                 );
@@ -30142,7 +30143,7 @@ var __webpack_exports__ = {};
                     this.setBoundingBox(
                         [o - e, h + i, n + e, a - i],
                         this.keepaspectratio,
-                        "update"
+                        "update",
                     ),
                     this.applyZoom()
                 );
@@ -30174,7 +30175,7 @@ var __webpack_exports__ = {};
                         this.setBoundingBox(
                             [r - h, o + h, r + h, o - h],
                             this.keepaspectratio,
-                            "update"
+                            "update",
                         )),
                     this
                 );
@@ -30203,7 +30204,7 @@ var __webpack_exports__ = {};
                     for (o in e.childElements)
                         e.childElements.hasOwnProperty(o) &&
                             e.childElements[o].board.removeObject(
-                                e.childElements[o]
+                                e.childElements[o],
                             );
                     for (o in e.objects)
                         e.objects.hasOwnProperty(o) &&
@@ -30215,7 +30216,7 @@ var __webpack_exports__ = {};
                                 s.Z.exists(
                                     this.objects[
                                         o
-                                    ].childElements.hasOwnProperty(e.id)
+                                    ].childElements.hasOwnProperty(e.id),
                                 ) &&
                                 (delete this.objects[o].childElements[e.id],
                                 delete this.objects[o].descendants[e.id]);
@@ -30225,8 +30226,8 @@ var __webpack_exports__ = {};
                                 s.Z.exists(e.ancestors[o].childElements) &&
                                 s.Z.exists(
                                     e.ancestors[o].childElements.hasOwnProperty(
-                                        e.id
-                                    )
+                                        e.id,
+                                    ),
                                 ) &&
                                 (delete e.ancestors[o].childElements[e.id],
                                 delete e.ancestors[o].descendants[e.id]);
@@ -30242,7 +30243,7 @@ var __webpack_exports__ = {};
                             t.Z.debug(
                                 "Board.removeObject: object " +
                                     e.id +
-                                    " not found in list."
+                                    " not found in list.",
                             );
                     delete this.objects[e.id],
                         delete this.elementsByName[e.name],
@@ -30320,7 +30321,7 @@ var __webpack_exports__ = {};
                           (h = (this.canvasHeight - n) / 2),
                           this.moveOrigin(
                               this.origin.scrCoords[1] + a,
-                              this.origin.scrCoords[2] + h
+                              this.origin.scrCoords[2] + h,
                           ))
                         : this.setBoundingBox(r, this.keepaspectratio, "keep"),
                     this
@@ -30360,7 +30361,7 @@ var __webpack_exports__ = {};
                 return (
                     t.document.open(),
                     t.document.write(
-                        "<pre>" + s.Z.escapeHTML(this.xmlString) + "</pre>"
+                        "<pre>" + s.Z.escapeHTML(this.xmlString) + "</pre>",
                     ),
                     t.document.close(),
                     this
@@ -30457,7 +30458,7 @@ var __webpack_exports__ = {};
                 return (
                     t.Z.deprecated(
                         "Board.updateHooks()",
-                        "Board.triggerEventHandlers()"
+                        "Board.triggerEventHandlers()",
                     ),
                     (i[0] = s.Z.def(i[0], "update")),
                     this.triggerEventHandlers([i[0]], arguments),
@@ -30489,13 +30490,13 @@ var __webpack_exports__ = {};
                             "vml" !== this.renderer.type &&
                             ((n = this.document.activeElement),
                             (o = this.renderer.removeToInsertLater(
-                                this.containerObj
+                                this.containerObj,
                             ))),
                         "svg" === this.attr.minimizereflow &&
                             "svg" === this.renderer.type &&
                             ((n = this.document.activeElement),
                             (o = this.renderer.removeToInsertLater(
-                                this.renderer.svgRoot
+                                this.renderer.svgRoot,
                             ))),
                         this.prepareUpdate()
                             .updateElements(t)
@@ -30564,7 +30565,7 @@ var __webpack_exports__ = {};
                         (i[n] = this.select(i[n]));
                 if (!s.Z.isFunction(t.Z.elements[e]))
                     throw new Error(
-                        "JSXGraph: create: Unknown element type given: " + e
+                        "JSXGraph: create: Unknown element type given: " + e,
                     );
                 return (
                     (o = t.Z.elements[e](this, i, r)),
@@ -30654,7 +30655,7 @@ var __webpack_exports__ = {};
                                 (this.keepaspectratio = !1)),
                           this.moveOrigin(
                               -this.unitX * (t[0] - f),
-                              this.unitY * (t[1] + b)
+                              this.unitY * (t[1] + b),
                           ),
                           "update" === r
                               ? ((this.zoomX *= this.unitX / h),
@@ -30674,7 +30675,7 @@ var __webpack_exports__ = {};
                     e = new c.Z(
                         i.Z.COORDS_BY_SCREEN,
                         [this.canvasWidth, this.canvasHeight],
-                        this
+                        this,
                     ).usrCoords;
                 return [t[1], t[2], e[1], e[2]];
             },
@@ -30687,7 +30688,7 @@ var __webpack_exports__ = {};
                             function () {
                                 e.animate();
                             },
-                            t.board.attr.animationdelay
+                            t.board.attr.animationdelay,
                         )),
                     this
                 );
@@ -30727,14 +30728,14 @@ var __webpack_exports__ = {};
                                 ((o = s.Z.isFunction(r.animationPath)
                                     ? r.animationPath(
                                           new Date().getTime() -
-                                              r.animationStart
+                                              r.animationStart,
                                       )
                                     : r.animationPath.pop()),
                                 !s.Z.exists(o) || (!s.Z.isArray(o) && isNaN(o))
                                     ? delete r.animationPath
                                     : (r.setPositionDirectly(
                                           i.Z.COORDS_BY_USER,
-                                          o
+                                          o,
                                       ),
                                       r.fullUpdate(),
                                       (d = r))),
@@ -30830,25 +30831,26 @@ var __webpack_exports__ = {};
                               r.setAttribute({
                                   strokecolor: D.Z.rgb2cb(
                                       s.Z.evaluate(
-                                          r.visPropOriginal.strokecolor
+                                          r.visPropOriginal.strokecolor,
                                       ),
-                                      e
+                                      e,
                                   ),
                                   fillcolor: D.Z.rgb2cb(
                                       s.Z.evaluate(r.visPropOriginal.fillcolor),
-                                      e
+                                      e,
                                   ),
                                   highlightstrokecolor: D.Z.rgb2cb(
                                       s.Z.evaluate(
-                                          r.visPropOriginal.highlightstrokecolor
+                                          r.visPropOriginal
+                                              .highlightstrokecolor,
                                       ),
-                                      e
+                                      e,
                                   ),
                                   highlightfillcolor: D.Z.rgb2cb(
                                       s.Z.evaluate(
-                                          r.visPropOriginal.highlightfillcolor
+                                          r.visPropOriginal.highlightfillcolor,
                                       ),
-                                      e
+                                      e,
                                   ),
                               }))
                             : s.Z.exists(r.visPropOriginal) &&
@@ -30926,7 +30928,7 @@ var __webpack_exports__ = {};
                     )
                         (this.cssTransMat = o.Z.matMatMult(
                             e.Z.getCSSTransformMatrix(i),
-                            this.cssTransMat
+                            this.cssTransMat,
                         )),
                             (i =
                                 i.parentNode === i.getRootNode()
@@ -30938,7 +30940,7 @@ var __webpack_exports__ = {};
                         for (
                             this.cssTransMat = o.Z.matMatMult(
                                 e.Z.getCSSTransformMatrix(i),
-                                this.cssTransMat
+                                this.cssTransMat,
                             ),
                                 r = r.parentNode;
                             r !== i;
@@ -30946,7 +30948,7 @@ var __webpack_exports__ = {};
                         )
                             (this.cssTransMat = o.Z.matMatMult(
                                 e.Z.getCSSTransformMatrix(i),
-                                this.cssTransMat
+                                this.cssTransMat,
                             )),
                                 (r = r.parentNode);
                         i = i.offsetParent;
@@ -31000,19 +31002,19 @@ var __webpack_exports__ = {};
                     i = this.selectingBox[1];
                 this.selectionPolygon.vertices[0].setPositionDirectly(
                     t.Z.COORDS_BY_SCREEN,
-                    [e[0], e[1]]
+                    [e[0], e[1]],
                 ),
                     this.selectionPolygon.vertices[1].setPositionDirectly(
                         t.Z.COORDS_BY_SCREEN,
-                        [e[0], i[1]]
+                        [e[0], i[1]],
                     ),
                     this.selectionPolygon.vertices[2].setPositionDirectly(
                         t.Z.COORDS_BY_SCREEN,
-                        [i[0], i[1]]
+                        [i[0], i[1]],
                     ),
                     this.selectionPolygon.vertices[3].setPositionDirectly(
                         t.Z.COORDS_BY_SCREEN,
-                        [i[0], e[1]]
+                        [i[0], e[1]],
                     );
             },
             _testForSelection: function (t) {
@@ -31030,7 +31032,7 @@ var __webpack_exports__ = {};
                                 t,
                                 M.Z,
                                 "board",
-                                "selection"
+                                "selection",
                             )).enabled &&
                             (this.selectionPolygon = this.create(
                                 "polygon",
@@ -31040,7 +31042,7 @@ var __webpack_exports__ = {};
                                     [0, 0],
                                     [0, 0],
                                 ],
-                                e
+                                e,
                             ))),
                     this
                 );
@@ -31090,7 +31092,7 @@ var __webpack_exports__ = {};
                     o.getElementById(e)
                         ? (i = o.getElementById(e))
                         : ((i = document.createElement("div")).classList.add(
-                              "JXG_wrap_private"
+                              "JXG_wrap_private",
                           ),
                           i.setAttribute("id", e),
                           r.parentNode.insertBefore(i, r),
@@ -31140,17 +31142,17 @@ var __webpack_exports__ = {};
                                 o.id,
                                 i,
                                 n,
-                                s.Z.evaluate(this.attr.fullscreen.scale)
+                                s.Z.evaluate(this.attr.fullscreen.scale),
                             ),
                             (o = null);
                     else if (s.Z.exists(r._cssFullscreenStore)) {
                         try {
                             n.styleSheets[n.styleSheets.length - 1].deleteRule(
-                                0
+                                0,
                             );
                         } catch (t) {
                             console.log(
-                                "JSXGraph: Could not remove CSS rules for full screen mode"
+                                "JSXGraph: Could not remove CSS rules for full screen mode",
                             );
                         }
                         (r._cssFullscreenStore.isFullscreen = !1),
@@ -31203,7 +31205,7 @@ var __webpack_exports__ = {};
                                     n = e.Y(i);
                                 return (s - o) * (s - o) + (r - n) * (r - n);
                             },
-                            [0, 2 * Math.PI]
+                            [0, 2 * Math.PI],
                         ),
                         f = 0,
                         b = 0,
@@ -31214,7 +31216,7 @@ var __webpack_exports__ = {};
                                     return c;
                                 },
                             ],
-                            { type: "rotate" }
+                            { type: "rotate" },
                         ),
                         m = a.create(
                             "transform",
@@ -31229,7 +31231,7 @@ var __webpack_exports__ = {};
                                     return t.Y(p);
                                 },
                             ],
-                            { type: "rotate" }
+                            { type: "rotate" },
                         ),
                         v = a.create(
                             "transform",
@@ -31241,7 +31243,7 @@ var __webpack_exports__ = {};
                                     return u;
                                 },
                             ],
-                            { type: "translate" }
+                            { type: "translate" },
                         ),
                         Z = function (t, e, i) {
                             var s = l.Z.D(t.X)(e),
@@ -31323,7 +31325,7 @@ var __webpack_exports__ = {};
                     (this.container.style.position = "relative"),
                 this.svgRoot = this.container.ownerDocument.createElementNS(
                     this.svgNamespace,
-                    "svg"
+                    "svg",
                 ),
                 this.svgRoot.style.overflow = "hidden",
                 this.svgRoot.style.display = "block",
@@ -31331,7 +31333,7 @@ var __webpack_exports__ = {};
                 this.container.appendChild(this.svgRoot),
                 this.defs = this.container.ownerDocument.createElementNS(
                     this.svgNamespace,
-                    "defs"
+                    "defs",
                 ),
                 this.svgRoot.appendChild(this.defs),
                 this.createShadowFilter = function (t, e, i, r, o, n) {
@@ -31342,7 +31344,7 @@ var __webpack_exports__ = {};
                         d,
                         u = this.container.ownerDocument.createElementNS(
                             this.svgNamespace,
-                            "filter"
+                            "filter",
                         );
                     return (
                         u.setAttributeNS(null, "id", t),
@@ -31351,7 +31353,7 @@ var __webpack_exports__ = {};
                         u.setAttributeNS(null, "filterUnits", "userSpaceOnUse"),
                         (a = this.container.ownerDocument.createElementNS(
                             this.svgNamespace,
-                            "feOffset"
+                            "feOffset",
                         )).setAttributeNS(null, "in", "SourceGraphic"),
                         a.setAttributeNS(null, "result", "offOut"),
                         a.setAttributeNS(null, "dx", n[0]),
@@ -31359,7 +31361,7 @@ var __webpack_exports__ = {};
                         u.appendChild(a),
                         (h = this.container.ownerDocument.createElementNS(
                             this.svgNamespace,
-                            "feColorMatrix"
+                            "feColorMatrix",
                         )).setAttributeNS(null, "in", "offOut"),
                         h.setAttributeNS(null, "result", "colorOut"),
                         h.setAttributeNS(null, "type", "matrix"),
@@ -31369,7 +31371,7 @@ var __webpack_exports__ = {};
                                   "values",
                                   "0.1 0 0 0 0  0 0.1 0 0 0  0 0 0.1 0 0  0 0 0 " +
                                       i +
-                                      " 0"
+                                      " 0",
                               )
                             : ((e[0] /= 255),
                               (e[1] /= 255),
@@ -31393,14 +31395,14 @@ var __webpack_exports__ = {};
                         u.appendChild(h),
                         (l = this.container.ownerDocument.createElementNS(
                             this.svgNamespace,
-                            "feGaussianBlur"
+                            "feGaussianBlur",
                         )).setAttributeNS(null, "in", "colorOut"),
                         l.setAttributeNS(null, "result", "blurOut"),
                         l.setAttributeNS(null, "stdDeviation", o),
                         u.appendChild(l),
                         (c = this.container.ownerDocument.createElementNS(
                             this.svgNamespace,
-                            "feBlend"
+                            "feBlend",
                         )).setAttributeNS(null, "in", "SourceGraphic"),
                         c.setAttributeNS(null, "in2", "blurOut"),
                         c.setAttributeNS(null, "mode", "normal"),
@@ -31415,8 +31417,8 @@ var __webpack_exports__ = {};
                         1,
                         0.1,
                         3,
-                        [5, 5]
-                    )
+                        [5, 5],
+                    ),
                 ),
                 this.toURL = function () {
                     var t = Array.prototype.slice.call(arguments).join("");
@@ -31434,14 +31436,14 @@ var __webpack_exports__ = {};
         )
             (this.layer[i] = this.container.ownerDocument.createElementNS(
                 this.svgNamespace,
-                "g"
+                "g",
             )),
                 this.svgRoot.appendChild(this.layer[i]);
         try {
             (this.foreignObjLayer =
                 this.container.ownerDocument.createElementNS(
                     this.svgNamespace,
-                    "foreignObject"
+                    "foreignObject",
                 )),
                 this.foreignObjLayer.setAttribute("display", "none"),
                 this.foreignObjLayer.setAttribute("x", 0),
@@ -31450,7 +31452,7 @@ var __webpack_exports__ = {};
                 this.foreignObjLayer.setAttribute("height", "100%"),
                 this.foreignObjLayer.setAttribute(
                     "id",
-                    this.container.id + "_foreignObj"
+                    this.container.id + "_foreignObj",
                 ),
                 this.svgRoot.appendChild(this.foreignObjLayer),
                 (this.supportsForeignObject = !0);
@@ -31479,29 +31481,29 @@ var __webpack_exports__ = {};
                     (o = this.createPrim("marker", l)).setAttributeNS(
                         null,
                         "stroke",
-                        s.Z.evaluate(t.visProp.strokecolor)
+                        s.Z.evaluate(t.visProp.strokecolor),
                     ),
                     o.setAttributeNS(
                         null,
                         "stroke-opacity",
-                        s.Z.evaluate(t.visProp.strokeopacity)
+                        s.Z.evaluate(t.visProp.strokeopacity),
                     ),
                     o.setAttributeNS(
                         null,
                         "fill",
-                        s.Z.evaluate(t.visProp.strokecolor)
+                        s.Z.evaluate(t.visProp.strokecolor),
                     ),
                     o.setAttributeNS(
                         null,
                         "fill-opacity",
-                        s.Z.evaluate(t.visProp.strokeopacity)
+                        s.Z.evaluate(t.visProp.strokeopacity),
                     ),
                     o.setAttributeNS(null, "stroke-width", 0),
                     o.setAttributeNS(null, "orient", "auto"),
                     o.setAttributeNS(null, "markerUnits", "strokeWidth"),
                     (n = this.container.ownerDocument.createElementNS(
                         this.svgNamespace,
-                        "path"
+                        "path",
                     )),
                     (h = 5),
                     "End" === e
@@ -31510,46 +31512,46 @@ var __webpack_exports__ = {};
                               ? n.setAttributeNS(
                                     null,
                                     "d",
-                                    "M 10,0 L 0,5 L 10,10 L 5,5 z"
+                                    "M 10,0 L 0,5 L 10,10 L 5,5 z",
                                 )
                               : 3 === r
                               ? n.setAttributeNS(
                                     null,
                                     "d",
-                                    "M 0,0 L 3.33,0 L 3.33,10 L 0,10 z"
+                                    "M 0,0 L 3.33,0 L 3.33,10 L 0,10 z",
                                 )
                               : 4 === r
                               ? ((h = 3.31),
                                 n.setAttributeNS(
                                     null,
                                     "d",
-                                    "M 0.00,3.31 C 3.53,3.84 7.13,4.50 10.00,6.63 C 9.33,5.52 8.67,4.42 8.00,3.31 C 8.67,2.21 9.33,1.10 10.00,0.00 C 7.13,2.13 3.53,2.79 0.00,3.31"
+                                    "M 0.00,3.31 C 3.53,3.84 7.13,4.50 10.00,6.63 C 9.33,5.52 8.67,4.42 8.00,3.31 C 8.67,2.21 9.33,1.10 10.00,0.00 C 7.13,2.13 3.53,2.79 0.00,3.31",
                                 ))
                               : 5 === r
                               ? ((h = 3.28),
                                 n.setAttributeNS(
                                     null,
                                     "d",
-                                    "M 0.00,3.28 C 3.39,4.19 6.81,5.07 10.00,6.55 C 9.38,5.56 9.00,4.44 9.00,3.28 C 9.00,2.11 9.38,0.99 10.00,0.00 C 6.81,1.49 3.39,2.37 0.00,3.28"
+                                    "M 0.00,3.28 C 3.39,4.19 6.81,5.07 10.00,6.55 C 9.38,5.56 9.00,4.44 9.00,3.28 C 9.00,2.11 9.38,0.99 10.00,0.00 C 6.81,1.49 3.39,2.37 0.00,3.28",
                                 ))
                               : 6 === r
                               ? ((h = 2.84),
                                 n.setAttributeNS(
                                     null,
                                     "d",
-                                    "M 0.00,2.84 C 3.39,3.59 6.79,4.35 10.00,5.68 C 9.67,4.73 9.33,3.78 9.00,2.84 C 9.33,1.89 9.67,0.95 10.00,0.00 C 6.79,1.33 3.39,2.09 0.00,2.84"
+                                    "M 0.00,2.84 C 3.39,3.59 6.79,4.35 10.00,5.68 C 9.67,4.73 9.33,3.78 9.00,2.84 C 9.33,1.89 9.67,0.95 10.00,0.00 C 6.79,1.33 3.39,2.09 0.00,2.84",
                                 ))
                               : 7 === r
                               ? ((h = 5.2),
                                 n.setAttributeNS(
                                     null,
                                     "d",
-                                    "M 0.00,5.20 C 4.04,5.20 7.99,6.92 10.00,10.39 M 10.00,0.00 C 7.99,3.47 4.04,5.20 0.00,5.20"
+                                    "M 0.00,5.20 C 4.04,5.20 7.99,6.92 10.00,10.39 M 10.00,0.00 C 7.99,3.47 4.04,5.20 0.00,5.20",
                                 ))
                               : n.setAttributeNS(
                                     null,
                                     "d",
-                                    "M 10,0 L 0,5 L 10,10 z"
+                                    "M 10,0 L 0,5 L 10,10 z",
                                 ),
                           t.elementClass === i.Z.OBJECT_CLASS_LINE &&
                               (a =
@@ -31567,47 +31569,47 @@ var __webpack_exports__ = {};
                               ? n.setAttributeNS(
                                     null,
                                     "d",
-                                    "M 0,0 L 10,5 L 0,10 L 5,5 z"
+                                    "M 0,0 L 10,5 L 0,10 L 5,5 z",
                                 )
                               : 3 === r
                               ? ((a = 3.3),
                                 n.setAttributeNS(
                                     null,
                                     "d",
-                                    "M 0,0 L 3.33,0 L 3.33,10 L 0,10 z"
+                                    "M 0,0 L 3.33,0 L 3.33,10 L 0,10 z",
                                 ))
                               : 4 === r
                               ? ((h = 3.31),
                                 n.setAttributeNS(
                                     null,
                                     "d",
-                                    "M 10.00,3.31 C 6.47,3.84 2.87,4.50 0.00,6.63 C 0.67,5.52 1.33,4.42 2.00,3.31 C 1.33,2.21 0.67,1.10 0.00,0.00 C 2.87,2.13 6.47,2.79 10.00,3.31"
+                                    "M 10.00,3.31 C 6.47,3.84 2.87,4.50 0.00,6.63 C 0.67,5.52 1.33,4.42 2.00,3.31 C 1.33,2.21 0.67,1.10 0.00,0.00 C 2.87,2.13 6.47,2.79 10.00,3.31",
                                 ))
                               : 5 === r
                               ? ((h = 3.28),
                                 n.setAttributeNS(
                                     null,
                                     "d",
-                                    "M 10.00,3.28 C 6.61,4.19 3.19,5.07 0.00,6.55 C 0.62,5.56 1.00,4.44 1.00,3.28 C 1.00,2.11 0.62,0.99 0.00,0.00 C 3.19,1.49 6.61,2.37 10.00,3.28"
+                                    "M 10.00,3.28 C 6.61,4.19 3.19,5.07 0.00,6.55 C 0.62,5.56 1.00,4.44 1.00,3.28 C 1.00,2.11 0.62,0.99 0.00,0.00 C 3.19,1.49 6.61,2.37 10.00,3.28",
                                 ))
                               : 6 === r
                               ? ((h = 2.84),
                                 n.setAttributeNS(
                                     null,
                                     "d",
-                                    "M 10.00,2.84 C 6.61,3.59 3.21,4.35 0.00,5.68 C 0.33,4.73 0.67,3.78 1.00,2.84 C 0.67,1.89 0.33,0.95 0.00,0.00 C 3.21,1.33 6.61,2.09 10.00,2.84"
+                                    "M 10.00,2.84 C 6.61,3.59 3.21,4.35 0.00,5.68 C 0.33,4.73 0.67,3.78 1.00,2.84 C 0.67,1.89 0.33,0.95 0.00,0.00 C 3.21,1.33 6.61,2.09 10.00,2.84",
                                 ))
                               : 7 === r
                               ? ((h = 5.2),
                                 n.setAttributeNS(
                                     null,
                                     "d",
-                                    "M 10.00,5.20 C 5.96,5.20 2.01,6.92 0.00,10.39 M 0.00,0.00 C 2.01,3.47 5.96,5.20 10.00,5.20"
+                                    "M 10.00,5.20 C 5.96,5.20 2.01,6.92 0.00,10.39 M 0.00,0.00 C 2.01,3.47 5.96,5.20 10.00,5.20",
                                 ))
                               : n.setAttributeNS(
                                     null,
                                     "d",
-                                    "M 0,0 L 10,5 L 0,10 z"
+                                    "M 0,0 L 10,5 L 0,10 z",
                                 ),
                           t.elementClass === i.Z.OBJECT_CLASS_LINE &&
                               (a =
@@ -31639,7 +31641,7 @@ var __webpack_exports__ = {};
                                       t.setAttributeNS(
                                           null,
                                           "stroke-opacity",
-                                          i
+                                          i,
                                       ),
                                       t.setAttributeNS(null, "fill-opacity", i);
                               }, r.visPropOld.fillcolor)
@@ -31649,13 +31651,13 @@ var __webpack_exports__ = {};
                                       t.setAttributeNS(
                                           null,
                                           "stroke-opacity",
-                                          i
+                                          i,
                                       );
                               }, r.visPropOld.fillcolor)),
                     this.isIE &&
                         r.rendNode.parentNode.insertBefore(
                             r.rendNode,
-                            r.rendNode
+                            r.rendNode,
                         ));
             },
             _setArrowWidth: function (t, e, i, s) {
@@ -31665,7 +31667,7 @@ var __webpack_exports__ = {};
                     t.setAttributeNS(
                         null,
                         "viewBox",
-                        "0 0 " + 10 * r + " " + 10 * r
+                        "0 0 " + 10 * r + " " + 10 * r,
                     ),
                     t.setAttributeNS(null, "markerHeight", o),
                     t.setAttributeNS(null, "markerWidth", o),
@@ -31708,18 +31710,18 @@ var __webpack_exports__ = {};
                     o.setAttributeNS(
                         null,
                         "stroke",
-                        s.Z.evaluate(t.visProp.strokecolor)
+                        s.Z.evaluate(t.visProp.strokecolor),
                     ),
                     o.setAttributeNS(null, "fill", "none"),
                     o.setAttributeNS(
                         null,
                         "stroke-opacity",
-                        s.Z.evaluate(t.visProp.strokeopacity)
+                        s.Z.evaluate(t.visProp.strokeopacity),
                     ),
                     o.setAttributeNS(
                         null,
                         "stroke-width",
-                        s.Z.evaluate(t.visProp.strokewidth)
+                        s.Z.evaluate(t.visProp.strokewidth),
                     ),
                     this.updatePathPrim(o, c, t.board);
             },
@@ -31733,7 +31735,7 @@ var __webpack_exports__ = {};
                         "style",
                         "font-family:Arial,Helvetica,sans-serif; font-size:" +
                             e +
-                            "px; fill:#356AA0;  opacity:0.3;"
+                            "px; fill:#356AA0;  opacity:0.3;",
                     ),
                     (i = this.container.ownerDocument.createTextNode(t)),
                     s.appendChild(i),
@@ -31760,7 +31762,7 @@ var __webpack_exports__ = {};
                     (t.rendNode.setAttributeNS(
                         null,
                         "class",
-                        s.Z.evaluate(t.visProp.cssclass)
+                        s.Z.evaluate(t.visProp.cssclass),
                     ),
                     (t.needsSizeUpdate = !0)),
                     isNaN(t.coords.scrCoords[1] + t.coords.scrCoords[2]) ||
@@ -31771,19 +31773,19 @@ var __webpack_exports__ = {};
                                 ? t.rendNode.setAttributeNS(
                                       null,
                                       "text-anchor",
-                                      "start"
+                                      "start",
                                   )
                                 : "right" === r
                                 ? t.rendNode.setAttributeNS(
                                       null,
                                       "text-anchor",
-                                      "end"
+                                      "end",
                                   )
                                 : "middle" === r &&
                                   t.rendNode.setAttributeNS(
                                       null,
                                       "text-anchor",
-                                      "middle"
+                                      "middle",
                                   ),
                             (t.visPropOld.left = r + e)),
                         (e = t.coords.scrCoords[2]),
@@ -31791,13 +31793,13 @@ var __webpack_exports__ = {};
                             (t.rendNode.setAttributeNS(
                                 null,
                                 "y",
-                                e + 0.5 * this.vOffsetText + "px"
+                                e + 0.5 * this.vOffsetText + "px",
                             ),
                             "bottom" === o
                                 ? t.rendNode.setAttributeNS(
                                       null,
                                       "dominant-baseline",
-                                      "text-after-edge"
+                                      "text-after-edge",
                                   )
                                 : "top" === o
                                 ? t.rendNode.setAttributeNS(null, "dy", "1.6ex")
@@ -31805,7 +31807,7 @@ var __webpack_exports__ = {};
                                   t.rendNode.setAttributeNS(
                                       null,
                                       "dy",
-                                      "0.6ex"
+                                      "0.6ex",
                                   ),
                             (t.visPropOld.top = o + e))),
                     t.htmlStr !== i &&
@@ -31848,7 +31850,7 @@ var __webpack_exports__ = {};
                     t.rendNode.setAttributeNS(
                         this.xlinkNamespace,
                         "xlink:href",
-                        e
+                        e,
                     ),
                     (t._src = e),
                     !0)
@@ -31856,14 +31858,14 @@ var __webpack_exports__ = {};
             },
             updateImageStyle: function (t, e) {
                 var i = s.Z.evaluate(
-                    e ? t.visProp.highlightcssclass : t.visProp.cssclass
+                    e ? t.visProp.highlightcssclass : t.visProp.cssclass,
                 );
                 t.rendNode.setAttributeNS(null, "class", i);
             },
             drawForeignObject: function (t) {
                 (t.rendNode = this.appendChildPrim(
                     this.createPrim("foreignObject", t.id),
-                    s.Z.evaluate(t.visProp.layer)
+                    s.Z.evaluate(t.visProp.layer),
                 )),
                     this.appendNodesToElement(t, "foreignObject"),
                     this.updateForeignObject(t);
@@ -31877,7 +31879,7 @@ var __webpack_exports__ = {};
                         t.coords.scrCoords[1],
                         t.coords.scrCoords[2] - t.size[1],
                         t.size[0],
-                        t.size[1]
+                        t.size[1],
                     ),
                     (t.rendNode.innerHTML = t.content),
                     this._updateVisual(t, { stroke: !0, dash: !0 }, !0);
@@ -31895,7 +31897,7 @@ var __webpack_exports__ = {};
             createPrim: function (t, e) {
                 var i = this.container.ownerDocument.createElementNS(
                     this.svgNamespace,
-                    t
+                    t,
                 );
                 return (
                     i.setAttributeNS(null, "id", this.container.id + "_" + e),
@@ -31930,7 +31932,7 @@ var __webpack_exports__ = {};
                                 : ((i = this._createArrowHead(
                                       t,
                                       "End",
-                                      e.typeFirst
+                                      e.typeFirst,
                                   )),
                                   this.defs.appendChild(i),
                                   (t.rendNodeTriangleStart = i),
@@ -31941,8 +31943,8 @@ var __webpack_exports__ = {};
                                           this.container.id,
                                           "_",
                                           t.id,
-                                          "TriangleEnd"
-                                      )
+                                          "TriangleEnd",
+                                      ),
                                   )))
                           : ((i = t.rendNodeTriangleStart),
                             s.Z.exists(i) && this.remove(i)),
@@ -31953,7 +31955,7 @@ var __webpack_exports__ = {};
                                 : ((i = this._createArrowHead(
                                       t,
                                       "Start",
-                                      e.typeLast
+                                      e.typeLast,
                                   )),
                                   this.defs.appendChild(i),
                                   (t.rendNodeTriangleEnd = i),
@@ -31964,8 +31966,8 @@ var __webpack_exports__ = {};
                                           this.container.id,
                                           "_",
                                           t.id,
-                                          "TriangleStart"
-                                      )
+                                          "TriangleStart",
+                                      ),
                                   )))
                           : ((i = t.rendNodeTriangleEnd),
                             s.Z.exists(i) && this.remove(i)),
@@ -31976,7 +31978,7 @@ var __webpack_exports__ = {};
                       (r || o) &&
                       t.rendNode.parentNode.insertBefore(
                           t.rendNode,
-                          t.rendNode
+                          t.rendNode,
                       );
             },
             updateEllipsePrim: function (t, e, i, s, r) {
@@ -32303,14 +32305,14 @@ var __webpack_exports__ = {};
             show: function (e) {
                 t.Z.deprecated(
                     "Board.renderer.show()",
-                    "Board.renderer.display()"
+                    "Board.renderer.display()",
                 ),
                     this.display(e, !0);
             },
             hide: function (e) {
                 t.Z.deprecated(
                     "Board.renderer.hide()",
-                    "Board.renderer.display()"
+                    "Board.renderer.display()",
                 ),
                     this.display(e, !1);
             },
@@ -32324,7 +32326,7 @@ var __webpack_exports__ = {};
                     ? i.setAttributeNS(
                           null,
                           "stroke-dasharray",
-                          this.dashArray[e - 1]
+                          this.dashArray[e - 1],
                       )
                     : i.hasAttributeNS(null, "stroke-dasharray") &&
                       i.removeAttributeNS(null, "stroke-dasharray");
@@ -32338,7 +32340,7 @@ var __webpack_exports__ = {};
                 "linear" === n || "radial" === n
                     ? ((e = this.createPrim(
                           n + "Gradient",
-                          t.id + "_gradient"
+                          t.id + "_gradient",
                       )),
                       (i = this.createPrim("stop", t.id + "_gradient1")),
                       (r = this.createPrim("stop", t.id + "_gradient2")),
@@ -32350,8 +32352,8 @@ var __webpack_exports__ = {};
                           "style",
                           "fill:" +
                               this.toURL(
-                                  this.container.id + "_" + t.id + "_gradient"
-                              )
+                                  this.container.id + "_" + t.id + "_gradient",
+                              ),
                       ),
                       (t.gradNode1 = i),
                       (t.gradNode2 = r),
@@ -32398,7 +32400,7 @@ var __webpack_exports__ = {};
                     r.setAttributeNS(
                         null,
                         "style",
-                        "stop-color:" + e + ";stop-opacity:" + i
+                        "stop-color:" + e + ";stop-opacity:" + i,
                     ),
                     o.setAttributeNS(
                         null,
@@ -32406,22 +32408,22 @@ var __webpack_exports__ = {};
                         "stop-color:" +
                             s.Z.evaluate(t.visProp.gradientsecondcolor) +
                             ";stop-opacity:" +
-                            s.Z.evaluate(t.visProp.gradientsecondopacity)
+                            s.Z.evaluate(t.visProp.gradientsecondopacity),
                     ),
                     r.setAttributeNS(
                         null,
                         "offset",
-                        100 * s.Z.evaluate(t.visProp.gradientstartoffset) + "%"
+                        100 * s.Z.evaluate(t.visProp.gradientstartoffset) + "%",
                     ),
                     o.setAttributeNS(
                         null,
                         "offset",
-                        100 * s.Z.evaluate(t.visProp.gradientendoffset) + "%"
+                        100 * s.Z.evaluate(t.visProp.gradientendoffset) + "%",
                     ),
                     "linear" === n
                         ? this.updateGradientAngle(
                               t.gradNode,
-                              s.Z.evaluate(t.visProp.gradientangle)
+                              s.Z.evaluate(t.visProp.gradientangle),
                           )
                         : "radial" === n &&
                           this.updateGradientCircle(
@@ -32431,7 +32433,7 @@ var __webpack_exports__ = {};
                               s.Z.evaluate(t.visProp.gradientr),
                               s.Z.evaluate(t.visProp.gradientfx),
                               s.Z.evaluate(t.visProp.gradientfy),
-                              s.Z.evaluate(t.visProp.gradientfr)
+                              s.Z.evaluate(t.visProp.gradientfr),
                           ));
             },
             setObjectTransition: function (t, e) {
@@ -32496,12 +32498,12 @@ var __webpack_exports__ = {};
                                         n.setAttributeNS(
                                             null,
                                             "pointer-events",
-                                            "visibleStroke"
+                                            "visibleStroke",
                                         ))
                                       : n.setAttributeNS(
                                             null,
                                             "pointer-events",
-                                            "visiblePainted"
+                                            "visiblePainted",
                                         ),
                                   this._setAttribute(function () {
                                       n.setAttributeNS(null, "fill-opacity", l);
@@ -32539,12 +32541,12 @@ var __webpack_exports__ = {};
                                           h.setAttributeNS(
                                               null,
                                               "style",
-                                              "fill:" + o
+                                              "fill:" + o,
                                           ),
                                               h.setAttributeNS(
                                                   null,
                                                   "style",
-                                                  "fill-opacity:" + a
+                                                  "fill-opacity:" + a,
                                               );
                                       }, t.visPropOld.strokecolor)
                                 : this._setAttribute(function () {
@@ -32552,7 +32554,7 @@ var __webpack_exports__ = {};
                                           h.setAttributeNS(
                                               null,
                                               "stroke-opacity",
-                                              a
+                                              a,
                                           );
                                   }, t.visPropOld.strokecolor),
                             (t.elementClass !== i.Z.OBJECT_CLASS_CURVE &&
@@ -32563,7 +32565,7 @@ var __webpack_exports__ = {};
                                         o,
                                         a,
                                         t,
-                                        t.visPropCalc.typeFirst
+                                        t.visPropCalc.typeFirst,
                                     ),
                                 s.Z.evaluate(t.visProp.lastarrow) &&
                                     this._setArrowColor(
@@ -32571,7 +32573,7 @@ var __webpack_exports__ = {};
                                         o,
                                         a,
                                         t,
-                                        t.visPropCalc.typeLast
+                                        t.visPropCalc.typeLast,
                                     ))),
                         (t.visPropOld.strokecolor = l),
                         (t.visPropOld.strokeopacity = c));
@@ -32632,20 +32634,20 @@ var __webpack_exports__ = {};
                                 ? e.rendNode.setAttributeNS(
                                       null,
                                       "filter",
-                                      this.toURL(this.container.id + "_f1")
+                                      this.toURL(this.container.id + "_f1"),
                                   )
                                 : ((c =
                                       this.container.ownerDocument.getElementById(
-                                          l
+                                          l,
                                       )) && this.defs.removeChild(c),
                                   (l = e.rendNode.id + "_f1"),
                                   this.defs.appendChild(
-                                      this.createShadowFilter(l, r, h, n, o, a)
+                                      this.createShadowFilter(l, r, h, n, o, a),
                                   ),
                                   e.rendNode.setAttributeNS(
                                       null,
                                       "filter",
-                                      this.toURL(l)
+                                      this.toURL(l),
                                   ))
                             : e.rendNode.removeAttributeNS(null, "filter")),
                     (e.visPropOld.shadow = i));
@@ -32689,12 +32691,12 @@ var __webpack_exports__ = {};
                     (this.touchpoints[2 * t].setAttributeNS(
                         null,
                         "display",
-                        "inline"
+                        "inline",
                     ),
                     this.touchpoints[2 * t + 1].setAttributeNS(
                         null,
                         "display",
-                        "inline"
+                        "inline",
                     ));
             },
             hideTouchpoint: function (t) {
@@ -32704,12 +32706,12 @@ var __webpack_exports__ = {};
                     (this.touchpoints[2 * t].setAttributeNS(
                         null,
                         "display",
-                        "none"
+                        "none",
                     ),
                     this.touchpoints[2 * t + 1].setAttributeNS(
                         null,
                         "display",
-                        "none"
+                        "none",
                     ));
             },
             updateTouchpoint: function (t, e) {
@@ -32737,14 +32739,14 @@ var __webpack_exports__ = {};
                             " L " +
                             i +
                             " " +
-                            (s + 37)
+                            (s + 37),
                     ),
                     this.updateEllipsePrim(
                         this.touchpoints[2 * t + 1],
                         e[0],
                         e[1],
                         25,
-                        25
+                        25,
                     ));
             },
             _getValuesOfDOMElements: function (t) {
@@ -32789,7 +32791,7 @@ var __webpack_exports__ = {};
                         } catch (t) {
                             console.log(
                                 "CORS problem! Image can not be used",
-                                t
+                                t,
                             );
                         }
                     }
@@ -32813,7 +32815,7 @@ var __webpack_exports__ = {};
 
                     )
                         (a = a.concat(
-                            this._getValuesOfDOMElements(o.nextSibling)
+                            this._getValuesOfDOMElements(o.nextSibling),
                         )),
                             this.foreignObjLayer.appendChild(o.nextSibling);
                 if (
@@ -32825,14 +32827,14 @@ var __webpack_exports__ = {};
                     for (r = a.length, i = 0; i < r; i++)
                         e = e.replace(
                             'id="' + a[i][0] + '"',
-                            'id="' + a[i][0] + '" value="' + a[i][1] + '"'
+                            'id="' + a[i][0] + '" value="' + a[i][1] + '"',
                         );
                 if (
                     ((e.match(/xmlns="http:\/\/www.w3.org\/2000\/svg"/g) || [])
                         .length > 1 &&
                         (e = e.replace(
                             /xmlns="http:\/\/www.w3.org\/2000\/svg"/g,
-                            ""
+                            "",
                         )),
                     (e = e.replace(/&nbsp;/g, " ")),
                     s.Z.exists(this.foreignObjLayer) &&
@@ -32840,7 +32842,7 @@ var __webpack_exports__ = {};
                 ) {
                     for (; this.foreignObjLayer.firstChild; )
                         this.container.appendChild(
-                            this.foreignObjLayer.firstChild
+                            this.foreignObjLayer.firstChild,
                         );
                     this.foreignObjLayer.setAttribute("display", "none");
                 }
@@ -32881,7 +32883,7 @@ var __webpack_exports__ = {};
                                       a.drawImage(o, 0, 0, e, i);
                                   } catch (t) {
                                       console.log(
-                                          "screenshots not longer supported on IE"
+                                          "screenshots not longer supported on IE",
                                       );
                                   }
                               }, 200);
@@ -32949,7 +32951,7 @@ var __webpack_exports__ = {};
                             r.appendChild(h),
                             b.insertBefore(r, this.container.nextSibling)),
                         (u = f.getElementById(
-                            this.container.id + "_navigationbar"
+                            this.container.id + "_navigationbar",
                         )),
                         s.Z.exists(u) &&
                             ((p = u.style.display), (u.style.display = "none")),
@@ -32980,23 +32982,23 @@ var __webpack_exports__ = {};
             s.Z.exists(t.Z.vmlStylesheet) ||
                 (e.ownerDocument.namespaces.add(
                     "jxgvml",
-                    "urn:schemas-microsoft-com:vml"
+                    "urn:schemas-microsoft-com:vml",
                 ),
                 (t.Z.vmlStylesheet =
                     this.container.ownerDocument.createStyleSheet()),
                 t.Z.vmlStylesheet.addRule(
                     ".jxgvml",
-                    "behavior:url(#default#VML)"
+                    "behavior:url(#default#VML)",
                 ));
         try {
             e.ownerDocument.namespaces.jxgvml ||
                 e.ownerDocument.namespaces.add(
                     "jxgvml",
-                    "urn:schemas-microsoft-com:vml"
+                    "urn:schemas-microsoft-com:vml",
                 ),
                 (this.createNode = function (t) {
                     return e.ownerDocument.createElement(
-                        "<jxgvml:" + t + ' class="jxgvml">'
+                        "<jxgvml:" + t + ' class="jxgvml">',
                     );
                 });
         } catch (t) {
@@ -33004,7 +33006,7 @@ var __webpack_exports__ = {};
                 return e.ownerDocument.createElement(
                     "<" +
                         t +
-                        ' xmlns="urn:schemas-microsoft.com:vml" class="jxgvml">'
+                        ' xmlns="urn:schemas-microsoft.com:vml" class="jxgvml">',
                 );
             };
         }
@@ -33051,30 +33053,30 @@ var __webpack_exports__ = {};
                                     Math.round(a * o[1]) +
                                     ", " +
                                     Math.round(a * n[1]) +
-                                    " "
+                                    " ",
                             );
                 s.Z.exists(t.rendNode) ||
                     ((t.rendNode = this.createPrim("path", t.id)),
                     this.appendChildPrim(
                         t.rendNode,
-                        s.Z.evaluate(t.visProp.layer)
+                        s.Z.evaluate(t.visProp.layer),
                     )),
                     this._setAttr(t.rendNode, "stroked", "true"),
                     this._setAttr(
                         t.rendNode,
                         "strokecolor",
                         s.Z.evaluate(t.visProp.strokecolor),
-                        1
+                        1,
                     ),
                     this._setAttr(
                         t.rendNode,
                         "strokeweight",
-                        s.Z.evaluate(t.visProp.strokewidth)
+                        s.Z.evaluate(t.visProp.strokewidth),
                     ),
                     this._setAttr(
                         t.rendNodeStroke,
                         "opacity",
-                        100 * s.Z.evaluate(t.visProp.strokeopacity) + "%"
+                        100 * s.Z.evaluate(t.visProp.strokeopacity) + "%",
                     ),
                     this.updatePathPrim(t.rendNode, h, t.board);
             },
@@ -33212,7 +33214,7 @@ var __webpack_exports__ = {};
                 var e;
                 ((e =
                     this.container.ownerDocument.createElement(
-                        "img"
+                        "img",
                     )).style.position = "absolute"),
                     this._setAttr(e, "id", this.container.id + "_" + t.id),
                     this.container.appendChild(e),
@@ -33309,17 +33311,17 @@ var __webpack_exports__ = {};
                     this._setAttr(
                         r,
                         "id",
-                        this.container.id + "_" + e + "_fill"
+                        this.container.id + "_" + e + "_fill",
                     ),
                     this._setAttr(
                         o,
                         "id",
-                        this.container.id + "_" + e + "_stroke"
+                        this.container.id + "_" + e + "_stroke",
                     ),
                     this._setAttr(
                         n,
                         "id",
-                        this.container.id + "_" + e + "_shadow"
+                        this.container.id + "_" + e + "_shadow",
                     ),
                     "circle" === t || "ellipse" === t
                         ? ((i = this.createNode("oval")).appendChild(r),
@@ -33336,7 +33338,7 @@ var __webpack_exports__ = {};
                           this._setAttr(
                               s,
                               "id",
-                              this.container.id + "_" + e + "_path"
+                              this.container.id + "_" + e + "_path",
                           ),
                           i.appendChild(s))
                         : ((i = this.createNode(t)).appendChild(r),
@@ -33370,7 +33372,7 @@ var __webpack_exports__ = {};
                           this._setAttr(
                               e,
                               "id",
-                              this.container.id + "_" + t.id + "stroke"
+                              this.container.id + "_" + t.id + "stroke",
                           ),
                           this._setAttr(e, "endarrow", "block"),
                           this._setAttr(e, "endarrowlength", "long"))
@@ -33414,7 +33416,7 @@ var __webpack_exports__ = {};
                         [
                             Math.floor(this.resolution * s),
                             Math.floor(this.resolution * r),
-                        ].join(",")
+                        ].join(","),
                     ),
                     this._setAttr(t, "path", e.join(""));
             },
@@ -33445,7 +33447,7 @@ var __webpack_exports__ = {};
                                   r(h * (o[1] - e)),
                                   ", ",
                                   r(h * (o[2] + e)),
-                              ].join("")
+                              ].join(""),
                           )
                         : "+" === i
                         ? s.push(
@@ -33466,7 +33468,7 @@ var __webpack_exports__ = {};
                                   r(h * o[1]),
                                   ", ",
                                   r(h * (o[2] + e)),
-                              ].join("")
+                              ].join(""),
                           )
                         : "<>" === i
                         ? s.push(
@@ -33488,7 +33490,7 @@ var __webpack_exports__ = {};
                                   ", ",
                                   r(h * (o[2] - e)),
                                   " x e ",
-                              ].join("")
+                              ].join(""),
                           )
                         : "^" === i
                         ? s.push(
@@ -33506,7 +33508,7 @@ var __webpack_exports__ = {};
                                   ", ",
                                   r(h * (o[2] + a)),
                                   " x e ",
-                              ].join("")
+                              ].join(""),
                           )
                         : "v" === i
                         ? s.push(
@@ -33524,7 +33526,7 @@ var __webpack_exports__ = {};
                                   ", ",
                                   r(h * (o[2] - a)),
                                   " x e ",
-                              ].join("")
+                              ].join(""),
                           )
                         : ">" === i
                         ? s.push(
@@ -33545,7 +33547,7 @@ var __webpack_exports__ = {};
                                   r(h * (o[1] + e)),
                                   ", ",
                                   r(h * o[2]),
-                              ].join("")
+                              ].join(""),
                           )
                         : "<" === i &&
                           s.push(
@@ -33563,7 +33565,7 @@ var __webpack_exports__ = {};
                                   ", ",
                                   r(h * (o[2] + n)),
                                   " x e ",
-                              ].join("")
+                              ].join(""),
                           ),
                     s
                 );
@@ -33591,8 +33593,8 @@ var __webpack_exports__ = {};
                                       : i[2] < -2e4 && (i[2] = -2e4),
                                   s.push(
                                       [a, o(r * i[1]), ", ", o(r * i[2])].join(
-                                          ""
-                                      )
+                                          "",
+                                      ),
                                   ),
                                   (a = " l "));
                 else if (3 === t.bezierDegree)
@@ -33602,8 +33604,8 @@ var __webpack_exports__ = {};
                                 ? (a = n)
                                 : (s.push(
                                       [a, o(r * i[1]), ", ", o(r * i[2])].join(
-                                          ""
-                                      )
+                                          "",
+                                      ),
                                   ),
                                   " c " === a &&
                                       ((e += 1),
@@ -33614,7 +33616,7 @@ var __webpack_exports__ = {};
                                               o(r * i[1]),
                                               ", ",
                                               o(r * i[2]),
-                                          ].join("")
+                                          ].join(""),
                                       ),
                                       (e += 1),
                                       (i = t.points[e].scrCoords),
@@ -33624,7 +33626,7 @@ var __webpack_exports__ = {};
                                               o(r * i[1]),
                                               ", ",
                                               o(r * i[2]),
-                                          ].join("")
+                                          ].join(""),
                                       )),
                                   (a = " c ")),
                             (e += 1);
@@ -33672,7 +33674,7 @@ var __webpack_exports__ = {};
                                                 u(d * o[1]),
                                                 " ",
                                                 u(d * o[2]),
-                                            ].join("")
+                                            ].join(""),
                                         )
                                       : ((r = 2 * i),
                                         h.push(
@@ -33685,7 +33687,7 @@ var __webpack_exports__ = {};
                                                             c *
                                                                 (r *
                                                                     Math.random() -
-                                                                    i))
+                                                                    i)),
                                                 ),
                                                 " ",
                                                 u(
@@ -33695,7 +33697,7 @@ var __webpack_exports__ = {};
                                                             c *
                                                                 (r *
                                                                     Math.random() -
-                                                                    i))
+                                                                    i)),
                                                 ),
                                                 " ",
                                                 u(
@@ -33705,7 +33707,7 @@ var __webpack_exports__ = {};
                                                             c *
                                                                 (r *
                                                                     Math.random() -
-                                                                    i))
+                                                                    i)),
                                                 ),
                                                 " ",
                                                 u(
@@ -33715,13 +33717,13 @@ var __webpack_exports__ = {};
                                                             c *
                                                                 (r *
                                                                     Math.random() -
-                                                                    i))
+                                                                    i)),
                                                 ),
                                                 " ",
                                                 u(d * o[1]),
                                                 " ",
                                                 u(d * o[2]),
-                                            ].join("")
+                                            ].join(""),
                                         )),
                                   (_ = " c "),
                                   (n = o[1]),
@@ -33747,7 +33749,7 @@ var __webpack_exports__ = {};
                                 ",",
                                 Math.floor(o * s[2]),
                                 " l ",
-                            ].join("")
+                            ].join(""),
                         ),
                             i = 1;
                         i < r - 1;
@@ -33761,7 +33763,7 @@ var __webpack_exports__ = {};
                         )
                             return;
                         n.push(
-                            Math.floor(o * s[1]) + "," + Math.floor(o * s[2])
+                            Math.floor(o * s[1]) + "," + Math.floor(o * s[2]),
                         ),
                             i < r - 2 && n.push(", ");
                     }
@@ -33798,7 +33800,7 @@ var __webpack_exports__ = {};
             show: function (e) {
                 t.Z.deprecated(
                     "Board.renderer.show()",
-                    "Board.renderer.display()"
+                    "Board.renderer.display()",
                 ),
                     e &&
                         e.rendNode &&
@@ -33807,7 +33809,7 @@ var __webpack_exports__ = {};
             hide: function (e) {
                 t.Z.deprecated(
                     "Board.renderer.hide()",
-                    "Board.renderer.display()"
+                    "Board.renderer.display()",
                 ),
                     e && e.rendNode && (e.rendNode.style.visibility = "hidden");
             },
@@ -33825,29 +33827,29 @@ var __webpack_exports__ = {};
                       this._setAttr(
                           e,
                           "color2",
-                          s.Z.evaluate(t.visProp.gradientsecondcolor)
+                          s.Z.evaluate(t.visProp.gradientsecondcolor),
                       ),
                       this._setAttr(
                           e,
                           "opacity2",
-                          s.Z.evaluate(t.visProp.gradientsecondopacity)
+                          s.Z.evaluate(t.visProp.gradientsecondopacity),
                       ),
                       this._setAttr(
                           e,
                           "angle",
-                          s.Z.evaluate(t.visProp.gradientangle)
+                          s.Z.evaluate(t.visProp.gradientangle),
                       ))
                     : "radial" === i
                     ? (this._setAttr(e, "type", "gradientradial"),
                       this._setAttr(
                           e,
                           "color2",
-                          s.Z.evaluate(t.visProp.gradientsecondcolor)
+                          s.Z.evaluate(t.visProp.gradientsecondcolor),
                       ),
                       this._setAttr(
                           e,
                           "opacity2",
-                          s.Z.evaluate(t.visProp.gradientsecondopacity)
+                          s.Z.evaluate(t.visProp.gradientsecondopacity),
                       ),
                       this._setAttr(
                           e,
@@ -33855,7 +33857,7 @@ var __webpack_exports__ = {};
                           100 * s.Z.evaluate(t.visProp.gradientpositionx) +
                               "%," +
                               100 * s.Z.evaluate(t.visProp.gradientpositiony) +
-                              "%"
+                              "%",
                       ),
                       this._setAttr(e, "focussize", "0,0"))
                     : this._setAttr(e, "type", "solid");
@@ -33885,12 +33887,12 @@ var __webpack_exports__ = {};
                                       this._setAttr(
                                           t.rendNodeFill,
                                           "opacity",
-                                          100 * a + "%"
+                                          100 * a + "%",
                                       )),
                             t.type === i.Z.OBJECT_TYPE_IMAGE &&
                                 c.filters.length > 1 &&
                                 ((c.filters.item(1).opacity = Math.round(
-                                    100 * a
+                                    100 * a,
                                 )),
                                 (c.filters.item(1).enabled = !0))),
                         (t.visPropOld.fillcolor = h),
@@ -33916,7 +33918,7 @@ var __webpack_exports__ = {};
                             t.elementClass === i.Z.OBJECT_CLASS_TEXT
                                 ? (d.filters.length > 1 &&
                                       ((d.filters.item(1).opacity = Math.round(
-                                          100 * a
+                                          100 * a,
                                       )),
                                       (d.filters.item(1).enabled = !0)),
                                   (d.style.color = o))
@@ -33929,7 +33931,7 @@ var __webpack_exports__ = {};
                                       this._setAttr(
                                           h,
                                           "opacity",
-                                          100 * a + "%"
+                                          100 * a + "%",
                                       ))),
                         (t.visPropOld.strokecolor = l),
                         (t.visPropOld.strokeopacity = c));
@@ -33971,7 +33973,7 @@ var __webpack_exports__ = {};
     const Y = t.Z.VMLRenderer;
     var j =
         "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".split(
-            ""
+            "",
         );
     (t.Z.Util = t.Z.Util || {}),
         (t.Z.Util.genUUID = function (t) {
@@ -34025,7 +34027,7 @@ var __webpack_exports__ = {};
                     "/canvas>",
                 ].join("")),
                 (this.canvasRoot = this.container.ownerDocument.getElementById(
-                    this.canvasId
+                    this.canvasId,
                 )),
                 (this.canvasRoot.style.display = "block"),
                 (this.context = this.canvasRoot.getContext("2d"));
@@ -34035,7 +34037,7 @@ var __webpack_exports__ = {};
                     (this.context = this.canvasRoot.getContext("2d"));
             } catch (t) {
                 throw new Error(
-                    'JXG.createCanvas not available.\nInstall the npm package `canvas`\nand call:\n    import { createCanvas } from "canvas";\n    JXG.createCanvas = createCanvas;\n'
+                    'JXG.createCanvas not available.\nInstall the npm package `canvas`\nand call:\n    import { createCanvas } from "canvas";\n    JXG.createCanvas = createCanvas;\n',
                 );
             }
         this.dashArray = [
@@ -34069,7 +34071,7 @@ var __webpack_exports__ = {};
                                 t[s + 1][0],
                                 t[s + 1][1],
                                 t[s + 2][0],
-                                t[s + 2][1]
+                                t[s + 2][1],
                             );
                     i
                         ? (o.lineTo(t[0][0], t[0][1]),
@@ -34172,7 +34174,7 @@ var __webpack_exports__ = {};
                     "linear" === o
                         ? (r = this.updateGradientAngle(
                               t,
-                              s.Z.evaluate(t.visProp.gradientangle)
+                              s.Z.evaluate(t.visProp.gradientangle),
                           ))
                         : "radial" === o &&
                           (r = this.updateGradientCircle(
@@ -34182,15 +34184,15 @@ var __webpack_exports__ = {};
                               s.Z.evaluate(t.visProp.gradientr),
                               s.Z.evaluate(t.visProp.gradientfx),
                               s.Z.evaluate(t.visProp.gradientfy),
-                              s.Z.evaluate(t.visProp.gradientfr)
+                              s.Z.evaluate(t.visProp.gradientfr),
                           )),
                     r.addColorStop(
                         s.Z.evaluate(t.visProp.gradientstartoffset),
-                        e
+                        e,
                     ),
                     r.addColorStop(
                         s.Z.evaluate(t.visProp.gradientendoffset),
-                        s.Z.evaluate(t.visProp.gradientsecondcolor)
+                        s.Z.evaluate(t.visProp.gradientsecondcolor),
                     ),
                     r
                 );
@@ -34289,7 +34291,7 @@ var __webpack_exports__ = {};
                                     i + 1 + a,
                                     0,
                                     2 * Math.PI,
-                                    !1
+                                    !1,
                                 ),
                                 h.closePath(),
                                 this._fill(t),
@@ -34304,7 +34306,7 @@ var __webpack_exports__ = {};
                                         r[1] - i - a,
                                         r[2] - i - a,
                                         2 * i + 3 * a,
-                                        2 * i + 3 * a
+                                        2 * i + 3 * a,
                                     ),
                                 h.restore(),
                                 h.save(),
@@ -34313,7 +34315,7 @@ var __webpack_exports__ = {};
                                     r[1] - i + a,
                                     r[2] - i + a,
                                     2 * i - a,
-                                    2 * i - a
+                                    2 * i - a,
                                 ),
                                 h.restore();
                             break;
@@ -34729,10 +34731,10 @@ var __webpack_exports__ = {};
                                     this._translateShape(
                                         this._rotateShape(_, O),
                                         a,
-                                        h
+                                        h,
                                     ),
                                     T,
-                                    g
+                                    g,
                                 )),
                             A &&
                                 ((g = 7 !== b),
@@ -34740,10 +34742,10 @@ var __webpack_exports__ = {};
                                     this._translateShape(
                                         this._rotateShape(p, x),
                                         l,
-                                        c
+                                        c,
                                     ),
                                     M,
-                                    g
+                                    g,
                                 ))),
                         w.restore();
                 }
@@ -34757,12 +34759,12 @@ var __webpack_exports__ = {};
                     h = new c.Z(
                         i.Z.COORDS_BY_USER,
                         t.point1.coords.usrCoords,
-                        t.board
+                        t.board,
                     ),
                     l = new c.Z(
                         i.Z.COORDS_BY_USER,
                         t.point2.coords.usrCoords,
-                        t.board
+                        t.board,
                     ),
                     d = null;
                 t.visPropCalc.visible &&
@@ -34891,7 +34893,7 @@ var __webpack_exports__ = {};
                         n.fillText(
                             t.plaintext,
                             t.coords.scrCoords[1],
-                            t.coords.scrCoords[2]
+                            t.coords.scrCoords[2],
                         )),
                     n.restore(),
                     null
@@ -34941,7 +34943,7 @@ var __webpack_exports__ = {};
                                     t.coords.scrCoords[1],
                                     t.coords.scrCoords[2] - t.size[1],
                                     t.size[0],
-                                    t.size[1]
+                                    t.size[1],
                                 ),
                                 e.restore());
                     }, this);
@@ -34962,7 +34964,7 @@ var __webpack_exports__ = {};
                             i[1][2],
                             i[2][2],
                             i[1][0],
-                            i[2][0]
+                            i[2][0],
                         ));
             },
             updateImageURL: function (t) {
@@ -35028,7 +35030,7 @@ var __webpack_exports__ = {};
                                                 s[1],
                                                 s[2],
                                                 r[1],
-                                                r[2]
+                                                r[2],
                                             )),
                                       (a = "C")),
                                 (e += 1);
@@ -35087,7 +35089,7 @@ var __webpack_exports__ = {};
                                                     0.666 * (o[2] - a) +
                                                     p * (r * Math.random() - i),
                                                 o[1],
-                                                o[2]
+                                                o[2],
                                             )),
                                       (d = "C"),
                                       (n = o[1]),
@@ -35133,7 +35135,7 @@ var __webpack_exports__ = {};
             show: function (e) {
                 t.Z.deprecated(
                     "Board.renderer.show()",
-                    "Board.renderer.display()"
+                    "Board.renderer.display()",
                 ),
                     s.Z.exists(e.rendNode) &&
                         (e.rendNode.style.visibility = "inherit");
@@ -35141,7 +35143,7 @@ var __webpack_exports__ = {};
             hide: function (e) {
                 t.Z.deprecated(
                     "Board.renderer.hide()",
-                    "Board.renderer.display()"
+                    "Board.renderer.display()",
                 ),
                     s.Z.exists(e.rendNode) &&
                         (e.rendNode.style.visibility = "hidden");
@@ -35184,7 +35186,7 @@ var __webpack_exports__ = {};
                         0,
                         0,
                         this.canvasRoot.width,
-                        this.canvasRoot.height
+                        this.canvasRoot.height,
                     ),
                     e &&
                         e.attr.showcopyright &&
@@ -35199,11 +35201,11 @@ var __webpack_exports__ = {};
                       (this.canvasRoot.style.height = parseFloat(e) + "px"),
                       this.canvasRoot.setAttribute(
                           "width",
-                          2 * parseFloat(t) + "px"
+                          2 * parseFloat(t) + "px",
                       ),
                       this.canvasRoot.setAttribute(
                           "height",
-                          2 * parseFloat(e) + "px"
+                          2 * parseFloat(e) + "px",
                       ))
                     : ((this.canvasRoot.width = 2 * parseFloat(t)),
                       (this.canvasRoot.height = 2 * parseFloat(e))),
@@ -35346,21 +35348,21 @@ var __webpack_exports__ = {};
                     e,
                     M.Z,
                     "board",
-                    "selection"
+                    "selection",
                 )),
                 (e.navbar = s.Z.copyAttributes(e.navbar, M.Z, "navbar")),
                 (e.screenshot = s.Z.copyAttributes(
                     e,
                     M.Z,
                     "board",
-                    "screenshot"
+                    "screenshot",
                 )),
                 (e.resize = s.Z.copyAttributes(e, M.Z, "board", "resize")),
                 (e.fullscreen = s.Z.copyAttributes(
                     e,
                     M.Z,
                     "board",
-                    "fullscreen"
+                    "fullscreen",
                 )),
                 (e.logging = s.Z.copyAttributes(e, M.Z, "board", "logging")),
                 (e.movetarget =
@@ -35483,7 +35485,7 @@ var __webpack_exports__ = {};
                     a,
                     d.width,
                     d.height,
-                    p
+                    p,
                 )).keepaspectratio = p.keepaspectratio),
                 this._fillBoard(g, p, d),
                 g.suspendUpdate(),
@@ -35500,7 +35502,7 @@ var __webpack_exports__ = {};
                             [0, 0],
                             [1, 0],
                         ],
-                        f
+                        f,
                     )),
                     (g.defaultAxes.y = g.create(
                         "axis",
@@ -35508,13 +35510,13 @@ var __webpack_exports__ = {};
                             [0, 0],
                             [0, 1],
                         ],
-                        b
+                        b,
                     ))),
                 p.grid &&
                     g.create(
                         "grid",
                         [],
-                        "object" == typeof p.grid ? p.grid : {}
+                        "object" == typeof p.grid ? p.grid : {},
                     ),
                 g.unsuspendUpdate(),
                 g
@@ -35539,7 +35541,7 @@ var __webpack_exports__ = {};
                     50,
                     l.width,
                     l.height,
-                    n
+                    n,
                 )),
                 this._fillBoard(h, n, l),
                 (c = n.encoding || "iso-8859-1"),
@@ -35566,7 +35568,7 @@ var __webpack_exports__ = {};
                     50,
                     l.width,
                     l.height,
-                    n
+                    n,
                 )),
                 this._fillBoard(h, n, l),
                 A.parseString(i, h, s, !0, o),
@@ -35593,7 +35595,7 @@ var __webpack_exports__ = {};
         registerElement: function (e, i) {
             t.Z.deprecated(
                 "JXG.JSXGraph.registerElement()",
-                "JXG.registerElement()"
+                "JXG.registerElement()",
             ),
                 t.Z.registerElement(e, i);
         },
@@ -35682,10 +35684,10 @@ var __webpack_exports__ = {};
                                     _[r] = parseFloat(_[r]);
                             if (
                                 ((f = s.Z.str2Bool(
-                                    C[i].getAttribute("axis", !1) || "false"
+                                    C[i].getAttribute("axis", !1) || "false",
                                 )),
                                 (b = s.Z.str2Bool(
-                                    C[i].getAttribute("grid", !1) || "false"
+                                    C[i].getAttribute("grid", !1) || "false",
                                 )),
                                 s.Z.exists(n))
                             )
@@ -35694,7 +35696,7 @@ var __webpack_exports__ = {};
                                 (n = "jessiescript_autgen_jxg_" + i),
                                     (o =
                                         document.createElement(
-                                            "div"
+                                            "div",
                                         )).setAttribute("id", n),
                                     (h = "" !== l ? "width:" + l + ";" : ""),
                                     (h += "" !== c ? "height:" + c + ";" : ""),
@@ -35718,7 +35720,7 @@ var __webpack_exports__ = {};
                                     ? ((Z = !0),
                                       (v = new XMLHttpRequest()).open("GET", m),
                                       v.overrideMimeType(
-                                          "text/plain; charset=x-user-defined"
+                                          "text/plain; charset=x-user-defined",
                                       ),
                                       v.addEventListener("load", function () {
                                           if (!(this.status < 400))
@@ -35726,14 +35728,14 @@ var __webpack_exports__ = {};
                                                   "\nJSXGraph: failed to load file",
                                                   m,
                                                   ":",
-                                                  this.responseText
+                                                  this.responseText,
                                               );
                                           (g = this.responseText + "\n" + g),
                                               ((a = y(g, e, _)).reload = P(
                                                   a,
                                                   g,
                                                   e,
-                                                  _
+                                                  _,
                                               ));
                                       }),
                                       v.addEventListener("error", function (t) {
@@ -35741,7 +35743,7 @@ var __webpack_exports__ = {};
                                               "\nJSXGraph: failed to load file",
                                               m,
                                               ":",
-                                              t
+                                              t,
                                           );
                                       }),
                                       v.send())
@@ -35756,14 +35758,14 @@ var __webpack_exports__ = {};
                                               a,
                                               g,
                                               e,
-                                              _
+                                              _,
                                           )))
                                     : t.Z.debug(
-                                          "JSXGraph: Apparently the div injection failed. Can't create a board, sorry."
+                                          "JSXGraph: Apparently the div injection failed. Can't create a board, sorry.",
                                       );
                         }
                 },
-                window
+                window,
             );
     t.Z.JSXGraph;
     var J = __webpack_require__(958),
@@ -35822,7 +35824,7 @@ var __webpack_exports__ = {};
                     this === this.baseElement
                         ? ((e = this.transformations[0].apply(
                               this.baseElement,
-                              "self"
+                              "self",
                           )),
                           this.coords.setCoordinates(i.Z.COORDS_BY_USER, e))
                         : (e = this.transformations[0].apply(this.baseElement)),
@@ -35833,7 +35835,7 @@ var __webpack_exports__ = {};
                 )
                     this.coords.setCoordinates(
                         i.Z.COORDS_BY_USER,
-                        this.transformations[s].apply(this)
+                        this.transformations[s].apply(this),
                     );
                 return this;
             },
@@ -35855,7 +35857,7 @@ var __webpack_exports__ = {};
                         e,
                         s,
                         r,
-                        this.visProp.alwaysintersect
+                        this.visProp.alwaysintersect,
                     )),
                     this.addConstraint([o]);
                 try {
@@ -35866,7 +35868,7 @@ var __webpack_exports__ = {};
                             typeof t +
                             "' and '" +
                             typeof e +
-                            "'."
+                            "'.",
                     );
                 }
                 (this.type = i.Z.OBJECT_TYPE_INTERSECTION),
@@ -35909,7 +35911,7 @@ var __webpack_exports__ = {};
                 return (
                     t.Z.deprecated(
                         "Point.normalizeFace()",
-                        "JXG.normalizePointFace()"
+                        "JXG.normalizePointFace()",
                     ),
                     M.Z.normalizePointFace(e)
                 );
@@ -35934,7 +35936,7 @@ var __webpack_exports__ = {};
                               ((n = t.Z.Math.Geometry.projectCoordsToSegment(
                                   this.coords.usrCoords,
                                   e.point1.coords.usrCoords,
-                                  e.point2.coords.usrCoords
+                                  e.point2.coords.usrCoords,
                               ))[1] >= 0 &&
                                   n[1] <= 1)) &&
                           u.Z.distPointLine(this.coords.usrCoords, e.stdform) <
@@ -35947,7 +35949,7 @@ var __webpack_exports__ = {};
                         ? ((a = u.Z.projectPointToCurve(
                               this,
                               e,
-                              this.board
+                              this.board,
                           )[0]),
                           u.Z.distance(this.coords.usrCoords, a.usrCoords, 3) <
                               r)
@@ -35957,12 +35959,12 @@ var __webpack_exports__ = {};
                               !e.pnpoly(
                                   this.coords.usrCoords[1],
                                   this.coords.usrCoords[2],
-                                  t.Z.COORDS_BY_USER
+                                  t.Z.COORDS_BY_USER,
                               )
                           ) ||
                           ((n = u.Z.projectCoordsToPolygon(
                               this.coords.usrCoords,
-                              e
+                              e,
                           )),
                           u.Z.distance(this.coords.usrCoords, n, 3) < r)
                         : e.type === i.Z.OBJECT_TYPE_TURTLE &&
@@ -35980,7 +35982,7 @@ var __webpack_exports__ = {};
                     (t.visProp = s.Z.deepCopy(
                         this.visProp,
                         this.visProp.traceattributes,
-                        !0
+                        !0,
                     )),
                     (t.visProp.layer = this.board.options.layer.trace),
                     (t.elementClass = i.Z.OBJECT_CLASS_POINT),
@@ -36006,7 +36008,7 @@ var __webpack_exports__ = {};
                         typeof i[0] +
                         "' and '" +
                         typeof i[1] +
-                        "'.\nPossible parent types: [x,y], [z,x,y], [element,transformation]"
+                        "'.\nPossible parent types: [x,y], [z,x,y], [element,transformation]",
                 );
             return o;
         }),
@@ -36040,7 +36042,7 @@ var __webpack_exports__ = {};
                     a,
                     l,
                     c,
-                    o.visProp.alwaysintersect
+                    o.visProp.alwaysintersect,
                 )),
                 o.addConstraint([h]);
             try {
@@ -36051,7 +36053,7 @@ var __webpack_exports__ = {};
                         typeof e[0] +
                         "' and '" +
                         typeof e[1] +
-                        "'."
+                        "'.",
                 );
             }
             return (
@@ -36087,7 +36089,7 @@ var __webpack_exports__ = {};
                         typeof e[1] +
                         "'and  '" +
                         typeof e[2] +
-                        "'.\nPossible parent types: [circle|line,circle|line,point]"
+                        "'.\nPossible parent types: [circle|line,circle|line,point]",
                 );
             return (
                 (a = t.select(e[0])),
@@ -36105,7 +36107,7 @@ var __webpack_exports__ = {};
                                 : u.Z.meet(a.stdform, h.stdform, 1, a.board);
                         },
                     ],
-                    r
+                    r,
                 )).type = i.Z.OBJECT_TYPE_INTERSECTION),
                 (n.elType = "otherintersection"),
                 n.setParents([a.id, h.id, l]),
@@ -36138,7 +36140,7 @@ var __webpack_exports__ = {};
                         typeof s[0] +
                         "' and '" +
                         typeof s[1] +
-                        "'.\nPossible parent type: [conic|circle,line], [line,conic|circle]"
+                        "'.\nPossible parent type: [conic|circle,line], [line,conic|circle]",
                 );
             return (
                 d
@@ -36157,7 +36159,7 @@ var __webpack_exports__ = {};
                             ];
                         },
                     ],
-                    r
+                    r,
                 )).elType = "polepoint"),
                 o.setParents([n.id, a.id]),
                 n.addChild(o),
@@ -36170,7 +36172,7 @@ var __webpack_exports__ = {};
         t.Z.registerElement("intersection", t.Z.createIntersectionPoint),
         t.Z.registerElement(
             "otherintersection",
-            t.Z.createOtherIntersectionPoint
+            t.Z.createOtherIntersectionPoint,
         ),
         t.Z.registerElement("polepoint", t.Z.createPolePoint);
     const z = t.Z.Point;
@@ -36250,7 +36252,7 @@ var __webpack_exports__ = {};
                             (n = new c.Z(
                                 i.Z.COORDS_BY_SCREEN,
                                 n.slice(1),
-                                this.board
+                                this.board,
                             ).usrCoords),
                             (l = a.distance(i.Z.COORDS_BY_USER, h)),
                             (a = a.usrCoords.slice(0)),
@@ -36304,7 +36306,7 @@ var __webpack_exports__ = {};
                                           2 === t.length &&
                                           this.point1.setPositionDirectly(
                                               i.Z.COORDS_BY_USER,
-                                              t
+                                              t,
                                           )),
                                 s.Z.isFunction(this.funp2) &&
                                     ((t = this.funp2()),
@@ -36315,7 +36317,7 @@ var __webpack_exports__ = {};
                                           2 === t.length &&
                                           this.point2.setPositionDirectly(
                                               i.Z.COORDS_BY_USER,
-                                              t
+                                              t,
                                           )))),
                       this.updateSegmentFixedLength(),
                       this.updateStdform(),
@@ -36331,11 +36333,11 @@ var __webpack_exports__ = {};
                       (e = this.fixedLength()),
                       (r = this.fixedLengthOldCoords[0].distance(
                           i.Z.COORDS_BY_USER,
-                          this.point1.coords
+                          this.point1.coords,
                       )),
                       (n = this.fixedLengthOldCoords[1].distance(
                           i.Z.COORDS_BY_USER,
-                          this.point2.coords
+                          this.point2.coords,
                       )),
                       (r > o.Z.eps || n > o.Z.eps || t !== e) &&
                           ((a =
@@ -36361,7 +36363,7 @@ var __webpack_exports__ = {};
                                                     this.point1.Y()) *
                                                     e) /
                                                     t,
-                                        ]
+                                        ],
                                     ),
                                     this.point2.fullUpdate())
                                   : ((r <= n && a) || (r > n && a && !h)) &&
@@ -36378,7 +36380,7 @@ var __webpack_exports__ = {};
                                                     this.point2.Y()) *
                                                     e) /
                                                     t,
-                                        ]
+                                        ],
                                     ),
                                     this.point1.fullUpdate())
                               : ((l = Math.random() - 0.5),
@@ -36390,7 +36392,7 @@ var __webpack_exports__ = {};
                                           [
                                               this.point1.X() + (l * e) / t,
                                               this.point1.Y() + (c * e) / t,
-                                          ]
+                                          ],
                                       ),
                                       this.point2.fullUpdate())
                                     : a &&
@@ -36399,16 +36401,16 @@ var __webpack_exports__ = {};
                                           [
                                               this.point2.X() + (l * e) / t,
                                               this.point2.Y() + (c * e) / t,
-                                          ]
+                                          ],
                                       ),
                                       this.point1.fullUpdate())),
                           this.fixedLengthOldCoords[0].setCoordinates(
                               i.Z.COORDS_BY_USER,
-                              this.point1.coords.usrCoords
+                              this.point1.coords.usrCoords,
                           ),
                           this.fixedLengthOldCoords[1].setCoordinates(
                               i.Z.COORDS_BY_USER,
-                              this.point2.coords.usrCoords
+                              this.point2.coords.usrCoords,
                           )),
                       this)
                     : this;
@@ -36416,7 +36418,7 @@ var __webpack_exports__ = {};
             updateStdform: function () {
                 var t = o.Z.crossProduct(
                     this.point1.coords.usrCoords,
-                    this.point2.coords.usrCoords
+                    this.point2.coords.usrCoords,
                 );
                 (this.stdform[0] = t[0]),
                     (this.stdform[1] = t[1]),
@@ -36432,7 +36434,7 @@ var __webpack_exports__ = {};
                                   this.point1.coords.usrCoords[1] +
                                       this.point1.coords.usrCoords[2] +
                                       this.point2.coords.usrCoords[1] +
-                                      this.point2.coords.usrCoords[2]
+                                      this.point2.coords.usrCoords[2],
                               ) &&
                               o.Z.innerProduct(this.stdform, this.stdform, 3) >=
                                   o.Z.eps * o.Z.eps),
@@ -36516,7 +36518,7 @@ var __webpack_exports__ = {};
                         0.5 * (this.point2.X() + this.point1.X()),
                         0.5 * (this.point2.Y() + this.point1.Y()),
                     ],
-                    this.board
+                    this.board,
                 );
             },
             setLabelRelativeCoords: function (t) {
@@ -36524,7 +36526,7 @@ var __webpack_exports__ = {};
                     (this.label.relativeCoords = new c.Z(
                         i.Z.COORDS_BY_SCREEN,
                         [t[0], -t[1]],
-                        this.board
+                        this.board,
                     ));
             },
             getLabelAnchor: function () {
@@ -36534,12 +36536,12 @@ var __webpack_exports__ = {};
                     n = new c.Z(
                         i.Z.COORDS_BY_USER,
                         this.point1.coords.usrCoords,
-                        this.board
+                        this.board,
                     ),
                     a = new c.Z(
                         i.Z.COORDS_BY_USER,
                         this.point2.coords.usrCoords,
-                        this.board
+                        this.board,
                     ),
                     h = s.Z.evaluate(this.visProp.straightfirst),
                     l = s.Z.evaluate(this.visProp.straightlast);
@@ -36552,7 +36554,7 @@ var __webpack_exports__ = {};
                     return new c.Z(
                         i.Z.COORDS_BY_SCREEN,
                         [NaN, NaN],
-                        this.board
+                        this.board,
                     );
                 switch (s.Z.evaluate(this.label.visProp.position)) {
                     case "last":
@@ -36611,7 +36613,7 @@ var __webpack_exports__ = {};
                     (o.visProp = s.Z.deepCopy(
                         this.visProp,
                         this.visProp.traceattributes,
-                        !0
+                        !0,
                     )),
                     (o.visProp.layer = this.board.options.layer.trace),
                     s.Z.clearVisPropOld(o),
@@ -36656,7 +36658,7 @@ var __webpack_exports__ = {};
                               (a = (e = new c.Z(
                                   i.Z.COORDS_BY_SCREEN,
                                   [t.Xprev, t.Yprev],
-                                  this.board
+                                  this.board,
                               )).usrCoords[1]),
                               (h = e.usrCoords[2]),
                               l <= 0 &&
@@ -36680,7 +36682,7 @@ var __webpack_exports__ = {};
                                   ((r = u.Z.projectPointToLine(
                                       { coords: e },
                                       this,
-                                      this.board
+                                      this.board,
                                   )),
                                   (o = d.Z.subtract(
                                       [
@@ -36688,7 +36690,7 @@ var __webpack_exports__ = {};
                                           Math.round(a / l) * l,
                                           Math.round(h / p) * p,
                                       ],
-                                      r.usrCoords
+                                      r.usrCoords,
                                   )),
                                   this.board
                                       .create("transform", o.slice(1), {
@@ -36800,14 +36802,14 @@ var __webpack_exports__ = {};
                                 typeof i[0] +
                                 "' and '" +
                                 typeof i[1] +
-                                "'.\nPossible parent types: [point,point], [[x1,y1],[x2,y2]], [a,b,c]"
+                                "'.\nPossible parent types: [point,point], [[x1,y1],[x2,y2]], [a,b,c]",
                         );
                     (p = !0),
                         (c = s.Z.copyAttributes(
                             r,
                             e.options,
                             "line",
-                            "point1"
+                            "point1",
                         )),
                         (a = e.create("point", [i[0].point1, i[1]], c));
                 }
@@ -36834,7 +36836,7 @@ var __webpack_exports__ = {};
                                 typeof i[0] +
                                 "' and '" +
                                 typeof i[1] +
-                                "'.\nPossible parent types: [point,point], [[x1,y1],[x2,y2]], [a,b,c]"
+                                "'.\nPossible parent types: [point,point], [[x1,y1],[x2,y2]], [a,b,c]",
                         );
                     (c = s.Z.copyAttributes(r, e.options, "line", "point2")),
                         (h = t.Z.createPoint(e, i[1](), c)),
@@ -36860,7 +36862,7 @@ var __webpack_exports__ = {};
                                     typeof i[1] +
                                     "' and '" +
                                     typeof i[2] +
-                                    "'.\nPossible parent types: [point,point], [[x1,y1],[x2,y2]], [a,b,c]"
+                                    "'.\nPossible parent types: [point,point], [[x1,y1],[x2,y2]], [a,b,c]",
                             );
                         (u[l] = i[l]), (d = !1);
                     }
@@ -36873,7 +36875,7 @@ var __webpack_exports__ = {};
                                   u[2]() - u[1]() * u[0]() + u[2](),
                                   -u[1]() - u[2]() * u[0]() - u[1](),
                               ],
-                              c
+                              c,
                           )
                         : e.create(
                               "point",
@@ -36897,7 +36899,7 @@ var __webpack_exports__ = {};
                                       );
                                   },
                               ],
-                              c
+                              c,
                           )),
                     (c = s.Z.copyAttributes(r, e.options, "line", "point2")),
                     (h = d
@@ -36908,7 +36910,7 @@ var __webpack_exports__ = {};
                                   -u[1]() * u[0]() + u[2](),
                                   -u[2]() * u[0]() - u[1](),
                               ],
-                              c
+                              c,
                           )
                         : e.create(
                               "point",
@@ -36923,7 +36925,7 @@ var __webpack_exports__ = {};
                                       return -u[2]() * u[0]() - u[1]();
                                   },
                               ],
-                              c
+                              c,
                           )),
                     a.prepareUpdate().update(),
                     h.prepareUpdate().update(),
@@ -36958,7 +36960,7 @@ var __webpack_exports__ = {};
                             typeof i[0] +
                             "' and '" +
                             typeof i[1] +
-                            "'.\nPossible parent types: [point,point], [[x1,y1],[x2,y2]], [a,b,c]"
+                            "'.\nPossible parent types: [point,point], [[x1,y1],[x2,y2]], [a,b,c]",
                     );
                 (o = i[0]),
                     (c = s.Z.copyAttributes(r, e.options, "line", "point1")),
@@ -36974,7 +36976,7 @@ var __webpack_exports__ = {};
                                 ];
                             },
                         ],
-                        c
+                        c,
                     )),
                     (c = s.Z.copyAttributes(r, e.options, "line", "point2")),
                     (h = e.create(
@@ -36989,7 +36991,7 @@ var __webpack_exports__ = {};
                                 ];
                             },
                         ],
-                        c
+                        c,
                     )),
                     (c = s.Z.copyAttributes(r, e.options, "line")),
                     ((n = new t.Z.Line(e, a, h, c)).constrained = !0),
@@ -37017,7 +37019,7 @@ var __webpack_exports__ = {};
                         throw new Error(
                             "JSXGraph: Can't create segment with third parent type '" +
                                 typeof e[2] +
-                                "'.\nPossible third parent types: number or function"
+                                "'.\nPossible third parent types: number or function",
                         );
                     o.fixedLength = e[2];
                 }
@@ -37028,12 +37030,12 @@ var __webpack_exports__ = {};
                     (o.fixedLengthOldCoords[0] = new c.Z(
                         i.Z.COORDS_BY_USER,
                         o.point1.coords.usrCoords.slice(1, 3),
-                        t
+                        t,
                     )),
                     (o.fixedLengthOldCoords[1] = new c.Z(
                         i.Z.COORDS_BY_USER,
                         o.point2.coords.usrCoords.slice(1, 3),
-                        t
+                        t,
                     ));
             }
             return (o.elType = "segment"), o;
@@ -37062,7 +37064,7 @@ var __webpack_exports__ = {};
                         typeof e[0] +
                         "' and '" +
                         typeof e[1] +
-                        "'.\nPossible parent types: [point,point], [[x1,y1],[x2,y2]]"
+                        "'.\nPossible parent types: [point,point], [[x1,y1],[x2,y2]]",
                 );
             for (h in ((o = s.Z.copyAttributes(r, t.options, "axis")),
             ((a = t.create("line", e, o)).type = i.Z.OBJECT_TYPE_AXIS),
@@ -37098,7 +37100,7 @@ var __webpack_exports__ = {};
                             typeof e[0] +
                             "' and '" +
                             typeof e[1] +
-                            "'.\nPossible parent types: [glider], [point,line|curve|circle|conic]"
+                            "'.\nPossible parent types: [glider], [point,line|curve|circle|conic]",
                     );
                 if (s.Z.isPoint(e[0])) (n = e[0]), (a = e[1]);
                 else {
@@ -37108,7 +37110,7 @@ var __webpack_exports__ = {};
                                 typeof e[0] +
                                 "' and '" +
                                 typeof e[1] +
-                                "'.\nPossible parent types: [glider], [point,line|curve|circle|conic]"
+                                "'.\nPossible parent types: [glider], [point,line|curve|circle|conic]",
                         );
                     (a = e[0]), (n = e[1]);
                 }
@@ -37138,7 +37140,7 @@ var __webpack_exports__ = {};
                                       return -l.Z.D(a.X)(n.position);
                                   },
                               ],
-                              r
+                              r,
                           )),
                           n.addChild(d),
                           (d.glider = n))
@@ -37166,7 +37168,7 @@ var __webpack_exports__ = {};
                                               Math.floor(
                                                   (n.position *
                                                       (a.numberPoints - 1)) /
-                                                      3
+                                                      3,
                                               )),
                                               (i =
                                                   (n.position *
@@ -37246,7 +37248,7 @@ var __webpack_exports__ = {};
                                               Math.floor(
                                                   (n.position *
                                                       (a.numberPoints - 1)) /
-                                                      3
+                                                      3,
                                               )),
                                               (i =
                                                   (n.position *
@@ -37326,7 +37328,7 @@ var __webpack_exports__ = {};
                                               Math.floor(
                                                   (n.position *
                                                       (a.numberPoints - 1)) /
-                                                      3
+                                                      3,
                                               )),
                                               (i =
                                                   (n.position *
@@ -37386,7 +37388,7 @@ var __webpack_exports__ = {};
                                             t[1] - e[1]);
                                   },
                               ],
-                              r
+                              r,
                           )),
                           n.addChild(d),
                           (d.glider = n))
@@ -37443,7 +37445,7 @@ var __webpack_exports__ = {};
                                   );
                               },
                           ],
-                          r
+                          r,
                       )),
                       n.addChild(d),
                       (d.glider = n))
@@ -37455,30 +37457,30 @@ var __webpack_exports__ = {};
                               function () {
                                   return o.Z.matVecMult(
                                       a.quadraticform,
-                                      n.coords.usrCoords
+                                      n.coords.usrCoords,
                                   )[0];
                               },
                               function () {
                                   return o.Z.matVecMult(
                                       a.quadraticform,
-                                      n.coords.usrCoords
+                                      n.coords.usrCoords,
                                   )[1];
                               },
                               function () {
                                   return o.Z.matVecMult(
                                       a.quadraticform,
-                                      n.coords.usrCoords
+                                      n.coords.usrCoords,
                                   )[2];
                               },
                           ],
-                          r
+                          r,
                       )),
                       n.addChild(d),
                       (d.glider = n)),
                 !s.Z.exists(d))
             )
                 throw new Error(
-                    "JSXGraph: Couldn't create tangent with the given parents."
+                    "JSXGraph: Couldn't create tangent with the given parents.",
                 );
             return (
                 (d.elType = "tangent"),
@@ -37499,7 +37501,7 @@ var __webpack_exports__ = {};
                         typeof e[0] +
                         "' and '" +
                         typeof e[1] +
-                        "'.\nPossible parent type: [circle,circle]"
+                        "'.\nPossible parent type: [circle,circle]",
                 );
             return (
                 (n = t.select(e[0])),
@@ -37512,11 +37514,11 @@ var __webpack_exports__ = {};
                                 e = a.stdform;
                             return o.Z.matVecMult(
                                 o.Z.transpose([t.slice(0, 3), e.slice(0, 3)]),
-                                [e[3], -t[3]]
+                                [e[3], -t[3]],
                             );
                         },
                     ],
-                    s
+                    s,
                 )).elType = "radicalaxis"),
                 r.setParents([n.id, a.id]),
                 n.addChild(r),
@@ -37543,7 +37545,7 @@ var __webpack_exports__ = {};
                         typeof e[0] +
                         "' and '" +
                         typeof e[1] +
-                        "'.\nPossible parent type: [conic|circle,point], [point,conic|circle]"
+                        "'.\nPossible parent type: [conic|circle,point], [point,conic|circle]",
                 );
             return (
                 d
@@ -37687,19 +37689,19 @@ var __webpack_exports__ = {};
                         (l = u.Z.rad(
                             this.coords[t.id].usrCoords.slice(1),
                             d,
-                            this.objects[t.id].point
+                            this.objects[t.id].point,
                         )),
                             (c = this.board.create(
                                 "transform",
                                 [l, d[0], d[1]],
-                                { type: "rotate" }
+                                { type: "rotate" },
                             )).update();
                     else {
                         if ("scaling" !== t.action) return this;
                         if (
                             ((n = u.Z.distance(
                                 this.coords[t.id].usrCoords.slice(1),
-                                d
+                                d,
                             )),
                             Math.abs(n) < o.Z.eps)
                         )
@@ -37726,7 +37728,7 @@ var __webpack_exports__ = {};
                                     0,
                                     h,
                                 ],
-                                { type: "generic" }
+                                { type: "generic" },
                             )).update();
                     }
                 }
@@ -37755,7 +37757,7 @@ var __webpack_exports__ = {};
                     this.objects.hasOwnProperty(t) &&
                         (e = this.objects[t].point).coords.distance(
                             i.Z.COORDS_BY_USER,
-                            this.coords[t]
+                            this.coords[t],
                         ) > o.Z.eps &&
                         a.push(e.id);
                 return 0 === a.length
@@ -37798,7 +37800,7 @@ var __webpack_exports__ = {};
                                                   e[0],
                                               this.coords[r].usrCoords[2] +
                                                   e[1],
-                                          ]
+                                          ],
                                       )
                                     : ("rotation" !== t.action &&
                                           "scaling" !== t.action) ||
@@ -37809,8 +37811,8 @@ var __webpack_exports__ = {};
                                       i.Z.COORDS_BY_USER,
                                       o.Z.matVecMult(
                                           e.matrix,
-                                          this.coords[n.id].usrCoords
-                                      )
+                                          this.coords[n.id].usrCoords,
+                                      ),
                                   )
                             : delete this.objects[r]);
             },
@@ -37913,7 +37915,7 @@ var __webpack_exports__ = {};
                     this.objects.hasOwnProperty(t) &&
                         this.objects[t].point.setAttribute.apply(
                             this.objects[t].point,
-                            arguments
+                            arguments,
                         );
                 return this;
             },
@@ -37943,7 +37945,7 @@ var __webpack_exports__ = {};
                       o,
                       this.board,
                       null,
-                      !0
+                      !0,
                   )),
                   this.updateRadius(),
                   this.addParentsFromJCFunctions([this.updateRadius]))
@@ -37951,7 +37953,7 @@ var __webpack_exports__ = {};
                 ? ((this.line = t.select(o)),
                   (this.radius = this.line.point1.coords.distance(
                       i.Z.COORDS_BY_USER,
-                      this.line.point2.coords
+                      this.line.point2.coords,
                   )))
                 : "pointCircle" === e &&
                   ((this.circle = t.select(o)),
@@ -38085,7 +38087,7 @@ var __webpack_exports__ = {};
                                 ? (this.radius =
                                       this.line.point1.coords.distance(
                                           i.Z.COORDS_BY_USER,
-                                          this.line.point2.coords
+                                          this.line.point2.coords,
                                       ))
                                 : "pointCircle" === this.method
                                 ? (this.radius = this.circle.Radius())
@@ -38138,7 +38140,7 @@ var __webpack_exports__ = {};
                         this.points[a] = new c.Z(
                             i.Z.COORDS_BY_USER,
                             [this.dataX[a], this.dataY[a]],
-                            this.board
+                            this.board,
                         );
                 return this;
             },
@@ -38176,7 +38178,7 @@ var __webpack_exports__ = {};
                               !isNaN(
                                   this.center.coords.usrCoords[1] +
                                       this.center.coords.usrCoords[2] +
-                                      this.Radius()
+                                      this.Radius(),
                               ) && this.center.isReal),
                           this.isReal || this.updateVisibility(!1)),
                       this.visPropCalc.visible &&
@@ -38202,7 +38204,7 @@ var __webpack_exports__ = {};
                         t,
                         this.board,
                         null,
-                        !0
+                        !0,
                     )),
                     this.addParentsFromJCFunctions([this.updateRadius]),
                     this.board.update(),
@@ -38283,7 +38285,7 @@ var __webpack_exports__ = {};
                         visProp: s.Z.deepCopy(
                             this.visProp,
                             this.visProp.traceattributes,
-                            !0
+                            !0,
                         ),
                     };
                 return (
@@ -38390,7 +38392,7 @@ var __webpack_exports__ = {};
                                 return 2 * c.Radius();
                             },
                         ],
-                        l
+                        l,
                     )).addTransform(r[1]),
                     n
                 );
@@ -38399,11 +38401,11 @@ var __webpack_exports__ = {};
                     if (
                         !1 ===
                         (a = a.concat(
-                            s.Z.providePoints(e, [r[h]], o, "circle", [d[h]])
+                            s.Z.providePoints(e, [r[h]], o, "circle", [d[h]]),
                         ))[a.length - 1]
                     )
                         throw new Error(
-                            "JSXGraph: Can't create circle from this type. Please provide a point type."
+                            "JSXGraph: Can't create circle from this type. Please provide a point type.",
                         );
                 } else a.push(r[h]);
             if (
@@ -38459,11 +38461,11 @@ var __webpack_exports__ = {};
                             typeof r[0] +
                             "' and '" +
                             typeof r[1] +
-                            "'.\nPossible parent types: [point,point], [point,number], [point,function], [point,circle], [point,point,point], [circle,transformation]"
+                            "'.\nPossible parent types: [point,point], [point,number], [point,function], [point,circle], [point,point,point], [circle,transformation]",
                     );
                 if (!t.Z.elements.circumcircle)
                     throw new Error(
-                        "JSXGraph: Can't create circle with three points. Please include the circumcircle element (element/composition)."
+                        "JSXGraph: Can't create circle with three points. Please include the circumcircle element (element/composition).",
                     );
                 n = t.Z.elements.circumcircle(e, a, l);
             }
@@ -38500,7 +38502,7 @@ var __webpack_exports__ = {};
                             typeof e[0] +
                             "' and '" +
                             typeof e[1] +
-                            "'.\nPossible parent types: [point,point,point], [point,point,number|function]"
+                            "'.\nPossible parent types: [point,point,point], [point,point,number|function]",
                     );
                 p[d] = t.select(e[d]);
             }
@@ -38519,7 +38521,7 @@ var __webpack_exports__ = {};
                             typeof e[1] +
                             "' and '" +
                             typeof e[2] +
-                            "'.\nPossible parent types: [point,point,point], [point,point,number|function]"
+                            "'.\nPossible parent types: [point,point,point], [point,point,number|function]",
                     );
                 h = t.select(e[2]);
             }
@@ -38540,7 +38542,7 @@ var __webpack_exports__ = {};
                             return 0.5 * (p[0].Y() + p[1].Y());
                         },
                     ],
-                    f
+                    f,
                 ),
                 (n = t.create(
                     "curve",
@@ -38554,7 +38556,7 @@ var __webpack_exports__ = {};
                         e[3],
                         e[4],
                     ],
-                    b
+                    b,
                 )).majorAxis = l,
                 u = n.hasPoint,
                 o = function (t, e) {
@@ -38582,7 +38584,7 @@ var __webpack_exports__ = {};
                         r = (0.5 * (s * s - i * i)) / (s * Math.cos(t) - i),
                         n = Math.atan2(
                             p[1].Y() - p[0].Y(),
-                            p[1].X() - p[0].X()
+                            p[1].X() - p[0].X(),
                         );
                     return e || o(0, e), p[0].X() + Math.cos(n + t) * r;
                 },
@@ -38592,7 +38594,7 @@ var __webpack_exports__ = {};
                         r = (0.5 * (s * s - i * i)) / (s * Math.cos(t) - i),
                         o = Math.atan2(
                             p[1].Y() - p[0].Y(),
-                            p[1].X() - p[0].X()
+                            p[1].X() - p[0].X(),
                         );
                     return p[0].Y() + Math.sin(o + t) * r;
                 },
@@ -38610,7 +38612,7 @@ var __webpack_exports__ = {};
                           (a = new c.Z(
                               i.Z.COORDS_BY_SCREEN,
                               [t, e],
-                              this.board
+                              this.board,
                           )).distance(i.Z.COORDS_BY_USER, r) +
                               a.distance(i.Z.COORDS_BY_USER, o) <=
                               n)
@@ -38647,7 +38649,7 @@ var __webpack_exports__ = {};
                                 typeof e[0] +
                                 "' and '" +
                                 typeof e[1] +
-                                "'.\nPossible parent types: [point,point,point], [point,point,number|function]"
+                                "'.\nPossible parent types: [point,point,point], [point,point,number|function]",
                         );
                     d[c] = t.select(e[c]);
                 }
@@ -38667,7 +38669,7 @@ var __webpack_exports__ = {};
                                 typeof e[1] +
                                 "' and '" +
                                 typeof e[2] +
-                                "'.\nPossible parent types: [point,point,point], [point,point,number|function]"
+                                "'.\nPossible parent types: [point,point,point], [point,point,number|function]",
                         );
                     h = t.select(e[2]);
                 }
@@ -38688,7 +38690,7 @@ var __webpack_exports__ = {};
                                 return 0.5 * (d[0].Y() + d[1].Y());
                             },
                         ],
-                        p
+                        p,
                     ),
                     (n = t.create(
                         "curve",
@@ -38702,7 +38704,7 @@ var __webpack_exports__ = {};
                             e[3],
                             e[4],
                         ],
-                        _
+                        _,
                     )).majorAxis = l,
                     o = function (t, e) {
                         var i, s, r, o, a, h, c, u, p;
@@ -38729,7 +38731,7 @@ var __webpack_exports__ = {};
                             r = (0.5 * (s * s - i * i)) / (s * Math.cos(t) + i),
                             n = Math.atan2(
                                 d[1].Y() - d[0].Y(),
-                                d[1].X() - d[0].X()
+                                d[1].X() - d[0].X(),
                             );
                         return e || o(0, e), d[0].X() + Math.cos(n + t) * r;
                     },
@@ -38739,7 +38741,7 @@ var __webpack_exports__ = {};
                             r = (0.5 * (s * s - i * i)) / (s * Math.cos(t) + i),
                             o = Math.atan2(
                                 d[1].Y() - d[0].Y(),
-                                d[1].X() - d[0].X()
+                                d[1].X() - d[0].X(),
                             );
                         return d[0].Y() + Math.sin(o + t) * r;
                     },
@@ -38776,7 +38778,7 @@ var __webpack_exports__ = {};
                             typeof e[0] +
                             "' and '" +
                             typeof e[1] +
-                            "'.\nPossible parent types: [point,line]"
+                            "'.\nPossible parent types: [point,line]",
                     );
                 l = t.select(e[0]);
             }
@@ -38794,7 +38796,7 @@ var __webpack_exports__ = {};
                             return u.Z.projectPointToLine(l, c, t).usrCoords;
                         },
                     ],
-                    p
+                    p,
                 )),
                 ((n = t.create(
                     "curve",
@@ -38808,7 +38810,7 @@ var __webpack_exports__ = {};
                         e[2],
                         e[3],
                     ],
-                    _
+                    _,
                 )).midpoint = n.center =
                     a),
                 (n.subs = { center: n.center }),
@@ -38939,7 +38941,7 @@ var __webpack_exports__ = {};
                     throw new Error(
                         "JSXGraph: Can't create generic Conic with " +
                             e.length +
-                            " parameters."
+                            " parameters.",
                     );
                 Z = !1;
             }
@@ -38954,7 +38956,7 @@ var __webpack_exports__ = {};
                             throw new Error(
                                 "JSXGraph: Can't create Conic section with parent types '" +
                                     typeof e[m] +
-                                    "'.\nPossible parent types: [point,point,point,point,point], [a00,a11,a22,a01,a02,a12]"
+                                    "'.\nPossible parent types: [point,point,point,point,point], [a00,a11,a22,a01,a02,a12]",
                             );
                         P[m] = t.select(e[m]);
                     }
@@ -39062,7 +39064,7 @@ var __webpack_exports__ = {};
                         0,
                         2 * Math.PI,
                     ],
-                    w
+                    w,
                 )),
                 (n = function (t, e) {
                     var i, r, n, d;
@@ -39072,11 +39074,11 @@ var __webpack_exports__ = {};
                                 E[i] = P[i].coords.usrCoords;
                             (b = c(
                                 o.Z.crossProduct(E[0], E[1]),
-                                o.Z.crossProduct(E[2], E[3])
+                                o.Z.crossProduct(E[2], E[3]),
                             )),
                                 (g = c(
                                     o.Z.crossProduct(E[0], E[2]),
-                                    o.Z.crossProduct(E[1], E[3])
+                                    o.Z.crossProduct(E[1], E[3]),
                                 )),
                                 (y = h(b, g, E[4]));
                         } else
@@ -39146,7 +39148,7 @@ var __webpack_exports__ = {};
                             ];
                         },
                     ],
-                    x
+                    x,
                 )),
                 (a.type = i.Z.OBJECT_TYPE_CONIC),
                 (a.center = a.midpoint),
@@ -39169,7 +39171,7 @@ var __webpack_exports__ = {};
                 e,
                 o,
                 i.Z.OBJECT_TYPE_POLYGON,
-                i.Z.OBJECT_CLASS_AREA
+                i.Z.OBJECT_CLASS_AREA,
             );
             var n,
                 a,
@@ -39212,7 +39214,7 @@ var __webpack_exports__ = {};
                         ((a = e.create(
                             "segment",
                             [this.vertices[n], this.vertices[n + 1]],
-                            d
+                            d,
                         )).dump = !1),
                         (this.borders[n] = a),
                         (a.parentPolygon = this);
@@ -39311,12 +39313,12 @@ var __webpack_exports__ = {};
                 return new c.Z(
                     i.Z.COORDS_BY_USER,
                     [0.5 * (t + s), 0.5 * (e + r)],
-                    this.board
+                    this.board,
                 );
             },
             getLabelAnchor: t.Z.shortcut(
                 t.Z.Polygon.prototype,
-                "getTextAnchor"
+                "getTextAnchor",
             ),
             cloneToBackground: function () {
                 var t,
@@ -39328,7 +39330,7 @@ var __webpack_exports__ = {};
                     (e.visProp = s.Z.deepCopy(
                         this.visProp,
                         this.visProp.traceattributes,
-                        !0
+                        !0,
                     )),
                     (e.visProp.layer = this.board.options.layer.trace),
                     (e.board = this.board),
@@ -39349,7 +39351,7 @@ var __webpack_exports__ = {};
                 if (
                     (t.Z.deprecated(
                         "Element.hideElement()",
-                        "Element.setDisplayRendNode()"
+                        "Element.setDisplayRendNode()",
                     ),
                     (this.visPropCalc.visible = !1),
                     this.board.renderer.display(this, !1),
@@ -39367,7 +39369,7 @@ var __webpack_exports__ = {};
                 if (
                     (t.Z.deprecated(
                         "Element.showElement()",
-                        "Element.setDisplayRendNode()"
+                        "Element.setDisplayRendNode()",
                     ),
                     (this.visPropCalc.visible = !0),
                     this.board.renderer.display(this, !0),
@@ -39461,7 +39463,7 @@ var __webpack_exports__ = {};
                         [arguments[i]],
                         {},
                         "polygon",
-                        ["vertices"]
+                        ["vertices"],
                     )[0])._is_new && (this.addChild(a), delete a._is_new),
                         this.vertices.splice(t + i, 0, a);
                 if (this.withLines)
@@ -39495,8 +39497,8 @@ var __webpack_exports__ = {};
                             this.board.create(
                                 "segment",
                                 [this.vertices[i], this.vertices[i + 1]],
-                                this.attr_line
-                            )
+                                this.attr_line,
+                            ),
                         );
                 return (
                     (this.inherits = []),
@@ -39568,7 +39570,7 @@ var __webpack_exports__ = {};
                             i < 0
                                 ? "polygon" === this.elType &&
                                   (this.board.removeObject(
-                                      this.borders[a.length - 1]
+                                      this.borders[a.length - 1],
                                   ),
                                   (a[a.length - 1] = -1))
                                 : i < a.length &&
@@ -39579,7 +39581,7 @@ var __webpack_exports__ = {};
                             (a[l[e][0] - 1] = this.board.create(
                                 "segment",
                                 [n[l[e][1] - 1], n[l[e][0] + 1]],
-                                this.attr_line
+                                this.attr_line,
                             ));
                     }
                     for (this.borders = [], e = 0; e < a.length; e++)
@@ -39595,8 +39597,8 @@ var __webpack_exports__ = {};
                                     this.vertices[this.vertices.length - 2],
                                     this.vertices[0],
                                 ],
-                                this.attr_line
-                            )
+                                this.attr_line,
+                            ),
                         );
                 }
                 return (
@@ -39623,7 +39625,7 @@ var __webpack_exports__ = {};
                     )
                         e.lines.ids.push(this.borders[t].id),
                             e.lines.colors.push(
-                                this.borders[t].visProp.strokecolor
+                                this.borders[t].visProp.strokecolor,
                             );
                 return e;
             },
@@ -39690,7 +39692,7 @@ var __webpack_exports__ = {};
                                               n,
                                               a,
                                               l[r],
-                                              l[r + 1]
+                                              l[r + 1],
                                           ))[0][1] /= h[0][0]),
                                       (h[0][2] /= h[0][0]),
                                       (h[0][0] = 1),
@@ -39701,7 +39703,7 @@ var __webpack_exports__ = {};
                                       n,
                                       a,
                                       l[r],
-                                      l[r + 1]
+                                      l[r + 1],
                                   ))[0][1] /= h[0][0]),
                                   (h[0][2] /= h[0][0]),
                                   (h[0][0] = 1),
@@ -39736,7 +39738,7 @@ var __webpack_exports__ = {};
                             o,
                             e.options,
                             "polygon",
-                            "vertices"
+                            "vertices",
                         ),
                         a = 0;
                     a < h;
@@ -39752,7 +39754,7 @@ var __webpack_exports__ = {};
                 !1 === (u = s.Z.providePoints(e, r, o, "polygon", ["vertices"]))
             )
                 throw new Error(
-                    "JSXGraph: Can't create polygon / polygonalchain with parent types other than 'point' and 'coordinate arrays' or a function returning an array of coordinates. Alternatively, a polygon and a transformation can be supplied"
+                    "JSXGraph: Can't create polygon / polygonalchain with parent types other than 'point' and 'coordinate arrays' or a function returning an array of coordinates. Alternatively, a polygon and a transformation can be supplied",
                 );
             if (
                 ((c = s.Z.copyAttributes(o, e.options, "polygon")),
@@ -39791,7 +39793,7 @@ var __webpack_exports__ = {};
                 s.Z.isNumber(a) && (3 !== e.length || a < 3))
             )
                 throw new Error(
-                    "JSXGraph: A regular polygon needs two point types and a number > 2 as input."
+                    "JSXGraph: A regular polygon needs two point types and a number > 2 as input.",
                 );
             if (
                 (s.Z.isNumber(t.select(a))
@@ -39803,18 +39805,18 @@ var __webpack_exports__ = {};
                         e.slice(0, l),
                         r,
                         "regularpolygon",
-                        ["vertices"]
+                        ["vertices"],
                     )))
             )
                 throw new Error(
-                    "JSXGraph: Can't create regular polygon with parent types other than 'point' and 'coordinate arrays' or a function returning an array of coordinates"
+                    "JSXGraph: Can't create regular polygon with parent types other than 'point' and 'coordinate arrays' or a function returning an array of coordinates",
                 );
             for (
                 d = s.Z.copyAttributes(
                     r,
                     t.options,
                     "regularpolygon",
-                    "vertices"
+                    "vertices",
                 ),
                     n = 2;
                 n < a;
@@ -39823,7 +39825,7 @@ var __webpack_exports__ = {};
                 (h = t.create(
                     "transform",
                     [Math.PI * (2 - (a - 2) / a), u[n - 1]],
-                    { type: "rotate" }
+                    { type: "rotate" },
                 )),
                     c
                         ? (u[n].addTransform(u[n - 2], h), u[n].fullUpdate())
@@ -39893,7 +39895,7 @@ var __webpack_exports__ = {};
                           i.Z.COORDS_BY_SCREEN,
                           [0.1 * -this.board.canvasWidth, 0],
                           this.board,
-                          !1
+                          !1,
                       ).usrCoords[1];
             },
             maxX: function () {
@@ -39903,7 +39905,7 @@ var __webpack_exports__ = {};
                           i.Z.COORDS_BY_SCREEN,
                           [1.1 * this.board.canvasWidth, 0],
                           this.board,
-                          !1
+                          !1,
                       ).usrCoords[1];
             },
             X: function (t) {
@@ -39945,7 +39947,7 @@ var __webpack_exports__ = {};
                         i.Z.COORDS_BY_SCREEN,
                         [t, e],
                         this.board,
-                        !1
+                        !1,
                     )).usrCoords[1]),
                     (e = a.usrCoords[2]),
                     1 === this.bezierDegree &&
@@ -39996,8 +39998,8 @@ var __webpack_exports__ = {};
                                       new c.Z(
                                           i.Z.COORDS_BY_USER,
                                           [t, e],
-                                          this.board
-                                      )
+                                          this.board,
+                                      ),
                                   )).points).length)
                                 : ((b = this.points),
                                   (h = this.numberPoints - 1)),
@@ -40010,26 +40012,26 @@ var __webpack_exports__ = {};
                                 ? (E = u.Z.projectCoordsToBeziersegment(
                                       [1, t, e],
                                       this,
-                                      p
+                                      p,
                                   ))
                                 : g
                                 ? (b[p].prev &&
                                       (E = u.Z.projectCoordsToSegment(
                                           [1, t, e],
                                           b[p].prev.usrCoords,
-                                          b[p].usrCoords
+                                          b[p].usrCoords,
                                       )),
                                   b[p].next &&
                                       b[p + 1] !== b[p].next &&
                                       (E = u.Z.projectCoordsToSegment(
                                           [1, t, e],
                                           b[p].usrCoords,
-                                          b[p].next.usrCoords
+                                          b[p].next.usrCoords,
                                       )))
                                 : (E = u.Z.projectCoordsToSegment(
                                       [1, t, e],
                                       b[p].usrCoords,
-                                      b[p + 1].usrCoords
+                                      b[p + 1].usrCoords,
                                   )),
                             E[1] >= 0 &&
                                 E[1] <= 1 &&
@@ -40053,7 +40055,7 @@ var __webpack_exports__ = {};
                             i.Z.COORDS_BY_USER,
                             [0, 0],
                             this.board,
-                            !1
+                            !1,
                         );
             },
             update: function () {
@@ -40115,13 +40117,13 @@ var __webpack_exports__ = {};
                                   this.points[a].setCoordinates(
                                       i.Z.COORDS_BY_USER,
                                       [this.dataX[a], this.dataY[a]],
-                                      !1
+                                      !1,
                                   ))
                                 : ((n = this.X(o)),
                                   this.points[a].setCoordinates(
                                       i.Z.COORDS_BY_USER,
                                       [this.dataX[a], this.Y(n, d)],
-                                      !1
+                                      !1,
                                   )),
                             (this.points[a]._t = a),
                             (d = !0);
@@ -40140,17 +40142,17 @@ var __webpack_exports__ = {};
                         : (this.board.updateQuality ===
                           this.board.BOARD_QUALITY_HIGH
                               ? (this.numberPoints = s.Z.evaluate(
-                                    this.visProp.numberpointshigh
+                                    this.visProp.numberpointshigh,
                                 ))
                               : (this.numberPoints = s.Z.evaluate(
-                                    this.visProp.numberpointslow
+                                    this.visProp.numberpointslow,
                                 )),
                           this.allocatePoints(),
                           p.updateParametricCurveNaive(
                               this,
                               e,
                               r,
-                              this.numberPoints
+                              this.numberPoints,
                           )),
                     (t = this.numberPoints),
                     s.Z.evaluate(this.visProp.useqdt) &&
@@ -40171,7 +40173,7 @@ var __webpack_exports__ = {};
                         s.Z.evaluate(this.visProp.rdpsmoothing) &&
                         ((this.points = l.Z.RamerDouglasPeucker(
                             this.points,
-                            0.2
+                            0.2,
                         )),
                         (this.numberPoints = this.points.length)),
                         t = this.numberPoints,
@@ -40199,7 +40201,7 @@ var __webpack_exports__ = {};
                     (t = this.transformations[e]).update(),
                         (this.transformMat = o.Z.matMatMult(
                             t.matrix,
-                            this.transformMat
+                            this.transformMat,
                         ));
                 return this;
             },
@@ -40270,7 +40272,7 @@ var __webpack_exports__ = {};
                       (this.numberPoints = this.dataX.length),
                       (this.X = this.interpolationFunctionFromArray.apply(
                           this,
-                          ["X"]
+                          ["X"],
                       )),
                       (this.visProp.curvetype = "plot"),
                       (this.isDraggable = !0))
@@ -40284,7 +40286,7 @@ var __webpack_exports__ = {};
                         ? ((this.dataY = i),
                           (this.Y = this.interpolationFunctionFromArray.apply(
                               this,
-                              ["Y"]
+                              ["Y"],
                           )))
                         : (this.Y = s.Z.createFunction(i, this.board, t)),
                     s.Z.isFunction(e) &&
@@ -40367,7 +40369,7 @@ var __webpack_exports__ = {};
                         t.usrCoords[2],
                         0,
                         this,
-                        this.board
+                        this.board,
                     )[0]
                 );
             },
@@ -40383,7 +40385,7 @@ var __webpack_exports__ = {};
                         visProp: s.Z.deepCopy(
                             this.visProp,
                             this.visProp.traceattributes,
-                            !0
+                            !0,
                         ),
                     };
                 return (
@@ -40425,25 +40427,25 @@ var __webpack_exports__ = {};
                             function (t) {
                                 return e[0](t);
                             },
-                            [0, i]
+                            [0, i],
                         )),
                         (o = l.Z.fminbr(
                             function (t) {
                                 return -e[0](t);
                             },
-                            [0, i]
+                            [0, i],
                         )),
                         (n = l.Z.fminbr(
                             function (t) {
                                 return e[1](t);
                             },
-                            [0, i]
+                            [0, i],
                         )),
                         (a = l.Z.fminbr(
                             function (t) {
                                 return -e[1](t);
                             },
-                            [0, i]
+                            [0, i],
                         )),
                         (r = e[0](r)),
                         (o = e[0](o)),
@@ -40512,7 +40514,7 @@ var __webpack_exports__ = {};
                         ? ((a = (l = new c.Z(
                               i.Z.COORDS_BY_USER,
                               [t, e],
-                              this.board
+                              this.board,
                           )).scrCoords[1]),
                           (h = l.scrCoords[2]))
                         : ((a = t), (h = e)),
@@ -40556,7 +40558,7 @@ var __webpack_exports__ = {};
                       ((a = new t.Z.Curve(
                           e,
                           ["x", [], []],
-                          h
+                          h,
                       )).updateDataArray = function () {
                           var t,
                               e = n.numberPoints;
@@ -40658,7 +40660,7 @@ var __webpack_exports__ = {};
                 (o = new t.Z.Curve(
                     e,
                     ["x", "x", a[0], a[1], a[2]],
-                    r
+                    r,
                 )).setParents(i),
                 (o.elType = "spline"),
                 o
@@ -40681,7 +40683,7 @@ var __webpack_exports__ = {};
             if (!s.Z.exists(i[0]) || !s.Z.isArray(i[0]))
                 throw new Error(
                     "JSXGraph: JXG.createCardinalSpline: argument 1 'points' has to be array of points or coordinate pairs" +
-                        b
+                        b,
                 );
             if (
                 !s.Z.exists(i[1]) ||
@@ -40689,19 +40691,19 @@ var __webpack_exports__ = {};
             )
                 throw new Error(
                     "JSXGraph: JXG.createCardinalSpline: argument 2 'tau' has to be number between [0,1] or function'" +
-                        b
+                        b,
                 );
             if (!s.Z.exists(i[2]) || !s.Z.isString(i[2]))
                 throw new Error(
                     "JSXGraph: JXG.createCardinalSpline: argument 3 'type' has to be string 'uniform' or 'centripetal'" +
-                        b
+                        b,
                 );
             if (
                 ((r = s.Z.copyAttributes(r, e.options, "curve")),
                 ((r = s.Z.copyAttributes(
                     r,
                     e.options,
-                    "cardinalspline"
+                    "cardinalspline",
                 )).curvetype = "parameter"),
                 (d = i[0]),
                 (u = []),
@@ -40793,19 +40795,19 @@ var __webpack_exports__ = {};
             if (!s.Z.exists(i[0]) || !s.Z.isArray(i[0]))
                 throw new Error(
                     "JSXGraph: JXG.createMetapostSpline: argument 1 'points' has to be array of points or coordinate pairs" +
-                        p
+                        p,
                 );
             if (!s.Z.exists(i[1]) || !s.Z.isObject(i[1]))
                 throw new Error(
                     "JSXGraph: JXG.createMetapostSpline: argument 2 'controls' has to be a JavaScript object'" +
-                        p
+                        p,
                 );
             if (
                 ((r = s.Z.copyAttributes(r, e.options, "curve")),
                 ((r = s.Z.copyAttributes(
                     r,
                     e.options,
-                    "metapostspline"
+                    "metapostspline",
                 )).curvetype = "parameter"),
                 (l = i[0]),
                 (c = []),
@@ -40865,7 +40867,7 @@ var __webpack_exports__ = {};
                     (o = new t.Z.Curve(
                         e,
                         ["t", [], [], 0, l.length - 1],
-                        r
+                        r,
                     )).updateDataArray = function () {
                         var e,
                             i,
@@ -40893,18 +40895,18 @@ var __webpack_exports__ = {};
                 (((c = s.Z.copyAttributes(
                     i,
                     t.options,
-                    "riemannsum"
+                    "riemannsum",
                 )).curvetype = "plot"),
                 (n = e[0]),
                 (r = s.Z.createFunction(e[1], t, "")),
                 !s.Z.exists(r))
             )
                 throw new Error(
-                    "JSXGraph: JXG.createRiemannsum: argument '2' n has to be number or function.\nPossible parent types: [function,n:number|function,type,start:number|function,end:number|function]"
+                    "JSXGraph: JXG.createRiemannsum: argument '2' n has to be number or function.\nPossible parent types: [function,n:number|function,type,start:number|function,end:number|function]",
                 );
             if (((o = s.Z.createFunction(e[2], t, "", !1)), !s.Z.exists(o)))
                 throw new Error(
-                    "JSXGraph: JXG.createRiemannsum: argument 3 'type' has to be string or function.\nPossible parent types: [function,n:number|function,type,start:number|function,end:number|function]"
+                    "JSXGraph: JXG.createRiemannsum: argument 3 'type' has to be string or function.\nPossible parent types: [function,n:number|function,type,start:number|function,end:number|function]",
                 );
             return (
                 (a = [[0], [0]].concat(e.slice(3))),
@@ -40925,7 +40927,7 @@ var __webpack_exports__ = {};
             var o, n, a, h;
             if (2 !== e.length)
                 throw new Error(
-                    "JSXGraph: Can't create trace curve with given parent'\nPossible parent types: [glider, point]"
+                    "JSXGraph: Can't create trace curve with given parent'\nPossible parent types: [glider, point]",
                 );
             if (
                 ((n = t.select(e[0])),
@@ -40937,13 +40939,13 @@ var __webpack_exports__ = {};
                         typeof e[0] +
                         "' and '" +
                         typeof e[1] +
-                        "'.\nPossible parent types: [glider, point]"
+                        "'.\nPossible parent types: [glider, point]",
                 );
             return (
                 ((h = s.Z.copyAttributes(
                     r,
                     t.options,
-                    "tracecurve"
+                    "tracecurve",
                 )).curvetype = "plot"),
                 ((o = t.create("curve", [[0], [0]], h)).updateDataArray =
                     function () {
@@ -41017,7 +41019,7 @@ var __webpack_exports__ = {};
             var r, o;
             if (2 !== e.length)
                 throw new Error(
-                    "JSXGraph: Can't create step function with given parent'\nPossible parent types: [array, array|function]"
+                    "JSXGraph: Can't create step function with given parent'\nPossible parent types: [array, array|function]",
                 );
             return (
                 (o = s.Z.copyAttributes(i, t.options, "stepfunction")),
@@ -41049,7 +41051,7 @@ var __webpack_exports__ = {};
             var o, n, a, h, c;
             if (1 !== e.length && e[0].class !== i.Z.OBJECT_CLASS_CURVE)
                 throw new Error(
-                    "JSXGraph: Can't create derivative curve with given parent'\nPossible parent types: [curve]"
+                    "JSXGraph: Can't create derivative curve with given parent'\nPossible parent types: [curve]",
                 );
             return (
                 (c = s.Z.copyAttributes(r, t.options, "curve")),
@@ -41068,7 +41070,7 @@ var __webpack_exports__ = {};
                         n.minX(),
                         n.maxX(),
                     ],
-                    c
+                    c,
                 )).setParents(n),
                 o
             );
@@ -41078,7 +41080,7 @@ var __webpack_exports__ = {};
             var r;
             if (2 !== i.length)
                 throw new Error(
-                    "JSXGraph: Can't create curve intersection with given parent'\nPossible parent types: [array, array|function]"
+                    "JSXGraph: Can't create curve intersection with given parent'\nPossible parent types: [array, array|function]",
                 );
             return (
                 ((r = e.create("curve", [[], []], s)).updateDataArray =
@@ -41086,7 +41088,7 @@ var __webpack_exports__ = {};
                         var e = t.Z.Math.Clip.intersection(
                             i[0],
                             i[1],
-                            this.board
+                            this.board,
                         );
                         (this.dataX = e[0]), (this.dataY = e[1]);
                     }),
@@ -41097,7 +41099,7 @@ var __webpack_exports__ = {};
             var r;
             if (2 !== i.length)
                 throw new Error(
-                    "JSXGraph: Can't create curve union with given parent'\nPossible parent types: [array, array|function]"
+                    "JSXGraph: Can't create curve union with given parent'\nPossible parent types: [array, array|function]",
                 );
             return (
                 ((r = e.create("curve", [[], []], s)).updateDataArray =
@@ -41112,7 +41114,7 @@ var __webpack_exports__ = {};
             var r;
             if (2 !== i.length)
                 throw new Error(
-                    "JSXGraph: Can't create curve difference with given parent'\nPossible parent types: [array, array|function]"
+                    "JSXGraph: Can't create curve difference with given parent'\nPossible parent types: [array, array|function]",
                 );
             return (
                 ((r = e.create("curve", [[], []], s)).updateDataArray =
@@ -41120,7 +41122,7 @@ var __webpack_exports__ = {};
                         var e = t.Z.Math.Clip.difference(
                             i[0],
                             i[1],
-                            this.board
+                            this.board,
                         );
                         (this.dataX = e[0]), (this.dataY = e[1]);
                     }),
@@ -41137,11 +41139,11 @@ var __webpack_exports__ = {};
                 a = s.Z.copyAttributes(i, t.options, "boxplot");
             if (3 !== e.length)
                 throw new Error(
-                    "JSXGraph: Can't create box plot with given parent'\nPossible parent types: [array, number|function, number|function] containing quantiles, axis, width"
+                    "JSXGraph: Can't create box plot with given parent'\nPossible parent types: [array, number|function, number|function] containing quantiles, axis, width",
                 );
             if (e[0].length < 5)
                 throw new Error(
-                    "JSXGraph: Can't create box plot with given parent[0]'\nparent[0] has to conatin at least 5 quantiles."
+                    "JSXGraph: Can't create box plot with given parent[0]'\nparent[0] has to conatin at least 5 quantiles.",
                 );
             for (
                 r = t.create("curve", [[], []], a),
@@ -41232,7 +41234,7 @@ var __webpack_exports__ = {};
                     typeof r[1] +
                     "' and '" +
                     typeof r[2] +
-                    "'.\nPossible parent types: [point,point,point], [arc, transformation]"
+                    "'.\nPossible parent types: [point,point,point], [arc, transformation]",
             );
         return (
             (h = s.Z.copyAttributes(n, e.options, "arc")),
@@ -41371,14 +41373,14 @@ var __webpack_exports__ = {};
                                     Math.sin(0.5 * a) * _ +
                                     Math.cos(0.5 * a) * f,
                             ],
-                            this.board
+                            this.board,
                         )).usrCoords[1] - p[1]),
                     (o = t.usrCoords[2] - p[2]),
                     (r = (r * ((n = Math.sqrt(r * r + o * o)) + h)) / n),
                     (o = (o * (n + l)) / n),
                     (e = [p[1] + r, p[2] + o]),
                     (g.position = u.Z.calcLabelQuadrant(
-                        u.Z.rad([1, 0], [0, 0], e)
+                        u.Z.rad([1, 0], [0, 0], e),
                     )),
                     new c.Z(i.Z.COORDS_BY_USER, e, this.board)
                 );
@@ -41409,7 +41411,7 @@ var __webpack_exports__ = {};
                         typeof e[0] +
                         "' and '" +
                         typeof e[1] +
-                        "'.\nPossible parent types: [point,point]"
+                        "'.\nPossible parent types: [point,point]",
                 );
             return (
                 (n = s.Z.copyAttributes(i, t.options, "semicircle", "center")),
@@ -41438,20 +41440,20 @@ var __webpack_exports__ = {};
                         typeof e[1] +
                         "' and '" +
                         typeof e[2] +
-                        "'.\nPossible parent types: [point,point,point]"
+                        "'.\nPossible parent types: [point,point,point]",
                 );
             return (
                 (n = s.Z.copyAttributes(
                     i,
                     t.options,
                     "circumcirclearc",
-                    "center"
+                    "center",
                 )),
                 ((o = t.create("circumcenter", a, n)).dump = !1),
                 ((n = s.Z.copyAttributes(
                     i,
                     t.options,
-                    "circumcirclearc"
+                    "circumcirclearc",
                 )).usedirection = !0),
                 ((r = t.create("arc", [o, a[0], a[2], a[1]], n)).elType =
                     "circumcirclearc"),
@@ -41505,7 +41507,7 @@ var __webpack_exports__ = {};
                             typeof r[1] +
                             "' and '" +
                             typeof r[2] +
-                            "'."
+                            "'.",
                     );
                 b = "3points";
             }
@@ -41542,21 +41544,21 @@ var __webpack_exports__ = {};
                         a.line1.stdform,
                         a.line2.stdform,
                         0,
-                        e
+                        e,
                     )),
                     s.Z.isArray(r[2])
                         ? (2 === r[2].length && (r[2] = [1].concat(r[2])),
                           (_ = u.Z.projectPointToLine(
                               { coords: { usrCoords: r[2] } },
                               a.line1,
-                              e
+                              e,
                           )),
                           (_ = d.Z.subtract(_.usrCoords, p.usrCoords)),
                           (a.direction1 =
                               o.Z.innerProduct(
                                   _,
                                   [0, a.line1.stdform[2], -a.line1.stdform[1]],
-                                  3
+                                  3,
                               ) >= 0
                                   ? 1
                                   : -1))
@@ -41566,14 +41568,14 @@ var __webpack_exports__ = {};
                           (_ = u.Z.projectPointToLine(
                               { coords: { usrCoords: r[3] } },
                               a.line2,
-                              e
+                              e,
                           )),
                           (_ = d.Z.subtract(_.usrCoords, p.usrCoords)),
                           (a.direction2 =
                               o.Z.innerProduct(
                                   _,
                                   [0, a.line2.stdform[2], -a.line2.stdform[1]],
-                                  3
+                                  3,
                               ) >= 0
                                   ? 1
                                   : -1))
@@ -41609,17 +41611,17 @@ var __webpack_exports__ = {};
                             (this.point2.coords = new c.Z(
                                 i.Z.COORDS_BY_USER,
                                 r,
-                                a.board
+                                a.board,
                             )),
                             (this.point1.coords = new c.Z(
                                 i.Z.COORDS_BY_USER,
                                 l,
-                                a.board
+                                a.board,
                             )),
                             (this.point3.coords = new c.Z(
                                 i.Z.COORDS_BY_USER,
                                 n,
-                                a.board
+                                a.board,
                             )),
                             Math.abs(r[0]) < o.Z.eps ||
                                 Math.abs(l[0]) < o.Z.eps ||
@@ -41703,13 +41705,13 @@ var __webpack_exports__ = {};
                         n,
                         e.options,
                         "sector",
-                        "arc"
+                        "arc",
                     )).withLabel = !1),
                     (h.name += "_arc"),
                     (a.arc = e.create(
                         "arc",
                         [a.point1, a.point2, a.point3],
-                        h
+                        h,
                     )),
                     a.addChild(a.arc);
             }
@@ -41738,13 +41740,13 @@ var __webpack_exports__ = {};
                             ((r = u.Z.rad(
                                 this.point2,
                                 this.center,
-                                d.usrCoords.slice(1)
+                                d.usrCoords.slice(1),
                             )),
                             (o = 0),
                             (n = u.Z.rad(
                                 this.point2,
                                 this.center,
-                                this.point3
+                                this.point3,
                             )),
                             (("minor" === f && n > Math.PI) ||
                                 ("major" === f && n < Math.PI)) &&
@@ -41768,13 +41770,13 @@ var __webpack_exports__ = {};
                             ((r = u.Z.rad(
                                 this.radiuspoint,
                                 this.center,
-                                a.usrCoords.slice(1)
+                                a.usrCoords.slice(1),
                             )),
                             (o = 0),
                             (n = u.Z.rad(
                                 this.radiuspoint,
                                 this.center,
-                                this.anglepoint
+                                this.anglepoint,
                             )),
                             (("minor" === d && n > Math.PI) ||
                                 ("major" === d && n < Math.PI)) &&
@@ -41824,14 +41826,14 @@ var __webpack_exports__ = {};
                                         Math.sin(0.5 * a) * _ +
                                         Math.cos(0.5 * a) * f,
                                 ],
-                                this.board
+                                this.board,
                             )).usrCoords[1] - p[1]),
                         (o = t.usrCoords[2] - p[2]),
                         (r = (r * ((n = Math.sqrt(r * r + o * o)) + h)) / n),
                         (o = (o * (n + l)) / n),
                         (e = [p[1] + r, p[2] + o]),
                         (g.position = u.Z.calcLabelQuadrant(
-                            u.Z.rad([1, 0], [0, 0], e)
+                            u.Z.rad([1, 0], [0, 0], e),
                         )),
                         new c.Z(i.Z.COORDS_BY_USER, e, this.board)
                     );
@@ -41880,7 +41882,7 @@ var __webpack_exports__ = {};
                         typeof e[1] +
                         "' and '" +
                         typeof e[2] +
-                        "'."
+                        "'.",
                 );
             return (
                 ((o = t.create("circumcenter", a.slice(0, 3), n)).dump = !1),
@@ -41926,7 +41928,7 @@ var __webpack_exports__ = {};
                             typeof e[1] +
                             "' and '" +
                             typeof e[2] +
-                            "'."
+                            "'.",
                     );
                 _ = "3points";
             }
@@ -41944,7 +41946,7 @@ var __webpack_exports__ = {};
                     : (((n = t.create(
                           "sector",
                           [p[1], p[0], p[2]],
-                          h
+                          h,
                       )).arc.visProp.priv = !0),
                       (n.point = n.point2 = n.radiuspoint = p[0]),
                       (n.pointsquare = n.point3 = n.anglepoint = p[2]),
@@ -41995,15 +41997,15 @@ var __webpack_exports__ = {};
                                   ((e = this.board.create(
                                       "transform",
                                       [t, this.center],
-                                      { type: "rotate" }
+                                      { type: "rotate" },
                                   )),
                                   n.addTransform(a, e),
                                   e.update(),
                                   n.moveTo(
                                       o.Z.matVecMult(
                                           e.matrix,
-                                          a.coords.usrCoords
-                                      )
+                                          a.coords.usrCoords,
+                                      ),
                                   ),
                                   (r = s.Z.isFunction(t)
                                       ? function () {
@@ -42015,15 +42017,15 @@ var __webpack_exports__ = {};
                                   (i = this.board.create(
                                       "transform",
                                       [r, this.center],
-                                      { type: "rotate" }
+                                      { type: "rotate" },
                                   )),
                                   n.coords.on("update", function () {
                                       i.update(),
                                           a.moveTo(
                                               o.Z.matVecMult(
                                                   i.matrix,
-                                                  n.coords.usrCoords
-                                              )
+                                                  n.coords.usrCoords,
+                                              ),
                                           );
                                   }),
                                   n.setParents(a)),
@@ -42104,7 +42106,7 @@ var __webpack_exports__ = {};
                         e = u.Z.trueAngle(
                             this.point2,
                             this.point1,
-                            this.point3
+                            this.point3,
                         ),
                         i = s.Z.evaluate(this.visProp.selection);
                     (("minor" === i && e > 180) ||
@@ -42174,7 +42176,7 @@ var __webpack_exports__ = {};
                                   o.Z.matVecMult(c, t));
                         },
                     ],
-                    l
+                    l,
                 )),
                 (n.dot.dump = !1),
                 (n.subs.dot = n.dot),
@@ -42241,7 +42243,7 @@ var __webpack_exports__ = {};
                             r[2] + ((t[2] - r[2]) * (a + f)) / h,
                         ]),
                         (g.position = u.Z.calcLabelQuadrant(
-                            u.Z.rad([1, 0], [0, 0], t)
+                            u.Z.rad([1, 0], [0, 0], t),
                         )),
                         new c.Z(i.Z.COORDS_BY_USER, t, this.board)
                     );
@@ -42301,7 +42303,7 @@ var __webpack_exports__ = {};
                             typeof e[0] +
                             "' and '" +
                             typeof e[1] +
-                            "'.\nPossible parent types: [point,line]"
+                            "'.\nPossible parent types: [point,line]",
                     );
                 (n = s.Z.providePoints(t, [e[1]], r, "point")[0]), (o = e[0]);
             }
@@ -42314,7 +42316,7 @@ var __webpack_exports__ = {};
                             return u.Z.projectPointToLine(n, o, t);
                         },
                     ],
-                    h
+                    h,
                 )),
                 s.Z.exists(n._is_new)
                     ? (a.addChild(n), delete n._is_new)
@@ -42415,7 +42417,7 @@ var __webpack_exports__ = {};
                             typeof r[0] +
                             "' and '" +
                             typeof r[1] +
-                            "'.\nPossible parent types: [line,point]"
+                            "'.\nPossible parent types: [line,point]",
                     );
                 (a = r[0]), (n = s.Z.providePoints(e, [r[1]], o, "point")[0]);
             }
@@ -42434,7 +42436,7 @@ var __webpack_exports__ = {};
                             return a.stdform[1] * n.Z();
                         },
                     ],
-                    l
+                    l,
                 )).elType = "perpendicular"),
                 h.setParents([a.id, n.id]),
                 s.Z.exists(n._is_new)
@@ -42463,7 +42465,7 @@ var __webpack_exports__ = {};
                             typeof e[0] +
                             "' and '" +
                             typeof e[1] +
-                            "'.\nPossible parent types: [point,line]"
+                            "'.\nPossible parent types: [point,line]",
                     );
                 (n = s.Z.providePoints(t, [e[1]], r, "point")[0]), (o = e[0]);
             }
@@ -42475,7 +42477,7 @@ var __webpack_exports__ = {};
                             return u.Z.perpendicular(o, n, t)[0];
                         },
                     ],
-                    r
+                    r,
                 )),
                 s.Z.exists(n._is_new)
                     ? (a.addChild(n), delete n._is_new)
@@ -42576,7 +42578,7 @@ var __webpack_exports__ = {};
                             typeof r[0] +
                             "' and '" +
                             typeof r[1] +
-                            "'.\nPossible parent types: [line,point]"
+                            "'.\nPossible parent types: [line,point]",
                     );
                 (a = r[0]), (n = s.Z.providePoints(e, [r[1]], o, "point")[0]);
             }
@@ -42585,7 +42587,7 @@ var __webpack_exports__ = {};
                     o,
                     e.options,
                     "perpendicularsegment",
-                    "point"
+                    "point",
                 )),
                 ((l = t.Z.createPerpendicularPoint(e, [a, n], c)).dump = !1),
                 s.Z.exists(o.layer) || (o.layer = e.options.layer.line),
@@ -42599,7 +42601,7 @@ var __webpack_exports__ = {};
                                 : [n, l];
                         },
                     ],
-                    c
+                    c,
                 )).point = l),
                 s.Z.exists(n._is_new)
                     ? (h.addChild(n), delete n._is_new)
@@ -42629,7 +42631,7 @@ var __webpack_exports__ = {};
                     e[0].elementClass !== i.Z.OBJECT_CLASS_LINE
                 )
                     throw new Error(
-                        "JSXGraph: Can't create midpoint.\nPossible parent types: [point,point], [line]"
+                        "JSXGraph: Can't create midpoint.\nPossible parent types: [point,point], [line]",
                     );
                 (n = e[0].point1), (a = e[0].point2);
             }
@@ -42657,7 +42659,7 @@ var __webpack_exports__ = {};
                                 : 0.5 * t;
                         },
                     ],
-                    c
+                    c,
                 )),
                 s.Z.exists(n._is_new)
                     ? (h.addChild(n), delete n._is_new)
@@ -42763,7 +42765,7 @@ var __webpack_exports__ = {};
                             typeof e[1] +
                             "' and '" +
                             typeof e[2] +
-                            "'.\nPossible parent types: [line,point], [point,point,point]"
+                            "'.\nPossible parent types: [line,point], [point,point,point]",
                     );
                 (a = s.Z.providePoints(t, [e[1]], r, "point")[0]),
                     (o = e[0].point1),
@@ -42788,7 +42790,7 @@ var __webpack_exports__ = {};
                             );
                         },
                     ],
-                    r
+                    r,
                 )),
                 s.Z.exists(o._is_new)
                     ? (h.addChild(o), delete o._is_new)
@@ -42918,7 +42920,7 @@ var __webpack_exports__ = {};
                                       return o.Z.crossProduct([1, 0, 0], h());
                                   },
                               ],
-                              c
+                              c,
                           )
                         : t.create("parallelpoint", e, c)).isDraggable = !0),
                 (c = s.Z.copyAttributes(i, t.options, "parallel")),
@@ -42949,7 +42951,7 @@ var __webpack_exports__ = {};
                         typeof i[0] +
                         "' and '" +
                         typeof i[1] +
-                        "'.\nPossible parent types: [line,point], [point,point,point]"
+                        "'.\nPossible parent types: [line,point], [point,point,point]",
                 );
             }
         }),
@@ -42964,7 +42966,7 @@ var __webpack_exports__ = {};
                             typeof e[0] +
                             "' and '" +
                             typeof e[1] +
-                            "'.\nPossible parent types: [point,line], [point,circle], [glider]"
+                            "'.\nPossible parent types: [point,line], [point,circle], [glider]",
                     );
                 if (s.Z.isPointType(t, e[0]))
                     (n = s.Z.providePoints(t, [e[0]], r, "point")[0]),
@@ -42976,7 +42978,7 @@ var __webpack_exports__ = {};
                                 typeof e[0] +
                                 "' and '" +
                                 typeof e[1] +
-                                "'.\nPossible parent types: [point,line], [point,circle], [glider]"
+                                "'.\nPossible parent types: [point,line], [point,circle], [glider]",
                         );
                     (a = e[0]),
                         (n = s.Z.providePoints(t, [e[1]], r, "point")[0]);
@@ -42995,7 +42997,7 @@ var __webpack_exports__ = {};
                                 return [t[0], -t[2], t[1]];
                             },
                         ],
-                        f
+                        f,
                     )),
                     (_.isDraggable = !0),
                     ((h = t.create("line", [n, _], p)).point = _),
@@ -43023,7 +43025,7 @@ var __webpack_exports__ = {};
                                   return l.Z.D(u)(n.position);
                               },
                           ],
-                          p
+                          p,
                       )))
                     : (h = t.create(
                           "line",
@@ -43051,7 +43053,7 @@ var __webpack_exports__ = {};
                                           Math.floor(
                                               (n.position *
                                                   (a.numberPoints - 1)) /
-                                                  3
+                                                  3,
                                           )),
                                           (i =
                                               (n.position *
@@ -43110,7 +43112,7 @@ var __webpack_exports__ = {};
                                           Math.floor(
                                               (n.position *
                                                   (a.numberPoints - 1)) /
-                                                  3
+                                                  3,
                                           )),
                                           (e =
                                               (n.position *
@@ -43166,7 +43168,7 @@ var __webpack_exports__ = {};
                                           Math.floor(
                                               (n.position *
                                                   (a.numberPoints - 1)) /
-                                                  3
+                                                  3,
                                           )),
                                           (i =
                                               (n.position *
@@ -43203,7 +43205,7 @@ var __webpack_exports__ = {};
                                         t[1] - e[1]);
                               },
                           ],
-                          p
+                          p,
                       ));
             else {
                 if (a.type !== i.Z.OBJECT_TYPE_TURTLE)
@@ -43212,7 +43214,7 @@ var __webpack_exports__ = {};
                             typeof e[0] +
                             "' and '" +
                             typeof e[1] +
-                            "'.\nPossible parent types: [point,line], [point,circle], [glider]"
+                            "'.\nPossible parent types: [point,line], [point,circle], [glider]",
                     );
                 h = t.create(
                     "line",
@@ -43275,7 +43277,7 @@ var __webpack_exports__ = {};
                             );
                         },
                     ],
-                    p
+                    p,
                 );
             }
             return (
@@ -43299,7 +43301,7 @@ var __webpack_exports__ = {};
                         r,
                         e.options,
                         "bisector",
-                        "point"
+                        "point",
                     )).snapToGrid = !1,
                         (o = e.create(
                             "point",
@@ -43309,11 +43311,11 @@ var __webpack_exports__ = {};
                                         i[0],
                                         i[1],
                                         i[2],
-                                        e
+                                        e,
                                     );
                                 },
                             ],
-                            h
+                            h,
                         )).dump = !1,
                         a = 0;
                     a < 3;
@@ -43338,7 +43340,7 @@ var __webpack_exports__ = {};
                     typeof i[0] +
                     "' and '" +
                     typeof i[1] +
-                    "'.\nPossible parent types: [point,point,point]"
+                    "'.\nPossible parent types: [point,point,point]",
             );
         }),
         (t.Z.createAngularBisectorsOfTwoLines = function (t, e, r) {
@@ -43357,7 +43359,7 @@ var __webpack_exports__ = {};
                         typeof e[0] +
                         "' and '" +
                         typeof e[1] +
-                        "'.\nPossible parent types: [line,line]"
+                        "'.\nPossible parent types: [line,line]",
                 );
             return (
                 s.Z.exists(r.layer) || (r.layer = t.options.layer.line),
@@ -43365,7 +43367,7 @@ var __webpack_exports__ = {};
                     r,
                     t.options,
                     "bisectorlines",
-                    "line1"
+                    "line1",
                 )),
                 (o = t.create(
                     "line",
@@ -43373,45 +43375,45 @@ var __webpack_exports__ = {};
                         function () {
                             var t = Math.sqrt(
                                     l.stdform[1] * l.stdform[1] +
-                                        l.stdform[2] * l.stdform[2]
+                                        l.stdform[2] * l.stdform[2],
                                 ),
                                 e = Math.sqrt(
                                     c.stdform[1] * c.stdform[1] +
-                                        c.stdform[2] * c.stdform[2]
+                                        c.stdform[2] * c.stdform[2],
                                 );
                             return l.stdform[0] / t - c.stdform[0] / e;
                         },
                         function () {
                             var t = Math.sqrt(
                                     l.stdform[1] * l.stdform[1] +
-                                        l.stdform[2] * l.stdform[2]
+                                        l.stdform[2] * l.stdform[2],
                                 ),
                                 e = Math.sqrt(
                                     c.stdform[1] * c.stdform[1] +
-                                        c.stdform[2] * c.stdform[2]
+                                        c.stdform[2] * c.stdform[2],
                                 );
                             return l.stdform[1] / t - c.stdform[1] / e;
                         },
                         function () {
                             var t = Math.sqrt(
                                     l.stdform[1] * l.stdform[1] +
-                                        l.stdform[2] * l.stdform[2]
+                                        l.stdform[2] * l.stdform[2],
                                 ),
                                 e = Math.sqrt(
                                     c.stdform[1] * c.stdform[1] +
-                                        c.stdform[2] * c.stdform[2]
+                                        c.stdform[2] * c.stdform[2],
                                 );
                             return l.stdform[2] / t - c.stdform[2] / e;
                         },
                     ],
-                    a
+                    a,
                 )),
                 s.Z.exists(r.layer) || (r.layer = t.options.layer.line),
                 (a = s.Z.copyAttributes(
                     r,
                     t.options,
                     "bisectorlines",
-                    "line2"
+                    "line2",
                 )),
                 (n = t.create(
                     "line",
@@ -43419,38 +43421,38 @@ var __webpack_exports__ = {};
                         function () {
                             var t = Math.sqrt(
                                     l.stdform[1] * l.stdform[1] +
-                                        l.stdform[2] * l.stdform[2]
+                                        l.stdform[2] * l.stdform[2],
                                 ),
                                 e = Math.sqrt(
                                     c.stdform[1] * c.stdform[1] +
-                                        c.stdform[2] * c.stdform[2]
+                                        c.stdform[2] * c.stdform[2],
                                 );
                             return l.stdform[0] / t + c.stdform[0] / e;
                         },
                         function () {
                             var t = Math.sqrt(
                                     l.stdform[1] * l.stdform[1] +
-                                        l.stdform[2] * l.stdform[2]
+                                        l.stdform[2] * l.stdform[2],
                                 ),
                                 e = Math.sqrt(
                                     c.stdform[1] * c.stdform[1] +
-                                        c.stdform[2] * c.stdform[2]
+                                        c.stdform[2] * c.stdform[2],
                                 );
                             return l.stdform[1] / t + c.stdform[1] / e;
                         },
                         function () {
                             var t = Math.sqrt(
                                     l.stdform[1] * l.stdform[1] +
-                                        l.stdform[2] * l.stdform[2]
+                                        l.stdform[2] * l.stdform[2],
                                 ),
                                 e = Math.sqrt(
                                     c.stdform[1] * c.stdform[1] +
-                                        c.stdform[2] * c.stdform[2]
+                                        c.stdform[2] * c.stdform[2],
                                 );
                             return l.stdform[2] / t + c.stdform[2] / e;
                         },
                     ],
-                    a
+                    a,
                 )),
                 (h = new L({ line1: o, line2: n })),
                 (o.dump = !1),
@@ -43478,7 +43480,7 @@ var __webpack_exports__ = {};
                                     return u.Z.circumcenter(a, h, l, e);
                                 },
                             ],
-                            r
+                            r,
                         ),
                         n = 0;
                     n < 3;
@@ -43550,7 +43552,7 @@ var __webpack_exports__ = {};
                     typeof i[1] +
                     "' and '" +
                     typeof i[2] +
-                    "'.\nPossible parent types: [point,point,point]"
+                    "'.\nPossible parent types: [point,point,point]",
             );
         }),
         (t.Z.createIncenter = function (t, e, r) {
@@ -43570,7 +43572,7 @@ var __webpack_exports__ = {};
                         typeof e[1] +
                         "' and '" +
                         typeof e[2] +
-                        "'.\nPossible parent types: [point,point,point]"
+                        "'.\nPossible parent types: [point,point,point]",
                 );
             for (
                 n = e[0],
@@ -43584,15 +43586,15 @@ var __webpack_exports__ = {};
                                 return (
                                     (e = Math.sqrt(
                                         (a.X() - h.X()) * (a.X() - h.X()) +
-                                            (a.Y() - h.Y()) * (a.Y() - h.Y())
+                                            (a.Y() - h.Y()) * (a.Y() - h.Y()),
                                     )),
                                     (s = Math.sqrt(
                                         (n.X() - h.X()) * (n.X() - h.X()) +
-                                            (n.Y() - h.Y()) * (n.Y() - h.Y())
+                                            (n.Y() - h.Y()) * (n.Y() - h.Y()),
                                     )),
                                     (r = Math.sqrt(
                                         (a.X() - n.X()) * (a.X() - n.X()) +
-                                            (a.Y() - n.Y()) * (a.Y() - n.Y())
+                                            (a.Y() - n.Y()) * (a.Y() - n.Y()),
                                     )),
                                     new c.Z(
                                         i.Z.COORDS_BY_USER,
@@ -43606,12 +43608,12 @@ var __webpack_exports__ = {};
                                                 r * h.Y()) /
                                                 (e + s + r),
                                         ],
-                                        t
+                                        t,
                                     )
                                 );
                             },
                         ],
-                        r
+                        r,
                     ),
                     l = 0;
                 l < 3;
@@ -43632,7 +43634,7 @@ var __webpack_exports__ = {};
                         typeof i[1] +
                         "' and '" +
                         typeof i[2] +
-                        "'.\nPossible parent types: [point,point,point]"
+                        "'.\nPossible parent types: [point,point,point]",
                 );
             try {
                 for (
@@ -43640,7 +43642,7 @@ var __webpack_exports__ = {};
                         r,
                         e.options,
                         "circumcircle",
-                        "center"
+                        "center",
                     ),
                         (o = t.Z.createCircumcenter(e, i, a)).dump = !1,
                         s.Z.exists(r.layer) ||
@@ -43666,7 +43668,7 @@ var __webpack_exports__ = {};
                         typeof i[1] +
                         "' and '" +
                         typeof i[2] +
-                        "'.\nPossible parent types: [point,point,point]"
+                        "'.\nPossible parent types: [point,point,point]",
                 );
             }
             return n;
@@ -43681,7 +43683,7 @@ var __webpack_exports__ = {};
                         typeof i[1] +
                         "' and '" +
                         typeof i[2] +
-                        "'.\nPossible parent types: [point,point,point]"
+                        "'.\nPossible parent types: [point,point,point]",
                 );
             try {
                 for (
@@ -43699,27 +43701,27 @@ var __webpack_exports__ = {};
                                             (i[1].X() - i[2].X()) *
                                                 (i[1].X() - i[2].X()) +
                                                 (i[1].Y() - i[2].Y()) *
-                                                    (i[1].Y() - i[2].Y())
+                                                    (i[1].Y() - i[2].Y()),
                                         ),
                                         e = Math.sqrt(
                                             (i[0].X() - i[2].X()) *
                                                 (i[0].X() - i[2].X()) +
                                                 (i[0].Y() - i[2].Y()) *
-                                                    (i[0].Y() - i[2].Y())
+                                                    (i[0].Y() - i[2].Y()),
                                         ),
                                         s = Math.sqrt(
                                             (i[1].X() - i[0].X()) *
                                                 (i[1].X() - i[0].X()) +
                                                 (i[1].Y() - i[0].Y()) *
-                                                    (i[1].Y() - i[0].Y())
+                                                    (i[1].Y() - i[0].Y()),
                                         ),
                                         r = (t + e + s) / 2;
                                     return Math.sqrt(
-                                        ((r - t) * (r - e) * (r - s)) / r
+                                        ((r - t) * (r - e) * (r - s)) / r,
                                     );
                                 },
                             ],
-                            h
+                            h,
                         )).elType = "incircle",
                         a.setParents(i),
                         o = 0;
@@ -43740,7 +43742,7 @@ var __webpack_exports__ = {};
                         typeof i[1] +
                         "' and '" +
                         typeof i[2] +
-                        "'.\nPossible parent types: [point,point,point]"
+                        "'.\nPossible parent types: [point,point,point]",
                 );
             }
             return a;
@@ -43775,7 +43777,7 @@ var __webpack_exports__ = {};
                             "' and '" +
                             typeof r[1] +
                             "'." +
-                            _
+                            _,
                     );
                 a = r[0];
             }
@@ -43786,7 +43788,7 @@ var __webpack_exports__ = {};
                         "' and '" +
                         typeof r[1] +
                         "'." +
-                        _
+                        _,
                 );
             if (
                 ((n = r[1]),
@@ -43808,14 +43810,14 @@ var __webpack_exports__ = {};
                             "' and '" +
                             typeof r[1] +
                             "'." +
-                            _
+                            _,
                     );
                 "euclidean" === u.type.toLowerCase()
                     ? ((p = s.Z.copyAttributes(
                           o,
                           e.options,
                           "reflection",
-                          "center"
+                          "center",
                       )),
                       (l = t.Z.createPoint(e, [a.center, c], p))
                           .prepareUpdate()
@@ -43830,7 +43832,7 @@ var __webpack_exports__ = {};
                                   return a.Radius();
                               },
                           ],
-                          u
+                          u,
                       )))
                     : (h = t.Z.createCircle(e, [a, c], u));
             }
@@ -43924,7 +43926,7 @@ var __webpack_exports__ = {};
                             "' and '" +
                             typeof r[1] +
                             "'." +
-                            _
+                            _,
                     );
                 n = r[0];
             }
@@ -43935,14 +43937,14 @@ var __webpack_exports__ = {};
                         "' and '" +
                         typeof r[1] +
                         "'." +
-                        _
+                        _,
                 );
             if (
                 ((p = s.Z.copyAttributes(
                     o,
                     e.options,
                     "mirrorelement",
-                    "point"
+                    "point",
                 )),
                 (h = s.Z.providePoints(e, [r[1]], p)[0]),
                 (d = t.Z.createTransform(e, [Math.PI, h], { type: "rotate" })),
@@ -43963,14 +43965,14 @@ var __webpack_exports__ = {};
                             "' and '" +
                             typeof r[1] +
                             "'." +
-                            _
+                            _,
                     );
                 "euclidean" === u.type.toLowerCase()
                     ? ((p = s.Z.copyAttributes(
                           o,
                           e.options,
                           "mirrorelement",
-                          "center"
+                          "center",
                       )),
                       (c = t.Z.createPoint(e, [n.center, d], p))
                           .prepareUpdate()
@@ -43985,7 +43987,7 @@ var __webpack_exports__ = {};
                                   return n.Radius();
                               },
                           ],
-                          u
+                          u,
                       )))
                     : (l = t.Z.createCircle(e, [n, d], u));
             }
@@ -44033,7 +44035,7 @@ var __webpack_exports__ = {};
                             typeof r[0] +
                             "' and '" +
                             typeof r[1] +
-                            "'.\nPossible parent types: [[number|function,number|function],curve]"
+                            "'.\nPossible parent types: [[number|function,number|function],curve]",
                     );
                 (n = r[1]), (a = r[0]);
             }
@@ -44073,13 +44075,13 @@ var __webpack_exports__ = {};
                                 : 0;
                         },
                     ],
-                    h
+                    h,
                 )),
                 (h = s.Z.copyAttributes(
                     o,
                     e.options,
                     "integral",
-                    "curveRight"
+                    "curveRight",
                 )),
                 (v = e.create("glider", [f, b, a], h)),
                 s.Z.isFunction(f) && v.hideElement(),
@@ -44098,7 +44100,7 @@ var __webpack_exports__ = {};
                                 : 0;
                         },
                     ],
-                    h
+                    h,
                 )),
                 !1 !==
                     (h = s.Z.copyAttributes(o, e.options, "integral"))
@@ -44108,7 +44110,7 @@ var __webpack_exports__ = {};
                         o,
                         e.options,
                         "integral",
-                        "label"
+                        "label",
                     )),
                     (h = s.Z.copyAttributes(h, e.options, "label")),
                     ((y = e.create(
@@ -44119,12 +44121,12 @@ var __webpack_exports__ = {};
                                         i.Z.COORDS_BY_SCREEN,
                                         [
                                             s.Z.evaluate(
-                                                this.visProp.offset[0]
+                                                this.visProp.offset[0],
                                             ) + this.board.origin.scrCoords[1],
                                             0,
                                         ],
                                         this.board,
-                                        !1
+                                        !1,
                                     ),
                                     e = this.board.getBoundingBox(),
                                     r = 0.1 * (e[2] - e[0]),
@@ -44142,11 +44144,11 @@ var __webpack_exports__ = {};
                                         [
                                             0,
                                             s.Z.evaluate(
-                                                this.visProp.offset[1]
+                                                this.visProp.offset[1],
                                             ) + this.board.origin.scrCoords[2],
                                         ],
                                         this.board,
-                                        !1
+                                        !1,
                                     ),
                                     e = this.board.getBoundingBox(),
                                     r = 0.1 * (e[1] - e[3]),
@@ -44163,7 +44165,7 @@ var __webpack_exports__ = {};
                                 return "&int; = " + s.Z.toFixed(t, 4);
                             },
                         ],
-                        h
+                        h,
                     )).dump = !1),
                     g.addChild(y),
                     v.addChild(y)),
@@ -44280,7 +44282,7 @@ var __webpack_exports__ = {};
                                   s.Z.evaluate(this.visProp.tltype) ||
                                       i.Z.COORDS_BY_USER,
                                   this.visProp.topleft,
-                                  t
+                                  t,
                               )
                             : new c.Z(i.Z.COORDS_BY_SCREEN, [0, 0], t),
                             h = s.Z.isArray(this.visProp.bottomright)
@@ -44288,12 +44290,12 @@ var __webpack_exports__ = {};
                                       s.Z.evaluate(this.visProp.brtype) ||
                                           i.Z.COORDS_BY_USER,
                                       this.visProp.bottomright,
-                                      t
+                                      t,
                                   )
                                 : new c.Z(
                                       i.Z.COORDS_BY_SCREEN,
                                       [t.canvasWidth, t.canvasHeight],
-                                      t
+                                      t,
                                   ),
                             t.options.grid.hasGrid = !0,
                             o.dataX = [],
@@ -44361,9 +44363,9 @@ var __webpack_exports__ = {};
                             Math.max(
                                 u.Z.perpendicular(e[0], d, t)[0].distance(
                                     i.Z.COORDS_BY_USER,
-                                    d.coords
+                                    d.coords,
                                 ),
-                                c
+                                c,
                             )),
                             (n *= l),
                             (d = {
@@ -44382,8 +44384,8 @@ var __webpack_exports__ = {};
                                         o.Z.innerProduct(
                                             d.coords.usrCoords,
                                             e[0].stdform,
-                                            3
-                                        )
+                                            3,
+                                        ),
                                     ) >= o.Z.eps
                                         ? u.Z.perpendicular(e[0], d, t)[0]
                                               .usrCoords
@@ -44492,7 +44494,7 @@ var __webpack_exports__ = {};
                 !s.Z.exists(n))
             )
                 throw new Error(
-                    "JSXGraph: Can't create area with the given parents.\nPossible parent types: [line], [function]"
+                    "JSXGraph: Can't create area with the given parents.\nPossible parent types: [line], [function]",
                 );
             return a.addParents(e[0]), a;
         }),
@@ -44500,7 +44502,7 @@ var __webpack_exports__ = {};
         t.Z.registerElement("bisector", t.Z.createBisector),
         t.Z.registerElement(
             "bisectorlines",
-            t.Z.createAngularBisectorsOfTwoLines
+            t.Z.createAngularBisectorsOfTwoLines,
         ),
         t.Z.registerElement("msector", t.Z.createMsector),
         t.Z.registerElement("circumcircle", t.Z.createCircumcircle),
@@ -44515,7 +44517,7 @@ var __webpack_exports__ = {};
         t.Z.registerElement("normal", t.Z.createNormal),
         t.Z.registerElement(
             "orthogonalprojection",
-            t.Z.createOrthogonalProjection
+            t.Z.createOrthogonalProjection,
         ),
         t.Z.registerElement("parallel", t.Z.createParallel),
         t.Z.registerElement("parallelpoint", t.Z.createParallelPoint),
@@ -44523,7 +44525,7 @@ var __webpack_exports__ = {};
         t.Z.registerElement("perpendicularpoint", t.Z.createPerpendicularPoint),
         t.Z.registerElement(
             "perpendicularsegment",
-            t.Z.createPerpendicularSegment
+            t.Z.createPerpendicularSegment,
         ),
         t.Z.registerElement("reflection", t.Z.createReflection),
         t.Z.registerElement("grid", t.Z.createGrid),
@@ -44532,7 +44534,7 @@ var __webpack_exports__ = {};
             var r, o;
             if (!s.Z.isArray(e) || 1 !== e.length || !s.Z.isPoint(e[0]))
                 throw new Error(
-                    "JSXGraph: Can't create locus with parent of type other than point.\nPossible parent types: [point]"
+                    "JSXGraph: Can't create locus with parent of type other than point.\nPossible parent types: [point]",
                 );
             return (
                 (o = e[0]),
@@ -44572,7 +44574,7 @@ var __webpack_exports__ = {};
                                     .datax,
                                 s.datay,
                                 s.polynomial,
-                                s.exectime
+                                s.exectime,
                             )));
                 }),
                 r
@@ -44637,7 +44639,7 @@ var __webpack_exports__ = {};
                               (d = (d = new c.Z(
                                   i.Z.COORDS_BY_SCREEN,
                                   [t, e],
-                                  this.board
+                                  this.board,
                               )).usrCoords)[0] - this.span[0][0],
                               d[1] - this.span[0][1],
                               d[2] - this.span[0][2],
@@ -44692,7 +44694,7 @@ var __webpack_exports__ = {};
                         for (e = 0; e < 3; e++)
                             s[e] = o.Z.matVecMult(
                                 this.transformations[t].matrix,
-                                s[e]
+                                s[e],
                             );
                     for (e = 0; e < 3; e++)
                         (s[e][1] /= s[e][0]),
@@ -44748,7 +44750,7 @@ var __webpack_exports__ = {};
                         typeof i[0] +
                         "' and '" +
                         typeof i[1] +
-                        "'.\nPossible parent types: [x,y], [z,x,y], [element,transformation]"
+                        "'.\nPossible parent types: [x,y], [z,x,y], [element,transformation]",
                 );
             return 0 !== o.rotate && n.addRotation(o.rotate), n;
         }),
@@ -44848,7 +44850,7 @@ var __webpack_exports__ = {};
                             );
                         },
                     ],
-                    w
+                    w,
                 )),
                 (f.label = v),
                 (f.visProp.withlabel = !0),
@@ -44881,12 +44883,12 @@ var __webpack_exports__ = {};
                             var e = f.point1.Dist(f.point2),
                                 s = f.point1.coords.distance(
                                     i.Z.COORDS_BY_USER,
-                                    t
+                                    t,
                                 );
                             return e < o.Z.eps ? 0 : (s / e) * u + h;
                         },
                     ],
-                    w
+                    w,
                 )),
                 (f.ticks = m)),
             (f.remove = function () {
@@ -44964,7 +44966,7 @@ var __webpack_exports__ = {};
                         r,
                         e.options,
                         "tapemeasure",
-                        "ticks"
+                        "ticks",
                     )),
                     (f = e.create("ticks", [d, 0.1], a)),
                     d.inherits.push(f)),
@@ -45192,7 +45194,7 @@ var __webpack_exports__ = {};
                     t.create(
                         "functiongraph",
                         [l.Z.regressionPolynomial(r, e, i)],
-                        s
+                        s,
                     )
                 );
             },
@@ -45248,7 +45250,7 @@ var __webpack_exports__ = {};
                                   ((n = t.create(
                                       "text",
                                       [d, l, p.labels[o]],
-                                      _
+                                      _,
                                   )).visProp.anchorx = (function (t) {
                                       return function () {
                                           return t.X() >= 0 ? "left" : "right";
@@ -45264,7 +45266,7 @@ var __webpack_exports__ = {};
                                   ((n = t.create(
                                       "text",
                                       [l, d, p.labels[o]],
-                                      _
+                                      _,
                                   )).visProp.anchory = (function (t) {
                                       return function () {
                                           return t.Y() >= 0 ? "bottom" : "top";
@@ -45334,7 +45336,7 @@ var __webpack_exports__ = {};
                                     this.point1.coords.usrCoords[1] + r * t,
                                     this.point1.coords.usrCoords[2] + o * t,
                                 ],
-                                this.board
+                                this.board,
                             )),
                             this.fullUpdate();
                     },
@@ -45373,7 +45375,7 @@ var __webpack_exports__ = {};
                                     return m;
                                 },
                             ],
-                            P
+                            P,
                         ),
                         o = 0;
                     o < e.length;
@@ -45382,7 +45384,7 @@ var __webpack_exports__ = {};
                     (a[o + 1] = t.create(
                         "point",
                         [v(o, "cos", g), v(o, "sin", m)],
-                        P
+                        P,
                     )),
                         (r.name = p[o]),
                         (r.withlabel = "" !== r.name),
@@ -45446,7 +45448,7 @@ var __webpack_exports__ = {};
                             r,
                             o,
                             n = s.Z.evaluate(this.visProp.label.offset).slice(
-                                0
+                                0,
                             );
                         return (
                             (t = this.point1.X()),
@@ -45459,7 +45461,7 @@ var __webpack_exports__ = {};
                             new c.Z(
                                 i.Z.COORDS_BY_USER,
                                 [this.point2.X(), this.point2.Y()],
-                                this.board
+                                this.board,
                             )
                         );
                     },
@@ -45472,7 +45474,7 @@ var __webpack_exports__ = {};
                             (r = e.create(
                                 "transform",
                                 [O / (y[i] + Z[i] - (C[i] - v[i])), 1],
-                                { type: "scale" }
+                                { type: "scale" },
                             )),
                             s.melt(r),
                             (o = e.create("transform", [t], {
@@ -45485,11 +45487,11 @@ var __webpack_exports__ = {};
                 if (V <= 0) throw new Error("JSXGraph radar chart: no data");
                 if (((h = o.paramarray), !s.Z.exists(h)))
                     throw new Error(
-                        "JSXGraph radar chart: need paramArray attribute"
+                        "JSXGraph radar chart: need paramArray attribute",
                     );
                 if ((l = h.length) <= 1)
                     throw new Error(
-                        "JSXGraph radar chart: need more than one param in paramArray"
+                        "JSXGraph radar chart: need more than one param in paramArray",
                     );
                 for (n = 0; n < V; n++)
                     if (l !== r[n].length)
@@ -45498,7 +45500,7 @@ var __webpack_exports__ = {};
                                 r[n].length +
                                 " != " +
                                 l +
-                                ")"
+                                ")",
                         );
                 for (d = [], u = [], a = 0; a < l; a++)
                     (d[a] = r[0][a]), (u[a] = d[a]);
@@ -45529,19 +45531,19 @@ var __webpack_exports__ = {};
                     for (n = 0; n < l; n++) y[n] = o.end;
                 if (v.length !== l)
                     throw new Error(
-                        "JSXGraph radar chart: start shifts length is not equal to number of parameters"
+                        "JSXGraph radar chart: start shifts length is not equal to number of parameters",
                     );
                 if (Z.length !== l)
                     throw new Error(
-                        "JSXGraph radar chart: end shifts length is not equal to number of parameters"
+                        "JSXGraph radar chart: end shifts length is not equal to number of parameters",
                     );
                 if (C.length !== l)
                     throw new Error(
-                        "JSXGraph radar chart: starts length is not equal to number of parameters"
+                        "JSXGraph radar chart: starts length is not equal to number of parameters",
                     );
                 if (y.length !== l)
                     throw new Error(
-                        "JSXGraph radar chart: snds length is not equal to number of parameters"
+                        "JSXGraph radar chart: snds length is not equal to number of parameters",
                     );
                 for (
                     P = o.labelarray || p,
@@ -45634,10 +45636,10 @@ var __webpack_exports__ = {};
                         a++
                     )
                         I[n].borders[a].setAttribute(
-                            "strokecolor:" + E[n % E.length]
+                            "strokecolor:" + E[n % E.length],
                         ),
                             I[n].borders[a].setAttribute(
-                                "strokewidth:" + x.polystrokewidth
+                                "strokewidth:" + x.polystrokewidth,
                             );
                 switch (o.legendposition || "none") {
                     case "right":
@@ -45646,7 +45648,7 @@ var __webpack_exports__ = {};
                             (this.legend = e.create(
                                 "legend",
                                 [S + O + j, T + O - X],
-                                { labels: P, colors: E }
+                                { labels: P, colors: E },
                             ));
                         break;
                     case "none":
@@ -45661,7 +45663,7 @@ var __webpack_exports__ = {};
                         (J = (F = o.circlelabelarray || U).length) < 2)
                     )
                         throw new Error(
-                            "JSXGraph radar chart: too less circles in circleLabelArray"
+                            "JSXGraph radar chart: too less circles in circleLabelArray",
                         );
                     for (
                         G = [],
@@ -45733,7 +45735,7 @@ var __webpack_exports__ = {};
                         (n = (P = new V().loadFromTable(
                             r[0],
                             _.withheaders,
-                            _.withheaders
+                            _.withheaders,
                         )).data),
                         (c = P.columnHeaders),
                         (a = P.rowHeaders),
@@ -45781,28 +45783,28 @@ var __webpack_exports__ = {};
                                 : (_.strokecolor = D.Z.hsv2rgb(
                                       ((h + 1) / C) * 360,
                                       0.9,
-                                      0.6
+                                      0.6,
                                   )),
                             m && m.length === C
                                 ? (_.fillcolor = m[h])
                                 : (_.fillcolor = D.Z.hsv2rgb(
                                       ((h + 1) / C) * 360,
                                       0.9,
-                                      1
+                                      1,
                                   )),
                             v && v.length === C
                                 ? (_.highlightstrokecolor = v[h])
                                 : (_.highlightstrokecolor = D.Z.hsv2rgb(
                                       ((h + 1) / C) * 360,
                                       0.9,
-                                      1
+                                      1,
                                   )),
                             Z && Z.length === C
                                 ? (_.highlightfillcolor = Z[h])
                                 : (_.highlightfillcolor = D.Z.hsv2rgb(
                                       ((h + 1) / C) * 360,
                                       0.9,
-                                      0.6
+                                      0.6,
                                   )),
                             _.chartstyle && -1 !== _.chartstyle.indexOf("bar")
                                 ? y.push(new t.Z.Chart(i, [u, p[h]], _))
@@ -45838,7 +45840,7 @@ var __webpack_exports__ = {};
                 "vertical" !== this.style)
             )
                 throw new Error(
-                    "JSXGraph: Unknown legend style: " + this.style
+                    "JSXGraph: Unknown legend style: " + this.style,
                 );
             this.drawVerticalLegend(t, o);
         }),
@@ -45853,7 +45855,7 @@ var __webpack_exports__ = {};
                         new c.Z(
                             i.Z.COORDS_BY_USER,
                             [this.point2.X(), this.point2.Y()],
-                            this.board
+                            this.board,
                         )
                     );
                 };
@@ -45881,14 +45883,14 @@ var __webpack_exports__ = {};
                                 this.coords.usrCoords[2] - r * n,
                             ],
                         ],
-                        this.myAtts
+                        this.myAtts,
                     )),
                     (this.lines[r].getLabelAnchor = a),
                     this.lines[r]
                         .prepareUpdate()
                         .update()
                         .updateVisibility(
-                            s.Z.evaluate(this.lines[r].visProp.visible)
+                            s.Z.evaluate(this.lines[r].visProp.visible),
                         )
                         .updateRenderer();
         }),
@@ -45896,7 +45898,7 @@ var __webpack_exports__ = {};
             var o = [0, 0];
             if (!s.Z.exists(i) || 2 !== i.length)
                 throw new Error(
-                    "JSXGraph: Legend element needs two numbers as parameters"
+                    "JSXGraph: Legend element needs two numbers as parameters",
                 );
             return (o = i), new t.Z.Legend(e, o, r);
         }),
@@ -45936,7 +45938,7 @@ var __webpack_exports__ = {};
                 if ("translate" === e) {
                     if (2 !== i.length)
                         throw new Error(
-                            "JSXGraph: translate transformation needs 2 parameters."
+                            "JSXGraph: translate transformation needs 2 parameters.",
                         );
                     (this.evalParam = s.Z.createEvalFunction(t, i, 2)),
                         (this.update = function () {
@@ -45946,7 +45948,7 @@ var __webpack_exports__ = {};
                 } else if ("scale" === e) {
                     if (2 !== i.length)
                         throw new Error(
-                            "JSXGraph: scale transformation needs 2 parameters."
+                            "JSXGraph: scale transformation needs 2 parameters.",
                         );
                     (this.evalParam = s.Z.createEvalFunction(t, i, 2)),
                         (this.update = function () {
@@ -45965,12 +45967,12 @@ var __webpack_exports__ = {};
                                 : 2 === i.length
                                 ? (h = o.Z.crossProduct(
                                       i[1].coords.usrCoords,
-                                      i[0].coords.usrCoords
+                                      i[0].coords.usrCoords,
                                   ))
                                 : 4 === i.length &&
                                   (h = o.Z.crossProduct(
                                       [1, this.evalParam(2), this.evalParam(3)],
-                                      [1, this.evalParam(0), this.evalParam(1)]
+                                      [1, this.evalParam(0), this.evalParam(1)],
                                   )),
                                 (t = h[1]),
                                 (e = h[2]),
@@ -46026,7 +46028,7 @@ var __webpack_exports__ = {};
                 else if ("shear" === e) {
                     if (2 !== i.length)
                         throw new Error(
-                            "JSXGraph: shear transformation needs 2 parameters."
+                            "JSXGraph: shear transformation needs 2 parameters.",
                         );
                     (this.evalParam = s.Z.createEvalFunction(t, i, 2)),
                         (this.update = function () {
@@ -46036,7 +46038,7 @@ var __webpack_exports__ = {};
                 } else if ("generic" === e) {
                     if (9 !== i.length)
                         throw new Error(
-                            "JSXGraph: generic transformation needs 9 parameters."
+                            "JSXGraph: generic transformation needs 9 parameters.",
                         );
                     (this.evalParam = s.Z.createEvalFunction(t, i, 9)),
                         (this.update = function () {
@@ -46070,7 +46072,7 @@ var __webpack_exports__ = {};
                     this.update(),
                         (e = o.Z.matVecMult(
                             this.matrix,
-                            t[n].coords.usrCoords
+                            t[n].coords.usrCoords,
                         )),
                         t[n].coords.setCoordinates(i.Z.COORDS_BY_USER, e);
             },
@@ -46084,7 +46086,7 @@ var __webpack_exports__ = {};
             setProperty: function (e) {
                 t.Z.deprecated(
                     "Transformation.setProperty()",
-                    "Transformation.setAttribute()"
+                    "Transformation.setAttribute()",
                 );
             },
             setAttribute: function (t) {},
@@ -46135,7 +46137,7 @@ var __webpack_exports__ = {};
                 t,
                 r,
                 i.Z.OBJECT_TYPE_TURTLE,
-                i.Z.OBJECT_CLASS_OTHER
+                i.Z.OBJECT_CLASS_OTHER,
             ),
             (this.turtleIsHidden = !1),
             (this.board = t),
@@ -46143,7 +46145,7 @@ var __webpack_exports__ = {};
             (this._attributes = s.Z.copyAttributes(
                 this.visProp,
                 t.options,
-                "turtle"
+                "turtle",
             )),
             delete this._attributes.id,
             (o = 0),
@@ -46206,7 +46208,7 @@ var __webpack_exports__ = {};
                     20 /
                     Math.sqrt(
                         this.board.unitX * this.board.unitX +
-                            this.board.unitY * this.board.unitY
+                            this.board.unitY * this.board.unitY,
                     )),
                     (this.pos = [t, e]),
                     (this.isPenDown = !0),
@@ -46216,7 +46218,7 @@ var __webpack_exports__ = {};
                     (this.curve = this.board.create(
                         "curve",
                         [[this.pos[0]], [this.pos[1]]],
-                        this._attributes
+                        this._attributes,
                     )),
                     this.objects.push(this.curve),
                     (this.turtle = this.board.create("point", this.pos, s)),
@@ -46224,7 +46226,7 @@ var __webpack_exports__ = {};
                     (this.turtle2 = this.board.create(
                         "point",
                         [this.pos[0], this.pos[1] + this.arrowLen],
-                        s
+                        s,
                     )),
                     this.objects.push(this.turtle2),
                     (this.visProp.arrow.lastArrow = !0),
@@ -46233,7 +46235,7 @@ var __webpack_exports__ = {};
                     (this.arrow = this.board.create(
                         "line",
                         [this.turtle, this.turtle2],
-                        this.visProp.arrow
+                        this.visProp.arrow,
                     )),
                     this.objects.push(this.arrow),
                     (this.subs = { arrow: this.arrow }),
@@ -46257,7 +46259,7 @@ var __webpack_exports__ = {};
                         ((this.curve = this.board.create(
                             "curve",
                             [[this.pos[0]], [this.pos[1]]],
-                            this._attributes
+                            this._attributes,
                         )),
                         this.objects.push(this.curve)),
                     (this.pos[0] += i),
@@ -46278,7 +46280,7 @@ var __webpack_exports__ = {};
                         .create(
                             "transform",
                             [(-t * Math.PI) / 180, this.turtle],
-                            { type: "rotate" }
+                            { type: "rotate" },
                         )
                         .applyOnce(this.turtle2);
                 return this.board.update(), this;
@@ -46295,7 +46297,7 @@ var __webpack_exports__ = {};
                     (this.curve = this.board.create(
                         "curve",
                         [[this.pos[0]], [this.pos[1]]],
-                        this._attributes
+                        this._attributes,
                     )),
                     this.objects.push(this.curve),
                     this
@@ -46310,7 +46312,7 @@ var __webpack_exports__ = {};
                     (this.curve = this.board.create(
                         "curve",
                         [[this.pos[0]], [this.pos[1]]],
-                        this._attributes
+                        this._attributes,
                     )),
                     this.objects.push(this.curve),
                     this.board.update(),
@@ -46344,13 +46346,13 @@ var __webpack_exports__ = {};
                                     (-(this.dir - 90) * Math.PI) / 180,
                                     this.turtle,
                                 ],
-                                { type: "rotate" }
+                                { type: "rotate" },
                             )
                             .applyOnce(this.turtle2)),
                     (this.curve = this.board.create(
                         "curve",
                         [[this.pos[0]], [this.pos[1]]],
-                        this._attributes
+                        this._attributes,
                     )),
                     this.objects.push(this.curve),
                     this.board.update(),
@@ -46362,7 +46364,7 @@ var __webpack_exports__ = {};
                     (this.curve = this.board.create(
                         "curve",
                         [[this.pos[0]], [this.pos[1]]],
-                        this.copyAttr("strokeWidth", t)
+                        this.copyAttr("strokeWidth", t),
                     )),
                     this.objects.push(this.curve),
                     this
@@ -46373,7 +46375,7 @@ var __webpack_exports__ = {};
                     (this.curve = this.board.create(
                         "curve",
                         [[this.pos[0]], [this.pos[1]]],
-                        this.copyAttr("strokeColor", t)
+                        this.copyAttr("strokeColor", t),
                     )),
                     this.objects.push(this.curve),
                     this
@@ -46401,7 +46403,7 @@ var __webpack_exports__ = {};
                     (this.curve = this.board.create(
                         "curve",
                         [[this.pos[0]], [this.pos[1]]],
-                        this.copyAttr("highlightStrokeColor", t)
+                        this.copyAttr("highlightStrokeColor", t),
                     )),
                     this.objects.push(this.curve),
                     this
@@ -46500,7 +46502,7 @@ var __webpack_exports__ = {};
                             ((this.curve = this.board.create(
                                 "curve",
                                 [[this.pos[0]], [this.pos[1]]],
-                                this._attributes
+                                this._attributes,
                             )),
                             this.objects.push(this.curve)),
                         (this.pos[0] = t[0]),
@@ -46610,7 +46612,7 @@ var __webpack_exports__ = {};
                 t.board,
                 r,
                 i.Z.OBJECT_TYPE_TICKS,
-                i.Z.OBJECT_CLASS_OTHER
+                i.Z.OBJECT_CLASS_OTHER,
             ),
             (this.line = t),
             (this.board = this.line.board),
@@ -46649,12 +46651,12 @@ var __webpack_exports__ = {};
                         ? ((r =
                               (i = this.getLowerAndUpperBounds(
                                   this.getZeroCoordinates(),
-                                  "ticksdistance"
+                                  "ticksdistance",
                               )).upper - i.lower) <=
                               6 *
                                   (e = Math.pow(
                                       10,
-                                      Math.floor(Math.log(0.6 * r) / Math.LN10)
+                                      Math.floor(Math.log(0.6 * r) / Math.LN10),
                                   )) && (e *= 0.5),
                           e)
                         : t;
@@ -46689,12 +46691,12 @@ var __webpack_exports__ = {};
                             (0 === this.line.stdform[1] &&
                                 Math.abs(
                                     n[0][0] -
-                                        this.line.point1.coords.scrCoords[1]
+                                        this.line.point1.coords.scrCoords[1],
                                 ) < o.Z.eps) ||
                             (0 === this.line.stdform[2] &&
                                 Math.abs(
                                     n[1][0] -
-                                        this.line.point1.coords.scrCoords[2]
+                                        this.line.point1.coords.scrCoords[2],
                                 ) < o.Z.eps)
                         ) &&
                         (Math.abs(n[0][0] - n[0][1]) >= 1 ||
@@ -46733,7 +46735,7 @@ var __webpack_exports__ = {};
                             this.board.setBoundingBox(
                                 d,
                                 this.board.keepaspectratio,
-                                "update"
+                                "update",
                             ))
                           : Math.abs(this.line.stdform[2]) < o.Z.eps &&
                             Math.abs(h.usrCoords[2] * l.usrCoords[2]) >
@@ -46744,7 +46746,7 @@ var __webpack_exports__ = {};
                             this.board.setBoundingBox(
                                 d,
                                 this.board.keepaspectratio,
-                                "update"
+                                "update",
                             )),
                       this)
                     : this;
@@ -46772,7 +46774,7 @@ var __webpack_exports__ = {};
                             ((n = this.board.getBoundingBox()),
                             (r = Math.max(
                                 Math.sqrt(n[0] * n[0] + n[1] * n[1]),
-                                Math.sqrt(n[2] * n[2] + n[3] * n[3])
+                                Math.sqrt(n[2] * n[2] + n[3] * n[3]),
                             )),
                             (e.upper = r)),
                         (this.ticks = []),
@@ -46825,7 +46827,7 @@ var __webpack_exports__ = {};
                             this.dyMaj *
                                 this.dyMaj *
                                 this.board.unitY *
-                                this.board.unitY
+                                this.board.unitY,
                     )),
                     (this.dxMaj *= (a / e) * this.board.unitX),
                     (this.dyMaj *= (a / e) * this.board.unitY),
@@ -46855,7 +46857,7 @@ var __webpack_exports__ = {};
                         ? u.Z.projectPointToLine(
                               { coords: { usrCoords: [1, 0, 0] } },
                               this.line,
-                              this.board
+                              this.board,
                           )
                         : ((r = this.line.point1.coords.usrCoords[0]),
                           (t = this.line.point1.coords.usrCoords[1]),
@@ -46873,7 +46875,7 @@ var __webpack_exports__ = {};
                                         0.5 * (t + o),
                                         0.5 * (e + n),
                                     ],
-                                    this.board
+                                    this.board,
                                 )
                               : s.Z.isNumber(d)
                               ? new c.Z(
@@ -46883,7 +46885,7 @@ var __webpack_exports__ = {};
                                         t + (o - t) * d,
                                         e + (n - e) * d,
                                     ],
-                                    this.board
+                                    this.board,
                                 )
                               : this.line.point1.coords)
                     : ((h = this.line.minX()),
@@ -46915,12 +46917,12 @@ var __webpack_exports__ = {};
                     : ((l = new c.Z(
                           i.Z.COORDS_BY_USER,
                           this.line.point1.coords.usrCoords,
-                          this.board
+                          this.board,
                       )),
                       (d = new c.Z(
                           i.Z.COORDS_BY_USER,
                           this.line.point2.coords.usrCoords,
-                          this.board
+                          this.board,
                       )),
                       (p =
                           Math.abs(l.usrCoords[0]) >= o.Z.eps &&
@@ -46939,7 +46941,7 @@ var __webpack_exports__ = {};
                                 this.line,
                                 l,
                                 d,
-                                s.Z.evaluate(this.line.visProp.margin)
+                                s.Z.evaluate(this.line.visProp.margin),
                             )
                           : u.Z.calcLineDelimitingPoints(this.line, l, d),
                       (a = s.Z.evaluate(this.line.visProp.firstarrow)),
@@ -46949,7 +46951,7 @@ var __webpack_exports__ = {};
                               this.line,
                               l,
                               d,
-                              s.Z.evaluate(this.line.visProp.strokewidth)
+                              s.Z.evaluate(this.line.visProp.strokewidth),
                           ),
                           a &&
                               l.setCoordinates(i.Z.COORDS_BY_SCREEN, [
@@ -47046,7 +47048,7 @@ var __webpack_exports__ = {};
                     (n = e.usrCoords[2] + r.y * t),
                     (a = e.distance(
                         i.Z.COORDS_BY_SCREEN,
-                        new c.Z(i.Z.COORDS_BY_USER, [o, n], this.board)
+                        new c.Z(i.Z.COORDS_BY_USER, [o, n], this.board),
                     )),
                     0 === t)
                 )
@@ -47058,7 +47060,7 @@ var __webpack_exports__ = {};
                         (n = e.usrCoords[2] + r.y * t),
                         (a = e.distance(
                             i.Z.COORDS_BY_SCREEN,
-                            new c.Z(i.Z.COORDS_BY_USER, [o, n], this.board)
+                            new c.Z(i.Z.COORDS_BY_USER, [o, n], this.board),
                         ));
                 return t;
             },
@@ -47090,8 +47092,8 @@ var __webpack_exports__ = {};
                                   this.generateLabelData(
                                       this.generateLabelText(h, t, p),
                                       h,
-                                      this.ticks.length
-                                  )
+                                      this.ticks.length,
+                                  ),
                               )
                             : this.labelsData.push(null));
             },
@@ -47136,8 +47138,8 @@ var __webpack_exports__ = {};
                                       this.generateLabelData(
                                           this.generateLabelText(r, t, n),
                                           r,
-                                          a
-                                      )
+                                          a,
+                                      ),
                                   ))
                                 : this.labelsData.push(null));
             },
@@ -47221,17 +47223,17 @@ var __webpack_exports__ = {};
                         (f = Math.sqrt(i[1] * i[1] + i[2] * i[2])) <
                             Math.max(
                                 Math.sqrt(b[0] * b[0] + b[1] * b[1]),
-                                Math.sqrt(b[2] * b[2] + b[3] * b[3])
+                                Math.sqrt(b[2] * b[2] + b[3] * b[3]),
                             ))
                     ) {
                         for (y = [], P = [], _ = 0; _ <= g; _ += m)
                             y.push(
                                 this.board.origin.scrCoords[1] +
-                                    f * Math.cos(_) * this.board.unitX
+                                    f * Math.cos(_) * this.board.unitX,
                             ),
                                 P.push(
                                     this.board.origin.scrCoords[2] +
-                                        f * Math.sin(_) * this.board.unitY
+                                        f * Math.sin(_) * this.board.unitY,
                                 );
                         return [y, P, e];
                     }
@@ -47239,7 +47241,7 @@ var __webpack_exports__ = {};
                     if ("infinite" === p) {
                         if (
                             (s.Z.evaluate(
-                                this.visProp.ignoreinfinitetickendings
+                                this.visProp.ignoreinfinitetickendings,
                             ) && (v = Z = !0),
                             (n = u.Z.meetLineBoard(r, this.board)),
                             v && Z)
@@ -47252,11 +47254,11 @@ var __webpack_exports__ = {};
                             ((C = [
                                 o.Z.innerProduct(
                                     n[0].usrCoords.slice(1, 3),
-                                    this.line.stdform.slice(1, 3)
+                                    this.line.stdform.slice(1, 3),
                                 ) + this.line.stdform[0],
                                 o.Z.innerProduct(
                                     n[1].usrCoords.slice(1, 3),
-                                    this.line.stdform.slice(1, 3)
+                                    this.line.stdform.slice(1, 3),
                                 ) + this.line.stdform[0],
                             ])[0] < C[1] && (n.reverse(), C.reverse()),
                             v)
@@ -47321,13 +47323,13 @@ var __webpack_exports__ = {};
                                   (i = s.Z.evaluate(this.visProp.precision)),
                               (e = t.toExponential(i).toString())),
                           s.Z.evaluate(
-                              this.visProp.beautifulscientificticklabels
+                              this.visProp.beautifulscientificticklabels,
                           ) && (e = this.beautifyScientificNotationLabel(e)),
                           e.indexOf(".") > -1 &&
                               -1 === e.indexOf("e") &&
                               (e = (e = e.replace(/0+$/, "")).replace(
                                   /\.$/,
-                                  ""
+                                  "",
                               )))
                         : (e = t.toString()),
                     r.length > 0 &&
@@ -47448,7 +47450,7 @@ var __webpack_exports__ = {};
                               (a = t.Z.createText(
                                   this.board,
                                   [h.x, h.y, h.t],
-                                  n
+                                  n,
                               )),
                               this.addChild(a),
                               a.setParents(this),
@@ -47460,10 +47462,10 @@ var __webpack_exports__ = {};
                             (l = this.visPropCalc.visible),
                         a.prepareUpdate().updateVisibility(l).updateRenderer(),
                         (a.distanceX = s.Z.evaluate(
-                            this.visProp.label.offset[0]
+                            this.visProp.label.offset[0],
                         )),
                         (a.distanceY = s.Z.evaluate(
-                            this.visProp.label.offset[1]
+                            this.visProp.label.offset[1],
                         )));
                 for (i = r = i; i < o; i++)
                     this.board.renderer.display(this.labels[i], !1),
@@ -47478,7 +47480,7 @@ var __webpack_exports__ = {};
                 for (
                     t.Z.deprecated(
                         "Element.hideElement()",
-                        "Element.setDisplayRendNode()"
+                        "Element.setDisplayRendNode()",
                     ),
                         this.visPropCalc.visible = !1,
                         this.board.renderer.display(this, !1),
@@ -47494,7 +47496,7 @@ var __webpack_exports__ = {};
                 for (
                     t.Z.deprecated(
                         "Element.showElement()",
-                        "Element.setDisplayRendNode()"
+                        "Element.setDisplayRendNode()",
                     ),
                         this.visPropCalc.visible = !0,
                         this.board.renderer.display(this, !1),
@@ -47518,7 +47520,7 @@ var __webpack_exports__ = {};
                 throw new Error(
                     "JSXGraph: Can't create Ticks with parent types '" +
                         typeof r[0] +
-                        "'."
+                        "'.",
                 );
             return (
                 (n = new t.Z.Ticks(r[0], a, h)),
@@ -47552,7 +47554,7 @@ var __webpack_exports__ = {};
                         typeof e[1] +
                         " and ''" +
                         typeof e[2] +
-                        "'."
+                        "'.",
                 );
             for (
                 a = 0.5 * -(((o = e[1]) - 1) * (h = d.ticksdistance)), n = 0;
@@ -47622,10 +47624,10 @@ var __webpack_exports__ = {};
                                         "node_op",
                                         "op_mul",
                                         s.Z.deepCopy(o[0]),
-                                        s.Z.deepCopy(o[0])
+                                        s.Z.deepCopy(o[0]),
                                     ),
-                                ]
-                            )
+                                ],
+                            ),
                         );
                         break;
                     case "sqrt":
@@ -47641,9 +47643,9 @@ var __webpack_exports__ = {};
                                     t.type,
                                     t.value,
                                     s.Z.deepCopy(t.children[0]),
-                                    s.Z.deepCopy(t.children[1])
-                                )
-                            )
+                                    s.Z.deepCopy(t.children[1]),
+                                ),
+                            ),
                         );
                         break;
                     case "sin":
@@ -47651,7 +47653,7 @@ var __webpack_exports__ = {};
                             "node_op",
                             "op_execfun",
                             this.createNode("node_var", "cos"),
-                            s.Z.deepCopy(o)
+                            s.Z.deepCopy(o),
                         );
                         break;
                     case "cos":
@@ -47662,8 +47664,8 @@ var __webpack_exports__ = {};
                                 "node_op",
                                 "op_execfun",
                                 this.createNode("node_var", "sin"),
-                                s.Z.deepCopy(o)
-                            )
+                                s.Z.deepCopy(o),
+                            ),
                         );
                         break;
                     case "tan":
@@ -47678,10 +47680,10 @@ var __webpack_exports__ = {};
                                     "node_op",
                                     "op_execfun",
                                     this.createNode("node_var", "cos"),
-                                    s.Z.deepCopy(o)
+                                    s.Z.deepCopy(o),
                                 ),
-                                this.createNode("node_const", 2)
-                            )
+                                this.createNode("node_const", 2),
+                            ),
                         );
                         break;
                     case "cot":
@@ -47699,11 +47701,11 @@ var __webpack_exports__ = {};
                                         "node_op",
                                         "op_execfun",
                                         this.createNode("node_var", "sin"),
-                                        s.Z.deepCopy(o)
+                                        s.Z.deepCopy(o),
                                     ),
-                                    this.createNode("node_const", 2)
-                                )
-                            )
+                                    this.createNode("node_const", 2),
+                                ),
+                            ),
                         );
                         break;
                     case "exp":
@@ -47711,7 +47713,7 @@ var __webpack_exports__ = {};
                             t.type,
                             t.value,
                             s.Z.deepCopy(t.children[0]),
-                            s.Z.deepCopy(t.children[1])
+                            s.Z.deepCopy(t.children[1]),
                         );
                         break;
                     case "pow":
@@ -47722,7 +47724,7 @@ var __webpack_exports__ = {};
                                 "node_op",
                                 "op_execfun",
                                 s.Z.deepCopy(t.children[0]),
-                                s.Z.deepCopy(t.children[1])
+                                s.Z.deepCopy(t.children[1]),
                             ),
                             this.createNode(
                                 "node_op",
@@ -47735,8 +47737,8 @@ var __webpack_exports__ = {};
                                         "node_op",
                                         "op_div",
                                         s.Z.deepCopy(t.children[1][1]),
-                                        s.Z.deepCopy(t.children[1][0])
-                                    )
+                                        s.Z.deepCopy(t.children[1][0]),
+                                    ),
                                 ),
                                 this.createNode(
                                     "node_op",
@@ -47746,10 +47748,10 @@ var __webpack_exports__ = {};
                                         "node_op",
                                         "op_execfun",
                                         this.createNode("node_var", "log"),
-                                        [s.Z.deepCopy(t.children[1][0])]
-                                    )
-                                )
-                            )
+                                        [s.Z.deepCopy(t.children[1][0])],
+                                    ),
+                                ),
+                            ),
                         );
                         break;
                     case "log":
@@ -47758,7 +47760,7 @@ var __webpack_exports__ = {};
                             "node_op",
                             "op_div",
                             this.createNode("node_const", 1),
-                            s.Z.deepCopy(o[0])
+                            s.Z.deepCopy(o[0]),
                         );
                         break;
                     case "log2":
@@ -47771,9 +47773,9 @@ var __webpack_exports__ = {};
                                 "node_op",
                                 "op_div",
                                 this.createNode("node_const", 1),
-                                s.Z.deepCopy(o[0])
+                                s.Z.deepCopy(o[0]),
                             ),
-                            this.createNode("node_const", 1.4426950408889634)
+                            this.createNode("node_const", 1.4426950408889634),
                         );
                         break;
                     case "log10":
@@ -47785,9 +47787,9 @@ var __webpack_exports__ = {};
                                 "node_op",
                                 "op_div",
                                 this.createNode("node_const", 1),
-                                s.Z.deepCopy(o[0])
+                                s.Z.deepCopy(o[0]),
                             ),
-                            this.createNode("node_const", 0.43429448190325176)
+                            this.createNode("node_const", 0.43429448190325176),
                         );
                         break;
                     case "asin":
@@ -47808,11 +47810,11 @@ var __webpack_exports__ = {};
                                             "node_op",
                                             "op_mul",
                                             s.Z.deepCopy(o[0]),
-                                            s.Z.deepCopy(o[0])
-                                        )
+                                            s.Z.deepCopy(o[0]),
+                                        ),
                                     ),
-                                ]
-                            )
+                                ],
+                            ),
                         );
                         break;
                     case "acos":
@@ -47836,12 +47838,12 @@ var __webpack_exports__ = {};
                                                 "node_op",
                                                 "op_mul",
                                                 s.Z.deepCopy(o[0]),
-                                                s.Z.deepCopy(o[0])
-                                            )
+                                                s.Z.deepCopy(o[0]),
+                                            ),
                                         ),
-                                    ]
-                                )
-                            )
+                                    ],
+                                ),
+                            ),
                         );
                         break;
                     case "atan":
@@ -47857,9 +47859,9 @@ var __webpack_exports__ = {};
                                     "node_op",
                                     "op_mul",
                                     s.Z.deepCopy(o[0]),
-                                    s.Z.deepCopy(o[0])
-                                )
-                            )
+                                    s.Z.deepCopy(o[0]),
+                                ),
+                            ),
                         );
                         break;
                     case "acot":
@@ -47878,10 +47880,10 @@ var __webpack_exports__ = {};
                                         "node_op",
                                         "op_mul",
                                         s.Z.deepCopy(o[0]),
-                                        s.Z.deepCopy(o[0])
-                                    )
-                                )
-                            )
+                                        s.Z.deepCopy(o[0]),
+                                    ),
+                                ),
+                            ),
                         );
                         break;
                     case "sinh":
@@ -47889,7 +47891,7 @@ var __webpack_exports__ = {};
                             "node_op",
                             "op_execfun",
                             this.createNode("node_var", "cosh"),
-                            [s.Z.deepCopy(o[0])]
+                            [s.Z.deepCopy(o[0])],
                         );
                         break;
                     case "cosh":
@@ -47897,7 +47899,7 @@ var __webpack_exports__ = {};
                             "node_op",
                             "op_execfun",
                             this.createNode("node_var", "sinh"),
-                            [s.Z.deepCopy(o[0])]
+                            [s.Z.deepCopy(o[0])],
                         );
                         break;
                     case "tanh":
@@ -47912,10 +47914,10 @@ var __webpack_exports__ = {};
                                     "node_op",
                                     "op_execfun",
                                     this.createNode("node_var", "tanh"),
-                                    [s.Z.deepCopy(o[0])]
+                                    [s.Z.deepCopy(o[0])],
                                 ),
-                                this.createNode("node_const", 2)
-                            )
+                                this.createNode("node_const", 2),
+                            ),
                         );
                         break;
                     case "asinh":
@@ -47935,12 +47937,12 @@ var __webpack_exports__ = {};
                                             "node_op",
                                             "op_mul",
                                             s.Z.deepCopy(o[0]),
-                                            s.Z.deepCopy(o[0])
+                                            s.Z.deepCopy(o[0]),
                                         ),
-                                        this.createNode("node_const", 1)
+                                        this.createNode("node_const", 1),
                                     ),
-                                ]
-                            )
+                                ],
+                            ),
                         );
                         break;
                     case "acosh":
@@ -47960,12 +47962,12 @@ var __webpack_exports__ = {};
                                             "node_op",
                                             "op_mul",
                                             s.Z.deepCopy(o[0]),
-                                            s.Z.deepCopy(o[0])
+                                            s.Z.deepCopy(o[0]),
                                         ),
-                                        this.createNode("node_const", 1)
+                                        this.createNode("node_const", 1),
                                     ),
-                                ]
-                            )
+                                ],
+                            ),
                         );
                         break;
                     case "atanh":
@@ -47981,16 +47983,16 @@ var __webpack_exports__ = {};
                                     "node_op",
                                     "op_mul",
                                     s.Z.deepCopy(o[0]),
-                                    s.Z.deepCopy(o[0])
-                                )
-                            )
+                                    s.Z.deepCopy(o[0]),
+                                ),
+                            ),
                         );
                         break;
                     default:
                         throw (
                             ((i = this.createNode("node_const", 0)),
                             console.log(
-                                'Derivative of "' + r + '" not yet implemented'
+                                'Derivative of "' + r + '" not yet implemented',
                             ),
                             new Error("Error(" + this.line + "): "))
                         );
@@ -48014,8 +48016,8 @@ var __webpack_exports__ = {};
                                               this.deriveElementary(t, e),
                                               this.derivative(
                                                   t.children[1][0],
-                                                  e
-                                              )
+                                                  e,
+                                              ),
                                           );
                                 break;
                             case "op_div":
@@ -48029,21 +48031,21 @@ var __webpack_exports__ = {};
                                             "node_op",
                                             "op_mul",
                                             this.derivative(t.children[0], e),
-                                            s.Z.deepCopy(t.children[1])
+                                            s.Z.deepCopy(t.children[1]),
                                         ),
                                         this.createNode(
                                             "node_op",
                                             "op_mul",
                                             s.Z.deepCopy(t.children[0]),
-                                            this.derivative(t.children[1], e)
-                                        )
+                                            this.derivative(t.children[1], e),
+                                        ),
                                     ),
                                     this.createNode(
                                         "node_op",
                                         "op_mul",
                                         s.Z.deepCopy(t.children[1]),
-                                        s.Z.deepCopy(t.children[1])
-                                    )
+                                        s.Z.deepCopy(t.children[1]),
+                                    ),
                                 );
                                 break;
                             case "op_mul":
@@ -48054,21 +48056,21 @@ var __webpack_exports__ = {};
                                         "node_op",
                                         "op_mul",
                                         s.Z.deepCopy(t.children[0]),
-                                        this.derivative(t.children[1], e)
+                                        this.derivative(t.children[1], e),
                                     ),
                                     this.createNode(
                                         "node_op",
                                         "op_mul",
                                         this.derivative(t.children[0], e),
-                                        s.Z.deepCopy(t.children[1])
-                                    )
+                                        s.Z.deepCopy(t.children[1]),
+                                    ),
                                 );
                                 break;
                             case "op_neg":
                                 i = this.createNode(
                                     "node_op",
                                     "op_neg",
-                                    this.derivative(t.children[0], e)
+                                    this.derivative(t.children[0], e),
                                 );
                                 break;
                             case "op_add":
@@ -48077,7 +48079,7 @@ var __webpack_exports__ = {};
                                     "node_op",
                                     t.value,
                                     this.derivative(t.children[0], e),
-                                    this.derivative(t.children[1], e)
+                                    this.derivative(t.children[1], e),
                                 );
                                 break;
                             case "op_exp":
@@ -48096,8 +48098,8 @@ var __webpack_exports__ = {};
                                                 "node_op",
                                                 "op_div",
                                                 s.Z.deepCopy(t.children[1]),
-                                                s.Z.deepCopy(t.children[0])
-                                            )
+                                                s.Z.deepCopy(t.children[0]),
+                                            ),
                                         ),
                                         this.createNode(
                                             "node_op",
@@ -48108,12 +48110,12 @@ var __webpack_exports__ = {};
                                                 "op_execfun",
                                                 this.createNode(
                                                     "node_var",
-                                                    "log"
+                                                    "log",
                                                 ),
-                                                [s.Z.deepCopy(t.children[0])]
-                                            )
-                                        )
-                                    )
+                                                [s.Z.deepCopy(t.children[0])],
+                                            ),
+                                        ),
+                                    ),
                                 );
                         }
                         break;
@@ -48143,7 +48145,7 @@ var __webpack_exports__ = {};
                         t.children[o] = this.expandDerivatives(
                             t.children[o],
                             t,
-                            i
+                            i,
                         );
                     else if (s.Z.isArray(t.children[o]))
                         for (n = 0; n < t.children[o].length; ++n)
@@ -48152,7 +48154,7 @@ var __webpack_exports__ = {};
                                 (t.children[o][n] = this.expandDerivatives(
                                     t.children[o][n],
                                     t,
-                                    i
+                                    i,
                                 ));
                 if ("node_op" === t.type)
                     if ("op_execfun" === t.value)
@@ -48261,7 +48263,7 @@ var __webpack_exports__ = {};
                                         "node_op",
                                         "op_mul",
                                         r.children[0],
-                                        o
+                                        o,
                                     ),
                                 ]),
                                 (this.mayNotBeSimplified = !0),
@@ -48276,7 +48278,7 @@ var __webpack_exports__ = {};
                                         "node_op",
                                         "op_mul",
                                         r,
-                                        o.children[0]
+                                        o.children[0],
                                     ),
                                 ]),
                                 (this.mayNotBeSimplified = !0),
@@ -48372,7 +48374,7 @@ var __webpack_exports__ = {};
                                         "node_op",
                                         "op_mul",
                                         r.children[1],
-                                        o
+                                        o,
                                     ),
                                 ]),
                                 (this.mayNotBeSimplified = !0),
@@ -48396,7 +48398,7 @@ var __webpack_exports__ = {};
                                 (t.value = "op_exp"),
                                 (t.children[1] = this.createNode(
                                     "node_const",
-                                    2
+                                    2,
                                 )),
                                 t
                             );
@@ -48413,7 +48415,7 @@ var __webpack_exports__ = {};
                             (r.hash || (r.hash = this.parser.compile(r)),
                             o.children[0].hash ||
                                 (o.children[0].hash = this.parser.compile(
-                                    o.children[0]
+                                    o.children[0],
                                 )),
                             r.hash === o.children[0].hash)
                         )
@@ -48422,7 +48424,7 @@ var __webpack_exports__ = {};
                                     "node_op",
                                     "op_add",
                                     o.children[1],
-                                    this.createNode("node_const", 1)
+                                    this.createNode("node_const", 1),
                                 )),
                                 (this.mayNotBeSimplified = !0),
                                 o
@@ -48433,10 +48435,10 @@ var __webpack_exports__ = {};
                             "node_op" == o.type &&
                             "op_exp" == o.value &&
                             ((r.children[0].hash = this.parser.compile(
-                                r.children[0]
+                                r.children[0],
                             )),
                             (o.children[0].hash = this.parser.compile(
-                                o.children[0]
+                                o.children[0],
                             )),
                             r.children[0].hash === o.children[0].hash)
                         )
@@ -48445,7 +48447,7 @@ var __webpack_exports__ = {};
                                     "node_op",
                                     "op_add",
                                     r.children[1],
-                                    o.children[1]
+                                    o.children[1],
                                 )),
                                 (this.mayNotBeSimplified = !0),
                                 r
@@ -48479,10 +48481,10 @@ var __webpack_exports__ = {};
                             "node_op" == o.type &&
                             "op_mul" == o.value &&
                             ((r.children[1].hash = this.parser.compile(
-                                r.children[1]
+                                r.children[1],
                             )),
                             (o.children[1].hash = this.parser.compile(
-                                o.children[1]
+                                o.children[1],
                             )),
                             r.children[1].hash === o.children[1].hash)
                         )
@@ -48493,7 +48495,7 @@ var __webpack_exports__ = {};
                                         "node_op",
                                         "op_sub",
                                         r.children[0],
-                                        o.children[0]
+                                        o.children[0],
                                     ),
                                     r.children[1],
                                 ]),
@@ -48504,7 +48506,7 @@ var __webpack_exports__ = {};
                             "node_op" == r.type &&
                             "op_mul" == r.value &&
                             ((r.children[1].hash = this.parser.compile(
-                                r.children[1]
+                                r.children[1],
                             )),
                             (o.hash = this.parser.compile(o)),
                             r.children[1].hash === o.hash)
@@ -48516,7 +48518,7 @@ var __webpack_exports__ = {};
                                         "node_op",
                                         "op_sub",
                                         r.children[0],
-                                        this.createNode("node_const", 1)
+                                        this.createNode("node_const", 1),
                                     ),
                                     o,
                                 ]),
@@ -48527,7 +48529,7 @@ var __webpack_exports__ = {};
                             "node_op" == o.type &&
                             "op_mul" == o.value &&
                             ((o.children[1].hash = this.parser.compile(
-                                o.children[1]
+                                o.children[1],
                             )),
                             (r.hash = this.parser.compile(r)),
                             o.children[1].hash === r.hash)
@@ -48539,7 +48541,7 @@ var __webpack_exports__ = {};
                                         "node_op",
                                         "op_sub",
                                         this.createNode("node_const", 1),
-                                        o.children[0]
+                                        o.children[0],
                                     ),
                                     r,
                                 ]),
@@ -48617,7 +48619,7 @@ var __webpack_exports__ = {};
                                         "node_op",
                                         "op_div",
                                         r.children[0],
-                                        o
+                                        o,
                                     ),
                                 ]),
                                 (this.mayNotBeSimplified = !0),
@@ -48632,7 +48634,7 @@ var __webpack_exports__ = {};
                                         "node_op",
                                         "op_div",
                                         r,
-                                        o.children[0]
+                                        o.children[0],
                                     ),
                                 ]),
                                 (this.mayNotBeSimplified = !0),
@@ -48644,7 +48646,7 @@ var __webpack_exports__ = {};
                             (o.hash || (o.hash = this.parser.compile(o)),
                             r.children[0].hash ||
                                 (r.children[0].hash = this.parser.compile(
-                                    r.children[0]
+                                    r.children[0],
                                 )),
                             o.hash === r.children[0].hash)
                         )
@@ -48653,7 +48655,7 @@ var __webpack_exports__ = {};
                                     "node_op",
                                     "op_sub",
                                     r.children[1],
-                                    this.createNode("node_const", 1)
+                                    this.createNode("node_const", 1),
                                 )),
                                 (this.mayNotBeSimplified = !0),
                                 r
@@ -48672,7 +48674,7 @@ var __webpack_exports__ = {};
                                         "node_op",
                                         "op_div",
                                         r.children[1],
-                                        o
+                                        o,
                                     ),
                                 ]),
                                 (this.mayNotBeSimplified = !0),
@@ -48684,10 +48686,10 @@ var __webpack_exports__ = {};
                             "node_op" == o.type &&
                             "op_exp" == o.value &&
                             ((r.children[0].hash = this.parser.compile(
-                                r.children[0]
+                                r.children[0],
                             )),
                             (o.children[0].hash = this.parser.compile(
-                                o.children[0]
+                                o.children[0],
                             )),
                             r.children[0].hash === o.children[0].hash)
                         )
@@ -48696,7 +48698,7 @@ var __webpack_exports__ = {};
                                     "node_op",
                                     "op_sub",
                                     r.children[1],
-                                    o.children[1]
+                                    o.children[1],
                                 )),
                                 (this.mayNotBeSimplified = !0),
                                 r
@@ -48726,7 +48728,7 @@ var __webpack_exports__ = {};
                                         "node_op",
                                         "op_mul",
                                         r.children[1],
-                                        o
+                                        o,
                                     ),
                                 ]),
                                 t
@@ -48750,7 +48752,7 @@ var __webpack_exports__ = {};
                             return (
                                 (t.children[0] = this.createNode(
                                     "node_const",
-                                    2
+                                    2,
                                 )),
                                 (t.value = "op_mul"),
                                 t
@@ -48776,10 +48778,10 @@ var __webpack_exports__ = {};
                             "node_op" == o.type &&
                             "op_mul" == o.value &&
                             ((r.children[1].hash = this.parser.compile(
-                                r.children[1]
+                                r.children[1],
                             )),
                             (o.children[1].hash = this.parser.compile(
-                                o.children[1]
+                                o.children[1],
                             )),
                             r.children[1].hash === o.children[1].hash)
                         )
@@ -48790,7 +48792,7 @@ var __webpack_exports__ = {};
                                         "node_op",
                                         "op_add",
                                         r.children[0],
-                                        o.children[0]
+                                        o.children[0],
                                     ),
                                     r.children[1],
                                 ]),
@@ -48801,7 +48803,7 @@ var __webpack_exports__ = {};
                             "node_op" == r.type &&
                             "op_mul" == r.value &&
                             ((r.children[1].hash = this.parser.compile(
-                                r.children[1]
+                                r.children[1],
                             )),
                             (o.hash = this.parser.compile(o)),
                             r.children[1].hash === o.hash)
@@ -48813,7 +48815,7 @@ var __webpack_exports__ = {};
                                         "node_op",
                                         "op_add",
                                         r.children[0],
-                                        this.createNode("node_const", 1)
+                                        this.createNode("node_const", 1),
                                     ),
                                     o,
                                 ]),
@@ -48824,7 +48826,7 @@ var __webpack_exports__ = {};
                             "node_op" == o.type &&
                             "op_mul" == o.value &&
                             ((o.children[1].hash = this.parser.compile(
-                                o.children[1]
+                                o.children[1],
                             )),
                             (r.hash = this.parser.compile(r)),
                             o.children[1].hash === r.hash)
@@ -48836,7 +48838,7 @@ var __webpack_exports__ = {};
                                         "node_op",
                                         "op_add",
                                         this.createNode("node_const", 1),
-                                        o.children[0]
+                                        o.children[0],
                                     ),
                                     r,
                                 ]),
@@ -48961,14 +48963,14 @@ var __webpack_exports__ = {};
             var s, r;
             for (r in ((s = this.minimizeObject(
                 i.getAttributes(),
-                t.Z.Options[i.elType]
+                t.Z.Options[i.elType],
             )),
             i.subs))
                 i.subs.hasOwnProperty(r) &&
                     ((s[r] = this.minimizeObject(
                         i.subs[r].getAttributes(),
                         t.Z.Options[i.elType][r],
-                        t.Z.Options[i.subs[r].elType]
+                        t.Z.Options[i.subs[r].elType],
                     )),
                     (s[r].id = i.subs[r].id),
                     (s[r].name = i.subs[r].name));
@@ -49081,7 +49083,7 @@ var __webpack_exports__ = {};
                             i[e].parents.join(", ") +
                             ") " +
                             this.toJCAN(i[e].attributes).replace(/\n/, "\\n") +
-                            ";"
+                            ";",
                     ),
                     "axis" === i[e].type &&
                         ((s = i[e].attributes.id),
@@ -49095,7 +49097,7 @@ var __webpack_exports__ = {};
                         r.methods[e].method +
                         "(" +
                         this.arrayToParamStr(r.methods[e].params, this.toJCAN) +
-                        ");"
+                        ");",
                 ),
                     o.push("");
             for (e = 0; e < r.props.length; e++)
@@ -49105,7 +49107,7 @@ var __webpack_exports__ = {};
                         r.props[e].prop +
                         " = " +
                         this.toJCAN(r.props[e].val) +
-                        ";"
+                        ";",
                 ),
                     o.push("");
             return o.join("\n");
@@ -49130,7 +49132,7 @@ var __webpack_exports__ = {};
                         i[e].parents.join(", ") +
                         "], " +
                         s.Z.toJSON(i[e].attributes) +
-                        ");"
+                        ");",
                 ),
                     "axis" === i[e].type &&
                         ((r = i[e].attributes.id),
@@ -49140,7 +49142,7 @@ var __webpack_exports__ = {};
                                     r +
                                     '"].removeTicks(board.objects["' +
                                     r +
-                                    '"].defaultTicks);'
+                                    '"].defaultTicks);',
                             ));
             for (e = 0; e < o.methods.length; e++)
                 n.push(
@@ -49149,7 +49151,7 @@ var __webpack_exports__ = {};
                         o.methods[e].method +
                         "(" +
                         this.arrayToParamStr(o.methods[e].params, s.Z.toJSON) +
-                        ");"
+                        ");",
                 ),
                     n.push("");
             for (e = 0; e < o.props.length; e++)
@@ -49159,7 +49161,7 @@ var __webpack_exports__ = {};
                         o.props[e].prop +
                         " = " +
                         s.Z.toJSON(o.props[e].val) +
-                        ";"
+                        ";",
                 ),
                     n.push("");
             return n.join("\n");
@@ -49176,7 +49178,7 @@ var __webpack_exports__ = {};
                 new Error(
                     "JSXGraph: Can't create comb with parent types " +
                         l.join(", ") +
-                        ".\nPossible parent types: [point,point], [[x1,y1],[x2,y2]]"
+                        ".\nPossible parent types: [point,point], [[x1,y1],[x2,y2]]",
                 ))
             );
         if (s.Z.isArray(i[0]) && i[0].length > 1)
@@ -49191,7 +49193,7 @@ var __webpack_exports__ = {};
                         typeof i[0] +
                         "' and '" +
                         typeof i[1] +
-                        "'.\nPossible parent types: [point,point], [[x1,y1],[x2,y2]]"
+                        "'.\nPossible parent types: [point,point], [[x1,y1],[x2,y2]]",
                 );
             (h = s.Z.copyAttributes(r, e.options, "comb", "point1")),
                 (o = t.Z.createPoint(e, i[0](), h));
@@ -49208,7 +49210,7 @@ var __webpack_exports__ = {};
                         typeof i[0] +
                         "' and '" +
                         typeof i[1] +
-                        "'.\nPossible parent types: [point,point], [[x1,y1],[x2,y2]]"
+                        "'.\nPossible parent types: [point,point], [[x1,y1],[x2,y2]]",
                 );
             (h = s.Z.copyAttributes(r, e.options, "comb", "point2")),
                 (n = t.Z.createPoint(e, i[1](), h));
@@ -49296,7 +49298,7 @@ var __webpack_exports__ = {};
                     o,
                     e.options,
                     "slopetriangle",
-                    "tangent"
+                    "tangent",
                 )),
                 (a = e.create("tangent", [h], _)),
                 (f = !0);
@@ -49309,7 +49311,7 @@ var __webpack_exports__ = {};
                 throw new Error(
                     "JSXGraph: Can't create slope triangle with parent types '" +
                         typeof r[0] +
-                        "'."
+                        "'.",
                 );
             (a = r[0]), (h = r[1]);
         }
@@ -49318,7 +49320,7 @@ var __webpack_exports__ = {};
                 o,
                 e.options,
                 "slopetriangle",
-                "basepoint"
+                "basepoint",
             )),
             (u = e.create(
                 "point",
@@ -49327,7 +49329,7 @@ var __webpack_exports__ = {};
                         return [h.X() + 1, h.Y()];
                     },
                 ],
-                _
+                _,
             )),
             (_ = s.Z.copyAttributes(o, e.options, "slopetriangle", "baseline")),
             (d = e.create("line", [h, u], _)),
@@ -49341,14 +49343,14 @@ var __webpack_exports__ = {};
                         return [l.X(), l.Y() + (l.X() - h.X()) * a.getSlope()];
                     },
                 ],
-                _
+                _,
             )),
             ((_ = s.Z.copyAttributes(o, e.options, "slopetriangle")).borders =
                 s.Z.copyAttributes(
                     _.borders,
                     e.options,
                     "slopetriangle",
-                    "borders"
+                    "borders",
                 )),
             ((n = e.create("polygon", [h, l, c], _)).Value = K),
             (n.tangent = a),
@@ -49368,7 +49370,7 @@ var __webpack_exports__ = {};
                         return "";
                     },
                 ],
-                _
+                _,
             ))._setText(function () {
                 return s.Z.toFixed(n.Value(), s.Z.evaluate(p.visProp.digits));
             }),
@@ -49489,7 +49491,7 @@ var __webpack_exports__ = {};
                 function (t) {
                     s.Z.exists(t.stopPropagation) && t.stopPropagation();
                 },
-                n
+                n,
             ),
             e.Z.addEvent(
                 n.rendNodeInput,
@@ -49497,7 +49499,7 @@ var __webpack_exports__ = {};
                 function (t) {
                     s.Z.exists(t.stopPropagation) && t.stopPropagation();
                 },
-                n
+                n,
             ),
             e.Z.addEvent(
                 n.rendNodeInput,
@@ -49505,7 +49507,7 @@ var __webpack_exports__ = {};
                 function (t) {
                     s.Z.exists(t.stopPropagation) && t.stopPropagation();
                 },
-                n
+                n,
             ),
             (n.visPropOld.fontsize = "0px"),
             i.renderer.updateTextStyle(n, !1),
@@ -49549,7 +49551,7 @@ var __webpack_exports__ = {};
                 function (t) {
                     s.Z.exists(t.stopPropagation) && t.stopPropagation();
                 },
-                n
+                n,
             ),
             e.Z.addEvent(
                 n.rendNodeButton,
@@ -49557,7 +49559,7 @@ var __webpack_exports__ = {};
                 function (t) {
                     s.Z.exists(t.stopPropagation) && t.stopPropagation();
                 },
-                n
+                n,
             ),
             e.Z.addEvent(
                 n.rendNodeButton,
@@ -49565,7 +49567,7 @@ var __webpack_exports__ = {};
                 function (t) {
                     s.Z.exists(t.stopPropagation) && t.stopPropagation();
                 },
-                n
+                n,
             ),
             n
         );
@@ -49576,7 +49578,7 @@ var __webpack_exports__ = {};
                 e,
                 o,
                 i.Z.OBJECT_TYPE_FOREIGNOBJECT,
-                i.Z.OBJECT_CLASS_OTHER
+                i.Z.OBJECT_CLASS_OTHER,
             ),
                 (this.element = this.board.select(o.anchor)),
                 this.coordsConstructor(r),
@@ -49629,7 +49631,7 @@ var __webpack_exports__ = {};
                               (d = (d = new c.Z(
                                   i.Z.COORDS_BY_SCREEN,
                                   [t, e],
-                                  this.board
+                                  this.board,
                               )).usrCoords)[0] - this.span[0][0],
                               d[1] - this.span[0][1],
                               d[2] - this.span[0][2],
@@ -49687,7 +49689,7 @@ var __webpack_exports__ = {};
                         for (e = 0; e < 3; e++)
                             s[e] = o.Z.matVecMult(
                                 this.transformations[t].matrix,
-                                s[e]
+                                s[e],
                             );
                     for (e = 0; e < 3; e++)
                         (s[e][1] /= s[e][0]),
@@ -49745,7 +49747,7 @@ var __webpack_exports__ = {};
                         typeof i[0] +
                         "' and '" +
                         typeof i[1] +
-                        "'.\nPossible parent types: [string, [x, y], [w, h]], [string, [x, y]], [element,transformation]"
+                        "'.\nPossible parent types: [string, [x, y], [w, h]], [string, [x, y]], [element,transformation]",
                 );
             return n;
         }),
@@ -50076,13 +50078,13 @@ var __webpack_exports__ = {};
                         e.normal,
                         i,
                         o.Z.crossProduct(t.normal, e.normal),
-                        0
+                        0,
                     )),
                     (r = o.Z.Geometry.meetPlanePlane(
                         t.vec1,
                         t.vec2,
                         e.vec1,
-                        e.vec2
+                        e.vec2,
                     )),
                     (n = this.intersectionLineCube(s, r, 1 / 0)),
                     (a = o.Z.axpy(n, r, s)),
@@ -50147,7 +50149,7 @@ var __webpack_exports__ = {};
                         function () {
                             this.animateAzimuth();
                         }.bind(this),
-                        200
+                        200,
                     ));
             },
             stopAzimuth: function () {
@@ -50168,7 +50170,7 @@ var __webpack_exports__ = {};
                 ((o = new t.Z.View3D(e, i, n)).defaultAxes = o.create(
                     "axes3d",
                     i,
-                    r
+                    r,
                 )),
                 (a = d[0]),
                 (h = d[1]),
@@ -50186,7 +50188,7 @@ var __webpack_exports__ = {};
                         name: "az",
                         point1: { frozen: !0 },
                         point2: { frozen: !0 },
-                    }
+                    },
                 )),
                 (o.el_slide = e.create(
                     "slider",
@@ -50200,7 +50202,7 @@ var __webpack_exports__ = {};
                         name: "el",
                         point1: { frozen: !0 },
                         point2: { frozen: !0 },
-                    }
+                    },
                 )),
                 (o.board.highlightInfobox = function (t, e, i) {
                     var r,
@@ -50221,7 +50223,7 @@ var __webpack_exports__ = {};
                             (a = o.project2DTo3DPlane(
                                 c.element2D,
                                 [1, 0, 0, 1],
-                                h
+                                h,
                             )),
                             !o.isInCube(a))
                         )
@@ -50235,7 +50237,7 @@ var __webpack_exports__ = {};
                                       " | " +
                                       s.Z.autoDigits(c.Z()) +
                                       ")",
-                                  c
+                                  c,
                               )
                             : o.board.highlightCustomInfobox(
                                   "(" +
@@ -50245,12 +50247,12 @@ var __webpack_exports__ = {};
                                       " | " +
                                       s.Z.toFixed(c.Z(), r) +
                                       ")",
-                                  c
+                                  c,
                               );
                     } else
                         o.board.highlightCustomInfobox(
                             "(" + t + ", " + e + ")",
-                            i
+                            i,
                         );
                 }),
                 o.board.update(),
@@ -50388,7 +50390,7 @@ var __webpack_exports__ = {};
                     i.point1,
                     t.options,
                     "axis3d",
-                    "point1"
+                    "point1",
                 )),
                 (o = c.create(
                     "point",
@@ -50405,13 +50407,13 @@ var __webpack_exports__ = {};
                             };
                         })(d[0], d[1], d[2]),
                     ],
-                    r
+                    r,
                 )),
                 (r = s.Z.copyAttributes(
                     i.point2,
                     t.options,
                     "axis3d",
-                    "point2"
+                    "point2",
                 )),
                 (n = c.create(
                     "point",
@@ -50427,7 +50429,7 @@ var __webpack_exports__ = {};
                             };
                         })(u[0], u[1], u[2]),
                     ],
-                    r
+                    r,
                 )),
                 (r = s.Z.copyAttributes(i, t.options, "axis3d")),
                 c.create("arrow", [o, n], r)
@@ -50495,7 +50497,7 @@ var __webpack_exports__ = {};
                                 Math.ceil(_),
                                 Math.floor(f),
                                 (Math.ceil(f) - Math.floor(_)) / 1,
-                            ]
+                            ],
                         )),
                             (this.dataX = r[0]),
                             (this.dataY = r[1]);
@@ -50509,7 +50511,7 @@ var __webpack_exports__ = {};
                 t.board,
                 o,
                 i.Z.OBJECT_TYPE_POINT3D,
-                i.Z.OBJECT_CLASS_3D
+                i.Z.OBJECT_CLASS_3D,
             ),
                 this.constructor3D(t, "point3d"),
                 (this.id = this.view.board.setId(this, "P3D")),
@@ -50534,7 +50536,7 @@ var __webpack_exports__ = {};
         s.Z.copyPrototypeMethods(
             t.Z.Point3D,
             t.Z.GeometryElement3D,
-            "constructor3D"
+            "constructor3D",
         ),
         t.Z.extend(t.Z.Point3D.prototype, {
             updateCoords: function () {
@@ -50596,7 +50598,7 @@ var __webpack_exports__ = {};
                                   (e = this.view.project2DTo3DPlane(
                                       this.element2D,
                                       [1, 0, 0, 1],
-                                      s
+                                      s,
                                   ))[0] &&
                                   (this.coords = this.view.project3DToCube(e)))
                         : (this.updateCoords(),
@@ -50607,7 +50609,7 @@ var __webpack_exports__ = {};
                                   this.X(),
                                   this.Y(),
                                   this.Z(),
-                              ])
+                              ]),
                           )),
                     (this._c2d = this.element2D.coords.usrCoords.slice()),
                     this
@@ -50676,7 +50678,7 @@ var __webpack_exports__ = {};
                             typeof i[0] +
                             "' and '" +
                             typeof i[1] +
-                            "'.\nPossible parent types: [[x,y,z]], [x,y,z]"
+                            "'.\nPossible parent types: [[x,y,z]], [x,y,z]",
                     );
                 n = i.slice(1);
             }
@@ -50699,7 +50701,7 @@ var __webpack_exports__ = {};
                 t.board,
                 h,
                 i.Z.OBJECT_TYPE_CURVE3D,
-                i.Z.OBJECT_CLASS_3D
+                i.Z.OBJECT_CLASS_3D,
             ),
                 this.constructor3D(t, "surface3d"),
                 (this.id = this.view.board.setId(this, "S3D")),
@@ -50725,7 +50727,7 @@ var __webpack_exports__ = {};
         s.Z.copyPrototypeMethods(
             t.Z.Curve3D,
             t.Z.GeometryElement3D,
-            "constructor3D"
+            "constructor3D",
         ),
         t.Z.extend(t.Z.Curve3D.prototype, {
             updateDataArray: function () {
@@ -50813,7 +50815,7 @@ var __webpack_exports__ = {};
                 t.board,
                 n,
                 i.Z.OBJECT_TYPE_LINE3D,
-                i.Z.OBJECT_CLASS_3D
+                i.Z.OBJECT_CLASS_3D,
             ),
                 this.constructor3D(t, "line3d"),
                 (this.id = this.view.board.setId(this, "L3D")),
@@ -50829,7 +50831,7 @@ var __webpack_exports__ = {};
         s.Z.copyPrototypeMethods(
             t.Z.Line3D,
             t.Z.GeometryElement3D,
-            "constructor3D"
+            "constructor3D",
         ),
         t.Z.extend(t.Z.Line3D.prototype, {
             getPointCoords: function (t) {
@@ -50901,7 +50903,7 @@ var __webpack_exports__ = {};
                           ],
                           r,
                           "line3d",
-                          ["point1", "point2"]
+                          ["point1", "point2"],
                       )),
                       (u = new t.Z.Line3D(p, a, h, l, o)),
                       (n[0].F = function () {
@@ -50917,7 +50919,7 @@ var __webpack_exports__ = {};
                 (u.element2D = p.create(
                     "segment",
                     [c.element2D, d.element2D],
-                    o
+                    o,
                 )),
                 u.addChild(u.element2D),
                 u.inherits.push(u.element2D),
@@ -50937,7 +50939,7 @@ var __webpack_exports__ = {};
                 t.board,
                 h,
                 i.Z.OBJECT_TYPE_PLANE3D,
-                i.Z.OBJECT_CLASS_3D
+                i.Z.OBJECT_CLASS_3D,
             ),
                 this.constructor3D(t, "plane3d"),
                 (this.id = this.view.board.setId(this, "PL3D")),
@@ -50959,7 +50961,7 @@ var __webpack_exports__ = {};
         s.Z.copyPrototypeMethods(
             t.Z.Plane3D,
             t.Z.GeometryElement3D,
-            "constructor3D"
+            "constructor3D",
         ),
         t.Z.extend(t.Z.Plane3D.prototype, {
             updateNormal: function () {
@@ -50977,7 +50979,7 @@ var __webpack_exports__ = {};
                     (this.d = o.Z.innerProduct(
                         this.point.coords.slice(1),
                         this.normal,
-                        3
+                        3,
                     )),
                     this
                 );
@@ -51020,7 +51022,7 @@ var __webpack_exports__ = {};
                             3 ===
                                 (y = P.intersectionPlanePlane(
                                     this,
-                                    P.defaultAxes[g[d]]
+                                    P.defaultAxes[g[d]],
                                 ))[0].length &&
                             3 === y[1].length
                         ) {
@@ -51044,13 +51046,13 @@ var __webpack_exports__ = {};
                             (l = o.Z.innerProduct(
                                 y,
                                 P.defaultAxes[g[d]].normal,
-                                3
+                                3,
                             )),
                             3 ===
                                 (y = P.intersectionPlanePlane(
                                     this,
                                     P.defaultAxes[g[d]],
-                                    l
+                                    l,
                                 ))[0].length && 3 === y[1].length)
                         ) {
                             for (
@@ -51095,7 +51097,7 @@ var __webpack_exports__ = {};
                         if (f === b) {
                             console.log(
                                 "Error: update plane3d: did not find next",
-                                f
+                                f,
                             );
                             break;
                         }
@@ -51192,7 +51194,7 @@ var __webpack_exports__ = {};
                             d,
                             p,
                         ],
-                        o
+                        o,
                     )),
                     (a.grid = h),
                     a.addChild(h),
@@ -51210,7 +51212,7 @@ var __webpack_exports__ = {};
                 t.board,
                 l,
                 i.Z.OBJECT_TYPE_SURFACE3D,
-                i.Z.OBJECT_CLASS_3D
+                i.Z.OBJECT_CLASS_3D,
             ),
                 this.constructor3D(t, "surface3d"),
                 (this.id = this.view.board.setId(this, "S3D")),
@@ -51237,7 +51239,7 @@ var __webpack_exports__ = {};
         s.Z.copyPrototypeMethods(
             t.Z.Surface3D,
             t.Z.GeometryElement3D,
-            "constructor3D"
+            "constructor3D",
         ),
         t.Z.extend(t.Z.Surface3D.prototype, {
             updateDataArray: function () {
@@ -51253,7 +51255,7 @@ var __webpack_exports__ = {};
                         X: (e = this.view.getMesh(
                             t,
                             o.concat([i]),
-                            n.concat([r])
+                            n.concat([r]),
                         ))[0],
                         Y: e[1],
                     }
@@ -51308,7 +51310,7 @@ var __webpack_exports__ = {};
         }),
         t.Z.registerElement(
             "parametricsurface3d",
-            t.Z.createParametricSurface3D
+            t.Z.createParametricSurface3D,
         ),
         (t.Z.createFunctiongraph3D = function (t, e, i) {
             var s = e[0],
@@ -51328,7 +51330,7 @@ var __webpack_exports__ = {};
                     o,
                     n,
                 ],
-                i
+                i,
             );
         }),
         t.Z.registerElement("functiongraph3d", t.Z.createFunctiongraph3D);

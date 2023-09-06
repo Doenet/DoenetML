@@ -5,7 +5,7 @@ import {
     appliedFunctionSymbolsDefault,
     numberToMathExpression,
 } from "./math";
-import { deepCompare } from "./deepFunctions";
+import { deepCompare } from "@doenet/utils";
 
 const appliedFunctionSymbolsWithBooleanOperators = [
     ...appliedFunctionSymbolsDefault,
@@ -103,7 +103,7 @@ export function buildParsedExpression({
             splitSymbolsIfMath({
                 logicTree: parsedExpression.tree,
                 nonMathCodes,
-            })
+            }),
         );
     }
 
@@ -400,7 +400,7 @@ export function evaluateLogic({
                         partialMatches: dependencyValues.matchPartial,
                         matchByExactPositions:
                             dependencyValues.matchByExactPositions,
-                    })
+                    }),
                 );
 
                 // return average of fraction_equal
@@ -416,7 +416,7 @@ export function evaluateLogic({
                             partialMatches: dependencyValues.matchPartial,
                             matchByExactPositions:
                                 dependencyValues.matchByExactPositions,
-                        }).fraction_equal === 1
+                        }).fraction_equal === 1,
                 )
                     ? 1
                     : 0;
@@ -457,7 +457,7 @@ export function evaluateLogic({
                         foundUnorderedList = true;
                     }
                     return child.stateValues.texts.map((x) =>
-                        x.trim().replace(/\s+/, " ")
+                        x.trim().replace(/\s+/, " "),
                     );
                 }
                 return tree.trim();
@@ -503,7 +503,7 @@ export function evaluateLogic({
                             dependencyValues.matchByExactPositions,
                         caseInsensitiveMatch:
                             dependencyValues.caseInsensitiveMatch,
-                    })
+                    }),
                 );
 
                 // return average of fraction_equal
@@ -521,7 +521,7 @@ export function evaluateLogic({
                                 dependencyValues.matchByExactPositions,
                             caseInsensitiveMatch:
                                 dependencyValues.caseInsensitiveMatch,
-                        }).fraction_equal === 1
+                        }).fraction_equal === 1,
                 )
                     ? 1
                     : 0;
@@ -677,7 +677,7 @@ export function evaluateLogic({
                         dependencyValues.numPeriodicSetMatchesRequired,
                     caseInsensitiveMatch: dependencyValues.caseInsensitiveMatch,
                     matchBlanks: dependencyValues.matchBlanks,
-                })
+                }),
             );
 
             // return average of fraction_equal
@@ -709,7 +709,7 @@ export function evaluateLogic({
                         caseInsensitiveMatch:
                             dependencyValues.caseInsensitiveMatch,
                         matchBlanks: dependencyValues.matchBlanks,
-                    }).fraction_equal === 1
+                    }).fraction_equal === 1,
             )
                 ? 1
                 : 0;
@@ -770,12 +770,12 @@ export function evaluateLogic({
                         dependencyValues.numPeriodicSetMatchesRequired,
                     caseInsensitiveMatch: dependencyValues.caseInsensitiveMatch,
                     matchBlanks: dependencyValues.matchBlanks,
-                })
+                }),
             );
 
             let max_fraction = results.reduce(
                 (a, c) => Math.max(a, c.fraction_equal),
-                0
+                0,
             );
             if (operator === "in") {
                 return max_fraction;
@@ -808,7 +808,7 @@ export function evaluateLogic({
                         caseInsensitiveMatch:
                             dependencyValues.caseInsensitiveMatch,
                         matchBlanks: dependencyValues.matchBlanks,
-                    }).fraction_equal === 1
+                    }).fraction_equal === 1,
             );
 
             if (operator === "in") {
@@ -821,7 +821,7 @@ export function evaluateLogic({
 
     // since have inequality, all operands must be numbers
     let numberOperands = mathOperands.map((x) =>
-        x.simplify().evaluate_to_constant()
+        x.simplify().evaluate_to_constant(),
     );
     if (numberOperands.some((x) => Number.isNaN(x))) {
         return 0;
@@ -893,7 +893,7 @@ export function splitSymbolsIfMath({
                     nonMathCodes,
                     foundNonMath,
                     init,
-                })
+                }),
             ),
         ];
     }
@@ -911,7 +911,7 @@ export function splitSymbolsIfMath({
                     nonMathCodes,
                     foundNonMath,
                     init: false,
-                })
+                }),
             ),
         ];
 
@@ -977,7 +977,7 @@ export function splitSymbolsIfMath({
                         nonMathCodes,
                         foundNonMath,
                         init: false,
-                    })
+                    }),
                 );
             }
         }
@@ -991,7 +991,7 @@ export function splitSymbolsIfMath({
                     nonMathCodes,
                     foundNonMath,
                     init: false,
-                })
+                }),
             ),
         ];
     }

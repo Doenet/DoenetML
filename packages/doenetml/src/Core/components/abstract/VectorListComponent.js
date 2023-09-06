@@ -9,6 +9,9 @@ export default class VectorListComponent extends BaseComponent {
     static includeBlankStringChildren = true;
     static removeBlankStringChildrenPostSugar = true;
 
+    // Include children that can be added due to sugar
+    static additionalSchemaChildren = ["string", "math"];
+
     static returnSugarInstructions() {
         let sugarInstructions = super.returnSugarInstructions();
 
@@ -76,7 +79,7 @@ export default class VectorListComponent extends BaseComponent {
                         if (Number.isFinite(vector.stateValues.numDimensions)) {
                             numDimensions = Math.max(
                                 numDimensions,
-                                vector.stateValues.numDimensions
+                                vector.stateValues.numDimensions,
                             );
                         }
                     }
@@ -138,7 +141,7 @@ export default class VectorListComponent extends BaseComponent {
                         // array of "pointInd,i", where i=0, ..., arraySize[1]-1
                         return Array.from(
                             Array(arraySize[1]),
-                            (_, i) => pointInd + "," + i
+                            (_, i) => pointInd + "," + i,
                         );
                     } else {
                         return [];

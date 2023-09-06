@@ -66,7 +66,7 @@ export default class CollaborateGroups extends BaseComponent {
                 for (let point of dependencyValues.pointChildren) {
                     if (point.stateValues.numDimensions !== 2) {
                         console.warn(
-                            `invalid collaborate group: ${point.stateValues.coords.toString()}`
+                            `invalid collaborate group: ${point.stateValues.coords.toString()}`,
                         );
                     } else {
                         let numberOfGroups =
@@ -83,7 +83,7 @@ export default class CollaborateGroups extends BaseComponent {
                             )
                         ) {
                             console.warn(
-                                `invalid collaborate group: ${point.stateValues.coords.toString()}`
+                                `invalid collaborate group: ${point.stateValues.coords.toString()}`,
                             );
                         } else {
                             if (groups[numberOfGroups] === undefined) {
@@ -104,7 +104,7 @@ export default class CollaborateGroups extends BaseComponent {
                             return false;
                         } else {
                             return collaborationAssignment.includes(
-                                groupNumber
+                                groupNumber,
                             );
                         }
                     } else {

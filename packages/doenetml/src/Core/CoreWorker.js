@@ -105,7 +105,7 @@ async function returnAllStateVariables(core) {
         });
         for (let vName in component.state) {
             compObj.stateValues[vName] = removeFunctionsMathExpressionClass(
-                await component.state[vName].value
+                await component.state[vName].value,
             );
         }
         compObj.activeChildren = component.activeChildren.map((x) =>
@@ -114,7 +114,7 @@ async function returnAllStateVariables(core) {
                       componentName: x.componentName,
                       componentType: x.componentType,
                   }
-                : x
+                : x,
         );
         if (component.replacements) {
             compObj.replacements = component.replacements.map((x) =>
@@ -123,7 +123,7 @@ async function returnAllStateVariables(core) {
                           componentName: x.componentName,
                           componentType: x.componentType,
                       }
-                    : x
+                    : x,
             );
             if (component.replacementsToWithhold !== undefined) {
                 compObj.replacementsToWithhold =
@@ -134,7 +134,7 @@ async function returnAllStateVariables(core) {
             compObj.replacementOf = component.replacementOf.componentName;
         }
         compObj.sharedParameters = removeFunctionsMathExpressionClass(
-            component.sharedParameters
+            component.sharedParameters,
         );
     }
 
