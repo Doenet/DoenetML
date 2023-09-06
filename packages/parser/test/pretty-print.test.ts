@@ -67,6 +67,23 @@ describe("Prettier", async () => {
             expect(prettyPrinted).toEqual(outStr);
         }
     });
+    it("Prints function arguments", async () => {
+        const cases = [
+            { inStr: "$$f(x)", outStr: "$$f(x)" },
+            { inStr: "$$f(x,y)", outStr: "$$f(x, y)" },
+            { inStr: "$$f(x,$$g(y,z))", outStr: "$$f(x, $$g(y, z))" },
+            { inStr: "$$f(x,<math>alpha</math>)", outStr: "$$f(x, <math>alpha</math>)" },
+            { inStr: "$$f(x,   <math>alpha</math>)", outStr: "$$f(x, <math>alpha</math>)" },
+            { inStr: "<p>$$f(x, <math>alpha</math>)</p>", outStr: "<p>\n    $$f(x, <math>alpha</math>)\n</p>" },
+        ];
+        for (const { inStr, outStr } of cases) {
+            const prettyPrinted = await prettyPrint(inStr, {
+                doenetSyntax: false,
+                printWidth: 30,
+            });
+            expect(prettyPrinted).toEqual(outStr);
+        }
+    });
     {
         // Regular parsing tests
         const files = glob

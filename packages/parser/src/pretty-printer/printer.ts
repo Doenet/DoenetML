@@ -179,6 +179,9 @@ export const print: Printer<DastNodes>["print"] = function print(
                     .map((str) => join(line, str.split(/\s+/))),
             ).flat();
         }
+        case "macro":
+        case "function":
+            return toXml(node, options);
 
         default: {
             const unhandledType: never = node;

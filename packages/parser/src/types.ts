@@ -22,6 +22,12 @@ import type {
     Node as UnistNode,
     Parent as UnistParent,
 } from "unist";
+import {
+    FunctionMacro as _FunctionMacro,
+    Macro as _Macro,
+    PathPart as _PathPart,
+    PropIndex as _PropIndex,
+} from "./macros/types";
 
 export type Position = UnistLiteral["position"] & {};
 
@@ -33,7 +39,7 @@ export type Position = UnistLiteral["position"] & {};
 export interface DastAttribute extends DastAbstractNode {
     type: "attribute";
     name: string;
-    children: DastText[];
+    children: (DastText | DastMacro | DastFunctionMacro)[];
 }
 
 /**
@@ -78,6 +84,8 @@ export interface ElementContentMap {
     instruction: DastInstruction;
     text: DastText;
     error: DastError;
+    macro: DastMacro;
+    function: DastFunctionMacro;
 }
 
 /**
@@ -104,6 +112,8 @@ export interface RootContentMap {
     instruction: DastInstruction;
     text: DastText;
     error: DastError;
+    macro: DastMacro;
+    function: DastFunctionMacro;
 }
 
 // ### Special content types
@@ -376,4 +386,23 @@ export type PrintOptions = {
      * Whether to output XML error nodes when there are processing errors.
      */
     inlineErrors?: boolean;
+};
+
+//
+// Macros
+//
+
+// We glue together the types of macros and regular DAST nodes
+export type DastMacro = Omit<_Macro, "attributes" | "path"> & {
+    attributes: DastAttribute[];
+    accessedProp: DastMacro | null;
+    path: DastMacroPathPart[];
+};
+export type DastMacroPathPart = Omit<_PathPart, "index"> & {
+    index: (Omit<_PropIndex, "value"> & { value: (DastText | DastMacro)[] })[];
+};
+export type DastMacroFullPath = DastMacroPathPart[];
+export type DastFunctionMacro = Omit<_FunctionMacro, "input" | "macro"> & {
+    input: DastElementContent[][] | null;
+    macro: DastMacro;
 };

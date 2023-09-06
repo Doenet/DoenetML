@@ -9,8 +9,12 @@ import {
     DastAttribute,
     DastDoctype,
     DastElementContent,
+    DastFunctionMacro,
+    DastMacro,
+    DastNodes,
     DastRoot,
     DastRootContent,
+    DastText,
     LezerSyntaxNodeName,
 } from "../types";
 import { createErrorNode } from "./create-error-node";
@@ -24,7 +28,10 @@ import {
     getLezerChildren,
     lezerNodeToPosition,
     textNodeToText,
+    updateNodePositionData,
 } from "./lezer-to-dast-utils";
+import { parseMacros } from "../macros";
+import { gobbleFunctionArguments } from "./gobble-function-arguments";
 
 /**
  * Convert a lezer `SyntaxNode` into a DAST tree.
@@ -55,7 +62,7 @@ export function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
     const offsetMap = createOffsetToPositionMap(source);
     return {
         type: "root",
-        children: lezerNodeToDastNode(node),
+        children: gobbleFunctionArguments(lezerNodeToDastNode(node)),
         position: lezerNodeToPosition(node, offsetMap),
     };
 
@@ -81,7 +88,7 @@ export function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
                 }
                 const tag = openTag.getChild("TagName");
                 const name = tag ? extractContent(tag, source) : "";
-                const children: DastElementContent[] = [];
+                let children: DastElementContent[] = [];
                 const attributes: DastAttribute[] = [];
                 for (const attrTag of openTag.getChildren("Attribute")) {
                     const error = findFirstErrorInChild(attrTag);
@@ -98,12 +105,16 @@ export function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
                     if (!attrName) {
                         continue;
                     }
-                    const attrChildren: DastAttribute["children"] = attrValue
+                    let attrChildren: DastAttribute["children"] = attrValue
                         ? [
-                              {
+                              ...reprocessTextForMacros({
                                   type: "text",
                                   value: attributeValueText(attrValue, source),
-                              },
+                                  position: lezerNodeToPosition(
+                                      attrValue,
+                                      offsetMap,
+                                  ),
+                              } as DastText),
                           ]
                         : [];
                     // Attributes with no specified value are assigned the value "true".
@@ -122,6 +133,9 @@ export function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
                         (n) => lezerNodeToDastNode(n) as DastElementContent[],
                     ),
                 );
+                children = gobbleFunctionArguments(
+                    children,
+                ) as DastElementContent[];
 
                 return [
                     {
@@ -133,14 +147,14 @@ export function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
                     },
                 ];
             }
-            case "Text":
-                return [
-                    {
-                        type: "text",
-                        value: textNodeToText(node, source),
-                        position: lezerNodeToPosition(node, offsetMap),
-                    },
-                ];
+            case "Text": {
+                const textNode: DastText = {
+                    type: "text",
+                    value: textNodeToText(node, source),
+                    position: lezerNodeToPosition(node, offsetMap),
+                };
+                return reprocessTextForMacros(textNode);
+            }
             case "Ampersand":
                 return [
                     {
@@ -284,4 +298,23 @@ export function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
         }
         return [];
     }
+}
+
+/**
+ * Process a text node and expose any macros within as DastNodes.
+ */
+function reprocessTextForMacros(
+    textNode: DastText,
+): (DastText | DastMacro | DastFunctionMacro)[] {
+    if (!textNode.value.includes("$")) {
+        return [textNode];
+    }
+    // If there is a `$` in the text, it may contain macros, so re-parse it
+    // looking for macros.
+    const parsed = parseMacros(textNode.value);
+    // The text node may be located anywhere in the source and we have
+    // just re-parsed it, so we need to make sure the position data is
+    // correct.
+    parsed.forEach((n) => updateNodePositionData(n, textNode));
+    return parsed;
 }

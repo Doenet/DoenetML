@@ -101,6 +101,7 @@ describe("Macro parsing", () => {
             $$(/f)(y)
             $$(../f)(y)
             $$f($x)
+            $$(x-y.z{t})(m)
             $$f(x, y)`.split(/\n\s+/g);
 
         for (const macroStr of validFunctions) {

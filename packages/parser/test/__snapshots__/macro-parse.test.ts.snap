@@ -4,7 +4,7 @@ exports[`Macro parsing > should parse macro \`$(../t)\` 1`] = `
 [
   {
     "accessedProp": null,
-    "attributes": null,
+    "attributes": [],
     "path": [
       {
         "index": [],
@@ -62,7 +62,7 @@ exports[`Macro parsing > should parse macro \`$(/t)\` 1`] = `
 [
   {
     "accessedProp": null,
-    "attributes": null,
+    "attributes": [],
     "path": [
       {
         "index": [],
@@ -120,7 +120,7 @@ exports[`Macro parsing > should parse macro \`$(t)\` 1`] = `
 [
   {
     "accessedProp": null,
-    "attributes": null,
+    "attributes": [],
     "path": [
       {
         "index": [],
@@ -162,7 +162,7 @@ exports[`Macro parsing > should parse macro \`$(t.x)\` 1`] = `
   {
     "accessedProp": {
       "accessedProp": null,
-      "attributes": null,
+      "attributes": [],
       "path": [
         {
           "index": [],
@@ -194,9 +194,9 @@ exports[`Macro parsing > should parse macro \`$(t.x)\` 1`] = `
           "offset": 4,
         },
       },
-      "type": "propAccess",
+      "type": "macro",
     },
-    "attributes": null,
+    "attributes": [],
     "path": [
       {
         "index": [],
@@ -237,7 +237,7 @@ exports[`Macro parsing > should parse macro \`$(t[1]/x)\` 1`] = `
 [
   {
     "accessedProp": null,
-    "attributes": null,
+    "attributes": [],
     "path": [
       {
         "index": [
@@ -395,9 +395,9 @@ exports[`Macro parsing > should parse macro \`$(t-x[1].y{a="b"})\` 1`] = `
           "offset": 9,
         },
       },
-      "type": "propAccess",
+      "type": "macro",
     },
-    "attributes": null,
+    "attributes": [],
     "path": [
       {
         "index": [
@@ -470,7 +470,7 @@ exports[`Macro parsing > should parse macro \`$(x-y)\` 1`] = `
 [
   {
     "accessedProp": null,
-    "attributes": null,
+    "attributes": [],
     "path": [
       {
         "index": [],
@@ -512,7 +512,7 @@ exports[`Macro parsing > should parse macro \`$(x-y.a-b)\` 1`] = `
   {
     "accessedProp": {
       "accessedProp": null,
-      "attributes": null,
+      "attributes": [],
       "path": [
         {
           "index": [],
@@ -544,9 +544,9 @@ exports[`Macro parsing > should parse macro \`$(x-y.a-b)\` 1`] = `
           "offset": 6,
         },
       },
-      "type": "propAccess",
+      "type": "macro",
     },
-    "attributes": null,
+    "attributes": [],
     "path": [
       {
         "index": [],
@@ -587,7 +587,7 @@ exports[`Macro parsing > should parse macro \`$(x-y/a-b)\` 1`] = `
 [
   {
     "accessedProp": null,
-    "attributes": null,
+    "attributes": [],
     "path": [
       {
         "index": [],
@@ -645,7 +645,7 @@ exports[`Macro parsing > should parse macro \`$_t\` 1`] = `
 [
   {
     "accessedProp": null,
-    "attributes": null,
+    "attributes": [],
     "path": [
       {
         "index": [],
@@ -688,7 +688,7 @@ exports[`Macro parsing > should parse macro \`$t.x.y\` 1`] = `
     "accessedProp": {
       "accessedProp": {
         "accessedProp": null,
-        "attributes": null,
+        "attributes": [],
         "path": [
           {
             "index": [],
@@ -720,9 +720,9 @@ exports[`Macro parsing > should parse macro \`$t.x.y\` 1`] = `
             "offset": 5,
           },
         },
-        "type": "propAccess",
+        "type": "macro",
       },
-      "attributes": null,
+      "attributes": [],
       "path": [
         {
           "index": [],
@@ -754,9 +754,9 @@ exports[`Macro parsing > should parse macro \`$t.x.y\` 1`] = `
           "offset": 3,
         },
       },
-      "type": "propAccess",
+      "type": "macro",
     },
-    "attributes": null,
+    "attributes": [],
     "path": [
       {
         "index": [],
@@ -799,7 +799,7 @@ exports[`Macro parsing > should parse macro \`$t.x[1].y[2]\` 1`] = `
     "accessedProp": {
       "accessedProp": {
         "accessedProp": null,
-        "attributes": null,
+        "attributes": [],
         "path": [
           {
             "index": [
@@ -863,9 +863,9 @@ exports[`Macro parsing > should parse macro \`$t.x[1].y[2]\` 1`] = `
             "offset": 8,
           },
         },
-        "type": "propAccess",
+        "type": "macro",
       },
-      "attributes": null,
+      "attributes": [],
       "path": [
         {
           "index": [
@@ -929,9 +929,9 @@ exports[`Macro parsing > should parse macro \`$t.x[1].y[2]\` 1`] = `
           "offset": 3,
         },
       },
-      "type": "propAccess",
+      "type": "macro",
     },
-    "attributes": null,
+    "attributes": [],
     "path": [
       {
         "index": [],
@@ -974,7 +974,7 @@ exports[`Macro parsing > should parse macro \`$t.x[1].y\` 1`] = `
     "accessedProp": {
       "accessedProp": {
         "accessedProp": null,
-        "attributes": null,
+        "attributes": [],
         "path": [
           {
             "index": [],
@@ -1006,9 +1006,9 @@ exports[`Macro parsing > should parse macro \`$t.x[1].y\` 1`] = `
             "offset": 8,
           },
         },
-        "type": "propAccess",
+        "type": "macro",
       },
-      "attributes": null,
+      "attributes": [],
       "path": [
         {
           "index": [
@@ -1072,9 +1072,9 @@ exports[`Macro parsing > should parse macro \`$t.x[1].y\` 1`] = `
           "offset": 3,
         },
       },
-      "type": "propAccess",
+      "type": "macro",
     },
-    "attributes": null,
+    "attributes": [],
     "path": [
       {
         "index": [],
@@ -1117,7 +1117,7 @@ exports[`Macro parsing > should parse macro \`$t.x[1][2].y\` 1`] = `
     "accessedProp": {
       "accessedProp": {
         "accessedProp": null,
-        "attributes": null,
+        "attributes": [],
         "path": [
           {
             "index": [],
@@ -1149,9 +1149,9 @@ exports[`Macro parsing > should parse macro \`$t.x[1][2].y\` 1`] = `
             "offset": 11,
           },
         },
-        "type": "propAccess",
+        "type": "macro",
       },
-      "attributes": null,
+      "attributes": [],
       "path": [
         {
           "index": [
@@ -1246,9 +1246,9 @@ exports[`Macro parsing > should parse macro \`$t.x[1][2].y\` 1`] = `
           "offset": 3,
         },
       },
-      "type": "propAccess",
+      "type": "macro",
     },
-    "attributes": null,
+    "attributes": [],
     "path": [
       {
         "index": [],
@@ -1291,7 +1291,7 @@ exports[`Macro parsing > should parse macro \`$t.x[1]{a="b"}.y\` 1`] = `
     "accessedProp": {
       "accessedProp": {
         "accessedProp": null,
-        "attributes": null,
+        "attributes": [],
         "path": [
           {
             "index": [],
@@ -1323,7 +1323,7 @@ exports[`Macro parsing > should parse macro \`$t.x[1]{a="b"}.y\` 1`] = `
             "offset": 15,
           },
         },
-        "type": "propAccess",
+        "type": "macro",
       },
       "attributes": [
         {
@@ -1424,9 +1424,9 @@ exports[`Macro parsing > should parse macro \`$t.x[1]{a="b"}.y\` 1`] = `
           "offset": 3,
         },
       },
-      "type": "propAccess",
+      "type": "macro",
     },
-    "attributes": null,
+    "attributes": [],
     "path": [
       {
         "index": [],
@@ -1468,7 +1468,7 @@ exports[`Macro parsing > should parse macro \`$t.x\` 1`] = `
   {
     "accessedProp": {
       "accessedProp": null,
-      "attributes": null,
+      "attributes": [],
       "path": [
         {
           "index": [],
@@ -1500,9 +1500,9 @@ exports[`Macro parsing > should parse macro \`$t.x\` 1`] = `
           "offset": 3,
         },
       },
-      "type": "propAccess",
+      "type": "macro",
     },
-    "attributes": null,
+    "attributes": [],
     "path": [
       {
         "index": [],
@@ -1543,7 +1543,7 @@ exports[`Macro parsing > should parse macro \`$t[$x]\` 1`] = `
 [
   {
     "accessedProp": null,
-    "attributes": null,
+    "attributes": [],
     "path": [
       {
         "index": [
@@ -1563,7 +1563,7 @@ exports[`Macro parsing > should parse macro \`$t[$x]\` 1`] = `
             "type": "index",
             "value": {
               "accessedProp": null,
-              "attributes": null,
+              "attributes": [],
               "path": [
                 {
                   "index": [],
@@ -1636,7 +1636,7 @@ exports[`Macro parsing > should parse macro \`$t[1.5]\` 1`] = `
 [
   {
     "accessedProp": null,
-    "attributes": null,
+    "attributes": [],
     "path": [
       {
         "index": [
@@ -1709,7 +1709,7 @@ exports[`Macro parsing > should parse macro \`$t[1]\` 1`] = `
 [
   {
     "accessedProp": null,
-    "attributes": null,
+    "attributes": [],
     "path": [
       {
         "index": [
@@ -1890,7 +1890,7 @@ exports[`Macro parsing > should parse macro \`$t[a][b]\` 1`] = `
 [
   {
     "accessedProp": null,
-    "attributes": null,
+    "attributes": [],
     "path": [
       {
         "index": [
@@ -1994,7 +1994,7 @@ exports[`Macro parsing > should parse macro \`$t\` 1`] = `
 [
   {
     "accessedProp": null,
-    "attributes": null,
+    "attributes": [],
     "path": [
       {
         "index": [],
@@ -2040,7 +2040,7 @@ exports[`Macro parsing > should parse macro \`$t{a="$b"}\` 1`] = `
         "children": [
           {
             "accessedProp": null,
-            "attributes": null,
+            "attributes": [],
             "path": [
               {
                 "index": [],
@@ -2266,7 +2266,7 @@ exports[`Macro parsing > should parse macro \`$t1\` 1`] = `
 [
   {
     "accessedProp": null,
-    "attributes": null,
+    "attributes": [],
     "path": [
       {
         "index": [],

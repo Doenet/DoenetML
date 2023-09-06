@@ -1,4 +1,4 @@
-import { LezerSyntaxNodeName, Position } from "../types";
+import { DastNodes, LezerSyntaxNodeName, Position } from "../types";
 import { SyntaxNode } from "@lezer/common";
 import { entityStringToRawString } from "./entity-to-string";
 import { Root } from "xast";
@@ -277,4 +277,28 @@ export function getLezerChildren(node: SyntaxNode) {
         child = child.nextSibling;
     }
     return ret;
+}
+
+/**
+ * Update the `.position` attribute of `nodeToUpdate` based on `referenceNode`.
+ * The resulting `.position` should be the same as if the data was located at
+ * `referenceNode.position.start`.
+ *
+ * **Node**: this function mutates `nodeToUpdate`.
+ */
+export function updateNodePositionData(
+    nodeToUpdate: DastNodes,
+    referenceNode: DastNodes,
+) {
+    if (!nodeToUpdate.position || !referenceNode.position) {
+        return;
+    }
+    const offset = referenceNode.position.start.offset;
+    const line = referenceNode.position.start.line - 1;
+    const column = referenceNode.position.start.column - 1;
+    if (!nodeToUpdate.position.start.offset != null && offset != null) {
+        nodeToUpdate.position.start.offset! += offset;
+    }
+    nodeToUpdate.position.start.line += line;
+    nodeToUpdate.position.start.column += column;
 }

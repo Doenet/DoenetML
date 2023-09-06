@@ -46,18 +46,8 @@ export type ScopedPathPartOrDD =
         end: { offset: number; line: number; column: number };
       };
     } & { type: "pathPart"; name: ".."; index: [] });
-export type PropAccess = {
-  position: {
-    start: { offset: number; line: number; column: number };
-    end: { offset: number; line: number; column: number };
-  };
-} & Omit<PartialPathMacro, "type"> & { type: "propAccess" };
-export type ScopedPropAccess = {
-  position: {
-    start: { offset: number; line: number; column: number };
-    end: { offset: number; line: number; column: number };
-  };
-} & Omit<ScopedPartialPathMacro, "type"> & { type: "propAccess" };
+export type PropAccess = PartialPathMacro;
+export type ScopedPropAccess = ScopedPartialPathMacro;
 export type Macro = FullPathMacro | PartialPathMacro;
 export type PartialPathMacro = {
   position: {
@@ -67,7 +57,7 @@ export type PartialPathMacro = {
 } & {
   type: "macro";
   path: [PathPart];
-  attributes: PropAttrs | null;
+  attributes: never[] | NonNullable<PropAttrs | null>;
   accessedProp: PropAccess | null;
 };
 export type ScopedPartialPathMacro = {
@@ -78,7 +68,7 @@ export type ScopedPartialPathMacro = {
 } & {
   type: "macro";
   path: [ScopedPathPart];
-  attributes: PropAttrs | null;
+  attributes: never[] | NonNullable<PropAttrs | null>;
   accessedProp: ScopedPropAccess | null;
 };
 export type FullPathMacro = {
@@ -89,7 +79,7 @@ export type FullPathMacro = {
 } & {
   type: "macro";
   path: FullPath;
-  attributes: PropAttrs | null;
+  attributes: never[] | NonNullable<PropAttrs | null>;
   accessedProp: ScopedPropAccess | null;
 };
 export type FunctionMacro =
@@ -98,20 +88,22 @@ export type FunctionMacro =
         start: { offset: number; line: number; column: number };
         end: { offset: number; line: number; column: number };
       };
-    } & { type: "function"; path: FullPath; input: FunctionInput | null })
+    } & { type: "function"; macro: FullPathMacro; input: FunctionInput | null })
   | ({
       position: {
         start: { offset: number; line: number; column: number };
         end: { offset: number; line: number; column: number };
       };
-    } & { type: "function"; path: [PathPart]; input: FunctionInput | null });
+    } & {
+      type: "function";
+      macro: PartialPathMacro;
+      input: FunctionInput | null;
+    });
 export type FunctionInput = FunctionArgumentList;
 export type FunctionArgumentList = [FunctionArgument, ...FunctionArgument[]];
-export type FunctionArgument =
-  | Macro
-  | FunctionMacro
-  | TextWithoutClosingParenOrComma
-  | EmptyString;
+export type FunctionArgument = [
+  Macro | FunctionMacro | TextWithoutClosingParenOrComma | EmptyString
+];
 export type PropAttrs = Attr[];
 export type PropIndex = {
   position: {

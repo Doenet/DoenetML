@@ -78,3 +78,28 @@ export function mergeAdjacentTextInArray(nodes: DastNodes[]): DastNodes[] {
 
     return ret;
 }
+
+/**
+ * Recursively remove position info from a DAST tree.
+ *
+ * **Note**: this mutates the tree.
+ */
+export function filterPositionInfo(
+    nodes: DastNodes | DastNodes[],
+): DastNodes | DastNodes[] {
+    if (Array.isArray(nodes)) {
+        return nodes.flatMap(filterPositionInfo);
+    }
+    if (nodes && typeof nodes === "object" && "position" in nodes) {
+        delete nodes.position;
+    }
+    for (const value of Object.values(nodes)) {
+        if (Array.isArray(value)) {
+            filterPositionInfo(value);
+        }
+        if (value && typeof value === "object" && "position" in value) {
+            filterPositionInfo(value);
+        }
+    }
+    return nodes;
+}

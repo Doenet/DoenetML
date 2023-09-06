@@ -86,11 +86,11 @@ exports[`DAST > xml-bad-6.doenet prints correctly in Xml format and Doenet forma
 
 exports[`DAST > xml-bad-6.doenet prints correctly in Xml format and Doenet format 2`] = `"<foo bar=\\">&amp;lt;/foo>\\"></foo>"`;
 
-exports[`DAST > xml-bad-7.doenet prints correctly in Xml format and Doenet format 1`] = `"<foo baz=\\"true\\"} bar=\\">&amp;lt;/foo>\\"></foo>"`;
+exports[`DAST > xml-bad-7.doenet prints correctly in Xml format and Doenet format 1`] = `"<foo baz=\\"true\\" bar=\\">&amp;lt;/foo>\\"></foo>"`;
 
 exports[`DAST > xml-bad-7.doenet prints correctly in Xml format and Doenet format 2`] = `"<foo baz bar=\\">&amp;lt;/foo>\\"></foo>"`;
 
-exports[`DAST > xml-bad-8.doenet prints correctly in Xml format and Doenet format 1`] = `"<y f=\\"true\\"} z=\\"true\\"}></y>"`;
+exports[`DAST > xml-bad-8.doenet prints correctly in Xml format and Doenet format 1`] = `"<y f=\\"true\\" z=\\"true\\"></y>"`;
 
 exports[`DAST > xml-bad-8.doenet prints correctly in Xml format and Doenet format 2`] = `"<y f z></y>"`;
 
@@ -120,7 +120,7 @@ exports[`DAST > xml-doenet-ampersand-3.doenet prints correctly in Xml format and
 
 exports[`DAST > xml-doenet-ampersand-3.doenet prints correctly in Xml format and Doenet format 2`] = `"&"`;
 
-exports[`DAST > xml-doenet-attributes-1.doenet prints correctly in Xml format and Doenet format 1`] = `"<foo bar=\\"true\\"} baz=\\"hi\\" bang=\\"there\\" />"`;
+exports[`DAST > xml-doenet-attributes-1.doenet prints correctly in Xml format and Doenet format 1`] = `"<foo bar=\\"true\\" baz=\\"hi\\" bang=\\"there\\" />"`;
 
 exports[`DAST > xml-doenet-attributes-1.doenet prints correctly in Xml format and Doenet format 2`] = `"<foo bar baz=\\"hi\\" bang=\\"there\\" />"`;
 

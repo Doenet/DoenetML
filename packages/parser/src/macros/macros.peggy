@@ -40,17 +40,9 @@ ScopedPathPartOrDD
     / ".." { return withPosition({ type: "pathPart", name: "..", index: [] }); }
 
 // Pops can be accessed with a `.`
-PropAccess
-    = "." prop:PartialPathMacro {
-            const { type, ...rest } = prop;
-            return withPosition({ ...rest, type: "propAccess" });
-        }
+PropAccess = "." @PartialPathMacro
 
-ScopedPropAccess
-    = "." prop:ScopedPartialPathMacro {
-            const { type, ...rest } = prop;
-            return withPosition({ ...rest, type: "propAccess" });
-        }
+ScopedPropAccess = "." @ScopedPartialPathMacro
 
 //
 // Macros
@@ -61,32 +53,32 @@ Macro
 
 // A macro where the path cannot have slashes or `..` in it.
 PartialPathMacro
-    = path:PathPart attributes:PropAttrs? accessedProp:PropAccess? {
+    = path:PathPart attrs:PropAttrs? accessedProp:PropAccess? {
             return withPosition({
                 type: "macro",
                 path: [path],
-                attributes,
+                attributes: attrs || [],
                 accessedProp,
             });
         }
 
 ScopedPartialPathMacro
-    = path:ScopedPathPart attributes:PropAttrs? accessedProp:ScopedPropAccess? {
+    = path:ScopedPathPart attrs:PropAttrs? accessedProp:ScopedPropAccess? {
             return withPosition({
                 type: "macro",
                 path: [path],
-                attributes,
+                attributes: attrs || [],
                 accessedProp,
             });
         }
 
 // A macro where the path can have slashes and `..` in it.
 FullPathMacro
-    = path:FullPath attributes:PropAttrs? accessedProp:ScopedPropAccess? {
+    = path:FullPath attrs:PropAttrs? accessedProp:ScopedPropAccess? {
             return withPosition({
                 type: "macro",
                 path,
-                attributes,
+                attributes: attrs || [],
                 accessedProp,
             });
         }
@@ -98,17 +90,17 @@ FullPathMacro
 // Functions are very similar to macros except they cannot have attrs or accessedProps
 // but they do take comma-separated arguments.
 FunctionMacro
-    = "$$" "(" path:FullPath ")" input:FunctionInput? {
+    = "$$" "(" macro:FullPathMacro ")" input:FunctionInput? {
             return withPosition({
                 type: "function",
-                path,
+                macro,
                 input,
             });
         }
-    / "$$" path:PathPart input:FunctionInput? {
+    / "$$" macro:PartialPathMacro input:FunctionInput? {
             return withPosition({
                 type: "function",
-                path: [path],
+                macro,
                 input,
             });
         }
@@ -121,10 +113,12 @@ FunctionArgumentList
         }
 
 FunctionArgument
-    = Macro
-    / FunctionMacro
-    / TextWithoutClosingParenOrComma
-    / EmptyString
+    = arg:(
+        Macro
+        / FunctionMacro
+        / TextWithoutClosingParenOrComma
+        / EmptyString
+    ) { return [arg]; }
 
 PropAttrs = "{" _? @(@Attr _?)* "}"
 
