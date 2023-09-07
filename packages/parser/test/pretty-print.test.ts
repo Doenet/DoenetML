@@ -71,8 +71,12 @@ describe("Prettier", async () => {
         const cases = [
             { inStr: "$$f(x)", outStr: "$$f(x)" },
             { inStr: "$$f(x,y)", outStr: "$$f(x, y)" },
+            { inStr: "$$f(x,$y)", outStr: "$$f(x, $y)" },
+            { inStr: "$$f(x,$y z)", outStr: "$$f(x, $y z)" },
+            { inStr: "$$f((),())", outStr: "$$f((), ())" },
             { inStr: "$$f(x,$$g(y,z))", outStr: "$$f(x, $$g(y, z))" },
             { inStr: "$$f(x,<math>alpha</math>)", outStr: "$$f(x, <math>alpha</math>)" },
+            { inStr: "$$f((x),<math>alpha</math>)", outStr: "$$f((x), <math>alpha</math>)" },
             { inStr: "$$f(x,   <math>alpha</math>)", outStr: "$$f(x, <math>alpha</math>)" },
             { inStr: "<p>$$f(x, <math>alpha</math>)</p>", outStr: "<p>\n    $$f(x, <math>alpha</math>)\n</p>" },
         ];

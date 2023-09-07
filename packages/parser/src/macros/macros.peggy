@@ -112,13 +112,31 @@ FunctionArgumentList
             return [start, ...rest];
         }
 
-FunctionArgument
-    = arg:(
+// A function argument cannot contain commas unless those commas are inside of balanced parens.
+// For example `$$f( (0,1) )` should be parsed as a function with a single argument.
+FunctionArgument = BalancedParenTextNoComma
+
+BalancedParenTextNoComma
+    = x:(
         Macro
         / FunctionMacro
-        / TextWithoutClosingParenOrComma
-        / EmptyString
-    ) { return [arg]; }
+        / TextWithoutParenOrComma
+        / a:OpenParen rest:BalancedParenText b:CloseParen {
+                return [a, ...rest, b];
+            }
+    )* { return x.flat(); }
+    / x:EmptyString { return [x]; }
+
+BalancedParenText
+    = x:(
+        Macro
+        / FunctionMacro
+        / TextWithoutParen
+        / a:OpenParen rest:BalancedParenText b:CloseParen {
+                return [a, ...rest, b];
+            }
+    )* { return x.flat(); }
+    / x:EmptyString { return [x]; }
 
 PropAttrs = "{" _? @(@Attr _?)* "}"
 
@@ -154,12 +172,20 @@ EmptyString
             return withPosition({
                 type: "text",
                 value: "",
-                position: location(),
             });
         }
 
-TextWithoutClosingParenOrComma
-    = value:($[^),$]+ / [^),]) { return withPosition({ type: "text", value }); }
+OpenParen = "(" { return withPosition({ type: "text", value: "(" }); }
+
+CloseParen = ")" { return withPosition({ type: "text", value: ")" }); }
+
+TextWithoutParenOrComma
+    = value:($[^(),$]+ / [^(),]) {
+            return withPosition({ type: "text", value });
+        }
+
+TextWithoutParen
+    = value:($[^()$]+ / [^()]) { return withPosition({ type: "text", value }); }
 
 TextWithoutQuote
     = value:$([^'$]+ / [^']) { return withPosition({ type: "text", value }); }

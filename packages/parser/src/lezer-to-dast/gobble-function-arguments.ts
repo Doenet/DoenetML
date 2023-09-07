@@ -71,10 +71,12 @@ export function gobbleFunctionArguments(
                 i++;
                 continue;
             }
-            if (nextNode.value === "(" && nodes[i - 1]?.type === "function") {
+            if (nextNode.value === "(") {
                 parenDepth++;
             }
-            if (nextNode.value === ",") {
+            // Commas separate arguments, but they may appear inside of balanced parenthesis. E.g. `$$f( (a,b) )`
+            // is a function with exactly one argument of `(a,b)`.
+            if (nextNode.value === "," && parenDepth <= 1) {
                 functionNode.input!.push(
                     trimWhitespace(currentFunctionArg as DastElementContent[]),
                 );

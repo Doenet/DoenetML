@@ -714,4 +714,266 @@ describe("DAST", async () => {
           }
         `);
     });
+    it("Function macros can have balanced parens in their arguments", () => {
+        let source: string;
+
+        source = `$$f((x-2), 7)`;
+        expect(filterPositionInfo(lezerToDast(source))).toMatchInlineSnapshot(`
+          {
+            "children": [
+              {
+                "input": [
+                  [
+                    {
+                      "type": "text",
+                      "value": "(",
+                    },
+                    {
+                      "type": "text",
+                      "value": "x-2",
+                    },
+                    {
+                      "type": "text",
+                      "value": ")",
+                    },
+                  ],
+                  [
+                    {
+                      "type": "text",
+                      "value": "7",
+                    },
+                  ],
+                ],
+                "macro": {
+                  "accessedProp": null,
+                  "attributes": [],
+                  "path": [
+                    {
+                      "index": [],
+                      "name": "f",
+                      "type": "pathPart",
+                    },
+                  ],
+                  "type": "macro",
+                },
+                "type": "function",
+              },
+            ],
+            "type": "root",
+          }
+        `);
+
+        source = `$$f((3,4), (5,6))`;
+        expect(filterPositionInfo(lezerToDast(source))).toMatchInlineSnapshot(`
+          {
+            "children": [
+              {
+                "input": [
+                  [
+                    {
+                      "type": "text",
+                      "value": "(",
+                    },
+                    {
+                      "type": "text",
+                      "value": "3,4",
+                    },
+                    {
+                      "type": "text",
+                      "value": ")",
+                    },
+                  ],
+                  [
+                    {
+                      "type": "text",
+                      "value": "(",
+                    },
+                    {
+                      "type": "text",
+                      "value": "5,6",
+                    },
+                    {
+                      "type": "text",
+                      "value": ")",
+                    },
+                  ],
+                ],
+                "macro": {
+                  "accessedProp": null,
+                  "attributes": [],
+                  "path": [
+                    {
+                      "index": [],
+                      "name": "f",
+                      "type": "pathPart",
+                    },
+                  ],
+                  "type": "macro",
+                },
+                "type": "function",
+              },
+            ],
+            "type": "root",
+          }
+        `);
+
+        source = `$$f(1,(<math>alpha</math>))`;
+        expect(filterPositionInfo(lezerToDast(source))).toMatchInlineSnapshot(`
+          {
+            "children": [
+              {
+                "input": [
+                  [
+                    {
+                      "type": "text",
+                      "value": "1",
+                    },
+                  ],
+                  [
+                    {
+                      "type": "text",
+                      "value": "(",
+                    },
+                    {
+                      "attributes": [],
+                      "children": [
+                        {
+                          "type": "text",
+                          "value": "alpha",
+                        },
+                      ],
+                      "name": "math",
+                      "type": "element",
+                    },
+                    {
+                      "type": "text",
+                      "value": ")",
+                    },
+                  ],
+                ],
+                "macro": {
+                  "accessedProp": null,
+                  "attributes": [],
+                  "path": [
+                    {
+                      "index": [],
+                      "name": "f",
+                      "type": "pathPart",
+                    },
+                  ],
+                  "type": "macro",
+                },
+                "type": "function",
+              },
+            ],
+            "type": "root",
+          }
+        `);
+
+        source = `$$f(x, <math>alpha</math>)`;
+        expect(filterPositionInfo(lezerToDast(source))).toMatchInlineSnapshot(`
+          {
+            "children": [
+              {
+                "input": [
+                  [
+                    {
+                      "type": "text",
+                      "value": "x",
+                    },
+                  ],
+                  [
+                    {
+                      "attributes": [],
+                      "children": [
+                        {
+                          "type": "text",
+                          "value": "alpha",
+                        },
+                      ],
+                      "name": "math",
+                      "type": "element",
+                    },
+                  ],
+                ],
+                "macro": {
+                  "accessedProp": null,
+                  "attributes": [],
+                  "path": [
+                    {
+                      "index": [],
+                      "name": "f",
+                      "type": "pathPart",
+                    },
+                  ],
+                  "type": "macro",
+                },
+                "type": "function",
+              },
+            ],
+            "type": "root",
+          }
+        `);
+
+        source = `$$f((x,y), <math>alpha</math>)`;
+        expect(filterPositionInfo(lezerToDast(source))).toMatchInlineSnapshot(`
+          {
+            "children": [
+              {
+                "input": [
+                  [
+                    {
+                      "type": "text",
+                      "value": "(",
+                    },
+                    {
+                      "type": "text",
+                      "value": "x",
+                    },
+                    {
+                      "type": "text",
+                      "value": ",",
+                    },
+                    {
+                      "type": "text",
+                      "value": "y",
+                    },
+                    {
+                      "type": "text",
+                      "value": ")",
+                    },
+                  ],
+                  [
+                    {
+                      "attributes": [],
+                      "children": [
+                        {
+                          "type": "text",
+                          "value": "alpha",
+                        },
+                      ],
+                      "name": "math",
+                      "type": "element",
+                    },
+                  ],
+                ],
+                "macro": {
+                  "accessedProp": null,
+                  "attributes": [],
+                  "path": [
+                    {
+                      "index": [],
+                      "name": "f",
+                      "type": "pathPart",
+                    },
+                  ],
+                  "type": "macro",
+                },
+                "type": "function",
+              },
+            ],
+            "type": "root",
+          }
+        `);
+    });
 });

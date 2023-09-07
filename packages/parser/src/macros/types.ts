@@ -100,10 +100,12 @@ export type FunctionMacro =
       input: FunctionInput | null;
     });
 export type FunctionInput = FunctionArgumentList;
-export type FunctionArgumentList = [FunctionArgument, ...FunctionArgument[]];
-export type FunctionArgument = [
-  Macro | FunctionMacro | TextWithoutClosingParenOrComma | EmptyString
+export type FunctionArgumentList = [
+  BalancedParenTextNoComma,
+  ...BalancedParenTextNoComma[]
 ];
+export type BalancedParenTextNoComma = (Macro | FunctionMacro | Text)[];
+export type BalancedParenText = (Macro | FunctionMacro | Text)[];
 export type PropAttrs = Attr[];
 export type PropIndex = {
   position: {
@@ -139,16 +141,26 @@ export type EmptyString = {
     start: { offset: number; line: number; column: number };
     end: { offset: number; line: number; column: number };
   };
-} & {
-  type: "text";
-  value: "";
+} & { type: "text"; value: "" };
+export type OpenParen = {
   position: {
-    source: string | undefined;
     start: { offset: number; line: number; column: number };
     end: { offset: number; line: number; column: number };
   };
-};
-export type TextWithoutClosingParenOrComma = {
+} & { type: "text"; value: "(" };
+export type CloseParen = {
+  position: {
+    start: { offset: number; line: number; column: number };
+    end: { offset: number; line: number; column: number };
+  };
+} & { type: "text"; value: ")" };
+export type TextWithoutParenOrComma = {
+  position: {
+    start: { offset: number; line: number; column: number };
+    end: { offset: number; line: number; column: number };
+  };
+} & { type: "text"; value: string };
+export type TextWithoutParen = {
   position: {
     start: { offset: number; line: number; column: number };
     end: { offset: number; line: number; column: number };
