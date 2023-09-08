@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.keyboard-button {
+    @apply inline-flex h-10 basis-4 flex-grow max-w-[4em] justify-center rounded-md border border-slate-300 hover:bg-slate-100 items-center active:bg-slate-300;
+}
+
+.special-button {
+    @apply bg-slate-200 border-slate-200 hover:bg-slate-300 hover:border-slate-300 active:bg-slate-400 active:border-slate-400 active:text-slate-50;
+}
+
+.virtual-keyboard {
+    @apply flex gap-y-1 flex-wrap justify-center max-w-2xl sm:gap-y-2;
+    .row {
+        @apply flex gap-x-1 basis-full justify-center sm:gap-x-2;
+    }
+
+    button {
+        background-color: #fff;
+        @apply keyboard-button;
+    }
+
+    .break {
+        @apply basis-full h-0;
+    }
+
+    .key {
+        @apply font-bold;
+    }
+
+    .key-space,
+    .key-backspace,
+    .key-left,
+    .key-right,
+    .key-shift,
+    .key-enter {
+        @apply special-button;
+    }
+    
+    .key-shift, .key-backspace {
+        @apply flex-grow max-w-none;
+    }
+    .key-space {
+        @apply flex-grow max-w-none;
+    }
+}

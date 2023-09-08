@@ -10,13 +10,12 @@ import { VirtualKeyboard } from "./virtual-keyboard";
 import { RecoilRoot, useSetRecoilState } from "recoil";
 import { MathJaxContext } from "better-react-mathjax";
 import { ChakraProvider } from "@chakra-ui/react";
+import { Keyboard } from "./virtual-keyboard/keyboard";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-    <ChakraProvider>
-        <RecoilRoot>
-            <App />
-        </RecoilRoot>
-    </ChakraProvider>,
+    <RecoilRoot>
+        <App />
+    </RecoilRoot>,
 );
 
 function App() {
@@ -32,6 +31,7 @@ function App() {
     return (
         <div>
             <h4>Test the VirtualKeyboard</h4>
+            <Keyboard style="alpha_lower" onClick={() => {}} />
             <p>
                 Last command received from the VirtualKeyboard:{" "}
                 <code style={{ fontWeight: "bold", color: "#f8a" }}>
@@ -45,7 +45,9 @@ function App() {
                 }}
             />
             <MathJaxContext>
-                <VirtualKeyboard />
+                <ChakraProvider>
+                    <VirtualKeyboard />
+                </ChakraProvider>
             </MathJaxContext>
         </div>
     );
