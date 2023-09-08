@@ -1,0 +1,17 @@
+{
+  "extends": "../../tsconfig.build.json",
+  "compilerOptions": {
+    "outDir": "./dist/",
+    "rootDir": "./"
+  },
+  "include": ["./**/*.ts", "./**/*.tsx", "./src/generated-assets/*.js"],
+  "exclude": [
+    "./**/*.test.ts",
+    "./**/*.stub.ts",
+    "node_modules",
+    "**/tests/",
+    "**/dist/**/*",
+    "./vite.config.ts"
+  ],
+  "references": []
+}

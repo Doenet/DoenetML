@@ -31,10 +31,10 @@
         "jsdom": "^22.1.0",
         "prettier": "^3.0.2",
         "typescript": "^5.2.2",
+        "vite-node": "^0.34.4",
         "vitest": "^0.34.3"
     },
     "prettier": {
         "tabWidth": 4
-    },
-    "dependencies": {}
+    }
 }

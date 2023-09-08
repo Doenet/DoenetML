@@ -1,16 +1,61 @@
-import createComponentInfoObjects from "./componentInfoObjects";
+import createComponentInfoObjects from "../../doenetml/src/Core/utils/componentInfoObjects";
 
 // Create schema of DoenetML by extracting component, attributes and children
 // from component classes.
 // The results are currently just stringified and printed out,
 // and then manually copied into src/Core/doenetSchema.json.
-// CodeMirrror.jsx reads in the json file to form its autocompletion scheme.
+// CodeMirror.jsx reads in the json file to form its autocompletion scheme.
 
 // For now, we just run getSchema() manually, then copy and paste the output
 // to doenetSchema.json.
 
+type AttributeObject = {
+    createPrimitiveOfType: string;
+    createStateVariable: string;
+    createComponentOfType: string;
+    defaultValue: unknown;
+    public: boolean;
+    excludeFromSchema: boolean;
+    validValues?: unknown[];
+};
+
+type ComponentClass = {
+    componentType: string;
+    renderChildren: boolean;
+    canDisplayChildErrors: boolean;
+    includeBlankStringChildren: boolean;
+    returnChildGroups: () => {
+        group: string;
+        componentTypes: string[];
+        excludeFromSchema?: boolean;
+    }[];
+    returnStateVariableDefinitions: () => {
+        hidden: unknown;
+        disabled: unknown;
+        fixed: unknown;
+        fixLocation: unknown;
+        isInactiveCompositeReplacement: unknown;
+        doenetML: unknown;
+    }[];
+    excludeFromSchema: boolean;
+    allowInSchemaAsComponent?: string[];
+    acceptTarget: boolean;
+    createAttributesObject: () => Record<string, AttributeObject>;
+    inSchemaOnlyInheritAs: string[];
+    getAdapterComponentType: (...args: any[]) => string;
+    numAdapters: number;
+    additionalSchemaChildren?: string[];
+    assignNamesToReplacements: boolean;
+};
+
+interface ComponentInfoObjects
+    extends ReturnType<typeof createComponentInfoObjects> {
+    allComponentClasses: Record<string, ComponentClass>;
+}
+
 export function getSchema() {
-    let componentInfoObjects = createComponentInfoObjects();
+    let componentInfoObjects =
+        createComponentInfoObjects() as ComponentInfoObjects;
     let componentClasses = componentInfoObjects.allComponentClasses;
 
     // If a component class has static variable excludeFromSchema set,
@@ -22,7 +67,7 @@ export function getSchema() {
         }
     }
 
-    let inheritedOrAdaptedTypes = {};
+    let inheritedOrAdaptedTypes: Record<string, string[]> = {};
 
     for (let type1 in componentClasses) {
         let inherited = [];
@@ -121,7 +166,9 @@ export function getSchema() {
             // one can add a excludeFromSchema to an attribute definition
             // to keep it from showing up in the schema
             if (!attrDef.excludeFromSchema) {
-                let attrSpec = { name: attrName };
+                let attrSpec: { name: string; values?: unknown[] } = {
+                    name: attrName,
+                };
 
                 if (attrDef.validValues) {
                     attrSpec.values = attrDef.validValues;
@@ -191,13 +238,17 @@ export function getSchema() {
     }
 
     // For now, we're just copying these schema from this console output
-    console.log(JSON.stringify({ elements }));
+    return { elements };
 }
 
 function checkIfInheritOrAdapt({
     startingType,
     destinationType,
     componentInfoObjects,
+}: {
+    startingType: string;
+    destinationType: string;
+    componentInfoObjects: ComponentInfoObjects;
 }) {
     let startingClass = componentInfoObjects.allComponentClasses[startingType];
 
