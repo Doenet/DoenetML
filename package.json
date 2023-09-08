@@ -4,11 +4,11 @@
     "version": "1.0.0",
     "description": "Monorepo for the DoenetML project",
     "workspaces": [
-        "./packages/static-assets",
         "./packages/ui-components",
         "./packages/utils",
         "./packages/parser",
         "./packages/doenetml-worker",
+        "./packages/static-assets",
         "./packages/virtual-keyboard",
         "./packages/codemirror",
         "./packages/doenetml",
