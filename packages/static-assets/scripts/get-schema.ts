@@ -2,12 +2,7 @@ import createComponentInfoObjects from "../../doenetml/src/Core/utils/componentI
 
 // Create schema of DoenetML by extracting component, attributes and children
 // from component classes.
-// The results are currently just stringified and printed out,
-// and then manually copied into src/Core/doenetSchema.json.
 // CodeMirror.jsx reads in the json file to form its autocompletion scheme.
-
-// For now, we just run getSchema() manually, then copy and paste the output
-// to doenetSchema.json.
 
 type AttributeObject = {
     createPrimitiveOfType: string;
