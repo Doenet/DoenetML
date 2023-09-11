@@ -3,7 +3,7 @@ import useDoenetRenderer from "../useDoenetRenderer";
 import { BoardContext, LINE_LAYER_OFFSET } from "./graph";
 import me from "math-expressions";
 import { MathJax } from "better-react-mathjax";
-import { textRendererStyle } from "../../Core/utils/style";
+import { textRendererStyle } from "@doenet/utils";
 import { PageContext } from "../PageViewer";
 
 export default React.memo(function Line(props) {

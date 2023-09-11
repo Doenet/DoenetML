@@ -1,14 +1,15 @@
 import { prng_alea } from "esm-seedrandom";
-import { returnAllPossibleVariants } from "../Core/utils/returnAllPossibleVariants";
 import { parseAndCompile } from "@doenet/parser";
-import { enumerateCombinations } from "../Core/utils/enumeration";
-import createComponentInfoObjects from "../Core/utils/componentInfoObjects";
+import componentInfoObjects from "../../../assets/assets/componentInfoObjects.json";
 import {
+    cidFromText,
+    retrieveTextFileForCid,
+    enumerateCombinations,
     addDocumentIfItsMissing,
     countComponentTypes,
     expandDoenetMLsToFullSerializedComponents,
-} from "../Core/utils/serializedStateProcessing";
-import { cidFromText, retrieveTextFileForCid } from "@doenet/utils";
+    returnAllPossibleVariants,
+} from "@doenet/utils";
 
 let rngClass = prng_alea;
 
@@ -860,8 +861,6 @@ function processShuffleOrder(order, rng) {
 
 async function initializeComponentTypeCounts(pages) {
     let previousComponentTypeCountsByPage = [{}];
-
-    let componentInfoObjects = createComponentInfoObjects();
 
     for (let [ind, page] of pages.slice(0, pages.length - 1).entries()) {
         let { fullSerializedComponents } =

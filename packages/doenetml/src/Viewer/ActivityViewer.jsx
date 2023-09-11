@@ -11,6 +11,7 @@ import {
     getLineCharRange,
     printDoenetMLrange,
     cesc,
+    returnAllPossibleVariants,
 } from "@doenet/utils";
 import { nanoid } from "nanoid";
 import {
@@ -22,7 +23,6 @@ import VisibilitySensor from "react-visibility-sensor-v2";
 import { Button } from "@doenet/ui-components";
 import { ButtonGroup } from "@doenet/ui-components";
 import { ActionButton } from "@doenet/ui-components";
-import { returnAllPossibleVariants } from "../Core/utils/returnAllPossibleVariants";
 
 const sendAlert = (msg, type) => console.log(msg);
 
