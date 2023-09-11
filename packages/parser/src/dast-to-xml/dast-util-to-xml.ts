@@ -85,7 +85,11 @@ export function nodesToXml(
             const printedAttrs =
                 (attrs.length > 0 ? " " : "") + attrs.join(" ");
 
-            if (node.children.length === 0) {
+            if (
+                node.children.length === 0 ||
+                (!options.inlineErrors &&
+                    node.children.every((c) => c.type === "error"))
+            ) {
                 return `<${nodeName}${printedAttrs} />`;
             }
             return `<${nodeName}${printedAttrs}>${content}</${nodeName}>`;

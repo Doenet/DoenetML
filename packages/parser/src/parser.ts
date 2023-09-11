@@ -3,6 +3,7 @@ import { parser } from "./generated-assets/lezer-doenet";
 export { toXml } from "./dast-to-xml/dast-util-to-xml";
 export { lezerToDast } from "./lezer-to-dast/lezer-to-dast";
 export { prettyPrint } from "./pretty-printer";
+export * from "./types";
 
 // Re-export parser for CodeMirror instances
 export { parser };

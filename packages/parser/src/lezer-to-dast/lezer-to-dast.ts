@@ -86,9 +86,31 @@ export function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
                     );
                     return [];
                 }
+                let children: DastElementContent[] = [];
+                // The open tag may have an error in it.
+                let openTagError = findFirstErrorInChild(openTag);
+                if (openTagError) {
+                    const errorNode = createErrorNode(openTagError, source, offsetMap);
+                    children.push(errorNode);
+                }
+                // If we have an open tag but no closing tag, it's an error.
+                // It's not an error if the tag was self closing.
+                let elementError = node.getChild("⚠");
+                if (
+                    openTag.type.name === "OpenTag" &&
+                    !node.getChild("CloseTag") &&
+                    !openTagError && elementError
+                ) {
+                    const errorNode = createErrorNode(
+                        elementError,
+                        source,
+                        offsetMap,
+                    );
+                    children.push(errorNode);
+                }
+
                 const tag = openTag.getChild("TagName");
                 const name = tag ? extractContent(tag, source) : "";
-                let children: DastElementContent[] = [];
                 const attributes: DastAttribute[] = [];
                 for (const attrTag of openTag.getChildren("Attribute")) {
                     const error = findFirstErrorInChild(attrTag);

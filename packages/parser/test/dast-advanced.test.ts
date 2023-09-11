@@ -462,7 +462,7 @@ describe("DAST", async () => {
           }
         `);
 
-        source = `<m z="$x">`;
+        source = `<m z="$x" />`;
         expect(filterPositionInfo(lezerToDast(source))).toMatchInlineSnapshot(`
           {
             "children": [

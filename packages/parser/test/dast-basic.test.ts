@@ -2,7 +2,6 @@ import { glob } from "glob";
 import { describe, expect, it } from "vitest";
 import * as fs from "node:fs/promises";
 import { lezerToDast } from "../src/lezer-to-dast";
-import { lezerToDast as lezerToDastNew } from "../src/lezer-to-dast/lezer-to-dast";
 import { toXml } from "../src/dast-to-xml/dast-util-to-xml";
 import util from "util";
 import {
@@ -53,7 +52,7 @@ describe("DAST", async () => {
         for (const [filename, filepath] of Object.entries(fileMap)) {
             it(`${filename} prints correctly in Xml format and Doenet format`, async () => {
                 const source = await fs.readFile(filepath, "utf-8");
-                const dast = lezerToDastNew(source);
+                const dast = lezerToDast(source);
                 const formattedXml = toXml(dast);
                 const formattedDoenet = toXml(dast, { doenetSyntax: true });
                 expect(formattedXml).toMatchSnapshot();
@@ -291,7 +290,7 @@ describe("DAST", async () => {
           }
         `);
 
-        source = `<m foo bar="baz">`;
+        source = `<m foo bar="baz" />`;
         expect(filterPositionInfo(lezerToDast(source))).toMatchInlineSnapshot(`
           {
             "children": [
