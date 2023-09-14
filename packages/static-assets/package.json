@@ -1,0 +1,24 @@
+{
+    "name": "@doenet/static-assets",
+    "type": "module",
+    "description": "Static JSON blobs for DoenetML components",
+    "version": "1.0.0",
+    "license": "AGPL-3.0-or-later",
+    "homepage": "https://github.com/Doenet/DoenetML#readme",
+    "private": false,
+    "repository": "github:Doenet/DoenetML",
+    "files": [
+        "/dist"
+    ],
+    "exports": {
+        "./*json": {
+            "import": "./dist/*json"
+        }
+    },
+    "scripts": {
+        "test": "echo \"No tests \"",
+        "build": "npm run build:pre && npm run build:schema",
+        "build:pre": "rm -rf dist; mkdir dist",
+        "build:schema": "vite-node ./scripts/generate-schema.ts"
+    }
+}
