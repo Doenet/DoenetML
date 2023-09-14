@@ -6,7 +6,7 @@ import {
     stringToLezer,
     visit,
 } from "@doenet/parser";
-import { TreeCursor } from "@lezer/common";
+import type { TreeCursor } from "@lezer/common";
 import { DoenetSourceObject, OffsetToPositionMap } from "./index";
 
 export function initOffsetToRowCache(this: DoenetSourceObject) {

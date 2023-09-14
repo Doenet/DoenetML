@@ -5,7 +5,7 @@ import {
     LezerSyntaxNodeName,
     toXml,
 } from "@doenet/parser";
-import { SyntaxNode, TreeCursor } from "@lezer/common";
+import type { SyntaxNode, TreeCursor } from "@lezer/common";
 import {
     initDast,
     initLezer,

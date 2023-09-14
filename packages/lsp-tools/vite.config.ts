@@ -4,14 +4,17 @@ import dts from "vite-plugin-dts";
 // https://vitejs.dev/config/
 export default defineConfig({
     base: "./",
-    plugins: [dts({ rollupTypes: true })],
+    plugins: [dts()],
     build: {
         minify: false,
         sourcemap: true,
         lib: {
-            entry: "./src/parser.ts",
+            entry: "./src/index.ts",
             fileName: "index",
             formats: ["es"],
+        },
+        rollupOptions: {
+            external: ["@doenet/parser", "@doenet/static-assets"],
         },
     },
 });
