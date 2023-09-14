@@ -1,5 +1,5 @@
 import { CursorPosition, DoenetSourceObject, RowCol } from "./index";
-import { DastElement, LezerSyntaxNodeName } from "../dast/parser";
+import { DastElement, LezerSyntaxNodeName } from "@doenet/parser";
 
 /**
  * Get the element containing the position `offset`. `null` is returned if the position is not

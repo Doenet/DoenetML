@@ -6,10 +6,9 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { CodeMirror } from "@doenet/codemirror";
-import { lezerToDast, parse } from "./dast/parser";
+import { lezerToDast, parse, filterPositionInfo } from "@doenet/parser";
 import JsonView from "react18-json-view";
 import "react18-json-view/src/style.css";
-import { filterPositionInfo } from "./dast/parser";
 import { DoenetSourceObject } from "./doenet-source-object";
 import { AutoCompleter } from "./auto-completer";
 
@@ -57,7 +56,7 @@ function App() {
             { currentPos },
             sourceObj.elementAtOffset(currentPos),
             sourceObj.attributeAtOffset(currentPos),
-            completionObj.getCompletionItems(currentPos)
+            completionObj.getCompletionItems(currentPos),
         );
     }, [currentPos, doenetSource]);
 
