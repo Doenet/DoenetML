@@ -34,6 +34,15 @@ import { parseMacros } from "../macros";
 import { gobbleFunctionArguments } from "./gobble-function-arguments";
 
 /**
+ * Create a lezer `SyntaxNode` from a string. This can be passed
+ * to `lezerToDast` to create a DAST tree.
+ */
+export function stringToLezer(source: string): SyntaxNode {
+    const tree = parser.parse(source);
+    return tree.topNode;
+}
+
+/**
  * Convert a lezer `SyntaxNode` into a DAST tree.
  */
 export function lezerToDast(
@@ -90,7 +99,11 @@ export function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
                 // The open tag may have an error in it.
                 let openTagError = findFirstErrorInChild(openTag);
                 if (openTagError) {
-                    const errorNode = createErrorNode(openTagError, source, offsetMap);
+                    const errorNode = createErrorNode(
+                        openTagError,
+                        source,
+                        offsetMap,
+                    );
                     children.push(errorNode);
                 }
                 // If we have an open tag but no closing tag, it's an error.
@@ -99,7 +112,8 @@ export function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
                 if (
                     openTag.type.name === "OpenTag" &&
                     !node.getChild("CloseTag") &&
-                    !openTagError && elementError
+                    !openTagError &&
+                    elementError
                 ) {
                     const errorNode = createErrorNode(
                         elementError,

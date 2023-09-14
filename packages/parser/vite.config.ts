@@ -8,12 +8,14 @@ import * as esbuild from "esbuild";
 // https://vitejs.dev/config/
 export default defineConfig({
     base: "./",
-    plugins: [dts({ rollupTypes: true }), pegjsLoader()],
+    plugins: [dts(
+        //{ rollupTypes: true }
+        ), pegjsLoader()],
     build: {
         minify: false,
         sourcemap: true,
         lib: {
-            entry: "./src/parser.ts",
+            entry: "./src/index.ts",
             fileName: "index",
             formats: ["es"],
         },

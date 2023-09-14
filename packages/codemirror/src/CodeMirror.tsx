@@ -6,7 +6,12 @@ import React, {
     useState,
 } from "react";
 import { basicSetup } from "@codemirror/basic-setup";
-import { EditorState, Transaction, StateEffect } from "@codemirror/state";
+import {
+    EditorState,
+    Transaction,
+    StateEffect,
+    EditorSelection,
+} from "@codemirror/state";
 import { selectLine, deleteLine, cursorLineUp } from "@codemirror/commands";
 import { EditorView, keymap, Command } from "@codemirror/view";
 import { styleTags, tags as t } from "@codemirror/highlight";
@@ -26,6 +31,7 @@ import doenetSchema from "../../doenetml/src/Core/doenetSchema.json";
 export function CodeMirror({
     setInternalValueTo,
     onBeforeChange,
+    onCursorChange,
     readOnly,
     onBlur,
     onFocus,
@@ -33,6 +39,7 @@ export function CodeMirror({
 }: {
     setInternalValueTo: string;
     onBeforeChange: (str: string) => void;
+    onCursorChange?: (selection: EditorSelection) => any;
     readOnly?: boolean;
     onBlur?: () => void;
     onFocus?: () => void;
@@ -87,6 +94,9 @@ export function CodeMirror({
     const [count, setCount] = useState(0);
 
     const changeFunc = useCallback((tr: Transaction) => {
+        if (tr.selection && onCursorChange) {
+            onCursorChange(tr.selection);
+        }
         if (tr.docChanged) {
             let strOfDoc = tr.state.sliceDoc();
             onBeforeChange(strOfDoc);
@@ -207,6 +217,7 @@ export function CodeMirror({
             onBlurExtension,
             onFocusExtension,
             EditorState.changeFilter.of(changeFunc),
+
             // XXX This type appears to be incorrect, but I am not sure what this function is doing...
             // @ts-ignore
             EditorView.updateListener.of(changeFunc),
@@ -234,7 +245,7 @@ export function CodeMirror({
                     tagNameNode?.to,
                 );
 
-                //an ineffecient hack to make it so the modified document is saved directly after tagMatch
+                //an inefficient hack to make it so the modified document is saved directly after tagMatch
                 let tra = tr.state.update({
                     changes: {
                         from: cursorPos,

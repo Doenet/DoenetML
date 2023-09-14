@@ -1,7 +1,9 @@
 import type { SyntaxNode, TreeCursor } from "@lezer/common";
+export { filterPositionInfo } from "./dast-to-xml/utils";
 import { parser } from "./generated-assets/lezer-doenet";
+export { visit } from "./pretty-printer/normalize/utils/visit";
 export { toXml } from "./dast-to-xml/dast-util-to-xml";
-export { lezerToDast } from "./lezer-to-dast/lezer-to-dast";
+export { lezerToDast, stringToLezer } from "./lezer-to-dast/lezer-to-dast";
 export { prettyPrint } from "./pretty-printer";
 export * from "./types";
 
