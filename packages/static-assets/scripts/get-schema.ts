@@ -24,14 +24,7 @@ type ComponentClass = {
         componentTypes: string[];
         excludeFromSchema?: boolean;
     }[];
-    returnStateVariableDefinitions: () => {
-        hidden: unknown;
-        disabled: unknown;
-        fixed: unknown;
-        fixLocation: unknown;
-        isInactiveCompositeReplacement: unknown;
-        doenetML: unknown;
-    }[];
+    returnStateVariableDefinitions: () => Record<string, unknown>;
     excludeFromSchema: boolean;
     allowInSchemaAsComponent?: string[];
     acceptTarget: boolean;
