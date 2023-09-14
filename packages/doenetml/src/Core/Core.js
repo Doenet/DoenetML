@@ -2106,6 +2106,25 @@ export default class Core {
             parent.childrenMatchedWithPlaceholders = false;
             parent.matchedCompositeChildrenWithPlaceholders = true;
 
+            let unmatchedChildrenTypes = [];
+            for (let child of childGroupResults.unmatchedChildren) {
+                if (typeof child === "string") {
+                    unmatchedChildrenTypes.push("string");
+                } else {
+                    unmatchedChildrenTypes.push(
+                        "<" + child.componentType + ">",
+                    );
+                    if (
+                        this.componentInfoObjects.isInheritedComponentType({
+                            inheritedComponentType: child.componentType,
+                            baseComponentType: "_composite",
+                        })
+                    ) {
+                        parent.matchedCompositeChildrenWithPlaceholders = false;
+                    }
+                }
+            }
+
             if (parent.doenetAttributes.isAttributeChildFor) {
                 let attributeForComponentType =
                     parent.ancestors[0].componentClass.componentType;
@@ -2113,25 +2132,6 @@ export default class Core {
                     message: `Invalid format for attribute ${parent.doenetAttributes.isAttributeChildFor} of <${attributeForComponentType}>.`,
                 };
             } else {
-                let unmatchedChildrenTypes = [];
-                for (let child of childGroupResults.unmatchedChildren) {
-                    if (typeof child === "string") {
-                        unmatchedChildrenTypes.push("string");
-                    } else {
-                        unmatchedChildrenTypes.push(
-                            "<" + child.componentType + ">",
-                        );
-                        if (
-                            this.componentInfoObjects.isInheritedComponentType({
-                                inheritedComponentType: child.componentType,
-                                baseComponentType: "_composite",
-                            })
-                        ) {
-                            parent.matchedCompositeChildrenWithPlaceholders = false;
-                        }
-                    }
-                }
-
                 this.unmatchedChildren[parent.componentName] = {
                     message: `Invalid children for <${
                         parent.componentType

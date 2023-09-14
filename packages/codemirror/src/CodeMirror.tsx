@@ -26,7 +26,7 @@ import {
 import { completeFromSchema } from "@codemirror/lang-xml";
 import { parser } from "@doenet/parser";
 // @ts-ignore
-import doenetSchema from "../../doenetml/src/Core/doenetSchema.json";
+import doenetSchema from "@doenet/static-assets/doenet-schema.json";
 
 export function CodeMirror({
     setInternalValueTo,
