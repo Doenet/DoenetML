@@ -10,8 +10,8 @@ import { lezerToDast, parse } from "./dast/parser";
 import JsonView from "react18-json-view";
 import "react18-json-view/src/style.css";
 import { filterPositionInfo } from "./dast/parser";
-import { DoenetSourceObject } from "./dast/doenet-source-object";
-import { AutoCompleter } from "./dast/auto-completer";
+import { DoenetSourceObject } from "./doenet-source-object";
+import { AutoCompleter } from "./auto-completer";
 
 const INITIAL_DOENET_SOURCE = `
 <p>Use this to test DoenetML</p>

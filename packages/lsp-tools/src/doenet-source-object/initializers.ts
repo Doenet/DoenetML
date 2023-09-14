@@ -5,7 +5,7 @@ import {
     lezerToDast,
     stringToLezer,
     visit,
-} from "../parser";
+} from "../dast/parser";
 import { TreeCursor } from "@lezer/common";
 import { DoenetSourceObject, OffsetToPositionMap } from "./index";
 

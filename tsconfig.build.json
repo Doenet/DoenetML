@@ -35,6 +35,7 @@
             "@doenet/parser": ["./packages/parser/dist"],
             "@doenet/doenetml": ["./packages/doenetml/dist"],
             "@doenet/codemirror": ["./packages/codemirror/dist"],
+            "@doenet/static-assets": ["./packages/static-assets/dist"],
             "@doenet/*": ["./packages/*/dist"]
         }
     }
