@@ -106,7 +106,7 @@ describe("DoenetSourceObject", () => {
 
     it("Can get element", () => {
         let source: string;
-        let sourceObj: DoenetSourceObject
+        let sourceObj: DoenetSourceObject;
 
         source = `<a><b foo="bar">   <c>hi</c></b></a>`;
         sourceObj = new DoenetSourceObject(source);
@@ -115,63 +115,92 @@ describe("DoenetSourceObject", () => {
             expect(cursorPosition).toEqual("openTagName");
             expect(node).toMatchObject({ type: "element", name: "b" });
         }
-        {    
+        {
             let { cursorPosition, node } = sourceObj.elementAtOffset(6);
             expect(cursorPosition).toEqual("attributeName");
             expect(node).toMatchObject({ type: "element", name: "b" });
         }
-        {    
+        {
             let { cursorPosition, node } = sourceObj.elementAtOffset(11);
             expect(cursorPosition).toEqual("attributeValue");
             expect(node).toMatchObject({ type: "element", name: "b" });
         }
-        {    
+        {
             let { cursorPosition, node } = sourceObj.elementAtOffset(17);
             expect(cursorPosition).toEqual("body");
             expect(node).toMatchObject({ type: "element", name: "b" });
         }
-        
+
         source = `<a > </a   >`;
         sourceObj = new DoenetSourceObject(source);
-        {    
+        {
             let { cursorPosition, node } = sourceObj.elementAtOffset(3);
             expect(cursorPosition).toEqual("openTag");
             expect(node).toMatchObject({ type: "element", name: "a" });
         }
-        {    
+        {
             let { cursorPosition, node } = sourceObj.elementAtOffset(5);
             expect(cursorPosition).toEqual("body");
             expect(node).toMatchObject({ type: "element", name: "a" });
         }
-        {    
+        {
             let { cursorPosition, node } = sourceObj.elementAtOffset(9);
             expect(cursorPosition).toEqual("unknown");
             expect(node).toMatchObject({ type: "element", name: "a" });
         }
-        {    
+        {
             let { cursorPosition, node } = sourceObj.elementAtOffset(11);
             expect(cursorPosition).toEqual("unknown");
             expect(node).toMatchObject({ type: "element", name: "a" });
         }
     });
-    
+
     it("Can find cursorPosition in incomplete element", () => {
         let source: string;
-        let sourceObj: DoenetSourceObject
+        let sourceObj: DoenetSourceObject;
 
         source = `<a    `;
         sourceObj = new DoenetSourceObject(source);
-        {    
+        {
             let { cursorPosition, node } = sourceObj.elementAtOffset(3);
             expect(cursorPosition).toEqual("openTag");
             expect(node).toMatchObject({ type: "element", name: "a" });
         }
         source = `<p><a    </p>`;
         sourceObj = new DoenetSourceObject(source);
-        {    
+        {
             let { cursorPosition, node } = sourceObj.elementAtOffset(7);
             expect(cursorPosition).toEqual("openTag");
             expect(node).toMatchObject({ type: "element", name: "a" });
+        }
+    });
+
+    it("Can find named referents", () => {
+        let source: string;
+        let sourceObj: DoenetSourceObject;
+
+        source = `<a name="x">
+            <b name="y">
+                <c name="z" />
+            </b>
+        </a>
+        <d name="y" />`;
+        sourceObj = new DoenetSourceObject(source);
+        {
+            let offset = source.indexOf("<c") + 1;
+            let elm = sourceObj.getReferentAtPos(offset, "y");
+            expect(elm).toMatchObject({ type: "element", name: "b" });
+        }
+        {
+            // `y` is ambiguous at this place in the tree
+            let offset = source.indexOf("<d") + 1;
+            let elm = sourceObj.getReferentAtPos(offset, "y");
+            expect(elm).toBeNull();
+        }
+        {
+            let offset = source.indexOf("<d") + 1;
+            let elm = sourceObj.getReferentAtPos(offset, "z");
+            expect(elm).toMatchObject({ type: "element", name: "c" });
         }
     });
 });

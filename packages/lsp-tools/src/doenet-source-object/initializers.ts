@@ -4,6 +4,7 @@ import {
     DastRoot,
     lezerToDast,
     stringToLezer,
+    toXml,
     visit,
 } from "@doenet/parser";
 import type { TreeCursor } from "@lezer/common";
@@ -77,6 +78,35 @@ export function initOffsetToNodeMap(this: DoenetSourceObject) {
         }
     });
     return offsetToNodeMap;
+}
+
+export type AccessList = { name: string; element: DastElement }[];
+export function initDescendentNamesMap(this: DoenetSourceObject) {
+    const dast = this.dast;
+    const namesInScope: Map<DastElement | DastRoot, AccessList> = new Map();
+    const rootAccessList: AccessList = [];
+    namesInScope.set(dast, rootAccessList);
+    visit(dast, (node, info) => {
+        if (!(node.type === "element")) {
+            return;
+        }
+        const nameAttr = node.attributes.find((a) => a.name === "name");
+        if (!nameAttr) {
+            return;
+        }
+        // We have a name. Push our name to all of our parents.
+        for (const parent of info.parents) {
+            let accessList = namesInScope.get(parent);
+            if (!accessList) {
+                accessList = [];
+                namesInScope.set(parent, accessList);
+            }
+            accessList.push({ name: toXml(nameAttr.children), element: node });
+        }
+        // Make sure our name is also viewable from the root element.
+        rootAccessList.push({ name: toXml(nameAttr.children), element: node });
+    });
+    return namesInScope;
 }
 
 /**

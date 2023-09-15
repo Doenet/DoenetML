@@ -5,11 +5,11 @@ import {
     LezerSyntaxNodeName,
     toXml,
 } from "@doenet/parser";
-import type { SyntaxNode, TreeCursor } from "@lezer/common";
 import {
     initDast,
     initLezer,
     initLezerCursor,
+    initDescendentNamesMap,
     initOffsetToNodeMap,
     initOffsetToRowCache,
     initParentMap,
@@ -44,23 +44,14 @@ export class DoenetSourceObject extends LazyDataObject {
 
     // Set up the lazy data objects
     // These will be initialized the first time they are used
-    _lezer = this._lazyDataGetter<SyntaxNode, typeof this>(initLezer);
-    _lezerCursor = this._lazyDataGetter<TreeCursor, typeof this>(
-        initLezerCursor,
-    );
-    _dast = this._lazyDataGetter<DastRoot, typeof this>(initDast);
-    _offsetToRowCache = this._lazyDataGetter<OffsetToPositionMap, typeof this>(
-        initOffsetToRowCache,
-    );
-    _rowToOffsetCache = this._lazyDataGetter<Uint32Array, typeof this>(
-        initRowToOffsetCache,
-    );
-    _parentMap = this._lazyDataGetter<Map<DastNodes, DastElement>, typeof this>(
-        initParentMap,
-    );
-    _offsetToNodeMap = this._lazyDataGetter<(DastNodes | null)[], typeof this>(
-        initOffsetToNodeMap,
-    );
+    _lezer = this._lazyDataGetter(initLezer);
+    _lezerCursor = this._lazyDataGetter(initLezerCursor);
+    _dast = this._lazyDataGetter(initDast);
+    _offsetToRowCache = this._lazyDataGetter(initOffsetToRowCache);
+    _rowToOffsetCache = this._lazyDataGetter(initRowToOffsetCache);
+    _parentMap = this._lazyDataGetter(initParentMap);
+    _offsetToNodeMap = this._lazyDataGetter(initOffsetToNodeMap);
+    _descendentNamesMap = this._lazyDataGetter(initDescendentNamesMap);
 
     constructor(source?: string) {
         super();
@@ -145,6 +136,7 @@ export class DoenetSourceObject extends LazyDataObject {
         if (typeof offset !== "number") {
             offset = this.rowColToOffset(offset);
         }
+        const _offset = offset;
         const containingElm = this.elementAtOffset(offset);
         if (
             !containingElm.node ||
@@ -158,8 +150,8 @@ export class DoenetSourceObject extends LazyDataObject {
         const attribute = containingElm.node.attributes.find(
             (a) =>
                 a.position &&
-                a.position.start.offset! <= offset &&
-                a.position.end.offset! >= offset,
+                a.position.start.offset! <= _offset &&
+                a.position.end.offset! >= _offset,
         );
         return attribute || null;
     }
@@ -228,6 +220,44 @@ export class DoenetSourceObject extends LazyDataObject {
     getParent(node: DastNodes): DastElement | null {
         const parentMap = this._parentMap();
         return parentMap.get(node) || null;
+    }
+
+    /**
+     * Get the unique descendent of `node` with name `name`.
+     */
+    getNamedChild(
+        node: DastElement | DastRoot | undefined | null,
+        name: string,
+    ) {
+        if (!node) {
+            return null;
+        }
+        const descendentNamesMap = this._descendentNamesMap();
+        const accessibleNames = (descendentNamesMap.get(node) || []).filter(
+            (e) => e.name === name,
+        );
+        if (accessibleNames.length === 1) {
+            return accessibleNames[0].element;
+        }
+        return null;
+    }
+
+    /**
+     * Get the unique item with name `name` resolved from position `offset`.
+     */
+    getReferentAtPos(offset: number | RowCol, name: string) {
+        const { node } = this.elementAtOffset(offset);
+        let parent: DastElement | undefined | null = node;
+        let referent = this.getNamedChild(parent, name);
+        while (parent && !referent) {
+            parent = this._parentMap().get(parent);
+            referent = this.getNamedChild(parent, name);
+        }
+        if (!parent && !referent) {
+            // We need to search the root!
+            referent = this.getNamedChild(this.dast, name);
+        }
+        return referent || null;
     }
 
     /**
