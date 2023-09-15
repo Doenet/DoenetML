@@ -5,7 +5,6 @@ import React, {
     useRef,
     useState,
 } from "react";
-import { basicSetup } from "@codemirror/basic-setup";
 import {
     EditorState,
     Transaction,
@@ -14,8 +13,9 @@ import {
 } from "@codemirror/state";
 import { selectLine, deleteLine, cursorLineUp } from "@codemirror/commands";
 import { EditorView, keymap, Command } from "@codemirror/view";
-import { styleTags, tags as t } from "@codemirror/highlight";
-import { gutter, lineNumbers } from "@codemirror/gutter";
+import { basicSetup } from "codemirror";
+import { styleTags, tags as t } from "@lezer/highlight";
+import { lineNumbers } from "@codemirror/view";
 import {
     LRLanguage,
     LanguageSupport,
