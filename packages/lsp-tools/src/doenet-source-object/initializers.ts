@@ -36,7 +36,7 @@ export function initLezer(this: DoenetSourceObject) {
 
 export function initLezerCursor(this: DoenetSourceObject): TreeCursor {
     const lezer = this._lezer();
-    return lezer.cursor;
+    return lezer.cursor();
 }
 
 export function initDast(this: DoenetSourceObject) {
