@@ -1,5 +1,5 @@
 import { DoenetSourceObject, RowCol } from "../doenet-source-object";
-import doenetSchema from "@doenet/static-assets/doenet-schema.json";
+import { doenetSchema } from "@doenet/static-assets";
 import type {
     CompletionItem,
     CompletionItemKind,
