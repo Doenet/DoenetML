@@ -11,14 +11,16 @@
         "/dist"
     ],
     "exports": {
+        ".": {
+            "import": "./dist/index.js"
+        },
         "./*json": {
-            "import": "./dist/*json"
+            "import": "./dist/generated/*json"
         }
     },
     "scripts": {
         "test": "echo \"No tests \"",
-        "build": "npm run build:pre && npm run build:schema",
-        "build:pre": "rm -rf dist; mkdir dist",
+        "build": "vite build",
         "build:schema": "vite-node ./scripts/generate-schema.ts"
     }
 }
