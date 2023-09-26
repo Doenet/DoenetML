@@ -1207,6 +1207,53 @@ describe("UpdateValue Tag Tests", function () {
             });
     });
 
+    it("chained updates, copies copy triggers", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p>n: <number name="n">1</number></p>
+    <p>m1: <number name="m1">1</number></p>
+    <p>m2: <number name="m2">1</number></p>
+    
+    <p><updateValue name="uv" target="n" newValue="$n+1" /></p>
+    <p><updateValue name="uv2" copySource="uv" /></p>
+    <p><updateValue name="uv3" copySource="uv" /></p>
+    <p name="pmacro">$uv</p>
+    <updateValue triggerWith="uv" target="m1" newValue="$m1+1" />
+    <updateValue triggerWith="uv2" target="m2" newValue="$m2+1" />
+                    
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(cesc2("#/n")).should("have.text", "1");
+        cy.get(cesc2("#/m1")).should("have.text", "1");
+        cy.get(cesc2("#/m2")).should("have.text", "1");
+
+        cy.get(cesc2("#/uv")).click();
+        cy.get(cesc2("#/n")).should("have.text", "2");
+        cy.get(cesc2("#/m1")).should("have.text", "2");
+        cy.get(cesc2("#/m2")).should("have.text", "1");
+
+        cy.get(cesc2("#/uv2")).click();
+        cy.get(cesc2("#/n")).should("have.text", "3");
+        cy.get(cesc2("#/m1")).should("have.text", "3");
+        cy.get(cesc2("#/m2")).should("have.text", "2");
+
+        cy.get(cesc2("#/uv3")).click();
+        cy.get(cesc2("#/n")).should("have.text", "4");
+        cy.get(cesc2("#/m1")).should("have.text", "4");
+        cy.get(cesc2("#/m2")).should("have.text", "2");
+
+        cy.get(cesc2("#/pmacro") + " button").click();
+        cy.get(cesc2("#/n")).should("have.text", "5");
+        cy.get(cesc2("#/m1")).should("have.text", "5");
+        cy.get(cesc2("#/m2")).should("have.text", "2");
+    });
+
     it("update based on trigger", () => {
         cy.window().then(async (win) => {
             win.postMessage(
@@ -3685,5 +3732,38 @@ describe("UpdateValue Tag Tests", function () {
         cy.get(cesc("#\\/disabled1")).click();
         cy.get(cesc("#\\/pDisabled1")).should("have.text", "Disabled 1: true");
         cy.get(cesc("#\\/pDisabled2")).should("have.text", "Disabled 2: true");
+    });
+
+    it("handle removed updateValue when shadowing", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <group copySource="grp" />
+
+    <setup>
+        <group name="grp">
+            <p><boolean name="show">true</boolean></p>
+
+            <conditionalContent>
+                <case condition="$show">
+                    <updateValue name="uv" target="show" type="boolean" newValue="!$show" />
+                </case>
+            </conditionalContent>
+
+        </group>
+    </setup>
+                    
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(".doenet-viewer p").eq(0).should("have.text", "true");
+
+        cy.get(".doenet-viewer button").click();
+        cy.get(".doenet-viewer p").eq(0).should("have.text", "false");
+        cy.get(".doenet-viewer button").should("not.exist");
     });
 });
