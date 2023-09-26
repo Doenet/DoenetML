@@ -10697,22 +10697,20 @@ export default class Core {
                 actionsToChain.push(...this.actionsChangedToActions[id]);
             }
 
-            if (comp?.shadows) {
-                if (
-                    ["focus", "click"].includes(triggeringAction) &&
-                    cName.substring(0, 3) !== "/__"
-                ) {
-                    // for focus and click, we propagate to shadows only if
-                    // the copied component doesn't have a name.
-                    // In this way, if we include $P in a graph,
-                    // then triggerWhenObjectsClicked="P" and triggerWhenObjectsFocused="P"
-                    // will be triggered by that copy,
-                    // but these actions will not be triggered if that copy has a name.
-                    // TODO: if <point copySource="P" /> no longer has a name like "_point1",
-                    // should triggerWhenObjectsClicked="P" be triggered from that point?
-                    // Currently, it is not triggered.
-                    break;
-                }
+            if (
+                comp?.shadows &&
+                ["focus", "click"].includes(triggeringAction) &&
+                cName.substring(0, 3) === "/__"
+            ) {
+                // for focus and click, we propagate to shadows if
+                // the copied component doesn't have a name.
+                // In this way, if we include $P in a graph,
+                // then triggerWhenObjectsClicked="P" and triggerWhenObjectsFocused="P"
+                // will be triggered by that copy,
+                // but these actions will not be triggered if that copy has a name.
+                // TODO: if <point copySource="P" /> no longer has a name like "_point1",
+                // should triggerWhenObjectsClicked="P" be triggered from that point?
+                // Currently (Sept 26, 2023), it is not triggered.
                 cName = comp.shadows.componentName;
             } else {
                 break;

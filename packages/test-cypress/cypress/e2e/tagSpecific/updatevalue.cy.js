@@ -1207,7 +1207,7 @@ describe("UpdateValue Tag Tests", function () {
             });
     });
 
-    it("chained updates, copies copy triggers", () => {
+    it("chained updates, copies don't copy triggers", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
@@ -1240,17 +1240,17 @@ describe("UpdateValue Tag Tests", function () {
 
         cy.get(cesc2("#/uv2")).click();
         cy.get(cesc2("#/n")).should("have.text", "3");
-        cy.get(cesc2("#/m1")).should("have.text", "3");
+        cy.get(cesc2("#/m1")).should("have.text", "2");
         cy.get(cesc2("#/m2")).should("have.text", "2");
 
         cy.get(cesc2("#/uv3")).click();
         cy.get(cesc2("#/n")).should("have.text", "4");
-        cy.get(cesc2("#/m1")).should("have.text", "4");
+        cy.get(cesc2("#/m1")).should("have.text", "2");
         cy.get(cesc2("#/m2")).should("have.text", "2");
 
         cy.get(cesc2("#/pmacro") + " button").click();
         cy.get(cesc2("#/n")).should("have.text", "5");
-        cy.get(cesc2("#/m1")).should("have.text", "5");
+        cy.get(cesc2("#/m1")).should("have.text", "2");
         cy.get(cesc2("#/m2")).should("have.text", "2");
     });
 
