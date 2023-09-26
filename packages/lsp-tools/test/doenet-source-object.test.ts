@@ -235,7 +235,7 @@ describe("DoenetSourceObject", () => {
             let offset = source.indexOf("<d") + 1;
             macro = new DoenetSourceObject("$x.y.z").dast.children[0];
             let elm = sourceObj.getMacroReferentAtOffset(offset, macro);
-            expect(elm?.node).toMatchObject({ type: "element", name: "b" });
+            expect(elm?.node).toMatchObject({ type: "element", name: "c" });
         }
     });
 
