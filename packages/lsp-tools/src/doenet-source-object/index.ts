@@ -1,5 +1,6 @@
 import {
     DastElement,
+    DastFunctionMacro,
     DastNodes,
     DastRoot,
     LezerSyntaxNodeName,
@@ -17,6 +18,8 @@ import {
 } from "./initializers";
 import { LazyDataObject } from "./lazy-data";
 import { elementAtOffset } from "./element-at-offset";
+import { DastMacro } from "@doenet/parser";
+import { MarkupContent } from "vscode-languageserver";
 
 /**
  * A row/column position. All values are 1-indexed. This is compatible with UnifiedJs's
@@ -245,7 +248,7 @@ export class DoenetSourceObject extends LazyDataObject {
     /**
      * Get the unique item with name `name` resolved from position `offset`.
      */
-    getReferentAtPos(offset: number | RowCol, name: string) {
+    getReferentAtOffset(offset: number | RowCol, name: string) {
         const { node } = this.elementAtOffset(offset);
         let parent: DastElement | undefined | null = node;
         let referent = this.getNamedChild(parent, name);
@@ -258,6 +261,68 @@ export class DoenetSourceObject extends LazyDataObject {
             referent = this.getNamedChild(this.dast, name);
         }
         return referent || null;
+    }
+
+    /**
+     * Get the element that `macro` is referring to at position `offset`.
+     * Because a macro may end in attribute access, the algorithm searches
+     * for the largest matching initial segment and returns any unmatched parts
+     * of the macro.
+     */
+    getMacroReferentAtOffset(offset: number | RowCol, macro: DastMacro) {
+        if (isOldMacro(macro)) {
+            throw new Error(
+                `Cannot resolve v0.6 style macro "${toXml(macro)}"`,
+            );
+        }
+        let pathPart = macro.path[0];
+        if (pathPart.index.length > 0) {
+            throw new Error(
+                `The first part of a macro path must be just a name without an index. Failed to resolve "${toXml(
+                    macro,
+                )}"`,
+            );
+        }
+        // If we made it here, we are just a name, so proceed with the lookup!
+        let referent = this.getReferentAtOffset(offset, pathPart.name);
+        if (!referent) {
+            return null;
+        }
+        // If there are no ".foo" accesses, the referent gets returned.
+        if (!macro.accessedProp) {
+            return {
+                node: referent,
+                accessedProp: null,
+            };
+        }
+        // Otherwise, we walk down the tree trying to
+        // resolve whatever `accessedProp` refers to until we find something
+        // that doesn't exist.
+        let prop: DastMacro | null = macro.accessedProp;
+        let propReferent: DastElement | null = referent;
+        while (prop) {
+            if (prop.path[0].index.length > 0) {
+                // Indexing can only be used on synthetic nodes.
+                return {
+                    node: referent,
+                    accessedProp: prop,
+                };
+            }
+            propReferent = this.getNamedChild(referent, prop.path[0].name);
+            if (!propReferent) {
+                return {
+                    node: referent,
+                    accessedProp: prop,
+                };
+            }
+            // Step down one level
+            referent = propReferent;
+            prop = prop.accessedProp;
+        }
+        return {
+            node: referent,
+            accessedProp: null,
+        };
     }
 
     /**
@@ -279,3 +344,24 @@ export type OffsetToPositionMap = {
     rowMap: Uint32Array;
     columnMap: Uint32Array;
 };
+
+/**
+ * Returns `true` if the macro is an "old-style" macro with slashes
+ * in its path.
+ */
+export function isOldMacro(macro: DastMacro | DastFunctionMacro): boolean {
+    switch (macro.type) {
+        case "macro": {
+            if (macro.path.length !== 1) {
+                return true;
+            }
+            if (macro.accessedProp) {
+                return isOldMacro(macro.accessedProp);
+            }
+            return false;
+        }
+        case "function": {
+            return isOldMacro(macro.macro);
+        }
+    }
+}

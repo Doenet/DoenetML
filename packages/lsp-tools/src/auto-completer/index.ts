@@ -1,9 +1,7 @@
 import { DoenetSourceObject, RowCol } from "../doenet-source-object";
 import { doenetSchema } from "@doenet/static-assets";
-import type {
-    CompletionItem,
-    CompletionItemKind,
-} from "vscode-languageserver/browser";
+import type { CompletionItem } from "vscode-languageserver/browser";
+import { CompletionItemKind } from "vscode-languageserver/browser";
 import { DastAttribute, DastElement, showCursor } from "@doenet/parser";
 
 type ElementSchema = {
