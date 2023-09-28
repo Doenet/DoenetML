@@ -13,6 +13,9 @@
     "exports": {
         ".": {
             "import": "./dist/index.js"
+        },
+        "./*json": {
+            "import": "./dist/generated/*.json"
         }
     },
     "scripts": {
