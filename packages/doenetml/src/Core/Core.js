@@ -10697,20 +10697,18 @@ export default class Core {
                 actionsToChain.push(...this.actionsChangedToActions[id]);
             }
 
-            if (
-                comp?.shadows &&
-                ["focus", "click"].includes(triggeringAction) &&
-                cName.substring(0, 3) === "/__"
-            ) {
-                // for focus and click, we propagate to shadows if
-                // the copied component doesn't have a name.
+            if (comp?.shadows && cName.substring(0, 3) === "/__") {
+                // We propagate to shadows if the copied component doesn't have a name.
                 // In this way, if we include $P in a graph,
                 // then triggerWhenObjectsClicked="P" and triggerWhenObjectsFocused="P"
-                // will be triggered by that copy,
-                // but these actions will not be triggered if that copy has a name.
+                // will be triggered by that copy (as only as copy not given a name).
+                // Another use case is defining an <updateValue name="uv">,
+                // along with other triggered actions using triggerWith="uv",
+                // inside a <setup> and then including an unamed $uv
+                // where we want the button to be.
                 // TODO: if <point copySource="P" /> no longer has a name like "_point1",
                 // should triggerWhenObjectsClicked="P" be triggered from that point?
-                // Currently (Sept 26, 2023), it is not triggered.
+                // Currently (Oct 2, 2023), it is not triggered.
                 cName = comp.shadows.componentName;
             } else {
                 break;

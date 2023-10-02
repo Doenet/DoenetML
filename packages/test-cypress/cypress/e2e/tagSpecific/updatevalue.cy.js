@@ -1248,9 +1248,11 @@ describe("UpdateValue Tag Tests", function () {
         cy.get(cesc2("#/m1")).should("have.text", "2");
         cy.get(cesc2("#/m2")).should("have.text", "2");
 
+        // Note: we expect the macro to trigger the updateValue with triggerWith="uv"
+        // because it doesn't have a name.
         cy.get(cesc2("#/pmacro") + " button").click();
         cy.get(cesc2("#/n")).should("have.text", "5");
-        cy.get(cesc2("#/m1")).should("have.text", "2");
+        cy.get(cesc2("#/m1")).should("have.text", "3");
         cy.get(cesc2("#/m2")).should("have.text", "2");
     });
 
