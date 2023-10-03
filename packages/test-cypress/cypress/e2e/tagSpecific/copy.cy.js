@@ -11946,7 +11946,7 @@ describe("Copy Tag Tests", function () {
                 {
                     doenetML: `
     <text>a</text>
-    <copy uri="doenet:cid=bafkreiewcn63sugv6o6ernb2vljtt4d36zqn5pjxxy77qwfz2frejwnzhm" name="greetings" />
+    <copy uri="doenet:cid=bafkreifbeoxzphrpufrirccso2l4rtqgbcgli2bhbdzmccaopj3u6fkmdy" name="greetings" />
 
     <p>Don't get this: <text name="hi">Bye</text></p>
     
@@ -11992,7 +11992,7 @@ describe("Copy Tag Tests", function () {
                 {
                     doenetML: `
     <text>a</text>
-    <copy uri="doenet:cid=bafkreidpoi2m2sr52dm7hca3zlnnpm4vdgmtse7jx74zfvaee2ogfxnyqy" name="greetings" />
+    <copy uri="doenet:cid=bafkreici7lwt3yywhf75ypbcu62bumszzrxqgukaetwywajjbbnh45zfqa" name="greetings" />
 
     <p>Don't get this: <text name="hi">Bye</text></p>
     
@@ -12056,7 +12056,7 @@ describe("Copy Tag Tests", function () {
                 {
                     doenetML: `
     <text>a</text>
-    <section copyFromURI="doenet:cid=bafkreidpoi2m2sr52dm7hca3zlnnpm4vdgmtse7jx74zfvaee2ogfxnyqy" name="greetings" />
+    <section copyFromURI="doenet:cid=bafkreici7lwt3yywhf75ypbcu62bumszzrxqgukaetwywajjbbnh45zfqa" name="greetings" />
 
     <p>Don't get this: <text name="hi">Bye</text></p>
     
@@ -12120,7 +12120,7 @@ describe("Copy Tag Tests", function () {
                 {
                     doenetML: `
     <text>a</text>
-    <copy uri="doenet:cid=bafkreickzviscuc3v3bodp73qfgarfexcasf6txflg5huseru2qdpylaou" name="greetings" />
+    <copy uri="doenet:cid=bafkreigqo7xagr2hyfacifhzyrlnzbrd3aqpgs2rvt5ednsm3qdbk7aduy" name="greetings" />
 
     <p>Don't get this: <text name="hi">Bye</text></p>
     
@@ -12213,7 +12213,7 @@ describe("Copy Tag Tests", function () {
                 {
                     doenetML: `
     <text>a</text>
-    <section copyFromURI="doenet:cid=bafkreickzviscuc3v3bodp73qfgarfexcasf6txflg5huseru2qdpylaou" name="greetings" />
+    <section copyFromURI="doenet:cid=bafkreigqo7xagr2hyfacifhzyrlnzbrd3aqpgs2rvt5ednsm3qdbk7aduy" name="greetings" />
 
     <p>Don't get this: <text name="hi">Bye</text></p>
     
@@ -12306,7 +12306,7 @@ describe("Copy Tag Tests", function () {
                 {
                     doenetML: `
     <text>a</text>
-    <copy uri="doenet:cid=bafkreiccroxlq6rumheoxcs2vfze2h6u6ybi3yx4snhn7asbidbbit6wqa" name="greet" />
+    <copy uri="doenet:cid=bafkreiblfl6xriye7uuiik6xlnuj3suf3xo236enwidz5wyeew7pcec3ba" name="greet" />
 
     <p>Don't get this 2: <text name="hi">Leave</text></p>
     
@@ -12360,7 +12360,7 @@ describe("Copy Tag Tests", function () {
                 {
                     doenetML: `
     <text>a</text>
-    <copy uri="doenet:cid=bafkreic2z7kam3hnfbbpscwurh5lidhmtxmdlxcv7xtewp5mkqq32envae" name="greet" />
+    <copy uri="doenet:cid=bafkreiatlgd6rb5reyd33tba62rpgpkyy33edxc4z2wkvcgluuqo2gbenu" name="greet" />
 
     <p>Don't get this 2: <text name="hi">Leave</text></p>
     
@@ -12420,7 +12420,7 @@ describe("Copy Tag Tests", function () {
                 {
                     doenetML: `
     <text>a</text>
-    <section copyfromuri="doenet:cid=bafkreic2z7kam3hnfbbpscwurh5lidhmtxmdlxcv7xtewp5mkqq32envae" name="greet" />
+    <section copyfromuri="doenet:cid=bafkreiatlgd6rb5reyd33tba62rpgpkyy33edxc4z2wkvcgluuqo2gbenu" name="greet" />
 
     <p>Don't get this 2: <text name="hi">Leave</text></p>
     
