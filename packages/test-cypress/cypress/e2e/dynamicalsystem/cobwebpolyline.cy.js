@@ -1861,7 +1861,7 @@ describe("CobwebPolyline Tag Tests", function () {
     <function name="f">2x-x^2/3</function>
   </setup>
   
-  <copy uri="doenet:cid=bafkreic2ntu5jyvhrm5wnfxngtao35dupv6so547rw32y5hnb4dn2gt4um" name="gradedApplet" function="$f" xmin="-0.8" xmax="7" ymin="-1" ymax="4" width="320px" height="200px" attractThreshold="0.2" showNavigation="false" numIterationsRequired="3" initialValueDx="0.2" x0="1" />
+  <copy uri="doenet:cid=bafkreiatwotzdmrphuof5j4gsr42jvt266ourxqlpukspkedwe7kfwflze" name="gradedApplet" function="$f" xmin="-0.8" xmax="7" ymin="-1" ymax="4" width="320px" height="200px" attractThreshold="0.2" showNavigation="false" numIterationsRequired="3" initialValueDx="0.2" x0="1" />
   
   `,
                 },
