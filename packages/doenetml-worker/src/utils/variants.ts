@@ -1,9 +1,14 @@
 import { numberToLetters, enumerateCombinations } from "@doenet/utils";
 
+// getVariantsForDescendantsForUniqueVariants: only needed in worker
 export function getVariantsForDescendantsForUniqueVariants({
     variantIndex,
     serializedComponent,
     componentInfoObjects,
+}: {
+    variantIndex: number;
+    serializedComponent: any;
+    componentInfoObjects: any;
 }) {
     let descendantVariantComponents =
         serializedComponent.variants?.descendantVariantComponents;
@@ -13,7 +18,7 @@ export function getVariantsForDescendantsForUniqueVariants({
     }
 
     let numVariantsByDescendant = descendantVariantComponents.map(
-        (x) => x.variants.numVariants,
+        (x: any) => x.variants.numVariants,
     );
 
     let indices = enumerateCombinations({
@@ -43,11 +48,17 @@ export function getVariantsForDescendantsForUniqueVariants({
     };
 }
 
+// setUpVariantSeedAndRng: only needed in worker
 export function setUpVariantSeedAndRng({
     serializedComponent,
     sharedParameters,
     descendantVariantComponents,
     useSubpartVariantRng = false,
+}: {
+    serializedComponent: any;
+    sharedParameters: any;
+    descendantVariantComponents: any;
+    useSubpartVariantRng: boolean;
 }) {
     // Note: use subpartVariantRng for containers that don't actually select anything random.
     // That way, adding such a non-random component to the DoenetML
@@ -97,10 +108,14 @@ export function setUpVariantSeedAndRng({
     }
 }
 
+// gatherVariantComonents: needed in getNumVariants, which is needed in returnAllPossibleVariants
+// needed from componentInfoObjects:
+// - componentTypesCreatingVariants
+// - ignoreVariantsFromChildren from component class
 export function gatherVariantComponents({
     serializedComponents,
     componentInfoObjects,
-}) {
+}: any) {
     // returns a list of serialized components who are variant components,
     // where the components are selected from serializedComponents themselves,
     // or, if a particular component isn't a variant component,
@@ -109,7 +124,7 @@ export function gatherVariantComponents({
     // Also, as a side effect, mark each found variant component as a variant component
     // directly in the variants attribute of that component
 
-    let variantComponents = [];
+    let variantComponents: any[] = [];
 
     for (let serializedComponent of serializedComponents) {
         if (typeof serializedComponent !== "object") {
@@ -151,7 +166,7 @@ export function gatherVariantComponents({
         // is a variant component
         if (
             serializedComponent.children.some(
-                (x) => x.componentType === "variantControl",
+                (x: any) => x.componentType === "variantControl",
             )
         ) {
             serializedComponent.variants.isVariantComponent = true;
@@ -176,7 +191,14 @@ export function gatherVariantComponents({
     return variantComponents;
 }
 
-export function getNumVariants({ serializedComponent, componentInfoObjects }) {
+// getNumVariants: needed in returnAllPossibleVariants
+// needed from componentInfoObjects:
+// - isInheritedComponentType
+// - what is needed from gatherVariantComponents and determineVariantsForSection
+export function getNumVariants({
+    serializedComponent,
+    componentInfoObjects,
+}: any): any {
     // get number of variants from document (or other sectioning component)
 
     if (!serializedComponent.variants) {
@@ -202,7 +224,7 @@ export function getNumVariants({ serializedComponent, componentInfoObjects }) {
         // if have a single child that is a section, use variants from that section
 
         let nonBlankChildren = serializedComponent.children.filter(
-            (x) => x.componentType || x.trim() !== "",
+            (x: any) => x.componentType || x.trim() !== "",
         );
 
         if (
@@ -252,10 +274,19 @@ export function getNumVariants({ serializedComponent, componentInfoObjects }) {
     });
 }
 
+// determineVariantsForSection: needed in getNumVariants, which is needed in returnAllPossibleVariants
+// needed from componentInfoObjects:
+// - determineNumberOfUniqueVariants from base component and what is needed in there
+//   which is determineNumberOfUniqueVariants from all variant types
+
 export function determineVariantsForSection({
     serializedComponent,
     componentInfoObjects,
     isDocument = false,
+}: {
+    serializedComponent: any;
+    componentInfoObjects: any;
+    isDocument: boolean;
 }) {
     if (serializedComponent.variants === undefined) {
         serializedComponent.variants = {};
@@ -277,11 +308,11 @@ export function determineVariantsForSection({
         });
     }
 
-    let specifiedVariantNames = [];
+    let specifiedVariantNames: string[] = [];
     if (variantControlChild?.attributes.variantNames) {
         specifiedVariantNames =
             variantControlChild.attributes.variantNames.component.children.map(
-                (x) => x.toLowerCase(),
+                (x: any) => x.toLowerCase(),
             );
     }
 
@@ -300,7 +331,7 @@ export function determineVariantsForSection({
 
     numVariantsSpecified = Math.min(Math.max(numVariantsSpecified, 1), 1000);
 
-    let variantNames = [...specifiedVariantNames];
+    let variantNames: string[] = [...specifiedVariantNames];
 
     if (variantNames.length < numVariantsSpecified) {
         // if fewer variantNames specified than numVariantsSpecified, find additional variantNames
@@ -308,7 +339,7 @@ export function determineVariantsForSection({
         // except skipping variantNames that are already in original variantNames
         let variantNumber = variantNames.length;
         let variantValue = variantNumber;
-        let variantString;
+        let variantString: string;
         while (variantNumber < numVariantsSpecified) {
             variantNumber++;
             variantValue++;
@@ -323,7 +354,7 @@ export function determineVariantsForSection({
         variantNames = variantNames.slice(0, numVariantsSpecified);
     }
 
-    let variantsToInclude =
+    let variantsToInclude: string[] | undefined =
         variantControlChild?.attributes.variantsToInclude?.component.children;
     if (variantsToInclude) {
         if (variantsToInclude.length === 0) {
@@ -346,25 +377,22 @@ export function determineVariantsForSection({
         }
     }
 
-    let variantsToExclude =
-        variantControlChild?.attributes.variantsToExclude?.component.children;
-    if (variantsToExclude) {
-        variantsToExclude = variantsToExclude.map((x) => x.toLowerCase());
+    let variantsToExclude: string[] =
+        variantControlChild?.attributes.variantsToExclude?.component.children ||
+        [];
+    variantsToExclude = variantsToExclude.map((x) => x.toLowerCase());
 
-        for (let variant of variantsToExclude) {
-            if (!variantNames.includes(variant)) {
-                throw Error(
-                    `Cannot exclude variant ${variant} as ${variant} is not a variant name`,
-                );
-            }
+    for (let variant of variantsToExclude) {
+        if (!variantNames.includes(variant)) {
+            throw Error(
+                `Cannot exclude variant ${variant} as ${variant} is not a variant name`,
+            );
         }
-    } else {
-        variantsToExclude = [];
     }
 
     if (variantsToInclude) {
         variantsToInclude = variantsToInclude.filter(
-            (x) => !variantsToExclude.includes(x),
+            (x: any) => !variantsToExclude.includes(x),
         );
     } else {
         variantsToInclude = [...variantNames].filter(
@@ -373,11 +401,11 @@ export function determineVariantsForSection({
     }
 
     let variantsToIncludeUniqueIndices = variantsToInclude.map(
-        (variant) => variantNames.indexOf(variant) + 1,
+        (variant: any) => variantNames.indexOf(variant) + 1,
     );
 
     // determine seeds
-    let specifiedSeeds = [];
+    let specifiedSeeds: string[] = [];
     if (variantControlChild?.attributes.seeds) {
         specifiedSeeds =
             variantControlChild.attributes.seeds.component.children;
@@ -392,7 +420,7 @@ export function determineVariantsForSection({
 
         let seedNumber = variantSeeds.length;
         let seedValue = seedNumber;
-        let seedString;
+        let seedString: string;
         while (seedNumber < numVariantsSpecified) {
             seedNumber++;
             seedValue++;
@@ -423,8 +451,9 @@ export function determineVariantsForSection({
     let uniqueVariantsIsSpecified =
         variantControlChild?.attributes.uniqueVariants !== undefined;
 
-    let uniqueVariants =
-        variantControlChild?.attributes.uniqueVariants?.primitive;
+    let uniqueVariants = Boolean(
+        variantControlChild?.attributes.uniqueVariants?.primitive,
+    );
 
     let uniqueResult;
 
@@ -444,9 +473,9 @@ export function determineVariantsForSection({
         }
     }
 
-    let allPossibleVariants = [];
-    let allPossibleVariantUniqueIndices = [];
-    let allPossibleVariantSeeds = [];
+    let allPossibleVariants: string[] = [];
+    let allPossibleVariantUniqueIndices: number[] = [];
+    let allPossibleVariantSeeds: string[] = [];
 
     if (uniqueVariants) {
         for (let [ind, num] of variantsToIncludeUniqueIndices.entries()) {
@@ -484,6 +513,6 @@ export function determineVariantsForSection({
     };
 }
 
-function indexToLowercaseLetters(index) {
+function indexToLowercaseLetters(index: number) {
     return numberToLetters(index, true);
 }

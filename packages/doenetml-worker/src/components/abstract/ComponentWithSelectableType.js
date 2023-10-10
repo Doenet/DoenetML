@@ -1,8 +1,9 @@
 import BaseComponent from "./BaseComponent";
 import me from "math-expressions";
-import { convertValueToMathExpression, textToAst } from "@doenet/utils";
+import { convertValueToMathExpression } from "@doenet/utils";
 import { breakEmbeddedStringsIntoParensPieces } from "../commonsugar/breakstrings";
 import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "../commonsugar/lists";
+import { textToAst } from "../../utils/math";
 
 export class ComponentWithSelectableType extends BaseComponent {
     static componentType = "_componentWithSelectableType";

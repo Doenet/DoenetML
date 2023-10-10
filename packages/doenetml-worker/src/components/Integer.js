@@ -1,7 +1,7 @@
 import NumberComponent from "./Number";
 import me from "math-expressions";
 import { renameStateVariable } from "../utils/stateVariables";
-import { textToAst } from "@doenet/utils";
+import { textToAst } from "../utils/math";
 
 export default class Integer extends NumberComponent {
     static componentType = "integer";

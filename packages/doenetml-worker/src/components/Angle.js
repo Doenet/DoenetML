@@ -1,6 +1,6 @@
 import GraphicalComponent from "./abstract/GraphicalComponent";
 import me from "math-expressions";
-import { roundForDisplay } from "@doenet/utils";
+import { roundForDisplay } from "../utils/math";
 import {
     returnRoundingAttributeComponentShadowing,
     returnRoundingAttributes,

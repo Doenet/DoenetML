@@ -2,8 +2,8 @@ import BaseComponent from "./abstract/BaseComponent";
 import {
     determineVariantsForSection,
     getVariantsForDescendantsForUniqueVariants,
-    returnStyleDefinitionStateVariables,
-} from "@doenet/utils";
+} from "../utils/variants";
+import { returnStyleDefinitionStateVariables } from "@doenet/utils";
 import { returnFeedbackDefinitionStateVariables } from "../utils/feedback";
 
 export default class Document extends BaseComponent {

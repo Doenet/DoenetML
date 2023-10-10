@@ -1,14 +1,6 @@
 import Input from "./abstract/Input";
 import me from "math-expressions";
-import {
-    getTextToMathConverter,
-    getLatexToMathConverter,
-    roundForDisplay,
-    stripLatex,
-    normalizeLatexString,
-    deepCompare,
-    convertValueToMathExpression,
-} from "@doenet/utils";
+import { deepCompare, convertValueToMathExpression } from "@doenet/utils";
 import {
     returnRoundingAttributeComponentShadowing,
     returnRoundingAttributes,
@@ -18,6 +10,12 @@ import {
     returnLabelStateVariableDefinitions,
     returnWrapNonLabelsSugarFunction,
 } from "../utils/label";
+import {
+    getLatexToMathConverter,
+    normalizeLatexString,
+    roundForDisplay,
+    stripLatex,
+} from "../utils/math";
 
 export default class MathInput extends Input {
     constructor(args) {

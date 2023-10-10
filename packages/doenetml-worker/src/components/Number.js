@@ -1,11 +1,6 @@
 import InlineComponent from "./abstract/InlineComponent";
 import me from "math-expressions";
 import {
-    getTextToMathConverter,
-    mathStateVariableFromNumberStateVariable,
-    numberToMathExpression,
-    roundForDisplay,
-    textToAst,
     returnSelectedStyleStateVariableDefinition,
     returnTextStyleDescriptionDefinitions,
 } from "@doenet/utils";
@@ -20,6 +15,13 @@ import {
     returnRoundingAttributes,
     returnRoundingStateVariableDefinitions,
 } from "../utils/rounding";
+import {
+    textToAst,
+    getTextToMathConverter,
+    mathStateVariableFromNumberStateVariable,
+    numberToMathExpression,
+    roundForDisplay,
+} from "../utils/math";
 
 export default class NumberComponent extends InlineComponent {
     constructor(args) {

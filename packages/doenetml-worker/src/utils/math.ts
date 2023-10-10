@@ -1,3 +1,4 @@
+// @ts-ignore
 import me from "math-expressions";
 
 import { vectorOperators } from "@doenet/utils";
@@ -192,8 +193,13 @@ export function getTextToMathConverter({
     appliedFunctionSymbols = appliedFunctionSymbolsDefault,
     splitSymbols = true,
     parseScientificNotation = false,
+}: {
+    functionSymbols?: string[];
+    appliedFunctionSymbols?: string[];
+    splitSymbols?: boolean;
+    parseScientificNotation?: boolean;
 } = {}) {
-    return (x) =>
+    return (x: string) =>
         me.fromAst(
             new me.converters.textToAstObj({
                 appliedFunctionSymbols,
@@ -214,9 +220,14 @@ export function getLatexToMathConverter({
     appliedFunctionSymbols = appliedFunctionSymbolsDefaultLatex,
     splitSymbols = true,
     parseScientificNotation = false,
+}: {
+    functionSymbols?: string[];
+    appliedFunctionSymbols?: string[];
+    splitSymbols?: boolean;
+    parseScientificNotation?: boolean;
 } = {}) {
     if (splitSymbols) {
-        return (x) =>
+        return (x: string) =>
             me.fromAst(
                 new me.converters.latexToAstObj({
                     appliedFunctionSymbols,
@@ -228,7 +239,7 @@ export function getLatexToMathConverter({
                 ),
             );
     } else {
-        return (x) =>
+        return (x: string) =>
             me.fromAst(
                 new me.converters.latexToAstObj({
                     appliedFunctionSymbols,
@@ -240,7 +251,7 @@ export function getLatexToMathConverter({
     }
 }
 
-export function findFiniteNumericalValue(value) {
+export function findFiniteNumericalValue(value: any) {
     // return undefined if value is undefined
     // returns null if value has a non-numerical value (including Infinity)
     // otherwise, returns numerical value
@@ -264,7 +275,7 @@ export function findFiniteNumericalValue(value) {
     return null;
 }
 
-export function returnNVariables(n, variablesSpecified) {
+export function returnNVariables(n: number, variablesSpecified: any[]) {
     // console.log(`return N variables`, n, variablesSpecified)
 
     if (!Number.isInteger(n) || n < 1) {
@@ -355,7 +366,10 @@ export function returnNVariables(n, variablesSpecified) {
     return variables;
 }
 
-export function normalizeLatexString(latexString, { unionFromU = false } = {}) {
+export function normalizeLatexString(
+    latexString: string,
+    { unionFromU = false } = {},
+) {
     let substitutions = [
         ["\u03B1", "\\alpha "], // 'α'
         ["\u03B2", "\\beta "], // 'β'
@@ -410,7 +424,7 @@ export function normalizeLatexString(latexString, { unionFromU = false } = {}) {
     ];
 
     for (let sub of substitutions) {
-        latexString = latexString.replaceAll(sub[0], sub[1]);
+        latexString = latexString.replace(new RegExp(sub[0], "g"), sub[1]);
     }
 
     let startLdotsMatch = latexString.match(
@@ -441,17 +455,20 @@ export function normalizeLatexString(latexString, { unionFromU = false } = {}) {
 
     // replace [space]or[space]
     // with \or
-    latexString = latexString.replaceAll(/(\b|\\ )or(\b|\\ )/g, "$1\\lor$2");
-    latexString = latexString.replaceAll(/(\b|\\ )and(\b|\\ )/g, "$1\\land$2");
+    latexString = latexString.replace(/(\b|\\ )or(\b|\\ )/g, "$1\\lor$2");
+    latexString = latexString.replace(/(\b|\\ )and(\b|\\ )/g, "$1\\land$2");
 
     if (unionFromU) {
-        latexString = latexString.replaceAll(/(\b|\\ )U(\b|\\ )/g, "$1\\cup$2");
+        latexString = latexString.replace(/(\b|\\ )U(\b|\\ )/g, "$1\\cup$2");
     }
 
     return latexString;
 }
 
-export function isValidVariable(expression) {
+export function isValidVariable(expression: {
+    tree: any;
+    [key: string]: unknown;
+}) {
     // to be a valid variable, tree must be either
     // - a string other than long underscore, or
     // - a string with a subscript that is a string or a number
@@ -479,14 +496,14 @@ export function mathStateVariableFromNumberStateVariable({
     mathVariableName = "math",
     isPublic = false,
 } = {}) {
-    let mathDef = {
+    let mathDef: any = {
         returnDependencies: () => ({
             number: {
                 dependencyType: "stateVariable",
                 variableName: numberVariableName,
             },
         }),
-        definition: function ({ dependencyValues }) {
+        definition: function ({ dependencyValues }: any) {
             return {
                 setValue: {
                     [mathVariableName]: numberToMathExpression(
@@ -495,7 +512,7 @@ export function mathStateVariableFromNumberStateVariable({
                 },
             };
         },
-        inverseDefinition: function ({ desiredStateVariableValues }) {
+        inverseDefinition: function ({ desiredStateVariableValues }: any) {
             let desiredMath = desiredStateVariableValues[mathVariableName];
 
             let desiredNumber;
@@ -527,9 +544,16 @@ export function mathStateVariableFromNumberStateVariable({
     return mathDef;
 }
 
-export function numberToMathExpression(number) {
+export function numberToMathExpression(
+    number: number | { re: number; im: number },
+) {
     let mathTree;
-    if (typeof number?.re === "number" && typeof number?.im === "number") {
+    if (typeof number === "number") {
+        mathTree = number;
+    } else if (
+        typeof number?.re === "number" &&
+        typeof number?.im === "number"
+    ) {
         if (number.im === 0) {
             mathTree = number.re;
         } else {
@@ -553,7 +577,7 @@ export function numberToMathExpression(number) {
     return me.fromAst(mathTree);
 }
 
-export function roundForDisplay({ value, dependencyValues }) {
+export function roundForDisplay({ value, dependencyValues }: any) {
     let rounded = me.round_numbers_to_precision_plus_decimals(
         value,
         dependencyValues.displayDigits,
@@ -573,7 +597,7 @@ export function roundForDisplay({ value, dependencyValues }) {
     return rounded;
 }
 
-export function mergeListsWithOtherContainers(tree) {
+export function mergeListsWithOtherContainers(tree: any) {
     if (!Array.isArray(tree)) {
         return tree;
     }
@@ -596,14 +620,14 @@ export function mergeListsWithOtherContainers(tree) {
     return [operator, ...operands];
 }
 
-export function wrapWordWithVar(string, parseScientificNotation) {
+function wrapWordWithVar(string: string, parseScientificNotation: boolean) {
     // wrap words that aren't already in a \operatorname with a \operatorname
 
     let newString = "";
 
     let regex = /\\operatorname\s*{[^{}]*}/;
     let match = string.match(regex);
-    while (match) {
+    while (match && match.index !== undefined) {
         let beginMatch = match.index;
         let endMatch = beginMatch + match[0].length;
         newString += wrapWordWithVarSub(
@@ -619,7 +643,7 @@ export function wrapWordWithVar(string, parseScientificNotation) {
     return newString;
 }
 
-function wrapWordWithVarSub(string, parseScientificNotation) {
+function wrapWordWithVarSub(string: string, parseScientificNotation: boolean) {
     let newString = "";
 
     const regex = /([^a-zA-Z0-9]?)([a-zA-Z][a-zA-Z0-9]+)([^a-zA-Z0-9]?)/;
@@ -639,13 +663,14 @@ function wrapWordWithVarSub(string, parseScientificNotation) {
     }
 
     let match = string.match(regex);
-    while (match) {
+    while (match && match.index !== undefined) {
         let beginMatch = match.index;
         let endMatch = beginMatch + match[0].length - match[3].length;
-        if (parseScientificNotation) {
+        if (regexSN) {
             let matchSN = string.match(regexSN);
             if (
                 matchSN &&
+                matchSN.index !== undefined &&
                 matchSN.index < endMatch &&
                 matchSN.index + matchSN[0].length > beginMatch
             ) {
@@ -675,15 +700,15 @@ function wrapWordWithVarSub(string, parseScientificNotation) {
     return newString;
 }
 
-export function wrapWordIncludingNumberWithVar(
-    string,
-    parseScientificNotation,
+function wrapWordIncludingNumberWithVar(
+    string: string,
+    parseScientificNotation: boolean,
 ) {
     let newString = "";
 
     let regex = /\\operatorname\s*{[^{}]*}/;
     let match = string.match(regex);
-    while (match) {
+    while (match && match.index !== undefined) {
         let beginMatch = match.index;
         let endMatch = beginMatch + match[0].length;
         newString += wrapWordIncludingNumberWithVarSub(
@@ -702,7 +727,10 @@ export function wrapWordIncludingNumberWithVar(
     return newString;
 }
 
-function wrapWordIncludingNumberWithVarSub(string, parseScientificNotation) {
+function wrapWordIncludingNumberWithVarSub(
+    string: string,
+    parseScientificNotation: boolean,
+) {
     let newString = "";
 
     const regex =
@@ -723,13 +751,14 @@ function wrapWordIncludingNumberWithVarSub(string, parseScientificNotation) {
     }
 
     let match = string.match(regex);
-    while (match) {
+    while (match && match.index !== undefined) {
         let beginMatch = match.index;
         let endMatch = beginMatch + match[0].length - match[3].length;
-        if (parseScientificNotation) {
+        if (regexSN) {
             let matchSN = string.match(regexSN);
             if (
                 matchSN &&
+                matchSN.index !== undefined &&
                 matchSN.index < endMatch &&
                 matchSN.index + matchSN[0].length > beginMatch
             ) {
@@ -760,13 +789,11 @@ function wrapWordIncludingNumberWithVarSub(string, parseScientificNotation) {
     return newString;
 }
 
-export function stripLatex(latex) {
-    return latex
-        .replaceAll(`\\,`, "")
-        .replaceAll(/\\operatorname{([^{}]*)}/g, "$1");
+export function stripLatex(latex: string) {
+    return latex.replace(/\\,/g, "").replace(/\\operatorname{([^{}]*)}/g, "$1");
 }
 
-export function superSubscriptsToUnicode(text) {
+export function superSubscriptsToUnicode(text: string) {
     let charToSubscriptUnicode = {
         0: "\u2080",
         1: "\u2081",
@@ -799,35 +826,37 @@ export function superSubscriptsToUnicode(text) {
         " ": "",
     };
 
-    function replaceSubscripts(match, p1) {
+    function replaceSubscripts(match: string, p1: string) {
         let newVal = "";
 
         for (let char of p1) {
+            // @ts-ignore
             newVal += charToSubscriptUnicode[char];
         }
 
         return newVal;
     }
 
-    function replaceSuperscripts(match, p1) {
+    function replaceSuperscripts(match: string, p1: string) {
         let newVal = "";
 
         for (let char of p1) {
+            // @ts-ignore
             newVal += charToSuperscriptUnicode[char];
         }
 
         return newVal;
     }
 
-    text = text.replaceAll(/_(\d+)/g, replaceSubscripts);
-    text = text.replaceAll(/_\(([\d +-]+)\)/g, replaceSubscripts);
-    text = text.replaceAll(/\^(\d+)/g, replaceSuperscripts);
-    text = text.replaceAll(/\^\(([\d +-]+)\)/g, replaceSuperscripts);
+    text = text.replace(/_(\d+)/g, replaceSubscripts);
+    text = text.replace(/_\(([\d +-]+)\)/g, replaceSubscripts);
+    text = text.replace(/\^(\d+)/g, replaceSuperscripts);
+    text = text.replace(/\^\(([\d +-]+)\)/g, replaceSuperscripts);
 
     return text;
 }
 
-export function unicodeToSuperSubscripts(text) {
+export function unicodeToSuperSubscripts(text: string) {
     let subscriptUnicodeToChar = {
         "\u2080": "0",
         "\u2081": "1",
@@ -858,31 +887,33 @@ export function unicodeToSuperSubscripts(text) {
         "\u207B": "-",
     };
 
-    function replaceSubscripts(match, p1) {
+    function replaceSubscripts(match: string, p1: string) {
         let newVal = "";
 
         for (let char of p1) {
+            // @ts-ignore
             newVal += subscriptUnicodeToChar[char];
         }
 
         return "_(" + newVal + ")";
     }
 
-    function replaceSuperscripts(match, p1) {
+    function replaceSuperscripts(match: string, p1: string) {
         let newVal = "";
 
         for (let char of p1) {
+            // @ts-ignore
             newVal += superscriptUnicodeToChar[char];
         }
 
         return "^(" + newVal + ")";
     }
 
-    text = text.replaceAll(
+    text = text.replace(
         /([\u2080\u2081\u2082\u2083\u2084\u2085\u2086\u2087\u2088\u2089\u208A\u208B]+)/g,
         replaceSubscripts,
     );
-    text = text.replaceAll(
+    text = text.replace(
         /([\u2070\u00B9\u00B2\u00B3\u2074\u2075\u2076\u2077\u2078\u2079\u207A\u207B]+)/g,
         replaceSuperscripts,
     );
@@ -890,44 +921,7 @@ export function unicodeToSuperSubscripts(text) {
     return text;
 }
 
-export const mathjaxConfig = {
-    showProcessingMessages: false,
-    "fast-preview": {
-        disabled: true,
-    },
-    jax: ["input/TeX", "output/CommonHTML"],
-    extensions: [
-        "tex2jax.js",
-        "MathMenu.js",
-        "MathZoom.js",
-        "AssistiveMML.js",
-        "a11y/accessibility-menu.js",
-    ],
-    TeX: {
-        extensions: [
-            "AMSmath.js",
-            "AMSsymbols.js",
-            "noErrors.js",
-            "noUndefined.js",
-        ],
-        equationNumbers: {
-            autoNumber: "AMS",
-        },
-        Macros: {
-            lt: "<",
-            gt: ">",
-            amp: "&",
-            var: ["\\mathrm{#1}", 1],
-            csch: "\\operatorname{csch}",
-            sech: "\\operatorname{sech}",
-        },
-    },
-    tex2jax: {
-        displayMath: [["\\[", "\\]"]],
-    },
-};
-
-export function removeFunctionsMathExpressionClass(value) {
+export function removeFunctionsMathExpressionClass(value: any) {
     if (value instanceof me.class) {
         value = value.tree;
     } else if (typeof value === "function") {
@@ -935,11 +929,99 @@ export function removeFunctionsMathExpressionClass(value) {
     } else if (Array.isArray(value)) {
         value = value.map((x) => removeFunctionsMathExpressionClass(x));
     } else if (typeof value === "object" && value !== null) {
-        let valueCopy = {};
+        let valueCopy: any = {};
         for (let key in value) {
             valueCopy[key] = removeFunctionsMathExpressionClass(value[key]);
         }
         value = valueCopy;
     }
     return value;
+}
+
+export async function preprocessMathInverseDefinition({
+    desiredValue,
+    stateValues,
+    variableName = "value",
+    arrayKey,
+    workspace,
+}: any) {
+    if (
+        !vectorOperators.includes(desiredValue.tree[0]) ||
+        !desiredValue.tree.includes()
+    ) {
+        return { desiredValue };
+    }
+
+    // have a desiredValue that is a vector that is missing some entries
+
+    let valueAst;
+
+    let workspaceKey = variableName + "Ast";
+    if (arrayKey !== undefined) {
+        workspaceKey += `_${arrayKey}`;
+    }
+
+    if (workspace[workspaceKey]) {
+        // if have value from workspace
+        // we will merge components from desired value into workspace value
+        valueAst = workspace[workspaceKey].slice(0, desiredValue.tree.length);
+    } else {
+        let currentValue = await stateValues[variableName];
+
+        currentValue = currentValue.expand().simplify();
+
+        if (currentValue && arrayKey !== undefined) {
+            // TODO: generalize to multi-dimensional arrays?
+            currentValue = currentValue[arrayKey];
+        }
+
+        if (currentValue && vectorOperators.includes(currentValue.tree[0])) {
+            // if we have a currentValue that is a vector
+            // we will merge components from desired value into current value
+            valueAst = currentValue.tree.slice(0, desiredValue.tree.length);
+        }
+    }
+
+    if (valueAst) {
+        // have a vector that we'll merge desiredValue into
+
+        let vectorComponentsNotAffected = [];
+        let foundNotAffected = false;
+        for (let [ind, value] of desiredValue.tree.entries()) {
+            if (value === undefined) {
+                foundNotAffected = true;
+                vectorComponentsNotAffected.push(ind);
+            } else {
+                valueAst[ind] = value;
+            }
+        }
+        desiredValue = me.fromAst(valueAst);
+        workspace[workspaceKey] = valueAst;
+
+        if (foundNotAffected) {
+            return {
+                desiredValue,
+                vectorComponentsNotAffected,
+            };
+        } else {
+            return { desiredValue };
+        }
+    } else {
+        // don't have a vector to merge desiredValue into
+        // but desiredValue has undefined entries
+        // desired expression could have undefined entries
+        // fill in with \uff3f
+        let desiredOperands = [];
+        for (let val of desiredValue.tree.slice(1)) {
+            if (val === undefined) {
+                desiredOperands.push("\uff3f");
+            } else {
+                desiredOperands.push(val);
+            }
+        }
+
+        desiredValue = me.fromAst([desiredValue.tree[0], ...desiredOperands]);
+
+        return { desiredValue };
+    }
 }

@@ -1,5 +1,5 @@
 import ConstraintComponent from "./abstract/ConstraintComponent";
-import { findFiniteNumericalValue } from "@doenet/utils";
+import { findFiniteNumericalValue } from "../utils/math";
 import { applyConstraintFromComponentConstraints } from "../utils/constraints";
 
 export default class AttractToConstraint extends ConstraintComponent {

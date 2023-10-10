@@ -2,8 +2,6 @@ import GraphicalComponent from "./abstract/GraphicalComponent";
 import me from "math-expressions";
 import {
     convertValueToMathExpression,
-    returnNVariables,
-    roundForDisplay,
     returnTextStyleDescriptionDefinitions,
 } from "@doenet/utils";
 import {
@@ -12,6 +10,7 @@ import {
     returnRoundingStateVariableDefinitions,
 } from "../utils/rounding";
 import { returnWrapNonLabelsSugarFunction } from "../utils/label";
+import { returnNVariables, roundForDisplay } from "../utils/math";
 
 export default class Line extends GraphicalComponent {
     constructor(args) {

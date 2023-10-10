@@ -4,7 +4,6 @@ import {
     mathExpressionFromSubsetValue,
     returnPiecewiseNumericalFunctionFromChildren,
     find_effective_domains_piecewise_children,
-    roundForDisplay,
 } from "@doenet/utils";
 import me from "math-expressions";
 import { returnRoundingAttributeComponentShadowing } from "../utils/rounding";
@@ -12,6 +11,7 @@ import {
     find_maxima_of_piecewise,
     find_minima_of_piecewise,
 } from "../utils/extrema";
+import { roundForDisplay } from "../utils/math";
 
 export default class PiecewiseFunction extends Function {
     static componentType = "piecewiseFunction";

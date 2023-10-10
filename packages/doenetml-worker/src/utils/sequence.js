@@ -1,9 +1,6 @@
 import me from "math-expressions";
-import {
-    numberToLetters,
-    lettersToNumber,
-    findFiniteNumericalValue,
-} from "@doenet/utils";
+import { numberToLetters, lettersToNumber } from "@doenet/utils";
+import { findFiniteNumericalValue } from "./math";
 
 export function returnStandardSequenceAttributes() {
     return {

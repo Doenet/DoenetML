@@ -4,7 +4,7 @@ import {
     breakEmbeddedStringByCommas,
     returnBreakStringsSugarFunction,
 } from "./commonsugar/breakstrings";
-import { roundForDisplay } from "@doenet/utils";
+import { roundForDisplay } from "../utils/math";
 import {
     convertValueToMathExpression,
     vectorOperators,

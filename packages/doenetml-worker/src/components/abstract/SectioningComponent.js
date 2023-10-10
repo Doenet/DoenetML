@@ -3,8 +3,8 @@ import {
     determineVariantsForSection,
     getVariantsForDescendantsForUniqueVariants,
     setUpVariantSeedAndRng,
-    returnStyleDefinitionStateVariables,
-} from "@doenet/utils";
+} from "../../utils/variants";
+import { returnStyleDefinitionStateVariables } from "@doenet/utils";
 import { returnFeedbackDefinitionStateVariables } from "../../utils/feedback";
 
 export class SectioningComponent extends BlockComponent {

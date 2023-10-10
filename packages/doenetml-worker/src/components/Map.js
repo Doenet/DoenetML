@@ -3,9 +3,11 @@ import {
     deepClone,
     markToCreateAllUniqueNames,
     processAssignNames,
+} from "@doenet/utils";
+import {
     gatherVariantComponents,
     setUpVariantSeedAndRng,
-} from "@doenet/utils";
+} from "../utils/variants";
 import { convertAttributesForComponentType } from "../utils/copy";
 
 export default class Map extends CompositeComponent {

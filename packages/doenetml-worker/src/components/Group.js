@@ -1,9 +1,10 @@
 import CompositeComponent from "./abstract/CompositeComponent";
-import { deepClone, setUpVariantSeedAndRng } from "@doenet/utils";
+import { deepClone } from "@doenet/utils";
 import {
     convertAttributesForComponentType,
     verifyReplacementsMatchSpecifiedType,
 } from "../utils/copy";
+import { setUpVariantSeedAndRng } from "../utils/variants";
 
 export default class Group extends CompositeComponent {
     static componentType = "group";

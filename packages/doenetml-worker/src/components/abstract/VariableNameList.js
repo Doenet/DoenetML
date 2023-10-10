@@ -1,6 +1,6 @@
 import MathList from "../MathList";
 import me from "math-expressions";
-import { isValidVariable } from "@doenet/utils";
+import { isValidVariable } from "../../utils/math";
 
 export default class VariableNameList extends MathList {
     static componentType = "_variableNameList";

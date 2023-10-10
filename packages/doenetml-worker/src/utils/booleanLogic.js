@@ -1,11 +1,11 @@
 import checkEquality from "./checkEquality";
 import me from "math-expressions";
+import { deepCompare } from "@doenet/utils";
 import {
-    getTextToMathConverter,
     appliedFunctionSymbolsDefault,
+    getTextToMathConverter,
     numberToMathExpression,
-    deepCompare,
-} from "@doenet/utils";
+} from "./math";
 
 const appliedFunctionSymbolsWithBooleanOperators = [
     ...appliedFunctionSymbolsDefault,

@@ -1,7 +1,8 @@
 import { convertAttributesForComponentType } from "../utils/copy";
 import { sampleFromRandomNumbers } from "../utils/randomNumbers";
 import { returnRoundingAttributes } from "../utils/rounding";
-import { processAssignNames, setUpVariantSeedAndRng } from "@doenet/utils";
+import { processAssignNames } from "@doenet/utils";
+import { setUpVariantSeedAndRng } from "../utils/variants";
 import CompositeComponent from "./abstract/CompositeComponent";
 
 export default class SampleRandomNumbers extends CompositeComponent {

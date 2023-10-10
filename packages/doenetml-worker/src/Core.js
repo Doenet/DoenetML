@@ -23,11 +23,12 @@ import {
     convertToErrorComponent,
     processAssignNames,
     expandDoenetMLsToFullSerializedComponents,
-    gatherVariantComponents,
-    getNumVariants,
-    preprocessMathInverseDefinition,
-    removeFunctionsMathExpressionClass,
 } from "@doenet/utils";
+import { gatherVariantComponents, getNumVariants } from "./utils/variants";
+import {
+    removeFunctionsMathExpressionClass,
+    preprocessMathInverseDefinition,
+} from "./utils/math";
 import {
     convertAttributesForComponentType,
     postProcessCopy,

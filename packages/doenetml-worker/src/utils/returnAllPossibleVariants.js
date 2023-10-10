@@ -3,14 +3,14 @@ import { numberToLetters } from "./sequence";
 import {
     addDocumentIfItsMissing,
     expandDoenetMLsToFullSerializedComponents,
-} from "../ast/serializedStateProcessing";
-import componentInfoObjects from "../../../assets/assets/componentInfoObjects.json";
+} from "@doenet/utils";
+import createComponentInfoObjects from "./componentInfoObjects.js";
 
 export async function returnAllPossibleVariants({
     doenetML,
     serializedComponents: preliminarySerializedComponents,
 }) {
-    console.log({ componentInfoObjects });
+    let componentInfoObjects = createComponentInfoObjects();
 
     let { fullSerializedComponents } =
         await expandDoenetMLsToFullSerializedComponents({

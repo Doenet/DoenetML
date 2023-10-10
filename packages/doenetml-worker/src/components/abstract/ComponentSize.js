@@ -1,10 +1,10 @@
 import BaseComponent from "./BaseComponent";
 import InlineComponent from "./InlineComponent";
 import {
-    mathStateVariableFromNumberStateVariable,
     returnSelectedStyleStateVariableDefinition,
     returnTextStyleDescriptionDefinitions,
 } from "@doenet/utils";
+import { mathStateVariableFromNumberStateVariable } from "../../utils/math";
 
 const unitConversions = {
     "": 1,

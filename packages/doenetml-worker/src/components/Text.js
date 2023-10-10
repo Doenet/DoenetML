@@ -4,12 +4,11 @@ import {
     returnAnchorStateVariableDefinition,
 } from "../utils/graphical";
 import {
-    getLatexToMathConverter,
-    getTextToMathConverter,
     returnSelectedStyleStateVariableDefinition,
     returnTextStyleDescriptionDefinitions,
 } from "@doenet/utils";
 import { textFromChildren } from "../utils/text";
+import { getLatexToMathConverter, getTextToMathConverter } from "../utils/math";
 import InlineComponent from "./abstract/InlineComponent";
 import me from "math-expressions";
 

@@ -5,8 +5,8 @@ import {
     enumerateCombinations,
     enumeratePermutations,
     processAssignNames,
-    setUpVariantSeedAndRng,
 } from "@doenet/utils";
+import { setUpVariantSeedAndRng } from "../utils/variants";
 import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "./commonsugar/lists";
 
 export default class Shuffle extends CompositeComponent {

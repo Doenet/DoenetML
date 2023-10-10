@@ -5,7 +5,6 @@ import {
     convertValueToMathExpression,
     vectorOperators,
     deepClone,
-    roundForDisplay,
     returnTextStyleDescriptionDefinitions,
 } from "@doenet/utils";
 import {
@@ -13,6 +12,7 @@ import {
     returnRoundingAttributes,
     returnRoundingStateVariableDefinitions,
 } from "../utils/rounding";
+import { roundForDisplay } from "../utils/math";
 
 export default class Point extends GraphicalComponent {
     constructor(args) {

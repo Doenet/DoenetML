@@ -2,9 +2,6 @@ import InlineComponent from "./abstract/InlineComponent";
 import GraphicalComponent from "./abstract/GraphicalComponent";
 import me from "math-expressions";
 import {
-    mergeListsWithOtherContainers,
-    returnNVariables,
-    roundForDisplay,
     vectorOperators,
     returnInterpolatedFunction,
     returnNumericalFunctionFromFormula,
@@ -24,6 +21,11 @@ import {
     find_local_global_maxima,
     find_local_global_minima,
 } from "../utils/extrema";
+import {
+    returnNVariables,
+    roundForDisplay,
+    mergeListsWithOtherContainers,
+} from "../utils/math";
 
 export default class Function extends InlineComponent {
     static componentType = "function";

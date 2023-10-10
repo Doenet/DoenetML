@@ -1,6 +1,6 @@
 import Core from "./Core";
 import me from "math-expressions";
-import { removeFunctionsMathExpressionClass } from "@doenet/utils";
+import { removeFunctionsMathExpressionClass } from "./utils/math";
 
 let core;
 

@@ -1,13 +1,6 @@
 import InlineComponent from "./abstract/InlineComponent";
 import me from "math-expressions";
 import {
-    getTextToMathConverter,
-    getLatexToMathConverter,
-    roundForDisplay,
-    mergeListsWithOtherContainers,
-    preprocessMathInverseDefinition,
-    superSubscriptsToUnicode,
-    unicodeToSuperSubscripts,
     normalizeMathExpression,
     convertValueToMathExpression,
     vectorOperators,
@@ -25,6 +18,15 @@ import {
     returnRoundingStateVariableDefinitions,
     returnRoundingAttributeComponentShadowing,
 } from "../utils/rounding";
+import {
+    getTextToMathConverter,
+    getLatexToMathConverter,
+    roundForDisplay,
+    mergeListsWithOtherContainers,
+    superSubscriptsToUnicode,
+    unicodeToSuperSubscripts,
+    preprocessMathInverseDefinition,
+} from "../utils/math";
 
 const vectorAndListOperators = ["list", ...vectorOperators];
 

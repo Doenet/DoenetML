@@ -1,5 +1,5 @@
 import ConstraintComponent from "./abstract/ConstraintComponent";
-import { findFiniteNumericalValue } from "@doenet/utils";
+import { findFiniteNumericalValue } from "../utils/math";
 
 export default class ConstrainToGrid extends ConstraintComponent {
     static componentType = "constrainToGrid";

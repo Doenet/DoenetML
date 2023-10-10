@@ -1,12 +1,13 @@
 import InlineComponent from "./abstract/InlineComponent";
 import me from "math-expressions";
 import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "./commonsugar/lists";
-import { roundForDisplay, convertValueToMathExpression } from "@doenet/utils";
+import { convertValueToMathExpression } from "@doenet/utils";
 import {
     returnRoundingAttributeComponentShadowing,
     returnRoundingAttributes,
     returnRoundingStateVariableDefinitions,
 } from "../utils/rounding";
+import { roundForDisplay } from "../utils/math";
 
 export default class MathList extends InlineComponent {
     static componentType = "mathList";

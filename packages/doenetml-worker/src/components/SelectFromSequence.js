@@ -8,11 +8,11 @@ import {
     lettersToNumber,
     enumerateSelectionCombinations,
     processAssignNames,
-    getTextToMathConverter,
 } from "@doenet/utils";
 
 import { convertAttributesForComponentType } from "../utils/copy";
 import { returnRoundingAttributes } from "../utils/rounding";
+import { getTextToMathConverter } from "../utils/math";
 import {
     checkForExcludedCombination,
     estimateNumberOfDuplicateCombinations,

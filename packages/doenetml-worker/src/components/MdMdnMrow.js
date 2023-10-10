@@ -2,8 +2,6 @@ import InlineComponent from "./abstract/InlineComponent";
 import { M } from "./MMeMen";
 import me from "math-expressions";
 import {
-    latexToAst,
-    superSubscriptsToUnicode,
     returnSelectedStyleStateVariableDefinition,
     returnTextStyleDescriptionDefinitions,
 } from "@doenet/utils";
@@ -12,6 +10,7 @@ import {
     returnAnchorAttributes,
     returnAnchorStateVariableDefinition,
 } from "../utils/graphical";
+import { latexToAst, superSubscriptsToUnicode } from "../utils/math";
 
 export class Md extends InlineComponent {
     constructor(args) {

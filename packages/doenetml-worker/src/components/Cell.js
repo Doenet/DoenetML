@@ -1,6 +1,6 @@
 import BaseComponent from "./abstract/BaseComponent";
 import me from "math-expressions";
-import { preprocessMathInverseDefinition, textToAst } from "@doenet/utils";
+import { preprocessMathInverseDefinition, textToAst } from "../utils/math";
 import { textFromChildren } from "../utils/text";
 
 export default class Cell extends BaseComponent {

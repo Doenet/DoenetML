@@ -1,4 +1,4 @@
-import { roundForDisplay } from "@doenet/utils";
+import { roundForDisplay } from "../utils/math";
 import BaseComponent from "./abstract/BaseComponent";
 import me from "math-expressions";
 import { returnLabelStateVariableDefinitions } from "../utils/label";

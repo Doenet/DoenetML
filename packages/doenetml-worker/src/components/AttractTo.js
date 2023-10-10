@@ -1,4 +1,4 @@
-import { findFiniteNumericalValue } from "@doenet/utils";
+import { findFiniteNumericalValue } from "../utils/math";
 import ConstraintComponent from "./abstract/ConstraintComponent";
 
 export default class AttractTo extends ConstraintComponent {

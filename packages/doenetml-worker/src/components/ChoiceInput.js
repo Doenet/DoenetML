@@ -1,10 +1,7 @@
 import Input from "./abstract/Input";
 import me from "math-expressions";
-import {
-    enumerateCombinations,
-    enumeratePermutations,
-    setUpVariantSeedAndRng,
-} from "@doenet/utils";
+import { enumerateCombinations, enumeratePermutations } from "@doenet/utils";
+import { setUpVariantSeedAndRng } from "../utils/variants";
 import { returnLabelStateVariableDefinitions } from "../utils/label";
 
 export default class Choiceinput extends Input {

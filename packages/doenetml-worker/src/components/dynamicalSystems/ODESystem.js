@@ -1,8 +1,6 @@
 import InlineComponent from "../abstract/InlineComponent";
 import me from "math-expressions";
 import {
-    returnNVariables,
-    roundForDisplay,
     returnSelectedStyleStateVariableDefinition,
     returnTextStyleDescriptionDefinitions,
 } from "@doenet/utils";
@@ -11,6 +9,7 @@ import {
     returnRoundingAttributes,
     returnRoundingStateVariableDefinitions,
 } from "../../utils/rounding";
+import { returnNVariables, roundForDisplay } from "../../utils/math";
 
 export default class ODESystem extends InlineComponent {
     static componentType = "odesystem";

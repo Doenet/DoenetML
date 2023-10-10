@@ -1,4 +1,4 @@
-import { isValidVariable } from "@doenet/utils";
+import { isValidVariable } from "../../utils/math";
 import { renameStateVariable } from "../../utils/stateVariables";
 import MathComponent from "../Math";
 

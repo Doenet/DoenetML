@@ -1,4 +1,4 @@
-import { roundForDisplay } from "@doenet/utils";
+import { roundForDisplay } from "../utils/math";
 import {
     returnRoundingAttributeComponentShadowing,
     returnRoundingAttributes,

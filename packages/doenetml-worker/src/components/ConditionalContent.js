@@ -1,11 +1,6 @@
 import CompositeComponent from "./abstract/CompositeComponent";
-import {
-    deepClone,
-    createUniqueName,
-    processAssignNames,
-    setUpVariantSeedAndRng,
-} from "@doenet/utils";
-
+import { deepClone, createUniqueName, processAssignNames } from "@doenet/utils";
+import { setUpVariantSeedAndRng } from "../utils/variants";
 export default class ConditionalContent extends CompositeComponent {
     static componentType = "conditionalContent";
 

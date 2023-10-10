@@ -5,8 +5,8 @@ import {
     enumerateCombinations,
     markToCreateAllUniqueNames,
     processAssignNames,
-    gatherVariantComponents,
 } from "@doenet/utils";
+import { gatherVariantComponents } from "../utils/variants";
 import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "./commonsugar/lists";
 
 export default class Select extends CompositeComponent {

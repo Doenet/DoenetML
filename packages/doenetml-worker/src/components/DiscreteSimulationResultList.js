@@ -1,8 +1,9 @@
-import { vectorOperators, roundForDisplay } from "@doenet/utils";
+import { vectorOperators } from "@doenet/utils";
 import {
     returnRoundingAttributes,
     returnRoundingStateVariableDefinitions,
 } from "../utils/rounding";
+import { roundForDisplay } from "../utils/math";
 import BlockComponent from "./abstract/BlockComponent";
 
 export default class DiscreteSimulationResultList extends BlockComponent {

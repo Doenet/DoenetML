@@ -5,10 +5,6 @@ import {
     deepCompare,
     convertValueToMathExpression,
     vectorOperators,
-    getLatexToMathConverter,
-    normalizeLatexString,
-    roundForDisplay,
-    stripLatex,
 } from "@doenet/utils";
 import CompositeComponent from "./abstract/CompositeComponent";
 import BaseComponent from "./abstract/BaseComponent";
@@ -17,6 +13,12 @@ import {
     returnRoundingAttributes,
     returnRoundingStateVariableDefinitions,
 } from "../utils/rounding";
+import {
+    getLatexToMathConverter,
+    normalizeLatexString,
+    roundForDisplay,
+    stripLatex,
+} from "../utils/math";
 
 const vectorAndListOperators = ["list", ...vectorOperators];
 
