@@ -1,5 +1,5 @@
 export * from "./ast/logging";
-export * from "./ast/serializedStateProcessing";
+export * from "./ast/ast";
 export * from "./media/cid";
 export * from "./media/retrieveMedia";
 export * from "./media/retrieveTextFile";
@@ -17,3 +17,4 @@ export * from "./math/mathexpressions";
 export * from "./math/subset-of-reals";
 export * from "./style/style";
 export * from "./url/url";
+export * from "./version/doenetMLversion";

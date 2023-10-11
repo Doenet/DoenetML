@@ -1,7 +1,5 @@
-import {
-    enumerateSelectionCombinations,
-    processAssignNames,
-} from "@doenet/utils";
+import { enumerateSelectionCombinations } from "@doenet/utils";
+import { processAssignNames } from "../utils/naming";
 import {
     checkForExcludedCombination,
     estimateNumberOfDuplicateCombinations,

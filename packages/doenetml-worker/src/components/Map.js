@@ -1,9 +1,9 @@
 import CompositeComponent from "./abstract/CompositeComponent";
+import { deepClone } from "@doenet/utils";
 import {
-    deepClone,
-    markToCreateAllUniqueNames,
     processAssignNames,
-} from "@doenet/utils";
+    markToCreateAllUniqueNames,
+} from "../utils/naming";
 import {
     gatherVariantComponents,
     setUpVariantSeedAndRng,

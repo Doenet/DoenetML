@@ -1,14 +1,14 @@
 import { prng_alea } from "esm-seedrandom";
 import { parseAndCompile } from "@doenet/parser";
-import componentInfoObjects from "../../../assets/assets/componentInfoObjects.json";
+// import componentInfoObjects from "../../../assets/assets/componentInfoObjects.json";
 import {
     cidFromText,
     retrieveTextFileForCid,
     enumerateCombinations,
-    addDocumentIfItsMissing,
-    countComponentTypes,
-    expandDoenetMLsToFullSerializedComponents,
-    returnAllPossibleVariants,
+    // addDocumentIfItsMissing,
+    // countComponentTypes,
+    // expandDoenetMLsToFullSerializedComponents,
+    // returnAllPossibleVariants,
 } from "@doenet/utils";
 
 let rngClass = prng_alea;
@@ -862,33 +862,36 @@ function processShuffleOrder(order, rng) {
 async function initializeComponentTypeCounts(pages) {
     let previousComponentTypeCountsByPage = [{}];
 
-    for (let [ind, page] of pages.slice(0, pages.length - 1).entries()) {
-        let { fullSerializedComponents } =
-            await expandDoenetMLsToFullSerializedComponents({
-                doenetMLs: [page.doenetML],
-                preliminarySerializedComponents: [page.children],
-                componentInfoObjects,
-            });
+    // TODO: call worker to calculate component type counts
+    // or create
 
-        let serializedComponents = fullSerializedComponents[0];
+    // for (let [ind, page] of pages.slice(0, pages.length - 1).entries()) {
+    //     let { fullSerializedComponents } =
+    //         await expandDoenetMLsToFullSerializedComponents({
+    //             doenetMLs: [page.doenetML],
+    //             preliminarySerializedComponents: [page.children],
+    //             componentInfoObjects,
+    //         });
 
-        addDocumentIfItsMissing(serializedComponents);
+    //     let serializedComponents = fullSerializedComponents[0];
 
-        let documentChildren = serializedComponents[0].children;
+    //     addDocumentIfItsMissing(serializedComponents);
 
-        let componentTypeCounts = countComponentTypes(documentChildren);
+    //     let documentChildren = serializedComponents[0].children;
 
-        let countsSoFar = previousComponentTypeCountsByPage[ind];
-        for (let cType in countsSoFar) {
-            if (cType in componentTypeCounts) {
-                componentTypeCounts[cType] += countsSoFar[cType];
-            } else {
-                componentTypeCounts[cType] = countsSoFar[cType];
-            }
-        }
+    //     let componentTypeCounts = countComponentTypes(documentChildren);
 
-        previousComponentTypeCountsByPage.push(componentTypeCounts);
-    }
+    //     let countsSoFar = previousComponentTypeCountsByPage[ind];
+    //     for (let cType in countsSoFar) {
+    //         if (cType in componentTypeCounts) {
+    //             componentTypeCounts[cType] += countsSoFar[cType];
+    //         } else {
+    //             componentTypeCounts[cType] = countsSoFar[cType];
+    //         }
+    //     }
+
+    //     previousComponentTypeCountsByPage.push(componentTypeCounts);
+    // }
 
     return previousComponentTypeCountsByPage;
 }

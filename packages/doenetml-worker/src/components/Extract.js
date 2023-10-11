@@ -1,5 +1,5 @@
 import CompositeComponent from "./abstract/CompositeComponent";
-import { processAssignNames } from "@doenet/utils";
+import { processAssignNames } from "../utils/naming";
 import { replacementFromProp } from "./Copy";
 import { verifyReplacementsMatchSpecifiedType } from "../utils/copy";
 

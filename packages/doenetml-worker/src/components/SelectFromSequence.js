@@ -4,11 +4,8 @@ import {
     returnSequenceValueForIndex,
     returnSequenceValues,
 } from "../utils/sequence";
-import {
-    lettersToNumber,
-    enumerateSelectionCombinations,
-    processAssignNames,
-} from "@doenet/utils";
+import { lettersToNumber, enumerateSelectionCombinations } from "@doenet/utils";
+import { processAssignNames } from "../utils/naming";
 
 import { convertAttributesForComponentType } from "../utils/copy";
 import { returnRoundingAttributes } from "../utils/rounding";

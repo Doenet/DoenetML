@@ -4,7 +4,7 @@ import {
     postProcessCopy,
 } from "../utils/copy";
 import { replacementFromProp } from "./Copy";
-import { deepClone, processAssignNames } from "@doenet/utils";
+import { processAssignNames } from "../utils/naming";
 
 export default class Collect extends CompositeComponent {
     static componentType = "collect";

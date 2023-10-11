@@ -1,7 +1,7 @@
 import CompositeComponent from "./abstract/CompositeComponent";
 import { postProcessCopy } from "../utils/copy";
 import me from "math-expressions";
-import { processAssignNames } from "@doenet/utils";
+import { processAssignNames } from "../utils/naming";
 import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "./commonsugar/lists";
 
 export default class Sort extends CompositeComponent {

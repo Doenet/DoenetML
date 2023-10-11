@@ -1,4 +1,17 @@
-export function printDoenetMLrange(doenetMLrange) {
+type DoenetMLRange = {
+    begin?: number;
+    end?: number;
+    selfCloseBegin?: number;
+    selfCloseEnd?: number;
+    openBegin?: number;
+    openEnd?: number;
+    closeBegin?: number;
+    closeEnd?: number;
+    lineBegin?: number;
+    lineEnd?: number;
+};
+
+export function printDoenetMLrange(doenetMLrange: DoenetMLRange) {
     if (doenetMLrange.lineBegin === undefined) {
         return "";
     } else if (doenetMLrange.lineBegin === doenetMLrange.lineEnd) {
@@ -8,10 +21,13 @@ export function printDoenetMLrange(doenetMLrange) {
     }
 }
 
-export function getLineCharRange(doenetMLrange, allNewlines) {
+export function getLineCharRange(
+    doenetMLrange: DoenetMLRange,
+    allNewlines: number[],
+) {
     let { begin, end } = getBeginEndFromDoenetMLRange(doenetMLrange);
 
-    if (begin === undefined) {
+    if (begin === undefined || end === undefined) {
         return {};
     }
 
@@ -27,7 +43,7 @@ export function getLineCharRange(doenetMLrange, allNewlines) {
     return { lineBegin, charBegin, lineEnd, charEnd };
 }
 
-function getBeginEndFromDoenetMLRange(doenetMLrange) {
+function getBeginEndFromDoenetMLRange(doenetMLrange: DoenetMLRange) {
     let begin, end;
     if (doenetMLrange) {
         if (doenetMLrange.begin !== undefined) {
@@ -47,7 +63,7 @@ function getBeginEndFromDoenetMLRange(doenetMLrange) {
     return { begin, end };
 }
 
-export function findAllNewlines(inText) {
+export function findAllNewlines(inText: "string") {
     let allNewlines = [];
     for (let i = 0; i < inText.length; i++) {
         if (inText[i] == "\n") {
@@ -57,7 +73,7 @@ export function findAllNewlines(inText) {
     return allNewlines;
 }
 
-function findLineCharInfo(pos, allNewlines) {
+function findLineCharInfo(pos: number, allNewlines: number[]) {
     for (let i = 0; i < allNewlines.length; i++) {
         if (pos <= allNewlines[i]) {
             if (i === 0) {
@@ -74,7 +90,11 @@ function findLineCharInfo(pos, allNewlines) {
 }
 
 // Assign doenetMLRange to components or to error/warnings objects
-export function assignDoenetMLRange(components, doenetMLrange, init = true) {
+export function assignDoenetMLRange(
+    components: any[],
+    doenetMLrange: DoenetMLRange,
+    init = true,
+) {
     for (let comp of components) {
         if (typeof comp === "object") {
             if (!comp.doenetMLrange || init) {

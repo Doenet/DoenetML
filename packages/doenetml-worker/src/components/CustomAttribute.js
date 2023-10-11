@@ -1,11 +1,10 @@
 import CompositeComponent from "./abstract/CompositeComponent";
+import { processAssignNames, setTNamesToAbsolute } from "../utils/naming";
 import {
     applyMacros,
     applySugar,
     componentFromAttribute,
-    processAssignNames,
-    setTNamesToAbsolute,
-} from "@doenet/utils";
+} from "../utils/expandDoenetML";
 
 export default class CustomAttribute extends CompositeComponent {
     static componentType = "customAttribute";

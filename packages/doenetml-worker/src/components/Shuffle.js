@@ -1,11 +1,8 @@
 import CompositeComponent from "./abstract/CompositeComponent";
 import { postProcessCopy } from "../utils/copy";
 import me from "math-expressions";
-import {
-    enumerateCombinations,
-    enumeratePermutations,
-    processAssignNames,
-} from "@doenet/utils";
+import { enumerateCombinations, enumeratePermutations } from "@doenet/utils";
+import { processAssignNames } from "../utils/naming";
 import { setUpVariantSeedAndRng } from "../utils/variants";
 import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "./commonsugar/lists";
 

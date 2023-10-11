@@ -3,18 +3,17 @@ import {
     convertAttributesForComponentType,
     postProcessCopy,
     verifyReplacementsMatchSpecifiedType,
+    countRegularComponentTypesInNamespace,
+    renameAutonameBasedOnNewCounts,
+    restrictTNamesToNamespace,
 } from "../utils/copy";
 import {
     flattenDeep,
     flattenLevels,
     deepClone,
     getUniqueIdentifierFromBase,
-    restrictTNamesToNamespace,
-    setTNamesToAbsolute,
-    processAssignNames,
-    countRegularComponentTypesInNamespace,
-    renameAutonameBasedOnNewCounts,
 } from "@doenet/utils";
+import { processAssignNames, setTNamesToAbsolute } from "../utils/naming";
 
 export default class Copy extends CompositeComponent {
     static componentType = "copy";

@@ -1,4 +1,4 @@
-import { processAssignNames } from "@doenet/utils";
+import { processAssignNames } from "../utils/naming";
 import BlockComponent from "./abstract/BlockComponent";
 import me from "math-expressions";
 import {

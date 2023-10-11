@@ -3,7 +3,7 @@ import { numberToLetters } from "./sequence";
 import {
     addDocumentIfItsMissing,
     expandDoenetMLsToFullSerializedComponents,
-} from "@doenet/utils";
+} from "../utils/expandDoenetML";
 import createComponentInfoObjects from "./componentInfoObjects.js";
 
 export async function returnAllPossibleVariants({

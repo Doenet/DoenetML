@@ -1,5 +1,6 @@
 import CompositeComponent from "./abstract/CompositeComponent";
-import { normalizeMathExpression, processAssignNames } from "@doenet/utils";
+import { normalizeMathExpression } from "@doenet/utils";
+import { processAssignNames } from "../utils/naming";
 import {
     returnRoundingAttributes,
     returnRoundingStateVariableDefinitions,

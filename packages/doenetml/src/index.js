@@ -6,7 +6,7 @@ export {
     retrieveTextFileForCid,
     serializedComponentsReplacer,
     serializedComponentsReviver,
-    returnAllPossibleVariants,
+    // returnAllPossibleVariants,
 } from "@doenet/utils";
 export {
     calculateOrderAndVariants,

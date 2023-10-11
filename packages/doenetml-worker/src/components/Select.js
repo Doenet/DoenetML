@@ -3,9 +3,11 @@ import {
     deepClone,
     enumerateSelectionCombinations,
     enumerateCombinations,
-    markToCreateAllUniqueNames,
-    processAssignNames,
 } from "@doenet/utils";
+import {
+    processAssignNames,
+    markToCreateAllUniqueNames,
+} from "../utils/naming";
 import { gatherVariantComponents } from "../utils/variants";
 import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "./commonsugar/lists";
 

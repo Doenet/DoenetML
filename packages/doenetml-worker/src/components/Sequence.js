@@ -1,5 +1,5 @@
 import CompositeComponent from "./abstract/CompositeComponent";
-import { processAssignNames } from "@doenet/utils";
+import { processAssignNames } from "../utils/naming";
 import { convertAttributesForComponentType } from "../utils/copy";
 import {
     returnSequenceValues,

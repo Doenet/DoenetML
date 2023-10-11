@@ -15,16 +15,17 @@ import {
     flattenDeep,
     createUniqueName,
     getNamespaceFromName,
-    deprecatedPropertySubstitutions,
-    addDocumentIfItsMissing,
-    createComponentNames,
     extractComponentNamesAndIndices,
     extractRangeIndexPieces,
     convertToErrorComponent,
-    processAssignNames,
-    expandDoenetMLsToFullSerializedComponents,
 } from "@doenet/utils";
 import { gatherVariantComponents, getNumVariants } from "./utils/variants";
+import {
+    deprecatedPropertySubstitutions,
+    addDocumentIfItsMissing,
+    expandDoenetMLsToFullSerializedComponents,
+} from "./utils/expandDoenetML";
+import { createComponentNames, processAssignNames } from "./utils/naming";
 import {
     removeFunctionsMathExpressionClass,
     preprocessMathInverseDefinition,

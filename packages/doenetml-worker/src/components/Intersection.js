@@ -1,7 +1,7 @@
 import CompositeComponent from "./abstract/CompositeComponent";
 import { convertAttributesForComponentType } from "../utils/copy";
 import me from "math-expressions";
-import { processAssignNames } from "@doenet/utils";
+import { processAssignNames } from "../utils/naming";
 
 export default class Intersection extends CompositeComponent {
     static componentType = "intersection";

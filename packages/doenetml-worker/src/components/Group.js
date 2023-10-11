@@ -5,6 +5,7 @@ import {
     verifyReplacementsMatchSpecifiedType,
 } from "../utils/copy";
 import { setUpVariantSeedAndRng } from "../utils/variants";
+import { processAssignNames } from "../utils/naming";
 
 export default class Group extends CompositeComponent {
     static componentType = "group";
