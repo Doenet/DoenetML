@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import util from "util";
 
-import { filterPositionInfo, DastMacro } from "@doenet/parser";
+import { filterPositionInfo, DastMacro, DastElement } from "@doenet/parser";
 import { DoenetSourceObject, isOldMacro } from "../src/doenet-source-object";
 
 const origLog = console.log;
@@ -98,8 +98,10 @@ describe("DoenetSourceObject", () => {
         source = "<a><b><c>hi</c></b></a>";
         let sourceObj = new DoenetSourceObject(source);
         const dast = sourceObj.dast;
-        const child = dast.children[0].children[0].children[0];
-        const parent = dast.children[0].children[0];
+        const child = (
+            (dast.children[0] as DastElement).children[0] as DastElement
+        ).children[0];
+        const parent = (dast.children[0] as DastElement).children[0];
 
         expect(sourceObj.getParent(child)).toEqual(parent);
     });
@@ -218,22 +220,25 @@ describe("DoenetSourceObject", () => {
         sourceObj = new DoenetSourceObject(source);
         {
             let offset = source.indexOf("<d") + 1;
-            macro = new DoenetSourceObject("$x.y").dast.children[0];
+            macro = new DoenetSourceObject("$x.y").dast
+                .children[0] as DastMacro;
             let elm = sourceObj.getMacroReferentAtOffset(offset, macro);
             expect(elm?.node).toMatchObject({ type: "element", name: "b" });
         }
         {
             let offset = source.indexOf("<d") + 1;
-            macro = new DoenetSourceObject("$x.y.w").dast.children[0];
+            macro = new DoenetSourceObject("$x.y.w").dast
+                .children[0] as DastMacro;
             let elm = sourceObj.getMacroReferentAtOffset(offset, macro);
             expect(elm?.node).toMatchObject({ type: "element", name: "b" });
             expect(elm?.accessedProp).toMatchObject(
-                macro.accessedProp.accessedProp,
+                macro.accessedProp!.accessedProp!,
             );
         }
         {
             let offset = source.indexOf("<d") + 1;
-            macro = new DoenetSourceObject("$x.y.z").dast.children[0];
+            macro = new DoenetSourceObject("$x.y.z").dast
+                .children[0] as DastMacro;
             let elm = sourceObj.getMacroReferentAtOffset(offset, macro);
             expect(elm?.node).toMatchObject({ type: "element", name: "c" });
         }
@@ -246,17 +251,17 @@ describe("DoenetSourceObject", () => {
 
         source = `$foo.bar[2].baz`;
         sourceObj = new DoenetSourceObject(source);
-        macro = sourceObj.dast.children[0];
+        macro = sourceObj.dast.children[0] as DastMacro;
         expect(isOldMacro(macro)).toEqual(false);
 
         source = `$(foo.bar[2].baz)`;
         sourceObj = new DoenetSourceObject(source);
-        macro = sourceObj.dast.children[0];
+        macro = sourceObj.dast.children[0] as DastMacro;
         expect(isOldMacro(macro)).toEqual(false);
 
         source = `$(foo/x.bar[2].baz)`;
         sourceObj = new DoenetSourceObject(source);
-        macro = sourceObj.dast.children[0];
+        macro = sourceObj.dast.children[0] as DastMacro;
         expect(isOldMacro(macro)).toEqual(true);
     });
 });
