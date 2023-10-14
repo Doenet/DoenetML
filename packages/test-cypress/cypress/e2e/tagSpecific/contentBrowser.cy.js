@@ -293,7 +293,7 @@ describe("ContentBrowser Tag Tests", function () {
         });
 
         cy.log("navigate to math using url");
-        cy.visit("/src/Tools/cypressTest/#\\/_contentbrowseritem3");
+        cy.visit("/#\\/_contentbrowseritem3");
 
         cy.get(cesc2("#/_title2")).should("have.text", "The <math> component");
 

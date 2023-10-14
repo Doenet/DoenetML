@@ -25,7 +25,6 @@ import {
 } from "@codemirror/language";
 import { completeFromSchema } from "@codemirror/lang-xml";
 import { parser } from "@doenet/parser";
-// @ts-ignore
 import { doenetSchema } from "@doenet/static-assets";
 
 export function CodeMirror({

@@ -28,6 +28,10 @@ export default defineConfig({
                     ),
                     dest: "fonts/",
                 },
+                {
+                    src: "./media/*",
+                    dest: "media/",
+                },
             ],
         }),
     ],

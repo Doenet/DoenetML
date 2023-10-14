@@ -1,5 +1,4 @@
 import React, { useContext } from "react";
-import { Link } from "react-router-dom";
 import { PageContext, getURLFromRef } from "../PageViewer";
 import useDoenetRenderer from "../useDoenetRenderer";
 import styled from "styled-components";
@@ -107,47 +106,22 @@ export default React.memo(function Ref(props) {
         }
     } else {
         if (haveValidTarget) {
-            if (externalUri || url === "#") {
-                // for some reason, if url = "#", the <Link>, below, causes a refresh
-                // as it removes the # from the url.  So we use a <a> directly in this case.
-                return (
-                    <a
-                        style={{
-                            color: "var(--mainBlue)",
-                            borderRadius: "5px",
-                        }}
-                        target={targetForATag}
-                        id={id}
-                        name={id}
-                        href={url}
-                    >
-                        {linkContent}
-                    </a>
-                );
-            } else {
-                let scrollAttribute =
-                    scrollableContainer === window ? "scrollY" : "scrollTop";
-                let stateObj = { fromLink: true };
-                Object.defineProperty(stateObj, "previousScrollPosition", {
-                    get: () => scrollableContainer?.[scrollAttribute],
-                    enumerable: true,
-                });
-                return (
-                    <Link
-                        style={{
-                            color: "var(--mainBlue)",
-                            borderRadius: "5px",
-                        }}
-                        target={targetForATag}
-                        id={id}
-                        name={id}
-                        to={url}
-                        state={stateObj}
-                    >
-                        {linkContent}
-                    </Link>
-                );
-            }
+            // TODO: we cannot use a `<Link>` since component is not necessarily contained in a <Router>.
+            // We need a solution for proper behavior of scrolling
+            return (
+                <a
+                    style={{
+                        color: "var(--mainBlue)",
+                        borderRadius: "5px",
+                    }}
+                    target={targetForATag}
+                    id={id}
+                    name={id}
+                    href={url}
+                >
+                    {linkContent}
+                </a>
+            );
         } else {
             return <span id={id}>{linkContent}</span>;
         }

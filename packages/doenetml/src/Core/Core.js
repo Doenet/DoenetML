@@ -10681,39 +10681,51 @@ export default class Core {
 
         this.updateInfo.componentsToUpdateActionChaining = {};
 
-        let id = componentName;
+        let actionsToChain = [];
 
-        while (id.substring(0, 3) === "/__") {
-            // if component was has a unreachable component name
-            // check if it is shadowing another component and use that component name instead
-            let comp = this._components[id];
+        let cName = componentName;
 
-            if (comp.shadows) {
-                id = comp.shadows.componentName;
+        while (true) {
+            let comp = this._components[cName];
+            let id = cName;
+
+            if (triggeringAction) {
+                id += "|" + triggeringAction;
+            }
+
+            if (this.actionsChangedToActions[id]) {
+                actionsToChain.push(...this.actionsChangedToActions[id]);
+            }
+
+            if (comp?.shadows && cName.substring(0, 3) === "/__") {
+                // We propagate to shadows if the copied component doesn't have a name.
+                // In this way, if we include $P in a graph,
+                // then triggerWhenObjectsClicked="P" and triggerWhenObjectsFocused="P"
+                // will be triggered by that copy (as only as copy not given a name).
+                // Another use case is defining an <updateValue name="uv">,
+                // along with other triggered actions using triggerWith="uv",
+                // inside a <setup> and then including an unamed $uv
+                // where we want the button to be.
+                // TODO: if <point copySource="P" /> no longer has a name like "_point1",
+                // should triggerWhenObjectsClicked="P" be triggered from that point?
+                // Currently (Oct 2, 2023), it is not triggered.
+                cName = comp.shadows.componentName;
             } else {
                 break;
             }
         }
 
-        if (triggeringAction) {
-            id += "|" + triggeringAction;
-        }
-
-        if (this.actionsChangedToActions[id]) {
-            for (let chainedActionInstructions of this.actionsChangedToActions[
-                id
-            ]) {
-                chainedActionInstructions = { ...chainedActionInstructions };
-                if (chainedActionInstructions.args) {
-                    chainedActionInstructions.args = {
-                        ...chainedActionInstructions.args,
-                    };
-                } else {
-                    chainedActionInstructions.args = {};
-                }
-                chainedActionInstructions.args.skipRendererUpdate = true;
-                await this.performAction(chainedActionInstructions);
+        for (let chainedActionInstructions of actionsToChain) {
+            chainedActionInstructions = { ...chainedActionInstructions };
+            if (chainedActionInstructions.args) {
+                chainedActionInstructions.args = {
+                    ...chainedActionInstructions.args,
+                };
+            } else {
+                chainedActionInstructions.args = {};
             }
+            chainedActionInstructions.args.skipRendererUpdate = true;
+            await this.performAction(chainedActionInstructions);
         }
 
         if (!skipRendererUpdate) {

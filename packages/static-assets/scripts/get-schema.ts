@@ -55,10 +55,10 @@ export function getSchema() {
         }
     }
 
-    let inheritedOrAdaptedTypes: Record<string, string[]> = {};
+    let inheritedOrAdaptedTypes: Record<string, string | string[]> = {};
 
     for (let type1 in componentClasses) {
-        let inherited = [];
+        let inherited: string[] = [];
         for (let type2 in componentClasses) {
             if (type2[0] == "_") {
                 continue;
@@ -113,10 +113,10 @@ export function getSchema() {
         }
     }
 
-    let elements = [];
+    let elements: Record<string, any>[] = [];
 
     for (let type in componentClasses) {
-        let children = [];
+        let children: string[] = [];
         let acceptsStringChildren = false;
 
         // All components have the name and copySource attributes,

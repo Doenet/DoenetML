@@ -1,18 +1,18 @@
 {
-  "extends": "../../tsconfig.build.json",
-  "compilerOptions": {
-    "outDir": "./dist/",
-    "rootDir": "./src"
-  },
-  "include": ["./**/*.ts", "./**/*.tsx", "./src/generated/*.json"],
-  "exclude": [
-    "./**/*.test.ts",
-    "./**/*.stub.ts",
-    "node_modules",
-    "**/tests/",
-    "**/dist/**/*",
-    "./vite.config.ts",
-    "./scripts"
-  ],
-  "references": []
+    "extends": "../../tsconfig.build.json",
+    "compilerOptions": {
+        "outDir": "./dist/",
+        "rootDir": "./src"
+    },
+    "include": ["./**/*.ts", "./**/*.tsx", "./src/generated/*.json"],
+    "exclude": [
+        "./**/*.test.ts",
+        "./**/*.stub.ts",
+        "node_modules",
+        "**/tests/",
+        "**/dist/**/*",
+        "./vite.config.ts",
+        "./scripts"
+    ],
+    "references": []
 }

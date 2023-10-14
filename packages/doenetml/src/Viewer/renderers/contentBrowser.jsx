@@ -1,8 +1,7 @@
-import React, { useEffect } from "react";
+import React, { useContext, useEffect } from "react";
 import useDoenetRenderer from "../useDoenetRenderer";
 import VisibilitySensor from "react-visibility-sensor-v2";
-import { useLocation } from "react-router";
-import { Link } from "react-router-dom";
+import { PageContext } from "../PageViewer";
 import { cesc } from "@doenet/utils";
 import { addCommasForCompositeRanges } from "./utils/composites";
 
@@ -10,7 +9,10 @@ export default React.memo(function ContentBrowser(props) {
     let { name, id, SVs, children, actions, callAction } =
         useDoenetRenderer(props);
 
-    let { hash, search } = useLocation();
+    let { location = {} } = useContext(PageContext) || {};
+
+    let search = location.search || "";
+    let hash = location.hash || "";
 
     let onChangeVisibility = (isVisible) => {
         if (actions.recordVisibilityChange) {
@@ -66,7 +68,7 @@ export default React.memo(function ContentBrowser(props) {
     let urlStart = search + "#" + prefix;
 
     let initials = SVs.allInitials.map((initial) => (
-        <Link
+        <a
             key={initial}
             style={{
                 padding: "0 5px",
@@ -75,10 +77,10 @@ export default React.memo(function ContentBrowser(props) {
                 color: "var(--mainBlue)",
                 textDecoration: initial === SVs.initial ? "underline" : "none",
             }}
-            to={urlStart + cesc(SVs.firstComponentNameByInitial[initial])}
+            href={urlStart + cesc(SVs.firstComponentNameByInitial[initial])}
         >
             {initial}
-        </Link>
+        </a>
     ));
 
     let labelRows = [];
@@ -95,7 +97,7 @@ export default React.memo(function ContentBrowser(props) {
             }
             row.push(
                 <td width="33%">
-                    <Link
+                    <a
                         key={itemInfo.ind}
                         style={{
                             display: "block",
@@ -108,10 +110,10 @@ export default React.memo(function ContentBrowser(props) {
                                 ? "var(--mainGray)"
                                 : "var(--canvas)",
                         }}
-                        to={urlStart + cesc(itemInfo.componentName)}
+                        href={urlStart + cesc(itemInfo.componentName)}
                     >
                         {itemInfo.label}
-                    </Link>
+                    </a>
                 </td>,
             );
         }
