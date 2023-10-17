@@ -170,7 +170,14 @@ export function createComponentNames({
                 let lowercaseKey = key.toLowerCase();
                 if (lowercaseKey === "name") {
                     if (prescribedName === undefined) {
-                        prescribedName = props[key];
+                        if (props[key] === true) {
+                            foundError = true;
+                            if (!errorMessage) {
+                                errorMessage = `Cannot have a blank name.`;
+                            }
+                        } else {
+                            prescribedName = props[key];
+                        }
                     } else {
                         foundError = true;
                         if (!errorMessage) {
