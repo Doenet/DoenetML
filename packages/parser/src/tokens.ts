@@ -12,6 +12,7 @@ import {
     commentContent as _commentContent,
     piContent as _piContent,
     cdataContent as _cdataContent,
+    Text,
 } from "./generated-assets/lezer-doenet.terms";
 
 function nameChar(ch: number) {
@@ -94,7 +95,13 @@ export const startTag = new ExternalTokenizer(
             return;
         }
         const nextNext = input.peek(1);
-        if (nextNext === 61 /* '=' */ || nextNext === 60 /* '<' */) {
+        if (
+            nextNext === 61 /* '=' */
+            // XXX We could avoid creating an error node here by ignoring `<` which is followed by a `<`.
+            // However, this would require a reworking of the `Text` node type to accept lone `<` characters
+            // (in a more robust way than currently implemented).
+            // || nextNext === 60 /* '<' */
+        ) {
             return;
         }
         input.advance();
@@ -129,6 +136,20 @@ export const startTag = new ExternalTokenizer(
     },
     { contextual: true },
 );
+
+/**
+ * Match a `<` that is followed by another `<`, but only consume the first `<`.
+ * Such code is valid DoenetML, since `<` by itself should be interpreted as a less than sign.
+ */
+export const textLessThan = new ExternalTokenizer((input) => {
+    if (input.next !== 60 /* '<' */) {
+        return;
+    }
+    const nextNext = input.peek(1);
+    if (nextNext === 60 /* '<' */) {
+        return input.acceptToken(Text, 1);
+    }
+});
 
 function scanTo(type: number, end: string) {
     return new ExternalTokenizer((input) => {

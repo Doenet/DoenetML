@@ -5,6 +5,7 @@ import {
     CloseTag,
     Element,
     EndTag,
+    MismatchedCloseTag,
     MissingCloseTag,
     OpenTag,
     SelfCloseEndTag,
@@ -26,11 +27,20 @@ export function createErrorNode(
     if (!node.type.isError && !node.type.is(MissingCloseTag)) {
         throw new Error("Function can only be called on a node of type error.");
     }
-    function errorNode(message: string): DastError {
+    function errorNode(
+        message: string,
+        options?: { startNode?: SyntaxNode; endNode?: SyntaxNode },
+    ): DastError {
+        const { startNode = node, endNode = node } = options ?? {};
+        const startPos = lezerNodeToPosition(startNode, offsetToPositionMap);
+        const endPos =
+            startNode !== endNode
+                ? lezerNodeToPosition(endNode, offsetToPositionMap)
+                : startPos;
         return {
             type: "error",
             message,
-            position: lezerNodeToPosition(node, offsetToPositionMap),
+            position: { start: startPos.start, end: endPos.end },
         };
     }
     const parent = node.parent;
@@ -62,8 +72,11 @@ export function createErrorNode(
                 const message = `Invalid DoenetML: The tag \`${extractContent(
                     openTag,
                     source,
-                )}\` has no closing tag. Expected a self-closing tag or a </${openTagName}> tag.`;
-                return errorNode(message);
+                )}\` has no closing tag. Expected a self-closing tag or a \`</${openTagName}>\` tag.`;
+                return errorNode(message, {
+                    startNode: openTag,
+                    endNode: openTag,
+                });
             }
             return errorNode(
                 `Invalid DoenetML: Error in tag \`<${openTagName}>\``,
@@ -119,6 +132,7 @@ export function createErrorNode(
                         parent,
                         source,
                     )}\` was not closed (a \`>\` appears to be missing).`,
+                    { startNode: parent, endNode: tagName },
                 );
             }
         }
@@ -148,6 +162,7 @@ export function createErrorNode(
                 )}\` is not valid. It may have incorrect attributes.`,
             );
         }
+        case MismatchedCloseTag:
         case CloseTag: {
             const tagName = parent.getChild(TagName);
             if (!tagName) {
@@ -162,6 +177,7 @@ export function createErrorNode(
                         parent,
                         source,
                     )}\` was not closed (a \`>\` appears to be missing).`,
+                    { startNode: parent, endNode: tagName },
                 );
             }
         }

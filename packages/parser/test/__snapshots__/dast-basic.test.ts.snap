@@ -152,9 +152,9 @@ exports[`DAST > xml-doenet-lessthan-in-text-3.doenet prints correctly in Xml for
 </math>"
 `;
 
-exports[`DAST > xml-doenet-lessthan-in-text-4.doenet prints correctly in Xml format and Doenet format 1`] = `"<math>&lt;</math>"`;
+exports[`DAST > xml-doenet-lessthan-in-text-4.doenet prints correctly in Xml format and Doenet format 1`] = `"<math> &lt; </math>"`;
 
-exports[`DAST > xml-doenet-lessthan-in-text-4.doenet prints correctly in Xml format and Doenet format 2`] = `"<math><</math>"`;
+exports[`DAST > xml-doenet-lessthan-in-text-4.doenet prints correctly in Xml format and Doenet format 2`] = `"<math> < </math>"`;
 
 exports[`DAST > xml-doenet-lessthan-in-text-5.doenet prints correctly in Xml format and Doenet format 1`] = `"<math>&lt;=</math>"`;
 

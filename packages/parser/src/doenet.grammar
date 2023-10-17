@@ -67,6 +67,7 @@ Cdata { cdataStart cdataContent* "]]>" }
 @external tokens commentContent from "../tokens" { commentContent }
 @external tokens piContent from "../tokens" { piContent }
 @external tokens cdataContent from "../tokens" { cdataContent }
+@external tokens textLessThan from "../tokens" { textLessThan }
 
 @tokens {
   EndTag[openedBy="StartTag StartCloseTag"] { ">" }

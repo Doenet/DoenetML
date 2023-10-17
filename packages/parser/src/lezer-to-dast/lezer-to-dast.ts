@@ -280,14 +280,22 @@ export function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
                 return [];
             }
             case "MismatchedCloseTag": {
+                // We may have a mismatched tag, but the tag may also be incomplete itself.
+                // For example `</x ` (with no closing `>`). In this case, we want the error
+                // in the tag itself to take priority.
+                const closeTagError = findFirstErrorInChild(node);
+                if (closeTagError) {
+                    return [createErrorNode(closeTagError, source, offsetMap)];
+                }
+
                 const parent = node.parent;
                 const openTag = parent?.getChild(OpenTag);
                 const closeTag = parent?.getChild(CloseTag);
                 if (!parent || !openTag) {
-                    const message = `Invalid DoenetML: Found closing tag ${extractContent(
+                    const message = `Invalid DoenetML: Found closing tag \`${extractContent(
                         node,
                         source,
-                    )}, but no corresponding opening tag`;
+                    )}\`, but no corresponding opening tag`;
                     return [
                         {
                             type: "error",
@@ -299,10 +307,10 @@ export function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
                 // If we have a parent, check to see if we also have a close tag.
                 // This could arise in code like `<foo></bar></foo>`
                 if (closeTag) {
-                    const message = `Invalid DoenetML: Found closing tag ${extractContent(
+                    const message = `Invalid DoenetML: Found closing tag \`${extractContent(
                         node,
                         source,
-                    )}, but no corresponding opening tag`;
+                    )}\`, but no corresponding opening tag`;
 
                     return [
                         {
@@ -318,10 +326,10 @@ export function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
                 const openTagName = tagNameTag
                     ? extractContent(tagNameTag, source)
                     : "";
-                const message = `Invalid DoenetML: Mismatched closing tag. Expected </${openTagName}>. Found ${extractContent(
+                const message = `Invalid DoenetML: Mismatched closing tag. Expected \`</${openTagName}>\`. Found \`${extractContent(
                     node,
                     source,
-                )}`;
+                )}\``;
 
                 return [
                     {

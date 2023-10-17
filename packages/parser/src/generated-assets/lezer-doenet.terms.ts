@@ -8,6 +8,7 @@ export const
   commentContent = 36,
   piContent = 37,
   cdataContent = 38,
+  textLessThan = 39,
   Document = 6,
   Text = 7,
   EntityReference = 8,
