@@ -19,7 +19,6 @@ import {
 import { LazyDataObject } from "./lazy-data";
 import { elementAtOffset } from "./element-at-offset";
 import { DastMacro } from "@doenet/parser";
-import { MarkupContent } from "vscode-languageserver";
 
 /**
  * A row/column position. All values are 1-indexed. This is compatible with UnifiedJs's
@@ -92,13 +91,19 @@ export class DoenetSourceObject extends LazyDataObject {
     rowColToOffset(rowCol: RowCol): number {
         const _rowToOffsetCache = this._rowToOffsetCache();
         // 0-indexed row and columns
-        const row = ("row" in rowCol ? rowCol.row : rowCol.line) - 1;
-        const col =
+        let row = ("row" in rowCol ? rowCol.row : rowCol.line) - 1;
+        let col =
             ("col" in rowCol
                 ? rowCol.col
                 : "column" in rowCol
                 ? rowCol.column
                 : rowCol.character) - 1;
+        // If `character` is in `rowCol`, then we are using the LSP format
+        // which is zero-indexed already. Apply an "unfix".
+        if ("character" in rowCol) {
+            row += 1;
+            col += 1;
+        }
 
         return _rowToOffsetCache[row] + col;
     }

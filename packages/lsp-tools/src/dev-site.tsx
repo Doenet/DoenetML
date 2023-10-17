@@ -27,8 +27,34 @@ const INITIAL_DOENET_SOURCE = `
 
 ReactDOM.createRoot(document.getElementById("root")!).render(<App />);
 
+const simpleSchema = {
+    elements: [
+        {
+            name: "a",
+            children: ["b", "c", "d"],
+            attributes: [{ name: "x" }, { name: "y" }, { name: "xyx" }],
+            top: true,
+            acceptsStringChildren: false,
+        },
+        {
+            name: "b",
+            children: ["www"],
+            attributes: [{ name: "foo", values: ["true", "false"] }],
+            top: false,
+            acceptsStringChildren: false,
+        },
+        {
+            name: "c",
+            children: [],
+            attributes: [],
+            top: false,
+            acceptsStringChildren: true,
+        },
+    ],
+};
+
 const sourceObj = new DoenetSourceObject(INITIAL_DOENET_SOURCE);
-const completionObj = new AutoCompleter();
+const completionObj = new AutoCompleter("", simpleSchema.elements);
 completionObj.setDoenetSourceObject(sourceObj);
 console.log(sourceObj, completionObj);
 (window as any).sourceObj = sourceObj;

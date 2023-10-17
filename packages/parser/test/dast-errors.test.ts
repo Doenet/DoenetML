@@ -37,12 +37,24 @@ describe("DAST", async () => {
         dast = lezerToDast(source);
         expect(extractDastErrors(dast)).toHaveLength(1);
     });
+    it("Shows error for incomplete XML tag that is a child of another element", () => {
+        let source: string;
+        let dast: ReturnType<typeof lezerToDast>;
 
-    it.skip("Shows error for incomplete XML closing tag", () => {
+        source = `<x><a></x>`;
+        dast = lezerToDast(source);
+        expect(extractDastErrors(dast)).toHaveLength(1);
+    });
+
+    it("Shows error for incomplete XML closing tag", () => {
         let source: string;
         let dast: ReturnType<typeof lezerToDast>;
 
         source = `<x></x `;
+        dast = lezerToDast(source);
+        expect(extractDastErrors(dast)).toHaveLength(1);
+
+        source = `<a><x></x </a>`;
         dast = lezerToDast(source);
         expect(extractDastErrors(dast)).toHaveLength(1);
     });

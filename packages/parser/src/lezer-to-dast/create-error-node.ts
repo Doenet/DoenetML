@@ -5,6 +5,7 @@ import {
     CloseTag,
     Element,
     EndTag,
+    MissingCloseTag,
     OpenTag,
     SelfCloseEndTag,
     SelfClosingTag,
@@ -22,7 +23,7 @@ export function createErrorNode(
     source: string,
     offsetToPositionMap: OffsetToPositionMap,
 ): DastError {
-    if (!node.type.isError) {
+    if (!node.type.isError && !node.type.is(MissingCloseTag)) {
         throw new Error("Function can only be called on a node of type error.");
     }
     function errorNode(message: string): DastError {
@@ -146,6 +147,23 @@ export function createErrorNode(
                     source,
                 )}\` is not valid. It may have incorrect attributes.`,
             );
+        }
+        case CloseTag: {
+            const tagName = parent.getChild(TagName);
+            if (!tagName) {
+                return errorNode(
+                    `Invalid DoenetML: Found a closing tag without a tag name, e.g. \`</\``,
+                );
+            }
+            const endTag = parent.getChild(EndTag);
+            if (!endTag) {
+                return errorNode(
+                    `Invalid DoenetML: Tag \`${extractContent(
+                        parent,
+                        source,
+                    )}\` was not closed (a \`>\` appears to be missing).`,
+                );
+            }
         }
     }
 

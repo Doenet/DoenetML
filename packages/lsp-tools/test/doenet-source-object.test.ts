@@ -39,6 +39,23 @@ describe("DoenetSourceObject", () => {
                 .map((pos) => sourceObj.rowColToOffset(pos)),
         ).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
     });
+    it("Can convert between LSP offsets and positions", () => {
+        let source: string;
+
+        source = "abc\nx\nq r s";
+        let sourceObj = new DoenetSourceObject(source);
+
+        expect(
+            Array.from(source)
+                .map((c, i) => sourceObj.offsetToRowCol(i))
+                // LSP positions are 0-indexed
+                .map((pos) => ({
+                    line: pos.line - 1,
+                    character: pos.column - 1,
+                }))
+                .map((pos) => sourceObj.rowColToOffset(pos)),
+        ).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    });
 
     it("Can get DAST", () => {
         let source: string;

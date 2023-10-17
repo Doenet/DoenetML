@@ -91,7 +91,7 @@ export class AutoCompleter {
             if (prevChar === "<") {
                 return this.schemaTopAllowedElements.map((name) => ({
                     label: name,
-                    kind: CompletionItemKind.Module,
+                    kind: CompletionItemKind.Property,
                 }));
             }
 
@@ -107,7 +107,7 @@ export class AutoCompleter {
             return [
                 {
                     label: element.name,
-                    kind: CompletionItemKind.Module,
+                    kind: CompletionItemKind.Property,
                 },
             ];
         }
@@ -126,7 +126,7 @@ export class AutoCompleter {
             return this._getAllowedChildren(containingElement.node.name).map(
                 (name) => ({
                     label: name,
-                    kind: CompletionItemKind.Module,
+                    kind: CompletionItemKind.Property,
                 }),
             );
         }
@@ -142,7 +142,7 @@ export class AutoCompleter {
                     )
                     .map((name) => ({
                         label: name,
-                        kind: CompletionItemKind.Module,
+                        kind: CompletionItemKind.Property,
                     }));
             }
 
@@ -150,7 +150,7 @@ export class AutoCompleter {
                 .filter((label) => label.toLowerCase().startsWith(currentText))
                 .map((label) => ({
                     label,
-                    kind: CompletionItemKind.Module,
+                    kind: CompletionItemKind.Property,
                 }));
         }
 
@@ -163,11 +163,14 @@ export class AutoCompleter {
                 this.schemaElementsByName[elmName]?.attributes || [];
             return allowedAttributes.map((attr) => ({
                 label: attr.name,
-                kind: CompletionItemKind.Property,
+                kind: CompletionItemKind.Enum,
             }));
         }
 
-        if (cursorPosition === "unknown" && prevNonWhitespaceChar === "=") {
+        if (
+            cursorPosition === "attributeValue" ||
+            (cursorPosition === "unknown" && prevNonWhitespaceChar === "=")
+        ) {
             const elmName = this.normalizeElementName(element.name);
             const allowedAttributes =
                 this.schemaElementsByName[elmName]?.attributes || [];
@@ -178,8 +181,12 @@ export class AutoCompleter {
             if (!allowedAttrValues) {
                 return [{ label: '""', kind: CompletionItemKind.Value }];
             }
+            // If we are right after the =, we should include quotes in the completion,
+            // otherwise, assume the user has already supplied the quote marks.
+            const includeQuotes = prevNonWhitespaceChar === "=";
+            const quote = includeQuotes ? '"' : "";
             return allowedAttrValues.map((value) => ({
-                label: `"${value}"`,
+                label: `${quote}${value}${quote}`,
                 kind: CompletionItemKind.Value,
             }));
         }

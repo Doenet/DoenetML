@@ -40,4 +40,8 @@ exports[`Xml files parse correctly > xml-doenet-lessthan-in-text-2.doenet parses
 
 exports[`Xml files parse correctly > xml-doenet-lessthan-in-text-3.doenet parses correctly 1`] = `"Document(Element(OpenTag(StartTag,TagName,EndTag),Text,CloseTag(StartCloseTag,TagName,EndTag)))"`;
 
+exports[`Xml files parse correctly > xml-doenet-lessthan-in-text-4.doenet parses correctly 1`] = `"Document(Element(OpenTag(StartTag,TagName,EndTag),Text,CloseTag(StartCloseTag,TagName,EndTag)))"`;
+
+exports[`Xml files parse correctly > xml-doenet-lessthan-in-text-5.doenet parses correctly 1`] = `"Document(Element(OpenTag(StartTag,TagName,EndTag),Text,CloseTag(StartCloseTag,TagName,EndTag)))"`;
+
 exports[`Xml files parse correctly > xml-doenet-no-root.doenet parses correctly 1`] = `"Document(Text,Element(SelfClosingTag(StartTag,TagName,SelfCloseEndTag)),Text,Element(SelfClosingTag(StartTag,TagName,SelfCloseEndTag)),Text)"`;

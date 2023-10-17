@@ -1,6 +1,7 @@
 import { SyntaxNode, TreeBuffer } from "@lezer/common";
 import {
     CloseTag,
+    MissingCloseTag,
     OpenTag,
     TagName,
 } from "../generated-assets/lezer-doenet.terms";
@@ -97,7 +98,7 @@ export function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
                 }
                 let children: DastElementContent[] = [];
                 // The open tag may have an error in it.
-                let openTagError = findFirstErrorInChild(openTag);
+                const openTagError = findFirstErrorInChild(openTag);
                 if (openTagError) {
                     const errorNode = createErrorNode(
                         openTagError,
@@ -108,7 +109,8 @@ export function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
                 }
                 // If we have an open tag but no closing tag, it's an error.
                 // It's not an error if the tag was self closing.
-                let elementError = node.getChild("⚠");
+                let elementError =
+                    node.getChild("⚠") || node.getChild(MissingCloseTag);
                 if (
                     openTag.type.name === "OpenTag" &&
                     !node.getChild("CloseTag") &&
@@ -261,7 +263,6 @@ export function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
             case "Attribute":
             case "AttributeName":
             case "AttributeValue":
-            case "CloseTag":
             case "EndTag":
             case "Is":
             case "OpenTag":
@@ -271,6 +272,13 @@ export function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
             case "StartTag":
             case "StartCloseTag":
                 return [];
+            case "CloseTag": {
+                const errorNode = findFirstErrorInChild(node);
+                if (errorNode) {
+                    return [createErrorNode(errorNode, source, offsetMap)];
+                }
+                return [];
+            }
             case "MismatchedCloseTag": {
                 const parent = node.parent;
                 const openTag = parent?.getChild(OpenTag);

@@ -93,6 +93,10 @@ export const startTag = new ExternalTokenizer(
         if (input.next !== 60 /* '<' */) {
             return;
         }
+        const nextNext = input.peek(1);
+        if (nextNext === 61 /* '=' */ || nextNext === 60 /* '<' */) {
+            return;
+        }
         input.advance();
         // @ts-ignore
         if (input.next === 47 /* '/' */) {
