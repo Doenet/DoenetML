@@ -19,14 +19,17 @@ export function elementAtOffset(
         offset = this.rowColToOffset(offset);
     }
 
-    const prevChar = this.source.charAt(offset - 1);
-    let node = this.nodeAtOffset(offset);
     let cursorPosition: CursorPosition = "unknown";
-    while (node != null && node.type !== "element") {
-        // If we are in a child node, then we must be in the body of the element.
+    const prevChar = this.source.charAt(offset - 1);
+    const exactNodeAtOffset = this.nodeAtOffset(offset);
+    let node = this.nodeAtOffset(offset, "element") as DastElement | null;
+
+    if (exactNodeAtOffset && exactNodeAtOffset !== node) {
+        // If our exact node is not the same as our containing element, then we're a child of the containing
+        // element and so we're in the body.
         cursorPosition = "body";
-        node = this.getParent(node);
     }
+
     if (!node) {
         cursorPosition = "unknown";
     }
@@ -48,6 +51,18 @@ export function elementAtOffset(
                 ? leftNode
                 : rightNode
             : leftNode;
+        const rightNodeType = rightNode.type.name as LezerSyntaxNodeName;
+        if (atNodeBoundary && rightNodeType === "StartCloseTag") {
+            // If we're at the start of a close tag, then we're in the body of an element.
+            // We claim to be in the element to our left because that is what a user with
+            // auto-completion expects.
+            cursorPosition = "body";
+            lezerNode = leftNode;
+            node = this.nodeAtOffset(
+                lezerNode.from,
+                "element",
+            ) as DastElement | null;
+        }
 
         const lezerNodeType = lezerNode.type.name as LezerSyntaxNodeName;
         const lezerNodeParentType = lezerNode.parent?.type?.name as
@@ -153,6 +168,12 @@ export function elementAtOffset(
                 cursorPosition = "openTag";
                 break;
         }
+    }
+    
+    // If `node.name === ""`, then there is some error. The user has probably typed `<` and nothing else.
+    // In this case, pretend we are the node before the cursor.
+    if (node && node.name === "") {
+        return this.elementAtOffset(Math.max(offset - 1, 0));
     }
 
     return { node, cursorPosition };

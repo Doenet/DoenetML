@@ -111,8 +111,14 @@ export class DoenetSourceObject extends LazyDataObject {
     /**
      * Return the node that contains the current offset and is furthest down the tree.
      * E.g. `<a><b>x</b></a>` at offset equal to the position of `x` return a text node.
+     *
+     * If `type` is passed in, then `nodeAtOffset` will walk up the parent tree until it finds
+     * a node of that type. It returns `null` if no such node can be found.
      */
-    nodeAtOffset(offset: number | RowCol): DastNodes | null {
+    nodeAtOffset(
+        offset: number | RowCol,
+        type?: DastNodes["type"],
+    ): DastNodes | null {
         if (typeof offset !== "number") {
             offset = this.rowColToOffset(offset);
         }
@@ -125,7 +131,14 @@ export class DoenetSourceObject extends LazyDataObject {
             offset -= 1;
         }
         const offsetToNodeMap = this._offsetToNodeMap();
-        return offsetToNodeMap[offset] || null;
+        let ret = offsetToNodeMap[offset] || null;
+        if (type != null) {
+            while (ret && ret.type !== type) {
+                ret = this.getParent(ret);
+            }
+        }
+
+        return ret;
     }
 
     /**

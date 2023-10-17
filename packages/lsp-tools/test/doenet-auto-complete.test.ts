@@ -133,4 +133,37 @@ describe("AutoCompleter", () => {
             `);
         }
     });
+    it("Can suggest closing tag completion when there is no closing tag", () => {
+        let source: string;
+        let autoCompleter: AutoCompleter;
+
+        source = `<a> <   `;
+        autoCompleter = new AutoCompleter(source, schema.elements);
+        {
+            let offset = source.indexOf("<a") + 5;
+            let elm = autoCompleter.getCompletionItems(offset);
+            expect(elm).toMatchInlineSnapshot(`
+              [
+                {
+                  "kind": 10,
+                  "label": "/a>",
+                },
+              ]
+            `);
+        }
+        source = `<a> </   `;
+        autoCompleter = new AutoCompleter(source, schema.elements);
+        {
+            let offset = source.indexOf("<a") + 6;
+            let elm = autoCompleter.getCompletionItems(offset);
+            expect(elm).toMatchInlineSnapshot(`
+              [
+                {
+                  "kind": 10,
+                  "label": "a>",
+                },
+              ]
+            `);
+        }
+    });
 });

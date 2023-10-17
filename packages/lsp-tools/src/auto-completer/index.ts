@@ -67,6 +67,7 @@ export class AutoCompleter {
         }
 
         const prevChar = this.sourceObj.source.charAt(offset - 1);
+        const prevPrevChar = this.sourceObj.source.charAt(offset - 2);
         let prevNonWhitespaceCharOffset = offset - 1;
         while (
             this.sourceObj.source
@@ -115,20 +116,43 @@ export class AutoCompleter {
         const { tagComplete, closed } =
             this.sourceObj.isCompleteElement(element);
 
-        console.log({ tagComplete, closed });
+        console.log({ tagComplete, closed, element: element.name });
 
         if (
             cursorPosition === "body" &&
             containingElement.node &&
             prevChar === "<"
         ) {
-            // We're in the body of an element. Suggest all allowed children.
-            return this._getAllowedChildren(containingElement.node.name).map(
-                (name) => ({
+            if (closed) {
+                // We're in the body of an element. Suggest all allowed children.
+                return this._getAllowedChildren(
+                    containingElement.node.name,
+                ).map((name) => ({
                     label: name,
                     kind: CompletionItemKind.Property,
-                }),
-            );
+                }));
+            }
+            // We are the child of a non-closed tag. Suggest the close tag.
+            return [
+                {
+                    label: `/${element.name}>`,
+                    kind: CompletionItemKind.Property,
+                },
+            ];
+        }
+        if (
+            cursorPosition === "body" &&
+            containingElement.node &&
+            prevPrevChar === "<" &&
+            prevChar === "/" &&
+            !closed
+        ) {
+            return [
+                {
+                    label: `${element.name}>`,
+                    kind: CompletionItemKind.Property,
+                },
+            ];
         }
 
         if (cursorPosition === "openTagName") {

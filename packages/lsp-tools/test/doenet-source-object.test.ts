@@ -172,6 +172,34 @@ describe("DoenetSourceObject", () => {
             expect(cursorPosition).toEqual("unknown");
             expect(node).toMatchObject({ type: "element", name: "a" });
         }
+
+        source = `<a><b> </a>`;
+        sourceObj = new DoenetSourceObject(source);
+        {
+            const offset = source.indexOf("</a>") - 1;
+            let { cursorPosition, node } = sourceObj.elementAtOffset(offset);
+            expect(cursorPosition).toEqual("body");
+            expect(node).toMatchObject({ type: "element", name: "b" });
+        }
+        {
+            // Right at the boundary before the close tag of an element when there
+            // is a non-closed element inside, we should claim to be inside the body
+            // of the non-closed element.
+            const offset = source.indexOf("</a>");
+            let { cursorPosition, node } = sourceObj.elementAtOffset(offset);
+            expect(cursorPosition).toEqual("body");
+            expect(node).toMatchObject({ type: "element", name: "b" });
+        }
+        // The user may be in the middle of typing. A < probably indicates they're trying to
+        // type a tag. We want to assume that we're part of the unclosed tag for completion purposes.
+        source = `<a><b> <</a>`;
+        sourceObj = new DoenetSourceObject(source);
+        {
+            const offset = source.indexOf("</a>");
+            let { cursorPosition, node } = sourceObj.elementAtOffset(offset);
+            expect(cursorPosition).toEqual("body");
+            expect(node).toMatchObject({ type: "element", name: "b" });
+        }
     });
 
     it("Can find cursorPosition in incomplete element", () => {
