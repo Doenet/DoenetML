@@ -47,7 +47,8 @@
         "watch": "npm run build && cd ./server && vite build --watch",
         "lint": "eslint ./client/src ./server/src --ext .ts,.tsx",
         "postinstall": "cd client && npm install && cd ../server && npm install && cd ..",
-        "test": "sh ./scripts/e2e.sh"
+        "test": "echo \"No CI tests. You can use `npm run e2e-test` to run the end-to-end tests (requires a display)\" && exit 0",
+        "e2e-test": "sh ./scripts/e2e.sh"
     },
     "devDependencies": {
         "@types/mocha": "^9.1.0",

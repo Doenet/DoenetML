@@ -169,11 +169,14 @@ export function elementAtOffset(
                 break;
         }
     }
-    
+
     // If `node.name === ""`, then there is some error. The user has probably typed `<` and nothing else.
     // In this case, pretend we are the node before the cursor.
     if (node && node.name === "") {
-        return this.elementAtOffset(Math.max(offset - 1, 0));
+        if (offset > 0) {
+            return this.elementAtOffset(offset - 1);
+        }
+        return { node: null, cursorPosition: "unknown" };
     }
 
     return { node, cursorPosition };

@@ -213,12 +213,21 @@ describe("DoenetSourceObject", () => {
             expect(cursorPosition).toEqual("openTag");
             expect(node).toMatchObject({ type: "element", name: "a" });
         }
+
         source = `<p><a    </p>`;
         sourceObj = new DoenetSourceObject(source);
         {
             let { cursorPosition, node } = sourceObj.elementAtOffset(7);
             expect(cursorPosition).toEqual("openTag");
             expect(node).toMatchObject({ type: "element", name: "a" });
+        }
+
+        source = `<`;
+        sourceObj = new DoenetSourceObject(source);
+        {
+            let { cursorPosition, node } = sourceObj.elementAtOffset(1);
+            expect(cursorPosition).toEqual("unknown");
+            expect(node).toEqual(null);
         }
     });
 
