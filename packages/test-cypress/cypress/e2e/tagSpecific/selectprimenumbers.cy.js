@@ -833,7 +833,6 @@ describe("SelecPrimeNumbers Tag Tests", function () {
             win.postMessage(
                 {
                     doenetML: `
-    <text>a</text>
     <p><aslist><selectprimenumbers numToSelect="3" name="sample1" maxValue="5" excludecombinations="(2 _ _) (_ 2 _) (_ _ 2)" /></aslist></p>
     `,
                 },
@@ -841,7 +840,26 @@ describe("SelecPrimeNumbers Tag Tests", function () {
             );
         });
 
-        cy.document().should("contain.text", "Excluded over 70%");
+        cy.get(cesc2("#/_document1")).should(
+            "contain.text",
+            "Excluded over 70%",
+        );
+        cy.get(cesc2("#/_document1")).should("contain.text", "line 2");
+
+        cy.window().then(async (win) => {
+            let errorWarnings = await win.returnErrorWarnings1();
+
+            expect(errorWarnings.errors.length).eq(1);
+            expect(errorWarnings.warnings.length).eq(0);
+
+            expect(errorWarnings.errors[0].message).contain(
+                "Excluded over 70%",
+            );
+            expect(errorWarnings.errors[0].doenetMLrange.lineBegin).eq(2);
+            expect(errorWarnings.errors[0].doenetMLrange.charBegin).eq(16);
+            expect(errorWarnings.errors[0].doenetMLrange.lineEnd).eq(2);
+            expect(errorWarnings.errors[0].doenetMLrange.charEnd).eq(127);
+        });
     });
 
     it("select 10 prime numbers from the first 10, without replacement, exclude positions of each number", () => {

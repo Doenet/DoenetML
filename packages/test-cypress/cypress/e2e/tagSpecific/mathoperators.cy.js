@@ -4298,7 +4298,7 @@ describe("Math Operator Tag Tests", function () {
       <p><text>a</text></p>
 
       <p><math name="m">7</math>
-      <selectFromSequence assignNames='p' hide='true' exclude="$m, $n" from="-10" to="10" />
+      <selectFromSequence assignNames='p' hide='true' exclude="$m $n" from="-10" to="10" />
       </p>
 
       <p><convertSetToList><math>{$m,$n,$p,$m}</math></convertSetToList></p>

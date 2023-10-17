@@ -183,7 +183,7 @@ export function enumerateCombinations({
                 break;
             }
         }
-        if (matchInds) {
+        if (matchInds.length > 0) {
             break;
         }
     }

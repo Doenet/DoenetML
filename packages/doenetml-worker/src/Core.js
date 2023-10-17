@@ -20,11 +20,7 @@ import {
     convertToErrorComponent,
 } from "@doenet/utils";
 import { gatherVariantComponents, getNumVariants } from "./utils/variants";
-import {
-    deprecatedPropertySubstitutions,
-    addDocumentIfItsMissing,
-    expandDoenetMLsToFullSerializedComponents,
-} from "./utils/expandDoenetML";
+import { deprecatedPropertySubstitutions } from "./utils/expandDoenetML";
 import { createComponentNames, processAssignNames } from "./utils/naming";
 import {
     removeFunctionsMathExpressionClass,
@@ -38,7 +34,6 @@ import {
 import { DependencyHandler } from "./Dependencies";
 import { returnDefaultGetArrayKeysFromVarName } from "./utils/stateVariables";
 import { nanoid } from "nanoid";
-import { createComponentInfoObjects } from "./utils/componentInfoObjects";
 import { get as idb_get, set as idb_set } from "idb-keyval";
 import axios from "axios";
 
@@ -48,7 +43,12 @@ import axios from "axios";
 export default class Core {
     constructor({
         doenetML,
-        preliminarySerializedComponents,
+        serializedDocument,
+        componentInfoObjects,
+        flags,
+        allDoenetMLs,
+        preliminaryErrors,
+        preliminaryWarnings,
         activityId,
         cid,
         cidForActivity: activityCid,
@@ -60,7 +60,6 @@ export default class Core {
         requestedVariant,
         requestedVariantIndex,
         previousComponentTypeCounts = {},
-        flags = {},
         theme,
         prerender = false,
         stateVariableChanges = {},
@@ -78,8 +77,16 @@ export default class Core {
         this.itemNumber = itemNumber;
         this.activityVariantIndex = activityVariantIndex;
         this.doenetML = doenetML;
+        this.allDoenetMLs = allDoenetMLs;
+        this.serializedDocument = serializedDocument;
+
         this.cid = cid;
         this.apiURLs = apiURLs;
+
+        this.errorWarnings = {
+            errors: [...preliminaryErrors],
+            warnings: [...preliminaryWarnings],
+        };
 
         this.serverSaveId = serverSaveId;
         this.updateDataOnContentChange = updateDataOnContentChange;
@@ -92,7 +99,7 @@ export default class Core {
         this.finishCoreConstruction = this.finishCoreConstruction.bind(this);
         this.getStateVariableValue = this.getStateVariableValue.bind(this);
 
-        this.componentInfoObjects = createComponentInfoObjects(flags);
+        this.componentInfoObjects = componentInfoObjects;
 
         this.previousComponentTypeCounts = previousComponentTypeCounts;
 
@@ -150,10 +157,6 @@ export default class Core {
             stateVariablesToEvaluate: [],
         };
 
-        this.errorWarnings = {
-            errors: [],
-            warnings: [],
-        };
         this.newErrorWarning = true;
 
         this.cumulativeStateVariableChanges = JSON.parse(
@@ -204,38 +207,20 @@ export default class Core {
             }
         };
 
-        expandDoenetMLsToFullSerializedComponents({
-            doenetMLs: [doenetML],
-            preliminarySerializedComponents: [preliminarySerializedComponents],
-            componentInfoObjects: this.componentInfoObjects,
-            flags: this.flags,
-        })
-            .then(this.finishCoreConstruction)
-            .catch((e) => {
-                // throw e;
-                postMessage({
-                    messageType: "inErrorState",
-                    coreId: this.coreId,
-                    args: { errMsg: e.message },
-                });
+        this.finishCoreConstruction().catch((e) => {
+            // throw e;
+            postMessage({
+                messageType: "inErrorState",
+                coreId: this.coreId,
+                args: { errMsg: e.message },
             });
+        });
     }
 
-    async finishCoreConstruction({
-        fullSerializedComponents,
-        allDoenetMLs,
-        errors,
-        warnings,
-    }) {
-        this.allDoenetMLs = allDoenetMLs;
-        this.doenetMLNewlines = findAllNewlines(allDoenetMLs[0]);
+    async finishCoreConstruction() {
+        this.doenetMLNewlines = findAllNewlines(this.allDoenetMLs[0]);
 
-        this.errorWarnings.errors.push(...errors);
-        this.errorWarnings.warnings.push(...warnings);
-
-        let serializedComponents = fullSerializedComponents[0];
-
-        addDocumentIfItsMissing(serializedComponents);
+        let serializedComponents = [deepClone(this.serializedDocument)];
 
         let res = createComponentNames({
             serializedComponents,

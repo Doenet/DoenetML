@@ -11,12 +11,14 @@ import {
     getLineCharRange,
     printDoenetMLrange,
     cesc,
-    returnAllPossibleVariants,
 } from "@doenet/utils";
 import { nanoid } from "nanoid";
 import {
     calculateOrderAndVariants,
+    createAndInitializePageCoreWorkers,
+    normalizeErrors,
     parseActivityDefinition,
+    returnAllPossibleVariantsFromCoreWorker,
 } from "../utils/activityUtils";
 import VisibilitySensor from "react-visibility-sensor-v2";
 
@@ -111,6 +113,7 @@ export function ActivityViewer({
 
     const [nPages, setNPages] = useState(0);
 
+    const pageCoreWorkersInfo = useRef([]);
     const [variantsByPage, setVariantsByPage] = useState(null);
     const [itemWeights, setItemWeights] = useState([]);
     const previousComponentTypeCountsByPage = useRef([]);
@@ -130,7 +133,7 @@ export function ActivityViewer({
     const [pageInfo, setPageInfo] = useState({
         pageIsVisible: [],
         pageIsActive: [],
-        pageCoreWorker: [],
+        pageCoreCreated: [],
         waitingForPagesCore: null,
     });
 
@@ -512,13 +515,13 @@ export function ActivityViewer({
                     setCurrentPage(localInfo.activityState.currentPage);
                 }
 
-                // activityInfo is orderWithCids, variantsByPage, itemWeights, and numVariants
+                // activityInfo is activityPages, variantsByPage, itemWeights, and numVariants
                 let newActivityInfo = localInfo.activityInfo;
                 newVariantIndex = localInfo.variantIndex;
                 setVariantIndex(newVariantIndex);
-                setNPages(newActivityInfo.orderWithCids.length);
+                setNPages(newActivityInfo.activityPages.length);
                 setOrder(
-                    await normalizeLoadedOrder(newActivityInfo.orderWithCids),
+                    await normalizeLoadedOrder(newActivityInfo.activityPages),
                 );
                 setVariantsByPage(newActivityInfo.variantsByPage);
                 setItemWeights(newActivityInfo.itemWeights);
@@ -529,6 +532,15 @@ export function ActivityViewer({
                 activityInfo.current = newActivityInfo;
                 activityInfoString.current = JSON.stringify(
                     activityInfo.current,
+                );
+
+                let workerResult = await createAndInitializePageCoreWorkers(
+                    newActivityInfo.activityPages,
+                    flags,
+                );
+                pageCoreWorkersInfo.current = workerResult.pageCoreWorkersInfo;
+                errorsActivitySpecific.current.push(
+                    ...normalizeErrors(workerResult.errors, doenetML.current),
                 );
 
                 loadedState = true;
@@ -589,12 +601,12 @@ export function ActivityViewer({
                     setCurrentPage(activityState.currentPage);
                 }
 
-                // activityInfo is orderWithCids, variantsByPage, itemWeights, and numVariants
+                // activityInfo is activityPages, variantsByPage, itemWeights, and numVariants
                 newVariantIndex = resp.data.variantIndex;
                 setVariantIndex(newVariantIndex);
-                setNPages(newActivityInfo.orderWithCids.length);
+                setNPages(newActivityInfo.activityPages.length);
                 setOrder(
-                    await normalizeLoadedOrder(newActivityInfo.orderWithCids),
+                    await normalizeLoadedOrder(newActivityInfo.activityPages),
                 );
                 setVariantsByPage(newActivityInfo.variantsByPage);
                 setItemWeights(newActivityInfo.itemWeights);
@@ -605,6 +617,15 @@ export function ActivityViewer({
                 activityInfo.current = newActivityInfo;
                 activityInfoString.current = JSON.stringify(
                     activityInfo.current,
+                );
+
+                let workerResult = await createAndInitializePageCoreWorkers(
+                    newActivityInfo.activityPages,
+                    flags,
+                );
+                pageCoreWorkersInfo.current = workerResult.pageCoreWorkersInfo;
+                errorsActivitySpecific.current.push(
+                    ...normalizeErrors(workerResult.errors, doenetML.current),
                 );
             } else {
                 // get initial state and info
@@ -620,27 +641,12 @@ export function ActivityViewer({
                 let results = await calculateOrderAndVariants({
                     activityDefinition,
                     requestedVariantIndex,
+                    flags,
                 });
 
-                if (results.errors.length > 0) {
-                    let doenetMLNewlines = findAllNewlines(doenetML.current);
-                    for (let err of results.errors) {
-                        if (
-                            err.doenetMLrange &&
-                            err.doenetMLrange.lineBegin === undefined
-                        ) {
-                            Object.assign(
-                                err.doenetMLrange,
-                                getLineCharRange(
-                                    err.doenetMLrange,
-                                    doenetMLNewlines,
-                                ),
-                            );
-                        }
-                    }
-                }
-
-                errorsActivitySpecific.current.push(...results.errors);
+                errorsActivitySpecific.current.push(
+                    ...normalizeErrors(results.errors, doenetML.current),
+                );
 
                 newVariantIndex = results.variantIndex;
                 setVariantIndex(newVariantIndex);
@@ -651,6 +657,7 @@ export function ActivityViewer({
                 newItemWeights = results.itemWeights;
                 previousComponentTypeCountsByPage.current =
                     results.previousComponentTypeCounts || [];
+                pageCoreWorkersInfo.current = results.pageCoreWorkersInfo;
 
                 activityInfo.current = results.activityInfo;
                 activityInfoString.current = JSON.stringify(
@@ -659,7 +666,11 @@ export function ActivityViewer({
             }
         }
 
-        return { newItemWeights, newVariantIndex, loadedFromInitialState };
+        return {
+            newItemWeights,
+            newVariantIndex,
+            loadedFromInitialState,
+        };
     }
 
     async function normalizeLoadedOrder(order) {
@@ -1055,15 +1066,16 @@ export function ActivityViewer({
         }
     }
 
-    function coreCreatedCallback(pageInd, coreWorker) {
+    function coreCreatedCallback(pageInd) {
         setPageInfo((was) => {
             let newObj = { ...was };
             if (newObj.waitingForPagesCore === pageInd) {
                 newObj.waitingForPagesCore = null;
             }
-            let newPageCoreWorker = [...newObj.pageCoreWorker];
-            newPageCoreWorker[pageInd] = coreWorker;
-            newObj.pageCoreWorker = newPageCoreWorker;
+
+            let newPageCoreCreated = [...newObj.pageCoreCreated];
+            newPageCoreCreated[pageInd] = true;
+            newObj.pageCoreCreated = newPageCoreCreated;
 
             return newObj;
         });
@@ -1090,10 +1102,14 @@ export function ActivityViewer({
 
         let terminatePromises = [];
 
-        for (let coreWorker of pageInfo.pageCoreWorker) {
-            if (coreWorker) {
+        for (let [
+            pageInd,
+            coreWorkerInfo,
+        ] of pageCoreWorkersInfo.current.entries()) {
+            if (pageInfo.pageCoreCreated[pageInd]) {
                 let actionId = nanoid();
                 let resolveTerminatePromise;
+                let coreWorker = coreWorkerInfo.coreWorker;
 
                 terminatePromises.push(
                     new Promise((resolve, reject) => {
@@ -1101,7 +1117,7 @@ export function ActivityViewer({
                     }),
                 );
 
-                coreWorker.onmessage = function (e) {
+                let terminateListener = function (e) {
                     if (
                         e.data.messageType === "resolveAction" &&
                         e.data.args.actionId === actionId
@@ -1112,10 +1128,17 @@ export function ActivityViewer({
                             messageType: "terminate",
                         });
                     } else if (e.data.messageType === "terminated") {
+                        coreWorker.removeEventListener(
+                            "message",
+                            terminateListener,
+                        );
+
                         // resolve promise
                         resolveTerminatePromise();
                     }
                 };
+
+                coreWorker.addEventListener("message", terminateListener);
 
                 coreWorker.postMessage({
                     messageType: "submitAllAnswers",
@@ -1129,10 +1152,17 @@ export function ActivityViewer({
         await saveState({ overrideThrottle: true });
 
         setActivityAsCompleted?.();
+
+        setPageInfo((was) => {
+            let newObj = { ...was };
+            newObj.waitingForPagesCore = null;
+            newObj.pageCoreCreated = [];
+            return newObj;
+        });
     }
 
-    function setPageErrorsAndWarningsCallback(errorsAndWarnings, pageind) {
-        errorsAndWarningsByPage.current[pageind] = errorsAndWarnings;
+    function setPageErrorsAndWarningsCallback(errorsAndWarnings, pageInd) {
+        errorsAndWarningsByPage.current[pageInd] = errorsAndWarnings;
 
         setErrorsAndWarningsCallback?.(collateErrorsAndWarnings());
     }
@@ -1172,40 +1202,6 @@ export function ActivityViewer({
                 {errorIcon} {errMsg}
             </div>
         );
-    }
-
-    if (pageInfo.waitingForPagesCore === null) {
-        // check current page first
-        if (currentPage) {
-            for (let pageInd of [currentPage - 1, ...Array(nPages).keys()]) {
-                let isVisible = pageInfo.pageIsVisible[pageInd];
-                if (
-                    (isVisible || currentPage === pageInd + 1) &&
-                    !pageInfo.pageIsActive[pageInd]
-                ) {
-                    // activate either the current page or an inactive page that is visible
-
-                    // if we need to create core
-                    // then stop here to not create multiple cores at once
-                    let waitingAgain = !pageInfo.pageCoreWorker[pageInd];
-
-                    setPageInfo((was) => {
-                        let newObj = { ...was };
-                        let newActive = [...newObj.pageIsActive];
-                        newActive[pageInd] = true;
-                        newObj.pageIsActive = newActive;
-                        if (!newObj.pageCoreWorker[pageInd]) {
-                            newObj.waitingForPagesCore = pageInd;
-                        }
-                        return newObj;
-                    });
-
-                    if (waitingAgain) {
-                        break;
-                    }
-                }
-            }
-        }
     }
 
     if (
@@ -1283,15 +1279,14 @@ export function ActivityViewer({
                 ) {
                     // if have a single page, then use the names of the variants
                     // defined for that page (rather than the default of numbering them)
-                    let page = activityDefinition.children[0];
 
                     // TODO: should we save these so we don't have to recalculate them?
                     // Right now, if didn't load state, then we calculated this twice
                     // as call returnAllPossibleVariants in loadState
-                    allPossibleVariants = await returnAllPossibleVariants({
-                        doenetML: page.doenetML,
-                        serializedComponents: page.children,
-                    });
+                    allPossibleVariants =
+                        await returnAllPossibleVariantsFromCoreWorker(
+                            pageCoreWorkersInfo.current[0].coreWorker,
+                        );
                 }
 
                 if (!allPossibleVariants) {
@@ -1312,6 +1307,40 @@ export function ActivityViewer({
         return null;
     }
 
+    if (pageInfo.waitingForPagesCore === null) {
+        // check current page first
+        if (currentPage) {
+            for (let pageInd of [currentPage - 1, ...Array(nPages).keys()]) {
+                let isVisible = pageInfo.pageIsVisible[pageInd];
+                if (
+                    (isVisible || currentPage === pageInd + 1) &&
+                    !pageInfo.pageIsActive[pageInd]
+                ) {
+                    // activate either the current page or an inactive page that is visible
+
+                    // if we need to create core
+                    // then stop here to not create multiple cores at once
+                    let waitingAgain = !pageInfo.pageCoreCreated[pageInd];
+
+                    setPageInfo((was) => {
+                        let newObj = { ...was };
+                        let newActive = [...newObj.pageIsActive];
+                        newActive[pageInd] = true;
+                        newObj.pageIsActive = newActive;
+                        if (!newObj.pageCoreCreated[pageInd]) {
+                            newObj.waitingForPagesCore = pageInd;
+                        }
+                        return newObj;
+                    });
+
+                    if (waitingAgain) {
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
     saveState();
 
     let title = <h1>{activityDefinition.title}</h1>;
@@ -1326,15 +1355,15 @@ export function ActivityViewer({
                     // the current page is always active
                     thisPageIsActive = true;
                 } else if (
-                    pageInfo.pageCoreWorker[currentPage - 1] &&
+                    pageInfo.pageCoreCreated[currentPage - 1] &&
                     ind === currentPage
                 ) {
                     // if the current page already has core created, activate next page
                     thisPageIsActive = true;
                 } else if (
-                    pageInfo.pageCoreWorker[currentPage - 1] &&
+                    pageInfo.pageCoreCreated[currentPage - 1] &&
                     (currentPage === nPages ||
-                        pageInfo.pageCoreWorker[currentPage]) &&
+                        pageInfo.pageCoreCreated[currentPage]) &&
                     ind === currentPage - 2
                 ) {
                     // if current page and page after current page (if exists) already have current page
@@ -1357,6 +1386,7 @@ export function ActivityViewer({
                     cid={page.cid}
                     doenetML={page.doenetML}
                     preliminarySerializedComponents={page.children}
+                    coreWorkerInfo={pageCoreWorkersInfo.current[ind]}
                     pageNumber={(ind + 1).toString()}
                     previousComponentTypeCounts={
                         previousComponentTypeCountsByPage.current[ind]
@@ -1381,9 +1411,7 @@ export function ActivityViewer({
                     updateAttemptNumber={updateAttemptNumber}
                     saveStateCallback={receivedSaveFromPage}
                     updateDataOnContentChange={updateDataOnContentChange}
-                    coreCreatedCallback={(coreWorker) =>
-                        coreCreatedCallback(ind, coreWorker)
-                    }
+                    coreCreatedCallback={() => coreCreatedCallback(ind)}
                     renderersInitializedCallback={() =>
                         pageRenderedCallback(ind)
                     }

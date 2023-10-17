@@ -3,6 +3,8 @@ import {
     retrieveTextFileForCid,
     deepClone,
     returnDeprecationMessage,
+    convertToErrorComponent,
+    createUniqueName,
 } from "@doenet/utils";
 
 export async function expandDoenetMLsToFullSerializedComponents({
@@ -403,6 +405,7 @@ export function addDocumentIfItsMissing(serializedComponents) {
             children: components,
         });
     }
+    return serializedComponents;
 }
 
 function substituteAttributeDeprecations(serializedComponents) {

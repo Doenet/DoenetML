@@ -1,45 +1,112 @@
 import Core from "./Core";
 import me from "math-expressions";
 import { removeFunctionsMathExpressionClass } from "./utils/math";
+import { createComponentInfoObjects } from "./utils/componentInfoObjects";
+import {
+    addDocumentIfItsMissing,
+    expandDoenetMLsToFullSerializedComponents,
+} from "./utils/expandDoenetML";
+import { returnAllPossibleVariants } from "./utils/returnAllPossibleVariants";
+import { countComponentTypes } from "@doenet/utils";
 
-let core;
+let core = null;
 
 let queuedRequestActions = [];
 
+let coreBaseArgs = {};
+let initializeResult = {};
+
 globalThis.onmessage = function (e) {
-    if (e.data.messageType === "createCore") {
-        createCore(e.data.args);
-    } else if (e.data.messageType === "requestAction") {
+    if (e.data.messageType === "requestAction") {
         if (core?.initialized) {
             // setTimeout(() => core.requestAction(e.data.args), 1000)
             core.requestAction(e.data.args);
         } else {
             queuedRequestActions.push(e.data.args);
         }
+    } else if (e.data.messageType === "visibilityChange") {
+        core?.handleVisibilityChange(e.data.args);
+    } else if (e.data.messageType === "navigatingToComponent") {
+        core?.handleNavigatingToComponent(e.data.args);
+    } else if (e.data.messageType === "initializeWorker") {
+        initializeWorker(e.data.args);
+    } else if (e.data.messageType === "createCore") {
+        createCore(e.data.args);
+    } else if (e.data.messageType === "returnAllPossibleVariants") {
+        if (initializeResult.success) {
+            returnAllPossibleVariants(
+                coreBaseArgs.serializedDocument,
+                coreBaseArgs.componentInfoObjects,
+            ).then((allPossibleVariants) => {
+                postMessage({
+                    messageType: "allPossibleVariants",
+                    args: { success: true, allPossibleVariants },
+                });
+            });
+        } else {
+            postMessage({
+                messageType: "allPossibleVariants",
+                args: { success: false },
+            });
+        }
+    } else if (e.data.messageType === "returnComponentCounts") {
+        if (initializeResult.success) {
+            let documentChildren = coreBaseArgs.serializedDocument.children;
+            let componentTypeCounts = countComponentTypes(documentChildren);
+
+            postMessage({
+                messageType: "componentTypeCounts",
+                args: { success: true, componentTypeCounts },
+            });
+        } else {
+            postMessage({
+                messageType: "componentTypeCounts",
+                args: { success: false },
+            });
+        }
     } else if (e.data.messageType === "returnAllStateVariables") {
-        console.log("all components");
-        console.log(core._components);
-        returnAllStateVariables(core).then((componentsObj) => {
+        if (core) {
+            console.log("all components");
+            console.log(core._components);
+            returnAllStateVariables(core).then((componentsObj) => {
+                postMessage({
+                    messageType: "returnAllStateVariables",
+                    args: componentsObj,
+                });
+            });
+        } else {
+            console.log("Cannot return state variables as core is not created");
             postMessage({
                 messageType: "returnAllStateVariables",
-                args: componentsObj,
+                args: {},
             });
-        });
+        }
     } else if (e.data.messageType === "returnErrorWarnings") {
-        postMessage({
-            messageType: "returnErrorWarnings",
-            args: core.errorWarnings,
-        });
-    } else if (e.data.messageType === "visibilityChange") {
-        core.handleVisibilityChange(e.data.args);
+        if (core) {
+            postMessage({
+                messageType: "returnErrorWarnings",
+                args: core.errorWarnings,
+            });
+        } else {
+            console.log(
+                "Cannot return errors and warnings as core is not created",
+            );
+            postMessage({
+                messageType: "returnErrorWarnings",
+                args: {},
+            });
+        }
     } else if (e.data.messageType === "terminate") {
-        core.terminate().then(() => {
+        if (core) {
+            core.terminate().then(() => {
+                core = null;
+                postMessage({ messageType: "terminated" });
+            });
+        } else {
             postMessage({ messageType: "terminated" });
-        });
-    } else if (e.data.messageType === "navigatingToComponent") {
-        core.handleNavigatingToComponent(e.data.args);
+        }
     } else if (e.data.messageType === "submitAllAnswers") {
-        core.requestAction({
+        core?.requestAction({
             componentName: core.documentName,
             actionName: "submitAllAnswers",
             args: e.data.args,
@@ -47,47 +114,82 @@ globalThis.onmessage = function (e) {
     }
 };
 
-async function createCore(args) {
-    // console.log('createCore', args)
+async function initializeWorker({
+    doenetML,
+    preliminarySerializedComponents,
+    flags,
+}) {
+    // Note: preliminarySerializeComponents is optional.
+    // If it is undefined, expandDoenetMLsToFullSerializedComponents will parse doenetML
+    // to create the serialized components
 
-    // userId is typically undefined unless attempting to look up
-    // state from another user
+    let componentInfoObjects = createComponentInfoObjects(flags);
 
-    // if (core) {
-    //   // console.log('already have a core.  Refusing to create another one');
-    //   // return;
-    //   //TODO: Investigate for memory leaks
-    // }
+    let expandResult;
+    try {
+        expandResult = await expandDoenetMLsToFullSerializedComponents({
+            doenetMLs: [doenetML],
+            preliminarySerializedComponents: [preliminarySerializedComponents],
+            componentInfoObjects,
+            flags,
+        });
+    } catch (e) {
+        // throw e;
+        initializeResult = { success: false, errMsg: e.message };
+        postMessage({
+            messageType: "initializeResult",
+            args: initializeResult,
+        });
+    }
 
-    // setTimeout(() => {
-    //   core = new Core(args)
-    //   core.getInitializedPromise().then(() => {
-    //     console.log('actions to process', queuedRequestActions)
-    //     for (let action of queuedRequestActions) {
-    //       core.requestAction(action);
-    //     }
-    //     queuedRequestActions = [];
-    //   })
-    // }, 10000)
+    coreBaseArgs = {
+        doenetML,
+        preliminarySerializedComponents,
+        flags,
+        serializedDocument: addDocumentIfItsMissing(
+            expandResult.fullSerializedComponents[0],
+        )[0],
+        allDoenetMLs: expandResult.allDoenetMLs,
+        preliminaryErrors: expandResult.errors,
+        preliminaryWarnings: expandResult.warnings,
+        componentInfoObjects,
+    };
 
-    // let tot = 0;
-    // for(let i=0; i< 10; i++) {
-    //   let sum = 0;
-    //   for(let j=0; j< 5000000; j++) {
-    //     sum += Math.sin(j);
-    //   }
-    //   tot += sum;
-    //   console.log(`waiting to create core, ${i}=${tot}`);
-    // }
+    initializeResult = { success: true };
 
-    core = new Core(args);
-    core.getInitializedPromise().then(() => {
-        // console.log('actions to process', queuedRequestActions)
-        for (let action of queuedRequestActions) {
-            core.requestAction(action);
-        }
-        queuedRequestActions = [];
+    postMessage({
+        messageType: "initializeResult",
+        args: initializeResult,
     });
+}
+
+async function createCore(args) {
+    if (initializeResult.success) {
+        let coreArgs = Object.assign({}, coreBaseArgs);
+        Object.assign(coreArgs, args);
+
+        core = new Core(coreArgs);
+        core.getInitializedPromise().then(() => {
+            // console.log('actions to process', queuedRequestActions)
+            for (let action of queuedRequestActions) {
+                core.requestAction(action);
+            }
+            queuedRequestActions = [];
+        });
+    } else {
+        let errMsg =
+            initializeResult.success === false
+                ? initializeResult.errMsg
+                : "Internal error. Cannot create document. Core not initialized.";
+
+        postMessage({
+            messageType: "inErrorState",
+            coreId: coreArgs.coreId,
+            args: {
+                errMsg,
+            },
+        });
+    }
 }
 
 async function returnAllStateVariables(core) {

@@ -9,6 +9,8 @@ type DoenetMLRange = {
     closeEnd?: number;
     lineBegin?: number;
     lineEnd?: number;
+    attrBegin?: number;
+    attrEnd?: number;
 };
 
 export function printDoenetMLrange(doenetMLrange: DoenetMLRange) {
@@ -112,5 +114,17 @@ export function assignDoenetMLRange(
                 }
             }
         }
+    }
+}
+
+// convert attrBegin/attrEnd if exist to begin/end
+export function convertDoenetMLAttrRange(doenetMLrange: DoenetMLRange) {
+    if (doenetMLrange?.attrBegin) {
+        return {
+            begin: doenetMLrange.attrBegin,
+            end: doenetMLrange.attrEnd,
+        };
+    } else {
+        return doenetMLrange;
     }
 }

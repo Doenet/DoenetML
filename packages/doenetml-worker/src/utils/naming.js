@@ -1,4 +1,8 @@
-import { createUniqueName, flattenDeep } from "@doenet/utils";
+import {
+    convertToErrorComponent,
+    createUniqueName,
+    flattenDeep,
+} from "@doenet/utils";
 
 function breakStringInPiecesBySpacesOrParens(string) {
     if (typeof string !== "string") {

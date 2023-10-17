@@ -292,6 +292,19 @@ export function determineVariantsForSection({
         serializedComponent.variants = {};
     }
 
+    // if allPossibleVariants has already been set,
+    // then determineVariantsForSection has already been run,
+    // so just give the number of variants
+    // Note: skipping this check and running this function again
+    // could incorrectly invoke uniqueVariants, as numVariants would have already
+    // been reduced to numVariantsSpecified
+    if (serializedComponent.variants.allPossibleVariants) {
+        return {
+            success: true,
+            numVariants: serializedComponent.variants.numVariants,
+        };
+    }
+
     let variantControlChild;
     for (let child of serializedComponent.children) {
         if (child.componentType === "variantControl") {
