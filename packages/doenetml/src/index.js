@@ -1,11 +1,12 @@
 export { DoenetML } from "./DoenetML";
 
-export { mathjaxConfig } from "./Core/utils/math";
 export {
+    mathjaxConfig,
     cidFromText,
     retrieveTextFileForCid,
     serializedComponentsReplacer,
     serializedComponentsReviver,
+    // returnAllPossibleVariants,
 } from "@doenet/utils";
 export {
     calculateOrderAndVariants,
@@ -14,5 +15,4 @@ export {
     returnNumberOfActivityVariantsForCid,
 } from "./utils/activityUtils";
 
-export { returnAllPossibleVariants } from "./Core/utils/returnAllPossibleVariants";
 export { CodeMirror } from "@doenet/codemirror";

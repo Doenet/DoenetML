@@ -3,7 +3,7 @@ import { BoardContext, TEXT_LAYER_OFFSET } from "./graph";
 import useDoenetRenderer from "../useDoenetRenderer";
 import { MathJax } from "better-react-mathjax";
 import me from "math-expressions";
-import { textRendererStyle } from "../../Core/utils/style";
+import { textRendererStyle } from "@doenet/utils";
 import { getPositionFromAnchorByCoordinate } from "./utils/graph";
 import { cesc } from "@doenet/utils";
 import { PageContext } from "../PageViewer";

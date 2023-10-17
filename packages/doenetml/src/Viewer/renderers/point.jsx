@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState, useRef } from "react";
 import useDoenetRenderer from "../useDoenetRenderer";
 import { BoardContext, POINT_LAYER_OFFSET } from "./graph";
 import { MathJax } from "better-react-mathjax";
-import { textRendererStyle } from "../../Core/utils/style";
+import { textRendererStyle } from "@doenet/utils";
 import { characterizeOffGraphPoint } from "./utils/offGraphIndicators";
 import {
     adjustPointLabelPosition,

@@ -1,18 +1,10 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { CypressTest } from "./CypressTest.jsx";
-import axios from "axios";
 import { RecoilRoot } from "recoil";
 import { MathJaxContext } from "better-react-mathjax";
-import { mathjaxConfig } from "../../Core/utils/math.js";
+import { mathjaxConfig } from "@doenet/utils";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-
-// function CypressTest(props){
-
-//   axios.post('/api/test.php',{}).then((resp) => console.log('>>>resp', resp.data));
-
-//   return <p>test</p>
-// }
 
 const root = createRoot(document.getElementById("root"));
 root.render(

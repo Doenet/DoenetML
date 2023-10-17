@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState, useRef } from "react";
 import useDoenetRenderer from "../useDoenetRenderer";
 import { BoardContext, LINE_LAYER_OFFSET, VERTEX_LAYER_OFFSET } from "./graph";
 import { MathJax } from "better-react-mathjax";
-import { textRendererStyle } from "../../Core/utils/style";
+import { textRendererStyle } from "@doenet/utils";
 import { PageContext } from "../PageViewer";
 
 export default React.memo(function Vector(props) {

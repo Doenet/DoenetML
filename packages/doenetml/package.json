@@ -41,8 +41,6 @@
         "@handsontable/react": "^12.4.0",
         "axios": "^0.27.2",
         "better-react-mathjax": "^2.0.1",
-        "compromise": "^13.11.4",
-        "compromise-numbers": "^1.4.0",
         "copy-to-clipboard": "^3.3.2",
         "crypto-js": "^4.1.1",
         "cssesc": "^3.0.0",
