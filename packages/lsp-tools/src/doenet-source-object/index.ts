@@ -86,6 +86,17 @@ export class DoenetSourceObject extends LazyDataObject {
     }
 
     /**
+     * Given a 0-index offset into the source string, return an LSP position.
+     */
+    offsetToLSPPosition(offset: number): { line: number; character: number } {
+        const offsetToRowCache = this._offsetToRowCache();
+        return {
+            line: offsetToRowCache.rowMap[offset],
+            character: offsetToRowCache.columnMap[offset],
+        };
+    }
+
+    /**
      * Given a 1-index line and column, return the 0-index offset into the source string.
      */
     rowColToOffset(rowCol: RowCol): number {
