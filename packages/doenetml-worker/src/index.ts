@@ -1,1 +1,1 @@
-export * from "./src/CoreWorker.js";
+export * from "./CoreWorker.js";
