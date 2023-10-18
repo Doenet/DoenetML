@@ -28,33 +28,38 @@ export function getSchemaViolations(this: AutoCompleter): Diagnostic[] {
         });
     }
 
-    const ret: Diagnostic[] = getElementPairs(this.sourceObj.dast).flatMap(
-        ({ node, parent }) => {
-            const name = this.normalizeElementName(node.name);
-            if (parent.type === "root") {
-                const schema = this.schemaElementsByName[name];
-                if (!schema) {
-                    return [];
-                }
-                if (!schema.top) {
-                    return {
-                        range: {
-                            start: this.sourceObj.offsetToLSPPosition(
-                                node.position?.start.offset || 0,
-                            ),
-                            end: this.sourceObj.offsetToLSPPosition(
-                                node.position?.end.offset || 0,
-                            ),
-                        },
-                        message: `Element \`<${name}>\` is not allowed at the root of the document.`,
-                        severity: DiagnosticSeverity.Warning,
-                    };
-                }
+    const allPairs = getElementPairs(this.sourceObj.dast);
+
+    const ret: Diagnostic[] = allPairs.flatMap(({ node, parent }) => {
+        const ret: Diagnostic[] = [];
+        const name = this.normalizeElementName(node.name);
+
+        if (name === "UNKNOWN_NAME") {
+            // No further checking for unknown elements.
+            return {
+                range: {
+                    start: this.sourceObj.offsetToLSPPosition(
+                        node.position?.start.offset || 0,
+                    ),
+                    end: this.sourceObj.offsetToLSPPosition(
+                        node.position?.end.offset || 0,
+                    ),
+                },
+                message: `Element \`<${node.name}>\` is not a recognized Doenet element.`,
+                severity: DiagnosticSeverity.Warning,
+            };
+        }
+
+        const schema = this.schemaElementsByName[name];
+        //
+        // Check parent-child relationship
+        //
+        if (parent.type === "root") {
+            if (!schema) {
                 return [];
             }
-            const parentName = this.normalizeElementName(parent.name);
-            if (!this._getAllowedChildren(parentName).includes(name)) {
-                return {
+            if (!schema.top) {
+                ret.push({
                     range: {
                         start: this.sourceObj.offsetToLSPPosition(
                             node.position?.start.offset || 0,
@@ -63,14 +68,66 @@ export function getSchemaViolations(this: AutoCompleter): Diagnostic[] {
                             node.position?.end.offset || 0,
                         ),
                     },
-                    message: `Element \`<${name}>\` is not allowed as a child of \`<${parentName}>\`.`,
+                    message: `Element \`<${name}>\` is not allowed at the root of the document.`,
                     severity: DiagnosticSeverity.Warning,
-                };
+                });
             }
+        } else {
+            const parentName = this.normalizeElementName(parent.name);
+            if (
+                parentName !== "UNKNOWN_NAME" &&
+                !this.isAllowedChild(parentName, name)
+            ) {
+                ret.push({
+                    range: {
+                        start: this.sourceObj.offsetToLSPPosition(
+                            node.position?.start.offset || 0,
+                        ),
+                        end: this.sourceObj.offsetToLSPPosition(
+                            node.position?.end.offset || 0,
+                        ),
+                    },
+                    message: `Element \`<${name}>\` is not allowed inside of \`<${parentName}>\`.`,
+                    severity: DiagnosticSeverity.Warning,
+                });
+            }
+        }
 
-            return [];
-        },
-    );
+        //
+        // Check attributes
+        //
+        for (const attr of node.attributes) {
+            const attrName = this.normalizeAttributeName(attr.name);
+            if (attrName === "UNKNOWN_NAME") {
+                ret.push({
+                    range: {
+                        start: this.sourceObj.offsetToLSPPosition(
+                            node.position?.start.offset || 0,
+                        ),
+                        end: this.sourceObj.offsetToLSPPosition(
+                            node.position?.end.offset || 0,
+                        ),
+                    },
+                    message: `Element \`<${name}>\` doesn't have an attribute called \`${attr.name}\`.`,
+                    severity: DiagnosticSeverity.Warning,
+                });
+            } else if (!this.isAllowedAttribute(name, attrName)) {
+                ret.push({
+                    range: {
+                        start: this.sourceObj.offsetToLSPPosition(
+                            node.position?.start.offset || 0,
+                        ),
+                        end: this.sourceObj.offsetToLSPPosition(
+                            node.position?.end.offset || 0,
+                        ),
+                    },
+                    message: `Element \`<${name}>\` doesn't have an attribute called \`${attrName}\`.`,
+                    severity: DiagnosticSeverity.Warning,
+                });
+            }
+        }
+        return ret;
+    });
 
     return ret;
 }

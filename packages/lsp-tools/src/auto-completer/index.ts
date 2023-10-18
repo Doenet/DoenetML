@@ -1,8 +1,6 @@
 import { DoenetSourceObject, RowCol } from "../doenet-source-object";
 import { doenetSchema } from "@doenet/static-assets";
-import type { CompletionItem } from "vscode-languageserver/browser";
-import { CompletionItemKind } from "vscode-languageserver/browser";
-import { DastAttribute, DastElement, showCursor } from "@doenet/parser";
+import { DastAttribute, DastElement } from "@doenet/parser";
 import { getCompletionItems } from "./get-completion-items";
 import { getSchemaViolations } from "./get-schema-violations";
 
@@ -20,9 +18,18 @@ type ElementSchema = {
 export class AutoCompleter {
     sourceObj: DoenetSourceObject = new DoenetSourceObject();
     schema: ElementSchema[] = [];
+    /**
+     * A map of element names (in lower case) to their canonical capitalization.
+     */
     schemaLowerToUpper: Record<string, string> = {};
+    /**
+     * A map of attribute names (in lower case) to their canonical capitalization.
+     */
+    schemaAttributesLowerToUpper: Record<string, string> = {};
     schemaTopAllowedElements: string[] = [];
     schemaElementsByName: Record<string, ElementSchema> = {};
+    parentChildMap: Map<string, Set<string>> = new Map();
+    nodeAttributeMap: Map<string, Set<string>> = new Map();
 
     constructor(
         source?: string,
@@ -45,12 +52,26 @@ export class AutoCompleter {
         this.schemaLowerToUpper = Object.fromEntries(
             this.schema.map((e) => [e.name.toLowerCase(), e.name]),
         );
+        this.schemaAttributesLowerToUpper = Object.fromEntries(
+            this.schema.flatMap((e) => {
+                return e.attributes.map((a) => [a.name.toLowerCase(), a.name]);
+            }),
+        );
         this.schemaElementsByName = Object.fromEntries(
             this.schema.map((e) => [e.name, e]),
         );
         this.schemaTopAllowedElements = this.schema
             .filter((e) => e.top)
             .map((e) => e.name);
+        this.parentChildMap = new Map(
+            this.schema.map((e) => [e.name, new Set(e.children)]),
+        );
+        this.nodeAttributeMap = new Map(
+            this.schema.map((e) => [
+                e.name,
+                new Set(e.attributes.map((a) => a.name)),
+            ]),
+        );
     }
 
     /**
@@ -114,7 +135,48 @@ export class AutoCompleter {
     /**
      * Convert an element name to its standard capitalization.
      */
-    normalizeElementName(name: string) {
+    normalizeElementName(name: string): string | "UNKNOWN_NAME" {
         return this.schemaLowerToUpper[name.toLowerCase()] || "UNKNOWN_NAME";
+    }
+
+    /**
+     * Convert an attribute name to its standard capitalization.
+     */
+    normalizeAttributeName(name: string): string | "UNKNOWN_NAME" {
+        return (
+            this.schemaAttributesLowerToUpper[name.toLowerCase()] ||
+            "UNKNOWN_NAME"
+        );
+    }
+
+    /**
+     * Gets whether the child is allowed inside the parent. This function normalizes the
+     * name of the parent and child before checking.
+     */
+    isAllowedChild(parentName: string, childName: string): boolean {
+        parentName = this.normalizeElementName(parentName);
+        childName = this.normalizeElementName(childName);
+        if (parentName === "UNKNOWN_NAME" || childName === "UNKNOWN_NAME") {
+            return false;
+        }
+        return this.parentChildMap.get(parentName)?.has(childName) || false;
+    }
+
+    /**
+     * Checks whether the given attribute is allowed on the given element. This function
+     * normalizes the name of the element and attribute before checking.
+     */
+    isAllowedAttribute(elementName: string, attributeName: string): boolean {
+        elementName = this.normalizeElementName(elementName);
+        attributeName = this.normalizeAttributeName(attributeName);
+        if (
+            elementName === "UNKNOWN_NAME" ||
+            attributeName === "UNKNOWN_NAME"
+        ) {
+            return false;
+        }
+        return (
+            this.nodeAttributeMap.get(elementName)?.has(attributeName) || false
+        );
     }
 }
