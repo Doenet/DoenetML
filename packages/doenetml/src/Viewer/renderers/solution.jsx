@@ -4,7 +4,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPuzzlePiece as puzzle } from "@fortawesome/free-solid-svg-icons";
 import VisibilitySensor from "react-visibility-sensor-v2";
 import styled from "styled-components";
-import P from "../../Core/components/P";
 import { addCommasForCompositeRanges } from "./utils/composites";
 const SpanStyling = styled.span`
     // display: block;

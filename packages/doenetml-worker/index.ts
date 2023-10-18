@@ -1,1 +1,1 @@
-export * from "../doenetml/src/Core/CoreWorker.js";
+export * from "./src/CoreWorker.js";

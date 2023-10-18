@@ -1,14 +1,15 @@
 import { prng_alea } from "esm-seedrandom";
-import { returnAllPossibleVariants } from "../Core/utils/returnAllPossibleVariants";
 import { parseAndCompile } from "@doenet/parser";
-import { enumerateCombinations } from "../Core/utils/enumeration";
-import createComponentInfoObjects from "../Core/utils/componentInfoObjects";
+// import componentInfoObjects from "../../../assets/assets/componentInfoObjects.json";
 import {
-    addDocumentIfItsMissing,
-    countComponentTypes,
-    expandDoenetMLsToFullSerializedComponents,
-} from "../Core/utils/serializedStateProcessing";
-import { cidFromText, retrieveTextFileForCid } from "@doenet/utils";
+    cidFromText,
+    retrieveTextFileForCid,
+    enumerateCombinations,
+    convertDoenetMLAttrRange,
+    findAllNewlines,
+    getLineCharRange,
+} from "@doenet/utils";
+import { doenetGlobalConfig } from "../global-config";
 
 let rngClass = prng_alea;
 
@@ -466,11 +467,14 @@ function removeOuterBlankStrings(serializedComponents) {
 export async function calculateOrderAndVariants({
     activityDefinition,
     requestedVariantIndex,
+    flags = {},
 }) {
     let errors = [];
 
-    let activityVariantResult =
-        await determineNumberOfActivityVariants(activityDefinition);
+    let activityVariantResult = await determineNumberOfActivityVariants(
+        activityDefinition,
+        flags,
+    );
 
     let variantIndex =
         ((requestedVariantIndex - 1) % activityVariantResult.numVariants) + 1;
@@ -532,31 +536,42 @@ export async function calculateOrderAndVariants({
     }
 
     let pageVariantsResult;
+    let pageCoreWorkersInfo = [];
 
     if (activityVariantResult.pageVariantsResult) {
         pageVariantsResult = activityVariantResult.pageVariantsResult;
+        pageCoreWorkersInfo = activityVariantResult.pageCoreWorkersInfo;
     } else {
         let promises = [];
+        pageVariantsResult = [];
         for (let page of activityPages) {
+            let coreWorker = createCoreWorker();
+            let theInfo = {
+                coreWorker,
+                doenetML: page.doenetML,
+                preliminarySerializedComponents: page.children,
+                flags,
+            };
+            pageCoreWorkersInfo.push(theInfo);
             promises.push(
-                returnAllPossibleVariants({
-                    doenetML: page.doenetML,
-                    serializedComponents: page.children,
+                initializeCoreWorker(theInfo).then(() => {
+                    return returnAllPossibleVariantsFromCoreWorker(coreWorker);
                 }),
             );
         }
 
-        try {
-            pageVariantsResult = await Promise.all(promises);
-        } catch (e) {
-            errors.push({
-                message: `Error retrieving content for activity. ${e.message}`,
-                displayInActivity: true,
-            });
+        // use allSettled to make sure all initializations are run
+        let promiseResults = await Promise.allSettled(promises);
 
-            pageVariantsResult = [];
-            for (let page of activityPages) {
-                pageVariantsResult.push("error");
+        for (let result of promiseResults) {
+            if (result.status === "fulfilled") {
+                pageVariantsResult.push(result.value);
+            } else {
+                pageVariantsResult.push(["a"]);
+                errors.push({
+                    message: `Error initializing activity. ${result.reason}`,
+                    displayInActivity: true,
+                });
             }
         }
     }
@@ -591,10 +606,10 @@ export async function calculateOrderAndVariants({
     }
 
     let previousComponentTypeCounts =
-        await initializeComponentTypeCounts(activityPages);
+        await initializeComponentTypeCounts(pageCoreWorkersInfo);
 
     let activityInfo = {
-        orderWithCids: activityPages,
+        activityPages,
         variantsByPage,
         itemWeights,
         numVariants: activityVariantResult.numVariants,
@@ -610,12 +625,27 @@ export async function calculateOrderAndVariants({
         activityInfo,
         previousComponentTypeCounts,
         pageVariantsResult,
+        pageCoreWorkersInfo,
     };
 }
 
-export async function determineNumberOfActivityVariants(activityDefinition) {
+export async function determineNumberOfActivityVariants(
+    activityDefinition,
+    flags,
+) {
+    // Number of variants is numVariants for activity definition or 1000,
+    // with one exception that also has additional side effects.
+    // If numVariants is not specified and the activity definition has only pages (no orders),
+    // then spin up a core worker for each page
+    // and use it to calculate the number of variants for each page.
+    // The number of variants for the activity is the product of variants for each page
+    // (capped at 1000, currently not adjustable).
+    // In this case, return the core workers and the variant results
+    // to reduce duplicate calculations later.
+
     let numVariants = 1000;
     let pageVariantsResult = null;
+    let pageCoreWorkersInfo = [];
 
     if (activityDefinition.numVariants !== undefined) {
         numVariants = activityDefinition.numVariants;
@@ -627,22 +657,159 @@ export async function determineNumberOfActivityVariants(activityDefinition) {
 
         let promises = [];
         for (let page of activityDefinition.children) {
+            let coreWorker = createCoreWorker();
+            let theInfo = {
+                coreWorker,
+                doenetML: page.doenetML,
+                preliminarySerializedComponents: page.children,
+                flags,
+            };
+            pageCoreWorkersInfo.push(theInfo);
             promises.push(
-                returnAllPossibleVariants({
-                    doenetML: page.doenetML,
-                    serializedComponents: page.children,
+                initializeCoreWorker(theInfo).then(() => {
+                    return returnAllPossibleVariantsFromCoreWorker(coreWorker);
                 }),
             );
         }
 
-        pageVariantsResult = await Promise.all(promises);
-
-        numVariants = pageVariantsResult.reduce((a, c) => a * c.length, 1);
-
-        numVariants = Math.min(1000, numVariants);
+        try {
+            pageVariantsResult = await Promise.all(promises);
+            numVariants = pageVariantsResult.reduce((a, c) => a * c.length, 1);
+            numVariants = Math.min(1000, numVariants);
+        } catch (e) {}
     }
 
-    return { numVariants, pageVariantsResult };
+    return { numVariants, pageVariantsResult, pageCoreWorkersInfo };
+}
+
+export function createCoreWorker() {
+    return new Worker(doenetGlobalConfig.doenetWorkerUrl, {
+        type: "module",
+    });
+}
+
+export function initializeCoreWorker({
+    coreWorker,
+    doenetML,
+    preliminarySerializedComponents,
+    flags,
+}) {
+    // Initializes core worker with the given arguments.
+    // Returns a promise.
+    // If the worker is successfully initialized, the promise is resolved
+    // If an error was encountered while initializing, the promise is rejected
+
+    let resolveInitializePromise;
+    let rejectInitializePromise;
+
+    let initializePromise = new Promise((resolve, reject) => {
+        resolveInitializePromise = resolve;
+        rejectInitializePromise = reject;
+    });
+
+    let initializeListener = function (e) {
+        if (e.data.messageType === "initializeResult") {
+            coreWorker.removeEventListener("message", initializeListener);
+
+            let initializeResult = e.data.args;
+
+            if (initializeResult.success) {
+                resolveInitializePromise();
+            } else {
+                rejectInitializePromise(new Error(initializeResult.errMsg));
+            }
+        }
+    };
+
+    coreWorker.addEventListener("message", initializeListener);
+
+    coreWorker.postMessage({
+        messageType: "initializeWorker",
+        args: {
+            doenetML,
+            preliminarySerializedComponents,
+            flags,
+        },
+    });
+
+    return initializePromise;
+}
+
+export async function createAndInitializePageCoreWorkers(activityPages, flags) {
+    let promises = [];
+    let pageCoreWorkersInfo = [];
+    let errors = [];
+
+    for (let page of activityPages) {
+        let coreWorker = createCoreWorker();
+
+        let theInfo = {
+            coreWorker,
+            doenetML: page.doenetML,
+            preliminarySerializedComponents: page.children,
+            flags,
+        };
+
+        pageCoreWorkersInfo.push(theInfo);
+        promises.push(initializeCoreWorker(theInfo));
+    }
+
+    // use allSettled to make sure all initializations are run
+    let promiseResults = await Promise.allSettled(promises);
+
+    for (let result of promiseResults) {
+        if (result.status === "rejected") {
+            errors.push({
+                message: `Error initializing activity. ${result.reason}`,
+                displayInActivity: true,
+            });
+        }
+    }
+
+    return { pageCoreWorkersInfo, errors };
+}
+
+export function returnAllPossibleVariantsFromCoreWorker(coreWorker) {
+    // calculate all possible variants from an initialized core worker
+    // returns promise
+    // If the worker was already initialized,
+    // then the promise resolves to the allPossibleVariants object
+    // If the worker was not already initialized, then the promise is rejected
+
+    let resolveAllPossibleVariantsPromise;
+    let rejectAllPossibleVariantsPromise;
+
+    let allPossibleVariantsPromise = new Promise((resolve, reject) => {
+        resolveAllPossibleVariantsPromise = resolve;
+        rejectAllPossibleVariantsPromise = reject;
+    });
+
+    let allPossibleVariantsListener = function (e) {
+        if (e.data.messageType === "allPossibleVariants") {
+            let allPossibleVariantsResult = e.data.args;
+
+            coreWorker.removeEventListener(
+                "message",
+                allPossibleVariantsListener,
+            );
+
+            if (allPossibleVariantsResult.success) {
+                resolveAllPossibleVariantsPromise(
+                    allPossibleVariantsResult.allPossibleVariants,
+                );
+            } else {
+                rejectAllPossibleVariantsPromise();
+            }
+        }
+    };
+
+    coreWorker.addEventListener("message", allPossibleVariantsListener);
+
+    coreWorker.postMessage({
+        messageType: "returnAllPossibleVariants",
+    });
+
+    return allPossibleVariantsPromise;
 }
 
 export async function returnNumberOfActivityVariantsForCid(cid) {
@@ -858,49 +1025,89 @@ function processShuffleOrder(order, rng) {
     return { pages, errors };
 }
 
-async function initializeComponentTypeCounts(pages) {
-    let previousComponentTypeCountsByPage = [{}];
+async function returnComponentTypeCounts(coreWorker) {
+    // Returns a promise.
+    // If successfully obtain counts, the promise is resolved with those counts.
+    // If an error was encountered, the promise is rejected
 
-    let componentInfoObjects = createComponentInfoObjects();
+    let resolveCountPromise;
+    let rejectCountPromise;
 
-    for (let [ind, page] of pages.slice(0, pages.length - 1).entries()) {
-        let { fullSerializedComponents } =
-            await expandDoenetMLsToFullSerializedComponents({
-                doenetMLs: [page.doenetML],
-                preliminarySerializedComponents: [page.children],
-                componentInfoObjects,
-            });
+    let countPromise = new Promise((resolve, reject) => {
+        resolveCountPromise = resolve;
+        rejectCountPromise = reject;
+    });
 
-        let serializedComponents = fullSerializedComponents[0];
+    let componentCountListener = function (e) {
+        if (e.data.messageType === "componentTypeCounts") {
+            coreWorker.removeEventListener("message", componentCountListener);
 
-        addDocumentIfItsMissing(serializedComponents);
+            let countResult = e.data.args;
 
-        let documentChildren = serializedComponents[0].children;
-
-        let componentTypeCounts = countComponentTypes(documentChildren);
-
-        let countsSoFar = previousComponentTypeCountsByPage[ind];
-        for (let cType in countsSoFar) {
-            if (cType in componentTypeCounts) {
-                componentTypeCounts[cType] += countsSoFar[cType];
+            if (countResult.success) {
+                resolveCountPromise(countResult.componentTypeCounts);
             } else {
-                componentTypeCounts[cType] = countsSoFar[cType];
+                rejectCountPromise();
             }
         }
+    };
 
-        previousComponentTypeCountsByPage.push(componentTypeCounts);
+    coreWorker.addEventListener("message", componentCountListener);
+
+    coreWorker.postMessage({
+        messageType: "returnComponentCounts",
+    });
+
+    return countPromise;
+}
+
+async function initializeComponentTypeCounts(pageCoreWorkersInfo) {
+    let previousComponentTypeCountsByPage = [{}];
+
+    let promises = [];
+
+    for (let coreWorkerInfo of pageCoreWorkersInfo.slice(
+        0,
+        pageCoreWorkersInfo.length - 1,
+    )) {
+        promises.push(returnComponentTypeCounts(coreWorkerInfo.coreWorker));
     }
+
+    try {
+        let allComponentCounts = await Promise.all(promises);
+
+        for (let [ind, componentTypeCounts] of allComponentCounts.entries()) {
+            let countsSoFar = previousComponentTypeCountsByPage[ind];
+            for (let cType in countsSoFar) {
+                if (cType in componentTypeCounts) {
+                    componentTypeCounts[cType] += countsSoFar[cType];
+                } else {
+                    componentTypeCounts[cType] = countsSoFar[cType];
+                }
+            }
+
+            previousComponentTypeCountsByPage.push(componentTypeCounts);
+        }
+    } catch (e) {}
 
     return previousComponentTypeCountsByPage;
 }
 
-function convertDoenetMLAttrRange(doenetMLrange) {
-    if (doenetMLrange?.attrBegin) {
-        return {
-            begin: doenetMLrange.attrBegin,
-            end: doenetMLrange.attrEnd,
-        };
-    } else {
-        return doenetMLrange;
+export function normalizeErrors(errors, doenetML) {
+    if (errors.length > 0) {
+        let doenetMLNewlines = findAllNewlines(doenetML);
+        for (let err of errors) {
+            if (
+                err.doenetMLrange &&
+                err.doenetMLrange.lineBegin === undefined
+            ) {
+                Object.assign(
+                    err.doenetMLrange,
+                    getLineCharRange(err.doenetMLrange, doenetMLNewlines),
+                );
+            }
+        }
     }
+
+    return errors;
 }

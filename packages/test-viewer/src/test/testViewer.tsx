@@ -12,6 +12,7 @@ export default function TestViewer() {
         readOnly: false,
         showFeedback: true,
         showHints: true,
+        paginate: true,
     };
 
     const [controlsVisible, setControlsVisible] = useState(false);
@@ -24,6 +25,7 @@ export default function TestViewer() {
         readOnly,
         showFeedback,
         showHints,
+        paginate,
     } = testSettings;
 
     let controls = null;
@@ -120,6 +122,24 @@ export default function TestViewer() {
                         Show Hints
                     </label>
                 </div>
+                <div>
+                    <label>
+                        {" "}
+                        <input
+                            type="checkbox"
+                            checked={paginate}
+                            onChange={() => {
+                                setTestSettings((was) => {
+                                    let newObj = { ...was };
+                                    newObj.paginate = !was.paginate;
+                                    return newObj;
+                                });
+                                setUpdateNumber((was) => was + 1);
+                            }}
+                        />
+                        Paginate
+                    </label>
+                </div>
             </div>
         );
     }
@@ -154,6 +174,7 @@ export default function TestViewer() {
                     showFeedback,
                     showHints,
                 }}
+                paginate={paginate}
                 addVirtualKeyboard={true}
             />
         </div>

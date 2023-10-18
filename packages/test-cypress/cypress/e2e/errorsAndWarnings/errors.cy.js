@@ -460,6 +460,7 @@ a />
 <p name="p">
   Bye
 </p >
+<p name>blank name</p>
 <p>afterwards</p>
     `,
                 },
@@ -487,12 +488,17 @@ a />
             "Duplicate component name: p",
         );
         cy.get(cesc2("#/__error3")).should("contain.text", "lines 5–7");
-        cy.get(cesc2("#/_p5")).should("have.text", "afterwards");
+        cy.get(cesc2("#/_p5")).should(
+            "contain.text",
+            "Cannot have a blank name",
+        );
+        cy.get(cesc2("#/_p5")).should("contain.text", "line 8");
+        cy.get(cesc2("#/_p6")).should("have.text", "afterwards");
 
         cy.window().then(async (win) => {
             let errorWarnings = await win.returnErrorWarnings1();
 
-            expect(errorWarnings.errors.length).eq(3);
+            expect(errorWarnings.errors.length).eq(4);
             expect(errorWarnings.warnings.length).eq(0);
 
             expect(errorWarnings.errors[0].message).contain(
@@ -518,6 +524,15 @@ a />
             expect(errorWarnings.errors[2].doenetMLrange.charBegin).eq(1);
             expect(errorWarnings.errors[2].doenetMLrange.lineEnd).eq(7);
             expect(errorWarnings.errors[2].doenetMLrange.charEnd).eq(5);
+            expect(errorWarnings.errors[1].doenetMLrange.charEnd).eq(19);
+
+            expect(errorWarnings.errors[3].message).contain(
+                "Cannot have a blank name",
+            );
+            expect(errorWarnings.errors[3].doenetMLrange.lineBegin).eq(8);
+            expect(errorWarnings.errors[3].doenetMLrange.charBegin).eq(1);
+            expect(errorWarnings.errors[3].doenetMLrange.lineEnd).eq(8);
+            expect(errorWarnings.errors[3].doenetMLrange.charEnd).eq(22);
         });
     });
 

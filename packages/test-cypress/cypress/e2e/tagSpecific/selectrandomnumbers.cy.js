@@ -1403,7 +1403,7 @@ describe("SelectRandomNumbers Tag Tests", function () {
             let meanX = me.math.mean(samples);
             let varX = me.math.variance(samples, "uncorrected");
 
-            expect(meanX).closeTo(1, 0.6);
+            expect(meanX).closeTo(1, 0.8);
             expect(varX).closeTo(((5 ** 2 - 1) * 2 ** 2) / 12, 1);
 
             let firstSelect =

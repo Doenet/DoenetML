@@ -4,7 +4,7 @@ import React, { useContext, useEffect, useRef } from "react";
 import { BoardContext, TEXT_LAYER_OFFSET } from "./graph";
 import useDoenetRenderer from "../useDoenetRenderer";
 import me from "math-expressions";
-import { textRendererStyle } from "../../Core/utils/style";
+import { textRendererStyle } from "@doenet/utils";
 import { getPositionFromAnchorByCoordinate } from "./utils/graph";
 import { PageContext } from "../PageViewer";
 

@@ -17,7 +17,7 @@ import { rendererState } from "./useDoenetRenderer";
 import { atom, atomFamily, useRecoilCallback, useRecoilValue } from "recoil";
 import { get as idb_get, set as idb_set } from "idb-keyval";
 import axios from "axios";
-import { doenetGlobalConfig } from "../global-config";
+import { createCoreWorker, initializeCoreWorker } from "../utils/activityUtils";
 
 const rendererUpdatesToIgnore = atomFamily({
     key: "rendererUpdatesToIgnore",
@@ -34,7 +34,7 @@ export function PageViewer({
     cidForActivity,
     cid,
     doenetML,
-    preliminarySerializedComponents,
+    coreWorkerInfo,
     pageNumber = "1",
     previousComponentTypeCounts,
     pageIsActive,
@@ -179,8 +179,6 @@ export function PageViewer({
     const resolveErrorWarnings = useRef(null);
     const actionsBeforeCoreCreated = useRef([]);
 
-    const coreWorker = useRef(null);
-
     const preventMoreAnimations = useRef(false);
     const animationInfo = useRef({});
 
@@ -212,121 +210,114 @@ export function PageViewer({
             .replaceAll("-", "_") || "1";
 
     useEffect(() => {
-        if (coreWorker.current) {
-            coreWorker.current.onmessage = function (e) {
-                // console.log('message from core', e.data)
-                if (e.data.messageType === "updateRenderers") {
-                    if (
-                        e.data.init &&
-                        coreInfo.current &&
-                        !errorInitializingRenderers.current &&
-                        !errorInsideRenderers.current &&
-                        !(hideWhenNotCurrent && !pageIsCurrent)
-                    ) {
-                        // we don't initialize renderer state values if already have a coreInfo
-                        // and no errors were encountered
-                        // as we must have already gotten the renderer information before core was created.
-                        // Exception if page is not current and we hide the page when it is not current,
-                        // then we still update the renderers.
-                        // This exception is important because, in this case,
-                        // the renderers have not yet been rendered, so any errors would not yet have revealed
-                        // (and for the same reason, there cannot have been any user actions queued)
-                    } else {
-                        updateRenderers(e.data.args);
-                        if (errorInsideRenderers.current) {
-                            setIgnoreRendererError(true);
-                            setIsInErrorState?.(false);
-                        }
+        coreWorkerInfo.coreWorker.onmessage = function (e) {
+            // console.log("message from core", e.data);
+            if (e.data.messageType === "updateRenderers") {
+                if (
+                    e.data.init &&
+                    coreInfo.current &&
+                    !errorInitializingRenderers.current &&
+                    !errorInsideRenderers.current &&
+                    !(hideWhenNotCurrent && !pageIsCurrent)
+                ) {
+                    // we don't initialize renderer state values if already have a coreInfo
+                    // and no errors were encountered
+                    // as we must have already gotten the renderer information before core was created.
+                    // Exception if page is not current and we hide the page when it is not current,
+                    // then we still update the renderers.
+                    // This exception is important because, in this case,
+                    // the renderers have not yet been rendered, so any errors would not yet have revealed
+                    // (and for the same reason, there cannot have been any user actions queued)
+                } else {
+                    updateRenderers(e.data.args);
+                    if (errorInsideRenderers.current) {
+                        setIgnoreRendererError(true);
+                        setIsInErrorState?.(false);
                     }
-                } else if (e.data.messageType === "requestAnimationFrame") {
-                    requestAnimationFrame(e.data.args);
-                } else if (e.data.messageType === "cancelAnimationFrame") {
-                    cancelAnimationFrame(e.data.args);
-                } else if (e.data.messageType === "coreCreated") {
-                    coreCreated.current = true;
-                    coreCreationInProgress.current = false;
-                    preventMoreAnimations.current = false;
-                    for (let actionArgs of actionsBeforeCoreCreated.current) {
-                        // Note: we protect against the possibility that core is terminated before posting message
-                        coreWorker.current?.postMessage({
-                            messageType: "requestAction",
-                            args: actionArgs,
-                        });
-                    }
-                    setStage("coreCreated");
-                    coreCreatedCallback?.(coreWorker.current);
-                } else if (e.data.messageType === "initializeRenderers") {
-                    if (
-                        coreInfo.current &&
-                        JSON.stringify(coreInfo.current) ===
-                            JSON.stringify(e.data.args.coreInfo) &&
-                        !errorInitializingRenderers.current &&
-                        !errorInsideRenderers.current
-                    ) {
-                        // we already initialized renderers before core was created and no errors were encountered
-                        // so don't initialize them again when core sends the initializeRenderers message
-                    } else {
-                        initializeRenderers(e.data.args);
-                        if (errorInsideRenderers.current) {
-                            setIgnoreRendererError(true);
-                            setIsInErrorState?.(false);
-                        }
-                    }
-                } else if (e.data.messageType === "updateCreditAchieved") {
-                    updateCreditAchievedCallback?.(e.data.args);
-                } else if (e.data.messageType === "savedState") {
-                    saveStateCallback?.();
-                } else if (e.data.messageType === "sendAlert") {
-                    console.log(
-                        `Sending alert message: ${e.data.args.message}`,
-                    );
-                    sendAlert(e.data.args.message, e.data.args.alertType);
-                } else if (e.data.messageType === "resolveAction") {
-                    resolveAction(e.data.args);
-                } else if (e.data.messageType === "returnAllStateVariables") {
-                    console.log(e.data.args);
-                    resolveAllStateVariables.current(e.data.args);
-                } else if (e.data.messageType === "returnErrorWarnings") {
-                    let errorWarnings = e.data.args;
-                    errorWarnings.errors = [
-                        ...errorsActivitySpecific,
-                        ...errorWarnings.errors,
-                    ];
-                    console.log(errorWarnings);
-                    resolveErrorWarnings.current(errorWarnings);
-                } else if (e.data.messageType === "componentRangePieces") {
-                    window["componentRangePieces" + pageNumber] =
-                        e.data.args.componentRangePieces;
-                } else if (e.data.messageType === "inErrorState") {
-                    setIsInErrorState?.(true);
-                    setErrMsg(e.data.args.errMsg);
-                } else if (e.data.messageType === "setErrorWarnings") {
-                    errorWarnings.current = e.data.errorWarnings;
-                    setErrorsAndWarningsCallback?.(errorWarnings.current);
-                } else if (e.data.messageType === "resetPage") {
-                    resetPage(e.data.args);
-                } else if (e.data.messageType === "copyToClipboard") {
-                    copyToClipboard(e.data.args);
-                } else if (e.data.messageType === "navigateToTarget") {
-                    navigateToTarget(e.data.args);
-                } else if (e.data.messageType === "navigateToHash") {
-                    navigate(location.search + e.data.args.hash, {
-                        replace: true,
-                    });
-                } else if (e.data.messageType === "terminated") {
-                    terminateCoreAndAnimations();
                 }
-            };
-        }
-    }, [coreWorker.current, location]);
+            } else if (e.data.messageType === "requestAnimationFrame") {
+                requestAnimationFrame(e.data.args);
+            } else if (e.data.messageType === "cancelAnimationFrame") {
+                cancelAnimationFrame(e.data.args);
+            } else if (e.data.messageType === "coreCreated") {
+                coreCreated.current = true;
+                coreCreationInProgress.current = false;
+                preventMoreAnimations.current = false;
+                for (let actionArgs of actionsBeforeCoreCreated.current) {
+                    coreWorkerInfo.coreWorker.postMessage({
+                        messageType: "requestAction",
+                        args: actionArgs,
+                    });
+                }
+                setStage("coreCreated");
+                coreCreatedCallback?.();
+            } else if (e.data.messageType === "initializeRenderers") {
+                if (
+                    coreInfo.current &&
+                    JSON.stringify(coreInfo.current) ===
+                        JSON.stringify(e.data.args.coreInfo) &&
+                    !errorInitializingRenderers.current &&
+                    !errorInsideRenderers.current
+                ) {
+                    // we already initialized renderers before core was created and no errors were encountered
+                    // so don't initialize them again when core sends the initializeRenderers message
+                } else {
+                    initializeRenderers(e.data.args);
+                    if (errorInsideRenderers.current) {
+                        setIgnoreRendererError(true);
+                        setIsInErrorState?.(false);
+                    }
+                }
+            } else if (e.data.messageType === "updateCreditAchieved") {
+                updateCreditAchievedCallback?.(e.data.args);
+            } else if (e.data.messageType === "savedState") {
+                saveStateCallback?.();
+            } else if (e.data.messageType === "sendAlert") {
+                console.log(`Sending alert message: ${e.data.args.message}`);
+                sendAlert(e.data.args.message, e.data.args.alertType);
+            } else if (e.data.messageType === "resolveAction") {
+                resolveAction(e.data.args);
+            } else if (e.data.messageType === "returnAllStateVariables") {
+                console.log(e.data.args);
+                resolveAllStateVariables.current(e.data.args);
+            } else if (e.data.messageType === "returnErrorWarnings") {
+                let errorWarnings = e.data.args;
+                errorWarnings.errors = [
+                    ...errorsActivitySpecific,
+                    ...errorWarnings.errors,
+                ];
+                console.log(errorWarnings);
+                resolveErrorWarnings.current(errorWarnings);
+            } else if (e.data.messageType === "componentRangePieces") {
+                window["componentRangePieces" + pageNumber] =
+                    e.data.args.componentRangePieces;
+            } else if (e.data.messageType === "inErrorState") {
+                setIsInErrorState?.(true);
+                setErrMsg(e.data.args.errMsg);
+            } else if (e.data.messageType === "setErrorWarnings") {
+                errorWarnings.current = e.data.errorWarnings;
+                setErrorsAndWarningsCallback?.(errorWarnings.current);
+            } else if (e.data.messageType === "resetPage") {
+                resetPage(e.data.args);
+            } else if (e.data.messageType === "copyToClipboard") {
+                copyToClipboard(e.data.args);
+            } else if (e.data.messageType === "navigateToTarget") {
+                navigateToTarget(e.data.args);
+            } else if (e.data.messageType === "navigateToHash") {
+                navigate(location.search + e.data.args.hash, {
+                    replace: true,
+                });
+            } else if (e.data.messageType === "terminated") {
+                reinitializeCoreAndTerminateAnimations();
+            }
+        };
+    }, [coreWorkerInfo.coreWorker, location]);
 
     useEffect(() => {
         return () => {
-            if (coreWorker.current) {
-                coreWorker.current.postMessage({
-                    messageType: "terminate",
-                });
-            }
+            coreWorkerInfo.coreWorker.postMessage({
+                messageType: "terminate",
+            });
         };
     }, []);
 
@@ -334,7 +325,7 @@ export function PageViewer({
         if (pageNumber !== null) {
             window["returnAllStateVariables" + postfixForWindowFunctions] =
                 function () {
-                    coreWorker.current.postMessage({
+                    coreWorkerInfo.coreWorker.postMessage({
                         messageType: "returnAllStateVariables",
                     });
 
@@ -345,7 +336,7 @@ export function PageViewer({
 
             window["returnErrorWarnings" + postfixForWindowFunctions] =
                 function () {
-                    coreWorker.current.postMessage({
+                    coreWorkerInfo.coreWorker.postMessage({
                         messageType: "returnErrorWarnings",
                     });
 
@@ -379,22 +370,20 @@ export function PageViewer({
 
     useEffect(() => {
         document.addEventListener("visibilitychange", () => {
-            if (coreWorker.current) {
-                coreWorker.current.postMessage({
-                    messageType: "visibilityChange",
-                    args: {
-                        visible: document.visibilityState === "visible",
-                    },
-                });
-            }
+            coreWorkerInfo.coreWorker.postMessage({
+                messageType: "visibilityChange",
+                args: {
+                    visible: document.visibilityState === "visible",
+                },
+            });
         });
     }, []);
 
     useEffect(() => {
-        if (hash && coreCreated.current && coreWorker.current) {
+        if (hash && coreCreated.current && coreWorkerInfo.coreWorker) {
             let anchor = hash.slice(1);
             if (anchor.substring(0, prefixForIds.length) === prefixForIds) {
-                coreWorker.current.postMessage({
+                coreWorkerInfo.coreWorker.postMessage({
                     messageType: "navigatingToComponent",
                     args: {
                         componentName: anchor
@@ -405,7 +394,7 @@ export function PageViewer({
                 });
             }
         }
-    }, [location, hash, coreCreated.current, coreWorker.current]);
+    }, [location, hash, coreCreated.current, coreWorkerInfo.coreWorker]);
 
     useEffect(() => {
         if (hash && documentRenderer && pageIsActive) {
@@ -480,10 +469,11 @@ export function PageViewer({
         [location],
     );
 
-    function terminateCoreAndAnimations() {
+    async function reinitializeCoreAndTerminateAnimations() {
         preventMoreAnimations.current = true;
-        coreWorker.current.terminate();
-        coreWorker.current = null;
+        coreWorkerInfo.coreWorker.terminate();
+        coreWorkerInfo.coreWorker = createCoreWorker();
+
         coreCreated.current = false;
         coreCreationInProgress.current = false;
         for (let id in animationInfo.current) {
@@ -491,6 +481,8 @@ export function PageViewer({
         }
         animationInfo.current = {};
         actionsBeforeCoreCreated.current = [];
+
+        await initializeCoreWorker(coreWorkerInfo);
     }
 
     async function callAction({
@@ -606,7 +598,7 @@ export function PageViewer({
 
         if (coreCreated.current) {
             // Note: it is possible that core has been terminated, so we need the question mark
-            coreWorker.current?.postMessage({
+            coreWorkerInfo.coreWorker.postMessage({
                 messageType: "requestAction",
                 args: actionArgs,
             });
@@ -1103,31 +1095,24 @@ export function PageViewer({
         return { localInfo, cid, attemptNumber };
     }
 
-    function startCore() {
+    async function startCore() {
         //Kill the current core if it exists
-        if (coreWorker.current) {
-            terminateCoreAndAnimations();
+        if (coreCreated.current) {
+            await reinitializeCoreAndTerminateAnimations();
         }
 
         resolveActionPromises.current = {};
 
         // console.log(`send message to create core ${pageNumber}`)
-        coreWorker.current = new Worker(doenetGlobalConfig.doenetWorkerUrl, {
-            type: "module",
-        });
-
-        coreWorker.current.postMessage({
+        coreWorkerInfo.coreWorker.postMessage({
             messageType: "createCore",
             args: {
                 coreId: coreId.current,
                 userId,
                 cid,
-                doenetML,
-                preliminarySerializedComponents,
                 activityId,
                 previousComponentTypeCounts,
                 cidForActivity,
-                flags,
                 theme: darkMode,
                 requestedVariantIndex,
                 pageNumber,
@@ -1288,11 +1273,14 @@ export function PageViewer({
 
     if (stage === "readyToCreateCore" && pageIsActive) {
         startCore();
-    } else if (stage === "waitingOnCore" && !pageIsActive) {
-        // we've moved off this page, but core is still being initialized
-        // kill the core worker
-
-        terminateCoreAndAnimations();
+    } else if (
+        stage === "waitingOnCore" &&
+        !pageIsActive &&
+        !coreCreated.current
+    ) {
+        // we've moved off this page, but core is still being created
+        // so reinitialize core
+        reinitializeCoreAndTerminateAnimations();
 
         setStage("readyToCreateCore");
     }
