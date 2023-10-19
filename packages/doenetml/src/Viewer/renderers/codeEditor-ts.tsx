@@ -247,7 +247,7 @@ export default React.memo(function CodeEditor(props) {
                         onClick={async () => {
                             const printed = await prettyPrint(
                                 currentValue.current,
-                                { doenetSyntax: formatAsDoenetML },
+                                { doenetSyntax: formatAsDoenetML, tabWidth: 2 },
                             );
                             updateInternalValueTo.current = printed;
                             onEditorChange(printed);
