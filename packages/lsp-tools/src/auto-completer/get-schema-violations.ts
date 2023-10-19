@@ -119,6 +119,9 @@ export function getSchemaViolations(this: AutoCompleter): Diagnostic[] {
                     message: `Element \`<${name}>\` doesn't have an attribute called \`${attrName}\`.`,
                     severity: DiagnosticSeverity.Warning,
                 });
+            } else {
+                // If there are no macros/functions in the attribute value and the list of allowed values is non-empty,
+                // check that the value is in the list of allowed values.
             }
         }
         return ret;

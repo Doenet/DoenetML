@@ -301,4 +301,9 @@ export function updateNodePositionData(
     }
     nodeToUpdate.position.start.line += line;
     nodeToUpdate.position.start.column += column;
+    if (nodeToUpdate.position.end.offset != null && offset != null) {
+        nodeToUpdate.position.end.offset += offset;
+    }
+    nodeToUpdate.position.end.line += line;
+    nodeToUpdate.position.end.column += column;
 }

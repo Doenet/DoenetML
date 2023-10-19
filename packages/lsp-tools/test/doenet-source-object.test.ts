@@ -202,6 +202,22 @@ describe("DoenetSourceObject", () => {
         }
     });
 
+    it("Can get cursor position when element contains macro", () => {
+        let source: string;
+        let sourceObj: DoenetSourceObject;
+
+        source = `<p>$x zz zz</p>`;
+        sourceObj = new DoenetSourceObject(source);
+        {
+            let offset = source.indexOf("$x");
+            let { cursorPosition, node } = sourceObj.elementAtOffset(
+                offset + 1,
+            );
+            expect(cursorPosition).toEqual("body");
+            expect(node).toMatchObject({ type: "element", name: "p" });
+        }
+    });
+
     it("Can find cursorPosition in incomplete element", () => {
         let source: string;
         let sourceObj: DoenetSourceObject;
@@ -328,9 +344,7 @@ describe("DoenetSourceObject", () => {
         {
             let { node } = sourceObj.elementAtOffset(1);
             expect(node?.name).toEqual("a");
-            expect(
-                sourceObj.getElementTagRanges(node!),
-            ).toMatchInlineSnapshot(`
+            expect(sourceObj.getElementTagRanges(node!)).toMatchInlineSnapshot(`
               [
                 {
                   "end": 3,
@@ -346,9 +360,7 @@ describe("DoenetSourceObject", () => {
         {
             let { node } = sourceObj.elementAtOffset(4);
             expect(node?.name).toEqual("b");
-            expect(
-                sourceObj.getElementTagRanges(node!),
-            ).toMatchInlineSnapshot(`
+            expect(sourceObj.getElementTagRanges(node!)).toMatchInlineSnapshot(`
               [
                 {
                   "end": 16,

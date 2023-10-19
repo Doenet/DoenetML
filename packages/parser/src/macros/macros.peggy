@@ -1,7 +1,7 @@
 {
     function withPosition<const T>(node: T) {
         const { start, end } = location();
-        return { position: { start, end }, ...node };
+        return { ...node, position: { start, end } };
     }
 }
 
@@ -48,8 +48,8 @@ ScopedPropAccess = "." @ScopedPartialPathMacro
 // Macros
 //
 Macro
-    = "$" "(" @FullPathMacro ")"
-    / "$" @PartialPathMacro
+    = "$" "(" macro:FullPathMacro ")" { return withPosition(macro) }
+    / "$" macro:PartialPathMacro { return withPosition(macro) }
 
 // A macro where the path cannot have slashes or `..` in it.
 PartialPathMacro

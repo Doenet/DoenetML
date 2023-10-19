@@ -101,6 +101,9 @@ export class AutoCompleter {
         offset: number,
     ): DastAttribute | null {
         let candidate = node.attributes[0];
+        if (!candidate) {
+            return null;
+        }
         let candidateOffset = candidate.position?.end?.offset!;
         for (const attr of node.attributes) {
             let attrOffset = attr.position?.end?.offset!;

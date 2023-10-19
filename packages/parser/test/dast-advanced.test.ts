@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { lezerToDast } from "../src/lezer-to-dast";
 import util from "util";
 import { filterPositionInfo } from "../src/dast-to-xml/utils";
-import { DastFunctionMacro, DastRootContent } from "../src/types";
+import { DastElement, DastFunctionMacro, DastRootContent } from "../src/types";
 import { MacroParser } from "../src/macros/parser";
 import { gobbleFunctionArguments } from "../src/lezer-to-dast/gobble-function-arguments";
 
@@ -973,6 +973,44 @@ describe("DAST", async () => {
               },
             ],
             "type": "root",
+          }
+        `);
+    });
+    it("DAST trees with macros in them have correct position information", () => {
+        let source: string;
+
+        source = `$x`;
+        expect(lezerToDast(source).children[0].position).toMatchInlineSnapshot(`
+          {
+            "end": {
+              "column": 3,
+              "line": 1,
+              "offset": 2,
+            },
+            "start": {
+              "column": 1,
+              "line": 1,
+              "offset": 0,
+            },
+          }
+        `);
+
+        source = `<p>$xx</p>`;
+        expect(
+            (lezerToDast(source).children[0] as DastElement).children[0]
+                .position,
+        ).toMatchInlineSnapshot(`
+          {
+            "end": {
+              "column": 7,
+              "line": 1,
+              "offset": 6,
+            },
+            "start": {
+              "column": 4,
+              "line": 1,
+              "offset": 3,
+            },
           }
         `);
     });
