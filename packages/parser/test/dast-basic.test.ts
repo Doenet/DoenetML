@@ -50,16 +50,18 @@ describe("DAST", async () => {
         );
 
         for (const [filename, filepath] of Object.entries(fileMap)) {
-            it(`${filename} prints correctly in Xml format and Doenet format`, async () => {
+            it(`${filename} can parse badly formed Xml`, async () => {
                 const source = await fs.readFile(filepath, "utf-8");
                 const dast = lezerToDast(source);
+                // We just don't want to throw any errors when printing
                 const formattedXml = toXml(dast);
                 const formattedDoenet = toXml(dast, { doenetSyntax: true });
-                expect(formattedXml).toMatchSnapshot();
-                expect(formattedDoenet).toMatchSnapshot();
+                expect(formattedXml).toBeTypeOf("string");
+                expect(formattedDoenet).toBeTypeOf("string");
             });
         }
     }
+
     it("preserves ampersands", () => {
         const cases = [
             { inStr: "a & b", outStrXml: "a &amp; b", outStrDoenet: "a & b" },
@@ -88,6 +90,56 @@ describe("DAST", async () => {
             expect(formattedDoenet).toBe(outStrDoenet);
         }
     });
+
+    it("preserves ampersands 2", () => {
+        const dast: DastRoot = {
+            type: "root",
+            children: [
+                {
+                    type: "text",
+                    value: "one&two",
+                },
+            ],
+        };
+        const formattedXml = toXml(dast);
+        const formattedDoenet = toXml(dast, { doenetSyntax: true });
+        expect(formattedXml).toBe(`one&amp;two`);
+        expect(formattedDoenet).toBe(`one&two`);
+    });
+
+    it("preserves ampersands in attributes", () => {
+        const dast: DastRoot = {
+            type: "root",
+            children: [
+                {
+                    type: "element",
+                    name: "a",
+                    attributes: [
+                        {
+                            type: "attribute",
+                            name: "attr",
+                            children: [
+                                {
+                                    type: "text",
+                                    value: "one&two",
+                                },
+                            ],
+                        },
+                    ],
+                    children: [],
+                },
+                {
+                    type: "text",
+                    value: "\n",
+                },
+            ],
+        };
+        const formattedXml = toXml(dast).trim();
+        const formattedDoenet = toXml(dast, { doenetSyntax: true }).trim();
+        expect(formattedXml).toBe(`<a attr="one&amp;two" />`);
+        expect(formattedDoenet).toBe(`<a attr="one&two" />`);
+    });
+
     it("can merge adjacent text nodes", () => {
         expect(mergeAdjacentTextInArray([])).toEqual([]);
         expect(

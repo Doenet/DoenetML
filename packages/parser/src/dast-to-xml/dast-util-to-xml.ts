@@ -178,7 +178,7 @@ export function quote(value: string) {
         quoteMark = other;
     }
 
-    return quoteMark + escape(result, ["<", "&", quoteMark]) + quoteMark;
+    return quoteMark + escape(result, ["<", quoteMark]) + quoteMark;
 }
 
 /**
