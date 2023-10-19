@@ -164,11 +164,11 @@ describe("AutoCompleter", () => {
               "message": "Element \`<b>\` doesn't have an attribute called \`food\`.",
               "range": {
                 "end": {
-                  "character": 16,
-                  "line": 2,
+                  "character": 27,
+                  "line": 1,
                 },
                 "start": {
-                  "character": 12,
+                  "character": 16,
                   "line": 1,
                 },
               },
@@ -189,11 +189,11 @@ describe("AutoCompleter", () => {
               "message": "Element \`<a>\` doesn't have an attribute called \`foo\`.",
               "range": {
                 "end": {
-                  "character": 12,
-                  "line": 4,
+                  "character": 13,
+                  "line": 0,
                 },
                 "start": {
-                  "character": 0,
+                  "character": 3,
                   "line": 0,
                 },
               },

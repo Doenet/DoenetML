@@ -59,14 +59,13 @@ export function getSchemaViolations(this: AutoCompleter): Diagnostic[] {
                 return [];
             }
             if (!schema.top) {
+                const range = this.sourceObj.getElementTagRanges(node);
                 ret.push({
                     range: {
                         start: this.sourceObj.offsetToLSPPosition(
-                            node.position?.start.offset || 0,
+                            range[0].start,
                         ),
-                        end: this.sourceObj.offsetToLSPPosition(
-                            node.position?.end.offset || 0,
-                        ),
+                        end: this.sourceObj.offsetToLSPPosition(range[0].end),
                     },
                     message: `Element \`<${name}>\` is not allowed at the root of the document.`,
                     severity: DiagnosticSeverity.Warning,
@@ -78,14 +77,13 @@ export function getSchemaViolations(this: AutoCompleter): Diagnostic[] {
                 parentName !== "UNKNOWN_NAME" &&
                 !this.isAllowedChild(parentName, name)
             ) {
+                const range = this.sourceObj.getElementTagRanges(node);
                 ret.push({
                     range: {
                         start: this.sourceObj.offsetToLSPPosition(
-                            node.position?.start.offset || 0,
+                            range[0].start,
                         ),
-                        end: this.sourceObj.offsetToLSPPosition(
-                            node.position?.end.offset || 0,
-                        ),
+                        end: this.sourceObj.offsetToLSPPosition(range[0].end),
                     },
                     message: `Element \`<${name}>\` is not allowed inside of \`<${parentName}>\`.`,
                     severity: DiagnosticSeverity.Warning,
@@ -102,10 +100,10 @@ export function getSchemaViolations(this: AutoCompleter): Diagnostic[] {
                 ret.push({
                     range: {
                         start: this.sourceObj.offsetToLSPPosition(
-                            node.position?.start.offset || 0,
+                            attr.position?.start.offset || 0,
                         ),
                         end: this.sourceObj.offsetToLSPPosition(
-                            node.position?.end.offset || 0,
+                            attr.position?.end.offset || 0,
                         ),
                     },
                     message: `Element \`<${name}>\` doesn't have an attribute called \`${attr.name}\`.`,
@@ -115,10 +113,10 @@ export function getSchemaViolations(this: AutoCompleter): Diagnostic[] {
                 ret.push({
                     range: {
                         start: this.sourceObj.offsetToLSPPosition(
-                            node.position?.start.offset || 0,
+                            attr.position?.start.offset || 0,
                         ),
                         end: this.sourceObj.offsetToLSPPosition(
-                            node.position?.end.offset || 0,
+                            attr.position?.end.offset || 0,
                         ),
                     },
                     message: `Element \`<${name}>\` doesn't have an attribute called \`${attrName}\`.`,

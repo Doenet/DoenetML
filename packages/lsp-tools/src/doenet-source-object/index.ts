@@ -247,6 +247,28 @@ export class DoenetSourceObject extends LazyDataObject {
     }
 
     /**
+     * Get the offset ranges for the tag(s) of `node`. (I.e., just the part
+     * in the angle brackets without the children.) If the tag is incomplete or
+     * is a self-closing tag, only one range will be returned.
+     *
+     * Note: these values are given as **offsets**.
+     */
+    getElementTagRanges(node: DastElement): { start: number; end: number }[] {
+        const start = node.position?.start?.offset || 0;
+        const end = node.position?.end?.offset || 0;
+        const childrenStart = node.children[0]?.position?.start?.offset;
+        const childrenEnd =
+            node.children[node.children.length - 1]?.position?.end?.offset;
+        if (childrenStart == null || childrenEnd == null) {
+            return [{ start, end }];
+        }
+        return [
+            { start, end: childrenStart },
+            { start: childrenEnd, end },
+        ];
+    }
+
+    /**
      * Get the parent of `node`. Node must be in `this.dast`.
      */
     getParent(node: DastNodes): DastElement | null {

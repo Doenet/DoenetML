@@ -318,4 +318,48 @@ describe("DoenetSourceObject", () => {
         macro = sourceObj.dast.children[0] as DastMacro;
         expect(isOldMacro(macro)).toEqual(true);
     });
+
+    it("Can get element ranges", () => {
+        let source: string;
+        let sourceObj: DoenetSourceObject;
+
+        source = `<a><b foo="bar">   <c>hi</c></b></a>`;
+        sourceObj = new DoenetSourceObject(source);
+        {
+            let { node } = sourceObj.elementAtOffset(1);
+            expect(node?.name).toEqual("a");
+            expect(
+                sourceObj.getElementTagRanges(node!),
+            ).toMatchInlineSnapshot(`
+              [
+                {
+                  "end": 3,
+                  "start": 0,
+                },
+                {
+                  "end": 36,
+                  "start": 32,
+                },
+              ]
+            `);
+        }
+        {
+            let { node } = sourceObj.elementAtOffset(4);
+            expect(node?.name).toEqual("b");
+            expect(
+                sourceObj.getElementTagRanges(node!),
+            ).toMatchInlineSnapshot(`
+              [
+                {
+                  "end": 16,
+                  "start": 3,
+                },
+                {
+                  "end": 32,
+                  "start": 28,
+                },
+              ]
+            `);
+        }
+    });
 });
