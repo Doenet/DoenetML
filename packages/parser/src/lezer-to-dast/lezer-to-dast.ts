@@ -63,12 +63,7 @@ export function lezerToDast(
     return _lezerToDast(node, source);
 }
 
-export function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
-    if (typeof node === "string") {
-        const tree = parser.parse(node);
-        source = node;
-        node = tree.topNode;
-    }
+function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
     const offsetMap = createOffsetToPositionMap(source);
     return {
         type: "root",

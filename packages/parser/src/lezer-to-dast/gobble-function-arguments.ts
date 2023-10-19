@@ -13,7 +13,7 @@ import { createOffsetToPositionMap } from "./lezer-to-dast-utils";
  * so functions that take DastElement children will not be fully parsed. We manually parse through
  * and attach the arguments in this special case.
  *
- * **Node**: this function may mutate the input.
+ * **Note**: this function may mutate the input.
  */
 export function gobbleFunctionArguments(
     nodes: DastRootContent[],
