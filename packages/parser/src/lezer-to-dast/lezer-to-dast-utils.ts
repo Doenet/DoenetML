@@ -64,7 +64,7 @@ function unescapeEntities(node: SyntaxNode, source: string): string {
 export function textNodeToText(node: SyntaxNode, source: string): string {
     if (node.name !== "Text") {
         throw new Error(
-            `Can only get the text of an "AttributeValue" type node, not "${node.name}"`,
+            `Can only convert node of type "Text", not the passed-in type of "${node.name}"`,
         );
     }
     return unescapeEntities(node, source);
