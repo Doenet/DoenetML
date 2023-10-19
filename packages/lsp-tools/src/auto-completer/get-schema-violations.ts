@@ -36,14 +36,11 @@ export function getSchemaViolations(this: AutoCompleter): Diagnostic[] {
 
         if (name === "UNKNOWN_NAME") {
             // No further checking for unknown elements.
+            const range = this.sourceObj.getElementTagRanges(node);
             return {
                 range: {
-                    start: this.sourceObj.offsetToLSPPosition(
-                        node.position?.start.offset || 0,
-                    ),
-                    end: this.sourceObj.offsetToLSPPosition(
-                        node.position?.end.offset || 0,
-                    ),
+                    start: this.sourceObj.offsetToLSPPosition(range[0].start),
+                    end: this.sourceObj.offsetToLSPPosition(range[0].end),
                 },
                 message: `Element \`<${node.name}>\` is not a recognized Doenet element.`,
                 severity: DiagnosticSeverity.Warning,

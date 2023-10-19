@@ -71,6 +71,27 @@ describe("AutoCompleter", () => {
           ]
         `);
 
+        source = `<c>xxx</c>`;
+        autoCompleter = new AutoCompleter(source, schema.elements);
+        expect(autoCompleter.getSchemaViolations()).toMatchInlineSnapshot(`
+          [
+            {
+              "message": "Element \`<c>\` is not allowed at the root of the document.",
+              "range": {
+                "end": {
+                  "character": 3,
+                  "line": 0,
+                },
+                "start": {
+                  "character": 0,
+                  "line": 0,
+                },
+              },
+              "severity": 2,
+            },
+          ]
+        `);
+
         source = `<b><c></c></b>`;
         autoCompleter = new AutoCompleter(source, schema.elements);
         expect(autoCompleter.getSchemaViolations()).toMatchInlineSnapshot(`
@@ -84,6 +105,32 @@ describe("AutoCompleter", () => {
                 },
                 "start": {
                   "character": 3,
+                  "line": 0,
+                },
+              },
+              "severity": 2,
+            },
+          ]
+        `);
+    });
+
+    it("Can detect schema violations for elements not in the schema", () => {
+        let source: string;
+        let autoCompleter: AutoCompleter;
+
+        source = `<e>xxx</e>`;
+        autoCompleter = new AutoCompleter(source, schema.elements);
+        expect(autoCompleter.getSchemaViolations()).toMatchInlineSnapshot(`
+          [
+            {
+              "message": "Element \`<e>\` is not a recognized Doenet element.",
+              "range": {
+                "end": {
+                  "character": 3,
+                  "line": 0,
+                },
+                "start": {
+                  "character": 0,
                   "line": 0,
                 },
               },
@@ -176,7 +223,7 @@ describe("AutoCompleter", () => {
             },
           ]
         `);
-        
+
         source = `<a foo="true">
             <b >
             </b>
