@@ -29,7 +29,7 @@ export class AutoCompleter {
     schemaTopAllowedElements: string[] = [];
     schemaElementsByName: Record<string, ElementSchema> = {};
     parentChildMap: Map<string, Set<string>> = new Map();
-    nodeAttributeMap: Map<string, Set<string>> = new Map();
+    nodeAttributeMap: Map<string, Map<string, Set<string> | null>> = new Map();
 
     constructor(
         source?: string,
@@ -69,7 +69,12 @@ export class AutoCompleter {
         this.nodeAttributeMap = new Map(
             this.schema.map((e) => [
                 e.name,
-                new Set(e.attributes.map((a) => a.name)),
+                new Map(
+                    e.attributes.map((a) => [
+                        a.name,
+                        a.values ? new Set(a.values) : null,
+                    ]),
+                ),
             ]),
         );
     }
@@ -180,6 +185,24 @@ export class AutoCompleter {
         }
         return (
             this.nodeAttributeMap.get(elementName)?.has(attributeName) || false
+        );
+    }
+
+    /**
+     * Gets the schema for a given attribute of a given element. This function
+     * normalizes the name of the element and attribute before checking.
+     */
+    getAttributeAllowedValues(elementName: string, attributeName: string) {
+        elementName = this.normalizeElementName(elementName);
+        attributeName = this.normalizeAttributeName(attributeName);
+        if (
+            elementName === "UNKNOWN_NAME" ||
+            attributeName === "UNKNOWN_NAME"
+        ) {
+            return null;
+        }
+        return (
+            this.nodeAttributeMap.get(elementName)?.get(attributeName) || null
         );
     }
 }

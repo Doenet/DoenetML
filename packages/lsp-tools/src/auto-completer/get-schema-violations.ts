@@ -4,7 +4,15 @@ import {
     CompletionItemKind,
     DiagnosticSeverity,
 } from "vscode-languageserver/browser";
-import { DastElement, DastRoot, showCursor } from "@doenet/parser";
+import {
+    DastAttribute,
+    DastElement,
+    DastNodes,
+    DastRoot,
+    showCursor,
+    toXml,
+    visit,
+} from "@doenet/parser";
 import { AutoCompleter } from ".";
 
 /**
@@ -122,10 +130,72 @@ export function getSchemaViolations(this: AutoCompleter): Diagnostic[] {
             } else {
                 // If there are no macros/functions in the attribute value and the list of allowed values is non-empty,
                 // check that the value is in the list of allowed values.
+                const allowedValues = this.getAttributeAllowedValues(
+                    name,
+                    attrName,
+                );
+                if (!hasMacroOrFunctionChild(attr.children) && allowedValues) {
+                    const attrValue = toXml(attr.children);
+                    const range = getAttributeValueRange(attr);
+                    if (!allowedValues.has(attrValue)) {
+                        ret.push({
+                            range: {
+                                start: this.sourceObj.offsetToLSPPosition(
+                                    range.start,
+                                ),
+                                end: this.sourceObj.offsetToLSPPosition(
+                                    range.end,
+                                ),
+                            },
+                            message: `Attribute \`${attrName}\` of element \`<${name}>\` must be one of: ${[
+                                ...allowedValues,
+                            ]
+                                .map((v) => `"${v}"`)
+                                .join(", ")}`,
+                            severity: DiagnosticSeverity.Warning,
+                        });
+                    }
+                }
             }
         }
         return ret;
     });
 
     return ret;
+}
+
+/**
+ * Determine if the list of nodes contains a macro or function descendant.
+ */
+function hasMacroOrFunctionChild(nodes: DastNodes[]): boolean {
+    let ret = false;
+    visit(nodes, (node) => {
+        if (node.type === "macro" || node.type === "function") {
+            ret = true;
+        }
+    });
+
+    return ret;
+}
+
+/**
+ * Get the offset of the start and end of the attribute value.
+ */
+function getAttributeValueRange(node: DastAttribute): {
+    start: number;
+    end: number;
+} {
+    if (node.children.length === 0) {
+        return {
+            start: node.position?.end.offset || 0,
+            end: node.position?.end.offset || 0,
+        };
+    }
+    const first = node.children[0];
+    const last = node.children[node.children.length - 1];
+
+    return {
+        start: first.position?.start.offset || 0,
+        end: last.position?.end.offset || 0,
+    };
 }

@@ -249,4 +249,62 @@ describe("AutoCompleter", () => {
           ]
         `);
     });
+
+    it("Can detect schema violations for attribute values", () => {
+        let source: string;
+        let autoCompleter: AutoCompleter;
+
+        // No error for correct values
+        source = `<a>
+            <b  foo="true">
+            </b>
+            <c>hi</c>
+        </a>`;
+        autoCompleter = new AutoCompleter(source, schema.elements);
+        expect(autoCompleter.getSchemaViolations()).toMatchInlineSnapshot("[]");
+
+        // No error if an explicit list of attribute values is NOT values is given
+        source = `<a x="77">
+            <b>
+            </b>
+            <c>hi</c>
+        </a>`;
+        autoCompleter = new AutoCompleter(source, schema.elements);
+        expect(autoCompleter.getSchemaViolations()).toMatchInlineSnapshot("[]");
+
+        // No error if a function or macro is used in the attribute value
+        source = `<a><b  foo="true $x that"></b></a>`;
+        autoCompleter = new AutoCompleter(source, schema.elements);
+        expect(autoCompleter.getSchemaViolations()).toMatchInlineSnapshot("[]");
+
+        source = `<a><b  foo="true $$f(1) that"></b></a>`;
+        autoCompleter = new AutoCompleter(source, schema.elements);
+        expect(autoCompleter.getSchemaViolations()).toMatchInlineSnapshot("[]");
+
+        // Error if an explicit list is given and the attribute value is plain text and not on the list
+        source = `<a>
+            <b  foo="tru">
+            </b>
+            <c>hi</c>
+        </a>`;
+        autoCompleter = new AutoCompleter(source, schema.elements);
+        expect(autoCompleter.getSchemaViolations()).toMatchInlineSnapshot(`
+          [
+            {
+              "message": "Attribute \`foo\` of element \`<b>\` must be one of: \\"true\\", \\"false\\"",
+              "range": {
+                "end": {
+                  "character": 25,
+                  "line": 1,
+                },
+                "start": {
+                  "character": 20,
+                  "line": 1,
+                },
+              },
+              "severity": 2,
+            },
+          ]
+        `);
+    });
 });
