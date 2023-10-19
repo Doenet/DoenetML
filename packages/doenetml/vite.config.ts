@@ -2,6 +2,7 @@ import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 import { viteStaticCopy, TransformOption } from "vite-plugin-static-copy";
 import * as path from "node:path";
+import { externalizeDoenetDeps } from "../../scripts/vite-plugin-externalize-doenet-deps";
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
 
@@ -13,6 +14,7 @@ export default defineConfig({
     base: "./",
     plugins: [
         react(),
+        externalizeDoenetDeps(),
         viteStaticCopy({
             targets: [
                 {
