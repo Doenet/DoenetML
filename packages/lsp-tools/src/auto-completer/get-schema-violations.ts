@@ -137,7 +137,7 @@ export function getSchemaViolations(this: AutoCompleter): Diagnostic[] {
                 if (!hasMacroOrFunctionChild(attr.children) && allowedValues) {
                     const attrValue = toXml(attr.children);
                     const range = getAttributeValueRange(attr);
-                    if (!allowedValues.has(attrValue)) {
+                    if (!allowedValues.lowerCase.has(attrValue.toLowerCase())) {
                         ret.push({
                             range: {
                                 start: this.sourceObj.offsetToLSPPosition(
@@ -148,7 +148,7 @@ export function getSchemaViolations(this: AutoCompleter): Diagnostic[] {
                                 ),
                             },
                             message: `Attribute \`${attrName}\` of element \`<${name}>\` must be one of: ${[
-                                ...allowedValues,
+                                ...allowedValues.correctCase,
                             ]
                                 .map((v) => `"${v}"`)
                                 .join(", ")}`,

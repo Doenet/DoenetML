@@ -29,7 +29,10 @@ export class AutoCompleter {
     schemaTopAllowedElements: string[] = [];
     schemaElementsByName: Record<string, ElementSchema> = {};
     parentChildMap: Map<string, Set<string>> = new Map();
-    nodeAttributeMap: Map<string, Map<string, Set<string> | null>> = new Map();
+    nodeAttributeMap: Map<
+        string,
+        Map<string, { correctCase: Set<string>; lowerCase: Set<string> } | null>
+    > = new Map();
 
     constructor(
         source?: string,
@@ -72,7 +75,14 @@ export class AutoCompleter {
                 new Map(
                     e.attributes.map((a) => [
                         a.name,
-                        a.values ? new Set(a.values) : null,
+                        a.values
+                            ? {
+                                  correctCase: new Set(a.values),
+                                  lowerCase: new Set(
+                                      a.values.map((v) => v.toLowerCase()),
+                                  ),
+                              }
+                            : null,
                     ]),
                 ),
             ]),

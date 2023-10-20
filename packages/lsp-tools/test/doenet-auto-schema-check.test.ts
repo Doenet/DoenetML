@@ -16,7 +16,11 @@ const schema = {
         {
             name: "a",
             children: ["b", "c", "d"],
-            attributes: [{ name: "x" }, { name: "y" }, { name: "xyx" }],
+            attributes: [
+                { name: "x" },
+                { name: "y" },
+                { name: "xyx", values: ["a", "B"] },
+            ],
             top: true,
             acceptsStringChildren: false,
         },
@@ -307,4 +311,46 @@ describe("AutoCompleter", () => {
           ]
         `);
     });
+
+    it(
+        "Can detect schema violations for attribute values while ignoring case " +
+            "but still suggests the correct case if a value is wrong",
+        () => {
+            let source: string;
+            let autoCompleter: AutoCompleter;
+
+            // No error for correct values
+            source = `<a>
+            <b  foo="True">
+            </b>
+            <c>hi</c>
+        </a>`;
+            autoCompleter = new AutoCompleter(source, schema.elements);
+            expect(autoCompleter.getSchemaViolations()).toMatchInlineSnapshot(
+                "[]",
+            );
+
+            // Error if an explicit list is given and the attribute value is plain text and not on the list
+            source = `<a xyx="z" />`;
+            autoCompleter = new AutoCompleter(source, schema.elements);
+            expect(autoCompleter.getSchemaViolations()).toMatchInlineSnapshot(`
+              [
+                {
+                  "message": "Attribute \`xyx\` of element \`<a>\` must be one of: \\"a\\", \\"B\\"",
+                  "range": {
+                    "end": {
+                      "character": 10,
+                      "line": 0,
+                    },
+                    "start": {
+                      "character": 7,
+                      "line": 0,
+                    },
+                  },
+                  "severity": 2,
+                },
+              ]
+            `);
+        },
+    );
 });
