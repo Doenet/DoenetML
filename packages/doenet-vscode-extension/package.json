@@ -38,12 +38,21 @@
                 "scopeName": "text.doenet",
                 "path": "./syntaxes/doenet.tmLanguage.json"
             }
+        ],
+        "commands": [
+            {
+                "command": "doenet.showPreview",
+                "title": "Show DoenetML Preview"
+            }
         ]
     },
     "scripts": {
         "vscode:prepublish": "npm run compile",
         "build": "npm run compile",
-        "compile": "cd ./client && tsc -b && cd ../server && vite build",
+        "compile": "npm run build:client && npm run build:server && npm run build:webview",
+        "build:server": "cd ./server && vite build",
+        "build:client": "cd ./client && tsc -b",
+        "build:webview": "cd ./webview-ui && npm run build",
         "watch": "npm run build && cd ./server && vite build --watch",
         "lint": "eslint ./client/src ./server/src --ext .ts,.tsx",
         "postinstall": "cd client && npm install && cd ../server && npm install && cd ..",
@@ -51,12 +60,20 @@
         "e2e-test": "sh ./scripts/e2e.sh"
     },
     "devDependencies": {
-        "@types/mocha": "^9.1.0",
-        "@types/node": "^20.8.6",
-        "@typescript-eslint/eslint-plugin": "^6.7.5",
-        "@typescript-eslint/parser": "^6.7.5",
+        "@types/mocha": "^9.1.1",
+        "@types/node": "^20.8.7",
+        "@typescript-eslint/eslint-plugin": "^6.8.0",
+        "@typescript-eslint/parser": "^6.8.0",
+        "@types/vscode-webview": "^1.57.3",
+        "@types/vscode": "^1.83.1",
+        "@vitejs/plugin-react": "^4.1.0",
+        "@vscode/webview-ui-toolkit": "^1.2.2",
         "eslint": "^8.51.0",
-        "mocha": "^9.2.1",
-        "typescript": "^5.2.2"
+        "mocha": "^9.2.2",
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "vite": "^4.5.0",
+        "typescript": "^5.2.2",
+        "vscode-test": "^1.6.1"
     }
 }

@@ -4,7 +4,13 @@
  * ------------------------------------------------------------------------------------------ */
 
 import * as path from "path";
-import { workspace, ExtensionContext } from "vscode";
+import {
+    workspace,
+    ExtensionContext,
+    commands,
+    TextDocumentChangeEvent,
+} from "vscode";
+import * as vscode from "vscode";
 
 import {
     LanguageClient,
@@ -12,6 +18,7 @@ import {
     ServerOptions,
     TransportKind,
 } from "vscode-languageclient/node";
+import { DoenetPreviewPanel } from "./panels/doenet-preview-panel";
 
 let client: LanguageClient;
 
@@ -51,6 +58,53 @@ export function activate(context: ExtensionContext) {
 
     // Start the client. This will also launch the server
     client.start();
+
+    // Register the preview window
+    const showPreviewWindow = commands.registerCommand(
+        "doenet.showPreview",
+        () => {
+            const currentDocument = vscode.window.activeTextEditor?.document;
+            if (currentDocument?.languageId === "doenet") {
+                DoenetPreviewPanel.currentSource = currentDocument.getText();
+            }
+
+            DoenetPreviewPanel.render(context.extensionUri);
+            DoenetPreviewPanel.triggerRefresh();
+        },
+    );
+    context.subscriptions.push(showPreviewWindow);
+
+    // Every time a Doenet document changes, update the source in the preview window
+    workspace.onDidChangeTextDocument((e: TextDocumentChangeEvent) => {
+        if (
+            e.document.languageId !== "doenet" ||
+            e.document.fileName !==
+                vscode.window.activeTextEditor?.document?.fileName
+        ) {
+            return;
+        }
+        DoenetPreviewPanel.setSource(e.document.getText());
+    });
+
+    workspace.onDidSaveTextDocument((document) => {
+        if (
+            document.languageId !== "doenet" ||
+            document.fileName !==
+                vscode.window.activeTextEditor?.document?.fileName
+        ) {
+            return;
+        }
+        DoenetPreviewPanel.setSource(document.getText());
+        DoenetPreviewPanel.triggerRefresh();
+    });
+
+    vscode.window.onDidChangeActiveTextEditor((e) => {
+        if (e.document.languageId !== "doenet") {
+            return;
+        }
+        DoenetPreviewPanel.setSource(e.document.getText());
+        DoenetPreviewPanel.triggerRefresh();
+    });
 }
 
 export function deactivate(): Thenable<void> | undefined {
