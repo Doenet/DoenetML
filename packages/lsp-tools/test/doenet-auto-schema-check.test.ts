@@ -353,4 +353,14 @@ describe("AutoCompleter", () => {
             `);
         },
     );
+
+    it("substitutes `true` in for the value of an attribute that is not specified", () => {
+        let source: string;
+        let autoCompleter: AutoCompleter;
+
+        // No error for correct values
+        source = `<b  foo />`;
+        autoCompleter = new AutoCompleter(source, schema.elements);
+        expect(autoCompleter.getSchemaViolations()).toMatchInlineSnapshot("[]");
+    });
 });

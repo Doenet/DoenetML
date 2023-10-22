@@ -135,7 +135,11 @@ export function getSchemaViolations(this: AutoCompleter): Diagnostic[] {
                     attrName,
                 );
                 if (!hasMacroOrFunctionChild(attr.children) && allowedValues) {
-                    const attrValue = toXml(attr.children);
+                    // Attributes specified without a value are considered to have a value of "true".
+                    const attrValue =
+                        attr.children.length === 0
+                            ? "true"
+                            : toXml(attr.children);
                     const range = getAttributeValueRange(attr);
                     if (!allowedValues.lowerCase.has(attrValue.toLowerCase())) {
                         ret.push({
