@@ -6,6 +6,7 @@ import { DastElement, DastNodes, DastRoot, PrintOptions } from "../types";
 import {
     ALWAYS_BREAK_ELEMENTS,
     BREAK_AROUND_ELEMENTS,
+    CHILDREN_ON_OWN_LINE_ELEMENTS,
     PAR_ELEMENTS,
     PRE_ELEMENTS,
 } from "./normalize/special-nodes";
@@ -142,7 +143,7 @@ export const print: Printer<DastNodes>["print"] = function print(
                 .flat()
                 .filter((x) => !isEmptyGroup(x) && x !== "");
             if (node.children.length > 0) {
-                if (ALWAYS_BREAK_ELEMENTS.has(node.name)) {
+                if (CHILDREN_ON_OWN_LINE_ELEMENTS.has(node.name)) {
                     children = [
                         indent([softline, joinWithSoftline(children)]),
                         softline,
@@ -150,6 +151,9 @@ export const print: Printer<DastNodes>["print"] = function print(
                     children.push(breakParent);
                 } else {
                     children = [indent([softline, fill(children)]), softline];
+                }
+                if (ALWAYS_BREAK_ELEMENTS.has(node.name)) {
+                    children.push(breakParent);
                 }
             }
             return [

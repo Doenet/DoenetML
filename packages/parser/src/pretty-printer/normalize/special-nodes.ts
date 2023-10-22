@@ -63,7 +63,7 @@ export const BREAK_AROUND_ELEMENTS = new Set([
     "solution",
     "hint",
     "choice",
-    "graph"
+    "graph",
 ]);
 
 /**
@@ -75,5 +75,15 @@ export const ALWAYS_BREAK_ELEMENTS = new Set([
     "ol",
     "ul",
     "dl",
-    "graph"
+    "graph",
+]);
+
+/**
+ * Elements whose contents should always break (and be indented).
+ */
+export const CHILDREN_ON_OWN_LINE_ELEMENTS = new Set([
+    "ol",
+    "ul",
+    "dl",
+    "graph",
 ]);

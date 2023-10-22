@@ -49,8 +49,7 @@ In document: $ci.choiceTexts <alert name=\\"in_alert\\">$ci.choiceTexts</alert>
 <p name=\\"in_q\\"><q>$ci.choiceTexts</q></p>
 <section name=\\"in_section_w_title\\">
     <title name=\\"sec_title\\">Title: $ci.choiceTexts</title>
-    Text:
-    $ci.choiceTexts
+    Text: $ci.choiceTexts
 </section>
 <section name=\\"in_section_wo_title\\">
     $ci.choiceTexts
