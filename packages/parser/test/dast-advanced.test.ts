@@ -136,7 +136,7 @@ describe("DAST", async () => {
               ]
             `);
 
-        // Argument with a macro in it
+        // Argument with an element in it
         func = MacroParser.parse(`$$f`)[0] as DastFunctionMacro;
         nodes = [
             func,
