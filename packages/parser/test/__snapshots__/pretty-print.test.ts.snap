@@ -13,12 +13,8 @@ exports[`Prettier > pretty-print-1.doenet pretty-prints correctly in Xml format 
 <p>another p</p>
 
 <p>
-    Maximum number 1: <mathinput
-        name=\\"mn1\\"
-        prefill=\\"2\\"
-        prop3=\\"xxx\\"
-        prop4=\\"true\\"
-    />
+    Maximum number 1:
+    <mathinput name=\\"mn1\\" prefill=\\"2\\" prop3=\\"xxx\\" prop4=\\"true\\" />
 </p>
 
 <choiceinput name=\\"ci\\">
@@ -29,9 +25,9 @@ exports[`Prettier > pretty-print-1.doenet pretty-prints correctly in Xml format 
 
 In document: $ci.choiceTexts <alert name=\\"in_alert\\">$ci.choiceTexts</alert>
 <blockquote name=\\"in_blockquote\\">$ci.choiceTexts</blockquote>
-<c name=\\"in_c\\">$ci.choiceTexts</c><caption name=\\"in_caption\\">$ci.choiceTexts</caption><cell
-    name=\\"in_cell\\"
->$ci.choiceTexts</cell>
+<c name=\\"in_c\\">$ci.choiceTexts</c><caption name=\\"in_caption\\">
+    $ci.choiceTexts
+</caption><cell name=\\"in_cell\\">$ci.choiceTexts</cell>
 <choice name=\\"in_choice\\">$ci.choiceTexts</choice>
 <span name=\\"in_span\\">$ci.choiceTexts</span><em name=\\"in_em\\">$ci.choiceTexts</em>
 <feedback name=\\"in_feedback\\">$ci.choiceTexts</feedback>
@@ -53,7 +49,8 @@ In document: $ci.choiceTexts <alert name=\\"in_alert\\">$ci.choiceTexts</alert>
 <p name=\\"in_q\\"><q>$ci.choiceTexts</q></p>
 <section name=\\"in_section_w_title\\">
     <title name=\\"sec_title\\">Title: $ci.choiceTexts</title>
-    Text: $ci.choiceTexts
+    Text:
+    $ci.choiceTexts
 </section>
 <section name=\\"in_section_wo_title\\">
     $ci.choiceTexts

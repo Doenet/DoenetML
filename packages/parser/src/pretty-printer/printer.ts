@@ -137,18 +137,24 @@ export const print: Printer<DastNodes>["print"] = function print(
                 ];
             }
 
-            let children = path.map(print, "children").flat();
+            let children = path
+                .map(print, "children")
+                .flat()
+                .filter((x) => !isEmptyGroup(x) && x !== "");
             if (node.children.length > 0) {
-                children = [indent([softline, fill(children)]), softline];
-            }
-            if (ALWAYS_BREAK_ELEMENTS.has(node.name)) {
-                children.push(breakParent);
+                if (ALWAYS_BREAK_ELEMENTS.has(node.name)) {
+                    children = [
+                        indent([softline, joinWithSoftline(children)]),
+                        softline,
+                    ];
+                    children.push(breakParent);
+                } else {
+                    children = [indent([softline, fill(children)]), softline];
+                }
             }
             return [
                 ...leadingBreak,
-                group(openingTag),
-                group(children),
-                group(closingTag),
+                group([group(openingTag), group(children), group(closingTag)]),
                 ...closingBreak,
             ];
         }
@@ -246,4 +252,58 @@ class NodeMap {
         }
         return false;
     }
+}
+
+/**
+ * Returns whether the object is `type === "group"`
+ */
+function isGroup(doc: Doc): doc is Doc & { type: "group" } {
+    if (typeof doc !== "object") {
+        return false;
+    }
+    if (Array.isArray(doc)) {
+        return false;
+    }
+    return doc.type === "group";
+}
+
+function isEmptyGroup(doc: Doc): boolean {
+    return (
+        isGroup(doc) && Array.isArray(doc.contents) && doc.contents.length === 0
+    );
+}
+
+/**
+ * Join with a softline between each element, but only if there isn't already a line between the elements.
+ */
+function joinWithSoftline(doc: Doc[]): Doc[] {
+    if (doc.length === 0) {
+        return doc;
+    }
+    const ret: Doc[] = [];
+    for (let i = 0; i < doc.length; i++) {
+        const curr = doc[i];
+        const next = doc[i + 1];
+        ret.push(curr);
+        if (next && !isLine(next) && !isLine(curr)) {
+            ret.push(softline);
+        }
+    }
+    return ret;
+}
+
+function isLine(doc: Doc): boolean {
+    if (doc === line || doc === softline || doc === hardline) {
+        return true;
+    }
+    if (typeof doc !== "object") {
+        return false;
+    }
+    if (Array.isArray(doc)) {
+        // Could be an array containing a line and a break-parent
+        return isLine(doc[0]);
+    } else {
+        return doc.type === "line";
+    }
+    return false;
 }

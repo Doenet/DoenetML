@@ -75,10 +75,22 @@ describe("Prettier", async () => {
             { inStr: "$$f(x,$y z)", outStr: "$$f(x, $y z)" },
             { inStr: "$$f((),())", outStr: "$$f((), ())" },
             { inStr: "$$f(x,$$g(y,z))", outStr: "$$f(x, $$g(y, z))" },
-            { inStr: "$$f(x,<math>alpha</math>)", outStr: "$$f(x, <math>alpha</math>)" },
-            { inStr: "$$f((x),<math>alpha</math>)", outStr: "$$f((x), <math>alpha</math>)" },
-            { inStr: "$$f(x,   <math>alpha</math>)", outStr: "$$f(x, <math>alpha</math>)" },
-            { inStr: "<p>$$f(x, <math>alpha</math>)</p>", outStr: "<p>\n    $$f(x, <math>alpha</math>)\n</p>" },
+            {
+                inStr: "$$f(x,<math>alpha</math>)",
+                outStr: "$$f(x, <math>alpha</math>)",
+            },
+            {
+                inStr: "$$f((x),<math>alpha</math>)",
+                outStr: "$$f((x), <math>alpha</math>)",
+            },
+            {
+                inStr: "$$f(x,   <math>alpha</math>)",
+                outStr: "$$f(x, <math>alpha</math>)",
+            },
+            {
+                inStr: "<p>$$f(x, <math>alpha</math>)</p>",
+                outStr: "<p>\n    $$f(x, <math>alpha</math>)\n</p>",
+            },
         ];
         for (const { inStr, outStr } of cases) {
             const prettyPrinted = await prettyPrint(inStr, {
@@ -112,4 +124,20 @@ describe("Prettier", async () => {
             });
         }
     }
+
+    it("Always breaks children of BREAK_AROUND_ELEMENTS", async () => {
+        const cases = [
+            {
+                inStr: "<graph><line /><line /></graph>",
+                outStr: "<graph>\n    <line />\n    <line />\n</graph>",
+            },
+        ];
+        for (const { inStr, outStr } of cases) {
+            const prettyPrinted = await prettyPrint(inStr, {
+                doenetSyntax: false,
+                printWidth: 30,
+            });
+            expect(prettyPrinted).toEqual(outStr);
+        }
+    });
 });
