@@ -1,0 +1,54 @@
+{
+    "name": "doenet-vscode-extension",
+    "displayName": "DoenetML support",
+    "description": "A language server for DoenetML",
+    "author": "Jason Siefken",
+    "license": "AGPL",
+    "version": "1.0.0",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/Doenet/DoenetML"
+    },
+    "categories": [],
+    "keywords": [
+        "Doenet DoenetML"
+    ],
+    "engines": {
+        "vscode": "^1.76.0"
+    },
+    "browser": "./build/extension/index.js",
+    "contributes": {
+        "languages": [
+            {
+                "id": "doenet",
+                "aliases": [
+                    "Doenet",
+                    "doenet",
+                    "DoenetML"
+                ],
+                "extensions": [
+                    ".doenet"
+                ],
+                "configuration": "./language-configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "doenet",
+                "scopeName": "text.doenet",
+                "path": "./syntaxes/doenet.tmLanguage.json"
+            }
+        ],
+        "commands": [
+            {
+                "command": "doenet.showPreview",
+                "title": "Show DoenetML Preview"
+            }
+        ]
+    },
+    "scripts": {},
+    "devDependencies": {
+        "@types/vscode": "^1.76.0",
+        "@types/vscode-webview": "^1.57.3"
+    }
+}
