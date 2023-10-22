@@ -59,6 +59,20 @@ export function activate(context: ExtensionContext) {
     // Start the client. This will also launch the server
     client.start();
 
+    setupPreviewWindow(context);
+}
+
+export function deactivate(): Thenable<void> | undefined {
+    if (!client) {
+        return undefined;
+    }
+    return client.stop();
+}
+
+/**
+ * Allow a user to open a Doenet preview window.
+ */
+function setupPreviewWindow(context: ExtensionContext) {
     // Register the preview window
     const showPreviewWindow = commands.registerCommand(
         "doenet.showPreview",
@@ -105,11 +119,4 @@ export function activate(context: ExtensionContext) {
         DoenetPreviewPanel.setSource(e.document.getText());
         DoenetPreviewPanel.triggerRefresh();
     });
-}
-
-export function deactivate(): Thenable<void> | undefined {
-    if (!client) {
-        return undefined;
-    }
-    return client.stop();
 }

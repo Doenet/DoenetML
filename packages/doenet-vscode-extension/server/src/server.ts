@@ -20,7 +20,7 @@ import {
 
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { AutoCompleter } from "@doenet/lsp-tools";
-import { extractDastErrors } from "@doenet/parser";
+import { extractDastErrors, prettyPrint } from "@doenet/parser";
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -57,6 +57,10 @@ connection.onInitialize((params: InitializeParams) => {
             completionProvider: {
                 resolveProvider: true,
             },
+            documentFormattingProvider: true,
+            foldingRangeProvider: true,
+            documentSymbolProvider: true,
+            hoverProvider: true,
         },
     };
     if (hasWorkspaceFolderCapability) {
@@ -222,6 +226,37 @@ connection.onCompletionResolve((item: CompletionItem): CompletionItem => {
         item.documentation = "JavaScript documentation";
     }
     return item;
+});
+
+connection.onDocumentFormatting(async (params) => {
+    const info = documentInfo.get(params.textDocument.uri);
+    if (!info) {
+        return [];
+    }
+    const sourceObj = info.autoCompleter.sourceObj;
+    const rootPos = sourceObj.dast.position!;
+    const printed = await prettyPrint(sourceObj.source);
+    return [
+        {
+            newText: printed,
+            range: {
+                start: sourceObj.offsetToLSPPosition(0),
+                end: sourceObj.offsetToLSPPosition(rootPos.end.offset!),
+            },
+        },
+    ];
+});
+
+connection.onFoldingRanges((params) => {
+    return [];
+});
+
+connection.onHover((params) => {
+    return null;
+});
+
+connection.onDocumentSymbol((params) => {
+    return [];
 });
 
 // Make the text document manager listen on the connection
