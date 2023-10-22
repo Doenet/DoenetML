@@ -10,6 +10,9 @@ import {
     Element,
     OpenTag,
     commentContent as _commentContent,
+    piContent as _piContent,
+    cdataContent as _cdataContent,
+    Text,
 } from "./generated-assets/lezer-doenet.terms";
 
 function nameChar(ch: number) {
@@ -88,27 +91,44 @@ export const elementContext = new ContextTracker<ElementContext | null>({
 
 export const startTag = new ExternalTokenizer(
     (input, stack) => {
-        if (input.next != 60 /* '<' */) return;
+        if (input.next !== 60 /* '<' */) {
+            return;
+        }
+        const nextNext = input.peek(1);
+        if (
+            nextNext === 61 /* '=' */
+            // XXX We could avoid creating an error node here by ignoring `<` which is followed by a `<`.
+            // However, this would require a reworking of the `Text` node type to accept lone `<` characters
+            // (in a more robust way than currently implemented).
+            // || nextNext === 60 /* '<' */
+        ) {
+            return;
+        }
         input.advance();
         // @ts-ignore
-        if (input.next == 47 /* '/' */) {
+        if (input.next === 47 /* '/' */) {
             input.advance();
             let name = tagNameAfter(input, 0);
-            if (!name) return input.acceptToken(incompleteStartCloseTag);
+            if (!name) {
+                return input.acceptToken(incompleteStartCloseTag);
+            }
             if (
                 stack.context &&
                 name.toLowerCase() == stack.context.name.toLowerCase()
-            )
+            ) {
                 return input.acceptToken(StartCloseTag);
-            for (let cx = stack.context; cx; cx = cx.parent)
-                if (cx.name == name)
+            }
+            for (let cx = stack.context; cx; cx = cx.parent) {
+                if (cx.name === name) {
                     return input.acceptToken(MissingCloseTag, -2);
+                }
+            }
             input.acceptToken(mismatchedStartCloseTag);
         } else if (
             // @ts-ignore
-            input.next != 33 /* '!' */ &&
+            input.next !== 33 /* '!' */ &&
             // @ts-ignore
-            input.next != 63 /* '?' */ &&
+            input.next !== 63 /* '?' */ &&
             !isSpace(input.next)
         ) {
             return input.acceptToken(StartTag);
@@ -117,18 +137,35 @@ export const startTag = new ExternalTokenizer(
     { contextual: true },
 );
 
+/**
+ * Match a `<` that is followed by another `<`, but only consume the first `<`.
+ * Such code is valid DoenetML, since `<` by itself should be interpreted as a less than sign.
+ */
+export const textLessThan = new ExternalTokenizer((input) => {
+    if (input.next !== 60 /* '<' */) {
+        return;
+    }
+    const nextNext = input.peek(1);
+    if (nextNext === 60 /* '<' */) {
+        return input.acceptToken(Text, 1);
+    }
+});
+
 function scanTo(type: number, end: string) {
     return new ExternalTokenizer((input) => {
         for (let endPos = 0, len = 0; ; len++) {
             if (input.next < 0) {
-                if (len) input.acceptToken(type);
+                if (len) {
+                    input.acceptToken(type);
+                }
                 break;
             }
             if (input.next == end.charCodeAt(endPos)) {
                 endPos++;
                 if (endPos == end.length) {
-                    if (len > end.length)
+                    if (len > end.length) {
                         input.acceptToken(type, 1 - end.length);
+                    }
                     break;
                 }
             } else {
@@ -140,3 +177,5 @@ function scanTo(type: number, end: string) {
 }
 
 export const commentContent = scanTo(_commentContent, "-->");
+export const piContent = scanTo(_piContent, "?>");
+export const cdataContent = scanTo(_cdataContent, "]]>");

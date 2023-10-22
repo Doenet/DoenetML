@@ -1,5 +1,4 @@
 import Core from "./Core";
-import me from "math-expressions";
 import { removeFunctionsMathExpressionClass } from "./utils/math";
 import { createComponentInfoObjects } from "./utils/componentInfoObjects";
 import {

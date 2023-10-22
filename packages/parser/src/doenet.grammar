@@ -1,9 +1,17 @@
-@top Document { topLevel+ }
+/*
+ * Modified version of lezer-xml that accepts more html-like identifiers
+ */
+@top Document { (entity | DoctypeDecl)+ }
 
 entity {
   Text |
+  EntityReference |
+  CharacterReference |
+  Ampersand |
+  Cdata |
   Element |
   Comment |
+  ProcessingInst |
   MismatchedCloseTag |
   incompleteStartCloseTag
 }
@@ -13,36 +21,38 @@ Element {
   SelfClosingTag
 }
 
-topLevel {
-  Text |
-  Comment |
-  Element
+@skip { space } {
+  OpenTag[closedBy="CloseTag MissingCloseTag"] {
+    StartTag TagName Attribute* EndTag
+  }
+
+  SelfClosingTag {
+    StartTag TagName Attribute* SelfCloseEndTag
+  }
+
+  CloseTag[openedBy=OpenTag] {
+    StartCloseTag TagName EndTag
+  }
+
+  MismatchedCloseTag {
+    mismatchedStartCloseTag TagName EndTag
+  }
+
+  Attribute {
+    AttributeName (Is AttributeValue)?
+  }
 }
 
-OpenTag[closedBy="CloseTag MissingCloseTag"] {
-  StartTag TagName ws* Attribute* endTag
+AttributeValue {
+  "\"" (doubleQuoteAttributeContent | EntityReference | CharacterReference | Ampersand)* "\"" |
+  "'" (singleQuoteAttributeContent | EntityReference | CharacterReference | Ampersand)* "'"
 }
 
-SelfClosingTag {
-  StartTag TagName ws* Attribute* selfCloseEndTag
-}
+Comment { "<!--" commentContent* "-->" }
 
-CloseTag[openedBy=OpenTag] {
-  StartCloseTag ws* TagName ws* endTag
-}
+ProcessingInst { "<?" piContent* "?>" }
 
-MismatchedCloseTag {
-  mismatchedStartCloseTag TagName endTag
-}
-
-Attribute {
-  AttributeName ws* |
-   AttributeName ws* Is ws* AttributeValue ws*
-}
-
-AttributeValue {singleQuoteAttributeValue | doubleQuoteAttributeValue}
-
-Comment { beginComment commentContent* "-->" }
+Cdata { cdataStart cdataContent* "]]>" }
 
 @context elementContext from "../tokens"
 
@@ -55,36 +65,54 @@ Comment { beginComment commentContent* "-->" }
 }
 
 @external tokens commentContent from "../tokens" { commentContent }
-
-singleQuoteAttributeValue { "'" attributeContentSingleQuote* "'" }
-doubleQuoteAttributeValue { "\"" attributeContentDoubleQuote* "\"" }
+@external tokens piContent from "../tokens" { piContent }
+@external tokens cdataContent from "../tokens" { cdataContent }
+@external tokens textLessThan from "../tokens" { textLessThan }
 
 @tokens {
-  endTag { ">" }
-  
-  beginComment { "<!--" }
+  EndTag[openedBy="StartTag StartCloseTag"] { ">" }
 
-  selfCloseEndTag { "/>" }
+  SelfCloseEndTag[openedBy=StartTag] { "/>" }
 
-  nameChar {
-    std.asciiLetter | "-" | "_" | std.digit 
+  nameStart {
+    ":" | $[a-zA-Z] | "_" |
+    $[\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02FF\u0370-\u037D\u037F-\u1FFF\u200C-\u200D] |
+    $[\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD\u{10000}-\u{EFFFF}]
   }
 
-  identifier { nameChar+ }
+  nameChar {
+    nameStart | "-" | "." | $[0-9] | $[\u00B7\u0300-\u036F\u203F-\u2040]
+  }
+
+  identifier { nameStart nameChar* }
 
   TagName { identifier }
 
   AttributeName { identifier }
 
-  attributeContentSingleQuote { ![']+ }
-
-  attributeContentDoubleQuote { !["]+ }
+  singleQuoteAttributeContent { !['&]+ }
+  doubleQuoteAttributeContent { !["&]+ }
 
   Is { "=" }
 
-  Text { ("< " | "<=" | "<\n" | ![<])+  }
+  // See https://www.w3.org/TR/2006/REC-xml11-20060816/#sec-references
+  EntityReference { "&" identifier ";" }
 
-  ws { std.whitespace+ }
+  CharacterReference { ("&#x" $[0-9a-fA-F]+ ";" | "&#" $[0-9]+ ";") }
 
+  Ampersand { "&" }
+
+  @precedence { CharacterReference, EntityReference, Ampersand }
+
+  Text { ("<" space | "<=" | ![<&])+ }
+
+  DoctypeDecl { "<!" ("doctype" | "DOCTYPE") ![>]* ">" }
+
+  cdataStart { "<![" ("cdata" | "CDATA") "[" }
+
+  space { (" " | "\t" | "\r" | "\n")+ }
 }
+
+//@external propSource xmlHighlighting from "./highlight"
+
 @detectDelim

@@ -8,11 +8,12 @@ export default defineConfig({
         minify: true,
         sourcemap: true,
         lib: {
-            entry: "index.ts",
+            entry: "src/index.ts",
             fileName: "CoreWorker",
             formats: ["es"],
         },
         rollupOptions: {
+            // @ts-ignore
             plugins: [nodePolyfills()],
             external: ["react", "react-dom", "styled-components"],
             output: {

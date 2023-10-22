@@ -1,0 +1,47 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Xml files parse correctly > xml-1.doenet parses correctly 1`] = `"Document(Element(SelfClosingTag(StartTag,TagName,SelfCloseEndTag)))"`;
+
+exports[`Xml files parse correctly > xml-2.doenet parses correctly 1`] = `"Document(Element(OpenTag(StartTag,TagName,EndTag),Text,CloseTag(StartCloseTag,TagName,EndTag)))"`;
+
+exports[`Xml files parse correctly > xml-3.doenet parses correctly 1`] = `"Document(Element(OpenTag(StartTag,TagName,EndTag),Element(OpenTag(StartTag,TagName,EndTag),Text,CloseTag(StartCloseTag,TagName,EndTag)),Element(SelfClosingTag(StartTag,TagName,SelfCloseEndTag)),CloseTag(StartCloseTag,TagName,EndTag)))"`;
+
+exports[`Xml files parse correctly > xml-4.doenet parses correctly 1`] = `"Document(Element(SelfClosingTag(StartTag,TagName,Attribute(AttributeName,Is,AttributeValue),SelfCloseEndTag)))"`;
+
+exports[`Xml files parse correctly > xml-5.doenet parses correctly 1`] = `"Document(Element(OpenTag(StartTag,TagName,Attribute(AttributeName,Is,AttributeValue),Attribute(AttributeName,Is,AttributeValue),Attribute(AttributeName,Is,AttributeValue),EndTag),CloseTag(StartCloseTag,TagName,EndTag)))"`;
+
+exports[`Xml files parse correctly > xml-6.doenet parses correctly 1`] = `"Document(Element(OpenTag(StartTag,TagName,Attribute(AttributeName,Is,AttributeValue(EntityReference)),EndTag),EntityReference,CharacterReference,CloseTag(StartCloseTag,TagName,EndTag)))"`;
+
+exports[`Xml files parse correctly > xml-7.doenet parses correctly 1`] = `"Document(DoctypeDecl,Text,Element(SelfClosingTag(StartTag,TagName,SelfCloseEndTag)))"`;
+
+exports[`Xml files parse correctly > xml-8.doenet parses correctly 1`] = `"Document(ProcessingInst,Element(OpenTag(StartTag,TagName,EndTag),ProcessingInst,CloseTag(StartCloseTag,TagName,EndTag)))"`;
+
+exports[`Xml files parse correctly > xml-8b.doenet parses correctly 1`] = `"Document(ProcessingInst)"`;
+
+exports[`Xml files parse correctly > xml-9.doenet parses correctly 1`] = `"Document(Comment,Text,Element(OpenTag(StartTag,TagName,EndTag),Comment,Text,CloseTag(StartCloseTag,TagName,EndTag)),Text,Comment)"`;
+
+exports[`Xml files parse correctly > xml-10.doenet parses correctly 1`] = `"Document(Element(OpenTag(StartTag,TagName,EndTag),Cdata,CloseTag(StartCloseTag,TagName,EndTag)))"`;
+
+exports[`Xml files parse correctly > xml-12.doenet parses correctly 1`] = `"Document(Element(OpenTag(StartTag,TagName,Attribute(AttributeName,Is,AttributeValue),EndTag),Text,CloseTag(StartCloseTag,TagName,EndTag)))"`;
+
+exports[`Xml files parse correctly > xml-doenet-ampersand-1.doenet parses correctly 1`] = `"Document(EntityReference,Text,EntityReference,Text,EntityReference,Text)"`;
+
+exports[`Xml files parse correctly > xml-doenet-ampersand-2.doenet parses correctly 1`] = `"Document(Ampersand,Text,EntityReference,Text,Ampersand,Text)"`;
+
+exports[`Xml files parse correctly > xml-doenet-ampersand-3.doenet parses correctly 1`] = `"Document(Ampersand)"`;
+
+exports[`Xml files parse correctly > xml-doenet-attributes-1.doenet parses correctly 1`] = `"Document(Element(SelfClosingTag(StartTag,TagName,Attribute(AttributeName),Attribute(AttributeName,Is,AttributeValue),Attribute(AttributeName,Is,AttributeValue),SelfCloseEndTag)))"`;
+
+exports[`Xml files parse correctly > xml-doenet-attributes-2.doenet parses correctly 1`] = `"Document(Element(SelfClosingTag(StartTag,TagName,Attribute(AttributeName,Is,AttributeValue),Attribute(AttributeName,Is,AttributeValue(Ampersand)),SelfCloseEndTag)))"`;
+
+exports[`Xml files parse correctly > xml-doenet-lessthan-in-text-1.doenet parses correctly 1`] = `"Document(Element(OpenTag(StartTag,TagName,EndTag),Text,CloseTag(StartCloseTag,TagName,EndTag)))"`;
+
+exports[`Xml files parse correctly > xml-doenet-lessthan-in-text-2.doenet parses correctly 1`] = `"Document(Element(OpenTag(StartTag,TagName,EndTag),Text,CloseTag(StartCloseTag,TagName,EndTag)))"`;
+
+exports[`Xml files parse correctly > xml-doenet-lessthan-in-text-3.doenet parses correctly 1`] = `"Document(Element(OpenTag(StartTag,TagName,EndTag),Text,CloseTag(StartCloseTag,TagName,EndTag)))"`;
+
+exports[`Xml files parse correctly > xml-doenet-lessthan-in-text-4.doenet parses correctly 1`] = `"Document(Element(OpenTag(StartTag,TagName,EndTag),Text,CloseTag(StartCloseTag,TagName,EndTag)))"`;
+
+exports[`Xml files parse correctly > xml-doenet-lessthan-in-text-5.doenet parses correctly 1`] = `"Document(Element(OpenTag(StartTag,TagName,EndTag),Text,CloseTag(StartCloseTag,TagName,EndTag)))"`;
+
+exports[`Xml files parse correctly > xml-doenet-no-root.doenet parses correctly 1`] = `"Document(Text,Element(SelfClosingTag(StartTag,TagName,SelfCloseEndTag)),Text,Element(SelfClosingTag(StartTag,TagName,SelfCloseEndTag)),Text)"`;

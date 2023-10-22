@@ -7,6 +7,7 @@
         "./packages/ui-components",
         "./packages/utils",
         "./packages/parser",
+        "./packages/lsp-tools",
         "./packages/doenetml-worker",
         "./packages/static-assets",
         "./packages/virtual-keyboard",

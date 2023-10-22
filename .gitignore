@@ -43,3 +43,8 @@ src/test/testCode.doenet
 **/cypress/screenshots
 runner-results
 parallel-weights.json
+
+out
+node_modules
+client/server
+.vscode-test
