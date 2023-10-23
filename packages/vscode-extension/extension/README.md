@@ -1,7 +1,7 @@
 # Doenet VSCode Extension
 
-[![Visual Studio Marketplace](https://img.shields.io/visual-studio-marketplace/v/oscarlevin.pretext-tools?color=informational&logo=visualstudiocode&style=for-the-badge&label=VS%20Marketplace)](https://marketplace.visualstudio.com/items?itemName=doenetml.doenet-vscode-extension)
-[![Installs](https://img.shields.io/visual-studio-marketplace/i/oscarlevin.pretext-tools?logo=visualstudiocode&color=informational&style=for-the-badge)](https://marketplace.visualstudio.com/items?itemName=doenetml.doenet-vscode-extension)
+[![Visual Studio Marketplace](https://img.shields.io/visual-studio-marketplace/v/doenetml.doenet-vscode-extension?color=informational&logo=visualstudiocode&style=for-the-badge&label=VS%20Marketplace)](https://marketplace.visualstudio.com/items?itemName=doenetml.doenet-vscode-extension)
+[![Installs](https://img.shields.io/visual-studio-marketplace/i/doenetml.doenet-vscode-extension?logo=visualstudiocode&color=informational&style=for-the-badge)](https://marketplace.visualstudio.com/items?itemName=doenetml.doenet-vscode-extension)
 
 A Visual Studio Code extension to make writing [Doenet](https://doenet.org) documents easier.
 
@@ -13,7 +13,6 @@ A Visual Studio Code extension to make writing [Doenet](https://doenet.org) docu
 -   Pretty-printing of Doenet source code.
 
 ![Screencast of Doenet VSCode Features](https://github.com/doenet/DoenetML/raw/main/packages/vscode-extension/assets/extension-demo.gif)
-![Screencast of Doenet VSCode Features](https://github.com/siefkenj/DoenetML/raw/xml/packages/vscode-extension/assets/extension-demo.gif)
 
 ## Usage
 
