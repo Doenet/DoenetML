@@ -42,7 +42,7 @@
         "commands": [
             {
                 "command": "doenet.showPreview",
-                "title": "Show DoenetML Preview"
+                "title": "Doenet Preview"
             }
         ]
     },
