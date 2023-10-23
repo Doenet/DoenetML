@@ -41,5 +41,8 @@
     },
     "prettier": {
         "tabWidth": 4
+    },
+    "dependencies": {
+        "@vscode/test-web": "^0.0.47"
     }
 }

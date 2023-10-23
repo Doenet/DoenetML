@@ -29,8 +29,9 @@
         "build:preview-window": "vite -c vite.preview-window.config.ts build",
         "dev": "vite -c vite.preview-window.config.ts",
         "watch": "npm run build && vite -c vite.language-server.config.ts build --watch",
-        "test": "echo \"No CI tests.\" && exit 0",
-        "package": "cd ./extension && vsce package --no-dependencies"
+        "test": "vitest",
+        "package": "cd ./extension && vsce package --no-dependencies",
+        "run-in-browser": "vscode-test-web --browserType=firefox --extensionDevelopmentPath=./extension ."
     },
     "devDependencies": {
         "@types/node": "^20.8.7",

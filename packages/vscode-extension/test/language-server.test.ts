@@ -1,11 +1,10 @@
 import { describe, expect, it } from "vitest";
 // Required to use a worker inside a test
 import "@vitest/web-worker";
-import { createMessageConnection } from "@qualified/vscode-jsonrpc-ww";
-import { createLspConnection } from "@qualified/lsp-connection";
 // @ts-ignore
 import LSPWorker from "../src/language-server?worker";
 import util from "util";
+import { initWorker } from "./utils/init-message-connection";
 
 const origLog = console.log;
 console.log = (...args) => {
@@ -15,98 +14,7 @@ console.log = (...args) => {
 describe("Doenet Language Server", async () => {
     it("can initialize language server as a webworker", async () => {
         const worker: Worker = new LSPWorker();
-        const workerConn = await createMessageConnection(worker);
-        const lspConn = createLspConnection(workerConn);
-        lspConn.listen();
-        await lspConn.initialize({
-            capabilities: {
-                textDocument: {
-                    synchronization: {
-                        dynamicRegistration: true,
-                        willSave: true,
-                        willSaveWaitUntil: true,
-                        didSave: true,
-                    },
-                    completion: {
-                        dynamicRegistration: true,
-                        completionItem: {
-                            snippetSupport: true,
-                            insertReplaceSupport: true,
-                            commitCharactersSupport: false,
-                            documentationFormat: ["markdown", "plaintext"],
-                            deprecatedSupport: true,
-                            preselectSupport: true,
-                            resolveSupport: {
-                                properties: ["documentation", "detail"],
-                            },
-                        },
-                        contextSupport: true,
-                    },
-                    hover: {
-                        dynamicRegistration: true,
-                        contentFormat: ["markdown", "plaintext"],
-                    },
-                    signatureHelp: {
-                        dynamicRegistration: true,
-                        signatureInformation: {
-                            documentationFormat: ["markdown", "plaintext"],
-                            parameterInformation: {
-                                labelOffsetSupport: true,
-                            },
-                            // activeParameterSupport: true,
-                        },
-                        contextSupport: true,
-                    },
-                    declaration: {
-                        dynamicRegistration: true,
-                        linkSupport: false,
-                    },
-                    definition: {
-                        dynamicRegistration: true,
-                        linkSupport: true,
-                    },
-                    typeDefinition: {
-                        dynamicRegistration: true,
-                        linkSupport: true,
-                    },
-                    implementation: {
-                        dynamicRegistration: true,
-                        linkSupport: true,
-                    },
-                    references: {
-                        dynamicRegistration: true,
-                    },
-                    documentHighlight: {
-                        dynamicRegistration: true,
-                    },
-                    documentSymbol: {
-                        dynamicRegistration: true,
-                        hierarchicalDocumentSymbolSupport: true,
-                    },
-                    publishDiagnostics: {
-                        relatedInformation: true,
-                        tagSupport: {
-                            valueSet: [1, 2],
-                        },
-                    },
-                    moniker: {},
-                },
-                workspace: {
-                    didChangeConfiguration: {
-                        dynamicRegistration: true,
-                    },
-                    didChangeWatchedFiles: {
-                        dynamicRegistration: false,
-                    },
-                },
-            },
-            initializationOptions: null,
-            processId: null,
-            rootUri: "file:///",
-            workspaceFolders: null,
-        });
-
-        await lspConn.initialized();
+        const lspConn = await initWorker(worker);
         await lspConn.textDocumentOpened({
             textDocument: {
                 uri: "file:///test.doenet",
