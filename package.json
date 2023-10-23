@@ -30,6 +30,9 @@
     },
     "homepage": "https://github.com/Doenet/DoenetML/README.md",
     "devDependencies": {
+        "@qualified/lsp-connection": "^0.3.0",
+        "@qualified/vscode-jsonrpc-ww": "^0.3.0",
+        "@vitest/web-worker": "^0.34.6",
         "jsdom": "^22.1.0",
         "prettier": "^3.0.2",
         "typescript": "^5.2.2",
@@ -38,5 +41,8 @@
     },
     "prettier": {
         "tabWidth": 4
+    },
+    "dependencies": {
+        "@vscode/test-web": "^0.0.47"
     }
 }
