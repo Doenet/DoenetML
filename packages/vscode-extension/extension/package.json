@@ -5,7 +5,8 @@
     "icon": "assets/doenet-small.png",
     "author": "Jason Siefken",
     "license": "AGPL",
-    "version": "0.7.0-alpha1",
+    "publisher": "doenet",
+    "version": "0.7.0",
     "repository": {
         "type": "git",
         "url": "https://github.com/Doenet/DoenetML"

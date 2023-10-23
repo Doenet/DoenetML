@@ -1,7 +1,7 @@
 # Doenet VSCode Extension
 
-[![Visual Studio Marketplace](https://img.shields.io/visual-studio-marketplace/v/doenetml.doenet-vscode-extension?color=informational&logo=visualstudiocode&style=for-the-badge&label=VS%20Marketplace)](https://marketplace.visualstudio.com/items?itemName=doenetml.doenet-vscode-extension)
-[![Installs](https://img.shields.io/visual-studio-marketplace/i/doenetml.doenet-vscode-extension?logo=visualstudiocode&color=informational&style=for-the-badge)](https://marketplace.visualstudio.com/items?itemName=doenetml.doenet-vscode-extension)
+[![Visual Studio Marketplace](https://img.shields.io/visual-studio-marketplace/v/doenet.doenet-vscode-extension?color=informational&logo=visualstudiocode&style=for-the-badge&label=VS%20Marketplace)](https://marketplace.visualstudio.com/items?itemName=doenet.doenet-vscode-extension)
+[![Installs](https://img.shields.io/visual-studio-marketplace/i/doenet.doenet-vscode-extension?logo=visualstudiocode&color=informational&style=for-the-badge)](https://marketplace.visualstudio.com/items?itemName=doenet.doenet-vscode-extension)
 
 A Visual Studio Code extension to make writing [Doenet](https://doenet.org) documents easier.
 
