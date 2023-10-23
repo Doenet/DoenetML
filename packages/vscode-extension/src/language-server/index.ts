@@ -31,9 +31,7 @@ const messageWriter = new BrowserMessageWriter(self);
 
 const connection = createConnection(messageReader, messageWriter);
 
-
 console.log("running server lsp-web-extension-sample");
-
 
 // Create a simple text document manager.
 const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
@@ -207,19 +205,9 @@ connection.onCompletion(
         if (!info) {
             return [];
         }
-        const offset = info.autoCompleter.sourceObj.rowColToOffset(
-            textDocumentPosition.position,
-        );
-        console.log(
-            "offset",
-            offset,
-            textDocumentPosition.position,
-            info.autoCompleter.source.slice(offset, offset + 10),
-        );
         const completions = info.autoCompleter.getCompletionItems(
             textDocumentPosition.position,
         );
-
         return completions;
     },
 );

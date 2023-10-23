@@ -29,14 +29,14 @@
                 "extensions": [
                     ".doenet"
                 ],
-                "configuration": "./language-configuration.json"
+                "configuration": "./config/language-configuration.json"
             }
         ],
         "grammars": [
             {
                 "language": "doenet",
                 "scopeName": "text.doenet",
-                "path": "./syntaxes/doenet.tmLanguage.json"
+                "path": "./config/doenet.tmLanguage.json"
             }
         ],
         "commands": [

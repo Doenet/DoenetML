@@ -5,7 +5,7 @@
         {
             "type": "extensionHost",
             "request": "launch",
-            "name": "Launch Client",
+            "name": "Debug VS Code Extension",
             "runtimeExecutable": "${execPath}",
             "args": [
                 "--disable-extensions",

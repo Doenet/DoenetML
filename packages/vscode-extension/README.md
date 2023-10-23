@@ -1,37 +1,36 @@
-# LSP Example
+# Doenet VSCode Extension
 
-Heavily documented sample code for https://code.visualstudio.com/api/language-extensions/language-server-extension-guide
+Visual Studio Code extension for developing DoenetML.
 
 ## Functionality
 
-This Language Server works for plain text file. It has the following language features:
-- Completions
-- Diagnostics regenerated on each file change or configuration change
-
-It also includes an End-to-End test.
+This extension provides a language server (LSP) and a preview window for DoenetML. It is configured
+as a web extension, so it should run in both locally-installed copies of VSCode and on web copies.
 
 ## Structure
 
 ```
 .
-├── client // Language Client
-│   ├── src
-│   │   ├── test // End to End tests for Language Client / Server
-│   │   └── extension.ts // Language Client entry point
-├── package.json // The extension manifest.
-└── server // Language Server
-    └── src
-        └── server.ts // Language Server entry point
+├── src/
+│   ├── extension/       // The code for the vscode extension. This sets up the extension, etc..
+│   ├── language-server/ // The Doenet language server (runs in a WebWorker)
+│   └── preview-window/  // Preview window that shows rendered DoenetML as you edit.
+└──  extension/  // Where the packaged extension goes
+     └──  build/ // Where built assets end up
 ```
 
-## Running the Sample
+## Running the extension
 
-- Run `npm install` in this folder. This installs all necessary npm modules in both the client and server folder
-- Open VS Code on this folder.
-- Press Ctrl+Shift+B to start compiling the client and server in [watch mode](https://code.visualstudio.com/docs/editor/tasks#:~:text=The%20first%20entry%20executes,the%20HelloWorld.js%20file.).
-- Switch to the Run and Debug View in the Sidebar (Ctrl+Shift+D).
-- Select `Launch Client` from the drop down (if it is not already).
-- Press ▷ to run the launch config (F5).
-- In the [Extension Development Host](https://code.visualstudio.com/api/get-started/your-first-extension#:~:text=Then%2C%20inside%20the%20editor%2C%20press%20F5.%20This%20will%20compile%20and%20run%20the%20extension%20in%20a%20new%20Extension%20Development%20Host%20window.) instance of VSCode, open a document in 'plain text' language mode.
-  - Type `j` or `t` to see `Javascript` and `TypeScript` completion.
-  - Enter text content such as `AAA aaa BBB`. The extension will emit diagnostics for all words in all-uppercase.
+-   From the root doenetml repository, make sure you've already run `npm install` and `npm run build` (to make sure all dependencies are built in the correct order)
+-   From this directory, run `npm run build`
+-   Go to the debug panel in vscode and select `Debug VS Code Extension`. Press the play/launch button. After launching this action, a new vscode window should be opened with the extension loaded.
+
+Loading a file ending in `.doenet` should activate the language-server features. You can quickly test this by typing some invalid doenet (e.g., `<graph xxx />`) and seeing if a warning is highlighted.
+
+You can open the command-palette (Ctrl + Shift + P) and run the `Doenet Preview` action to see a preview of your current doenetml source.
+
+### Development
+
+If you change the extension source code, rebuild that part of the extension via `npm run build:language-server`,
+`npm run build:extension`, or `npm run build:preview-window`. Then either restart the vscode debug process or press the "refresh"
+button for the currently running process.
