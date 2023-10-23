@@ -31,8 +31,6 @@ const messageWriter = new BrowserMessageWriter(self);
 
 const connection = createConnection(messageReader, messageWriter);
 
-console.log("running server lsp-web-extension-sample");
-
 // Create a simple text document manager.
 const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 
@@ -232,7 +230,10 @@ connection.onDocumentFormatting(async (params) => {
     }
     const sourceObj = info.autoCompleter.sourceObj;
     const rootPos = sourceObj.dast.position!;
-    const printed = await prettyPrint(sourceObj.source);
+    const printed = await prettyPrint(sourceObj.source, {
+        tabWidth: params.options.tabSize,
+        useTabs: !params.options.insertSpaces,
+    });
     return [
         {
             newText: printed,

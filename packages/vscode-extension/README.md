@@ -15,8 +15,10 @@ as a web extension, so it should run in both locally-installed copies of VSCode 
 │   ├── extension/       // The code for the vscode extension. This sets up the extension, etc..
 │   ├── language-server/ // The Doenet language server (runs in a WebWorker)
 │   └── preview-window/  // Preview window that shows rendered DoenetML as you edit.
-└──  extension/  // Where the packaged extension goes
-     └──  build/ // Where built assets end up
+└── extension/           // Where the packaged extension goes
+    ├── assets/          // Icon assets
+    ├── build/           // Where built assets end up
+    └── config/          // Language/syntax highlighting files
 ```
 
 ## Running the extension
@@ -34,3 +36,11 @@ You can open the command-palette (Ctrl + Shift + P) and run the `Doenet Preview`
 If you change the extension source code, rebuild that part of the extension via `npm run build:language-server`,
 `npm run build:extension`, or `npm run build:preview-window`. Then either restart the vscode debug process or press the "refresh"
 button for the currently running process.
+
+#### Packaging the extension
+
+-   Make sure the `vsce` is installed (`npm install --global @vscode/vsce`)
+-   Update version numbers in `package.json` and `extension/package.json`
+-   Rebuild all sources with `npm run build`
+-   Run `npm run package`
+-   You should then have a new `doenet-vscode-extension-???.vsix` file that you can upload to the vscode extensions store

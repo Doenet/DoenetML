@@ -1,7 +1,5 @@
-/* --------------------------------------------------------------------------------------------
- * Copyright (c) Microsoft Corporation. All rights reserved.
- * Licensed under the MIT License. See License.txt in the project root for license information.
- * ------------------------------------------------------------------------------------------ */
+// Based off of Microsoft's lsp-spample: https://github.com/microsoft/vscode-extension-samples/tree/main/lsp-sample
+// MIT licensed.
 
 import {
     workspace,
@@ -15,7 +13,7 @@ import {
     LanguageClient,
     LanguageClientOptions,
 } from "vscode-languageclient/browser";
-import { DoenetPreviewPanel } from "./panels/doenet-preview-panel";
+import { DoenetPreviewPanel } from "./preview-panel/doenet-preview-panel";
 
 let client: LanguageClient;
 

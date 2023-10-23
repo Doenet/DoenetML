@@ -1,5 +1,6 @@
 // Code modified from https://github.com/microsoft/vscode-webview-ui-toolkit-samples/blob/main/frameworks/hello-world-react-vite/src/extension.ts
 // MIT License
+
 import {
     Disposable,
     Webview,
@@ -8,8 +9,8 @@ import {
     Uri,
     ViewColumn,
 } from "vscode";
-import { getUri } from "../utilities/getUri";
-import { getNonce } from "../utilities/getNonce";
+import { getUri } from "./utils/get-uri";
+import { getNonce } from "./utils/get-nonce";
 
 /**
  * This class manages the state and behavior of DoenetPreviewPanel webview panels.
