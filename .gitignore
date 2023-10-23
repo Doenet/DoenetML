@@ -49,5 +49,6 @@ node_modules
 client/server
 .vscode-test
 .vscode-test*
+*.vsix
 
 build

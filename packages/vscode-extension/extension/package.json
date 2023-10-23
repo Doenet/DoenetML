@@ -4,7 +4,7 @@
     "description": "A language server for DoenetML",
     "author": "Jason Siefken",
     "license": "AGPL",
-    "version": "1.0.0",
+    "version": "0.7.0-alpha1",
     "repository": {
         "type": "git",
         "url": "https://github.com/Doenet/DoenetML"
@@ -46,7 +46,9 @@
             }
         ]
     },
-    "scripts": {},
+    "scripts": {
+        "vscode:prepublish": "vite-node ../scripts/check-version-consistency.ts"
+    },
     "devDependencies": {
         "@types/vscode": "^1.76.0",
         "@types/vscode-webview": "^1.57.3"

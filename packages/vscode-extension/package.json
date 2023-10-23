@@ -4,7 +4,7 @@
     "description": "A language server for DoenetML",
     "author": "Jason Siefken",
     "license": "AGPL",
-    "version": "1.0.0",
+    "version": "0.7.0-alpha1",
     "repository": {
         "type": "git",
         "url": "https://github.com/Doenet/DoenetML"
@@ -30,7 +30,7 @@
         "dev": "vite -c vite.preview-window.config.ts",
         "watch": "npm run build && vite -c vite.language-server.config.ts build --watch",
         "test": "vitest",
-        "package": "cd ./extension && vsce package --no-dependencies",
+        "package": "cd ./extension && vsce package --no-dependencies --out ../",
         "run-in-browser": "vscode-test-web --browserType=firefox --extensionDevelopmentPath=./extension ."
     },
     "devDependencies": {
