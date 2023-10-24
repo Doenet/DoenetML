@@ -50,6 +50,16 @@
             {
                 "command": "doenet.showPreview",
                 "title": "Preview Doenet"
+            },
+            {
+                "enablement": "resourceLangId == doenet",
+                "command": "doenet.formatAsDoenetML",
+                "title": "Format Doenet Source as DoenetML"
+            },
+            {
+                "enablement": "resourceLangId == doenet",
+                "command": "doenet.formatAsXML",
+                "title": "Format Doenet Source as XML"
             }
         ],
         "menus": {
@@ -57,8 +67,7 @@
                 {
                     "command": "doenet.showPreview",
                     "group": "navigation",
-                    "when": "resourceLangId == doenet",
-                    "alt": "Preview Doenet"
+                    "when": "resourceLangId == doenet"
                 }
             ]
         },

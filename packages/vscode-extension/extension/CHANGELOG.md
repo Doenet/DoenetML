@@ -1,3 +1,8 @@
+## v0.7.3
+
+-   Add actions to format as XML or DoenetML
+-   Add configuration option for the default format style
+
 ## v0.7.2
 
 -   Working dark mode

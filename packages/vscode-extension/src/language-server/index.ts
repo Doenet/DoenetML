@@ -346,6 +346,49 @@ connection.onDocumentSymbol((params) => {
     return ret;
 });
 
+connection.onRequest("doenet.formatAsXML", async (docUri: string) => {
+    const info = documentInfo.get(docUri);
+    if (!info) {
+        connection.console.log(`Could not find document ${docUri}`);
+        return [];
+    }
+    const sourceObj = info.autoCompleter.sourceObj;
+    const rootPos = sourceObj.dast.position!;
+    const printed = await prettyPrint(sourceObj.source, {
+        doenetSyntax: false,
+    });
+    return [
+        {
+            newText: printed,
+            range: {
+                start: sourceObj.offsetToLSPPosition(0),
+                end: sourceObj.offsetToLSPPosition(rootPos.end.offset!),
+            },
+        },
+    ];
+});
+connection.onRequest("doenet.formatAsDoenetML", async (docUri: string) => {
+    const info = documentInfo.get(docUri);
+    if (!info) {
+        connection.console.log(`Could not find document ${docUri}`);
+        return [];
+    }
+    const sourceObj = info.autoCompleter.sourceObj;
+    const rootPos = sourceObj.dast.position!;
+    const printed = await prettyPrint(sourceObj.source, {
+        doenetSyntax: true,
+    });
+    return [
+        {
+            newText: printed,
+            range: {
+                start: sourceObj.offsetToLSPPosition(0),
+                end: sourceObj.offsetToLSPPosition(rootPos.end.offset!),
+            },
+        },
+    ];
+});
+
 // Make the text document manager listen on the connection
 // for open, change and close text document events
 documents.listen(connection);
