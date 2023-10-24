@@ -12,10 +12,7 @@ A Visual Studio Code extension to make writing [Doenet](https://doenet.org) docu
 -   Previewing of doenet documents. To access, open the command pallet (Ctrl+Shift+P) and select the `Preview Doenet` action.
 -   Pretty-printing of Doenet source code.
 
-<video autoplay loop muted width="100%">
-    <source src="https://github.com/doenet/DoenetML/raw/main/packages/vscode-extension/assets/extension-demo.webm" type="video/webm" />
-    <img src="https://github.com/doenet/DoenetML/raw/main/packages/vscode-extension/assets/extension-demo.gif" alt="Screencast of Doenet VSCode Features">
-</video>
+![Screencast of Doenet VSCode Features](https://github.com/doenet/DoenetML/raw/main/packages/vscode-extension/assets/extension-demo.gif)
 
 ## Usage
 

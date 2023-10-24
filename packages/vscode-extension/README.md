@@ -44,3 +44,19 @@ button for the currently running process.
 -   Rebuild all sources with `npm run build`
 -   Run `npm run package`
 -   You should then have a new `doenet-vscode-extension-???.vsix` file that you can upload to the vscode extensions store
+
+#### Updating the screencast
+
+The screencast in the extension README.md is located in `assets/extension-demo.gif`. To create a new `gif` from a video file, you can use the command
+
+```
+ffmpeg -i extension-demo.webm -filter_complex "[0:v] fps=7 [new];[new] split [a][b];[a] palettegen [p];[b][p] paletteuse" output_trimmed_enhanced.gif
+```
+
+followed (optinally) by
+
+```
+gifsicle -O3 output_trimmed_enhanced.gif -o output_gifsicle.gif
+```
+
+If you are satisfied with the result, rename it to `extension-demo.gif`.
