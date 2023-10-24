@@ -21,6 +21,6 @@
     "scripts": {
         "test": "echo \"No tests \"",
         "build": "vite build",
-        "build:schema": "vite-node ./scripts/generate-schema.ts"
+        "build:schema": "vite-node ./scripts/generate-schema.ts && vite-node ./scripts/generate-entity-map.ts"
     }
 }

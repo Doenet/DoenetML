@@ -1,4 +1,10 @@
-export const ENTITY_MAP: Record<string, string> = Object.fromEntries(
+import * as fs from "node:fs/promises";
+import * as path from "node:path";
+import * as compressJson from "compress-json";
+
+const __dirname = path.dirname(new URL(import.meta.url).pathname);
+
+const ENTITY_MAP: Record<string, string> = Object.fromEntries(
     Object.entries({
         "&AElig": { codepoints: [198], characters: "\u00C6" },
         "&AElig;": { codepoints: [198], characters: "\u00C6" },
@@ -2324,5 +2330,16 @@ export const ENTITY_MAP: Record<string, string> = Object.fromEntries(
         "&zscr;": { codepoints: [120015], characters: "\uD835\uDCCF" },
         "&zwj;": { codepoints: [8205], characters: "\u200D" },
         "&zwnj;": { codepoints: [8204], characters: "\u200C" },
-    }).map(([k, v]) => [k, v.characters])
+    }).map(([k, v]) => [k, v.characters]),
 );
+
+const smallerEntittyMap = Object.fromEntries(
+    Object.entries(ENTITY_MAP).map(([k, v]) => [k.slice(1, k.length - 1), v]),
+);
+
+const file = path.join(__dirname, "..", "src", "generated", "entity-map.json");
+const out = JSON.stringify(smallerEntittyMap, null, 4);
+
+console.log("Writing", out.length / 1024, "KB to", file);
+
+fs.writeFile(path.join(__dirname, "entity-map.json"), out, "utf-8");

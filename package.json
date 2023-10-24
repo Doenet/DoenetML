@@ -32,9 +32,13 @@
     "devDependencies": {
         "@qualified/lsp-connection": "^0.3.0",
         "@qualified/vscode-jsonrpc-ww": "^0.3.0",
+        "@rollup/pluginutils": "^5.0.5",
         "@vitest/web-worker": "^0.34.6",
+        "@vscode/test-web": "^0.0.47",
+        "compress-json": "^2.1.2",
         "jsdom": "^22.1.0",
         "prettier": "^3.0.2",
+        "rollup-plugin-visualizer": "^5.9.2",
         "typescript": "^5.2.2",
         "vite-node": "^0.34.4",
         "vitest": "^0.34.3"
@@ -42,7 +46,5 @@
     "prettier": {
         "tabWidth": 4
     },
-    "dependencies": {
-        "@vscode/test-web": "^0.0.47"
-    }
+    "dependencies": {}
 }
