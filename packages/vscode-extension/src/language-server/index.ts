@@ -15,11 +15,15 @@ import {
     InitializeResult,
     BrowserMessageWriter,
     BrowserMessageReader,
+    FoldingRange,
+    FoldingRangeKind,
+    DocumentSymbol,
+    SymbolKind,
 } from "vscode-languageserver/browser";
 
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { AutoCompleter } from "@doenet/lsp-tools";
-import { extractDastErrors, prettyPrint } from "@doenet/parser";
+import { extractDastErrors, prettyPrint, toXml, visit } from "@doenet/parser";
 
 /* browser specific setup code */
 
@@ -91,12 +95,14 @@ connection.onInitialized(() => {
 });
 
 // The example settings
-interface DoenetDocumentSettings {}
+interface DoenetDocumentSettings {
+    formatMode: "doenet" | "xml";
+}
 
 // The global settings, used when the `workspace/configuration` request is not supported by the client.
 // Please note that this is not the case when using this server with the client provided in this example
 // but could happen with other clients.
-const defaultSettings: DoenetDocumentSettings = {};
+const defaultSettings: DoenetDocumentSettings = { formatMode: "doenet" };
 let globalSettings: DoenetDocumentSettings = defaultSettings;
 
 // Cache the settings of all open documents
@@ -112,7 +118,7 @@ connection.onDidChangeConfiguration((change) => {
         documentSettings.clear();
     } else {
         globalSettings = <DoenetDocumentSettings>(
-            (change.settings.doenetLanguageServer || defaultSettings)
+            (change.settings.doenet || defaultSettings)
         );
     }
 
@@ -131,7 +137,7 @@ async function getDocumentSettings(
     if (!result) {
         result = connection.workspace.getConfiguration({
             scopeUri: resource,
-            section: "doenetLanguageServer",
+            section: "doenet",
         });
         documentSettings.set(resource, result);
     }
@@ -221,6 +227,7 @@ connection.onCompletionResolve((item: CompletionItem): CompletionItem => {
 });
 
 connection.onDocumentFormatting(async (params) => {
+    const settings = await getDocumentSettings(params.textDocument.uri);
     const info = documentInfo.get(params.textDocument.uri);
     if (!info) {
         return [];
@@ -230,6 +237,7 @@ connection.onDocumentFormatting(async (params) => {
     const printed = await prettyPrint(sourceObj.source, {
         tabWidth: params.options.tabSize,
         useTabs: !params.options.insertSpaces,
+        doenetSyntax: settings.formatMode === "xml" ? false : true,
     });
     return [
         {
@@ -243,7 +251,47 @@ connection.onDocumentFormatting(async (params) => {
 });
 
 connection.onFoldingRanges((params) => {
-    return [];
+    const info = documentInfo.get(params.textDocument.uri);
+    if (!info) {
+        return [];
+    }
+
+    const ret: FoldingRange[] = [];
+    visit(info.autoCompleter.sourceObj.dast, (node) => {
+        switch (node.type) {
+            case "comment": {
+                ret.push({
+                    startLine: node.position.start.line - 1,
+                    endLine: node.position.end.line - 1,
+                    startCharacter: node.position.start.column - 1,
+                    endCharacter: node.position.end.column - 1,
+                    kind: FoldingRangeKind.Comment,
+                });
+                break;
+            }
+            case "element": {
+                // Every element that spans multiple lines and has children is a folding range
+                if (node.children.length === 0) {
+                    return;
+                }
+                const start = node.position.start.line;
+                const end = node.position.end.line;
+                if (start === end) {
+                    return;
+                }
+                ret.push({
+                    startLine: start - 1,
+                    endLine: end - 1,
+                    startCharacter: node.position.start.column - 1,
+                    endCharacter: node.position.end.column - 1,
+                    kind: FoldingRangeKind.Region,
+                });
+                break;
+            }
+        }
+    });
+
+    return ret;
 });
 
 connection.onHover((params) => {
@@ -251,7 +299,51 @@ connection.onHover((params) => {
 });
 
 connection.onDocumentSymbol((params) => {
-    return [];
+    const info = documentInfo.get(params.textDocument.uri);
+    if (!info) {
+        return [];
+    }
+    const ret: DocumentSymbol[] = [];
+    const sourceObj = info.autoCompleter.sourceObj;
+    visit(sourceObj.dast, (node) => {
+        switch (node.type) {
+            case "element": {
+                const elmName = node.name;
+                const attrs = node.attributes;
+                for (const attr of attrs) {
+                    if (attr.name === "name") {
+                        // A name attribute defines a new symbol.
+                        const name = toXml(attr.children);
+                        if (!name) {
+                            // If we encounter an empty name, the user may be actively typing.
+                            // Gracefully ignore this.
+                            continue;
+                        }
+                        const range = sourceObj.getNodeRange(
+                            attr.children,
+                            "lsp",
+                        );
+                        ret.push({
+                            name,
+                            kind:
+                                elmName === "function"
+                                    ? SymbolKind.Function
+                                    : SymbolKind.Variable,
+                            range,
+                            selectionRange: range,
+                            detail:
+                                elmName === "function"
+                                    ? "(Function)"
+                                    : "(Variable)",
+                        });
+                    }
+                }
+                break;
+            }
+        }
+    });
+
+    return ret;
 });
 
 // Make the text document manager listen on the connection

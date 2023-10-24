@@ -4,6 +4,7 @@ import {
     DastNodes,
     DastRoot,
     LezerSyntaxNodeName,
+    Position,
     toXml,
 } from "@doenet/parser";
 import {
@@ -19,6 +20,10 @@ import {
 import { LazyDataObject } from "./lazy-data";
 import { elementAtOffset } from "./element-at-offset";
 import { DastMacro } from "@doenet/parser";
+import type {
+    Position as LSPPosition,
+    Range as LSPRange,
+} from "vscode-languageserver";
 
 /**
  * A row/column position. All values are 1-indexed. This is compatible with UnifiedJs's
@@ -88,7 +93,7 @@ export class DoenetSourceObject extends LazyDataObject {
     /**
      * Given a 0-index offset into the source string, return an LSP position.
      */
-    offsetToLSPPosition(offset: number): { line: number; character: number } {
+    offsetToLSPPosition(offset: number): LSPPosition {
         const offsetToRowCache = this._offsetToRowCache();
         return {
             line: offsetToRowCache.rowMap[offset],
@@ -374,6 +379,38 @@ export class DoenetSourceObject extends LazyDataObject {
             node: referent,
             accessedProp: null,
         };
+    }
+
+    /**
+     * Return the smallest range that contains all of the nodes in `nodes`.
+     */
+    getNodeRange<Style extends "default" | "lsp">(
+        nodes: DastNodes | DastNodes[],
+        style?: Style,
+    ): Style extends "lsp" ? LSPRange : Position {
+        if (!Array.isArray(nodes)) {
+            nodes = [nodes];
+        }
+        const start = Math.min(
+            0,
+            ...nodes.map((n) => n.position?.start?.offset || 0),
+        );
+        const end = Math.max(
+            0,
+            ...nodes.map((n) => n.position?.end?.offset || 0),
+        );
+
+        if (style === "lsp") {
+            return {
+                start: this.offsetToLSPPosition(start),
+                end: this.offsetToLSPPosition(end),
+            } as any;
+        }
+
+        return {
+            start: this.offsetToRowCol(start),
+            end: this.offsetToRowCol(end),
+        } as any;
     }
 
     /**
