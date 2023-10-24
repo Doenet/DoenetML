@@ -34,11 +34,8 @@
         "run-in-browser": "vscode-test-web --browserType=firefox --extensionDevelopmentPath=./extension ."
     },
     "devDependencies": {
-        "@types/node": "^20.8.7",
         "@types/vscode": "^1.76.0",
         "@types/vscode-webview": "^1.57.3",
-        "@typescript-eslint/eslint-plugin": "^6.8.0",
-        "@typescript-eslint/parser": "^6.8.0",
         "@vitejs/plugin-react": "^4.1.0",
         "@vscode/webview-ui-toolkit": "^1.2.2",
         "react": "^18.2.0",
@@ -46,6 +43,6 @@
         "vite": "^4.5.0",
         "vscode-languageclient": "^9.0.1",
         "vscode-languageserver-textdocument": "^1.0.11",
-        "vscode-test": "^1.6.1"
+        "@vscode/test-electron": "^2.3.5"
     }
 }
