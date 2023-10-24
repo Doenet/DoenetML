@@ -391,10 +391,13 @@ export class DoenetSourceObject extends LazyDataObject {
         if (!Array.isArray(nodes)) {
             nodes = [nodes];
         }
-        const start = Math.min(
-            0,
+        let start = Math.min(
+            Infinity,
             ...nodes.map((n) => n.position?.start?.offset || 0),
         );
+        if (start === Infinity) {
+            start = 0;
+        }
         const end = Math.max(
             0,
             ...nodes.map((n) => n.position?.end?.offset || 0),

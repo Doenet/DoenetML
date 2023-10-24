@@ -2,6 +2,7 @@
 
 -   Add actions to format as XML or DoenetML
 -   Add configuration option for the default format style
+-   Add support for document symbols
 
 ## v0.7.2
 

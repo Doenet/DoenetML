@@ -3,8 +3,9 @@ import {
     DocumentSymbol,
     SymbolKind,
 } from "vscode-languageserver/browser";
-import { toXml, visit } from "@doenet/parser";
+import { DastNodes, toXml, visit } from "@doenet/parser";
 import { DocumentInfo } from "../globals";
+import { DoenetSourceObject } from "../../../../lsp-tools/dist";
 
 export function addDocumentSymbolsSupport(
     connection: Connection,
@@ -17,44 +18,80 @@ export function addDocumentSymbolsSupport(
         }
         const ret: DocumentSymbol[] = [];
         const sourceObj = info.autoCompleter.sourceObj;
-        visit(sourceObj.dast, (node) => {
-            switch (node.type) {
-                case "element": {
-                    const elmName = node.name;
-                    const attrs = node.attributes;
-                    for (const attr of attrs) {
-                        if (attr.name === "name") {
-                            // A name attribute defines a new symbol.
-                            const name = toXml(attr.children);
-                            if (!name) {
-                                // If we encounter an empty name, the user may be actively typing.
-                                // Gracefully ignore this.
-                                continue;
-                            }
-                            const range = sourceObj.getNodeRange(
-                                attr.children,
-                                "lsp",
-                            );
-                            ret.push({
-                                name,
-                                kind:
-                                    elmName === "function"
-                                        ? SymbolKind.Function
-                                        : SymbolKind.Variable,
-                                range,
-                                selectionRange: range,
-                                detail:
-                                    elmName === "function"
-                                        ? "(Function)"
-                                        : "(Variable)",
-                            });
-                        }
-                    }
-                    break;
-                }
-            }
-        });
+        ret.push(...getChildrenSymbols(sourceObj.dast, sourceObj));
 
         return ret;
     });
+}
+
+/**
+ * Get a document symbol for the given node.
+ */
+function nodeToSymbol(
+    node: DastNodes,
+    sourceObj: DoenetSourceObject,
+): DocumentSymbol | undefined {
+    switch (node.type) {
+        case "element": {
+            const attrs = node.attributes;
+            const elmName = node.name;
+            for (const attr of attrs) {
+                if (attr.name === "name") {
+                    // A name attribute defines a new symbol.
+                    const name = toXml(attr.children);
+                    if (!name) {
+                        // If we encounter an empty name, the user may be actively typing.
+                        // Gracefully ignore this.
+                        continue;
+                    }
+                    const range = sourceObj.getNodeRange(attr.children, "lsp");
+                    if (elmName === "function") {
+                        return {
+                            name,
+                            kind: SymbolKind.Function,
+                            range,
+                            selectionRange: range,
+                            detail: `${name}(...)`,
+                        };
+                    } else {
+                        return {
+                            name,
+                            kind: SymbolKind.Namespace,
+                            range,
+                            selectionRange: range,
+                            detail: `<${elmName}>`,
+                        };
+                    }
+                }
+            }
+            break;
+        }
+    }
+}
+
+/**
+ * Recursively get all symbols for the given node's children.
+ */
+function getChildrenSymbols(
+    node: DastNodes,
+    sourceObj: DoenetSourceObject,
+): DocumentSymbol[] {
+    const ret: DocumentSymbol[] = [];
+    if (node.type !== "element" && node.type !== "root") {
+        return ret;
+    }
+
+    for (const child of node.children) {
+        const symbol = nodeToSymbol(child, sourceObj);
+        const childSymbols = getChildrenSymbols(child, sourceObj);
+        if (symbol) {
+            ret.push(symbol);
+            if (childSymbols.length > 0) {
+                symbol.children = childSymbols;
+            }
+        } else {
+            ret.push(...childSymbols);
+        }
+    }
+    return ret;
 }
