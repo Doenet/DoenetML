@@ -207,10 +207,10 @@ export default class Curve extends GraphicalComponent {
         return childGroups;
     }
 
-    static returnStateVariableDefinitions({ numerics }) {
-        let stateVariableDefinitions = super.returnStateVariableDefinitions({
+    static returnStateVariableDefinitions(numerics) {
+        let stateVariableDefinitions = super.returnStateVariableDefinitions(
             numerics,
-        });
+        );
 
         Object.assign(
             stateVariableDefinitions,

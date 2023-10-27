@@ -872,18 +872,12 @@ export default class BaseComponent {
         return stateVariableDefinitions;
     }
 
-    static returnNormalizedStateVariableDefinitions({
-        attributeNames,
-        numerics,
-    }) {
+    static returnNormalizedStateVariableDefinitions(numerics) {
         // return state variable definitions
         // where have added additionalStateVariablesDefined
 
         //  add state variable definitions from component class
-        let newDefinitions = this.returnStateVariableDefinitions({
-            attributeNames,
-            numerics,
-        });
+        let newDefinitions = this.returnStateVariableDefinitions(numerics);
 
         if (!newDefinitions) {
             throw Error(
@@ -1024,9 +1018,7 @@ export default class BaseComponent {
             }
         }
 
-        let stateDef = this.returnNormalizedStateVariableDefinitions({
-            attributeNames: Object.keys(stateVariableDescriptions),
-        });
+        let stateDef = this.returnNormalizedStateVariableDefinitions();
 
         for (let varName in stateDef) {
             let theStateDef = stateDef[varName];

@@ -184,7 +184,7 @@ export default class Function extends InlineComponent {
         ];
     }
 
-    static returnStateVariableDefinitions({ numerics }) {
+    static returnStateVariableDefinitions(numerics) {
         let stateVariableDefinitions =
             GraphicalComponent.returnStateVariableDefinitions();
 

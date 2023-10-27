@@ -3645,10 +3645,9 @@ export default class Core {
 
         //  add state variable definitions from component class
         let newDefinitions =
-            componentClass.returnNormalizedStateVariableDefinitions({
-                attributeNames: Object.keys(stateVariableDefinitions),
-                numerics: this.numerics,
-            });
+            componentClass.returnNormalizedStateVariableDefinitions(
+                this.numerics,
+            );
 
         Object.assign(stateVariableDefinitions, newDefinitions);
 
@@ -12819,8 +12818,6 @@ export default class Core {
             return;
         }
 
-        console.log("result from saving to database:", resp.data);
-
         if (resp.status === null) {
             postMessage({
                 messageType: "sendToast",
@@ -12921,8 +12918,6 @@ export default class Core {
             credit: pageCreditAchieved,
             itemNumber: this.itemNumber,
         };
-
-        console.log("payload for save credit for item", payload);
 
         axios
             .post(this.apiURLs.saveCreditForItem, payload)

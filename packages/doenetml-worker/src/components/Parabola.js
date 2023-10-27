@@ -33,9 +33,9 @@ export default class Parabola extends Curve {
         return GraphicalComponent.returnChildGroups();
     }
 
-    static returnStateVariableDefinitions(args) {
+    static returnStateVariableDefinitions(numerics) {
         let stateVariableDefinitions =
-            GraphicalComponent.returnStateVariableDefinitions(args);
+            GraphicalComponent.returnStateVariableDefinitions(numerics);
 
         Object.assign(
             stateVariableDefinitions,
@@ -43,7 +43,7 @@ export default class Parabola extends Curve {
         );
 
         let curveStateVariableDefinitions =
-            super.returnStateVariableDefinitions(args);
+            super.returnStateVariableDefinitions(numerics);
 
         // also defines graphXmax, graphYmin, and graphYmax
         stateVariableDefinitions.graphXmin =

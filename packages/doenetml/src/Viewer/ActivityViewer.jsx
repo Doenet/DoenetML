@@ -717,10 +717,6 @@ export function ActivityViewer({
         let resp;
 
         try {
-            console.log(
-                "first one saveActivityState activityStateToBeSavedToDatabase",
-                activityStateToBeSavedToDatabase,
-            );
             resp = await axios.post(
                 apiURLs.saveActivityState,
                 activityStateToBeSavedToDatabase,
@@ -871,18 +867,11 @@ export function ActivityViewer({
         let resp;
 
         try {
-            console.log(
-                "activity state params",
-                activityStateToBeSavedToDatabase.current,
-            );
             resp = await axios.post(
                 apiURLs.saveActivityState,
                 activityStateToBeSavedToDatabase.current,
             );
         } catch (e) {
-            console.log(
-                `sending sendAlert: Error synchronizing data.  Changes not saved to the server.`,
-            );
             sendAlert(
                 "Error synchronizing data.  Changes not saved to the server.",
                 "error",
@@ -890,12 +879,7 @@ export function ActivityViewer({
             return;
         }
 
-        console.log("result from saving activity to database:", resp.data);
-
         if (resp.status === null) {
-            console.log(
-                `sending sendAlert: Error synchronizing data.  Changes not saved to the server.  Are you connected to the internet?`,
-            );
             sendAlert(
                 "Error synchronizing data.  Changes not saved to the server.  Are you connected to the internet?",
                 "error",
@@ -906,7 +890,6 @@ export function ActivityViewer({
         let data = resp.data;
 
         if (!data.success) {
-            console.log(`sending sendAlert: ${data.message}`);
             sendAlert(data.message, "error");
             return;
         }

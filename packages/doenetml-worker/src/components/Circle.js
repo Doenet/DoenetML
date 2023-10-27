@@ -57,9 +57,9 @@ export default class Circle extends Curve {
         return GraphicalComponent.returnChildGroups();
     }
 
-    static returnStateVariableDefinitions(args) {
+    static returnStateVariableDefinitions(numerics) {
         let stateVariableDefinitions =
-            GraphicalComponent.returnStateVariableDefinitions(args);
+            GraphicalComponent.returnStateVariableDefinitions(numerics);
 
         Object.assign(
             stateVariableDefinitions,

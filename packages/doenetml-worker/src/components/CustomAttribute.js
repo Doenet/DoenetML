@@ -39,7 +39,6 @@ export default class CustomAttribute extends CompositeComponent {
                 },
             }),
             definition({ dependencyValues, componentName }) {
-                console.log(dependencyValues, componentName);
                 let componentNameForAttributes =
                     dependencyValues.parentVariableContainingName;
                 return { setValue: { componentNameForAttributes } };

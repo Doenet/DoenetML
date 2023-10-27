@@ -95,10 +95,10 @@ export default class SolveEquations extends InlineComponent {
         ];
     }
 
-    static returnStateVariableDefinitions({ numerics }) {
-        let stateVariableDefinitions = super.returnStateVariableDefinitions({
+    static returnStateVariableDefinitions(numerics) {
+        let stateVariableDefinitions = super.returnStateVariableDefinitions(
             numerics,
-        });
+        );
 
         stateVariableDefinitions.variables = {
             isArray: true,

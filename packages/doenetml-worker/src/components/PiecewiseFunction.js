@@ -50,10 +50,10 @@ export default class PiecewiseFunction extends Function {
         ];
     }
 
-    static returnStateVariableDefinitions({ numerics }) {
-        let stateVariableDefinitions = super.returnStateVariableDefinitions({
+    static returnStateVariableDefinitions(numerics) {
+        let stateVariableDefinitions = super.returnStateVariableDefinitions(
             numerics,
-        });
+        );
 
         delete stateVariableDefinitions.isInterpolatedFunction;
 
