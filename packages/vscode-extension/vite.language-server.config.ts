@@ -1,15 +1,16 @@
-import { defineConfig } from "vite";
+import { PluginOption, defineConfig } from "vite";
+import { visualizer } from "rollup-plugin-visualizer";
 import * as path from "node:path";
 import dts from "vite-plugin-dts";
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
 
 // https://vitejs.dev/config/
 export default defineConfig({
-    plugins: [dts({ rollupTypes: true })],
+    plugins: [dts({ rollupTypes: true }), visualizer() as PluginOption],
     base: "./",
     build: {
         outDir: path.join(__dirname, "extension", "build", "language-server"),
-        minify: false,
+        minify: true,
         sourcemap: true,
         lib: {
             entry: "./src/language-server/index.ts",

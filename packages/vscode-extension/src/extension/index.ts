@@ -12,12 +12,29 @@ import * as vscode from "vscode";
 import {
     LanguageClient,
     LanguageClientOptions,
+    TextEdit,
 } from "vscode-languageclient/browser";
 import { DoenetPreviewPanel } from "./preview-panel/doenet-preview-panel";
+import { lspRangeToVscodeRange } from "./utils/lsp-range-to-vscode-range";
 
 let client: LanguageClient;
 
 export function activate(context: ExtensionContext) {
+    setupLanguageServer(context);
+    setupPreviewWindow(context);
+}
+
+export function deactivate(): Thenable<void> | undefined {
+    if (!client) {
+        return undefined;
+    }
+    return client.stop();
+}
+
+/**
+ * Setup the language server.
+ */
+async function setupLanguageServer(context: ExtensionContext) {
     // Options to control the language client
     const clientOptions: LanguageClientOptions = {
         // Register the server for plain text documents
@@ -46,14 +63,52 @@ export function activate(context: ExtensionContext) {
     // Start the client. This will also launch the server
     client.start();
 
-    setupPreviewWindow(context);
-}
+    const formatAsDoenet = commands.registerCommand(
+        "doenet.formatAsDoenetML",
+        async () => {
+            const activeTextEditor = vscode.window.activeTextEditor;
+            if (!activeTextEditor) {
+                return;
+            }
+            const currentDocument = vscode.window.activeTextEditor?.document;
+            const edits: TextEdit[] = await client.sendRequest(
+                "doenet.formatAsDoenetML",
+                String(currentDocument.uri),
+            );
+            activeTextEditor.edit((editBuilder) => {
+                for (const edit of edits) {
+                    editBuilder.replace(
+                        lspRangeToVscodeRange(edit.range),
+                        edit.newText,
+                    );
+                }
+            });
+        },
+    );
+    const formatAsXML = commands.registerCommand(
+        "doenet.formatAsXML",
+        async () => {
+            const activeTextEditor = vscode.window.activeTextEditor;
+            if (!activeTextEditor) {
+                return;
+            }
+            const currentDocument = vscode.window.activeTextEditor?.document;
+            const edits: TextEdit[] = await client.sendRequest(
+                "doenet.formatAsXML",
+                String(currentDocument.uri),
+            );
+            activeTextEditor.edit((editBuilder) => {
+                for (const edit of edits) {
+                    editBuilder.replace(
+                        lspRangeToVscodeRange(edit.range),
+                        edit.newText,
+                    );
+                }
+            });
+        },
+    );
 
-export function deactivate(): Thenable<void> | undefined {
-    if (!client) {
-        return undefined;
-    }
-    return client.stop();
+    context.subscriptions.push(formatAsDoenet, formatAsXML);
 }
 
 /**

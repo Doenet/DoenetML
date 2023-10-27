@@ -5,12 +5,14 @@ import { VSCodeButton } from "@vscode/webview-ui-toolkit/react";
 import { DoenetML } from "@doenet/doenetml/doenetml-inline-worker.js";
 import "./App.css";
 import "@doenet/doenetml/style.css";
+import { onClassChange, setColorStyle } from "./utilities/dark-mode-monitor";
 
 function App() {
     const [source, setSource] = React.useState(
         "Sample Source\n<graph><line /></graph>",
     );
     const [dirty, setDirty] = React.useState(false);
+    const [darkMode, setDarkMode] = React.useState(false);
 
     React.useEffect(() => {
         const callback = (event: MessageEvent) => {
@@ -26,11 +28,31 @@ function App() {
             }
         };
 
+        const bodyElm = document.querySelector("body");
+        if (!bodyElm) {
+            throw new Error("body element not found");
+        }
+        if (bodyElm.classList.contains("vscode-dark")) {
+            setDarkMode(true);
+        }
+        const observer = onClassChange(bodyElm, () => {
+            if (bodyElm.classList.contains("vscode-dark")) {
+                setDarkMode(true);
+            } else {
+                setDarkMode(false);
+            }
+        });
+
         window.addEventListener("message", callback);
         return () => {
             window.removeEventListener("message", callback);
+            observer.disconnect();
         };
     });
+
+    React.useEffect(() => {
+        setColorStyle(darkMode ? "dark" : "light");
+    }, [darkMode]);
 
     function refreshClick() {
         vscode.postMessage({
@@ -51,7 +73,7 @@ function App() {
                 </VSCodeButton>
             </div>
             <div className="doenet-preview">
-                <DoenetML doenetML={source} />
+                <DoenetML doenetML={source} darkMode={darkMode} />
             </div>
         </div>
     );
