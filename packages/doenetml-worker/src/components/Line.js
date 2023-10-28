@@ -590,7 +590,7 @@ export default class Line extends GraphicalComponent {
                                 "point",
                                 {
                                     componentType: "mathList",
-                                    isAttribute: "xs",
+                                    isAttributeNamed: "xs",
                                 },
                             ],
                         ];

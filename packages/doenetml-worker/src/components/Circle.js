@@ -436,7 +436,7 @@ export default class Circle extends Curve {
                                 "point",
                                 {
                                     componentType: "mathList",
-                                    isAttribute: "xs",
+                                    isAttributeNamed: "xs",
                                 },
                             ],
                         ];
@@ -2434,7 +2434,7 @@ export default class Circle extends Curve {
                                 "point",
                                 {
                                     componentType: "mathList",
-                                    isAttribute: "xs",
+                                    isAttributeNamed: "xs",
                                 },
                             ],
                         ];

@@ -3685,7 +3685,7 @@ export default class Core {
             let varName = attributeSpecification.createStateVariable;
 
             let stateVarDef = (stateVariableDefinitions[varName] = {
-                isAttribute: true,
+                isAttribute: true, // Note: isAttribute is not accessed anywhere
                 hasEssential: true,
             });
 
@@ -3954,7 +3954,7 @@ export default class Core {
             let varName = attributeSpecification.createStateVariable;
 
             let stateVarDef = (stateVariableDefinitions[varName] = {
-                isAttribute: true,
+                isAttribute: true, // Note: isAttribute is not accessed anywhere
                 hasEssential: true,
             });
 
@@ -4182,7 +4182,7 @@ export default class Core {
             }
 
             let stateVarDef = (stateVariableDefinitions[varName] = {
-                isAttribute: true,
+                isAttribute: true, // Note: isAttribute is not accessed anywhere
                 hasEssential: true,
             });
 
@@ -5258,6 +5258,7 @@ export default class Core {
         if (arrayStateVarObj.shadowingInstructions) {
             stateVarObj.shadowingInstructions = {};
 
+            // See description of returnWrappingComponents in initializeArrayStateVariable, below.
             stateVarObj.wrappingComponents =
                 arrayStateVarObj.shadowingInstructions.returnWrappingComponents(
                     arrayEntryPrefix,
@@ -5708,6 +5709,17 @@ export default class Core {
                 };
             }
 
+            // arrayVarNameFromPropIndex is a function that calculates the name
+            // an array entry state variable that corresponds to the specified propIndex.
+            // It is a consequence of retrofitting the ability to index an array (e.g., $a.b[1])
+            // onto a system that was designed with just array entry variables (e..g, $a.b1).
+            // arrayVarNameFromPropIndex can be specified in the definition of the array state variable.
+            // Since numDimensions > 1 here, the default arrayVarNameFromPropIndex
+            // is to turn $a.b[1][2][3] to $a.p1_2_3,
+            // where "p" is the first entry prefix of the array "b".
+
+            // TODO: if we redesign arrays to be based on indices (or even slices),
+            // then arrayVarNameFromPropIndex will be obsolete.
             if (!stateVarObj.arrayVarNameFromPropIndex) {
                 stateVarObj.arrayVarNameFromPropIndex = function (
                     propIndex,
@@ -5806,6 +5818,17 @@ export default class Core {
                 };
             }
 
+            // arrayVarNameFromPropIndex is a function that calculates the name
+            // an array entry state variable that corresponds to the specified propIndex.
+            // It is a consequence of retrofitting the ability to index an array (e.g., $a.b[1])
+            // onto a system that was designed with just array entry variables (e..g, $a.b1).
+            // arrayVarNameFromPropIndex can be specified in the definition of the array state variable.
+            // Since numDimensions = 1 here, the default arrayVarNameFromPropIndex
+            // is to turn $a.b[1] to $a.p1,
+            // where "p" is the first entry prefix of the array "b".
+
+            // TODO: if we redesign arrays to be based on indices (or even slices),
+            // then arrayVarNameFromPropIndex will be obsolete.
             if (!stateVarObj.arrayVarNameFromPropIndex) {
                 stateVarObj.arrayVarNameFromPropIndex = function (
                     propIndex,
@@ -5849,7 +5872,37 @@ export default class Core {
         }
 
         if (stateVarObj.shadowingInstructions) {
-            // function that returns wrapping components for whole array or entries (if given prefix)
+            // returnWrappingComponents is a function that returns the wrapping components for
+            // - the whole array (if called with no arguments), or
+            // - an array entry (if called with an array entry prefix as the argument)
+            // It returns wrappingComponents, which is an array of arrays.
+            // Each inner array corresponds to a dimension of the array,
+            // starting with the inner dimension,
+            // so that wrappingComponents[numDimensions-1], if it exists,
+            // corresponds to the wrapping of the entire array (or array entry),
+            // leading to the return of a single component.
+            // Each element of the inner array indicates a wrapping of the corresponding dimension,
+            // and they are applied in reverse order.
+            // Each element can be either:
+            // - a string corresponding to the component type used to wrap
+            // - an object with fields:
+            //   - componentType: a string corresponding to the component type used to wrap
+            //   - isAttributeNamed: a string giving the name of the attribute that this
+            //     wrapping component should be for the wrapping component immediately preceding
+            //     (no effect if isAttributeNamed appears in the first wrapping component)
+            // Unless the subsequent wrapping component has been designated isAttributeNamed,
+            // each wrapping component takes as children either
+            // - the subsequent wrapping component if it exists,
+            // - else the original array components.
+            //
+            // TODO: wrapping components (like most array features) was designed before
+            // we had array indexing such as $a.b[1].
+            // Hence it is based on array entries such as $a.b1, where b is the "prefix".
+            // $a.b[1] has to be converted to something like $a.b1
+            // before calculating wrapping components.
+            // We should rework wrapping components (and other array features)
+            // to make array indexing (maybe even including slices) be the basis.
+
             if (!stateVarObj.shadowingInstructions.returnWrappingComponents) {
                 stateVarObj.shadowingInstructions.returnWrappingComponents = (
                     prefix,
@@ -6575,6 +6628,13 @@ export default class Core {
         });
     }
 
+    // arrayEntryNamesFromPropIndex is essentially a wrapper around
+    // stateVarObj.arrayVarNameFromPropIndex.
+    // (See above description of arrayVarNameFromPropIndex for technical debt commentary.)
+    // It calls arrayVarNameFromPropIndex on each of an array of stateVariables,
+    // first creating any missing array entry state variables,
+    // logs warnings,
+    // and returns an array of the resulting state variables.
     async arrayEntryNamesFromPropIndex({
         stateVariables,
         component,

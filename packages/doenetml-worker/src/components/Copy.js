@@ -2763,6 +2763,7 @@ export async function replacementFromProp({
             }
         }
 
+        // See description of returnWrappingComponents in Core.js.
         let wrappingComponents = stateVarObj.wrappingComponents;
         let numWrappingComponents = wrappingComponents.length;
 
@@ -3161,7 +3162,8 @@ export async function replacementFromProp({
                 }
             }
         } else {
-            // have wrapping components
+            // Have wrapping components.
+            // See description of returnWrappingComponents in Core.js.
 
             let createReplacementPiece = async function (
                 subArrayKeys,
@@ -3495,9 +3497,9 @@ export async function replacementFromProp({
                         let attributes = {};
 
                         for (let p of pieces) {
-                            if (p.isAttribute) {
-                                let attr = p.isAttribute;
-                                delete p.isAttribute;
+                            if (p.isAttributeNamed) {
+                                let attr = p.isAttributeNamed;
+                                delete p.isAttributeNamed;
                                 attributes[attr] = { component: p };
                             } else {
                                 children.push(p);
@@ -3514,14 +3516,9 @@ export async function replacementFromProp({
                             },
                         ];
                         if (typeof wrapCs[ind] === "object") {
-                            if (wrapCs[ind].doenetAttributes) {
-                                pieces[0].doenetAttributes = Object.assign(
-                                    {},
-                                    wrapCs[ind].doenetAttributes,
-                                );
-                            }
-                            if (wrapCs[ind].isAttribute) {
-                                pieces[0].isAttribute = wrapCs[ind].isAttribute;
+                            if (wrapCs[ind].isAttributeNamed) {
+                                pieces[0].isAttributeNamed =
+                                    wrapCs[ind].isAttributeNamed;
                             }
                         }
                     }

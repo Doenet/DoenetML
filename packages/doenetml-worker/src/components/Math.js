@@ -1135,7 +1135,7 @@ export default class MathComponent extends InlineComponent {
                                 "vector",
                                 {
                                     componentType: "mathList",
-                                    isAttribute: "xs",
+                                    isAttributeNamed: "xs",
                                 },
                             ],
                         ];

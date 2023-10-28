@@ -223,7 +223,7 @@ export default class LineSegment extends GraphicalComponent {
                                 "point",
                                 {
                                     componentType: "mathList",
-                                    isAttribute: "xs",
+                                    isAttributeNamed: "xs",
                                 },
                             ],
                         ];

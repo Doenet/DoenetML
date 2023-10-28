@@ -98,7 +98,7 @@ export default class CobwebPolyline extends Polyline {
                                 "point",
                                 {
                                     componentType: "mathList",
-                                    isAttribute: "xs",
+                                    isAttributeNamed: "xs",
                                 },
                             ],
                         ];
@@ -932,7 +932,7 @@ export default class CobwebPolyline extends Polyline {
         //     } else {
         //       // entire array
         //       // wrap by both <point> and <xs>
-        //       return [["point", { componentType: "mathList", isAttribute: "xs" }]];
+        //       return [["point", { componentType: "mathList", isAttributeNamed: "xs" }]];
         //     }
         //   },
         //   returnArraySizeDependencies: () => ({}),

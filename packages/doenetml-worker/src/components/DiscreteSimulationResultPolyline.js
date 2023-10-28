@@ -182,7 +182,7 @@ export default class DiscreteSimulationResultPolyline extends GraphicalComponent
                                 "point",
                                 {
                                     componentType: "mathList",
-                                    isAttribute: "xs",
+                                    isAttributeNamed: "xs",
                                 },
                             ],
                         ];

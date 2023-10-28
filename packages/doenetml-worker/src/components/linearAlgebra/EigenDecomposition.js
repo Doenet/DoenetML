@@ -184,7 +184,7 @@ export default class EigenDecomposition extends BaseComponent {
                                 "vector",
                                 {
                                     componentType: "mathList",
-                                    isAttribute: "xs",
+                                    isAttributeNamed: "xs",
                                 },
                             ],
                         ];
