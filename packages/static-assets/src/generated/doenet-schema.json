@@ -39973,6 +39973,11 @@
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false
+                },
+                {
+                    "name": "disabledDirectly",
+                    "type": "boolean",
+                    "isArray": false
                 }
             ],
             "top": true,
@@ -50882,13 +50887,6 @@
                 },
                 {
                     "name": "displayDigitsForCreditAchieved"
-                },
-                {
-                    "name": "suppressToast",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
                 }
             ],
             "properties": [
