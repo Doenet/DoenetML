@@ -12800,19 +12800,27 @@ export default class Core {
             this.saveChangesToDatabase();
         }, 60000);
 
-        // TODO: find out how to test if not online
-        // and send this alert if not online:
+        let pause100 = function () {
+            return new Promise((resolve, reject) => {
+                setTimeout(resolve, 100);
+            });
+        };
 
-        // postMessage({
-        //   messageType: "sendAlert",
-        //   coreId: this.coreId,
-        //   args: {
-        //     message: "You're not connected to the internet. Changes are not saved. ",
-        //     alertType: "error"
-        //   }
-        // })
+        if (this.savingPageState) {
+            for (let i = 0; i < 100; i++) {
+                await pause100();
+
+                if (!this.savingPageState) {
+                    break;
+                }
+            }
+        }
+
+        this.pageStateToBeSavedToDatabase.serverSaveId = this.serverSaveId;
 
         let resp;
+
+        this.savingPageState = true;
 
         try {
             resp = await axios.post(
@@ -12824,26 +12832,26 @@ export default class Core {
                 messageType: "sendAlert",
                 coreId: this.coreId,
                 args: {
-                    message:
-                        "Error synchronizing data.  Changes not saved to the server.",
+                    message: `Error. Latest changes not saved. ${resp.data.message}`,
                     alertType: "error",
                     id: "dataError",
                 },
             });
 
             this.failedToSavePageState = true;
+            this.savingPageState = false;
 
             return;
         }
 
-        console.log("result from saving to database:", resp.data);
+        this.savingPageState = false;
 
         if (resp.status === null) {
             postMessage({
                 messageType: "sendAlert",
                 coreId: this.coreId,
                 args: {
-                    message: `Error synchronizing data.  Changes not saved to the server.  Are you connected to the internet?`,
+                    message: `Error. Latest changes not saved. Are you connected to the internet?`,
                     alertType: "error",
                     id: "dataError",
                 },
@@ -12861,7 +12869,7 @@ export default class Core {
                 messageType: "sendAlert",
                 coreId: this.coreId,
                 args: {
-                    message: data.message,
+                    message: `Error. Latest changes not saved. ${data.message}`,
                     alertType: "error",
                     id: "dataError",
                 },
@@ -12949,8 +12957,6 @@ export default class Core {
             itemNumber: this.itemNumber,
         };
 
-        // console.log("payload for save credit for item", payload);
-
         axios
             .post(this.apiURLs.saveCreditForItem, payload)
             .then((resp) => {
@@ -12961,7 +12967,7 @@ export default class Core {
                         messageType: "sendAlert",
                         coreId: this.coreId,
                         args: {
-                            message: `Credit not saved due to error.  Are you connected to the internet?`,
+                            message: `Credit not saved due to error. Are you connected to the internet?`,
                             alertType: "error",
                             id: "creditDataError",
                         },
@@ -12973,7 +12979,7 @@ export default class Core {
                         messageType: "sendAlert",
                         coreId: this.coreId,
                         args: {
-                            message: `Credit not saved due to error: ${resp.data.message}`,
+                            message: resp.data.message,
                             alertType: "error",
                             id: "creditDataError",
                         },
@@ -13000,70 +13006,6 @@ export default class Core {
                     });
 
                     this.failedToSaveCreditForItem = false;
-
-                    //TODO: need type warning (red but doesn't hang around)
-                    if (data.viewedSolution) {
-                        postMessage({
-                            messageType: "sendAlert",
-                            coreId: this.coreId,
-                            args: {
-                                message:
-                                    "No credit awarded since solution was viewed.",
-                                alertType: "info",
-                                id: "solutionViewed",
-                            },
-                        });
-                    }
-                    if (data.timeExpired) {
-                        postMessage({
-                            messageType: "sendAlert",
-                            coreId: this.coreId,
-                            args: {
-                                message:
-                                    "No credit awarded since the time allowed has expired.",
-                                alertType: "info",
-                                id: "timeExpired",
-                            },
-                        });
-                    }
-                    if (data.pastDueDate) {
-                        postMessage({
-                            messageType: "sendAlert",
-                            coreId: this.coreId,
-                            args: {
-                                message:
-                                    "No credit awarded since the due date has passed.",
-                                alertType: "info",
-                                id: "pastDue",
-                            },
-                        });
-                    }
-                    if (data.exceededAttemptsAllowed) {
-                        postMessage({
-                            messageType: "sendAlert",
-                            coreId: this.coreId,
-                            args: {
-                                message:
-                                    "No credit awarded since no more attempts are allowed.",
-                                alertType: "info",
-                                id: "noMoreAttempts",
-                            },
-                        });
-                    }
-                    if (data.databaseError) {
-                        postMessage({
-                            messageType: "sendAlert",
-                            coreId: this.coreId,
-                            args: {
-                                message:
-                                    "Credit not saved due to database error.",
-                                alertType: "error",
-                                id: "creditDataError",
-                            },
-                        });
-
-                        this.failedToSaveCreditForItem = true;
-                    }
                 }
             })
             .catch((e) => {
