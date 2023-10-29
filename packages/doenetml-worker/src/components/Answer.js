@@ -240,13 +240,6 @@ export default class Answer extends InlineComponent {
             public: true,
         };
 
-        // temporary attribute until fix toast
-        attributes.suppressToast = {
-            createComponentOfType: "boolean",
-            createStateVariable: "suppressToast",
-            defaultValue: false,
-        };
-
         return attributes;
     }
 
@@ -2228,7 +2221,6 @@ export default class Answer extends InlineComponent {
                     creditAchieved,
                 },
             },
-            suppressToast: await this.stateValues.suppressToast, // temporary
         });
 
         return await this.coreFunctions.triggerChainedActions({

@@ -48,3 +48,9 @@ out
 node_modules
 client/server
 .vscode-test
+.vscode-test*
+*.vsix
+
+build
+test.doenet
+stats.html

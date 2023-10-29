@@ -1,0 +1,96 @@
+{
+    "name": "doenet-vscode-extension",
+    "displayName": "DoenetML Language Server",
+    "description": "A language server for DoenetML",
+    "icon": "assets/doenet-small.png",
+    "author": "Jason Siefken",
+    "license": "AGPL",
+    "publisher": "doenet",
+    "version": "0.7.3",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/Doenet/DoenetML"
+    },
+    "categories": [
+        "Programming Languages",
+        "Education"
+    ],
+    "keywords": [
+        "Doenet",
+        "DoenetML",
+        "language-server"
+    ],
+    "engines": {
+        "vscode": "^1.76.0"
+    },
+    "browser": "./build/extension/index.js",
+    "contributes": {
+        "languages": [
+            {
+                "id": "doenet",
+                "aliases": [
+                    "Doenet",
+                    "doenet",
+                    "DoenetML"
+                ],
+                "extensions": [
+                    ".doenet"
+                ],
+                "configuration": "./config/language-configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "doenet",
+                "scopeName": "text.doenet",
+                "path": "./config/doenet.tmLanguage.json"
+            }
+        ],
+        "commands": [
+            {
+                "command": "doenet.showPreview",
+                "title": "Preview Doenet"
+            },
+            {
+                "enablement": "resourceLangId == doenet",
+                "command": "doenet.formatAsDoenetML",
+                "title": "Format Doenet Source as DoenetML"
+            },
+            {
+                "enablement": "resourceLangId == doenet",
+                "command": "doenet.formatAsXML",
+                "title": "Format Doenet Source as XML"
+            }
+        ],
+        "menus": {
+            "editor/title": [
+                {
+                    "command": "doenet.showPreview",
+                    "group": "navigation",
+                    "when": "resourceLangId == doenet"
+                }
+            ]
+        },
+        "configuration": {
+            "title": "Doenet",
+            "properties": {
+                "doenet.formatMode": {
+                    "type": "string",
+                    "enum": [
+                        "xml",
+                        "doenet"
+                    ],
+                    "default": "doenet",
+                    "markdownDescription": "How to format DoenetML files when pretty-printing.\n\n-  `doenet` will format files using DoenetML-specific features (for example allowing `<` in text instead of requiring it be escaped as `&lt;`).\n-  `xml` will format the document as a valid XML document."
+                }
+            }
+        }
+    },
+    "scripts": {
+        "vscode:prepublish": "vite-node ../scripts/check-version-consistency.ts"
+    },
+    "devDependencies": {
+        "@types/vscode": "^1.76.0",
+        "@types/vscode-webview": "^1.57.3"
+    }
+}

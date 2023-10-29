@@ -1149,7 +1149,7 @@ export default class Point extends GraphicalComponent {
                             dependencyValuesByKey[
                                 arrayKey
                             ].x.evaluate_to_constant();
-                        numericalXs[arrayKey] = x;
+                        numericalXs[arrayKey] = Number(x);
                     } else {
                         numericalXs[arrayKey] = NaN;
                     }

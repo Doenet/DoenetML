@@ -6,10 +6,10 @@
     "workspaces": [
         "./packages/ui-components",
         "./packages/utils",
+        "./packages/static-assets",
         "./packages/parser",
         "./packages/lsp-tools",
         "./packages/doenetml-worker",
-        "./packages/static-assets",
         "./packages/virtual-keyboard",
         "./packages/codemirror",
         "./packages/doenetml",
@@ -30,13 +30,21 @@
     },
     "homepage": "https://github.com/Doenet/DoenetML/README.md",
     "devDependencies": {
+        "@qualified/lsp-connection": "^0.3.0",
+        "@qualified/vscode-jsonrpc-ww": "^0.3.0",
+        "@rollup/pluginutils": "^5.0.5",
+        "@vitest/web-worker": "^0.34.6",
+        "@vscode/test-web": "^0.0.47",
+        "compress-json": "^2.1.2",
         "jsdom": "^22.1.0",
-        "prettier": "^3.0.2",
+        "prettier": "^3.0.3",
+        "rollup-plugin-visualizer": "^5.9.2",
         "typescript": "^5.2.2",
-        "vite-node": "^0.34.4",
-        "vitest": "^0.34.3"
+        "vite-node": "^0.34.6",
+        "vitest": "^0.34.6"
     },
     "prettier": {
         "tabWidth": 4
-    }
+    },
+    "dependencies": {}
 }

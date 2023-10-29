@@ -1,22 +1,27 @@
-import { defineConfig, Plugin } from "vite";
+import { defineConfig, Plugin, PluginOption } from "vite";
 import dts from "vite-plugin-dts";
 import fs from "node:fs/promises";
 import path from "node:path";
 import peg from "peggy";
 import * as esbuild from "esbuild";
+import { visualizer } from "rollup-plugin-visualizer";
 
 // https://vitejs.dev/config/
 export default defineConfig({
     base: "./",
-    plugins: [dts(
+    plugins: [
+        dts(),
         //{ rollupTypes: true }
-        ), pegjsLoader()],
+        pegjsLoader(),
+        visualizer() as PluginOption,
+    ],
     build: {
         minify: false,
         sourcemap: true,
         lib: {
-            entry: "./src/index.ts",
-            fileName: "index",
+            entry: {
+                index: "./src/index.ts",
+            },
             formats: ["es"],
         },
     },

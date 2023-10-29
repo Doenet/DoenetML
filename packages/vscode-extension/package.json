@@ -1,0 +1,48 @@
+{
+    "name": "vscode-extension",
+    "displayName": "DoenetML support",
+    "description": "A language server for DoenetML",
+    "author": "Jason Siefken",
+    "license": "AGPL",
+    "version": "0.7.3",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/Doenet/DoenetML"
+    },
+    "categories": [],
+    "keywords": [
+        "Doenet DoenetML"
+    ],
+    "engines": {
+        "vscode": "^1.76.0"
+    },
+    "exports": {
+        "language-server": {
+            "import": "./extension/dist/language-server/index.js"
+        }
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run build",
+        "build": "npm run build:preview-window && npm run build:extension && npm run build:language-server",
+        "build:language-server": "vite -c vite.language-server.config.ts build",
+        "build:extension": "vite -c vite.extension.config.ts build",
+        "build:preview-window": "vite -c vite.preview-window.config.ts build",
+        "dev": "vite -c vite.preview-window.config.ts",
+        "watch": "npm run build && vite -c vite.language-server.config.ts build --watch",
+        "test": "vitest",
+        "package": "cd ./extension && vsce package --no-dependencies --out ../",
+        "run-in-browser": "vscode-test-web --browserType=firefox --extensionDevelopmentPath=./extension ."
+    },
+    "devDependencies": {
+        "@types/vscode": "^1.76.0",
+        "@types/vscode-webview": "^1.57.3",
+        "@vitejs/plugin-react": "^4.1.0",
+        "@vscode/webview-ui-toolkit": "^1.2.2",
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "vite": "^4.5.0",
+        "vscode-languageclient": "^9.0.1",
+        "vscode-languageserver-textdocument": "^1.0.11",
+        "@vscode/test-electron": "^2.3.5"
+    }
+}
