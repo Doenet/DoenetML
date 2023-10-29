@@ -2305,8 +2305,7 @@ describe("Paginator Tag Tests", function () {
         cy.get(cesc2("#/ca")).should("have.text", "0.722");
     });
 
-    // Do we restore this feature?
-    it.skip("Paginator controls ignore read only flag", () => {
+    it("Paginator controls ignore read only flag", () => {
         let doenetML = `
     <text>a</text>
     <paginatorControls paginator="pgn" name="pcontrols" />
@@ -2323,11 +2322,6 @@ describe("Paginator Tag Tests", function () {
     </paginator>
     <p>Credit achieved: $_document1.creditAchieved{assignNames="ca"}</p>
     `;
-
-        cy.get("#testRunner_toggleControls").click();
-        cy.get("#testRunner_allowLocalState").click();
-        cy.wait(100);
-        cy.get("#testRunner_toggleControls").click();
 
         cy.window().then(async (win) => {
             win.postMessage(
@@ -2356,29 +2350,26 @@ describe("Paginator Tag Tests", function () {
         cy.get(cesc("#\\/ti2_submit")).should("be.visible");
         cy.get(cesc2("#/ca")).should("have.text", "0.5");
 
-        // at least right now, this turns on Read Only
-        cy.get("h3 > button").click();
-        cy.get(":nth-child(5) > label > input").click();
-        cy.get("h3 > button").click();
+        cy.get("#testRunner_toggleControls").click();
+        cy.get("#testRunner_readOnly").click();
+        cy.wait(100);
+        cy.get("#testRunner_toggleControls").click();
+
+        cy.get(cesc2("#/_title1")).should("have.text", "Problem 1");
+
+        cy.get(cesc("#\\/ti1_input")).should("be.disabled");
+        cy.get(cesc("#\\/ti1_submit")).should("be.disabled");
+
+        cy.get(cesc2("#/pcontrols_next")).click();
+        cy.get(cesc2("#/_title2")).should("have.text", "Problem 2");
 
         cy.get(cesc("#\\/ti2_input")).should("be.disabled");
-        cy.get(cesc("#\\/ti2_input")).should("have.value", "2");
         cy.get(cesc("#\\/ti2_submit")).should("be.disabled");
 
         cy.get(cesc2("#/pcontrols_previous")).click();
         cy.get(cesc2("#/_title1")).should("have.text", "Problem 1");
-        cy.get(cesc2("#/ca")).should("have.text", "0.5");
-
         cy.get(cesc("#\\/ti1_input")).should("be.disabled");
-        cy.get(cesc("#\\/ti1_input")).should("have.value", "1");
-
-        cy.get(cesc2("#/pcontrols_next")).click();
-        cy.get(cesc2("#/_title2")).should("have.text", "Problem 2");
-        cy.get(cesc2("#/ca")).should("have.text", "0.5");
-
-        cy.get(cesc("#\\/ti2_input")).should("be.disabled");
-        cy.get(cesc("#\\/ti2_input")).should("have.value", "2");
-        cy.get(cesc("#\\/ti2_submit")).should("be.disabled");
+        cy.get(cesc("#\\/ti1_submit")).should("be.disabled");
     });
 
     it("Variants stay consistent with external copies", () => {

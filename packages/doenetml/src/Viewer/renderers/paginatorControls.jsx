@@ -24,7 +24,7 @@ export default React.memo(function PaginatorControls(props) {
                             args: { number: SVs.currentPage - 1 },
                         });
                     }}
-                    disabled={SVs.disabled || !(SVs.currentPage > 1)}
+                    disabled={SVs.disabledDirectly || !(SVs.currentPage > 1)}
                     value={SVs.previousLabel}
                 />
             </div>
@@ -38,7 +38,10 @@ export default React.memo(function PaginatorControls(props) {
                             args: { number: SVs.currentPage + 1 },
                         });
                     }}
-                    disabled={SVs.disabled || !(SVs.currentPage < SVs.numPages)}
+                    disabled={
+                        SVs.disabledDirectly ||
+                        !(SVs.currentPage < SVs.numPages)
+                    }
                     value={SVs.nextLabel}
                 />
             </div>
