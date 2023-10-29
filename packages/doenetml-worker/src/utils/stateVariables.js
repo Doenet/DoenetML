@@ -137,3 +137,28 @@ export function returnDefaultGetArrayKeysFromVarName(numDim) {
         };
     }
 }
+
+export function returnDefaultArrayVarNameFromPropIndex(
+    numDim,
+    arrayEntryPrefix,
+) {
+    // the default function for arrayVarNameFromPropIndex ignores the
+    // varName, but is just based on the arrayEntryPrefix given.
+    // A component class's function could use varBane
+
+    if (numDim > 1) {
+        return function (propIndex, varName) {
+            return (
+                arrayEntryPrefix +
+                [
+                    ...propIndex.map((x) => Math.round(Number(x))),
+                    ...Array(numDim - propIndex.length).fill(1),
+                ].join("_")
+            );
+        };
+    } else {
+        return function (propIndex, varName) {
+            return arrayEntryPrefix + propIndex[0];
+        };
+    }
+}

@@ -257,6 +257,8 @@ export default class CobwebPolyline extends Polyline {
             numDimensions: 2,
             hasEssential: true,
             entryPrefixes: ["originalVertexX", "originalVertex"],
+            returnEntryDimensions: (prefix) =>
+                prefix === "originalVertex" ? 1 : 0,
             getArrayKeysFromVarName({
                 arrayEntryPrefix,
                 varEnding,

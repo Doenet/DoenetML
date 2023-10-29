@@ -1,4 +1,4 @@
-import createComponentInfoObjects from "../../doenetml/src/Core/utils/componentInfoObjects";
+import { createComponentInfoObjects } from "../../doenetml-worker/src/utils/componentInfoObjects";
 
 // Create schema of DoenetML by extracting component, attributes and children
 // from component classes.
@@ -40,6 +40,50 @@ interface ComponentInfoObjects
     extends ReturnType<typeof createComponentInfoObjects> {
     allComponentClasses: Record<string, ComponentClass>;
 }
+
+type PropertyDescription = {
+    name: string;
+    type: string;
+    isArray: boolean;
+    numDimensions?: number;
+    indexedArrayDescription?: ArrayElementDescription[];
+};
+
+type ArrayElementDescription = {
+    type: string;
+    isArray: boolean;
+    numDimensions?: number;
+};
+
+type WrappingComponentElement =
+    | string
+    | { componentType: string; isAttributeNamed: string };
+
+type ArrayEntryPrefixDescription = {
+    arrayVariableName: string;
+    numDimensions: number;
+    wrappingComponents: WrappingComponentElement[][];
+};
+
+type StateVariableDescription = {
+    public: boolean;
+    createComponentOfType?: string;
+    isArray: boolean;
+    numDimensions?: number;
+    wrappingComponents?: WrappingComponentElement[][];
+    getArrayKeysFromVarName?: Function;
+    arrayVarNameFromPropIndex?: Function;
+};
+
+type PublicStateVariableDescription = {
+    public: boolean;
+    createComponentOfType: string;
+    isArray: boolean;
+    numDimensions?: number;
+    wrappingComponents?: WrappingComponentElement[][];
+    getArrayKeysFromVarName?: Function;
+    arrayVarNameFromPropIndex?: Function;
+};
 
 export function getSchema() {
     let componentInfoObjects =
@@ -216,10 +260,109 @@ export function getSchema() {
 
         children = [...new Set(children)];
 
+        let {
+            stateVariableDescriptions,
+            arrayEntryPrefixes,
+            aliases,
+        }: {
+            stateVariableDescriptions: Record<
+                string,
+                PublicStateVariableDescription
+            >;
+            arrayEntryPrefixes: Record<string, ArrayEntryPrefixDescription>;
+            aliases: Record<string, string>;
+        } = componentInfoObjects.publicStateVariableInfo[type];
+
+        let properties: PropertyDescription[] = [];
+
+        for (let varName in stateVariableDescriptions) {
+            let description = stateVariableDescriptions[varName];
+
+            properties.push(
+                propFromDescription({
+                    varName,
+                    description,
+                    componentInfoObjects,
+                    arrayEntryPrefixes,
+                }),
+            );
+        }
+
+        let arrayEntryPrefixesLongestToShortest = Object.keys(
+            arrayEntryPrefixes,
+        ).sort((a, b) => b.length - a.length);
+
+        for (let aliasName in aliases) {
+            let aliasTargetName = aliases[aliasName];
+            let aliasTarget = stateVariableDescriptions[aliasTargetName];
+            if (aliasTarget) {
+                properties.push(
+                    propFromDescription({
+                        varName: aliasName,
+                        description: aliasTarget,
+                        componentInfoObjects,
+                        arrayEntryPrefixes,
+                    }),
+                );
+            } else {
+                let foundMatch = false;
+
+                for (let prefix of arrayEntryPrefixesLongestToShortest) {
+                    if (
+                        aliasTargetName.substring(0, prefix.length) === prefix
+                    ) {
+                        let arrayEntry = arrayEntryPrefixes[prefix];
+                        let arrayVariableName = arrayEntry.arrayVariableName;
+                        let arrayStateVarDescription =
+                            stateVariableDescriptions[arrayVariableName];
+
+                        let arrayEntryDescription: PublicStateVariableDescription =
+                            {
+                                public: true,
+                                createComponentOfType:
+                                    arrayStateVarDescription.createComponentOfType,
+                                isArray: arrayEntry.numDimensions > 0,
+                                numDimensions: arrayEntry.numDimensions,
+                                wrappingComponents:
+                                    arrayEntry.wrappingComponents ||
+                                    arrayStateVarDescription.wrappingComponents,
+                                getArrayKeysFromVarName:
+                                    arrayStateVarDescription.getArrayKeysFromVarName,
+                                arrayVarNameFromPropIndex:
+                                    arrayStateVarDescription.arrayVarNameFromPropIndex,
+                            };
+
+                        properties.push(
+                            propFromDescription({
+                                varName: aliasName,
+                                description: arrayEntryDescription,
+                                componentInfoObjects,
+                                arrayEntryPrefixes,
+                            }),
+                        );
+
+                        foundMatch = true;
+                        break;
+                    }
+                }
+
+                if (!foundMatch) {
+                    properties.push({
+                        name: aliasName,
+                        type: "unknown",
+                        isArray: false,
+                    });
+                }
+            }
+        }
+
+        console.log(properties);
+
         elements.push({
             name: type,
             children,
             attributes,
+            properties,
             top: !cClass.inSchemaOnlyInheritAs,
             acceptsStringChildren,
         });
@@ -227,6 +370,131 @@ export function getSchema() {
 
     // For now, we're just copying these schema from this console output
     return { elements };
+}
+
+function propFromDescription({
+    varName,
+    description,
+    arrayEntryPrefixes,
+}: {
+    varName: string;
+    description: PublicStateVariableDescription;
+    arrayEntryPrefixes: Record<string, ArrayEntryPrefixDescription>;
+}) {
+    let componentType = description.createComponentOfType;
+
+    let prop: PropertyDescription = {
+        name: varName,
+        type: componentType,
+        isArray: description.isArray,
+    };
+
+    if (description.isArray) {
+        let numDimensions = description.numDimensions || 1;
+
+        prop.numDimensions = numDimensions;
+        prop.indexedArrayDescription = [];
+
+        let wrappingComponents = description.wrappingComponents || [];
+
+        let arrayEntryPrefixesLongestToShortest = Object.keys(
+            arrayEntryPrefixes,
+        ).sort((a, b) => b.length - a.length);
+
+        prop.indexedArrayDescription.push(
+            createArrayElementDescription(
+                wrappingComponents,
+                numDimensions,
+                componentType,
+            ),
+        );
+
+        // if the array dimension is two or larger,
+        // then we have array elements that are slices of the array
+        // but are more than one element
+        let propIndexStandin: number[] = [];
+        for (let dim = 1; dim < numDimensions; dim++) {
+            propIndexStandin.push(1);
+
+            // TODO: fix technical debt so don't have to go through varName
+            let varNameForIndexed = description.arrayVarNameFromPropIndex?.(
+                propIndexStandin,
+                varName,
+            ) as string;
+
+            let foundMatch = false;
+
+            for (let prefix of arrayEntryPrefixesLongestToShortest) {
+                if (varNameForIndexed.substring(0, prefix.length) === prefix) {
+                    let prefixDescription = arrayEntryPrefixes[prefix];
+
+                    let numDimensions = prefixDescription.numDimensions;
+                    let wrappingComponents =
+                        prefixDescription.wrappingComponents;
+
+                    prop.indexedArrayDescription.push(
+                        createArrayElementDescription(
+                            wrappingComponents,
+                            numDimensions,
+                            componentType,
+                        ),
+                    );
+
+                    foundMatch = true;
+                    break;
+                }
+            }
+
+            if (!foundMatch) {
+                throw Error(
+                    `Invalid array state variable ${varName} as arrayVarNameFromPropIndex didn't return an array entry`,
+                );
+            }
+        }
+    }
+    return prop;
+}
+
+function createArrayElementDescription(
+    wrappingComponents: WrappingComponentElement[][],
+    numDimensions: number,
+    componentType: string,
+): ArrayElementDescription {
+    if (wrappingComponents.length === numDimensions) {
+        // the last dimension of the array is wrapped,
+        // which means the final result isn't actually an array,
+        // but a single component of the wrapped type
+        let wrapping = wrappingComponents[wrappingComponents.length - 1][0];
+
+        return {
+            isArray: false,
+            type:
+                typeof wrapping === "string"
+                    ? wrapping
+                    : wrapping.componentType,
+        };
+    } else if (wrappingComponents.length > 0) {
+        // although the last dimension isn't wrapped, some inner dimension is wrapped,
+        // which means the final result is an array, but of a lower dimensions,
+        // with type given by the last wrapping component
+        let wrapping = wrappingComponents[wrappingComponents.length - 1][0];
+
+        return {
+            isArray: true,
+            type:
+                typeof wrapping === "string"
+                    ? wrapping
+                    : wrapping.componentType,
+            numDimensions: numDimensions - wrappingComponents.length,
+        };
+    } else {
+        // array is not wrapped
+        return {
+            isArray: true,
+            type: componentType,
+            numDimensions,
+        };
+    }
 }
 
 function checkIfInheritOrAdapt({

@@ -32,7 +32,10 @@ import {
     verifyReplacementsMatchSpecifiedType,
 } from "./utils/copy";
 import { DependencyHandler } from "./Dependencies";
-import { returnDefaultGetArrayKeysFromVarName } from "./utils/stateVariables";
+import {
+    returnDefaultArrayVarNameFromPropIndex,
+    returnDefaultGetArrayKeysFromVarName,
+} from "./utils/stateVariables";
 import { nanoid } from "nanoid";
 import { get as idb_get, set as idb_set } from "idb-keyval";
 import axios from "axios";
@@ -5498,6 +5501,19 @@ export default class Core {
             stateVarObj.numDimensions = 1;
         }
 
+        let entryPrefixes = stateVarObj.entryPrefixes;
+
+        if (!entryPrefixes) {
+            entryPrefixes = stateVarObj.entryPrefixes = [stateVariable];
+        }
+
+        if (!component.arrayEntryPrefixes) {
+            component.arrayEntryPrefixes = {};
+        }
+        for (let prefix of entryPrefixes) {
+            component.arrayEntryPrefixes[prefix] = stateVariable;
+        }
+
         if (stateVarObj.numDimensions > 1) {
             // for multiple dimensions, have to convert from arrayKey
             // to multi-index when getting or setting
@@ -5721,20 +5737,11 @@ export default class Core {
             // TODO: if we redesign arrays to be based on indices (or even slices),
             // then arrayVarNameFromPropIndex will be obsolete.
             if (!stateVarObj.arrayVarNameFromPropIndex) {
-                stateVarObj.arrayVarNameFromPropIndex = function (
-                    propIndex,
-                    varName,
-                ) {
-                    return (
-                        entryPrefixes[0] +
-                        [
-                            ...propIndex.map((x) => Math.round(Number(x))),
-                            ...Array(
-                                stateVarObj.numDimensions - propIndex.length,
-                            ).fill(1),
-                        ].join("_")
+                stateVarObj.arrayVarNameFromPropIndex =
+                    returnDefaultArrayVarNameFromPropIndex(
+                        stateVarObj.numDimensions,
+                        entryPrefixes[0],
                     );
-                };
             }
 
             stateVarObj.adjustArrayToNewArraySize = async function () {
@@ -5830,12 +5837,8 @@ export default class Core {
             // TODO: if we redesign arrays to be based on indices (or even slices),
             // then arrayVarNameFromPropIndex will be obsolete.
             if (!stateVarObj.arrayVarNameFromPropIndex) {
-                stateVarObj.arrayVarNameFromPropIndex = function (
-                    propIndex,
-                    varName,
-                ) {
-                    return entryPrefixes[0] + propIndex[0];
-                };
+                stateVarObj.arrayVarNameFromPropIndex =
+                    returnDefaultArrayVarNameFromPropIndex(1, entryPrefixes[0]);
             }
 
             stateVarObj.adjustArrayToNewArraySize = async function () {
@@ -5854,21 +5857,8 @@ export default class Core {
         // dimensions, as we just want the string representation
         stateVarObj.indexToKey = (index) => String(index);
 
-        let entryPrefixes = stateVarObj.entryPrefixes;
-
-        if (!entryPrefixes) {
-            entryPrefixes = stateVarObj.entryPrefixes = [stateVariable];
-        }
-
-        if (!component.arrayEntryPrefixes) {
-            component.arrayEntryPrefixes = {};
-        }
-        for (let prefix of entryPrefixes) {
-            component.arrayEntryPrefixes[prefix] = stateVariable;
-        }
-
         if (!stateVarObj.returnEntryDimensions) {
-            stateVarObj.returnEntryDimensions = () => 1;
+            stateVarObj.returnEntryDimensions = () => 0;
         }
 
         if (stateVarObj.shadowingInstructions) {

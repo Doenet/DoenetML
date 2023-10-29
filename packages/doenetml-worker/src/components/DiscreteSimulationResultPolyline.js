@@ -192,6 +192,7 @@ export default class DiscreteSimulationResultPolyline extends GraphicalComponent
             isArray: true,
             numDimensions: 2,
             entryPrefixes: ["vertexX", "vertex"],
+            returnEntryDimensions: (prefix) => (prefix === "vertex" ? 1 : 0),
             getArrayKeysFromVarName({
                 arrayEntryPrefix,
                 varEnding,

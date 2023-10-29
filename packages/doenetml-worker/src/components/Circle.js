@@ -446,6 +446,8 @@ export default class Circle extends Curve {
             isArray: true,
             numDimensions: 2,
             entryPrefixes: ["throughPointX", "throughPoint"],
+            returnEntryDimensions: (prefix) =>
+                prefix === "throughPoint" ? 1 : 0,
             getArrayKeysFromVarName({
                 arrayEntryPrefix,
                 varEnding,

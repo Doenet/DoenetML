@@ -2,7 +2,10 @@ import createStateProxyHandler from "../../StateProxyHandler";
 import { flattenDeep, mapDeep } from "@doenet/utils";
 import { deepClone, enumerateCombinations } from "@doenet/utils";
 import { gatherVariantComponents } from "../../utils/variants";
-import { returnDefaultGetArrayKeysFromVarName } from "../../utils/stateVariables";
+import {
+    returnDefaultArrayVarNameFromPropIndex,
+    returnDefaultGetArrayKeysFromVarName,
+} from "../../utils/stateVariables";
 
 export default class BaseComponent {
     constructor({
@@ -1010,9 +1013,13 @@ export default class BaseComponent {
                         stateVariableDescriptions[varName] = {
                             createComponentOfType,
                             public: true,
+                            isArray: false,
                         };
                     } else {
-                        stateVariableDescriptions[varName] = {};
+                        stateVariableDescriptions[varName] = {
+                            public: false,
+                            isArray: false,
+                        };
                     }
                 }
             }
@@ -1036,9 +1043,13 @@ export default class BaseComponent {
                             theStateDef.shadowingInstructions
                                 .createComponentOfType,
                         public: true,
+                        isArray: Boolean(theStateDef.isArray),
                     };
                 } else {
-                    stateVariableDescriptions[varName] = {};
+                    stateVariableDescriptions[varName] = {
+                        public: false,
+                        isArray: Boolean(theStateDef.isArray),
+                    };
                 }
                 if (theStateDef.isArray) {
                     stateVariableDescriptions[varName].isArray = true;
@@ -1051,6 +1062,7 @@ export default class BaseComponent {
                             ?.returnWrappingComponents
                             ? theStateDef.shadowingInstructions.returnWrappingComponents()
                             : [];
+
                     let entryPrefixes;
                     if (theStateDef.entryPrefixes) {
                         entryPrefixes = theStateDef.entryPrefixes;
@@ -1062,7 +1074,7 @@ export default class BaseComponent {
                             arrayVariableName: varName,
                             numDimensions: theStateDef.returnEntryDimensions
                                 ? theStateDef.returnEntryDimensions(prefix)
-                                : 1,
+                                : 0,
                             wrappingComponents: theStateDef
                                 .shadowingInstructions?.returnWrappingComponents
                                 ? theStateDef.shadowingInstructions.returnWrappingComponents(
@@ -1083,6 +1095,21 @@ export default class BaseComponent {
                             returnDefaultGetArrayKeysFromVarName(
                                 stateVariableDescriptions[varName]
                                     .numDimensions,
+                            );
+                    }
+                    if (theStateDef.arrayVarNameFromPropIndex) {
+                        stateVariableDescriptions[
+                            varName
+                        ].arrayVarNameFromPropIndex =
+                            theStateDef.arrayVarNameFromPropIndex;
+                    } else {
+                        stateVariableDescriptions[
+                            varName
+                        ].arrayVarNameFromPropIndex =
+                            returnDefaultArrayVarNameFromPropIndex(
+                                stateVariableDescriptions[varName]
+                                    .numDimensions,
+                                entryPrefixes[0],
                             );
                     }
                 }
