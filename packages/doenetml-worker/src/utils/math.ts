@@ -421,6 +421,7 @@ export function normalizeLatexString(
         ["\u2229", " \\cap "], // ∩
         ["\u221E", " \\infty "], // ∞
         ["\u2205", " \\emptyset "], // ∅
+        ["\u2032", "'"], // ′
     ];
 
     for (let sub of substitutions) {
