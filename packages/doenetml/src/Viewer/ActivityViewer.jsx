@@ -1100,7 +1100,7 @@ export function ActivityViewer({
     async function submitAllAndFinishAssessment() {
         setProcessingSubmitAll(true);
 
-        let terminatePromises = [];
+        let submitAndSavePromises = [];
 
         for (let [
             pageInd,
@@ -1108,37 +1108,43 @@ export function ActivityViewer({
         ] of pageCoreWorkersInfo.current.entries()) {
             if (pageInfo.pageCoreCreated[pageInd]) {
                 let actionId = nanoid();
-                let resolveTerminatePromise;
+                let resolveSubmitAndSavePromise;
+                let rejectSubmitAndSavePromise;
                 let coreWorker = coreWorkerInfo.coreWorker;
 
-                terminatePromises.push(
+                submitAndSavePromises.push(
                     new Promise((resolve, reject) => {
-                        resolveTerminatePromise = resolve;
+                        resolveSubmitAndSavePromise = resolve;
+                        rejectSubmitAndSavePromise = reject;
                     }),
                 );
 
-                let terminateListener = function (e) {
+                let submitAllAndSaveListener = function (e) {
                     if (
                         e.data.messageType === "resolveAction" &&
                         e.data.args.actionId === actionId
                     ) {
-                        // posting terminate will make sure page state gets saved
-                        // (as navigating to another URL will not initiate a state save)
                         coreWorker.postMessage({
-                            messageType: "terminate",
+                            messageType: "saveImmediately",
                         });
-                    } else if (e.data.messageType === "terminated") {
+                    } else if (e.data.messageType === "saveImmediatelyResult") {
                         coreWorker.removeEventListener(
                             "message",
-                            terminateListener,
+                            submitAllAndSaveListener,
                         );
 
-                        // resolve promise
-                        resolveTerminatePromise();
+                        if (e.data.success) {
+                            resolveSubmitAndSavePromise();
+                        } else {
+                            rejectSubmitAndSavePromise();
+                        }
                     }
                 };
 
-                coreWorker.addEventListener("message", terminateListener);
+                coreWorker.addEventListener(
+                    "message",
+                    submitAllAndSaveListener,
+                );
 
                 coreWorker.postMessage({
                     messageType: "submitAllAnswers",
@@ -1147,9 +1153,24 @@ export function ActivityViewer({
             }
         }
 
-        await Promise.all(terminatePromises);
+        try {
+            await Promise.all(submitAndSavePromises);
 
-        await saveState({ overrideThrottle: true });
+            await terminateAllCores();
+
+            await saveState({ overrideThrottle: true });
+        } catch (e) {
+            sendAlert(
+                `An error occurred. Assessment was not successfully submitted.`,
+                "error",
+            );
+
+            setFinishAssessmentMessageOpen(false);
+            setProcessingSubmitAll(false);
+
+            // return so don't set activity as completed
+            return;
+        }
 
         setActivityAsCompleted?.();
 
@@ -1159,6 +1180,54 @@ export function ActivityViewer({
             newObj.pageCoreCreated = [];
             return newObj;
         });
+    }
+
+    async function terminateAllCores() {
+        let terminatePromises = [];
+
+        for (let [
+            pageInd,
+            coreWorkerInfo,
+        ] of pageCoreWorkersInfo.current.entries()) {
+            if (pageInfo.pageCoreCreated[pageInd]) {
+                let resolveTerminatePromise;
+                let rejectTerminatePromise;
+                let coreWorker = coreWorkerInfo.coreWorker;
+
+                terminatePromises.push(
+                    new Promise((resolve, reject) => {
+                        resolveTerminatePromise = resolve;
+                        rejectTerminatePromise = reject;
+                    }),
+                );
+
+                let terminateListener = function (e) {
+                    if (e.data.messageType === "terminated") {
+                        coreWorker.removeEventListener(
+                            "message",
+                            terminateListener,
+                        );
+
+                        resolveTerminatePromise();
+                    } else if (e.data.messageType === "terminateFailed") {
+                        coreWorker.removeEventListener(
+                            "message",
+                            terminateListener,
+                        );
+
+                        rejectTerminatePromise();
+                    }
+                };
+
+                coreWorker.addEventListener("message", terminateListener);
+
+                coreWorker.postMessage({
+                    messageType: "terminate",
+                });
+            }
+        }
+
+        await Promise.all(terminatePromises);
     }
 
     function setPageErrorsAndWarningsCallback(errorsAndWarnings, pageInd) {
