@@ -129,7 +129,10 @@ export default class CobwebPolyline extends Polyline {
                 let essentialInitialPoint = {};
                 for (let arrayKey of arrayKeys) {
                     let varEnding = Number(arrayKey) + 1;
-                    if (dependencyValuesByKey[arrayKey].initialPointAttr) {
+                    if (
+                        dependencyValuesByKey[arrayKey].initialPointAttr
+                            ?.stateValues["x" + varEnding]
+                    ) {
                         initialPoint[arrayKey] =
                             dependencyValuesByKey[
                                 arrayKey
