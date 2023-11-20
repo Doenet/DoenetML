@@ -1,4 +1,4 @@
-import { cesc } from "@doenet/utils";
+import { cesc, cesc2 } from "@doenet/utils";
 
 describe("Boolean Tag Tests", function () {
     beforeEach(() => {
@@ -349,6 +349,342 @@ describe("Boolean Tag Tests", function () {
         cy.get(cesc("#\\/f17")).should("have.text", "false");
         cy.get(cesc("#\\/f18")).should("have.text", "false");
         cy.get(cesc("#\\/f19")).should("have.text", "false");
+    });
+
+    it("boolean element of list, set, string", () => {
+        let elements = [
+            {
+                element: "1",
+                set: "<mathlist>1 2</mathlist>",
+                isElement: true,
+                isElementCaseInsensitive: true,
+            },
+            {
+                element: "1",
+                set: "<numberlist>1 2</numberlist>",
+                isElement: true,
+                isElementCaseInsensitive: true,
+            },
+            {
+                element: "1",
+                set: "<math>1,2</math>",
+                isElement: true,
+                isElementCaseInsensitive: true,
+            },
+            {
+                element: "1",
+                set: "<math>{1,2}</math>",
+                isElement: true,
+                isElementCaseInsensitive: true,
+            },
+            {
+                element: "1",
+                set: "{1,2}",
+                isElement: true,
+                isElementCaseInsensitive: true,
+            },
+            {
+                element: "<math>1</math>",
+                set: "<mathlist>1 2</mathlist>",
+                isElement: true,
+                isElementCaseInsensitive: true,
+            },
+            {
+                element: "<math>1</math>",
+                set: "<numberlist>1 2</numberlist>",
+                isElement: true,
+                isElementCaseInsensitive: true,
+            },
+            {
+                element: "<math>1</math>",
+                set: "<math>1,2</math>",
+                isElement: true,
+                isElementCaseInsensitive: true,
+            },
+            {
+                element: "<math>1</math>",
+                set: "<math>{1,2}</math>",
+                isElement: true,
+                isElementCaseInsensitive: true,
+            },
+            {
+                element: "<math>1</math>",
+                set: "{1,2}",
+                isElement: true,
+                isElementCaseInsensitive: true,
+            },
+            {
+                element: "<number>1</number>",
+                set: "<mathlist>1 2</mathlist>",
+                isElement: true,
+                isElementCaseInsensitive: true,
+            },
+            {
+                element: "<number>1</number>",
+                set: "<numberlist>1 2</numberlist>",
+                isElement: true,
+                isElementCaseInsensitive: true,
+            },
+            {
+                element: "<number>1</number>",
+                set: "<math>1,2</math>",
+                isElement: true,
+                isElementCaseInsensitive: true,
+            },
+            {
+                element: "<number>1</number>",
+                set: "<math>{1,2}</math>",
+                isElement: true,
+                isElementCaseInsensitive: true,
+            },
+            {
+                element: "<number>1</number>",
+                set: "{1,2}",
+                isElement: true,
+                isElementCaseInsensitive: true,
+            },
+            {
+                element: "3",
+                set: "<mathlist>1 2</mathlist>",
+                isElement: false,
+                isElementCaseInsensitive: false,
+            },
+            {
+                element: "3",
+                set: "<numberlist>1 2</numberlist>",
+                isElement: false,
+                isElementCaseInsensitive: false,
+            },
+            {
+                element: "3",
+                set: "<math>1,2</math>",
+                isElement: false,
+                isElementCaseInsensitive: false,
+            },
+            {
+                element: "3",
+                set: "<math>{1,2}</math>",
+                isElement: false,
+                isElementCaseInsensitive: false,
+            },
+            {
+                element: "3",
+                set: "{1,2}",
+                isElement: false,
+                isElementCaseInsensitive: false,
+            },
+            {
+                element: "2x",
+                set: "<mathlist>x+x y/2</mathlist>",
+                isElement: true,
+                isElementCaseInsensitive: true,
+            },
+            {
+                element: "2x",
+                set: "<math>x+x, y/2</math>",
+                isElement: true,
+                isElementCaseInsensitive: true,
+            },
+            {
+                element: "2x",
+                set: "<math>{x+x, y/2}</math>",
+                isElement: true,
+                isElementCaseInsensitive: true,
+            },
+            {
+                element: "2x",
+                set: "{x+x, y/2}",
+                isElement: true,
+                isElementCaseInsensitive: true,
+            },
+            {
+                element: "<math>2x</math>",
+                set: "<mathlist>x+x y/2</mathlist>",
+                isElement: true,
+                isElementCaseInsensitive: true,
+            },
+            {
+                element: "<math>2x</math>",
+                set: "<math>x+x, y/2</math>",
+                isElement: true,
+                isElementCaseInsensitive: true,
+            },
+            {
+                element: "<math>2x</math>",
+                set: "<math>{x+x, y/2}</math>",
+                isElement: true,
+                isElementCaseInsensitive: true,
+            },
+            {
+                element: "<math>2x</math>",
+                set: "{x+x, y/2}",
+                isElement: true,
+                isElementCaseInsensitive: true,
+            },
+            {
+                element: "2x",
+                set: "<mathlist>x+X y/2</mathlist>",
+                isElement: false,
+                isElementCaseInsensitive: true,
+            },
+            {
+                element: "2x",
+                set: "<math>x+X, y/2</math>",
+                isElement: false,
+                isElementCaseInsensitive: true,
+            },
+            {
+                element: "2x",
+                set: "{x+X, y/2}",
+                isElement: false,
+                isElementCaseInsensitive: true,
+            },
+            {
+                element: "x",
+                set: "<mathlist>x+X y/2</mathlist>",
+                isElement: false,
+                isElementCaseInsensitive: false,
+            },
+            {
+                element: "x",
+                set: "<math>x+X, y/2</math>",
+                isElement: false,
+                isElementCaseInsensitive: false,
+            },
+            {
+                element: "x",
+                set: "{x+X, y/2}",
+                isElement: false,
+                isElementCaseInsensitive: false,
+            },
+            {
+                element: "a",
+                set: "<text>abc</text>",
+                isElement: true,
+                isElementCaseInsensitive: true,
+            },
+            {
+                element: "<text>b</text>",
+                set: "abc",
+                isElement: true,
+                isElementCaseInsensitive: true,
+            },
+            {
+                element: "<text>b</text>",
+                set: "<text>abc</text>",
+                isElement: true,
+                isElementCaseInsensitive: true,
+            },
+            {
+                element: "b",
+                set: "<text>ABC</text>",
+                isElement: false,
+                isElementCaseInsensitive: true,
+            },
+            {
+                element: "<text>b</text>",
+                set: "ABC",
+                isElement: false,
+                isElementCaseInsensitive: true,
+            },
+            {
+                element: "<text>b</text>",
+                set: "<text>ABC</text>",
+                isElement: false,
+                isElementCaseInsensitive: true,
+            },
+            {
+                element: "a",
+                set: "<textlist>abc</textlist>",
+                isElement: false,
+                isElementCaseInsensitive: false,
+            },
+            {
+                element: "a",
+                set: "<textlist>abc def</textlist>",
+                isElement: false,
+                isElementCaseInsensitive: false,
+            },
+            {
+                element: "abc",
+                set: "<textlist>abc def</textlist>",
+                isElement: true,
+                isElementCaseInsensitive: true,
+            },
+            {
+                element: "abc",
+                set: "<textlist>ABC def</textlist>",
+                isElement: false,
+                isElementCaseInsensitive: true,
+            },
+            {
+                element: "truE",
+                set: "<booleanlist>false true</booleanlist>",
+                isElement: true,
+                isElementCaseInsensitive: true,
+            },
+            {
+                element: "true",
+                set: "<booleanlist>false false</booleanlist>",
+                isElement: false,
+                isElementCaseInsensitive: false,
+            },
+            {
+                element: "<boolean>truE</boolean>",
+                set: "<booleanlist>false true</booleanlist>",
+                isElement: true,
+                isElementCaseInsensitive: true,
+            },
+            {
+                element: "<boolean>true</boolean>",
+                set: "<booleanlist>false false</booleanlist>",
+                isElement: false,
+                isElementCaseInsensitive: false,
+            },
+        ];
+
+        let doenetML = "<text>a</text>";
+
+        for (let [ind, info] of elements.entries()) {
+            doenetML += `\n<boolean name="s${ind}">${info.element} elementof ${info.set}</boolean>`;
+            doenetML += `\n<boolean name="n${ind}">${info.element} notelementof ${info.set}</boolean>`;
+            doenetML += `\n<boolean caseInsensitiveMatch name="sci${ind}">${info.element} elementof ${info.set}</boolean>`;
+            doenetML += `\n<boolean caseInsensitiveMatch name="nsci${ind}">${info.element} notelementof ${info.set}</boolean>`;
+        }
+
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML,
+                },
+                "*",
+            );
+        });
+
+        cy.get(cesc2("#/_text1")).should("contain.text", "a");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+
+            for (let [ind, info] of elements.entries()) {
+                expect(
+                    stateVariables[`/s${ind}`].stateValues.value,
+                    `Checking if ${info.element} is element of ${info.set}`,
+                ).eq(info.isElement);
+                expect(
+                    stateVariables[`/n${ind}`].stateValues.value,
+                    `Checking if ${info.element} is not element of ${info.set}`,
+                ).eq(!info.isElement);
+                expect(
+                    stateVariables[`/sci${ind}`].stateValues.value,
+                    `Checking if ${info.element} is case-insensitive element of ${info.set}`,
+                ).eq(info.isElementCaseInsensitive);
+                expect(
+                    stateVariables[`/nsci${ind}`].stateValues.value,
+                    `Checking if ${info.element} is not case-insensitive element of ${info.set}`,
+                ).eq(!info.isElementCaseInsensitive);
+            }
+        });
     });
 
     it("boolean with texts", () => {

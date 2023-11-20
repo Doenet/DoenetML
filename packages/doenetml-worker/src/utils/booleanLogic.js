@@ -218,6 +218,9 @@ export function evaluateLogic({
         }
     }
 
+    // Note: foundMath, foundText, foundBoolean, and foundOther will all be false
+    // if all operands are strings.
+    // In this case, we will default to treating the strings as math
     let foundMath = false;
     let foundText = false;
     let foundBoolean = false;
@@ -434,6 +437,28 @@ export function evaluateLogic({
             }).fraction_equal;
 
             return fraction_equal === 0 ? 1 : 0;
+        } else if (operator === "in" || operator === "notin") {
+            let boolean1 = operands[0];
+            if (
+                !(
+                    operands.length === 2 &&
+                    typeof boolean1 === "boolean" &&
+                    Array.isArray(operands[1]) &&
+                    operands[1].every((b) => typeof b === "boolean")
+                )
+            ) {
+                return valueOnInvalid;
+            }
+
+            // Have "[boolean1] in [booleanlist]"
+            // check if one of the elements in booleanlist is boolean1
+            let isInList = operands[1].includes(boolean1);
+            if (operator === "in") {
+                return isInList ? 1 : 0;
+            } else {
+                // notin
+                return isInList ? 0 : 1;
+            }
         } else {
             return valueOnInvalid;
         }
@@ -442,10 +467,9 @@ export function evaluateLogic({
             return valueOnInvalid;
         }
 
-        let foundInvalidFormat = false;
         let foundUnorderedList = false;
 
-        let extractText = function (tree, recurse = false) {
+        let replaceTextAndFindUnordered = function (tree, recurse = true) {
             if (typeof tree === "string") {
                 let child = dependencyValues.textChildrenByCode[tree];
                 if (child !== undefined) {
@@ -469,17 +493,19 @@ export function evaluateLogic({
 
             // multiple words would become multiplication
             if (!(recurse && Array.isArray(tree) && tree[0] === "*")) {
-                foundInvalidFormat = true;
-                return "";
+                throw Error("Invalid format");
             }
 
-            return tree.slice(1).map(extractText).join(" ");
+            return tree
+                .slice(1)
+                .map((x) => replaceTextAndFindUnordered(x, false))
+                .join(" ");
         };
 
-        // every operand must be a text or string
-        operands = operands.map((x) => extractText(x, true));
-
-        if (foundInvalidFormat) {
+        try {
+            // every operand must be a text or string
+            operands = operands.map(replaceTextAndFindUnordered);
+        } catch (e) {
             return valueOnInvalid;
         }
 
@@ -541,6 +567,51 @@ export function evaluateLogic({
             }).fraction_equal;
 
             return fraction_equal === 0 ? 1 : 0;
+        } else if (operator === "in" || operator === "notin") {
+            let text1 = operands[0];
+            if (operands.length !== 2 || typeof text1 !== "string") {
+                return valueOnInvalid;
+            }
+
+            if (dependencyValues.caseInsensitiveMatch) {
+                text1 = text1.toLowerCase();
+            }
+
+            if (typeof operands[1] === "string") {
+                let text2 = operands[1];
+                if (dependencyValues.caseInsensitiveMatch) {
+                    text2 = text2.toLowerCase();
+                }
+                // Have "[text1] in [text2]"
+                // check if text1 is a substring of text2
+                let isSubstring = text2.includes(text1);
+                if (operator === "in") {
+                    return isSubstring ? 1 : 0;
+                } else {
+                    // notin
+                    return isSubstring ? 0 : 1;
+                }
+            } else if (
+                Array.isArray(operands[1]) &&
+                operands[1].every((s) => typeof s === "string")
+            ) {
+                let textlist = operands[1];
+                if (dependencyValues.caseInsensitiveMatch) {
+                    textlist = textlist.map((s) => s.toLowerCase());
+                }
+
+                // Have "[text1] in [textlist]"
+                // check if one of the elements in textlist is text1
+                let isInList = textlist.includes(text1);
+                if (operator === "in") {
+                    return isInList ? 1 : 0;
+                } else {
+                    // notin
+                    return isInList ? 0 : 1;
+                }
+            } else {
+                return valueOnInvalid;
+            }
         } else {
             return valueOnInvalid;
         }
@@ -743,7 +814,9 @@ export function evaluateLogic({
         let element = mathOperands[0];
         let set = mathOperands[1];
         let set_tree = set.tree;
-        if (!(Array.isArray(set_tree) && set_tree[0] === "set")) {
+        if (
+            !(Array.isArray(set_tree) && ["set", "list"].includes(set_tree[0]))
+        ) {
             return valueOnInvalid;
         }
 
