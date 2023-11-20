@@ -1,6 +1,6 @@
 import checkEquality from "./checkEquality";
 import me from "math-expressions";
-import { deepCompare } from "@doenet/utils";
+import { buildSubsetFromMathExpression, deepCompare } from "@doenet/utils";
 import {
     appliedFunctionSymbolsDefault,
     getTextToMathConverter,
@@ -811,53 +811,16 @@ export function evaluateLogic({
     }
 
     if (operator === "in" || operator === "notin") {
-        let element = mathOperands[0];
-        let set = mathOperands[1];
-        let set_tree = set.tree;
-        if (
-            !(Array.isArray(set_tree) && ["set", "list"].includes(set_tree[0]))
-        ) {
+        if (mathOperands.length !== 2) {
             return valueOnInvalid;
         }
 
-        if (dependencyValues.matchPartial) {
-            let results = set_tree.slice(1).map((x) =>
-                checkEquality({
-                    object1: element,
-                    object2: me.fromAst(x),
-                    isUnordered: unorderedCompare,
-                    partialMatches: dependencyValues.matchPartial,
-                    matchByExactPositions:
-                        dependencyValues.matchByExactPositions,
-                    symbolicEquality: dependencyValues.symbolicEquality,
-                    simplify: dependencyValues.simplifyOnCompare,
-                    expand: dependencyValues.expandOnCompare,
-                    allowedErrorInNumbers:
-                        dependencyValues.allowedErrorInNumbers,
-                    includeErrorInNumberExponents:
-                        dependencyValues.includeErrorInNumberExponents,
-                    allowedErrorIsAbsolute:
-                        dependencyValues.allowedErrorIsAbsolute,
-                    numSignErrorsMatched: dependencyValues.numSignErrorsMatched,
-                    numPeriodicSetMatchesRequired:
-                        dependencyValues.numPeriodicSetMatchesRequired,
-                    caseInsensitiveMatch: dependencyValues.caseInsensitiveMatch,
-                    matchBlanks: dependencyValues.matchBlanks,
-                }),
-            );
-
-            let max_fraction = results.reduce(
-                (a, c) => Math.max(a, c.fraction_equal),
-                0,
-            );
-            if (operator === "in") {
-                return max_fraction;
-            } else {
-                return 1 - max_fraction;
-            }
-        } else {
-            let result = set_tree.slice(1).some(
-                (x) =>
+        let element = mathOperands[0];
+        let set = mathOperands[1];
+        let set_tree = set.tree;
+        if (Array.isArray(set_tree) && ["set", "list"].includes(set_tree[0])) {
+            if (dependencyValues.matchPartial) {
+                let results = set_tree.slice(1).map((x) =>
                     checkEquality({
                         object1: element,
                         object2: me.fromAst(x),
@@ -881,15 +844,76 @@ export function evaluateLogic({
                         caseInsensitiveMatch:
                             dependencyValues.caseInsensitiveMatch,
                         matchBlanks: dependencyValues.matchBlanks,
-                    }).fraction_equal === 1,
-            );
+                    }),
+                );
 
-            if (operator === "in") {
-                return result ? 1 : 0;
+                let max_fraction = results.reduce(
+                    (a, c) => Math.max(a, c.fraction_equal),
+                    0,
+                );
+                if (operator === "in") {
+                    return max_fraction;
+                } else {
+                    return 1 - max_fraction;
+                }
             } else {
-                return result ? 0 : 1;
+                let result = set_tree.slice(1).some(
+                    (x) =>
+                        checkEquality({
+                            object1: element,
+                            object2: me.fromAst(x),
+                            isUnordered: unorderedCompare,
+                            partialMatches: dependencyValues.matchPartial,
+                            matchByExactPositions:
+                                dependencyValues.matchByExactPositions,
+                            symbolicEquality: dependencyValues.symbolicEquality,
+                            simplify: dependencyValues.simplifyOnCompare,
+                            expand: dependencyValues.expandOnCompare,
+                            allowedErrorInNumbers:
+                                dependencyValues.allowedErrorInNumbers,
+                            includeErrorInNumberExponents:
+                                dependencyValues.includeErrorInNumberExponents,
+                            allowedErrorIsAbsolute:
+                                dependencyValues.allowedErrorIsAbsolute,
+                            numSignErrorsMatched:
+                                dependencyValues.numSignErrorsMatched,
+                            numPeriodicSetMatchesRequired:
+                                dependencyValues.numPeriodicSetMatchesRequired,
+                            caseInsensitiveMatch:
+                                dependencyValues.caseInsensitiveMatch,
+                            matchBlanks: dependencyValues.matchBlanks,
+                        }).fraction_equal === 1,
+                );
+
+                if (operator === "in") {
+                    return result ? 1 : 0;
+                } else {
+                    return result ? 0 : 1;
+                }
             }
         }
+
+        // operator is in or notin, but second operand is not a set or list
+        // If first operand is a number and second operand can be turned into a subset of reals,
+        // then we can check for inclusion.
+
+        let number1 = element.evaluate_to_constant();
+
+        if (Number.isFinite(number1)) {
+            let subsetOfReals = buildSubsetFromMathExpression(set);
+
+            if (subsetOfReals.isValid()) {
+                let containsNumber = subsetOfReals.containsElement(number1);
+                if (operator === "in") {
+                    return containsNumber ? 1 : 0;
+                } else {
+                    // notin
+                    return containsNumber ? 0 : 1;
+                }
+            }
+        }
+
+        return valueOnInvalid;
     }
 
     // since have inequality, all operands must be numbers
