@@ -486,30 +486,19 @@ export function evaluateLogic({
             // Have: [booleanList1] operator [booleanList2],
             // where operator is subset, notsubset, superset, or notsuperset
 
-            if (operator === "subset" || operator === "notsubset") {
-                // check if every element of booleanList1 is in booleanList2
-                let oneInTwo = booleanList1.every((b) =>
-                    booleanList2.includes(b),
-                );
-                if (operator === "subset") {
-                    return oneInTwo ? 1 : 0;
-                } else {
-                    // notsubset
-                    return oneInTwo ? 0 : 1;
-                }
-            } else {
-                // superset or notsuperset
+            if (operator === "superset" || operator === "notsuperset") {
+                // swap operands so can use subset convention
+                [booleanList1, booleanList2] = [booleanList2, booleanList1];
+            }
 
-                // check if every element of booleanList2 is in booleanList1
-                let twoInOne = booleanList2.every((b) =>
-                    booleanList1.includes(b),
-                );
-                if (operator === "superset") {
-                    return twoInOne ? 1 : 0;
-                } else {
-                    // notsuperset
-                    return twoInOne ? 0 : 1;
-                }
+            // check if every element of booleanList1 is in booleanList2
+            let haveContainment = booleanList1.every((b) =>
+                booleanList2.includes(b),
+            );
+            if (operator.substring(0, 3) === "not") {
+                return haveContainment ? 0 : 1;
+            } else {
+                return haveContainment ? 1 : 0;
             }
         } else {
             return valueOnInvalid;
@@ -692,26 +681,17 @@ export function evaluateLogic({
             // Have: [textList1] operator [textList2],
             // where operator is subset, notsubset, superset, or notsuperset
 
-            if (operator === "subset" || operator === "notsubset") {
-                // check if every element of textList1 is in textList2
-                let oneInTwo = textList1.every((b) => textList2.includes(b));
-                if (operator === "subset") {
-                    return oneInTwo ? 1 : 0;
-                } else {
-                    // notsubset
-                    return oneInTwo ? 0 : 1;
-                }
-            } else {
-                // superset or notsuperset
+            if (operator === "superset" || operator === "notsuperset") {
+                // swap operands so can use subset convention
+                [textList1, textList2] = [textList2, textList1];
+            }
 
-                // check if every element of textList2 is in textList1
-                let twoInOne = textList2.every((b) => textList1.includes(b));
-                if (operator === "superset") {
-                    return twoInOne ? 1 : 0;
-                } else {
-                    // notsuperset
-                    return twoInOne ? 0 : 1;
-                }
+            // check if every element of textList1 is in textList2
+            let haveContainment = textList1.every((b) => textList2.includes(b));
+            if (operator.substring(0, 3) === "not") {
+                return haveContainment ? 0 : 1;
+            } else {
+                return haveContainment ? 1 : 0;
             }
         } else {
             return valueOnInvalid;
@@ -1027,8 +1007,14 @@ export function evaluateLogic({
         }
 
         let set1 = mathOperands[0];
-        let set1_tree = set1.tree;
         let set2 = mathOperands[1];
+
+        if (operator === "superset" || operator === "notsuperset") {
+            // swap operands so can use subset convention
+            [set1, set2] = [set2, set1];
+        }
+
+        let set1_tree = set1.tree;
         let set2_tree = set2.tree;
 
         if (
@@ -1037,86 +1023,41 @@ export function evaluateLogic({
             Array.isArray(set2_tree) &&
             ["set", "list"].includes(set2_tree[0])
         ) {
-            if (operator === "subset" || operator === "notsubset") {
-                // check if every element in set 1 is equal to an element in set 2
-                let oneInTwo = set1_tree.slice(1).every((elt1) =>
-                    set2_tree.slice(1).some(
-                        (elt2) =>
-                            checkEquality({
-                                object1: me.fromAst(elt1),
-                                object2: me.fromAst(elt2),
-                                isUnordered: unorderedCompare,
-                                partialMatches: dependencyValues.matchPartial,
-                                matchByExactPositions:
-                                    dependencyValues.matchByExactPositions,
-                                symbolicEquality:
-                                    dependencyValues.symbolicEquality,
-                                simplify: dependencyValues.simplifyOnCompare,
-                                expand: dependencyValues.expandOnCompare,
-                                allowedErrorInNumbers:
-                                    dependencyValues.allowedErrorInNumbers,
-                                includeErrorInNumberExponents:
-                                    dependencyValues.includeErrorInNumberExponents,
-                                allowedErrorIsAbsolute:
-                                    dependencyValues.allowedErrorIsAbsolute,
-                                numSignErrorsMatched:
-                                    dependencyValues.numSignErrorsMatched,
-                                numPeriodicSetMatchesRequired:
-                                    dependencyValues.numPeriodicSetMatchesRequired,
-                                caseInsensitiveMatch:
-                                    dependencyValues.caseInsensitiveMatch,
-                                matchBlanks: dependencyValues.matchBlanks,
-                            }).fraction_equal === 1,
-                    ),
-                );
+            // check if every element in set 1 is equal to an element in set 2
+            let haveContainment = set1_tree.slice(1).every((elt1) =>
+                set2_tree.slice(1).some(
+                    (elt2) =>
+                        checkEquality({
+                            object1: me.fromAst(elt1),
+                            object2: me.fromAst(elt2),
+                            isUnordered: unorderedCompare,
+                            partialMatches: dependencyValues.matchPartial,
+                            matchByExactPositions:
+                                dependencyValues.matchByExactPositions,
+                            symbolicEquality: dependencyValues.symbolicEquality,
+                            simplify: dependencyValues.simplifyOnCompare,
+                            expand: dependencyValues.expandOnCompare,
+                            allowedErrorInNumbers:
+                                dependencyValues.allowedErrorInNumbers,
+                            includeErrorInNumberExponents:
+                                dependencyValues.includeErrorInNumberExponents,
+                            allowedErrorIsAbsolute:
+                                dependencyValues.allowedErrorIsAbsolute,
+                            numSignErrorsMatched:
+                                dependencyValues.numSignErrorsMatched,
+                            numPeriodicSetMatchesRequired:
+                                dependencyValues.numPeriodicSetMatchesRequired,
+                            caseInsensitiveMatch:
+                                dependencyValues.caseInsensitiveMatch,
+                            matchBlanks: dependencyValues.matchBlanks,
+                        }).fraction_equal === 1,
+                ),
+            );
 
-                if (operator === "subset") {
-                    return oneInTwo ? 1 : 0;
-                } else {
-                    // notsubset
-                    return oneInTwo ? 0 : 1;
-                }
+            if (operator.substring(0, 3) === "not") {
+                return haveContainment ? 0 : 1;
             } else {
-                // superset or notsuperset
-
-                // check if every element in set 2 is equal to an element in set 1
-                let twoInOne = set2_tree.slice(1).every((elt2) =>
-                    set1_tree.slice(1).some(
-                        (elt1) =>
-                            checkEquality({
-                                object1: me.fromAst(elt1),
-                                object2: me.fromAst(elt2),
-                                isUnordered: unorderedCompare,
-                                partialMatches: dependencyValues.matchPartial,
-                                matchByExactPositions:
-                                    dependencyValues.matchByExactPositions,
-                                symbolicEquality:
-                                    dependencyValues.symbolicEquality,
-                                simplify: dependencyValues.simplifyOnCompare,
-                                expand: dependencyValues.expandOnCompare,
-                                allowedErrorInNumbers:
-                                    dependencyValues.allowedErrorInNumbers,
-                                includeErrorInNumberExponents:
-                                    dependencyValues.includeErrorInNumberExponents,
-                                allowedErrorIsAbsolute:
-                                    dependencyValues.allowedErrorIsAbsolute,
-                                numSignErrorsMatched:
-                                    dependencyValues.numSignErrorsMatched,
-                                numPeriodicSetMatchesRequired:
-                                    dependencyValues.numPeriodicSetMatchesRequired,
-                                caseInsensitiveMatch:
-                                    dependencyValues.caseInsensitiveMatch,
-                                matchBlanks: dependencyValues.matchBlanks,
-                            }).fraction_equal === 1,
-                    ),
-                );
-
-                if (operator === "superset") {
-                    return twoInOne ? 1 : 0;
-                } else {
-                    // notsuperset
-                    return twoInOne ? 0 : 1;
-                }
+                return haveContainment ? 1 : 0;
             }
         }
 
@@ -1138,25 +1079,13 @@ export function evaluateLogic({
                 let subsetOfReals2 = buildSubsetFromMathExpression(set2);
 
                 if (subsetOfReals2.isValid()) {
-                    if (operator === "subset" || operator === "notsubset") {
-                        let oneInTwo =
-                            subsetOfReals2.containsSubset(subsetOfReals1);
-                        if (operator === "subset") {
-                            return oneInTwo ? 1 : 0;
-                        } else {
-                            // notsubset
-                            return oneInTwo ? 0 : 1;
-                        }
+                    let haveContainment =
+                        subsetOfReals2.containsSubset(subsetOfReals1);
+
+                    if (operator.substring(0, 3) === "not") {
+                        return haveContainment ? 0 : 1;
                     } else {
-                        // superset or notsuperset
-                        let twoInOne =
-                            subsetOfReals1.containsSubset(subsetOfReals2);
-                        if (operator === "superset") {
-                            return twoInOne ? 1 : 0;
-                        } else {
-                            // notsuperset
-                            return twoInOne ? 0 : 1;
-                        }
+                        return haveContainment ? 1 : 0;
                     }
                 }
             }
