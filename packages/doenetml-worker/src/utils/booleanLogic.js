@@ -328,6 +328,10 @@ export function evaluateLogic({
             "gts",
             "in",
             "notin",
+            "subset",
+            "notsubset",
+            "superset",
+            "notsuperset",
         ].includes(operator)
     ) {
         if (foundText || foundBoolean || foundOther) {
@@ -458,6 +462,54 @@ export function evaluateLogic({
             } else {
                 // notin
                 return isInList ? 0 : 1;
+            }
+        } else if (
+            ["subset", "notsubset", "superset", "notsuperset"].includes(
+                operator,
+            )
+        ) {
+            let booleanList1 = operands[0];
+            let booleanList2 = operands[1];
+
+            if (
+                !(
+                    operands.length === 2 &&
+                    Array.isArray(booleanList1) &&
+                    booleanList1.every((b) => typeof b === "boolean") &&
+                    Array.isArray(booleanList2) &&
+                    booleanList2.every((b) => typeof b === "boolean")
+                )
+            ) {
+                return valueOnInvalid;
+            }
+
+            // Have [booleanList1] operator [booleanList2],
+            // where operator is subset, notsubset, superset, or notsuperset
+
+            if (operator === "subset" || operator === "notsubset") {
+                // check if every element of booleanList1 is in booleanList2
+                let oneInTwo = booleanList1.every((b) =>
+                    booleanList2.includes(b),
+                );
+                if (operator === "subset") {
+                    return oneInTwo ? 1 : 0;
+                } else {
+                    // notsubset
+                    return oneInTwo ? 0 : 1;
+                }
+            } else {
+                // superset or notsuperset
+
+                // check if every element of booleanList2 is in booleanList1
+                let twoInOne = booleanList2.every((b) =>
+                    booleanList1.includes(b),
+                );
+                if (operator === "superset") {
+                    return twoInOne ? 1 : 0;
+                } else {
+                    // notsuperset
+                    return twoInOne ? 0 : 1;
+                }
             }
         } else {
             return valueOnInvalid;
@@ -611,6 +663,55 @@ export function evaluateLogic({
                 }
             } else {
                 return valueOnInvalid;
+            }
+        } else if (
+            ["subset", "notsubset", "superset", "notsuperset"].includes(
+                operator,
+            )
+        ) {
+            let textList1 = operands[0];
+            let textList2 = operands[1];
+
+            if (
+                !(
+                    operands.length === 2 &&
+                    Array.isArray(textList1) &&
+                    textList1.every((b) => typeof b === "string") &&
+                    Array.isArray(textList2) &&
+                    textList2.every((b) => typeof b === "string")
+                )
+            ) {
+                return valueOnInvalid;
+            }
+
+            if (dependencyValues.caseInsensitiveMatch) {
+                textList1 = textList1.map((s) => s.toLowerCase());
+                textList2 = textList2.map((s) => s.toLowerCase());
+            }
+
+            // Have [textList1] operator [textList2],
+            // where operator is subset, notsubset, superset, or notsuperset
+
+            if (operator === "subset" || operator === "notsubset") {
+                // check if every element of textList1 is in textList2
+                let oneInTwo = textList1.every((b) => textList2.includes(b));
+                if (operator === "subset") {
+                    return oneInTwo ? 1 : 0;
+                } else {
+                    // notsubset
+                    return oneInTwo ? 0 : 1;
+                }
+            } else {
+                // superset or notsuperset
+
+                // check if every element of textList2 is in textList1
+                let twoInOne = textList2.every((b) => textList1.includes(b));
+                if (operator === "superset") {
+                    return twoInOne ? 1 : 0;
+                } else {
+                    // notsuperset
+                    return twoInOne ? 0 : 1;
+                }
             }
         } else {
             return valueOnInvalid;
@@ -898,8 +999,12 @@ export function evaluateLogic({
         // then we can check for inclusion.
 
         let number1 = element.evaluate_to_constant();
+        let number2 = set.evaluate_to_constant();
 
-        if (Number.isFinite(number1)) {
+        // Note: since buildSubsetFromMathExpression will create a subset from a number,
+        // we exclude this case to make it consistent with the fact that non-numerical
+        // single values are not treated as sets.
+        if (Number.isFinite(number1) && !Number.isFinite(number2)) {
             let subsetOfReals = buildSubsetFromMathExpression(set);
 
             if (subsetOfReals.isValid()) {
@@ -909,6 +1014,150 @@ export function evaluateLogic({
                 } else {
                     // notin
                     return containsNumber ? 0 : 1;
+                }
+            }
+        }
+
+        return valueOnInvalid;
+    }
+
+    if (["subset", "notsubset", "superset", "notsuperset"].includes(operator)) {
+        if (mathOperands.length !== 2) {
+            return valueOnInvalid;
+        }
+
+        let set1 = mathOperands[0];
+        let set1_tree = set1.tree;
+        let set2 = mathOperands[1];
+        let set2_tree = set2.tree;
+
+        if (
+            Array.isArray(set1_tree) &&
+            ["set", "list"].includes(set1_tree[0]) &&
+            Array.isArray(set2_tree) &&
+            ["set", "list"].includes(set2_tree[0])
+        ) {
+            if (operator === "subset" || operator === "notsubset") {
+                // check if every element in set 1 is equal to an element in set 2
+                let oneInTwo = set1_tree.slice(1).every((elt1) =>
+                    set2_tree.slice(1).some(
+                        (elt2) =>
+                            checkEquality({
+                                object1: me.fromAst(elt1),
+                                object2: me.fromAst(elt2),
+                                isUnordered: unorderedCompare,
+                                partialMatches: dependencyValues.matchPartial,
+                                matchByExactPositions:
+                                    dependencyValues.matchByExactPositions,
+                                symbolicEquality:
+                                    dependencyValues.symbolicEquality,
+                                simplify: dependencyValues.simplifyOnCompare,
+                                expand: dependencyValues.expandOnCompare,
+                                allowedErrorInNumbers:
+                                    dependencyValues.allowedErrorInNumbers,
+                                includeErrorInNumberExponents:
+                                    dependencyValues.includeErrorInNumberExponents,
+                                allowedErrorIsAbsolute:
+                                    dependencyValues.allowedErrorIsAbsolute,
+                                numSignErrorsMatched:
+                                    dependencyValues.numSignErrorsMatched,
+                                numPeriodicSetMatchesRequired:
+                                    dependencyValues.numPeriodicSetMatchesRequired,
+                                caseInsensitiveMatch:
+                                    dependencyValues.caseInsensitiveMatch,
+                                matchBlanks: dependencyValues.matchBlanks,
+                            }).fraction_equal === 1,
+                    ),
+                );
+
+                if (operator === "subset") {
+                    return oneInTwo ? 1 : 0;
+                } else {
+                    // notsubset
+                    return oneInTwo ? 0 : 1;
+                }
+            } else {
+                // superset or notsuperset
+
+                // check if every element in set 2 is equal to an element in set 1
+                let twoInOne = set2_tree.slice(1).every((elt2) =>
+                    set1_tree.slice(1).some(
+                        (elt1) =>
+                            checkEquality({
+                                object1: me.fromAst(elt1),
+                                object2: me.fromAst(elt2),
+                                isUnordered: unorderedCompare,
+                                partialMatches: dependencyValues.matchPartial,
+                                matchByExactPositions:
+                                    dependencyValues.matchByExactPositions,
+                                symbolicEquality:
+                                    dependencyValues.symbolicEquality,
+                                simplify: dependencyValues.simplifyOnCompare,
+                                expand: dependencyValues.expandOnCompare,
+                                allowedErrorInNumbers:
+                                    dependencyValues.allowedErrorInNumbers,
+                                includeErrorInNumberExponents:
+                                    dependencyValues.includeErrorInNumberExponents,
+                                allowedErrorIsAbsolute:
+                                    dependencyValues.allowedErrorIsAbsolute,
+                                numSignErrorsMatched:
+                                    dependencyValues.numSignErrorsMatched,
+                                numPeriodicSetMatchesRequired:
+                                    dependencyValues.numPeriodicSetMatchesRequired,
+                                caseInsensitiveMatch:
+                                    dependencyValues.caseInsensitiveMatch,
+                                matchBlanks: dependencyValues.matchBlanks,
+                            }).fraction_equal === 1,
+                    ),
+                );
+
+                if (operator === "superset") {
+                    return twoInOne ? 1 : 0;
+                } else {
+                    // notsuperset
+                    return twoInOne ? 0 : 1;
+                }
+            }
+        }
+
+        // operator is subset, notsubset, superset, or notsuperset,
+        // but operands are not lists or sets
+        // If both operands can be turned into a subset of reals,
+        // then we can check for inclusion.
+
+        // Note: since buildSubsetFromMathExpression will create a subset from a number,
+        // we exclude this case to make it consistent with the fact that non-numerical
+        // single values are not treated as sets.
+        let number1 = set1.evaluate_to_constant();
+        let number2 = set2.evaluate_to_constant();
+
+        if (!(Number.isFinite(number1) || Number.isFinite(number2))) {
+            let subsetOfReals1 = buildSubsetFromMathExpression(set1);
+
+            if (subsetOfReals1.isValid()) {
+                let subsetOfReals2 = buildSubsetFromMathExpression(set2);
+
+                if (subsetOfReals2.isValid()) {
+                    if (operator === "subset" || operator === "notsubset") {
+                        let oneInTwo =
+                            subsetOfReals2.containsSubset(subsetOfReals1);
+                        if (operator === "subset") {
+                            return oneInTwo ? 1 : 0;
+                        } else {
+                            // notsubset
+                            return oneInTwo ? 0 : 1;
+                        }
+                    } else {
+                        // superset or notsuperset
+                        let twoInOne =
+                            subsetOfReals1.containsSubset(subsetOfReals2);
+                        if (operator === "superset") {
+                            return twoInOne ? 1 : 0;
+                        } else {
+                            // notsuperset
+                            return twoInOne ? 0 : 1;
+                        }
+                    }
                 }
             }
         }

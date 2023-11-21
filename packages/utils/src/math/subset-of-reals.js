@@ -34,11 +34,11 @@ class Subset {
     }
 
     containsSubset(that) {
-        this.intersect(that).equals(that);
+        return this.intersect(that).equals(that);
     }
 
     isSubsetOf(that) {
-        that.intersect(this).equals(this);
+        return that.intersect(this).equals(this);
     }
 
     equals(that) {
