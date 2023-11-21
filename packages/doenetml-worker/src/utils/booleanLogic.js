@@ -454,7 +454,7 @@ export function evaluateLogic({
                 return valueOnInvalid;
             }
 
-            // Have "[boolean1] in [booleanlist]"
+            // Have: [boolean1] in/notin [booleanlist]
             // check if one of the elements in booleanlist is boolean1
             let isInList = operands[1].includes(boolean1);
             if (operator === "in") {
@@ -483,7 +483,7 @@ export function evaluateLogic({
                 return valueOnInvalid;
             }
 
-            // Have [booleanList1] operator [booleanList2],
+            // Have: [booleanList1] operator [booleanList2],
             // where operator is subset, notsubset, superset, or notsuperset
 
             if (operator === "subset" || operator === "notsubset") {
@@ -634,7 +634,7 @@ export function evaluateLogic({
                 if (dependencyValues.caseInsensitiveMatch) {
                     text2 = text2.toLowerCase();
                 }
-                // Have "[text1] in [text2]"
+                // Have: [text1] in/notin [text2]
                 // check if text1 is a substring of text2
                 let isSubstring = text2.includes(text1);
                 if (operator === "in") {
@@ -652,7 +652,7 @@ export function evaluateLogic({
                     textlist = textlist.map((s) => s.toLowerCase());
                 }
 
-                // Have "[text1] in [textlist]"
+                // Have: [text1] in/notin [textlist]
                 // check if one of the elements in textlist is text1
                 let isInList = textlist.includes(text1);
                 if (operator === "in") {
@@ -689,7 +689,7 @@ export function evaluateLogic({
                 textList2 = textList2.map((s) => s.toLowerCase());
             }
 
-            // Have [textList1] operator [textList2],
+            // Have: [textList1] operator [textList2],
             // where operator is subset, notsubset, superset, or notsuperset
 
             if (operator === "subset" || operator === "notsubset") {
