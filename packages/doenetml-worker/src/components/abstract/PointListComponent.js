@@ -97,6 +97,7 @@ export default class PointListComponent extends BaseComponent {
             isArray: true,
             numDimensions: 2,
             entryPrefixes: ["pointX", "point"],
+            returnEntryDimensions: (prefix) => (prefix === "point" ? 1 : 0),
             getArrayKeysFromVarName({
                 arrayEntryPrefix,
                 varEnding,

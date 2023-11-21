@@ -223,7 +223,7 @@ export default class LineSegment extends GraphicalComponent {
                                 "point",
                                 {
                                     componentType: "mathList",
-                                    isAttribute: "xs",
+                                    isAttributeNamed: "xs",
                                 },
                             ],
                         ];
@@ -233,6 +233,7 @@ export default class LineSegment extends GraphicalComponent {
             isArray: true,
             numDimensions: 2,
             entryPrefixes: ["endpointX", "endpoint"],
+            returnEntryDimensions: (prefix) => (prefix === "endpoint" ? 1 : 0),
             hasEssential: true,
             set: convertValueToMathExpression,
             defaultValueByArrayKey: (arrayKey) =>

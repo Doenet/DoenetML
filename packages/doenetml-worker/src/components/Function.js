@@ -184,7 +184,7 @@ export default class Function extends InlineComponent {
         ];
     }
 
-    static returnStateVariableDefinitions({ numerics }) {
+    static returnStateVariableDefinitions(numerics) {
         let stateVariableDefinitions =
             GraphicalComponent.returnStateVariableDefinitions();
 
@@ -2943,7 +2943,7 @@ export default class Function extends InlineComponent {
                                 "point",
                                 {
                                     componentType: "mathList",
-                                    isAttribute: "xs",
+                                    isAttributeNamed: "xs",
                                 },
                             ],
                         ];
@@ -2962,6 +2962,13 @@ export default class Function extends InlineComponent {
                 "minimumValues",
                 "minimumValue",
             ],
+            returnEntryDimensions: (prefix) => {
+                if (["minimumLocation", "minimumValue"].includes(prefix)) {
+                    return 0;
+                } else {
+                    return 1;
+                }
+            },
             getArrayKeysFromVarName({
                 arrayEntryPrefix,
                 varEnding,
@@ -3128,7 +3135,7 @@ export default class Function extends InlineComponent {
                                 "point",
                                 {
                                     componentType: "mathList",
-                                    isAttribute: "xs",
+                                    isAttributeNamed: "xs",
                                 },
                             ],
                         ];
@@ -3219,7 +3226,7 @@ export default class Function extends InlineComponent {
                                 "point",
                                 {
                                     componentType: "mathList",
-                                    isAttribute: "xs",
+                                    isAttributeNamed: "xs",
                                 },
                             ],
                         ];
@@ -3432,7 +3439,7 @@ export default class Function extends InlineComponent {
                                 "point",
                                 {
                                     componentType: "mathList",
-                                    isAttribute: "xs",
+                                    isAttributeNamed: "xs",
                                 },
                             ],
                         ];
@@ -3451,6 +3458,13 @@ export default class Function extends InlineComponent {
                 "maximumValues",
                 "maximumValue",
             ],
+            returnEntryDimensions: (prefix) => {
+                if (["maximumLocation", "maximumValue"].includes(prefix)) {
+                    return 0;
+                } else {
+                    return 1;
+                }
+            },
             getArrayKeysFromVarName({
                 arrayEntryPrefix,
                 varEnding,
@@ -3617,7 +3631,7 @@ export default class Function extends InlineComponent {
                                 "point",
                                 {
                                     componentType: "mathList",
-                                    isAttribute: "xs",
+                                    isAttributeNamed: "xs",
                                 },
                             ],
                         ];
@@ -3708,7 +3722,7 @@ export default class Function extends InlineComponent {
                                 "point",
                                 {
                                     componentType: "mathList",
-                                    isAttribute: "xs",
+                                    isAttributeNamed: "xs",
                                 },
                             ],
                         ];
@@ -3851,7 +3865,7 @@ export default class Function extends InlineComponent {
                                 "point",
                                 {
                                     componentType: "mathList",
-                                    isAttribute: "xs",
+                                    isAttributeNamed: "xs",
                                 },
                             ],
                         ];
@@ -3870,6 +3884,13 @@ export default class Function extends InlineComponent {
                 "extremumValues",
                 "extremumValue",
             ],
+            returnEntryDimensions: (prefix) => {
+                if (["extremumLocation", "extremumValue"].includes(prefix)) {
+                    return 0;
+                } else {
+                    return 1;
+                }
+            },
             getArrayKeysFromVarName({
                 arrayEntryPrefix,
                 varEnding,

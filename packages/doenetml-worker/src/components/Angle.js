@@ -132,6 +132,7 @@ export default class Angle extends GraphicalComponent {
             isArray: true,
             numDimensions: 2,
             entryPrefixes: ["pointX", "point"],
+            returnEntryDimensions: (prefix) => (prefix === "point" ? 1 : 0),
             stateVariablesDeterminingDependencies: ["betweenLinesName"],
             returnArraySizeDependencies: () => ({}),
             returnArraySize() {

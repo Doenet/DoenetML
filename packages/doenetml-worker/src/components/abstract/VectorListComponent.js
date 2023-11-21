@@ -95,6 +95,7 @@ export default class VectorListComponent extends BaseComponent {
             isArray: true,
             numDimensions: 2,
             entryPrefixes: ["vectorX", "vector"],
+            returnEntryDimensions: (prefix) => (prefix === "vector" ? 1 : 0),
             getArrayKeysFromVarName({
                 arrayEntryPrefix,
                 varEnding,

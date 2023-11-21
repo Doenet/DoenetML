@@ -210,7 +210,7 @@ export default class BestFitLine extends Line {
                                 "point",
                                 {
                                     componentType: "mathList",
-                                    isAttribute: "xs",
+                                    isAttributeNamed: "xs",
                                 },
                             ],
                         ];
@@ -220,6 +220,7 @@ export default class BestFitLine extends Line {
             isArray: true,
             numDimensions: 2,
             entryPrefixes: ["datumX", "datum"],
+            returnEntryDimensions: (prefix) => (prefix === "datum" ? 1 : 0),
             getArrayKeysFromVarName({
                 arrayEntryPrefix,
                 varEnding,

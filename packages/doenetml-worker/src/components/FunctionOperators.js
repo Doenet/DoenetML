@@ -25,10 +25,10 @@ export class ClampFunction extends FunctionBaseOperator {
         return attributes;
     }
 
-    static returnStateVariableDefinitions({ numerics }) {
-        let stateVariableDefinitions = super.returnStateVariableDefinitions({
+    static returnStateVariableDefinitions(numerics) {
+        let stateVariableDefinitions = super.returnStateVariableDefinitions(
             numerics,
-        });
+        );
 
         stateVariableDefinitions.numericalFunctionOperator = {
             additionalStateVariablesDefined: [
@@ -106,10 +106,10 @@ export class WrapFunctionPeriodic extends FunctionBaseOperator {
         return attributes;
     }
 
-    static returnStateVariableDefinitions({ numerics }) {
-        let stateVariableDefinitions = super.returnStateVariableDefinitions({
+    static returnStateVariableDefinitions(numerics) {
+        let stateVariableDefinitions = super.returnStateVariableDefinitions(
             numerics,
-        });
+        );
 
         stateVariableDefinitions.numericalFunctionOperator = {
             additionalStateVariablesDefined: [
@@ -183,10 +183,10 @@ export class Derivative extends FunctionBaseOperator {
         return attributes;
     }
 
-    static returnStateVariableDefinitions({ numerics }) {
-        let stateVariableDefinitions = super.returnStateVariableDefinitions({
+    static returnStateVariableDefinitions(numerics) {
+        let stateVariableDefinitions = super.returnStateVariableDefinitions(
             numerics,
-        });
+        );
 
         stateVariableDefinitions.operatorBasedOnFormulaIfAvailable = {
             returnDependencies: () => ({}),

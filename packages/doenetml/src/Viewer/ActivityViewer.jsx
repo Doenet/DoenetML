@@ -893,9 +893,6 @@ export function ActivityViewer({
                 activityStateToBeSavedToDatabase.current,
             );
         } catch (e) {
-            console.log(
-                `sending sendAlert: Error synchronizing data.  Changes not saved to the server.`,
-            );
             sendAlert(
                 "Error synchronizing data.  Changes not saved to the server.",
                 "error",
@@ -908,9 +905,6 @@ export function ActivityViewer({
         savingActivityState.current = false;
 
         if (resp.status === null) {
-            console.log(
-                `sending sendAlert: Error synchronizing data.  Changes not saved to the server.  Are you connected to the internet?`,
-            );
             sendAlert(
                 "Error synchronizing data.  Changes not saved to the server.  Are you connected to the internet?",
                 "error",
@@ -921,7 +915,6 @@ export function ActivityViewer({
         let data = resp.data;
 
         if (!data.success) {
-            console.log(`sending sendAlert: ${data.message}`);
             sendAlert(data.message, "error");
             return;
         }
