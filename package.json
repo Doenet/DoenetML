@@ -10,6 +10,7 @@
         "./packages/parser",
         "./packages/lsp-tools",
         "./packages/doenetml-worker",
+        "./packages/doenetml-worker-rust",
         "./packages/virtual-keyboard",
         "./packages/codemirror",
         "./packages/doenetml",

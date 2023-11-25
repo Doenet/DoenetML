@@ -1,0 +1,37 @@
+[package]
+name = "doenetml-core"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["rlib"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+# core-derive = { path = "core-derive" }
+lazy_static = "1.4.0"
+# phf = { version = "0.10", features = ["macros"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+regex = "1.5"
+wasm-bindgen = {version = "0.2.81", features = ["serde-serialize"], optional = true}
+web-sys = {version = "0.3", features = ["console"], optional = true}
+evalexpr = {version = "8.1.0", features = ["serde_support"]}
+enum-as-inner = "0.5.1"
+ndarray = {version = "0.15.6", features = ["serde"]}
+instant = { version = "0.1", features = [ "wasm-bindgen" ] }
+
+[dev-dependencies]
+criterion = "0.3.6"
+
+[[bench]]
+name = "my_benchmark"
+harness = false
+
+
+
+[features]
+# The web feature makes the log! macro additionally go to web-sys:console
+web = ["dep:web-sys", "dep:wasm-bindgen"]
+web-debug-log = []
