@@ -1,3 +1,5 @@
+mod utils;
+
 extern crate web_sys;
 
 use wasm_bindgen::prelude::*;
@@ -12,12 +14,19 @@ static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
 #[wasm_bindgen(getter_with_clone)]
 #[derive(Debug)]
-pub struct PublicDoenetCore(DoenetMLCore);
+pub struct PublicDoenetMLCore(DoenetMLCore);
 
 #[wasm_bindgen]
-impl PublicDoenetCore {
+impl PublicDoenetMLCore {
     /// Create components from JSON tree and create all dependencies.
-    pub fn new(program: &str) -> Result<PublicDoenetCore, String> {
-        Ok(PublicDoenetCore(DoenetMLCore { a_number: 1 }))
+    pub fn new(
+        dast_string: &str,
+        doenetml: &str,
+        flags_string: &str,
+    ) -> Result<PublicDoenetMLCore, String> {
+        utils::set_panic_hook();
+
+        doenetml_core::create_doenetml_core(dast_string, doenetml, flags_string);
+        Ok(PublicDoenetMLCore(DoenetMLCore { a_number: 1 }))
     }
 }
