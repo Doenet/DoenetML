@@ -141,7 +141,7 @@ BalancedParenText
 PropAttrs = "{" _? @(@Attr _?)* "}"
 
 PropIndex
-    = "[" _? value:(Macro / TextWithoutClosingSquareBrace) _? "]" {
+    = "[" _? value:(@(FunctionMacro / Macro / TextWithoutClosingSquareBrace) _?)* "]" {
             return withPosition({ type: "index", value });
         }
 

@@ -112,7 +112,7 @@ export type PropIndex = {
     start: { offset: number; line: number; column: number };
     end: { offset: number; line: number; column: number };
   };
-} & { type: "index"; value: Macro | TextWithoutClosingSquareBrace };
+} & { type: "index"; value: (FunctionMacro | Macro | TextWithoutClosingSquareBrace)[] };
 export type Attr =
   | ({
       position: {
