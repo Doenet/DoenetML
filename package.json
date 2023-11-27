@@ -14,6 +14,7 @@
         "./packages/virtual-keyboard",
         "./packages/codemirror",
         "./packages/doenetml",
+        "./packages/doenetml-prototype",
         "./packages/*"
     ],
     "scripts": {
