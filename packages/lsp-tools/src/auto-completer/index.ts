@@ -1,8 +1,8 @@
 import { DoenetSourceObject, RowCol } from "../doenet-source-object";
 import { doenetSchema } from "@doenet/static-assets";
 import { DastAttribute, DastElement } from "@doenet/parser";
-import { getCompletionItems } from "./get-completion-items";
-import { getSchemaViolations } from "./get-schema-violations";
+import { getCompletionItems } from "./methods/get-completion-items";
+import { getSchemaViolations } from "./methods/get-schema-violations";
 
 type ElementSchema = {
     name: string;

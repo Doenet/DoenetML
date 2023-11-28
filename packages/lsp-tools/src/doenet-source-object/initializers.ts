@@ -45,7 +45,10 @@ export function initDast(this: DoenetSourceObject) {
 }
 
 export function initParentMap(this: DoenetSourceObject) {
-    const parentMap = new Map<DastNodes, DastElement>();
+    const parentMap = new Map<DastNodes, DastElement | DastRoot>();
+    for (const node of this.dast.children) {
+        parentMap.set(node, this.dast);
+    }
     visit(this.dast, (node) => {
         if (node.type === "element") {
             for (const child of node.children) {
@@ -56,7 +59,12 @@ export function initParentMap(this: DoenetSourceObject) {
     return parentMap;
 }
 
-export function initOffsetToNodeMap(this: DoenetSourceObject) {
+/**
+ * Create an array the same length as `source.length` whose entries point to the node furthest
+ * down the tree that contains the character at that position. This array prefers the right-most node.
+ * So `<a /><b />` at position 5 returns `<b />`.
+ */
+export function initOffsetToNodeMapRight(this: DoenetSourceObject) {
     const dast = this.dast;
     const offsetToNodeMap: (DastNodes | null)[] = Array.from(this.source).map(
         () => null,
@@ -77,6 +85,20 @@ export function initOffsetToNodeMap(this: DoenetSourceObject) {
             offsetToNodeMap[i] = node;
         }
     });
+    return offsetToNodeMap;
+}
+
+/**
+ * Create an array the same length as `source.length` whose entries point to the node furthest
+ * down the tree that contains the character at that position. This array prefers the right-most node.
+ * So `<a /><b />` at position 5 returns `<a />`.
+ */
+export function initOffsetToNodeMapLeft(this: DoenetSourceObject) {
+    // The left map is the same as the right map except index 0 should return the root.
+    const dast = this.dast;
+    const offsetToNodeMap = [dast, ...this._offsetToNodeMapRight()];
+    offsetToNodeMap.pop();
+
     return offsetToNodeMap;
 }
 

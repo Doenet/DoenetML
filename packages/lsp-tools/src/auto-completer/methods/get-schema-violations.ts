@@ -1,4 +1,4 @@
-import { RowCol } from "../doenet-source-object";
+import { RowCol } from "../../doenet-source-object";
 import type { CompletionItem, Diagnostic } from "vscode-languageserver/browser";
 import {
     CompletionItemKind,
@@ -13,7 +13,7 @@ import {
     toXml,
     visit,
 } from "@doenet/parser";
-import { AutoCompleter } from ".";
+import { AutoCompleter } from "..";
 
 /**
  * Get a list of completion items at the given offset.

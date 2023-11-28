@@ -74,7 +74,7 @@ export function getAddressableNamesAtOffset(
     this: DoenetSourceObject,
     offset: number | RowCol,
 ) {
-    const currElement = this.elementAtOffset(offset).node || this.dast;
+    const currElement = this.elementAtOffsetWithContext(offset).node || this.dast;
     const descendentNamesMap = this._descendentNamesMap();
 
     const addressableChildren = getMacroAddressableChildrenAtElement(

@@ -12,13 +12,14 @@ import {
     initLezer,
     initLezerCursor,
     initDescendentNamesMap,
-    initOffsetToNodeMap,
+    initOffsetToNodeMapRight,
     initOffsetToRowCache,
     initParentMap,
     initRowToOffsetCache,
+    initOffsetToNodeMapLeft,
 } from "./initializers";
 import { LazyDataObject } from "./lazy-data";
-import { elementAtOffset } from "./methods/element-at-offset";
+import { elementAtOffsetWithContext } from "./methods/element-at-offset";
 import {
     getAddressableNamesAtOffset,
     getMacroReferentAtOffset,
@@ -28,6 +29,7 @@ import type {
     Position as LSPPosition,
     Range as LSPRange,
 } from "vscode-languageserver";
+import { elementAtOffset, nodeAtOffset } from "./methods/at-offset";
 
 /**
  * A row/column position. All values are 1-indexed. This is compatible with UnifiedJs's
@@ -61,7 +63,8 @@ export class DoenetSourceObject extends LazyDataObject {
     _offsetToRowCache = this._lazyDataGetter(initOffsetToRowCache);
     _rowToOffsetCache = this._lazyDataGetter(initRowToOffsetCache);
     _parentMap = this._lazyDataGetter(initParentMap);
-    _offsetToNodeMap = this._lazyDataGetter(initOffsetToNodeMap);
+    _offsetToNodeMapRight = this._lazyDataGetter(initOffsetToNodeMapRight);
+    _offsetToNodeMapLeft = this._lazyDataGetter(initOffsetToNodeMapLeft);
     _descendentNamesMap = this._lazyDataGetter(initDescendentNamesMap);
 
     constructor(source?: string) {
@@ -132,34 +135,13 @@ export class DoenetSourceObject extends LazyDataObject {
      * Return the node that contains the current offset and is furthest down the tree.
      * E.g. `<a><b>x</b></a>` at offset equal to the position of `x` return a text node.
      *
+     * If `side === "left"`, the node to the immediate left of the offset is returned.
+     * If `side === "right"`, the node to the immediate right of the offset is returned.
+     *
      * If `type` is passed in, then `nodeAtOffset` will walk up the parent tree until it finds
      * a node of that type. It returns `null` if no such node can be found.
      */
-    nodeAtOffset(
-        offset: number | RowCol,
-        type?: DastNodes["type"],
-    ): DastNodes | null {
-        if (typeof offset !== "number") {
-            offset = this.rowColToOffset(offset);
-        }
-        if (offset < 0 || offset > this.source.length) {
-            return null;
-        }
-        if (offset > 0 && offset === this.source.length) {
-            // If we ask for a node at the "end" of the file, we probably want
-            // the last node, not null; walk back one character.
-            offset -= 1;
-        }
-        const offsetToNodeMap = this._offsetToNodeMap();
-        let ret = offsetToNodeMap[offset] || null;
-        if (type != null) {
-            while (ret && ret.type !== type) {
-                ret = this.getParent(ret);
-            }
-        }
-
-        return ret;
-    }
+    nodeAtOffset = nodeAtOffset;
 
     /**
      * Get the element containing the position `offset`. `null` is returned if the position is not
@@ -168,6 +150,7 @@ export class DoenetSourceObject extends LazyDataObject {
      * Details about the `offset` position within the element are also returned, e.g., if `offset` is in
      * the open tag, etc..
      */
+    elementAtOffsetWithContext = elementAtOffsetWithContext;
     elementAtOffset = elementAtOffset;
 
     /**
@@ -178,7 +161,7 @@ export class DoenetSourceObject extends LazyDataObject {
             offset = this.rowColToOffset(offset);
         }
         const _offset = offset;
-        const containingElm = this.elementAtOffset(offset);
+        const containingElm = this.elementAtOffsetWithContext(offset);
         if (
             !containingElm.node ||
             (containingElm.cursorPosition !== "attributeName" &&
@@ -280,7 +263,7 @@ export class DoenetSourceObject extends LazyDataObject {
     /**
      * Get the parent of `node`. Node must be in `this.dast`.
      */
-    getParent(node: DastNodes): DastElement | null {
+    getParent(node: DastNodes): DastElement | DastRoot | null {
         const parentMap = this._parentMap();
         return parentMap.get(node) || null;
     }
@@ -295,7 +278,7 @@ export class DoenetSourceObject extends LazyDataObject {
         const ret: (DastElement | DastRoot)[] = [];
 
         let parent = this.getParent(node);
-        while (parent) {
+        while (parent && parent.type !== "root") {
             ret.push(parent);
             parent = this.getParent(parent);
         }
@@ -327,10 +310,10 @@ export class DoenetSourceObject extends LazyDataObject {
      * Get the unique item with name `name` resolved from position `offset`.
      */
     getReferentAtOffset(offset: number | RowCol, name: string) {
-        const { node } = this.elementAtOffset(offset);
-        let parent: DastElement | undefined | null = node;
+        const { node } = this.elementAtOffsetWithContext(offset);
+        let parent: DastElement | DastRoot | undefined | null = node;
         let referent = this.getNamedChild(parent, name);
-        while (parent && !referent) {
+        while (parent && parent.type !== "root" && !referent) {
             parent = this._parentMap().get(parent);
             referent = this.getNamedChild(parent, name);
         }

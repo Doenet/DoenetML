@@ -80,7 +80,9 @@ function App() {
         sourceObj.setSource(doenetSource);
         console.log(
             { currentPos },
-            sourceObj.elementAtOffset(currentPos),
+            sourceObj.elementAtOffsetWithContext(currentPos),
+            "elm2 left", sourceObj.elementAtOffset(currentPos, {side: "left"})?.name || null,
+            "elm2 right", sourceObj.elementAtOffset(currentPos, {side: "right"})?.name || null,
             sourceObj.attributeAtOffset(currentPos),
             completionObj.getCompletionItems(currentPos),
         );
