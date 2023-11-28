@@ -16,6 +16,7 @@ enum DastElementContent {
     Element(DastElement),
     Text(DastText),
     Macro(DastMacro),
+    FunctionMacro(DastFunctionMacro),
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -23,6 +24,7 @@ enum DastElementContent {
 enum DastTextMacroContent {
     Text(DastText),
     Macro(DastMacro),
+    FunctionMacro(DastFunctionMacro),
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -84,6 +86,18 @@ struct DastMacro {
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "type")]
+#[serde(rename = "function")]
+struct DastFunctionMacro {
+    #[serde(rename = "macro")]
+    function_macro: DastMacro,
+    input: Option<Vec<Vec<DastElementContent>>>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    position: Option<Position>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(tag = "type")]
 #[serde(rename = "pathPart")]
 struct PathPart {
     name: String,
@@ -97,7 +111,7 @@ struct PathPart {
 #[serde(tag = "type")]
 #[serde(rename = "index")]
 struct DastIndex {
-    value: DastTextMacroContent,
+    value: Vec<DastTextMacroContent>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     position: Option<Position>,
