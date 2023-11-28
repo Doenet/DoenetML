@@ -255,22 +255,24 @@ exports[`Macro parsing > should parse macro \`$(t[1]/x)\` 1`] = `
               },
             },
             "type": "index",
-            "value": {
-              "position": {
-                "end": {
-                  "column": 6,
-                  "line": 1,
-                  "offset": 5,
+            "value": [
+              {
+                "position": {
+                  "end": {
+                    "column": 6,
+                    "line": 1,
+                    "offset": 5,
+                  },
+                  "start": {
+                    "column": 5,
+                    "line": 1,
+                    "offset": 4,
+                  },
                 },
-                "start": {
-                  "column": 5,
-                  "line": 1,
-                  "offset": 4,
-                },
+                "type": "text",
+                "value": "1",
               },
-              "type": "text",
-              "value": "1",
-            },
+            ],
           },
         ],
         "name": "t",
@@ -415,22 +417,24 @@ exports[`Macro parsing > should parse macro \`$(t-x[1].y{a="b"})\` 1`] = `
               },
             },
             "type": "index",
-            "value": {
-              "position": {
-                "end": {
-                  "column": 8,
-                  "line": 1,
-                  "offset": 7,
+            "value": [
+              {
+                "position": {
+                  "end": {
+                    "column": 8,
+                    "line": 1,
+                    "offset": 7,
+                  },
+                  "start": {
+                    "column": 7,
+                    "line": 1,
+                    "offset": 6,
+                  },
                 },
-                "start": {
-                  "column": 7,
-                  "line": 1,
-                  "offset": 6,
-                },
+                "type": "text",
+                "value": "1",
               },
-              "type": "text",
-              "value": "1",
-            },
+            ],
           },
         ],
         "name": "t-x",
@@ -817,22 +821,24 @@ exports[`Macro parsing > should parse macro \`$t.x[1].y[2]\` 1`] = `
                   },
                 },
                 "type": "index",
-                "value": {
-                  "position": {
-                    "end": {
-                      "column": 12,
-                      "line": 1,
-                      "offset": 11,
+                "value": [
+                  {
+                    "position": {
+                      "end": {
+                        "column": 12,
+                        "line": 1,
+                        "offset": 11,
+                      },
+                      "start": {
+                        "column": 11,
+                        "line": 1,
+                        "offset": 10,
+                      },
                     },
-                    "start": {
-                      "column": 11,
-                      "line": 1,
-                      "offset": 10,
-                    },
+                    "type": "text",
+                    "value": "2",
                   },
-                  "type": "text",
-                  "value": "2",
-                },
+                ],
               },
             ],
             "name": "y",
@@ -883,22 +889,24 @@ exports[`Macro parsing > should parse macro \`$t.x[1].y[2]\` 1`] = `
                 },
               },
               "type": "index",
-              "value": {
-                "position": {
-                  "end": {
-                    "column": 7,
-                    "line": 1,
-                    "offset": 6,
+              "value": [
+                {
+                  "position": {
+                    "end": {
+                      "column": 7,
+                      "line": 1,
+                      "offset": 6,
+                    },
+                    "start": {
+                      "column": 6,
+                      "line": 1,
+                      "offset": 5,
+                    },
                   },
-                  "start": {
-                    "column": 6,
-                    "line": 1,
-                    "offset": 5,
-                  },
+                  "type": "text",
+                  "value": "1",
                 },
-                "type": "text",
-                "value": "1",
-              },
+              ],
             },
           ],
           "name": "x",
@@ -1026,22 +1034,24 @@ exports[`Macro parsing > should parse macro \`$t.x[1].y\` 1`] = `
                 },
               },
               "type": "index",
-              "value": {
-                "position": {
-                  "end": {
-                    "column": 7,
-                    "line": 1,
-                    "offset": 6,
+              "value": [
+                {
+                  "position": {
+                    "end": {
+                      "column": 7,
+                      "line": 1,
+                      "offset": 6,
+                    },
+                    "start": {
+                      "column": 6,
+                      "line": 1,
+                      "offset": 5,
+                    },
                   },
-                  "start": {
-                    "column": 6,
-                    "line": 1,
-                    "offset": 5,
-                  },
+                  "type": "text",
+                  "value": "1",
                 },
-                "type": "text",
-                "value": "1",
-              },
+              ],
             },
           ],
           "name": "x",
@@ -1169,22 +1179,24 @@ exports[`Macro parsing > should parse macro \`$t.x[1][2].y\` 1`] = `
                 },
               },
               "type": "index",
-              "value": {
-                "position": {
-                  "end": {
-                    "column": 7,
-                    "line": 1,
-                    "offset": 6,
+              "value": [
+                {
+                  "position": {
+                    "end": {
+                      "column": 7,
+                      "line": 1,
+                      "offset": 6,
+                    },
+                    "start": {
+                      "column": 6,
+                      "line": 1,
+                      "offset": 5,
+                    },
                   },
-                  "start": {
-                    "column": 6,
-                    "line": 1,
-                    "offset": 5,
-                  },
+                  "type": "text",
+                  "value": "1",
                 },
-                "type": "text",
-                "value": "1",
-              },
+              ],
             },
             {
               "position": {
@@ -1200,22 +1212,24 @@ exports[`Macro parsing > should parse macro \`$t.x[1][2].y\` 1`] = `
                 },
               },
               "type": "index",
-              "value": {
-                "position": {
-                  "end": {
-                    "column": 10,
-                    "line": 1,
-                    "offset": 9,
+              "value": [
+                {
+                  "position": {
+                    "end": {
+                      "column": 10,
+                      "line": 1,
+                      "offset": 9,
+                    },
+                    "start": {
+                      "column": 9,
+                      "line": 1,
+                      "offset": 8,
+                    },
                   },
-                  "start": {
-                    "column": 9,
-                    "line": 1,
-                    "offset": 8,
-                  },
+                  "type": "text",
+                  "value": "2",
                 },
-                "type": "text",
-                "value": "2",
-              },
+              ],
             },
           ],
           "name": "x",
@@ -1378,22 +1392,24 @@ exports[`Macro parsing > should parse macro \`$t.x[1]{a="b"}.y\` 1`] = `
                 },
               },
               "type": "index",
-              "value": {
-                "position": {
-                  "end": {
-                    "column": 7,
-                    "line": 1,
-                    "offset": 6,
+              "value": [
+                {
+                  "position": {
+                    "end": {
+                      "column": 7,
+                      "line": 1,
+                      "offset": 6,
+                    },
+                    "start": {
+                      "column": 6,
+                      "line": 1,
+                      "offset": 5,
+                    },
                   },
-                  "start": {
-                    "column": 6,
-                    "line": 1,
-                    "offset": 5,
-                  },
+                  "type": "text",
+                  "value": "1",
                 },
-                "type": "text",
-                "value": "1",
-              },
+              ],
             },
           ],
           "name": "x",
@@ -1561,42 +1577,44 @@ exports[`Macro parsing > should parse macro \`$t[$x]\` 1`] = `
               },
             },
             "type": "index",
-            "value": {
-              "accessedProp": null,
-              "attributes": [],
-              "path": [
-                {
-                  "index": [],
-                  "name": "x",
-                  "position": {
-                    "end": {
-                      "column": 6,
-                      "line": 1,
-                      "offset": 5,
+            "value": [
+              {
+                "accessedProp": null,
+                "attributes": [],
+                "path": [
+                  {
+                    "index": [],
+                    "name": "x",
+                    "position": {
+                      "end": {
+                        "column": 6,
+                        "line": 1,
+                        "offset": 5,
+                      },
+                      "start": {
+                        "column": 5,
+                        "line": 1,
+                        "offset": 4,
+                      },
                     },
-                    "start": {
-                      "column": 5,
-                      "line": 1,
-                      "offset": 4,
-                    },
+                    "type": "pathPart",
                   },
-                  "type": "pathPart",
+                ],
+                "position": {
+                  "end": {
+                    "column": 6,
+                    "line": 1,
+                    "offset": 5,
+                  },
+                  "start": {
+                    "column": 4,
+                    "line": 1,
+                    "offset": 3,
+                  },
                 },
-              ],
-              "position": {
-                "end": {
-                  "column": 6,
-                  "line": 1,
-                  "offset": 5,
-                },
-                "start": {
-                  "column": 4,
-                  "line": 1,
-                  "offset": 3,
-                },
+                "type": "macro",
               },
-              "type": "macro",
-            },
+            ],
           },
         ],
         "name": "t",
@@ -1654,22 +1672,24 @@ exports[`Macro parsing > should parse macro \`$t[1.5]\` 1`] = `
               },
             },
             "type": "index",
-            "value": {
-              "position": {
-                "end": {
-                  "column": 7,
-                  "line": 1,
-                  "offset": 6,
+            "value": [
+              {
+                "position": {
+                  "end": {
+                    "column": 7,
+                    "line": 1,
+                    "offset": 6,
+                  },
+                  "start": {
+                    "column": 4,
+                    "line": 1,
+                    "offset": 3,
+                  },
                 },
-                "start": {
-                  "column": 4,
-                  "line": 1,
-                  "offset": 3,
-                },
+                "type": "text",
+                "value": "1.5",
               },
-              "type": "text",
-              "value": "1.5",
-            },
+            ],
           },
         ],
         "name": "t",
@@ -1727,22 +1747,24 @@ exports[`Macro parsing > should parse macro \`$t[1]\` 1`] = `
               },
             },
             "type": "index",
-            "value": {
-              "position": {
-                "end": {
-                  "column": 5,
-                  "line": 1,
-                  "offset": 4,
+            "value": [
+              {
+                "position": {
+                  "end": {
+                    "column": 5,
+                    "line": 1,
+                    "offset": 4,
+                  },
+                  "start": {
+                    "column": 4,
+                    "line": 1,
+                    "offset": 3,
+                  },
                 },
-                "start": {
-                  "column": 4,
-                  "line": 1,
-                  "offset": 3,
-                },
+                "type": "text",
+                "value": "1",
               },
-              "type": "text",
-              "value": "1",
-            },
+            ],
           },
         ],
         "name": "t",
@@ -1835,22 +1857,24 @@ exports[`Macro parsing > should parse macro \`$t[1]{a="b"}\` 1`] = `
               },
             },
             "type": "index",
-            "value": {
-              "position": {
-                "end": {
-                  "column": 5,
-                  "line": 1,
-                  "offset": 4,
+            "value": [
+              {
+                "position": {
+                  "end": {
+                    "column": 5,
+                    "line": 1,
+                    "offset": 4,
+                  },
+                  "start": {
+                    "column": 4,
+                    "line": 1,
+                    "offset": 3,
+                  },
                 },
-                "start": {
-                  "column": 4,
-                  "line": 1,
-                  "offset": 3,
-                },
+                "type": "text",
+                "value": "1",
               },
-              "type": "text",
-              "value": "1",
-            },
+            ],
           },
         ],
         "name": "t",
@@ -1908,22 +1932,24 @@ exports[`Macro parsing > should parse macro \`$t[a][b]\` 1`] = `
               },
             },
             "type": "index",
-            "value": {
-              "position": {
-                "end": {
-                  "column": 5,
-                  "line": 1,
-                  "offset": 4,
+            "value": [
+              {
+                "position": {
+                  "end": {
+                    "column": 5,
+                    "line": 1,
+                    "offset": 4,
+                  },
+                  "start": {
+                    "column": 4,
+                    "line": 1,
+                    "offset": 3,
+                  },
                 },
-                "start": {
-                  "column": 4,
-                  "line": 1,
-                  "offset": 3,
-                },
+                "type": "text",
+                "value": "a",
               },
-              "type": "text",
-              "value": "a",
-            },
+            ],
           },
           {
             "position": {
@@ -1939,22 +1965,24 @@ exports[`Macro parsing > should parse macro \`$t[a][b]\` 1`] = `
               },
             },
             "type": "index",
-            "value": {
-              "position": {
-                "end": {
-                  "column": 8,
-                  "line": 1,
-                  "offset": 7,
+            "value": [
+              {
+                "position": {
+                  "end": {
+                    "column": 8,
+                    "line": 1,
+                    "offset": 7,
+                  },
+                  "start": {
+                    "column": 7,
+                    "line": 1,
+                    "offset": 6,
+                  },
                 },
-                "start": {
-                  "column": 7,
-                  "line": 1,
-                  "offset": 6,
-                },
+                "type": "text",
+                "value": "b",
               },
-              "type": "text",
-              "value": "b",
-            },
+            ],
           },
         ],
         "name": "t",
@@ -2291,6 +2319,188 @@ exports[`Macro parsing > should parse macro \`$t1\` 1`] = `
         "column": 4,
         "line": 1,
         "offset": 3,
+      },
+      "start": {
+        "column": 1,
+        "line": 1,
+        "offset": 0,
+      },
+    },
+    "type": "macro",
+  },
+]
+`;
+
+exports[`Macro parsing > should parse macro \`$x[2$y$$f(3)]\` 1`] = `
+[
+  {
+    "accessedProp": null,
+    "attributes": [],
+    "path": [
+      {
+        "index": [
+          {
+            "position": {
+              "end": {
+                "column": 14,
+                "line": 1,
+                "offset": 13,
+              },
+              "start": {
+                "column": 3,
+                "line": 1,
+                "offset": 2,
+              },
+            },
+            "type": "index",
+            "value": [
+              {
+                "position": {
+                  "end": {
+                    "column": 5,
+                    "line": 1,
+                    "offset": 4,
+                  },
+                  "start": {
+                    "column": 4,
+                    "line": 1,
+                    "offset": 3,
+                  },
+                },
+                "type": "text",
+                "value": "2",
+              },
+              {
+                "accessedProp": null,
+                "attributes": [],
+                "path": [
+                  {
+                    "index": [],
+                    "name": "y",
+                    "position": {
+                      "end": {
+                        "column": 7,
+                        "line": 1,
+                        "offset": 6,
+                      },
+                      "start": {
+                        "column": 6,
+                        "line": 1,
+                        "offset": 5,
+                      },
+                    },
+                    "type": "pathPart",
+                  },
+                ],
+                "position": {
+                  "end": {
+                    "column": 7,
+                    "line": 1,
+                    "offset": 6,
+                  },
+                  "start": {
+                    "column": 5,
+                    "line": 1,
+                    "offset": 4,
+                  },
+                },
+                "type": "macro",
+              },
+              {
+                "input": [
+                  [
+                    {
+                      "position": {
+                        "end": {
+                          "column": 12,
+                          "line": 1,
+                          "offset": 11,
+                        },
+                        "start": {
+                          "column": 11,
+                          "line": 1,
+                          "offset": 10,
+                        },
+                      },
+                      "type": "text",
+                      "value": "3",
+                    },
+                  ],
+                ],
+                "macro": {
+                  "accessedProp": null,
+                  "attributes": [],
+                  "path": [
+                    {
+                      "index": [],
+                      "name": "f",
+                      "position": {
+                        "end": {
+                          "column": 10,
+                          "line": 1,
+                          "offset": 9,
+                        },
+                        "start": {
+                          "column": 9,
+                          "line": 1,
+                          "offset": 8,
+                        },
+                      },
+                      "type": "pathPart",
+                    },
+                  ],
+                  "position": {
+                    "end": {
+                      "column": 10,
+                      "line": 1,
+                      "offset": 9,
+                    },
+                    "start": {
+                      "column": 9,
+                      "line": 1,
+                      "offset": 8,
+                    },
+                  },
+                  "type": "macro",
+                },
+                "position": {
+                  "end": {
+                    "column": 13,
+                    "line": 1,
+                    "offset": 12,
+                  },
+                  "start": {
+                    "column": 7,
+                    "line": 1,
+                    "offset": 6,
+                  },
+                },
+                "type": "function",
+              },
+            ],
+          },
+        ],
+        "name": "x",
+        "position": {
+          "end": {
+            "column": 14,
+            "line": 1,
+            "offset": 13,
+          },
+          "start": {
+            "column": 2,
+            "line": 1,
+            "offset": 1,
+          },
+        },
+        "type": "pathPart",
+      },
+    ],
+    "position": {
+      "end": {
+        "column": 14,
+        "line": 1,
+        "offset": 13,
       },
       "start": {
         "column": 1,

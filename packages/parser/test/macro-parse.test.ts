@@ -31,7 +31,8 @@ describe("Macro parsing", () => {
             $(x-y.a-b)
             $(t.x)
             $(t-x[1].y{a="b"})
-            $(t[1]/x)`.split(/\s+/g);
+            $(t[1]/x)
+            $x[2$y$$f(3)]`.split(/\s+/g);
 
         for (const macroStr of validMacros) {
             it(`should parse macro \`${macroStr}\``, () => {
