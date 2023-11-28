@@ -15,13 +15,6 @@ export function getCompletionItems(
         offset = this.sourceObj.rowColToOffset(offset);
     }
 
-    {
-        // XXX Debug. Delete for production
-        const cursor = this.sourceObj.lezerCursor;
-        cursor.moveTo(offset);
-        console.log("Cursor at pos:", showCursor(cursor));
-    }
-
     const prevChar = this.sourceObj.source.charAt(offset - 1);
     const prevPrevChar = this.sourceObj.source.charAt(offset - 2);
     let prevNonWhitespaceCharOffset = offset - 1;
