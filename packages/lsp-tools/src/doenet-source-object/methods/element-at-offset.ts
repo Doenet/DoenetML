@@ -1,4 +1,4 @@
-import { CursorPosition, DoenetSourceObject, RowCol } from "./index";
+import { CursorPosition, DoenetSourceObject, RowCol } from "../index";
 import { DastElement, LezerSyntaxNodeName } from "@doenet/parser";
 
 /**

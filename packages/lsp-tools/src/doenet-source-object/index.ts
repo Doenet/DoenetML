@@ -18,7 +18,11 @@ import {
     initRowToOffsetCache,
 } from "./initializers";
 import { LazyDataObject } from "./lazy-data";
-import { elementAtOffset } from "./element-at-offset";
+import { elementAtOffset } from "./methods/element-at-offset";
+import {
+    getAddressableNamesAtOffset,
+    getMacroReferentAtOffset,
+} from "./methods/macro-resolvers";
 import { DastMacro } from "@doenet/parser";
 import type {
     Position as LSPPosition,
@@ -282,6 +286,24 @@ export class DoenetSourceObject extends LazyDataObject {
     }
 
     /**
+     * Get all parents of `node`. The first element in the array is the immediate parent followed
+     * by more distant ancestors.
+     *
+     * Node must be in `this.dast`.
+     */
+    getParents(node: DastNodes): (DastElement | DastRoot)[] {
+        const ret: (DastElement | DastRoot)[] = [];
+
+        let parent = this.getParent(node);
+        while (parent) {
+            ret.push(parent);
+            parent = this.getParent(parent);
+        }
+        ret.push(this.dast);
+        return ret;
+    }
+
+    /**
      * Get the unique descendent of `node` with name `name`.
      */
     getNamedChild(
@@ -325,61 +347,13 @@ export class DoenetSourceObject extends LazyDataObject {
      * for the largest matching initial segment and returns any unmatched parts
      * of the macro.
      */
-    getMacroReferentAtOffset(offset: number | RowCol, macro: DastMacro) {
-        if (isOldMacro(macro)) {
-            throw new Error(
-                `Cannot resolve v0.6 style macro "${toXml(macro)}"`,
-            );
-        }
-        let pathPart = macro.path[0];
-        if (pathPart.index.length > 0) {
-            throw new Error(
-                `The first part of a macro path must be just a name without an index. Failed to resolve "${toXml(
-                    macro,
-                )}"`,
-            );
-        }
-        // If we made it here, we are just a name, so proceed with the lookup!
-        let referent = this.getReferentAtOffset(offset, pathPart.name);
-        if (!referent) {
-            return null;
-        }
-        // If there are no ".foo" accesses, the referent gets returned.
-        if (!macro.accessedProp) {
-            return {
-                node: referent,
-                accessedProp: null,
-            };
-        }
-        // Otherwise, we walk down the tree trying to
-        // resolve whatever `accessedProp` refers to until we find something
-        // that doesn't exist.
-        let prop: DastMacro | null = macro.accessedProp;
-        let propReferent: DastElement | null = referent;
-        while (prop) {
-            if (prop.path[0].index.length > 0) {
-                // Indexing can only be used on synthetic nodes.
-                return {
-                    node: referent,
-                    accessedProp: prop,
-                };
-            }
-            propReferent = this.getNamedChild(referent, prop.path[0].name);
-            if (!propReferent) {
-                return {
-                    node: referent,
-                    accessedProp: prop,
-                };
-            }
-            // Step down one level
-            referent = propReferent;
-            prop = prop.accessedProp;
-        }
-        return {
-            node: referent,
-            accessedProp: null,
-        };
-    }
+    getMacroReferentAtOffset = getMacroReferentAtOffset;
+
+    /**
+     * Get a list of all names that can be addressed from `offset`. These names can be used
+     * in a macro path.
+     */
+    getAddressableNamesAtOffset = getAddressableNamesAtOffset;
 
     /**
      * Return the smallest range that contains all of the nodes in `nodes`.

@@ -90,21 +90,24 @@ export function initDescendentNamesMap(this: DoenetSourceObject) {
         if (!(node.type === "element")) {
             return;
         }
+        if (!namesInScope.has(node)) {
+            namesInScope.set(node, []);
+        }
         const nameAttr = node.attributes.find((a) => a.name === "name");
         if (!nameAttr) {
             return;
         }
+        const name = toXml(nameAttr.children);
         // We have a name. Push our name to all of our parents.
         for (const parent of info.parents) {
-            let accessList = namesInScope.get(parent);
-            if (!accessList) {
-                accessList = [];
-                namesInScope.set(parent, accessList);
+            if (!namesInScope.has(parent)) {
+                namesInScope.set(parent, []);
             }
-            accessList.push({ name: toXml(nameAttr.children), element: node });
+            const accessList = namesInScope.get(parent)!;
+            accessList.push({ name, element: node });
         }
         // Make sure our name is also viewable from the root element.
-        rootAccessList.push({ name: toXml(nameAttr.children), element: node });
+        rootAccessList.push({ name, element: node });
     });
     return namesInScope;
 }
