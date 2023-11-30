@@ -394,15 +394,14 @@ export type PrintOptions = {
 
 // We glue together the types of macros and regular DAST nodes
 export type DastMacro = Omit<_Macro, "attributes" | "path"> & {
-    attributes: DastAttribute[];
-    accessedProp: DastMacro | null;
+    attributes: Record<string, DastAttribute>;
     path: DastMacroPathPart[];
 };
 export type DastMacroPathPart = Omit<_PathPart, "index"> & {
     index: (Omit<_PropIndex, "value"> & { value: (DastText | DastMacro)[] })[];
 };
 export type DastMacroFullPath = DastMacroPathPart[];
-export type DastFunctionMacro = Omit<_FunctionMacro, "input" | "macro"> & {
+export type DastFunctionMacro = Omit<_FunctionMacro, "input" | "path"> & {
     input: DastElementContent[][] | null;
-    macro: DastMacro;
+    path: DastMacroPathPart[];
 };

@@ -8,78 +8,55 @@
 top = (Macro / FunctionMacro / Text)*
 
 // Identifiers. Scoped identifiers can only be used inside of `$(..)` notation.
-Ident = $[a-zA-Z0-9_]+
+SimpleIdent = $[a-zA-Z0-9_]+
 
-ScopedIdent = $[a-zA-Z0-9_-]+
+Ident = $[a-zA-Z0-9_-]+
 
-// A PathPart cannot have slashes or `..` in it
+// A PathPart is an identifier followed by some amount of indexing
+SimplePathPart
+    = name:SimpleIdent index:PropIndex* {
+            return withPosition({ type: "pathPart", name, index });
+        }
+
 PathPart
     = name:Ident index:PropIndex* {
             return withPosition({ type: "pathPart", name, index });
         }
 
-ScopedPathPart
-    = name:ScopedIdent index:PropIndex* {
-            return withPosition({ type: "pathPart", name, index });
-        }
-
-// A FullPath can have slashes and `..` in it. It may also start with a slash.
-EmptyPathPart
-    = "" { return withPosition({ type: "pathPart", name: "", index: [] }); }
-
-FullPath
-    = start:EmptyPathPart rest:("/" @ScopedPathPartOrDD)+ {
-            return [start, ...rest];
-        }
-    / start:ScopedPathPartOrDD rest:("/" @ScopedPathPartOrDD)* {
+// A full path looks like `foo.bar[1][3].baz`. Attributes are not allowed to be assigned to a FullPath
+SimplePath
+    = start:SimplePathPart rest:("." @SimplePathPart)* {
             return [start, ...rest];
         }
 
-ScopedPathPartOrDD
-    = ScopedPathPart
-    / ".." { return withPosition({ type: "pathPart", name: "..", index: [] }); }
-
-// Pops can be accessed with a `.`
-PropAccess = "." @PartialPathMacro
-
-ScopedPropAccess = "." @ScopedPartialPathMacro
+Path
+    = start:PathPart rest:("." @PathPart)* {
+            return [start, ...rest];
+        }
 
 //
 // Macros
 //
 Macro
-    = "$" "(" macro:FullPathMacro ")" { return withPosition(macro) }
-    / "$" macro:PartialPathMacro { return withPosition(macro) }
+    = "$" "(" macro:FullAddressMacro ")" { return withPosition(macro) }
+    / "$" macro:SimpleAddressMacro { return withPosition(macro) }
 
-// A macro where the path cannot have slashes or `..` in it.
-PartialPathMacro
-    = path:PathPart attrs:PropAttrs? accessedProp:PropAccess? {
-            return withPosition({
-                type: "macro",
-                path: [path],
-                attributes: attrs || [],
-                accessedProp,
-            });
-        }
-
-ScopedPartialPathMacro
-    = path:ScopedPathPart attrs:PropAttrs? accessedProp:ScopedPropAccess? {
-            return withPosition({
-                type: "macro",
-                path: [path],
-                attributes: attrs || [],
-                accessedProp,
-            });
-        }
 
 // A macro where the path can have slashes and `..` in it.
-FullPathMacro
-    = path:FullPath attrs:PropAttrs? accessedProp:ScopedPropAccess? {
+SimpleAddressMacro
+    = path:SimplePath attrs:PropAttrs? {
             return withPosition({
                 type: "macro",
                 path,
-                attributes: attrs || [],
-                accessedProp,
+                attributes: attrs || {},
+            });
+        }
+FullAddressMacro
+    = path:Path attrs:PropAttrs? {
+            return withPosition({
+                type: "macro",
+                path,
+                attributes: attrs || {},
             });
         }
 
@@ -90,17 +67,17 @@ FullPathMacro
 // Functions are very similar to macros except they cannot have attrs or accessedProps
 // but they do take comma-separated arguments.
 FunctionMacro
-    = "$$" "(" macro:FullPathMacro ")" input:FunctionInput? {
+    = "$$" "(" path:Path ")" input:FunctionInput? {
             return withPosition({
                 type: "function",
-                macro,
+                path,
                 input,
             });
         }
-    / "$$" macro:PartialPathMacro input:FunctionInput? {
+    / "$$" path:SimplePath input:FunctionInput? {
             return withPosition({
                 type: "function",
-                macro,
+                path,
                 input,
             });
         }
@@ -138,7 +115,10 @@ BalancedParenText
     )* { return x.flat(); }
     / x:EmptyString { return [x]; }
 
-PropAttrs = "{" _? @(@Attr _?)* "}"
+PropAttrs
+	= "{" _? attrs:(@Attr _?)* "}" {
+            return Object.fromEntries(attrs.map((a) => [a.name, a]));
+        }
 
 PropIndex
     = "[" _? value:(@(FunctionMacro / Macro / TextWithoutClosingSquareBrace) _?)* "]" {

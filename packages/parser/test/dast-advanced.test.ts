@@ -27,72 +27,62 @@ describe("DAST", async () => {
         ];
         expect(filterPositionInfo(gobbleFunctionArguments(nodes)))
             .toMatchInlineSnapshot(`
-          [
-            {
-              "input": [
-                [
-                  {
-                    "type": "text",
-                    "value": "foo",
-                  },
-                ],
-              ],
-              "macro": {
-                "accessedProp": null,
-                "attributes": [],
-                "path": [
-                  {
-                    "index": [],
-                    "name": "f",
-                    "type": "pathPart",
-                  },
-                ],
-                "type": "macro",
-              },
-              "type": "function",
-            },
-            {
-              "type": "text",
-              "value": "bar",
-            },
-          ]
-        `);
+              [
+                {
+                  "input": [
+                    [
+                      {
+                        "type": "text",
+                        "value": "foo",
+                      },
+                    ],
+                  ],
+                  "path": [
+                    {
+                      "index": [],
+                      "name": "f",
+                      "type": "pathPart",
+                    },
+                  ],
+                  "type": "function",
+                },
+                {
+                  "type": "text",
+                  "value": "bar",
+                },
+              ]
+            `);
 
         // Argument where text is not split up.
         func = MacroParser.parse(`$$f`)[0] as DastFunctionMacro;
         nodes = [func, { type: "text", value: "(foo) bar" }];
         expect(filterPositionInfo(gobbleFunctionArguments(nodes)))
             .toMatchInlineSnapshot(`
-          [
-            {
-              "input": [
-                [
-                  {
-                    "type": "text",
-                    "value": "foo",
-                  },
-                ],
-              ],
-              "macro": {
-                "accessedProp": null,
-                "attributes": [],
-                "path": [
-                  {
-                    "index": [],
-                    "name": "f",
-                    "type": "pathPart",
-                  },
-                ],
-                "type": "macro",
-              },
-              "type": "function",
-            },
-            {
-              "type": "text",
-              "value": " bar",
-            },
-          ]
-        `);
+              [
+                {
+                  "input": [
+                    [
+                      {
+                        "type": "text",
+                        "value": "foo",
+                      },
+                    ],
+                  ],
+                  "path": [
+                    {
+                      "index": [],
+                      "name": "f",
+                      "type": "pathPart",
+                    },
+                  ],
+                  "type": "function",
+                },
+                {
+                  "type": "text",
+                  "value": " bar",
+                },
+              ]
+            `);
 
         // Multiple arguments
         func = MacroParser.parse(`$$f`)[0] as DastFunctionMacro;
@@ -115,18 +105,13 @@ describe("DAST", async () => {
                       },
                     ],
                   ],
-                  "macro": {
-                    "accessedProp": null,
-                    "attributes": [],
-                    "path": [
-                      {
-                        "index": [],
-                        "name": "f",
-                        "type": "pathPart",
-                      },
-                    ],
-                    "type": "macro",
-                  },
+                  "path": [
+                    {
+                      "index": [],
+                      "name": "f",
+                      "type": "pathPart",
+                    },
+                  ],
                   "type": "function",
                 },
                 {
@@ -172,18 +157,13 @@ describe("DAST", async () => {
                       },
                     ],
                   ],
-                  "macro": {
-                    "accessedProp": null,
-                    "attributes": [],
-                    "path": [
-                      {
-                        "index": [],
-                        "name": "f",
-                        "type": "pathPart",
-                      },
-                    ],
-                    "type": "macro",
-                  },
+                  "path": [
+                    {
+                      "index": [],
+                      "name": "f",
+                      "type": "pathPart",
+                    },
+                  ],
                   "type": "function",
                 },
                 {
@@ -201,18 +181,13 @@ describe("DAST", async () => {
               [
                 {
                   "input": null,
-                  "macro": {
-                    "accessedProp": null,
-                    "attributes": [],
-                    "path": [
-                      {
-                        "index": [],
-                        "name": "f",
-                        "type": "pathPart",
-                      },
-                    ],
-                    "type": "macro",
-                  },
+                  "path": [
+                    {
+                      "index": [],
+                      "name": "f",
+                      "type": "pathPart",
+                    },
+                  ],
                   "type": "function",
                 },
                 {
@@ -234,18 +209,13 @@ describe("DAST", async () => {
               [
                 {
                   "input": null,
-                  "macro": {
-                    "accessedProp": null,
-                    "attributes": [],
-                    "path": [
-                      {
-                        "index": [],
-                        "name": "f",
-                        "type": "pathPart",
-                      },
-                    ],
-                    "type": "macro",
-                  },
+                  "path": [
+                    {
+                      "index": [],
+                      "name": "f",
+                      "type": "pathPart",
+                    },
+                  ],
                   "type": "function",
                 },
                 {
@@ -284,18 +254,13 @@ describe("DAST", async () => {
                       },
                     ],
                   ],
-                  "macro": {
-                    "accessedProp": null,
-                    "attributes": [],
-                    "path": [
-                      {
-                        "index": [],
-                        "name": "f",
-                        "type": "pathPart",
-                      },
-                    ],
-                    "type": "macro",
-                  },
+                  "path": [
+                    {
+                      "index": [],
+                      "name": "f",
+                      "type": "pathPart",
+                    },
+                  ],
                   "type": "function",
                 },
                 {
@@ -307,18 +272,13 @@ describe("DAST", async () => {
                       },
                     ],
                   ],
-                  "macro": {
-                    "accessedProp": null,
-                    "attributes": [],
-                    "path": [
-                      {
-                        "index": [],
-                        "name": "g",
-                        "type": "pathPart",
-                      },
-                    ],
-                    "type": "macro",
-                  },
+                  "path": [
+                    {
+                      "index": [],
+                      "name": "g",
+                      "type": "pathPart",
+                    },
+                  ],
                   "type": "function",
                 },
               ]
@@ -352,34 +312,24 @@ describe("DAST", async () => {
                             },
                           ],
                         ],
-                        "macro": {
-                          "accessedProp": null,
-                          "attributes": [],
-                          "path": [
-                            {
-                              "index": [],
-                              "name": "g",
-                              "type": "pathPart",
-                            },
-                          ],
-                          "type": "macro",
-                        },
+                        "path": [
+                          {
+                            "index": [],
+                            "name": "g",
+                            "type": "pathPart",
+                          },
+                        ],
                         "type": "function",
                       },
                     ],
                   ],
-                  "macro": {
-                    "accessedProp": null,
-                    "attributes": [],
-                    "path": [
-                      {
-                        "index": [],
-                        "name": "f",
-                        "type": "pathPart",
-                      },
-                    ],
-                    "type": "macro",
-                  },
+                  "path": [
+                    {
+                      "index": [],
+                      "name": "f",
+                      "type": "pathPart",
+                    },
+                  ],
                   "type": "function",
                 },
               ]
@@ -393,8 +343,7 @@ describe("DAST", async () => {
           {
             "children": [
               {
-                "accessedProp": null,
-                "attributes": [],
+                "attributes": {},
                 "path": [
                   {
                     "index": [],
@@ -417,8 +366,7 @@ describe("DAST", async () => {
                 "attributes": {},
                 "children": [
                   {
-                    "accessedProp": null,
-                    "attributes": [],
+                    "attributes": {},
                     "path": [
                       {
                         "index": [],
@@ -442,8 +390,7 @@ describe("DAST", async () => {
           {
             "children": [
               {
-                "accessedProp": null,
-                "attributes": [],
+                "attributes": {},
                 "path": [
                   {
                     "index": [],
@@ -471,8 +418,7 @@ describe("DAST", async () => {
                   "z": {
                     "children": [
                       {
-                        "accessedProp": null,
-                        "attributes": [],
+                        "attributes": {},
                         "path": [
                           {
                             "index": [],
@@ -537,27 +483,61 @@ describe("DAST", async () => {
           {
             "children": [
               {
-                "accessedProp": null,
-                "attributes": [
-                  {
+                "attributes": {
+                  "y": {
                     "children": [
                       {
-                        "accessedProp": null,
-                        "attributes": [],
+                        "attributes": {},
                         "path": [
                           {
                             "index": [],
                             "name": "z",
+                            "position": {
+                              "end": {
+                                "column": 9,
+                                "line": 1,
+                                "offset": 8,
+                              },
+                              "start": {
+                                "column": 8,
+                                "line": 1,
+                                "offset": 7,
+                              },
+                            },
                             "type": "pathPart",
                           },
                         ],
+                        "position": {
+                          "end": {
+                            "column": 9,
+                            "line": 1,
+                            "offset": 8,
+                          },
+                          "start": {
+                            "column": 7,
+                            "line": 1,
+                            "offset": 6,
+                          },
+                        },
                         "type": "macro",
                       },
                     ],
                     "name": "y",
+                    "position": {
+                      "end": {
+                        "column": 10,
+                        "line": 1,
+                        "offset": 9,
+                      },
+                      "start": {
+                        "column": 4,
+                        "line": 1,
+                        "offset": 3,
+                      },
+                    },
                     "type": "attribute",
                   },
-                ],
+                },
                 "path": [
                   {
                     "index": [],
@@ -591,18 +571,13 @@ describe("DAST", async () => {
                     },
                   ],
                 ],
-                "macro": {
-                  "accessedProp": null,
-                  "attributes": [],
-                  "path": [
-                    {
-                      "index": [],
-                      "name": "f",
-                      "type": "pathPart",
-                    },
-                  ],
-                  "type": "macro",
-                },
+                "path": [
+                  {
+                    "index": [],
+                    "name": "f",
+                    "type": "pathPart",
+                  },
+                ],
                 "type": "function",
               },
             ],
@@ -634,18 +609,13 @@ describe("DAST", async () => {
                     },
                   ],
                 ],
-                "macro": {
-                  "accessedProp": null,
-                  "attributes": [],
-                  "path": [
-                    {
-                      "index": [],
-                      "name": "f",
-                      "type": "pathPart",
-                    },
-                  ],
-                  "type": "macro",
-                },
+                "path": [
+                  {
+                    "index": [],
+                    "name": "f",
+                    "type": "pathPart",
+                  },
+                ],
                 "type": "function",
               },
             ],
@@ -679,18 +649,13 @@ describe("DAST", async () => {
                     },
                   ],
                 ],
-                "macro": {
-                  "accessedProp": null,
-                  "attributes": [],
-                  "path": [
-                    {
-                      "index": [],
-                      "name": "f",
-                      "type": "pathPart",
-                    },
-                  ],
-                  "type": "macro",
-                },
+                "path": [
+                  {
+                    "index": [],
+                    "name": "f",
+                    "type": "pathPart",
+                  },
+                ],
                 "type": "function",
               },
             ],
@@ -727,18 +692,13 @@ describe("DAST", async () => {
                         },
                       ],
                     ],
-                    "macro": {
-                      "accessedProp": null,
-                      "attributes": [],
-                      "path": [
-                        {
-                          "index": [],
-                          "name": "f",
-                          "type": "pathPart",
-                        },
-                      ],
-                      "type": "macro",
-                    },
+                    "path": [
+                      {
+                        "index": [],
+                        "name": "f",
+                        "type": "pathPart",
+                      },
+                    ],
                     "type": "function",
                   },
                 ],
@@ -780,18 +740,13 @@ describe("DAST", async () => {
                     },
                   ],
                 ],
-                "macro": {
-                  "accessedProp": null,
-                  "attributes": [],
-                  "path": [
-                    {
-                      "index": [],
-                      "name": "f",
-                      "type": "pathPart",
-                    },
-                  ],
-                  "type": "macro",
-                },
+                "path": [
+                  {
+                    "index": [],
+                    "name": "f",
+                    "type": "pathPart",
+                  },
+                ],
                 "type": "function",
               },
             ],
@@ -834,18 +789,13 @@ describe("DAST", async () => {
                     },
                   ],
                 ],
-                "macro": {
-                  "accessedProp": null,
-                  "attributes": [],
-                  "path": [
-                    {
-                      "index": [],
-                      "name": "f",
-                      "type": "pathPart",
-                    },
-                  ],
-                  "type": "macro",
-                },
+                "path": [
+                  {
+                    "index": [],
+                    "name": "f",
+                    "type": "pathPart",
+                  },
+                ],
                 "type": "function",
               },
             ],
@@ -887,18 +837,13 @@ describe("DAST", async () => {
                     },
                   ],
                 ],
-                "macro": {
-                  "accessedProp": null,
-                  "attributes": [],
-                  "path": [
-                    {
-                      "index": [],
-                      "name": "f",
-                      "type": "pathPart",
-                    },
-                  ],
-                  "type": "macro",
-                },
+                "path": [
+                  {
+                    "index": [],
+                    "name": "f",
+                    "type": "pathPart",
+                  },
+                ],
                 "type": "function",
               },
             ],
@@ -932,18 +877,13 @@ describe("DAST", async () => {
                     },
                   ],
                 ],
-                "macro": {
-                  "accessedProp": null,
-                  "attributes": [],
-                  "path": [
-                    {
-                      "index": [],
-                      "name": "f",
-                      "type": "pathPart",
-                    },
-                  ],
-                  "type": "macro",
-                },
+                "path": [
+                  {
+                    "index": [],
+                    "name": "f",
+                    "type": "pathPart",
+                  },
+                ],
                 "type": "function",
               },
             ],
@@ -993,18 +933,13 @@ describe("DAST", async () => {
                     },
                   ],
                 ],
-                "macro": {
-                  "accessedProp": null,
-                  "attributes": [],
-                  "path": [
-                    {
-                      "index": [],
-                      "name": "f",
-                      "type": "pathPart",
-                    },
-                  ],
-                  "type": "macro",
-                },
+                "path": [
+                  {
+                    "index": [],
+                    "name": "f",
+                    "type": "pathPart",
+                  },
+                ],
                 "type": "function",
               },
             ],

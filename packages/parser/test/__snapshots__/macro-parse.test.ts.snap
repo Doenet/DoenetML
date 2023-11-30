@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`Macro parsing > should parse macro \`$(../t)\` 1`] = `
+exports[`Macro parsing of v0.6 macros > should parse macro \`$(../t)\` 1`] = `
 [
   {
     "accessedProp": null,
@@ -58,7 +58,7 @@ exports[`Macro parsing > should parse macro \`$(../t)\` 1`] = `
 ]
 `;
 
-exports[`Macro parsing > should parse macro \`$(/t)\` 1`] = `
+exports[`Macro parsing of v0.6 macros > should parse macro \`$(/t)\` 1`] = `
 [
   {
     "accessedProp": null,
@@ -116,7 +116,7 @@ exports[`Macro parsing > should parse macro \`$(/t)\` 1`] = `
 ]
 `;
 
-exports[`Macro parsing > should parse macro \`$(t)\` 1`] = `
+exports[`Macro parsing of v0.6 macros > should parse macro \`$(t)\` 1`] = `
 [
   {
     "accessedProp": null,
@@ -157,7 +157,7 @@ exports[`Macro parsing > should parse macro \`$(t)\` 1`] = `
 ]
 `;
 
-exports[`Macro parsing > should parse macro \`$(t.x)\` 1`] = `
+exports[`Macro parsing of v0.6 macros > should parse macro \`$(t.x)\` 1`] = `
 [
   {
     "accessedProp": {
@@ -233,7 +233,7 @@ exports[`Macro parsing > should parse macro \`$(t.x)\` 1`] = `
 ]
 `;
 
-exports[`Macro parsing > should parse macro \`$(t[1]/x)\` 1`] = `
+exports[`Macro parsing of v0.6 macros > should parse macro \`$(t[1]/x)\` 1`] = `
 [
   {
     "accessedProp": null,
@@ -325,7 +325,7 @@ exports[`Macro parsing > should parse macro \`$(t[1]/x)\` 1`] = `
 ]
 `;
 
-exports[`Macro parsing > should parse macro \`$(t-x[1].y{a="b"})\` 1`] = `
+exports[`Macro parsing of v0.6 macros > should parse macro \`$(t-x[1].y{a="b"})\` 1`] = `
 [
   {
     "accessedProp": {
@@ -470,7 +470,7 @@ exports[`Macro parsing > should parse macro \`$(t-x[1].y{a="b"})\` 1`] = `
 ]
 `;
 
-exports[`Macro parsing > should parse macro \`$(x-y)\` 1`] = `
+exports[`Macro parsing of v0.6 macros > should parse macro \`$(x-y)\` 1`] = `
 [
   {
     "accessedProp": null,
@@ -511,7 +511,7 @@ exports[`Macro parsing > should parse macro \`$(x-y)\` 1`] = `
 ]
 `;
 
-exports[`Macro parsing > should parse macro \`$(x-y.a-b)\` 1`] = `
+exports[`Macro parsing of v0.6 macros > should parse macro \`$(x-y.a-b)\` 1`] = `
 [
   {
     "accessedProp": {
@@ -587,7 +587,7 @@ exports[`Macro parsing > should parse macro \`$(x-y.a-b)\` 1`] = `
 ]
 `;
 
-exports[`Macro parsing > should parse macro \`$(x-y/a-b)\` 1`] = `
+exports[`Macro parsing of v0.6 macros > should parse macro \`$(x-y/a-b)\` 1`] = `
 [
   {
     "accessedProp": null,
@@ -645,7 +645,7 @@ exports[`Macro parsing > should parse macro \`$(x-y/a-b)\` 1`] = `
 ]
 `;
 
-exports[`Macro parsing > should parse macro \`$_t\` 1`] = `
+exports[`Macro parsing of v0.6 macros > should parse macro \`$_t\` 1`] = `
 [
   {
     "accessedProp": null,
@@ -686,7 +686,7 @@ exports[`Macro parsing > should parse macro \`$_t\` 1`] = `
 ]
 `;
 
-exports[`Macro parsing > should parse macro \`$t.x.y\` 1`] = `
+exports[`Macro parsing of v0.6 macros > should parse macro \`$t.x.y\` 1`] = `
 [
   {
     "accessedProp": {
@@ -797,7 +797,7 @@ exports[`Macro parsing > should parse macro \`$t.x.y\` 1`] = `
 ]
 `;
 
-exports[`Macro parsing > should parse macro \`$t.x[1].y[2]\` 1`] = `
+exports[`Macro parsing of v0.6 macros > should parse macro \`$t.x[1].y[2]\` 1`] = `
 [
   {
     "accessedProp": {
@@ -976,7 +976,7 @@ exports[`Macro parsing > should parse macro \`$t.x[1].y[2]\` 1`] = `
 ]
 `;
 
-exports[`Macro parsing > should parse macro \`$t.x[1].y\` 1`] = `
+exports[`Macro parsing of v0.6 macros > should parse macro \`$t.x[1].y\` 1`] = `
 [
   {
     "accessedProp": {
@@ -1121,7 +1121,7 @@ exports[`Macro parsing > should parse macro \`$t.x[1].y\` 1`] = `
 ]
 `;
 
-exports[`Macro parsing > should parse macro \`$t.x[1][2].y\` 1`] = `
+exports[`Macro parsing of v0.6 macros > should parse macro \`$t.x[1][2].y\` 1`] = `
 [
   {
     "accessedProp": {
@@ -1299,7 +1299,7 @@ exports[`Macro parsing > should parse macro \`$t.x[1][2].y\` 1`] = `
 ]
 `;
 
-exports[`Macro parsing > should parse macro \`$t.x[1]{a="b"}.y\` 1`] = `
+exports[`Macro parsing of v0.6 macros > should parse macro \`$t.x[1]{a="b"}.y\` 1`] = `
 [
   {
     "accessedProp": {
@@ -1479,7 +1479,7 @@ exports[`Macro parsing > should parse macro \`$t.x[1]{a="b"}.y\` 1`] = `
 ]
 `;
 
-exports[`Macro parsing > should parse macro \`$t.x\` 1`] = `
+exports[`Macro parsing of v0.6 macros > should parse macro \`$t.x\` 1`] = `
 [
   {
     "accessedProp": {
@@ -1555,7 +1555,7 @@ exports[`Macro parsing > should parse macro \`$t.x\` 1`] = `
 ]
 `;
 
-exports[`Macro parsing > should parse macro \`$t[$x]\` 1`] = `
+exports[`Macro parsing of v0.6 macros > should parse macro \`$t[$x]\` 1`] = `
 [
   {
     "accessedProp": null,
@@ -1650,7 +1650,7 @@ exports[`Macro parsing > should parse macro \`$t[$x]\` 1`] = `
 ]
 `;
 
-exports[`Macro parsing > should parse macro \`$t[1.5]\` 1`] = `
+exports[`Macro parsing of v0.6 macros > should parse macro \`$t[1.5]\` 1`] = `
 [
   {
     "accessedProp": null,
@@ -1725,7 +1725,7 @@ exports[`Macro parsing > should parse macro \`$t[1.5]\` 1`] = `
 ]
 `;
 
-exports[`Macro parsing > should parse macro \`$t[1]\` 1`] = `
+exports[`Macro parsing of v0.6 macros > should parse macro \`$t[1]\` 1`] = `
 [
   {
     "accessedProp": null,
@@ -1800,7 +1800,7 @@ exports[`Macro parsing > should parse macro \`$t[1]\` 1`] = `
 ]
 `;
 
-exports[`Macro parsing > should parse macro \`$t[1]{a="b"}\` 1`] = `
+exports[`Macro parsing of v0.6 macros > should parse macro \`$t[1]{a="b"}\` 1`] = `
 [
   {
     "accessedProp": null,
@@ -1910,7 +1910,7 @@ exports[`Macro parsing > should parse macro \`$t[1]{a="b"}\` 1`] = `
 ]
 `;
 
-exports[`Macro parsing > should parse macro \`$t[a][b]\` 1`] = `
+exports[`Macro parsing of v0.6 macros > should parse macro \`$t[a][b]\` 1`] = `
 [
   {
     "accessedProp": null,
@@ -2018,7 +2018,7 @@ exports[`Macro parsing > should parse macro \`$t[a][b]\` 1`] = `
 ]
 `;
 
-exports[`Macro parsing > should parse macro \`$t\` 1`] = `
+exports[`Macro parsing of v0.6 macros > should parse macro \`$t\` 1`] = `
 [
   {
     "accessedProp": null,
@@ -2059,7 +2059,7 @@ exports[`Macro parsing > should parse macro \`$t\` 1`] = `
 ]
 `;
 
-exports[`Macro parsing > should parse macro \`$t{a="$b"}\` 1`] = `
+exports[`Macro parsing of v0.6 macros > should parse macro \`$t{a="$b"}\` 1`] = `
 [
   {
     "accessedProp": null,
@@ -2155,7 +2155,7 @@ exports[`Macro parsing > should parse macro \`$t{a="$b"}\` 1`] = `
 ]
 `;
 
-exports[`Macro parsing > should parse macro \`$t{a="b"}\` 1`] = `
+exports[`Macro parsing of v0.6 macros > should parse macro \`$t{a="b"}\` 1`] = `
 [
   {
     "accessedProp": null,
@@ -2231,7 +2231,7 @@ exports[`Macro parsing > should parse macro \`$t{a="b"}\` 1`] = `
 ]
 `;
 
-exports[`Macro parsing > should parse macro \`$t{a}\` 1`] = `
+exports[`Macro parsing of v0.6 macros > should parse macro \`$t{a}\` 1`] = `
 [
   {
     "accessedProp": null,
@@ -2290,7 +2290,7 @@ exports[`Macro parsing > should parse macro \`$t{a}\` 1`] = `
 ]
 `;
 
-exports[`Macro parsing > should parse macro \`$t1\` 1`] = `
+exports[`Macro parsing of v0.6 macros > should parse macro \`$t1\` 1`] = `
 [
   {
     "accessedProp": null,
@@ -2331,7 +2331,7 @@ exports[`Macro parsing > should parse macro \`$t1\` 1`] = `
 ]
 `;
 
-exports[`Macro parsing > should parse macro \`$x[2$y$$f(3)]\` 1`] = `
+exports[`Macro parsing of v0.6 macros > should parse macro \`$x[2$y$$f(3)]\` 1`] = `
 [
   {
     "accessedProp": null,

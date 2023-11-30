@@ -1,15 +1,7 @@
 import { quote, toXml } from "../dast-to-xml/dast-util-to-xml";
-import {
-    Attr,
-    FullPath,
-    FunctionMacro,
-    Macro,
-    PropAccess,
-    ScopedPathPart,
-    Text,
-} from "./types";
+import { Attr, Path, FunctionMacro, Macro, Text, PathPart } from "./types";
 
-type Node = Macro | FunctionMacro | Text | PropAccess;
+type Node = Macro | FunctionMacro | Text;
 
 /**
  * Convert a "pure" macro to a string. I.e., a macro that was parsed directly from the peggy grammar.
@@ -33,7 +25,7 @@ export function macroToString(node: Node | Node[]): string {
             return start + macro + end;
         }
         case "function": {
-            const macro = unwrappedMacroToString(node.macro);
+            const macro = macroPathToString(node.path);
 
             let start = "$$";
             let end = "";
@@ -59,22 +51,21 @@ export function macroToString(node: Node | Node[]): string {
 /**
  * Convert a macro to a string, but do not wrap it in parens or add a `$` prefix.
  */
-function unwrappedMacroToString(nodes: Macro): string {
-    const path = macroPathToString(nodes.path);
-    const attrs = (nodes.attributes || []).map(attrToString).join(" ");
+function unwrappedMacroToString(macro: Macro): string {
+    const path = macroPathToString(macro.path);
+    const attrs = Object.values(macro.attributes || {})
+        .map(attrToString)
+        .join(" ");
     let attrsStr = attrs.length > 0 ? `{${attrs}}` : "";
     let propAccess = "";
-    if (nodes.accessedProp) {
-        propAccess = "." + unwrappedMacroToString(nodes.accessedProp);
-    }
     return path + attrsStr + propAccess;
 }
 
-function macroPathToString(path: FullPath): string {
+function macroPathToString(path: Path): string {
     return path.map(macroPathPartToString).join("/");
 }
 
-function macroPathPartToString(pathPart: ScopedPathPart): string {
+function macroPathPartToString(pathPart: PathPart): string {
     return (
         pathPart.name +
         pathPart.index.map((part) => `[${macroToString(part.value)}]`).join("")
@@ -90,17 +81,8 @@ function attrToString(attr: Attr): string {
     return `${name}=${quote(value)}`;
 }
 
-function macroNeedsParens(macro: Macro | PropAccess | FunctionMacro): boolean {
-    if (macro.type === "function") {
-        return macroNeedsParens(macro.macro);
-    }
-    // Paths are separated by slashes. They always need wrapping.
-    if (macro.path.length > 1) {
-        return true;
-    }
+function macroNeedsParens(macro: Macro | FunctionMacro): boolean {
+    const path = macro.path;
     // We also might need wrapping if the path contains a `-` character
-    return (
-        macro.path.some((part) => part.name.includes("-")) ||
-        (macro.accessedProp != null && macroNeedsParens(macro.accessedProp))
-    );
+    return path.some((part) => part.name.includes("-"));
 }

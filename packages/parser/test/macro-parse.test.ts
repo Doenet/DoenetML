@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { mergeAdjacentTextInArray } from "../src/dast-to-xml/utils";
 import { MacroParser } from "../src/macros/parser";
+import { MacroParser as MacroParserV06 } from "../src/macros-v6/parser";
 import { macroToString } from "../src/macros/macro-to-string";
+import { macroToString as macroToStringV06 } from "../src/macros-v6/macro-to-string";
 import { DastNodes } from "../src/types";
 
-describe("Macro parsing", () => {
+describe("Macro parsing of v0.6 macros", () => {
     {
         const validMacros = `$t
             $t1
@@ -36,18 +38,18 @@ describe("Macro parsing", () => {
 
         for (const macroStr of validMacros) {
             it(`should parse macro \`${macroStr}\``, () => {
-                expect(MacroParser.parse(macroStr)).toMatchSnapshot();
+                expect(MacroParserV06.parse(macroStr)).toMatchSnapshot();
             });
         }
     }
     it("Parses `$x.` as a macro followed by a string", () => {
-        expect(MacroParser.parse("$x.")).toMatchObject([
+        expect(MacroParserV06.parse("$x.")).toMatchObject([
             { type: "macro" },
             { type: "text", value: "." },
         ]);
     });
     it("Parses `$x{z}[5]` as a macro followed by a string", () => {
-        expect(MacroParser.parse("$x{z}[5]")).toMatchObject([
+        expect(MacroParserV06.parse("$x{z}[5]")).toMatchObject([
             { type: "macro" },
             { type: "text", value: "[5]" },
         ]);
@@ -55,7 +57,7 @@ describe("Macro parsing", () => {
     it("Parses invalid macros as strings", () => {
         expect(
             mergeAdjacentTextInArray(
-                MacroParser.parse("$(x{z}[5])") as DastNodes[],
+                MacroParserV06.parse("$(x{z}[5])") as DastNodes[],
             ),
         ).toMatchObject([{ type: "text", value: "$(x{z}[5])" }]);
     });
@@ -88,8 +90,8 @@ describe("Macro parsing", () => {
 
         for (const macroStr of validMacros) {
             it(`should print macro \`${macroStr}\``, () => {
-                const parsed = MacroParser.parse(macroStr);
-                expect(macroToString(parsed)).toEqual(macroStr);
+                const parsed = MacroParserV06.parse(macroStr);
+                expect(macroToStringV06(parsed)).toEqual(macroStr);
             });
         }
     }
@@ -107,8 +109,8 @@ describe("Macro parsing", () => {
 
         for (const macroStr of validFunctions) {
             it(`should print macro \`${macroStr}\``, () => {
-                const parsed = MacroParser.parse(macroStr);
-                expect(macroToString(parsed)).toEqual(macroStr);
+                const parsed = MacroParserV06.parse(macroStr);
+                expect(macroToStringV06(parsed)).toEqual(macroStr);
             });
         }
     }
