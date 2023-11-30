@@ -49,7 +49,7 @@ export function getMacroReferentAtOffset(
                 accessedProp: prop,
             };
         }
-        propReferent = this.getNamedChild(referent, prop.path[0].name);
+        propReferent = this.getNamedDescendent(referent, prop.path[0].name);
         if (!propReferent) {
             return {
                 node: referent,

@@ -289,7 +289,7 @@ export class DoenetSourceObject extends LazyDataObject {
     /**
      * Get the unique descendent of `node` with name `name`.
      */
-    getNamedChild(
+    getNamedDescendent(
         node: DastElement | DastRoot | undefined | null,
         name: string,
     ) {
@@ -312,14 +312,14 @@ export class DoenetSourceObject extends LazyDataObject {
     getReferentAtOffset(offset: number | RowCol, name: string) {
         const { node } = this.elementAtOffsetWithContext(offset);
         let parent: DastElement | DastRoot | undefined | null = node;
-        let referent = this.getNamedChild(parent, name);
+        let referent = this.getNamedDescendent(parent, name);
         while (parent && parent.type !== "root" && !referent) {
             parent = this._parentMap().get(parent);
-            referent = this.getNamedChild(parent, name);
+            referent = this.getNamedDescendent(parent, name);
         }
         if (!parent && !referent) {
             // We need to search the root!
-            referent = this.getNamedChild(this.dast, name);
+            referent = this.getNamedDescendent(this.dast, name);
         }
         return referent || null;
     }
