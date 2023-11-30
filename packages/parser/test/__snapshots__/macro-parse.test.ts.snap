@@ -336,8 +336,8 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$(t-x[1].y{a="b"})\
   {
     "accessedProp": {
       "accessedProp": null,
-      "attributes": [
-        {
+      "attributes": {
+        "a": {
           "children": [
             {
               "position": {
@@ -371,7 +371,7 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$(t-x[1].y{a="b"})\
           },
           "type": "attribute",
         },
-      ],
+      },
       "path": [
         {
           "index": [],
@@ -1365,8 +1365,8 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$t.x[1]{a="b"}.y\` 
         "type": "macro",
         "version": "0.6",
       },
-      "attributes": [
-        {
+      "attributes": {
+        "a": {
           "children": [
             {
               "position": {
@@ -1400,7 +1400,7 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$t.x[1]{a="b"}.y\` 
           },
           "type": "attribute",
         },
-      ],
+      },
       "path": [
         {
           "index": [
@@ -1838,8 +1838,8 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$t[1]{a="b"}\` 1`] 
 [
   {
     "accessedProp": null,
-    "attributes": [
-      {
+    "attributes": {
+      "a": {
         "children": [
           {
             "position": {
@@ -1873,7 +1873,7 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$t[1]{a="b"}\` 1`] 
         },
         "type": "attribute",
       },
-    ],
+    },
     "path": [
       {
         "index": [
@@ -2100,8 +2100,8 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$t{a="$b"}\` 1`] = 
 [
   {
     "accessedProp": null,
-    "attributes": [
-      {
+    "attributes": {
+      "a": {
         "children": [
           {
             "accessedProp": null,
@@ -2156,7 +2156,7 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$t{a="$b"}\` 1`] = 
         },
         "type": "attribute",
       },
-    ],
+    },
     "path": [
       {
         "index": [],
@@ -2198,8 +2198,8 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$t{a="b"}\` 1`] = `
 [
   {
     "accessedProp": null,
-    "attributes": [
-      {
+    "attributes": {
+      "a": {
         "children": [
           {
             "position": {
@@ -2233,7 +2233,7 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$t{a="b"}\` 1`] = `
         },
         "type": "attribute",
       },
-    ],
+    },
     "path": [
       {
         "index": [],
@@ -2275,8 +2275,8 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$t{a}\` 1`] = `
 [
   {
     "accessedProp": null,
-    "attributes": [
-      {
+    "attributes": {
+      "a": {
         "children": [],
         "name": "a",
         "position": {
@@ -2293,7 +2293,7 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$t{a}\` 1`] = `
         },
         "type": "attribute",
       },
-    ],
+    },
     "path": [
       {
         "index": [],

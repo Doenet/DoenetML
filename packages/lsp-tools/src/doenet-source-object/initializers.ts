@@ -1,8 +1,7 @@
 import {
-    DastElement,
-    DastNodes,
-    DastRoot,
-    lezerToDast,
+    DastElementV6,
+    DastNodesV6,
+    DastRootV6,
     lezerToDastV6,
     stringToLezer,
     toXml,
@@ -46,11 +45,12 @@ export function initDast(this: DoenetSourceObject) {
 }
 
 export function initParentMap(this: DoenetSourceObject) {
-    const parentMap = new Map<DastNodes, DastElement | DastRoot>();
+    const parentMap = new Map<DastNodesV6, DastElementV6 | DastRootV6>();
     for (const node of this.dast.children) {
         parentMap.set(node, this.dast);
     }
-    visit(this.dast, (node) => {
+    visit(this.dast, (_node) => {
+        const node = _node as DastNodesV6;
         if (node.type === "element") {
             for (const child of node.children) {
                 parentMap.set(child, node);
@@ -67,10 +67,11 @@ export function initParentMap(this: DoenetSourceObject) {
  */
 export function initOffsetToNodeMapRight(this: DoenetSourceObject) {
     const dast = this.dast;
-    const offsetToNodeMap: (DastNodes | null)[] = Array.from(this.source).map(
+    const offsetToNodeMap: (DastNodesV6 | null)[] = Array.from(this.source).map(
         () => null,
     );
-    visit(dast, (node) => {
+    visit(dast, (_node) => {
+        const node = _node as DastNodesV6;
         if (node.type === "error") {
             return;
         }
@@ -103,13 +104,14 @@ export function initOffsetToNodeMapLeft(this: DoenetSourceObject) {
     return offsetToNodeMap;
 }
 
-export type AccessList = { name: string; element: DastElement }[];
+export type AccessList = { name: string; element: DastElementV6 }[];
 export function initDescendentNamesMap(this: DoenetSourceObject) {
     const dast = this.dast;
-    const namesInScope: Map<DastElement | DastRoot, AccessList> = new Map();
+    const namesInScope: Map<DastElementV6 | DastRootV6, AccessList> = new Map();
     const rootAccessList: AccessList = [];
     namesInScope.set(dast, rootAccessList);
-    visit(dast, (node, info) => {
+    visit(dast, (_node, info) => {
+        const node = _node as DastNodesV6;
         if (!(node.type === "element")) {
             return;
         }
@@ -122,7 +124,8 @@ export function initDescendentNamesMap(this: DoenetSourceObject) {
         }
         const name = toXml(nameAttr.children);
         // We have a name. Push our name to all of our parents.
-        for (const parent of info.parents) {
+        for (const _parent of info.parents) {
+            const parent = _parent as DastElementV6 | DastRootV6;
             if (!namesInScope.has(parent)) {
                 namesInScope.set(parent, []);
             }

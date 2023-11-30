@@ -9,6 +9,7 @@ import {
     DastMacro,
     DastMacroPathPart,
     PrintOptions,
+    DastNodesV6,
 } from "../types";
 import { escape, mergeAdjacentTextInArray, name } from "./utils";
 
@@ -16,7 +17,7 @@ import { escape, mergeAdjacentTextInArray, name } from "./utils";
  * Serialize a xast tree to XML.
  */
 export function toXml(
-    tree?: DastNodes[] | DastNodes | null,
+    tree?: DastNodes[] | DastNodes | DastNodesV6[] | DastNodesV6 | null,
     options?: PrintOptions,
 ) {
     options = options || {};

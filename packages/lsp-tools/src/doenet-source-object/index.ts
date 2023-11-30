@@ -1,10 +1,9 @@
 import {
-    DastElement,
-    DastFunctionMacro,
+    DastElementV6,
     DastFunctionMacroV6,
     DastMacroV6,
-    DastNodes,
-    DastRoot,
+    DastNodesV6,
+    DastRootV6,
     LezerSyntaxNodeName,
     Position,
     toXml,
@@ -187,7 +186,7 @@ export class DoenetSourceObject extends LazyDataObject {
      * partially complete (`false`). Complete elements are valid xml.
      * Incomplete elements are `<abc` or `<abc>`.
      */
-    isCompleteElement(node: DastElement): {
+    isCompleteElement(node: DastElementV6): {
         tagComplete: boolean;
         closed: boolean;
     } {
@@ -247,7 +246,7 @@ export class DoenetSourceObject extends LazyDataObject {
      *
      * Note: these values are given as **offsets**.
      */
-    getElementTagRanges(node: DastElement): { start: number; end: number }[] {
+    getElementTagRanges(node: DastElementV6): { start: number; end: number }[] {
         const start = node.position?.start?.offset || 0;
         const end = node.position?.end?.offset || 0;
         const childrenStart = node.children[0]?.position?.start?.offset;
@@ -265,7 +264,7 @@ export class DoenetSourceObject extends LazyDataObject {
     /**
      * Get the parent of `node`. Node must be in `this.dast`.
      */
-    getParent(node: DastNodes): DastElement | DastRoot | null {
+    getParent(node: DastNodesV6): DastElementV6 | DastRootV6 | null {
         const parentMap = this._parentMap();
         return parentMap.get(node) || null;
     }
@@ -276,8 +275,8 @@ export class DoenetSourceObject extends LazyDataObject {
      *
      * Node must be in `this.dast`.
      */
-    getParents(node: DastNodes): (DastElement | DastRoot)[] {
-        const ret: (DastElement | DastRoot)[] = [];
+    getParents(node: DastNodesV6): (DastElementV6 | DastRootV6)[] {
+        const ret: (DastElementV6 | DastRootV6)[] = [];
 
         let parent = this.getParent(node);
         while (parent && parent.type !== "root") {
@@ -292,7 +291,7 @@ export class DoenetSourceObject extends LazyDataObject {
      * Get the unique descendent of `node` with name `name`.
      */
     getNamedDescendent(
-        node: DastElement | DastRoot | undefined | null,
+        node: DastElementV6 | DastRootV6 | undefined | null,
         name: string,
     ) {
         if (!node) {
@@ -313,7 +312,7 @@ export class DoenetSourceObject extends LazyDataObject {
      */
     getReferentAtOffset(offset: number | RowCol, name: string) {
         const { node } = this.elementAtOffsetWithContext(offset);
-        let parent: DastElement | DastRoot | undefined | null = node;
+        let parent: DastElementV6 | DastRootV6 | undefined | null = node;
         let referent = this.getNamedDescendent(parent, name);
         while (parent && parent.type !== "root" && !referent) {
             parent = this._parentMap().get(parent);
@@ -344,7 +343,7 @@ export class DoenetSourceObject extends LazyDataObject {
      * Return the smallest range that contains all of the nodes in `nodes`.
      */
     getNodeRange<Style extends "default" | "lsp">(
-        nodes: DastNodes | DastNodes[],
+        nodes: DastNodesV6 | DastNodesV6[],
         style?: Style,
     ): Style extends "lsp" ? LSPRange : Position {
         if (!Array.isArray(nodes)) {
@@ -378,7 +377,7 @@ export class DoenetSourceObject extends LazyDataObject {
     /**
      * The DAST representation of `source`.
      */
-    get dast(): DastRoot {
+    get dast(): DastRootV6 {
         return this._dast();
     }
 
@@ -400,7 +399,7 @@ export type OffsetToPositionMap = {
  * in its path.
  */
 export function isOldMacro(
-    macro: DastMacro | DastFunctionMacro | DastMacroV6 | DastFunctionMacroV6,
+    macro: DastMacro | DastFunctionMacroV6 | DastMacroV6 | DastFunctionMacroV6,
 ): boolean {
     if (!("version" in macro) || macro.version !== "0.6") {
         return false;

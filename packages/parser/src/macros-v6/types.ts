@@ -110,7 +110,7 @@ export type FunctionArgumentList = [
 ];
 export type BalancedParenTextNoComma = (Macro | FunctionMacro | Text)[];
 export type BalancedParenText = (Macro | FunctionMacro | Text)[];
-export type PropAttrs = Attr[];
+export type PropAttrs = Record<string, Attr>;
 export type PropIndex = {
   position: {
     start: { offset: number; line: number; column: number };

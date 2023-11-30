@@ -143,7 +143,7 @@ BalancedParenText
     )* { return x.flat(); }
     / x:EmptyString { return [x]; }
 
-PropAttrs = "{" _? @(@Attr _?)* "}"
+PropAttrs = "{" _? attrs:(@Attr _?)* "}" { return Object.fromEntries(attrs.map(a => [a.name, a])); }
 
 PropIndex
     = "[" _? value:(@(FunctionMacro / Macro / TextWithoutClosingSquareBrace) _?)* "]" {

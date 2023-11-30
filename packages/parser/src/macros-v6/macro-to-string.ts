@@ -61,7 +61,9 @@ export function macroToString(node: Node | Node[]): string {
  */
 function unwrappedMacroToString(nodes: Macro): string {
     const path = macroPathToString(nodes.path);
-    const attrs = (nodes.attributes || []).map(attrToString).join(" ");
+    const attrs = Object.values(nodes.attributes || {})
+        .map(attrToString)
+        .join(" ");
     let attrsStr = attrs.length > 0 ? `{${attrs}}` : "";
     let propAccess = "";
     if (nodes.accessedProp) {

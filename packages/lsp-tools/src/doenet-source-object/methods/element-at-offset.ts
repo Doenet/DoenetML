@@ -1,5 +1,5 @@
 import { CursorPosition, DoenetSourceObject, RowCol } from "../index";
-import { DastElement, DastRoot, LezerSyntaxNodeName } from "@doenet/parser";
+import { DastElementV6, LezerSyntaxNodeName } from "@doenet/parser";
 
 /**
  * Get the element containing the position `offset`. `null` is returned if the position is not
@@ -12,7 +12,7 @@ export function elementAtOffsetWithContext(
     this: DoenetSourceObject,
     offset: number | RowCol,
 ): {
-    node: DastElement | null;
+    node: DastElementV6 | null;
     cursorPosition: CursorPosition;
 } {
     if (typeof offset !== "number") {
@@ -62,7 +62,7 @@ export function elementAtOffsetWithContext(
             lezerNode = leftNode;
             node = this.nodeAtOffset(lezerNode.from, {
                 type: "element",
-            }) as DastElement | null;
+            }) as DastElementV6 | null;
         }
 
         const lezerNodeType = lezerNode.type.name as LezerSyntaxNodeName;

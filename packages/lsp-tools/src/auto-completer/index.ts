@@ -1,6 +1,6 @@
 import { DoenetSourceObject, RowCol } from "../doenet-source-object";
 import { doenetSchema } from "@doenet/static-assets";
-import { DastAttribute, DastElement } from "@doenet/parser";
+import { DastAttributeV6, DastElementV6 } from "@doenet/parser";
 import { getCompletionItems } from "./methods/get-completion-items";
 import { getSchemaViolations } from "./methods/get-schema-violations";
 import { getCompletionContext } from "./methods/get-completion-context";
@@ -119,9 +119,9 @@ export class AutoCompleter {
      * Gets the attribute that ends to the left of `offset`, if one exists.
      */
     _getAttributeLeftOfOffset(
-        node: DastElement,
+        node: DastElementV6,
         offset: number,
-    ): DastAttribute | null {
+    ): DastAttributeV6 | null {
         let candidate = Object.values(node.attributes)[0];
         if (!candidate) {
             return null;
