@@ -3,6 +3,7 @@ import { doenetSchema } from "@doenet/static-assets";
 import { DastAttribute, DastElement } from "@doenet/parser";
 import { getCompletionItems } from "./methods/get-completion-items";
 import { getSchemaViolations } from "./methods/get-schema-violations";
+import { getCompletionContext } from "./methods/get-completion-context";
 
 type ElementSchema = {
     name: string;
@@ -98,6 +99,12 @@ export class AutoCompleter {
      * Get a list of LSP `Diagnostic`s for schema violations.
      */
     getSchemaViolations = getSchemaViolations;
+
+    /**
+     * Get context about the current cursor position to determine whether completions should be offered or not,
+     * and what type of completions should be offered.
+     */
+    getCompletionContext = getCompletionContext;
 
     /**
      * Get the children allowed inside an `elementName` named element.

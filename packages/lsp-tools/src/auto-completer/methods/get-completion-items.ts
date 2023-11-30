@@ -64,8 +64,6 @@ export function getCompletionItems(
 
     const { tagComplete, closed } = this.sourceObj.isCompleteElement(element);
 
-    console.log({ tagComplete, closed, element: element.name });
-
     if (
         cursorPosition === "body" &&
         containingElement.node &&

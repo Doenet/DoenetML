@@ -19,7 +19,7 @@ import {
 export function nodeAtOffset<const T extends DastNodes["type"]>(
     this: DoenetSourceObject,
     offset: number | RowCol,
-    options?: { type: T; side?: "left" | "right" },
+    options?: { type?: T; side?: "left" | "right" },
 ): Extract<DastNodes, { type: T }> | null {
     let { type, side = "right" } = options || {};
     if (typeof offset !== "number") {
