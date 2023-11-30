@@ -166,4 +166,33 @@ describe("AutoCompleter", () => {
             `);
         }
     });
+    it("Can get completion context", () => {
+        let source: string;
+        let autoCompleter: AutoCompleter;
+
+        source = ` $foo.bar. `;
+        autoCompleter = new AutoCompleter(source, schema.elements);
+        {
+            let offset = 0;
+            let elm = autoCompleter.getCompletionContext(offset);
+            expect(elm).toEqual({
+                cursorPos: "body",
+            });
+
+            offset = source.indexOf("$foo") + 4;
+            elm = autoCompleter.getCompletionContext(offset);
+            expect(elm).toMatchObject({
+                complete: true,
+                cursorPos: "macro",
+            });
+
+            // Matching at the . following the macro.
+            offset = source.indexOf("bar") + 4;
+            elm = autoCompleter.getCompletionContext(offset);
+            expect(elm).toMatchObject({
+                complete: false,
+                cursorPos: "macro",
+            });
+        }
+    });
 });
