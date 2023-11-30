@@ -3,6 +3,7 @@ import {
     DastNodes,
     DastRoot,
     lezerToDast,
+    lezerToDastV6,
     stringToLezer,
     toXml,
     visit,
@@ -41,7 +42,7 @@ export function initLezerCursor(this: DoenetSourceObject): TreeCursor {
 }
 
 export function initDast(this: DoenetSourceObject) {
-    return lezerToDast(this._lezer(), this.source);
+    return lezerToDastV6(this._lezer(), this.source);
 }
 
 export function initParentMap(this: DoenetSourceObject) {

@@ -54,6 +54,7 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$(../t)\` 1`] = `
       },
     },
     "type": "macro",
+    "version": "0.6",
   },
 ]
 `;
@@ -112,6 +113,7 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$(/t)\` 1`] = `
       },
     },
     "type": "macro",
+    "version": "0.6",
   },
 ]
 `;
@@ -153,6 +155,7 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$(t)\` 1`] = `
       },
     },
     "type": "macro",
+    "version": "0.6",
   },
 ]
 `;
@@ -195,6 +198,7 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$(t.x)\` 1`] = `
         },
       },
       "type": "macro",
+      "version": "0.6",
     },
     "attributes": [],
     "path": [
@@ -229,6 +233,7 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$(t.x)\` 1`] = `
       },
     },
     "type": "macro",
+    "version": "0.6",
   },
 ]
 `;
@@ -321,6 +326,7 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$(t[1]/x)\` 1`] = `
       },
     },
     "type": "macro",
+    "version": "0.6",
   },
 ]
 `;
@@ -398,6 +404,7 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$(t-x[1].y{a="b"})\
         },
       },
       "type": "macro",
+      "version": "0.6",
     },
     "attributes": [],
     "path": [
@@ -466,6 +473,7 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$(t-x[1].y{a="b"})\
       },
     },
     "type": "macro",
+    "version": "0.6",
   },
 ]
 `;
@@ -507,6 +515,7 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$(x-y)\` 1`] = `
       },
     },
     "type": "macro",
+    "version": "0.6",
   },
 ]
 `;
@@ -549,6 +558,7 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$(x-y.a-b)\` 1`] = 
         },
       },
       "type": "macro",
+      "version": "0.6",
     },
     "attributes": [],
     "path": [
@@ -583,6 +593,7 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$(x-y.a-b)\` 1`] = 
       },
     },
     "type": "macro",
+    "version": "0.6",
   },
 ]
 `;
@@ -641,6 +652,7 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$(x-y/a-b)\` 1`] = 
       },
     },
     "type": "macro",
+    "version": "0.6",
   },
 ]
 `;
@@ -682,6 +694,7 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$_t\` 1`] = `
       },
     },
     "type": "macro",
+    "version": "0.6",
   },
 ]
 `;
@@ -725,6 +738,7 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$t.x.y\` 1`] = `
           },
         },
         "type": "macro",
+        "version": "0.6",
       },
       "attributes": [],
       "path": [
@@ -759,6 +773,7 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$t.x.y\` 1`] = `
         },
       },
       "type": "macro",
+      "version": "0.6",
     },
     "attributes": [],
     "path": [
@@ -793,6 +808,7 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$t.x.y\` 1`] = `
       },
     },
     "type": "macro",
+    "version": "0.6",
   },
 ]
 `;
@@ -870,6 +886,7 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$t.x[1].y[2]\` 1`] 
           },
         },
         "type": "macro",
+        "version": "0.6",
       },
       "attributes": [],
       "path": [
@@ -938,6 +955,7 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$t.x[1].y[2]\` 1`] 
         },
       },
       "type": "macro",
+      "version": "0.6",
     },
     "attributes": [],
     "path": [
@@ -972,6 +990,7 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$t.x[1].y[2]\` 1`] 
       },
     },
     "type": "macro",
+    "version": "0.6",
   },
 ]
 `;
@@ -1015,6 +1034,7 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$t.x[1].y\` 1`] = `
           },
         },
         "type": "macro",
+        "version": "0.6",
       },
       "attributes": [],
       "path": [
@@ -1083,6 +1103,7 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$t.x[1].y\` 1`] = `
         },
       },
       "type": "macro",
+      "version": "0.6",
     },
     "attributes": [],
     "path": [
@@ -1117,6 +1138,7 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$t.x[1].y\` 1`] = `
       },
     },
     "type": "macro",
+    "version": "0.6",
   },
 ]
 `;
@@ -1160,6 +1182,7 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$t.x[1][2].y\` 1`] 
           },
         },
         "type": "macro",
+        "version": "0.6",
       },
       "attributes": [],
       "path": [
@@ -1261,6 +1284,7 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$t.x[1][2].y\` 1`] 
         },
       },
       "type": "macro",
+      "version": "0.6",
     },
     "attributes": [],
     "path": [
@@ -1295,6 +1319,7 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$t.x[1][2].y\` 1`] 
       },
     },
     "type": "macro",
+    "version": "0.6",
   },
 ]
 `;
@@ -1338,6 +1363,7 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$t.x[1]{a="b"}.y\` 
           },
         },
         "type": "macro",
+        "version": "0.6",
       },
       "attributes": [
         {
@@ -1441,6 +1467,7 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$t.x[1]{a="b"}.y\` 
         },
       },
       "type": "macro",
+      "version": "0.6",
     },
     "attributes": [],
     "path": [
@@ -1475,6 +1502,7 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$t.x[1]{a="b"}.y\` 
       },
     },
     "type": "macro",
+    "version": "0.6",
   },
 ]
 `;
@@ -1517,6 +1545,7 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$t.x\` 1`] = `
         },
       },
       "type": "macro",
+      "version": "0.6",
     },
     "attributes": [],
     "path": [
@@ -1551,6 +1580,7 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$t.x\` 1`] = `
       },
     },
     "type": "macro",
+    "version": "0.6",
   },
 ]
 `;
@@ -1613,6 +1643,7 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$t[$x]\` 1`] = `
                   },
                 },
                 "type": "macro",
+                "version": "0.6",
               },
             ],
           },
@@ -1646,6 +1677,7 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$t[$x]\` 1`] = `
       },
     },
     "type": "macro",
+    "version": "0.6",
   },
 ]
 `;
@@ -1721,6 +1753,7 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$t[1.5]\` 1`] = `
       },
     },
     "type": "macro",
+    "version": "0.6",
   },
 ]
 `;
@@ -1796,6 +1829,7 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$t[1]\` 1`] = `
       },
     },
     "type": "macro",
+    "version": "0.6",
   },
 ]
 `;
@@ -1906,6 +1940,7 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$t[1]{a="b"}\` 1`] 
       },
     },
     "type": "macro",
+    "version": "0.6",
   },
 ]
 `;
@@ -2014,6 +2049,7 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$t[a][b]\` 1`] = `
       },
     },
     "type": "macro",
+    "version": "0.6",
   },
 ]
 `;
@@ -2055,6 +2091,7 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$t\` 1`] = `
       },
     },
     "type": "macro",
+    "version": "0.6",
   },
 ]
 `;
@@ -2101,6 +2138,7 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$t{a="$b"}\` 1`] = 
               },
             },
             "type": "macro",
+            "version": "0.6",
           },
         ],
         "name": "a",
@@ -2151,6 +2189,7 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$t{a="$b"}\` 1`] = 
       },
     },
     "type": "macro",
+    "version": "0.6",
   },
 ]
 `;
@@ -2227,6 +2266,7 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$t{a="b"}\` 1`] = `
       },
     },
     "type": "macro",
+    "version": "0.6",
   },
 ]
 `;
@@ -2286,6 +2326,7 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$t{a}\` 1`] = `
       },
     },
     "type": "macro",
+    "version": "0.6",
   },
 ]
 `;
@@ -2327,6 +2368,7 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$t1\` 1`] = `
       },
     },
     "type": "macro",
+    "version": "0.6",
   },
 ]
 `;
@@ -2405,6 +2447,7 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$x[2$y$$f(3)]\` 1`]
                   },
                 },
                 "type": "macro",
+                "version": "0.6",
               },
               {
                 "input": [
@@ -2462,6 +2505,7 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$x[2$y$$f(3)]\` 1`]
                     },
                   },
                   "type": "macro",
+                  "version": "0.6",
                 },
                 "position": {
                   "end": {
@@ -2476,6 +2520,7 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$x[2$y$$f(3)]\` 1`]
                   },
                 },
                 "type": "function",
+                "version": "0.6",
               },
             ],
           },
@@ -2509,6 +2554,7 @@ exports[`Macro parsing of v0.6 macros > should parse macro \`$x[2$y$$f(3)]\` 1`]
       },
     },
     "type": "macro",
+    "version": "0.6",
   },
 ]
 `;

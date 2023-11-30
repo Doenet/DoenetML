@@ -56,6 +56,7 @@ PartialPathMacro
     = path:PathPart attrs:PropAttrs? accessedProp:PropAccess? {
             return withPosition({
                 type: "macro",
+                version: "0.6",
                 path: [path],
                 attributes: attrs || [],
                 accessedProp,
@@ -66,6 +67,7 @@ ScopedPartialPathMacro
     = path:ScopedPathPart attrs:PropAttrs? accessedProp:ScopedPropAccess? {
             return withPosition({
                 type: "macro",
+                version: "0.6",
                 path: [path],
                 attributes: attrs || [],
                 accessedProp,
@@ -77,6 +79,7 @@ FullPathMacro
     = path:FullPath attrs:PropAttrs? accessedProp:ScopedPropAccess? {
             return withPosition({
                 type: "macro",
+                version: "0.6",
                 path,
                 attributes: attrs || [],
                 accessedProp,
@@ -93,6 +96,7 @@ FunctionMacro
     = "$$" "(" macro:FullPathMacro ")" input:FunctionInput? {
             return withPosition({
                 type: "function",
+                version: "0.6",
                 macro,
                 input,
             });
@@ -100,6 +104,7 @@ FunctionMacro
     / "$$" macro:PartialPathMacro input:FunctionInput? {
             return withPosition({
                 type: "function",
+                version: "0.6",
                 macro,
                 input,
             });

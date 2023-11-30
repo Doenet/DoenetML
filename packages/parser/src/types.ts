@@ -28,6 +28,12 @@ import {
     PathPart as _PathPart,
     PropIndex as _PropIndex,
 } from "./macros/types";
+import {
+    FunctionMacro as _FunctionMacroV6,
+    Macro as _MacroV6,
+    PathPart as _PathPartV6,
+    PropIndex as _PropIndexV6,
+} from "./macros-v6/types";
 
 export type Position = UnistLiteral["position"] & {};
 
@@ -404,4 +410,19 @@ export type DastMacroFullPath = DastMacroPathPart[];
 export type DastFunctionMacro = Omit<_FunctionMacro, "input" | "path"> & {
     input: DastElementContent[][] | null;
     path: DastMacroPathPart[];
+};
+
+// We glue together the types of macros and regular DAST nodes
+export type DastMacroV6 = Omit<_Macro, "attributes" | "path"> & {
+    attributes: DastAttribute[];
+    accessedProp: DastMacroV6 | null;
+    path: DastMacroPathPartV6[];
+};
+export type DastMacroPathPartV6 = Omit<_PathPart, "index"> & {
+    index: (Omit<_PropIndex, "value"> & { value: (DastText | DastMacro)[] })[];
+};
+export type DastMacroFullPathV6 = DastMacroPathPart[];
+export type DastFunctionMacroV6 = Omit<_FunctionMacro, "input" | "path"> & {
+    input: DastElementContent[][] | null;
+    macro: DastMacroV6;
 };

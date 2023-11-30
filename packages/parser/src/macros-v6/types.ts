@@ -56,6 +56,7 @@ export type PartialPathMacro = {
   };
 } & {
   type: "macro";
+  version: "0.6";
   path: [PathPart];
   attributes: never[] | NonNullable<PropAttrs | null>;
   accessedProp: PropAccess | null;
@@ -67,6 +68,7 @@ export type ScopedPartialPathMacro = {
   };
 } & {
   type: "macro";
+  version: "0.6";
   path: [ScopedPathPart];
   attributes: never[] | NonNullable<PropAttrs | null>;
   accessedProp: ScopedPropAccess | null;
@@ -78,6 +80,7 @@ export type FullPathMacro = {
   };
 } & {
   type: "macro";
+  version: "0.6";
   path: FullPath;
   attributes: never[] | NonNullable<PropAttrs | null>;
   accessedProp: ScopedPropAccess | null;
@@ -88,7 +91,7 @@ export type FunctionMacro =
         start: { offset: number; line: number; column: number };
         end: { offset: number; line: number; column: number };
       };
-    } & { type: "function"; macro: FullPathMacro; input: FunctionInput | null })
+    } & { type: "function"; version: "0.6"; macro: FullPathMacro; input: FunctionInput | null })
   | ({
       position: {
         start: { offset: number; line: number; column: number };
@@ -97,6 +100,7 @@ export type FunctionMacro =
     } & {
       type: "function";
       macro: PartialPathMacro;
+      version: "0.6";
       input: FunctionInput | null;
     });
 export type FunctionInput = FunctionArgumentList;

@@ -1,6 +1,8 @@
 import {
     DastElement,
     DastFunctionMacro,
+    DastFunctionMacroV6,
+    DastMacroV6,
     DastNodes,
     DastRoot,
     LezerSyntaxNodeName,
@@ -397,19 +399,24 @@ export type OffsetToPositionMap = {
  * Returns `true` if the macro is an "old-style" macro with slashes
  * in its path.
  */
-export function isOldMacro(macro: DastMacro | DastFunctionMacro): boolean {
+export function isOldMacro(
+    macro: DastMacro | DastFunctionMacro | DastMacroV6 | DastFunctionMacroV6,
+): boolean {
+    if (!("version" in macro) || macro.version !== "0.6") {
+        return false;
+    }
     switch (macro.type) {
         case "macro": {
             if (macro.path.length !== 1) {
                 return true;
             }
-            if (macro.accessedProp) {
+            if ("accessedProp" in macro && macro.accessedProp) {
                 return isOldMacro(macro.accessedProp);
             }
             return false;
         }
         case "function": {
-            return isOldMacro(macro.macro);
+            return "macro" in macro && isOldMacro(macro.macro);
         }
     }
 }
