@@ -2,7 +2,7 @@ import { RowCol } from "../../doenet-source-object";
 import type { CompletionItem } from "vscode-languageserver/browser";
 import { CompletionItemKind } from "vscode-languageserver/browser";
 import { showCursor } from "@doenet/parser";
-import { AutoCompleter } from "..";
+import { AutoCompleter } from "../index";
 
 /**
  * Get a list of completion items at the given offset.
