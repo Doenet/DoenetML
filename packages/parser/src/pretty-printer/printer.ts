@@ -68,7 +68,7 @@ export const print: Printer<DastNodes>["print"] = function print(
             const closingTag: Doc[] = [];
             const attributes = node.attributes || [];
             const printedAttrs: Doc[] = [];
-            for (const attr of attributes) {
+            for (const attr of Object.values(attributes)) {
                 const attrName = name(attr.name);
                 // No fancy formatting goes on for quoted attributes
                 if (attr.children.length === 0) {

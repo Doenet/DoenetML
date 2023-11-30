@@ -99,7 +99,7 @@ export function getSchemaViolations(this: AutoCompleter): Diagnostic[] {
         //
         // Check attributes
         //
-        for (const attr of node.attributes) {
+        for (const attr of Object.values(node.attributes)) {
             const attrName = this.normalizeAttributeName(attr.name);
             if (attrName === "UNKNOWN_NAME") {
                 ret.push({

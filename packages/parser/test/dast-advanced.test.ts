@@ -414,7 +414,7 @@ describe("DAST", async () => {
           {
             "children": [
               {
-                "attributes": [],
+                "attributes": {},
                 "children": [
                   {
                     "accessedProp": null,
@@ -467,8 +467,8 @@ describe("DAST", async () => {
           {
             "children": [
               {
-                "attributes": [
-                  {
+                "attributes": {
+                  "z": {
                     "children": [
                       {
                         "accessedProp": null,
@@ -477,16 +477,52 @@ describe("DAST", async () => {
                           {
                             "index": [],
                             "name": "x",
+                            "position": {
+                              "end": {
+                                "column": 3,
+                                "line": 1,
+                                "offset": 2,
+                              },
+                              "start": {
+                                "column": 2,
+                                "line": 1,
+                                "offset": 1,
+                              },
+                            },
                             "type": "pathPart",
                           },
                         ],
+                        "position": {
+                          "end": {
+                            "column": 8,
+                            "line": 1,
+                            "offset": 7,
+                          },
+                          "start": {
+                            "column": 6,
+                            "line": 1,
+                            "offset": 5,
+                          },
+                        },
                         "type": "macro",
                       },
                     ],
                     "name": "z",
+                    "position": {
+                      "end": {
+                        "column": 10,
+                        "line": 1,
+                        "offset": 9,
+                      },
+                      "start": {
+                        "column": 4,
+                        "line": 1,
+                        "offset": 3,
+                      },
+                    },
                     "type": "attribute",
                   },
-                ],
+                },
                 "children": [],
                 "name": "m",
                 "type": "element",
@@ -586,7 +622,7 @@ describe("DAST", async () => {
                 "input": [
                   [
                     {
-                      "attributes": [],
+                      "attributes": {},
                       "children": [
                         {
                           "type": "text",
@@ -631,7 +667,7 @@ describe("DAST", async () => {
                   ],
                   [
                     {
-                      "attributes": [],
+                      "attributes": {},
                       "children": [
                         {
                           "type": "text",
@@ -667,7 +703,7 @@ describe("DAST", async () => {
           {
             "children": [
               {
-                "attributes": [],
+                "attributes": {},
                 "children": [
                   {
                     "input": [
@@ -679,7 +715,7 @@ describe("DAST", async () => {
                       ],
                       [
                         {
-                          "attributes": [],
+                          "attributes": {},
                           "children": [
                             {
                               "type": "text",
@@ -835,7 +871,7 @@ describe("DAST", async () => {
                       "value": "(",
                     },
                     {
-                      "attributes": [],
+                      "attributes": {},
                       "children": [
                         {
                           "type": "text",
@@ -884,7 +920,7 @@ describe("DAST", async () => {
                   ],
                   [
                     {
-                      "attributes": [],
+                      "attributes": {},
                       "children": [
                         {
                           "type": "text",
@@ -945,7 +981,7 @@ describe("DAST", async () => {
                   ],
                   [
                     {
-                      "attributes": [],
+                      "attributes": {},
                       "children": [
                         {
                           "type": "text",

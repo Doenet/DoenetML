@@ -115,7 +115,7 @@ export function initDescendentNamesMap(this: DoenetSourceObject) {
         if (!namesInScope.has(node)) {
             namesInScope.set(node, []);
         }
-        const nameAttr = node.attributes.find((a) => a.name === "name");
+        const nameAttr = node.attributes["name"];
         if (!nameAttr) {
             return;
         }

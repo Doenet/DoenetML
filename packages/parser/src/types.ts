@@ -308,7 +308,7 @@ export interface DastElement extends DastParent {
     /**
      * Info associated with the element.
      */
-    attributes: DastAttribute[];
+    attributes: Record<string, DastAttribute>;
     /**
      * Children of element.
      */

@@ -81,7 +81,9 @@ export function nodesToXml(
             const content = nodesToXml(node.children, options);
             const attributes = node.attributes || [];
 
-            const attrs = attributes.map((attr) => attrToString(attr, options));
+            const attrs = Object.values(attributes).map((attr) =>
+                attrToString(attr, options),
+            );
             const printedAttrs =
                 (attrs.length > 0 ? " " : "") + attrs.join(" ");
 
@@ -118,7 +120,7 @@ export function nodesToXml(
                 const errorElement: DastElement = {
                     type: "element",
                     name: "_error",
-                    attributes: [],
+                    attributes: {},
                     children: [{ type: "text", value: node.message }],
                 };
                 return nodesToXml(errorElement, options);

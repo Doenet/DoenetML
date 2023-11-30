@@ -122,7 +122,7 @@ function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
 
                 const tag = openTag.getChild("TagName");
                 const name = tag ? extractContent(tag, source) : "";
-                const attributes: DastAttribute[] = [];
+                const attributesList: DastAttribute[] = [];
                 for (const attrTag of openTag.getChildren("Attribute")) {
                     const error = findFirstErrorInChild(attrTag);
                     if (error) {
@@ -152,7 +152,7 @@ function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
                         : [];
                     // Attributes with no specified value are assigned the value "true".
                     // E.g. `<foo bar />` is the same as `<foo bar="true" />`
-                    attributes.push({
+                    attributesList.push({
                         type: "attribute",
                         name: extractContent(attrName, source),
                         children: attrChildren,
@@ -174,7 +174,9 @@ function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
                     {
                         type: "element",
                         name,
-                        attributes,
+                        attributes: Object.fromEntries(
+                            attributesList.map((a) => [a.name, a]),
+                        ),
                         children,
                         position: lezerNodeToPosition(node, offsetMap),
                     },

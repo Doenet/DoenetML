@@ -171,7 +171,7 @@ export class DoenetSourceObject extends LazyDataObject {
         }
 
         // Find the attribute whose range contains the cursor
-        const attribute = containingElm.node.attributes.find(
+        const attribute = Object.values(containingElm.node.attributes).find(
             (a) =>
                 a.position &&
                 a.position.start.offset! <= _offset &&
