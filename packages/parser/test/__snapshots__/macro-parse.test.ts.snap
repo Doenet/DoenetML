@@ -4040,6 +4040,46 @@ exports[`Macro parsing of v0.7 macros > should parse macro \`$t[a][b]\` 1`] = `
 ]
 `;
 
+exports[`Macro parsing of v0.7 macros > should parse macro \`$t_1\` 1`] = `
+[
+  {
+    "attributes": {},
+    "path": [
+      {
+        "index": [],
+        "name": "t_1",
+        "position": {
+          "end": {
+            "column": 5,
+            "line": 1,
+            "offset": 4,
+          },
+          "start": {
+            "column": 2,
+            "line": 1,
+            "offset": 1,
+          },
+        },
+        "type": "pathPart",
+      },
+    ],
+    "position": {
+      "end": {
+        "column": 5,
+        "line": 1,
+        "offset": 4,
+      },
+      "start": {
+        "column": 1,
+        "line": 1,
+        "offset": 0,
+      },
+    },
+    "type": "macro",
+  },
+]
+`;
+
 exports[`Macro parsing of v0.7 macros > should parse macro \`$t\` 1`] = `
 [
   {

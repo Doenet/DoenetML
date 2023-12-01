@@ -120,6 +120,7 @@ describe("Macro parsing of v0.7 macros", () => {
     {
         const validMacros = `$t
             $t1
+            $t_1
             $_t
             $t[1]
             $t[1.5]
@@ -152,6 +153,38 @@ describe("Macro parsing of v0.7 macros", () => {
         expect(MacroParser.parse("$x.")).toMatchObject([
             { type: "macro" },
             { type: "text", value: "." },
+        ]);
+    });
+    it("Parens close macro capturing", () => {
+        expect(MacroParser.parse("$(x).y")).toMatchObject([
+            { type: "macro" },
+            { type: "text", value: ".y" },
+        ]);
+    });
+    it("Parens close macro capturing of []", () => {
+        expect(MacroParser.parse("$(x)[1]")).toMatchObject([
+            { type: "macro" },
+            { type: "text", value: "[1]" },
+        ]);
+    });
+    it("Empty indices are captured", () => {
+        expect(MacroParser.parse("$x[]")).toMatchObject([
+            {
+                type: "macro",
+                path: [
+                    {
+                        type: "pathPart",
+                        name: "x",
+                        index: [
+                            {
+                                type: "index",
+                                value: [],
+                            },
+                        ],
+                    },
+                ],
+                attributes: {},
+            },
         ]);
     });
     it("Parses `$x{z}[5]` as a macro followed by a string", () => {
@@ -199,6 +232,7 @@ describe("Macro parsing of v0.7 macros", () => {
     }
     {
         const validFunctions = `$$f
+            $$f()
             $$f1(y)
             $$f[1](y)
             $$f[$x](y)
@@ -214,4 +248,10 @@ describe("Macro parsing of v0.7 macros", () => {
             });
         }
     }
+    it("Unbalanced parens for functions are not processed", () => {
+        expect(MacroParser.parse("$$f(")).toMatchObject([
+            { type: "function" },
+            { type: "text", value: "(" },
+        ]);
+    });
 });
