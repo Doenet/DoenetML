@@ -1,8 +1,8 @@
-import { RowCol } from "../doenet-source-object";
+import { RowCol } from "../../doenet-source-object";
 import type { CompletionItem } from "vscode-languageserver/browser";
 import { CompletionItemKind } from "vscode-languageserver/browser";
 import { showCursor } from "@doenet/parser";
-import { AutoCompleter } from ".";
+import { AutoCompleter } from "../index";
 
 /**
  * Get a list of completion items at the given offset.
@@ -13,13 +13,6 @@ export function getCompletionItems(
 ): CompletionItem[] {
     if (typeof offset !== "number") {
         offset = this.sourceObj.rowColToOffset(offset);
-    }
-
-    {
-        // XXX Debug
-        const cursor = this.sourceObj.lezerCursor;
-        cursor.moveTo(offset);
-        console.log("Cursor at pos:", showCursor(cursor));
     }
 
     const prevChar = this.sourceObj.source.charAt(offset - 1);
@@ -37,7 +30,7 @@ export function getCompletionItems(
     );
 
     let containingNode = this.sourceObj.nodeAtOffset(offset);
-    let containingElement = this.sourceObj.elementAtOffset(offset);
+    let containingElement = this.sourceObj.elementAtOffsetWithContext(offset);
     const element = containingElement.node;
     let cursorPosition = containingElement.cursorPosition;
     if (!element && containingNode && containingNode.type === "text") {
@@ -70,8 +63,6 @@ export function getCompletionItems(
     }
 
     const { tagComplete, closed } = this.sourceObj.isCompleteElement(element);
-
-    console.log({ tagComplete, closed, element: element.name });
 
     if (
         cursorPosition === "body" &&
@@ -114,7 +105,7 @@ export function getCompletionItems(
         // We're in the open tag name. Suggest everything that starts with the current text.
         const currentText = element.name.toLowerCase();
         const parent = this.sourceObj.getParent(element);
-        if (!parent) {
+        if (!parent || parent.type === "root") {
             return this.schemaTopAllowedElements
                 .filter((name) => name.toLowerCase().startsWith(currentText))
                 .map((name) => ({

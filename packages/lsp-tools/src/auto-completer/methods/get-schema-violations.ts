@@ -1,4 +1,4 @@
-import { RowCol } from "../doenet-source-object";
+import { RowCol } from "../../doenet-source-object";
 import type { CompletionItem, Diagnostic } from "vscode-languageserver/browser";
 import {
     CompletionItemKind,
@@ -13,7 +13,7 @@ import {
     toXml,
     visit,
 } from "@doenet/parser";
-import { AutoCompleter } from ".";
+import { AutoCompleter } from "..";
 
 /**
  * Get a list of completion items at the given offset.
@@ -99,7 +99,7 @@ export function getSchemaViolations(this: AutoCompleter): Diagnostic[] {
         //
         // Check attributes
         //
-        for (const attr of node.attributes) {
+        for (const attr of Object.values(node.attributes)) {
             const attrName = this.normalizeAttributeName(attr.name);
             if (attrName === "UNKNOWN_NAME") {
                 ret.push({

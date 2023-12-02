@@ -6,7 +6,12 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { CodeMirror } from "@doenet/codemirror";
-import { lezerToDast, parse, filterPositionInfo } from "@doenet/parser";
+import {
+    lezerToDast,
+    parse,
+    filterPositionInfo,
+    lezerToDastV6,
+} from "@doenet/parser";
 import JsonView from "react18-json-view";
 import "react18-json-view/src/style.css";
 import { DoenetSourceObject } from "./doenet-source-object";
@@ -68,19 +73,26 @@ function App() {
     const [omitPosition, setOmitPosition] = React.useState(false);
     const [rawJson, setRawJson] = React.useState(false);
     const [currentPos, setCurrentPos] = React.useState(0);
+    const [dastV6, setDastV6] = React.useState(true);
 
     React.useEffect(() => {
-        let dast = lezerToDast(doenetSource);
+        let dast = dastV6
+            ? lezerToDastV6(doenetSource)
+            : lezerToDast(doenetSource);
         if (omitPosition) {
-            dast = filterPositionInfo(dast) as any;
+            dast = filterPositionInfo(dast as any) as any;
         }
         setDast(dast);
-    }, [doenetSource, omitPosition]);
+    }, [doenetSource, omitPosition, dastV6]);
     React.useEffect(() => {
         sourceObj.setSource(doenetSource);
         console.log(
             { currentPos },
-            sourceObj.elementAtOffset(currentPos),
+            sourceObj.elementAtOffsetWithContext(currentPos),
+            "elm2 left",
+            sourceObj.nodeAtOffset(currentPos, { side: "left" })?.type || null,
+            "elm2 right",
+            sourceObj.nodeAtOffset(currentPos, { side: "right" })?.type || null,
             sourceObj.attributeAtOffset(currentPos),
             completionObj.getCompletionItems(currentPos),
         );
@@ -109,6 +121,20 @@ function App() {
                     }}
                 />
                 <label htmlFor="raw-json">Show raw JSON</label>
+                <input
+                    type="checkbox"
+                    id="dast-v6"
+                    checked={dastV6}
+                    onChange={(e) => {
+                        setDastV6(e.target.checked);
+                    }}
+                />
+                <label
+                    htmlFor="dast-v6"
+                    title="DAST v0.6 is the old version of DAST that accepts old-style macros."
+                >
+                    Use DAST v0.6
+                </label>
             </div>
             <div
                 style={{ display: "flex", overflow: "hidden", height: "100%" }}

@@ -1,8 +1,9 @@
 import {
-    DastElement,
-    DastFunctionMacro,
-    DastNodes,
-    DastRoot,
+    DastElementV6,
+    DastFunctionMacroV6,
+    DastMacroV6,
+    DastNodesV6,
+    DastRootV6,
     LezerSyntaxNodeName,
     Position,
     toXml,
@@ -12,18 +13,24 @@ import {
     initLezer,
     initLezerCursor,
     initDescendentNamesMap,
-    initOffsetToNodeMap,
+    initOffsetToNodeMapRight,
     initOffsetToRowCache,
     initParentMap,
     initRowToOffsetCache,
+    initOffsetToNodeMapLeft,
 } from "./initializers";
 import { LazyDataObject } from "./lazy-data";
-import { elementAtOffset } from "./element-at-offset";
+import { elementAtOffsetWithContext } from "./methods/element-at-offset";
+import {
+    getAddressableNamesAtOffset,
+    getMacroReferentAtOffset,
+} from "./methods/macro-resolvers";
 import { DastMacro } from "@doenet/parser";
 import type {
     Position as LSPPosition,
     Range as LSPRange,
 } from "vscode-languageserver";
+import { elementAtOffset, nodeAtOffset } from "./methods/at-offset";
 
 /**
  * A row/column position. All values are 1-indexed. This is compatible with UnifiedJs's
@@ -57,7 +64,8 @@ export class DoenetSourceObject extends LazyDataObject {
     _offsetToRowCache = this._lazyDataGetter(initOffsetToRowCache);
     _rowToOffsetCache = this._lazyDataGetter(initRowToOffsetCache);
     _parentMap = this._lazyDataGetter(initParentMap);
-    _offsetToNodeMap = this._lazyDataGetter(initOffsetToNodeMap);
+    _offsetToNodeMapRight = this._lazyDataGetter(initOffsetToNodeMapRight);
+    _offsetToNodeMapLeft = this._lazyDataGetter(initOffsetToNodeMapLeft);
     _descendentNamesMap = this._lazyDataGetter(initDescendentNamesMap);
 
     constructor(source?: string) {
@@ -128,34 +136,13 @@ export class DoenetSourceObject extends LazyDataObject {
      * Return the node that contains the current offset and is furthest down the tree.
      * E.g. `<a><b>x</b></a>` at offset equal to the position of `x` return a text node.
      *
+     * If `side === "left"`, the node to the immediate left of the offset is returned.
+     * If `side === "right"`, the node to the immediate right of the offset is returned.
+     *
      * If `type` is passed in, then `nodeAtOffset` will walk up the parent tree until it finds
      * a node of that type. It returns `null` if no such node can be found.
      */
-    nodeAtOffset(
-        offset: number | RowCol,
-        type?: DastNodes["type"],
-    ): DastNodes | null {
-        if (typeof offset !== "number") {
-            offset = this.rowColToOffset(offset);
-        }
-        if (offset < 0 || offset > this.source.length) {
-            return null;
-        }
-        if (offset > 0 && offset === this.source.length) {
-            // If we ask for a node at the "end" of the file, we probably want
-            // the last node, not null; walk back one character.
-            offset -= 1;
-        }
-        const offsetToNodeMap = this._offsetToNodeMap();
-        let ret = offsetToNodeMap[offset] || null;
-        if (type != null) {
-            while (ret && ret.type !== type) {
-                ret = this.getParent(ret);
-            }
-        }
-
-        return ret;
-    }
+    nodeAtOffset = nodeAtOffset;
 
     /**
      * Get the element containing the position `offset`. `null` is returned if the position is not
@@ -164,6 +151,7 @@ export class DoenetSourceObject extends LazyDataObject {
      * Details about the `offset` position within the element are also returned, e.g., if `offset` is in
      * the open tag, etc..
      */
+    elementAtOffsetWithContext = elementAtOffsetWithContext;
     elementAtOffset = elementAtOffset;
 
     /**
@@ -174,7 +162,7 @@ export class DoenetSourceObject extends LazyDataObject {
             offset = this.rowColToOffset(offset);
         }
         const _offset = offset;
-        const containingElm = this.elementAtOffset(offset);
+        const containingElm = this.elementAtOffsetWithContext(offset);
         if (
             !containingElm.node ||
             (containingElm.cursorPosition !== "attributeName" &&
@@ -184,7 +172,7 @@ export class DoenetSourceObject extends LazyDataObject {
         }
 
         // Find the attribute whose range contains the cursor
-        const attribute = containingElm.node.attributes.find(
+        const attribute = Object.values(containingElm.node.attributes).find(
             (a) =>
                 a.position &&
                 a.position.start.offset! <= _offset &&
@@ -198,7 +186,7 @@ export class DoenetSourceObject extends LazyDataObject {
      * partially complete (`false`). Complete elements are valid xml.
      * Incomplete elements are `<abc` or `<abc>`.
      */
-    isCompleteElement(node: DastElement): {
+    isCompleteElement(node: DastElementV6): {
         tagComplete: boolean;
         closed: boolean;
     } {
@@ -258,7 +246,7 @@ export class DoenetSourceObject extends LazyDataObject {
      *
      * Note: these values are given as **offsets**.
      */
-    getElementTagRanges(node: DastElement): { start: number; end: number }[] {
+    getElementTagRanges(node: DastElementV6): { start: number; end: number }[] {
         const start = node.position?.start?.offset || 0;
         const end = node.position?.end?.offset || 0;
         const childrenStart = node.children[0]?.position?.start?.offset;
@@ -276,16 +264,34 @@ export class DoenetSourceObject extends LazyDataObject {
     /**
      * Get the parent of `node`. Node must be in `this.dast`.
      */
-    getParent(node: DastNodes): DastElement | null {
+    getParent(node: DastNodesV6): DastElementV6 | DastRootV6 | null {
         const parentMap = this._parentMap();
         return parentMap.get(node) || null;
     }
 
     /**
+     * Get all parents of `node`. The first element in the array is the immediate parent followed
+     * by more distant ancestors.
+     *
+     * Node must be in `this.dast`.
+     */
+    getParents(node: DastNodesV6): (DastElementV6 | DastRootV6)[] {
+        const ret: (DastElementV6 | DastRootV6)[] = [];
+
+        let parent = this.getParent(node);
+        while (parent && parent.type !== "root") {
+            ret.push(parent);
+            parent = this.getParent(parent);
+        }
+        ret.push(this.dast);
+        return ret;
+    }
+
+    /**
      * Get the unique descendent of `node` with name `name`.
      */
-    getNamedChild(
-        node: DastElement | DastRoot | undefined | null,
+    getNamedDescendent(
+        node: DastElementV6 | DastRootV6 | undefined | null,
         name: string,
     ) {
         if (!node) {
@@ -305,16 +311,16 @@ export class DoenetSourceObject extends LazyDataObject {
      * Get the unique item with name `name` resolved from position `offset`.
      */
     getReferentAtOffset(offset: number | RowCol, name: string) {
-        const { node } = this.elementAtOffset(offset);
-        let parent: DastElement | undefined | null = node;
-        let referent = this.getNamedChild(parent, name);
-        while (parent && !referent) {
+        const { node } = this.elementAtOffsetWithContext(offset);
+        let parent: DastElementV6 | DastRootV6 | undefined | null = node;
+        let referent = this.getNamedDescendent(parent, name);
+        while (parent && parent.type !== "root" && !referent) {
             parent = this._parentMap().get(parent);
-            referent = this.getNamedChild(parent, name);
+            referent = this.getNamedDescendent(parent, name);
         }
         if (!parent && !referent) {
             // We need to search the root!
-            referent = this.getNamedChild(this.dast, name);
+            referent = this.getNamedDescendent(this.dast, name);
         }
         return referent || null;
     }
@@ -325,67 +331,19 @@ export class DoenetSourceObject extends LazyDataObject {
      * for the largest matching initial segment and returns any unmatched parts
      * of the macro.
      */
-    getMacroReferentAtOffset(offset: number | RowCol, macro: DastMacro) {
-        if (isOldMacro(macro)) {
-            throw new Error(
-                `Cannot resolve v0.6 style macro "${toXml(macro)}"`,
-            );
-        }
-        let pathPart = macro.path[0];
-        if (pathPart.index.length > 0) {
-            throw new Error(
-                `The first part of a macro path must be just a name without an index. Failed to resolve "${toXml(
-                    macro,
-                )}"`,
-            );
-        }
-        // If we made it here, we are just a name, so proceed with the lookup!
-        let referent = this.getReferentAtOffset(offset, pathPart.name);
-        if (!referent) {
-            return null;
-        }
-        // If there are no ".foo" accesses, the referent gets returned.
-        if (!macro.accessedProp) {
-            return {
-                node: referent,
-                accessedProp: null,
-            };
-        }
-        // Otherwise, we walk down the tree trying to
-        // resolve whatever `accessedProp` refers to until we find something
-        // that doesn't exist.
-        let prop: DastMacro | null = macro.accessedProp;
-        let propReferent: DastElement | null = referent;
-        while (prop) {
-            if (prop.path[0].index.length > 0) {
-                // Indexing can only be used on synthetic nodes.
-                return {
-                    node: referent,
-                    accessedProp: prop,
-                };
-            }
-            propReferent = this.getNamedChild(referent, prop.path[0].name);
-            if (!propReferent) {
-                return {
-                    node: referent,
-                    accessedProp: prop,
-                };
-            }
-            // Step down one level
-            referent = propReferent;
-            prop = prop.accessedProp;
-        }
-        return {
-            node: referent,
-            accessedProp: null,
-        };
-    }
+    getMacroReferentAtOffset = getMacroReferentAtOffset;
+
+    /**
+     * Get a list of all names that can be addressed from `offset`. These names can be used
+     * in a macro path.
+     */
+    getAddressableNamesAtOffset = getAddressableNamesAtOffset;
 
     /**
      * Return the smallest range that contains all of the nodes in `nodes`.
      */
     getNodeRange<Style extends "default" | "lsp">(
-        nodes: DastNodes | DastNodes[],
+        nodes: DastNodesV6 | DastNodesV6[],
         style?: Style,
     ): Style extends "lsp" ? LSPRange : Position {
         if (!Array.isArray(nodes)) {
@@ -419,7 +377,7 @@ export class DoenetSourceObject extends LazyDataObject {
     /**
      * The DAST representation of `source`.
      */
-    get dast(): DastRoot {
+    get dast(): DastRootV6 {
         return this._dast();
     }
 
@@ -440,19 +398,24 @@ export type OffsetToPositionMap = {
  * Returns `true` if the macro is an "old-style" macro with slashes
  * in its path.
  */
-export function isOldMacro(macro: DastMacro | DastFunctionMacro): boolean {
+export function isOldMacro(
+    macro: DastMacro | DastFunctionMacroV6 | DastMacroV6 | DastFunctionMacroV6,
+): boolean {
+    if (!("version" in macro) || macro.version !== "0.6") {
+        return false;
+    }
     switch (macro.type) {
         case "macro": {
             if (macro.path.length !== 1) {
                 return true;
             }
-            if (macro.accessedProp) {
+            if ("accessedProp" in macro && macro.accessedProp) {
                 return isOldMacro(macro.accessedProp);
             }
             return false;
         }
         case "function": {
-            return isOldMacro(macro.macro);
+            return "macro" in macro && isOldMacro(macro.macro);
         }
     }
 }

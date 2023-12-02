@@ -7,14 +7,13 @@ import {
 } from "../generated-assets/lezer-doenet.terms";
 import { parser } from "../generated-assets/lezer-doenet";
 import {
-    DastAttribute,
+    DastAttributeV6,
     DastDoctype,
-    DastElementContent,
-    DastFunctionMacro,
-    DastMacro,
-    DastNodes,
-    DastRoot,
-    DastRootContent,
+    DastElementContentV6,
+    DastFunctionMacroV6,
+    DastMacroV6,
+    DastRootContentV6,
+    DastRootV6,
     DastText,
     LezerSyntaxNodeName,
 } from "../types";
@@ -31,8 +30,9 @@ import {
     textNodeToText,
     updateNodePositionData,
 } from "./lezer-to-dast-utils";
-import { parseMacros } from "../macros";
 import { gobbleFunctionArguments } from "./gobble-function-arguments";
+import { parseMacrosV06 } from "../macros-v6";
+import { gobbleFunctionArgumentsV6 } from "./gobble-function-arguments-v6";
 
 /**
  * Create a lezer `SyntaxNode` from a string. This can be passed
@@ -44,12 +44,14 @@ export function stringToLezer(source: string): SyntaxNode {
 }
 
 /**
- * Convert a lezer `SyntaxNode` into a DAST tree.
+ * Convert a lezer `SyntaxNode` into a DAST tree. This parses Doenet v0.6 macros.
+ *
+ * **Note**: this function should only be used to provide support for the legacy macro syntax.
  */
-export function lezerToDast(
+export function lezerToDastV6(
     node: SyntaxNode | string,
     source?: string,
-): DastRoot {
+): DastRootV6 {
     if (typeof node === "string") {
         const tree = parser.parse(node);
         source = node;
@@ -63,15 +65,15 @@ export function lezerToDast(
     return _lezerToDast(node, source);
 }
 
-function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
+function _lezerToDast(node: SyntaxNode, source: string): DastRootV6 {
     const offsetMap = createOffsetToPositionMap(source);
     return {
         type: "root",
-        children: gobbleFunctionArguments(lezerNodeToDastNode(node)),
+        children: gobbleFunctionArgumentsV6(lezerNodeToDastNode(node)),
         position: lezerNodeToPosition(node, offsetMap),
     };
 
-    function lezerNodeToDastNode(node: SyntaxNode): DastRootContent[] {
+    function lezerNodeToDastNode(node: SyntaxNode): DastRootContentV6[] {
         if (!node) {
             throw new Error(`Expecting node but got ${JSON.stringify(node)}`);
         }
@@ -91,7 +93,7 @@ function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
                     );
                     return [];
                 }
-                let children: DastElementContent[] = [];
+                let children: DastElementContentV6[] = [];
                 // The open tag may have an error in it.
                 const openTagError = findFirstErrorInChild(openTag);
                 if (openTagError) {
@@ -122,7 +124,7 @@ function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
 
                 const tag = openTag.getChild("TagName");
                 const name = tag ? extractContent(tag, source) : "";
-                const attributesList: DastAttribute[] = [];
+                const attributesList: DastAttributeV6[] = [];
                 for (const attrTag of openTag.getChildren("Attribute")) {
                     const error = findFirstErrorInChild(attrTag);
                     if (error) {
@@ -138,7 +140,7 @@ function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
                     if (!attrName) {
                         continue;
                     }
-                    let attrChildren: DastAttribute["children"] = attrValue
+                    let attrChildren: DastAttributeV6["children"] = attrValue
                         ? [
                               ...reprocessTextForMacros({
                                   type: "text",
@@ -163,12 +165,12 @@ function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
                 // appear first.
                 children.push(
                     ...getLezerChildren(node).flatMap(
-                        (n) => lezerNodeToDastNode(n) as DastElementContent[],
+                        (n) => lezerNodeToDastNode(n) as DastElementContentV6[],
                     ),
                 );
-                children = gobbleFunctionArguments(
+                children = gobbleFunctionArgumentsV6(
                     children,
-                ) as DastElementContent[];
+                ) as DastElementContentV6[];
 
                 return [
                     {
@@ -354,13 +356,13 @@ function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
  */
 function reprocessTextForMacros(
     textNode: DastText,
-): (DastText | DastMacro | DastFunctionMacro)[] {
+): (DastText | DastMacroV6 | DastFunctionMacroV6)[] {
     if (!textNode.value.includes("$")) {
         return [textNode];
     }
     // If there is a `$` in the text, it may contain macros, so re-parse it
     // looking for macros.
-    const parsed = parseMacros(textNode.value);
+    const parsed = parseMacrosV06(textNode.value);
     // The text node may be located anywhere in the source and we have
     // just re-parsed it, so we need to make sure the position data is
     // correct.

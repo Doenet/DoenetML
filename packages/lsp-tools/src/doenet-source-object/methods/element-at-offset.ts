@@ -1,5 +1,5 @@
-import { CursorPosition, DoenetSourceObject, RowCol } from "./index";
-import { DastElement, LezerSyntaxNodeName } from "@doenet/parser";
+import { CursorPosition, DoenetSourceObject, RowCol } from "../index";
+import { DastElementV6, LezerSyntaxNodeName } from "@doenet/parser";
 
 /**
  * Get the element containing the position `offset`. `null` is returned if the position is not
@@ -8,11 +8,11 @@ import { DastElement, LezerSyntaxNodeName } from "@doenet/parser";
  * Details about the `offset` position within the element are also returned, e.g., if `offset` is in
  * the open tag, etc..
  */
-export function elementAtOffset(
+export function elementAtOffsetWithContext(
     this: DoenetSourceObject,
     offset: number | RowCol,
 ): {
-    node: DastElement | null;
+    node: DastElementV6 | null;
     cursorPosition: CursorPosition;
 } {
     if (typeof offset !== "number") {
@@ -22,7 +22,9 @@ export function elementAtOffset(
     let cursorPosition: CursorPosition = "unknown";
     const prevChar = this.source.charAt(offset - 1);
     const exactNodeAtOffset = this.nodeAtOffset(offset);
-    let node = this.nodeAtOffset(offset, "element") as DastElement | null;
+    let node = this.nodeAtOffset(offset, {
+        type: "element",
+    });
 
     if (exactNodeAtOffset && exactNodeAtOffset !== node) {
         // If our exact node is not the same as our containing element, then we're a child of the containing
@@ -58,10 +60,9 @@ export function elementAtOffset(
             // auto-completion expects.
             cursorPosition = "body";
             lezerNode = leftNode;
-            node = this.nodeAtOffset(
-                lezerNode.from,
-                "element",
-            ) as DastElement | null;
+            node = this.nodeAtOffset(lezerNode.from, {
+                type: "element",
+            }) as DastElementV6 | null;
         }
 
         const lezerNodeType = lezerNode.type.name as LezerSyntaxNodeName;
@@ -108,7 +109,7 @@ export function elementAtOffset(
     // If we're not in an element and the previous character is a word character or `<`, then
     // we might be part of an incomplete element. In this case, we return the element _before_ `offset`.
     if (!node && prevChar.match(/(\w|<)/)) {
-        return this.elementAtOffset(offset - 1);
+        return this.elementAtOffsetWithContext(offset - 1);
     }
 
     const prevCharIsWhitespace = Boolean(prevChar.match(/(\s|\n)/));
@@ -170,11 +171,15 @@ export function elementAtOffset(
         }
     }
 
+    if (node?.type !== "element") {
+        node = null;
+    }
+
     // If `node.name === ""`, then there is some error. The user has probably typed `<` and nothing else.
     // In this case, pretend we are the node before the cursor.
     if (node && node.name === "") {
         if (offset > 0) {
-            return this.elementAtOffset(offset - 1);
+            return this.elementAtOffsetWithContext(offset - 1);
         }
         return { node: null, cursorPosition: "unknown" };
     }

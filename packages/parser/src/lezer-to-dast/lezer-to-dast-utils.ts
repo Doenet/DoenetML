@@ -1,4 +1,4 @@
-import { DastNodes, LezerSyntaxNodeName, Position } from "../types";
+import { DastAbstractNode, DastNodes, LezerSyntaxNodeName, Position } from "../types";
 import { SyntaxNode } from "@lezer/common";
 import { entityStringToRawString } from "./entity-to-string";
 import { Root } from "xast";
@@ -287,8 +287,8 @@ export function getLezerChildren(node: SyntaxNode) {
  * **Note**: this function mutates `nodeToUpdate`.
  */
 export function updateNodePositionData(
-    nodeToUpdate: DastNodes,
-    referenceNode: DastNodes,
+    nodeToUpdate: DastAbstractNode,
+    referenceNode: DastAbstractNode,
 ) {
     if (!nodeToUpdate.position || !referenceNode.position) {
         return;

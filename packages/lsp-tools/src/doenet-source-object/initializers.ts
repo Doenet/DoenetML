@@ -1,8 +1,8 @@
 import {
-    DastElement,
-    DastNodes,
-    DastRoot,
-    lezerToDast,
+    DastElementV6,
+    DastNodesV6,
+    DastRootV6,
+    lezerToDastV6,
     stringToLezer,
     toXml,
     visit,
@@ -41,12 +41,16 @@ export function initLezerCursor(this: DoenetSourceObject): TreeCursor {
 }
 
 export function initDast(this: DoenetSourceObject) {
-    return lezerToDast(this._lezer(), this.source);
+    return lezerToDastV6(this._lezer(), this.source);
 }
 
 export function initParentMap(this: DoenetSourceObject) {
-    const parentMap = new Map<DastNodes, DastElement>();
-    visit(this.dast, (node) => {
+    const parentMap = new Map<DastNodesV6, DastElementV6 | DastRootV6>();
+    for (const node of this.dast.children) {
+        parentMap.set(node, this.dast);
+    }
+    visit(this.dast, (_node) => {
+        const node = _node as DastNodesV6;
         if (node.type === "element") {
             for (const child of node.children) {
                 parentMap.set(child, node);
@@ -56,12 +60,18 @@ export function initParentMap(this: DoenetSourceObject) {
     return parentMap;
 }
 
-export function initOffsetToNodeMap(this: DoenetSourceObject) {
+/**
+ * Create an array the same length as `source.length` whose entries point to the node furthest
+ * down the tree that contains the character at that position. This array prefers the right-most node.
+ * So `<a /><b />` at position 5 returns `<b />`.
+ */
+export function initOffsetToNodeMapRight(this: DoenetSourceObject) {
     const dast = this.dast;
-    const offsetToNodeMap: (DastNodes | null)[] = Array.from(this.source).map(
+    const offsetToNodeMap: (DastNodesV6 | null)[] = Array.from(this.source).map(
         () => null,
     );
-    visit(dast, (node) => {
+    visit(dast, (_node) => {
+        const node = _node as DastNodesV6;
         if (node.type === "error") {
             return;
         }
@@ -80,31 +90,50 @@ export function initOffsetToNodeMap(this: DoenetSourceObject) {
     return offsetToNodeMap;
 }
 
-export type AccessList = { name: string; element: DastElement }[];
+/**
+ * Create an array the same length as `source.length` whose entries point to the node furthest
+ * down the tree that contains the character at that position. This array prefers the right-most node.
+ * So `<a /><b />` at position 5 returns `<a />`.
+ */
+export function initOffsetToNodeMapLeft(this: DoenetSourceObject) {
+    // The left map is the same as the right map except index 0 should return the root.
+    const dast = this.dast;
+    const offsetToNodeMap = [dast, ...this._offsetToNodeMapRight()];
+    offsetToNodeMap.pop();
+
+    return offsetToNodeMap;
+}
+
+export type AccessList = { name: string; element: DastElementV6 }[];
 export function initDescendentNamesMap(this: DoenetSourceObject) {
     const dast = this.dast;
-    const namesInScope: Map<DastElement | DastRoot, AccessList> = new Map();
+    const namesInScope: Map<DastElementV6 | DastRootV6, AccessList> = new Map();
     const rootAccessList: AccessList = [];
     namesInScope.set(dast, rootAccessList);
-    visit(dast, (node, info) => {
+    visit(dast, (_node, info) => {
+        const node = _node as DastNodesV6;
         if (!(node.type === "element")) {
             return;
         }
-        const nameAttr = node.attributes.find((a) => a.name === "name");
+        if (!namesInScope.has(node)) {
+            namesInScope.set(node, []);
+        }
+        const nameAttr = node.attributes["name"];
         if (!nameAttr) {
             return;
         }
+        const name = toXml(nameAttr.children);
         // We have a name. Push our name to all of our parents.
-        for (const parent of info.parents) {
-            let accessList = namesInScope.get(parent);
-            if (!accessList) {
-                accessList = [];
-                namesInScope.set(parent, accessList);
+        for (const _parent of info.parents) {
+            const parent = _parent as DastElementV6 | DastRootV6;
+            if (!namesInScope.has(parent)) {
+                namesInScope.set(parent, []);
             }
-            accessList.push({ name: toXml(nameAttr.children), element: node });
+            const accessList = namesInScope.get(parent)!;
+            accessList.push({ name, element: node });
         }
         // Make sure our name is also viewable from the root element.
-        rootAccessList.push({ name: toXml(nameAttr.children), element: node });
+        rootAccessList.push({ name, element: node });
     });
     return namesInScope;
 }

@@ -1,4 +1,9 @@
-import { DastElement, DastNodes } from "../../../types";
+import {
+    DastElement,
+    DastElementV6,
+    DastNodes,
+    DastNodesV6,
+} from "../../../types";
 
 export type VisitorContext = {};
 
@@ -83,7 +88,10 @@ type VisitOptions = {
     /**
      * Type guard for types that are passed to the `visitor` function.
      */
-    test?: (node: DastNodes | DastNodes[], info: VisitInfo) => boolean;
+    test?: (
+        node: DastNodes | DastNodes[] | DastNodesV6 | DastNodesV6[],
+        info: VisitInfo,
+    ) => boolean;
     /**
      * Whether arrays will be sent to the `visitor` function. If falsy,
      * only nodes will be past to `visitor`.
@@ -126,7 +134,7 @@ export type VisitInfo = {
  * @param [visitor] Function to run for each node
  */
 export function visit<Opts extends VisitOptions>(
-    tree: DastNodes | DastNodes[],
+    tree: DastNodes | DastNodes[] | DastNodesV6 | DastNodesV6[],
     visitor:
         | Visitor<VisitorTypeFromOptions<Opts>>
         | Visitors<VisitorTypeFromOptions<Opts>>,
@@ -156,7 +164,7 @@ export function visit<Opts extends VisitOptions>(
     });
 
     function walk(
-        node: DastNodes | DastNodes[],
+        node: DastNodes | DastNodes[] | DastNodesV6 | DastNodesV6[],
         { key, index, parents, context, containingArray }: VisitInfo,
     ): ActionTuple {
         const nodePassesTest = includeArrays
@@ -205,7 +213,7 @@ export function visit<Opts extends VisitOptions>(
                     index,
                     parents,
                     context,
-                    containingArray: node,
+                    containingArray: node as DastNodes[],
                 });
                 if (result[0] === EXIT) {
                     return result;
@@ -226,7 +234,7 @@ export function visit<Opts extends VisitOptions>(
                 const result = walk(node.children as DastElement[], {
                     key,
                     index: undefined,
-                    parents: grandparents,
+                    parents: grandparents as DastElement[],
                     context,
                     containingArray: undefined,
                 });
