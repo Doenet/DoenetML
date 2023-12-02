@@ -21,10 +21,11 @@
         }
     },
     "scripts": {
-        "compile-wasm": "wasm-pack build --target web --dev --features 'web-logging web-debug-log'",
         "watch": "vite build --watch",
         "test": "echo \"No tests \"",
-        "build": "vite build"
+        "build:rust": "wasm-pack build --target web --dev --features 'web-logging web-debug-log'",
+        "build:js": "vite build",
+        "build": "npm run build:rust && npm run build:js"
     },
     "dependencies": {},
     "devDependencies": {

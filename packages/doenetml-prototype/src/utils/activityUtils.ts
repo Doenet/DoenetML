@@ -29,7 +29,7 @@ export function normalizeDocumentDast(dast: DastRoot) {
             type: "element",
             name: "document",
             children: elementContentChildren,
-            attributes: [],
+            attributes: {},
         };
     }
 

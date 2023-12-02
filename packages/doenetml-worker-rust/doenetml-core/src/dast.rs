@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "type")]
@@ -33,7 +34,7 @@ enum DastTextMacroContent {
 struct DastElement {
     name: String,
 
-    attributes: Vec<DastAttribute>,
+    attributes: HashMap<String, DastAttribute>,
 
     children: Vec<DastElementContent>,
 
@@ -69,6 +70,9 @@ struct TextData {}
 struct DastAttribute {
     name: String,
     children: Vec<DastTextMacroContent>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    position: Option<Position>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -76,9 +80,7 @@ struct DastAttribute {
 #[serde(tag = "type")]
 #[serde(rename = "macro")]
 struct DastMacro {
-    path: Vec<PathPart>,
-    attributes: Vec<DastAttribute>,
-    accessed_prop: Option<Box<DastMacro>>,
+    attributes: HashMap<String, DastAttribute>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     position: Option<Position>,
@@ -88,8 +90,7 @@ struct DastMacro {
 #[serde(tag = "type")]
 #[serde(rename = "function")]
 struct DastFunctionMacro {
-    #[serde(rename = "macro")]
-    function_macro: DastMacro,
+    path: Vec<PathPart>,
     input: Option<Vec<Vec<DastElementContent>>>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
