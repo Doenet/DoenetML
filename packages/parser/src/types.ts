@@ -28,6 +28,12 @@ import {
     PathPart as _PathPart,
     PropIndex as _PropIndex,
 } from "./macros/types";
+import {
+    FunctionMacro as _FunctionMacroV6,
+    Macro as _MacroV6,
+    PathPart as _PathPartV6,
+    PropIndex as _PropIndexV6,
+} from "./macros-v6/types";
 
 export type Position = UnistLiteral["position"] & {};
 
@@ -308,7 +314,7 @@ export interface DastElement extends DastParent {
     /**
      * Info associated with the element.
      */
-    attributes: DastAttribute[];
+    attributes: Record<string, DastAttribute>;
     /**
      * Children of element.
      */
@@ -394,15 +400,79 @@ export type PrintOptions = {
 
 // We glue together the types of macros and regular DAST nodes
 export type DastMacro = Omit<_Macro, "attributes" | "path"> & {
-    attributes: DastAttribute[];
-    accessedProp: DastMacro | null;
+    attributes: Record<string, DastAttribute>;
     path: DastMacroPathPart[];
 };
 export type DastMacroPathPart = Omit<_PathPart, "index"> & {
     index: (Omit<_PropIndex, "value"> & { value: (DastText | DastMacro)[] })[];
 };
 export type DastMacroFullPath = DastMacroPathPart[];
-export type DastFunctionMacro = Omit<_FunctionMacro, "input" | "macro"> & {
+export type DastFunctionMacro = Omit<_FunctionMacro, "input" | "path"> & {
     input: DastElementContent[][] | null;
-    macro: DastMacro;
+    path: DastMacroPathPart[];
 };
+
+//
+// Old-style macro support
+//
+export type DastMacroV6 = Omit<_MacroV6, "attributes" | "path"> & {
+    attributes: DastAttributeV6[];
+    accessedProp: DastMacroV6 | null;
+    path: DastMacroPathPartV6[];
+};
+export type DastMacroPathPartV6 = Omit<_PathPartV6, "index"> & {
+    index: (Omit<_PropIndex, "value"> & {
+        value: (DastText | DastMacroV6)[];
+    })[];
+};
+export type DastMacroFullPathV6 = DastMacroPathPartV6[];
+export type DastFunctionMacroV6 = Omit<_FunctionMacroV6, "input" | "path"> & {
+    input: DastElementContentV6[][] | null;
+    macro: DastMacroV6;
+};
+
+export interface DastAttributeV6 extends DastAbstractNode {
+    type: "attribute";
+    name: string;
+    children: (DastText | DastMacroV6 | DastFunctionMacroV6)[];
+}
+
+export interface ElementContentMapV6 {
+    cdata: DastCdata;
+    comment: DastComment;
+    element: DastElementV6;
+    instruction: DastInstruction;
+    text: DastText;
+    error: DastError;
+    macro: DastMacroV6;
+    function: DastFunctionMacroV6;
+}
+export interface RootContentMapV6 {
+    cdata: DastCdata;
+    comment: DastComment;
+    doctype: DastDoctype;
+    element: DastElementV6;
+    instruction: DastInstruction;
+    text: DastText;
+    error: DastError;
+    macro: DastMacroV6;
+    function: DastFunctionMacroV6;
+}
+export type DastRootContentV6 = RootContentMapV6[keyof RootContentMapV6];
+export type DastNodesV6 = DastRootV6 | DastRootContentV6;
+export type DastElementContentV6 =
+    ElementContentMapV6[keyof ElementContentMapV6];
+export interface DastElementV6 extends DastParentV6 {
+    type: "element";
+    name: string;
+    attributes: Record<string, DastAttributeV6>;
+    children: DastElementContentV6[];
+    data?: ElementData | undefined;
+}
+export interface DastRootV6 extends DastParentV6 {
+    type: "root";
+    data?: RootData | undefined;
+}
+export interface DastParentV6 extends DastAbstractNode {
+    children: DastRootContentV6[];
+}

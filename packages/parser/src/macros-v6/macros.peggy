@@ -8,55 +8,81 @@
 top = (Macro / FunctionMacro / Text)*
 
 // Identifiers. Scoped identifiers can only be used inside of `$(..)` notation.
-SimpleIdent = $[a-zA-Z0-9_]+
+Ident = $[a-zA-Z0-9_]+
 
-Ident = $[a-zA-Z0-9_-]+
+ScopedIdent = $[a-zA-Z0-9_-]+
 
-// A PathPart is an identifier followed by some amount of indexing
-SimplePathPart
-    = name:SimpleIdent index:PropIndex* {
-            return withPosition({ type: "pathPart", name, index });
-        }
-
+// A PathPart cannot have slashes or `..` in it
 PathPart
     = name:Ident index:PropIndex* {
             return withPosition({ type: "pathPart", name, index });
         }
 
-// A full path looks like `foo.bar[1][3].baz`. Attributes are not allowed to be assigned to a FullPath
-SimplePath
-    = start:SimplePathPart rest:("." @SimplePathPart)* {
+ScopedPathPart
+    = name:ScopedIdent index:PropIndex* {
+            return withPosition({ type: "pathPart", name, index });
+        }
+
+// A FullPath can have slashes and `..` in it. It may also start with a slash.
+EmptyPathPart
+    = "" { return withPosition({ type: "pathPart", name: "", index: [] }); }
+
+FullPath
+    = start:EmptyPathPart rest:("/" @ScopedPathPartOrDD)+ {
+            return [start, ...rest];
+        }
+    / start:ScopedPathPartOrDD rest:("/" @ScopedPathPartOrDD)* {
             return [start, ...rest];
         }
 
-Path
-    = start:PathPart rest:("." @PathPart)* {
-            return [start, ...rest];
-        }
+ScopedPathPartOrDD
+    = ScopedPathPart
+    / ".." { return withPosition({ type: "pathPart", name: "..", index: [] }); }
+
+// Pops can be accessed with a `.`
+PropAccess = "." @PartialPathMacro
+
+ScopedPropAccess = "." @ScopedPartialPathMacro
 
 //
 // Macros
 //
 Macro
-    = "$" "(" macro:FullAddressMacro ")" { return withPosition(macro) }
-    / "$" macro:SimpleAddressMacro { return withPosition(macro) }
+    = "$" "(" macro:FullPathMacro ")" { return withPosition(macro) }
+    / "$" macro:PartialPathMacro { return withPosition(macro) }
 
-
-// A macro where the path can have slashes and `..` in it.
-SimpleAddressMacro
-    = path:SimplePath attrs:PropAttrs? {
+// A macro where the path cannot have slashes or `..` in it.
+PartialPathMacro
+    = path:PathPart attrs:PropAttrs? accessedProp:PropAccess? {
             return withPosition({
                 type: "macro",
-                path,
-                attributes: attrs || {},
+                version: "0.6",
+                path: [path],
+                attributes: attrs || [],
+                accessedProp,
             });
         }
-FullAddressMacro
-    = path:Path attrs:PropAttrs? {
+
+ScopedPartialPathMacro
+    = path:ScopedPathPart attrs:PropAttrs? accessedProp:ScopedPropAccess? {
             return withPosition({
                 type: "macro",
+                version: "0.6",
+                path: [path],
+                attributes: attrs || [],
+                accessedProp,
+            });
+        }
+
+// A macro where the path can have slashes and `..` in it.
+FullPathMacro
+    = path:FullPath attrs:PropAttrs? accessedProp:ScopedPropAccess? {
+            return withPosition({
+                type: "macro",
+                version: "0.6",
                 path,
-                attributes: attrs || {},
+                attributes: attrs || [],
+                accessedProp,
             });
         }
 
@@ -67,17 +93,19 @@ FullAddressMacro
 // Functions are very similar to macros except they cannot have attrs or accessedProps
 // but they do take comma-separated arguments.
 FunctionMacro
-    = "$$" "(" path:Path ")" input:FunctionInput? {
+    = "$$" "(" macro:FullPathMacro ")" input:FunctionInput? {
             return withPosition({
                 type: "function",
-                path,
+                version: "0.6",
+                macro,
                 input,
             });
         }
-    / "$$" path:SimplePath input:FunctionInput? {
+    / "$$" macro:PartialPathMacro input:FunctionInput? {
             return withPosition({
                 type: "function",
-                path,
+                version: "0.6",
+                macro,
                 input,
             });
         }
@@ -115,10 +143,7 @@ BalancedParenText
     )* { return x.flat(); }
     / x:EmptyString { return [x]; }
 
-PropAttrs
-	= "{" _? attrs:(@Attr _?)* "}" {
-            return Object.fromEntries(attrs.map((a) => [a.name, a]));
-        }
+PropAttrs = "{" _? attrs:(@Attr _?)* "}" { return Object.fromEntries(attrs.map(a => [a.name, a])); }
 
 PropIndex
     = "[" _? value:(@(FunctionMacro / Macro / TextWithoutClosingSquareBrace) _?)* "]" {

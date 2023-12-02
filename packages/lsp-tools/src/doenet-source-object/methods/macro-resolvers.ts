@@ -1,4 +1,11 @@
-import { DastElement, DastMacro, DastRoot, toXml } from "@doenet/parser";
+import {
+    DastElement,
+    DastElementV6,
+    DastMacroV6,
+    DastRoot,
+    DastRootV6,
+    toXml,
+} from "@doenet/parser";
 import { DoenetSourceObject, RowCol, isOldMacro } from "../index";
 import { AccessList } from "../initializers";
 
@@ -11,7 +18,7 @@ import { AccessList } from "../initializers";
 export function getMacroReferentAtOffset(
     this: DoenetSourceObject,
     offset: number | RowCol,
-    macro: DastMacro,
+    macro: DastMacroV6,
 ) {
     if (isOldMacro(macro)) {
         throw new Error(`Cannot resolve v0.6 style macro "${toXml(macro)}"`);
@@ -39,8 +46,8 @@ export function getMacroReferentAtOffset(
     // Otherwise, we walk down the tree trying to
     // resolve whatever `accessedProp` refers to until we find something
     // that doesn't exist.
-    let prop: DastMacro | null = macro.accessedProp;
-    let propReferent: DastElement | null = referent;
+    let prop: DastMacroV6 | null = macro.accessedProp;
+    let propReferent: DastElementV6 | null = referent;
     while (prop) {
         if (prop.path[0].index.length > 0) {
             // Indexing can only be used on synthetic nodes.
@@ -49,7 +56,7 @@ export function getMacroReferentAtOffset(
                 accessedProp: prop,
             };
         }
-        propReferent = this.getNamedChild(referent, prop.path[0].name);
+        propReferent = this.getNamedDescendent(referent, prop.path[0].name);
         if (!propReferent) {
             return {
                 node: referent,
@@ -74,7 +81,8 @@ export function getAddressableNamesAtOffset(
     this: DoenetSourceObject,
     offset: number | RowCol,
 ) {
-    const currElement = this.elementAtOffsetWithContext(offset).node || this.dast;
+    const currElement =
+        this.elementAtOffsetWithContext(offset).node || this.dast;
     const descendentNamesMap = this._descendentNamesMap();
 
     const addressableChildren = getMacroAddressableChildrenAtElement(
@@ -95,8 +103,8 @@ export function getAddressableNamesAtOffset(
  * ensures that addresses are unique.
  */
 export function getMacroAddressableChildrenAtElement(
-    currElement: DastElement | DastRoot,
-    descendentNamesMap: Map<DastElement | DastRoot, AccessList>,
+    currElement: DastElementV6 | DastRootV6,
+    descendentNamesMap: Map<DastElementV6 | DastRootV6, AccessList>,
 ): string[][] {
     const accessList = descendentNamesMap.get(currElement);
     if (!accessList) {

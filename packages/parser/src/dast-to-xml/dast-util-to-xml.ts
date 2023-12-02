@@ -9,6 +9,7 @@ import {
     DastMacro,
     DastMacroPathPart,
     PrintOptions,
+    DastNodesV6,
 } from "../types";
 import { escape, mergeAdjacentTextInArray, name } from "./utils";
 
@@ -16,7 +17,7 @@ import { escape, mergeAdjacentTextInArray, name } from "./utils";
  * Serialize a xast tree to XML.
  */
 export function toXml(
-    tree?: DastNodes[] | DastNodes | null,
+    tree?: DastNodes[] | DastNodes | DastNodesV6[] | DastNodesV6 | null,
     options?: PrintOptions,
 ) {
     options = options || {};
@@ -81,7 +82,9 @@ export function nodesToXml(
             const content = nodesToXml(node.children, options);
             const attributes = node.attributes || [];
 
-            const attrs = attributes.map((attr) => attrToString(attr, options));
+            const attrs = Object.values(attributes).map((attr) =>
+                attrToString(attr, options),
+            );
             const printedAttrs =
                 (attrs.length > 0 ? " " : "") + attrs.join(" ");
 
@@ -118,7 +121,7 @@ export function nodesToXml(
                 const errorElement: DastElement = {
                     type: "element",
                     name: "_error",
-                    attributes: [],
+                    attributes: {},
                     children: [{ type: "text", value: node.message }],
                 };
                 return nodesToXml(errorElement, options);
@@ -137,7 +140,7 @@ export function nodesToXml(
             return start + macro + end;
         }
         case "function": {
-            const macro = unwrappedMacroToString(node.macro, options);
+            const macro = unwrappedMacroToString(node, options);
 
             let start = "$$";
             let end = "";
@@ -185,18 +188,18 @@ export function quote(value: string) {
  * Convert a macro to a string, but do not wrap it in parens or add a `$` prefix.
  */
 function unwrappedMacroToString(
-    nodes: DastMacro,
+    nodes: DastMacro | DastFunctionMacro,
     options: PrintOptions,
 ): string {
     const path = macroPathToString(nodes.path, options);
-    const attrs = (nodes.attributes || [])
-        .map((a) => attrToString(a, options))
-        .join(" ");
-    let attrsStr = attrs.length > 0 ? `{${attrs}}` : "";
-    let propAccess = "";
-    if (nodes.accessedProp) {
-        propAccess = "." + unwrappedMacroToString(nodes.accessedProp, options);
+    let attrsStr = "";
+    if (nodes.type === "macro") {
+        const attrs = Object.values(nodes.attributes || {})
+            .map((a) => attrToString(a, options))
+            .join(" ");
+        attrsStr = attrs.length > 0 ? `{${attrs}}` : "";
     }
+    let propAccess = "";
     return path + attrsStr + propAccess;
 }
 
@@ -204,7 +207,7 @@ function macroPathToString(
     path: DastMacroFullPath,
     options: PrintOptions,
 ): string {
-    return path.map((part) => macroPathPartToString(part, options)).join("/");
+    return path.map((part) => macroPathPartToString(part, options)).join(".");
 }
 
 function macroPathPartToString(
@@ -231,16 +234,6 @@ function attrToString(attr: DastAttribute, options: PrintOptions): string {
 }
 
 function macroNeedsParens(macro: DastMacro | DastFunctionMacro): boolean {
-    if (macro.type === "function") {
-        return macroNeedsParens(macro.macro);
-    }
-    // Paths are separated by slashes. They always need wrapping.
-    if (macro.path.length > 1) {
-        return true;
-    }
     // We also might need wrapping if the path contains a `-` character
-    return (
-        macro.path.some((part) => part.name.includes("-")) ||
-        (macro.accessedProp != null && macroNeedsParens(macro.accessedProp))
-    );
+    return macro.path.some((part) => part.name.includes("-"));
 }
