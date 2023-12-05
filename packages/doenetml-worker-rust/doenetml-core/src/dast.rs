@@ -1,133 +1,170 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "root")]
 pub struct DastRoot {
-    children: Vec<DastElementContent>,
+    pub children: Vec<DastElementContent>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    position: Option<Position>,
+    pub position: Option<Position>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
-enum DastElementContent {
+pub enum DastElementContent {
     Element(DastElement),
     Text(DastText),
     Macro(DastMacro),
     FunctionMacro(DastFunctionMacro),
+    Error(DastError),
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
-enum DastTextMacroContent {
+pub enum DastTextMacroContent {
     Text(DastText),
     Macro(DastMacro),
     FunctionMacro(DastFunctionMacro),
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "element")]
-struct DastElement {
-    name: String,
+pub struct DastElement {
+    pub name: String,
 
-    attributes: HashMap<String, DastAttribute>,
+    pub attributes: HashMap<String, DastAttribute>,
 
-    children: Vec<DastElementContent>,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    data: Option<ElementData>,
+    pub children: Vec<DastElementContent>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    position: Option<Position>,
+    pub data: Option<ElementData>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub position: Option<Position>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 struct ElementData {}
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "text")]
-struct DastText {
-    value: String,
+pub struct DastText {
+    pub value: String,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    data: Option<TextData>,
+    pub data: Option<TextData>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    position: Option<Position>,
+    pub position: Option<Position>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 struct TextData {}
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "attribute")]
-struct DastAttribute {
-    name: String,
-    children: Vec<DastTextMacroContent>,
+pub struct DastAttribute {
+    pub name: String,
+    pub children: Vec<DastTextMacroContent>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    position: Option<Position>,
+    pub position: Option<Position>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
+impl DastAttribute {
+    pub fn get_string_value(&self) -> Result<String, ()> {
+        if self.children.len() == 1 {
+            if let DastTextMacroContent::Text(name_text) = &self.children[0] {
+                // have string attribute
+                return Ok(name_text.value.clone());
+            }
+        }
+
+        Err(())
+    }
+
+    pub fn get_string_value_or_implicit_true(&self) -> Result<String, ()> {
+        if self.children.len() == 0 {
+            return Ok("true".to_string());
+        } else if self.children.len() == 1 {
+            if let DastTextMacroContent::Text(name_text) = &self.children[0] {
+                // have string attribute
+                return Ok(name_text.value.clone());
+            }
+        }
+
+        Err(())
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "macro")]
-struct DastMacro {
-    attributes: HashMap<String, DastAttribute>,
+pub struct DastMacro {
+    pub path: Vec<PathPart>,
+    pub attributes: HashMap<String, DastAttribute>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    position: Option<Position>,
+    pub position: Option<Position>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "function")]
-struct DastFunctionMacro {
-    path: Vec<PathPart>,
-    input: Option<Vec<Vec<DastElementContent>>>,
+pub struct DastFunctionMacro {
+    pub path: Vec<PathPart>,
+    pub input: Option<Vec<Vec<DastElementContent>>>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    position: Option<Position>,
+    pub position: Option<Position>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "pathPart")]
-struct PathPart {
-    name: String,
-    index: Vec<DastIndex>,
+pub struct PathPart {
+    pub name: String,
+    pub index: Vec<DastIndex>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    position: Option<Position>,
+    pub position: Option<Position>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "index")]
-struct DastIndex {
-    value: Vec<DastTextMacroContent>,
+pub struct DastIndex {
+    pub value: Vec<DastTextMacroContent>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    position: Option<Position>,
+    pub position: Option<Position>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-struct Position {
-    start: Point,
-    end: Point,
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "type")]
+#[serde(rename = "error")]
+pub struct DastError {
+    pub message: String,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub position: Option<Position>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Position {
+    pub start: Point,
+    pub end: Point,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 struct Point {
-    line: usize,
-    column: usize,
+    pub line: usize,
+    pub column: usize,
     #[serde(skip_serializing_if = "Option::is_none")]
-    offset: Option<usize>,
+    pub offset: Option<usize>,
 }

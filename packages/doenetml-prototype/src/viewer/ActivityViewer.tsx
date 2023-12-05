@@ -67,10 +67,6 @@ export function ActivityViewer({
 
     const doenetML = doenetMLFromProps;
 
-    console.log("dast:", dast);
-
-    console.log("errors:", dastErrors);
-
     useEffect(() => {
         return () => {
             coreWorker.postMessage({
@@ -84,6 +80,10 @@ export function ActivityViewer({
         let new_errors = extractDastErrors(new_dast);
         setDast(new_dast);
         setDastErrors(new_errors);
+
+        console.log("dast:", new_dast);
+
+        console.log("errors:", new_errors);
     }, [doenetML]);
 
     useEffect(() => {

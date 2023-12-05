@@ -5,8 +5,6 @@ let doenetCore: PublicDoenetMLCore;
 let coreBaseArgs;
 
 onmessage = function (e) {
-    console.log("received message", e);
-
     if (e.data.messageType == "requestAction") {
         // Assuming doenetCore has already been initialized
         // console.log(e.data.args);
@@ -25,8 +23,6 @@ async function createCore(args) {
     await init();
 
     try {
-        console.log("try to create new PublicDoenetMLCore", args);
-
         doenetCore = PublicDoenetMLCore.new(
             JSON.stringify(coreBaseArgs.dast),
             coreBaseArgs.doenetML,

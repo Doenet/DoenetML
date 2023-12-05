@@ -26,7 +26,7 @@ impl PublicDoenetMLCore {
     ) -> Result<PublicDoenetMLCore, String> {
         utils::set_panic_hook();
 
-        doenetml_core::create_doenetml_core(dast_string, doenetml, flags_string);
-        Ok(PublicDoenetMLCore(DoenetMLCore { a_number: 1 }))
+        let core = doenetml_core::create_doenetml_core(dast_string, doenetml, flags_string)?;
+        Ok(PublicDoenetMLCore(core))
     }
 }
