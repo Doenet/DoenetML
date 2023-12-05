@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use dast::{
     DastElement, DastElementContent, DastFunctionMacro, DastMacro, DastRoot, DastTextMacroContent,
+    PathPart,
 };
 use dast::{DastError, Position as DastPosition};
 use regex::Regex;
@@ -94,7 +95,11 @@ pub fn create_doenetml_core(
     components[0].children = children;
     components[0].descendant_names = descendant_names;
 
-    log!("{:#?}", components);
+    log!("before replace macros {:#?}", components);
+
+    replace_macro_referants(&mut components, 0);
+
+    log!("after replace macros {:#?}", components);
 
     Ok(DoenetMLCore {
         dast_root,
@@ -154,7 +159,7 @@ fn create_component_children(
                     parent: Some(parent_ind),
                     children: Vec::new(),
                     extend: None,
-                    component_type: component_type,
+                    component_type,
                     descendant_names: HashMap::new(),
                     position: element.position.clone(),
                 });
@@ -188,11 +193,115 @@ fn create_component_children(
                 component_children.push(ComponentChild::FunctionMacro(function_macro.clone()));
             }
             DastElementContent::Error(error) => {
-                // for now, just stick in the dast error,
+                // for now, just stick in the dast error
                 component_children.push(ComponentChild::Error(error.clone()));
             }
         }
     }
 
     (component_children, descendant_names)
+}
+
+fn replace_macro_referants(components: &mut Vec<ComponentNode>, component_ind: ComponentInd) {
+    log!("find macro references with parent {}", component_ind);
+
+    // We need to temporarily put in an empty vector into the children field
+    // and move the children into a separate vector.
+    // Otherwise, we cannot take ownership of the vectors components using .into_iter()
+    let old_children = std::mem::replace(&mut components[component_ind].children, vec![]);
+
+    components[component_ind].children = old_children
+        .into_iter()
+        .map(|child| {
+            match child {
+                ComponentChild::Component(child_ind) => {
+                    // recurse on component children
+                    replace_macro_referants(components, child_ind);
+                    child
+                }
+                ComponentChild::Macro(ref dast_macro) => {
+                    log!(
+                        "found macro with parent {}: {:?}",
+                        component_ind,
+                        dast_macro.path
+                    );
+                    if let Some((matched_ind, path_remainder)) =
+                        match_name_reference(&components, &dast_macro.path, component_ind)
+                    {
+                        log!(
+                            "found matched ind {} with path {:?}",
+                            matched_ind,
+                            path_remainder
+                        );
+
+                        let new_ind = components.len();
+
+                        // TODO: if have leftover path, determine state variable it refers to
+                        let extend_source = ExtendSource::Component(matched_ind);
+                        components.push(ComponentNode {
+                            ind: new_ind,
+                            parent: Some(component_ind),
+                            children: vec![],
+                            extend: Some(extend_source),
+                            component_type: components[matched_ind].component_type.clone(),
+                            descendant_names: HashMap::new(),
+                            position: None,
+                        });
+                        ComponentChild::Component(new_ind)
+                    } else {
+                        log!("Did not not match to path {:?}", dast_macro.path);
+                        child
+                    }
+                }
+                // TODO: need to recurse to arguments of function macros
+                _ => child,
+            }
+        })
+        .collect();
+}
+
+fn match_name_reference<'a>(
+    components: &Vec<ComponentNode>,
+    path: &'a Vec<PathPart>,
+    comp_ind: ComponentInd,
+) -> Option<(ComponentInd, &'a [PathPart])> {
+    let comp = &components[comp_ind];
+
+    // TODO: handle index of path
+
+    if let Some(matched_inds) = comp.descendant_names.get(&path[0].name) {
+        if matched_inds.len() == 1 {
+            // matched initial part of the macro path
+            // check if can match any additional parts of the path
+            return match_descendant_names(components, &path[1..], matched_inds[0]);
+        } else {
+            return None;
+        }
+    } else if let Some(parent_ind) = comp.parent {
+        return match_name_reference(components, path, parent_ind);
+    } else {
+        return None;
+    }
+}
+
+fn match_descendant_names<'a>(
+    components: &Vec<ComponentNode>,
+    path: &'a [PathPart],
+    comp_ind: ComponentInd,
+) -> Option<(ComponentInd, &'a [PathPart])> {
+    if path.len() > 0 {
+        let comp = &components[comp_ind];
+
+        // TODO: handle index of path
+
+        if let Some(matched_inds) = comp.descendant_names.get(&path[0].name) {
+            if matched_inds.len() == 1 {
+                // matched initial part of the macro path
+                // check if can match any additional parts of the path
+                return match_descendant_names(components, &path[1..], matched_inds[0]);
+            }
+        }
+    }
+
+    Some((comp_ind, path))
 }
