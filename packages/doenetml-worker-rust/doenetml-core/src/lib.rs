@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
 use dast::{
-    DastElement, DastElementContent, DastFunctionMacro, DastMacro, DastRoot, DastTextMacroContent,
-    PathPart,
+    DastElement, DastElementContent, DastFunctionMacro, DastMacro, DastRoot, DastText,
+    DastTextMacroContent, PathPart,
 };
 use dast::{DastError, Position as DastPosition};
 use regex::Regex;
@@ -23,12 +23,26 @@ pub type StateVarInd = usize;
 
 #[derive(Debug)]
 pub struct DoenetMLCore {
+    // TODO: is there a reason to keep the original dast around?
+    // This dast is currently not modified when macros are replaced or other interactions
     pub dast_root: DastRoot,
 
     pub components: Vec<ComponentNode>,
-    // for the ancestor with the ComponentInd given by the vector index,
-    // map a string to the component ind of its unique descendant with the name given by the string
-    // pub unique_component_names_in_ancestor: Vec<HashMap<&str, ComponentInd>>,
+
+    // The original DoenetML string
+    // Main use is for components and properties that extract portions of the DoenetML
+    pub doenetml: String,
+}
+
+impl DoenetMLCore {
+    pub fn to_dast(&self) -> DastRoot {
+        let root_as_element = self.components[0].to_dast(&self.components);
+
+        DastRoot {
+            children: root_as_element.children,
+            position: root_as_element.position,
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -64,21 +78,68 @@ pub struct ComponentNode {
     pub position: Option<DastPosition>,
 }
 
+impl ComponentNode {
+    pub fn to_dast(&self, components: &Vec<ComponentNode>) -> DastElement {
+        let mut children = if let Some(extend_source) = &self.extend {
+            match extend_source {
+                ExtendSource::Component(source_ind) => {
+                    let source_dast = components[*source_ind].to_dast(components);
+
+                    source_dast.children
+                }
+                ExtendSource::StateVar((_source_ind, _source_var_ind)) => {
+                    // TODO: state variable extend source
+                    Vec::new()
+                }
+            }
+        } else {
+            Vec::new()
+        };
+
+        let mut children2: Vec<DastElementContent> = self
+            .children
+            .iter()
+            .map(|child| match child {
+                ComponentChild::Component(comp_ind) => {
+                    DastElementContent::Element(components[*comp_ind].to_dast(components))
+                }
+                ComponentChild::Text(s) => DastElementContent::Text(DastText {
+                    value: s.to_string(),
+                    data: None,
+                    position: None,
+                }),
+                ComponentChild::Macro(the_macro) => DastElementContent::Macro(the_macro.clone()),
+                ComponentChild::FunctionMacro(function_macro) => {
+                    DastElementContent::FunctionMacro(function_macro.clone())
+                }
+                ComponentChild::Error(error) => DastElementContent::Error(error.clone()),
+            })
+            .collect();
+
+        children.append(&mut children2);
+
+        // TODO: attributes
+
+        DastElement {
+            name: self.component_type.clone(),
+            attributes: HashMap::new(),
+            children,
+            data: None,
+            position: self.position.clone(),
+        }
+    }
+}
+
 pub fn create_doenetml_core(
     dast_string: &str,
     doenetml: &str,
     flags_string: &str,
 ) -> Result<DoenetMLCore, String> {
-    log!("create doenetml_core");
-
     let dast_root: DastRoot = serde_json::from_str(dast_string).expect("Error extracting dast");
-
-    log!("dast: {:#?}", dast_root);
-    log!("dast: {:#?}", serde_json::to_string(&dast_root).unwrap());
 
     let mut components: Vec<ComponentNode> = Vec::new();
 
-    // add root not
+    // add root node
     components.push(ComponentNode {
         ind: 0,
         parent: None,
@@ -95,16 +156,17 @@ pub fn create_doenetml_core(
     components[0].children = children;
     components[0].descendant_names = descendant_names;
 
-    log!("before replace macros {:#?}", components);
-
     replace_macro_referants(&mut components, 0);
 
-    log!("after replace macros {:#?}", components);
+    // log!("after replace macros {:#?}", components);
 
-    Ok(DoenetMLCore {
+    let core = DoenetMLCore {
         dast_root,
         components,
-    })
+        doenetml: doenetml.to_string(),
+    };
+
+    Ok(core)
 }
 
 fn create_component_children(
@@ -118,13 +180,20 @@ fn create_component_children(
 
     for child in dast_children {
         match child {
-            DastElementContent::Element(element) => {
-                let component_ind = components.len();
+            DastElementContent::Element(child_element) => {
+                // For element children, both create component and add to descendant names:
+                // 1. Look for a name attribute with valid value and add to descendant names.
+                // 2. Create component for the child
+                // 3. Recurse to child's children, and add in any descendant names found
+
+                // TODO: need to add attributes and determine approach for component types
+
+                let child_ind = components.len();
 
                 // TODO: check if valid component type and attach definition
-                let component_type = element.name.clone();
+                let component_type = child_element.name.clone();
 
-                if let Some(name_attr) = element.attributes.get("name") {
+                if let Some(name_attr) = child_element.attributes.get("name") {
                     let mut valid_name = false;
                     let mut msg_option: Option<String> = None;
 
@@ -132,12 +201,15 @@ fn create_component_children(
                         let re = Regex::new(r"^[a-zA-Z][a-zA-Z0-9_-]*$").unwrap();
 
                         if re.is_match(&name_string) {
-                            valid_name = true;
-
+                            // We found a valid name.
+                            // Add the child's index to the descendant_names vector for that name
+                            // (or create an entry with a vector consisting of just this index).
                             descendant_names
                                 .entry(name_string.to_string())
-                                .and_modify(|name_indices| name_indices.push(component_ind))
-                                .or_insert(vec![component_ind]);
+                                .and_modify(|name_indices| name_indices.push(child_ind))
+                                .or_insert(vec![child_ind]);
+
+                            valid_name = true;
                         } else {
                             msg_option =
                                     Some("Invalid component name: ".to_owned() + &name_string + ". Must begin with a letter and contain only letters, numbers, hyphens, and underscores.")
@@ -152,49 +224,53 @@ fn create_component_children(
                     }
                 }
 
-                let child_ind = components.len();
-
+                // even though don't yet have all information for child (i.e., from its children),
+                // create its component before recursing to its children,
+                // so that its index will be child_ind
                 components.push(ComponentNode {
-                    ind: component_ind,
+                    ind: child_ind,
                     parent: Some(parent_ind),
                     children: Vec::new(),
                     extend: None,
                     component_type,
                     descendant_names: HashMap::new(),
-                    position: element.position.clone(),
+                    position: child_element.position.clone(),
                 });
 
                 let (child_children, child_descendent_names) =
-                    create_component_children(components, &element.children, component_ind);
+                    create_component_children(components, &child_element.children, child_ind);
 
                 let child_node = &mut components[child_ind];
 
                 child_node.children = child_children;
                 child_node.descendant_names = child_descendent_names.clone();
 
+                // merge in the descendant names found from the child
+                // into the overall descedant names for the parent
                 for (comp_name, mut name_inds) in child_descendent_names {
                     descendant_names
                         .entry(comp_name)
                         .and_modify(|name_indices| name_indices.append(&mut name_inds))
                         .or_insert(name_inds);
                 }
-                component_children.push(ComponentChild::Component(component_ind));
+                component_children.push(ComponentChild::Component(child_ind));
             }
-            DastElementContent::Text(text) => {
-                component_children.push(ComponentChild::Text(text.value.clone()));
+            DastElementContent::Text(child_text) => {
+                component_children.push(ComponentChild::Text(child_text.value.clone()));
             }
-            DastElementContent::Macro(dast_macro) => {
+            DastElementContent::Macro(child_macro) => {
                 // for now, just stick in the dast macro
-                component_children.push(ComponentChild::Macro(dast_macro.clone()));
+                component_children.push(ComponentChild::Macro(child_macro.clone()));
             }
-            DastElementContent::FunctionMacro(function_macro) => {
+            DastElementContent::FunctionMacro(child_function_macro) => {
                 // for now, just stick in the dast function macro,
                 // which clearly is wrong as it will include elements as children
-                component_children.push(ComponentChild::FunctionMacro(function_macro.clone()));
+                component_children
+                    .push(ComponentChild::FunctionMacro(child_function_macro.clone()));
             }
-            DastElementContent::Error(error) => {
+            DastElementContent::Error(child_error) => {
                 // for now, just stick in the dast error
-                component_children.push(ComponentChild::Error(error.clone()));
+                component_children.push(ComponentChild::Error(child_error.clone()));
             }
         }
     }
@@ -203,8 +279,6 @@ fn create_component_children(
 }
 
 fn replace_macro_referants(components: &mut Vec<ComponentNode>, component_ind: ComponentInd) {
-    log!("find macro references with parent {}", component_ind);
-
     // We need to temporarily put in an empty vector into the children field
     // and move the children into a separate vector.
     // Otherwise, we cannot take ownership of the vectors components using .into_iter()
@@ -220,23 +294,13 @@ fn replace_macro_referants(components: &mut Vec<ComponentNode>, component_ind: C
                     child
                 }
                 ComponentChild::Macro(ref dast_macro) => {
-                    log!(
-                        "found macro with parent {}: {:?}",
-                        component_ind,
-                        dast_macro.path
-                    );
                     if let Some((matched_ind, path_remainder)) =
                         match_name_reference(&components, &dast_macro.path, component_ind)
                     {
-                        log!(
-                            "found matched ind {} with path {:?}",
-                            matched_ind,
-                            path_remainder
-                        );
-
                         let new_ind = components.len();
 
-                        // TODO: if have leftover path, determine state variable it refers to
+                        // TODO: if have leftover path (stored in path_remainder),
+                        // determine state variable it refers to
                         let extend_source = ExtendSource::Component(matched_ind);
                         components.push(ComponentNode {
                             ind: new_ind,
@@ -249,7 +313,7 @@ fn replace_macro_referants(components: &mut Vec<ComponentNode>, component_ind: C
                         });
                         ComponentChild::Component(new_ind)
                     } else {
-                        log!("Did not not match to path {:?}", dast_macro.path);
+                        // did not match macro so just keep it as a macro for now
                         child
                     }
                 }
@@ -275,11 +339,18 @@ fn match_name_reference<'a>(
             // check if can match any additional parts of the path
             return match_descendant_names(components, &path[1..], matched_inds[0]);
         } else {
+            // If there is more than one component that matches the name,
+            // then we have no match (do not recurse to parent).
+            // We are assuming there are no zero length vectors,
+            // as they are treated in the same way as if there is more than one match.
             return None;
         }
     } else if let Some(parent_ind) = comp.parent {
+        // since the initial path piece was not found in this component's descendants,
+        // recurse to parent
         return match_name_reference(components, path, parent_ind);
     } else {
+        // we reached the root with no match found
         return None;
     }
 }

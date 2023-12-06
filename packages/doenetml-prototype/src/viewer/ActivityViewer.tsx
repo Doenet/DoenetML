@@ -131,6 +131,10 @@ export function ActivityViewer({
                 //     }
                 // }
             } else if (e.data.messageType === "coreCreated") {
+                console.log(
+                    "In Activity Viewer, core create with dast",
+                    e.data.args.dast,
+                );
                 // coreCreated.current = true;
                 // coreCreationInProgress.current = false;
                 // preventMoreAnimations.current = false;

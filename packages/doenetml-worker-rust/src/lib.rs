@@ -27,6 +27,11 @@ impl PublicDoenetMLCore {
         utils::set_panic_hook();
 
         let core = doenetml_core::create_doenetml_core(dast_string, doenetml, flags_string)?;
+
         Ok(PublicDoenetMLCore(core))
+    }
+
+    pub fn return_dast(&self) -> String {
+        serde_json::to_string(&self.0.to_dast()).unwrap()
     }
 }

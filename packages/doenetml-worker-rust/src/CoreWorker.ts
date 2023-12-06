@@ -28,15 +28,15 @@ async function createCore(args) {
             coreBaseArgs.doenetML,
             JSON.stringify(coreBaseArgs.flags),
         );
-        console.log("doenetCore", doenetCore);
     } catch (err) {
         console.error(err);
         postMessage({ messageType: "inErrorState", errMsg: err.message });
         return;
     }
 
-    // TODO: send renderer dast
-    postMessage({ messageType: "coreCreated" });
+    let dast = JSON.parse(doenetCore.return_dast());
+
+    postMessage({ messageType: "coreCreated", args: { dast } });
 }
 
 // Note: we separate initializeWorker from createCore

@@ -47,7 +47,7 @@ pub struct DastElement {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-struct ElementData {}
+pub struct ElementData {}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
@@ -63,7 +63,7 @@ pub struct DastText {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-struct TextData {}
+pub struct TextData {}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
@@ -162,7 +162,7 @@ pub struct Position {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-struct Point {
+pub struct Point {
     pub line: usize,
     pub column: usize,
     #[serde(skip_serializing_if = "Option::is_none")]
