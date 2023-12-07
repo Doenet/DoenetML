@@ -1,13 +1,15 @@
 use std::collections::HashMap;
 
 use dast::{
-    DastElement, DastElementContent, DastFunctionMacro, DastMacro, DastRoot, DastText,
-    DastTextMacroContent, ElementData, PathPart,
+    DastElement, DastElementContent, DastError, DastFunctionMacro, DastMacro, DastRoot, DastText,
+    ElementData, PathPart, Position as DastPosition,
 };
-use dast::{DastError, Position as DastPosition};
+
+use dast_flattened::{FlatDastElement, FlatDastElementContent};
 use regex::Regex;
 
 pub mod dast;
+pub mod dast_flattened;
 pub mod utils;
 
 use crate::utils::{log, log_debug, log_json};
@@ -35,13 +37,11 @@ pub struct DoenetMLCore {
 }
 
 impl DoenetMLCore {
-    pub fn to_dast(&self) -> DastRoot {
-        let root_as_element = self.components[0].to_dast(&self.components);
-
-        DastRoot {
-            children: root_as_element.children,
-            position: root_as_element.position,
-        }
+    pub fn to_flat_dast(&self) -> Vec<FlatDastElement> {
+        self.components
+            .iter()
+            .map(|comp| comp.to_flat_dast(&self.components))
+            .collect()
     }
 }
 
@@ -79,13 +79,13 @@ pub struct ComponentNode {
 }
 
 impl ComponentNode {
-    pub fn to_dast(&self, components: &Vec<ComponentNode>) -> DastElement {
+    pub fn to_flat_dast(&self, components: &Vec<ComponentNode>) -> FlatDastElement {
         // if extending a source that is a component,
         // add children from that source first
         let mut children = if let Some(extend_source) = &self.extend {
             match extend_source {
                 ExtendSource::Component(source_ind) => {
-                    let source_dast = components[*source_ind].to_dast(components);
+                    let source_dast = components[*source_ind].to_flat_dast(components);
 
                     source_dast.children
                 }
@@ -99,23 +99,17 @@ impl ComponentNode {
         };
 
         // children from the component itself come after children the extend source
-        let mut children2: Vec<DastElementContent> = self
+        let mut children2: Vec<FlatDastElementContent> = self
             .children
             .iter()
-            .map(|child| match child {
+            .filter_map(|child| match child {
                 ComponentChild::Component(comp_ind) => {
-                    DastElementContent::Element(components[*comp_ind].to_dast(components))
+                    Some(FlatDastElementContent::Element(*comp_ind))
                 }
-                ComponentChild::Text(s) => DastElementContent::Text(DastText {
-                    value: s.to_string(),
-                    data: None,
-                    position: None,
-                }),
-                ComponentChild::Macro(the_macro) => DastElementContent::Macro(the_macro.clone()),
-                ComponentChild::FunctionMacro(function_macro) => {
-                    DastElementContent::FunctionMacro(function_macro.clone())
-                }
-                ComponentChild::Error(error) => DastElementContent::Error(error.clone()),
+                ComponentChild::Text(s) => Some(FlatDastElementContent::Text(s.to_string())),
+                ComponentChild::Macro(the_macro) => None,
+                ComponentChild::FunctionMacro(function_macro) => None,
+                ComponentChild::Error(error) => Some(FlatDastElementContent::Error(error.clone())),
             })
             .collect();
 
@@ -123,7 +117,7 @@ impl ComponentNode {
 
         // TODO: attributes
 
-        DastElement {
+        FlatDastElement {
             name: self.component_type.clone(),
             attributes: HashMap::new(),
             children,

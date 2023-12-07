@@ -32,6 +32,6 @@ impl PublicDoenetMLCore {
     }
 
     pub fn return_dast(&self) -> String {
-        serde_json::to_string(&self.0.to_dast()).unwrap()
+        serde_json::to_string(&self.0.to_flat_dast()).unwrap()
     }
 }
