@@ -1,6 +1,7 @@
 export * from "./parser";
 export * from "./extract-dast-errors";
 export * from "./types";
+export * from "./types-util";
 export { visit } from "./pretty-printer/normalize/utils/visit";
 export { toXml } from "./dast-to-xml/dast-util-to-xml";
 export { lezerToDast, stringToLezer } from "./lezer-to-dast/lezer-to-dast";

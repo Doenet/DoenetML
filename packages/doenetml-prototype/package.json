@@ -1,0 +1,59 @@
+{
+    "name": "@doenet/doenetml-prototype",
+    "type": "module",
+    "description": "Prototype for semantic markup for building interactive web activities",
+    "version": "0.7.0-alpha1",
+    "license": "AGPL-3.0-or-later",
+    "homepage": "https://github.com/Doenet/DoenetML#readme",
+    "private": false,
+    "repository": "github:Doenet/DoenetML",
+    "files": [
+        "/dist"
+    ],
+    "exports": {
+        ".": {
+            "import": "./dist/doenetml.js",
+            "require": "./dist/doenetml.js"
+        },
+        "./*": {
+            "import": "./dist/*"
+        }
+    },
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "preview": "vite preview",
+        "test": "echo \"No tests \"",
+        "lint": "eslint src --ext js,jsx --report-unused-disable-directives --max-warnings 0"
+    },
+    "peerDependencies": {
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "styled-components": "^5.3.11"
+    },
+    "dependencies": {},
+    "devDependencies": {
+        "@babel/core": "^7.23.2",
+        "@esbuild-plugins/node-globals-polyfill": "^0.2.3",
+        "@esbuild-plugins/node-modules-polyfill": "^0.2.2",
+        "@types/react": "^18.2.31",
+        "@types/react-dom": "^18.2.14",
+        "@vitejs/plugin-react": "^4.1.0",
+        "cypress": "^12.13.0",
+        "cypress-parallel": "^0.13.0",
+        "cypress-plugin-tab": "^1.0.5",
+        "cypress-wait-until": "^1.7.2",
+        "eslint": "^8.52.0",
+        "eslint-plugin-react": "^7.33.2",
+        "eslint-plugin-react-hooks": "^4.6.0",
+        "eslint-plugin-react-refresh": "^0.3.5",
+        "prettier": "^3.0.3",
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "rollup-plugin-polyfill-node": "^0.12.0",
+        "vite": "^4.5.0"
+    },
+    "prettier": {
+        "tabWidth": 4
+    }
+}

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 // @ts-ignore
-import { DoenetML } from "@doenet/doenetml";
+// import { DoenetML } from "@doenet/doenetml";
+import { DoenetML } from "@doenet/doenetml-prototype";
 // @ts-ignore
 import doenetMLstring from "./testCode.doenet?raw";
 import { Button } from "@doenet/ui-components";
