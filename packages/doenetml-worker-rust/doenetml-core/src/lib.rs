@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use dast::{
     DastElement, DastElementContent, DastFunctionMacro, DastMacro, DastRoot, DastText,
-    DastTextMacroContent, PathPart,
+    DastTextMacroContent, ElementData, PathPart,
 };
 use dast::{DastError, Position as DastPosition};
 use regex::Regex;
@@ -80,6 +80,8 @@ pub struct ComponentNode {
 
 impl ComponentNode {
     pub fn to_dast(&self, components: &Vec<ComponentNode>) -> DastElement {
+        // if extending a source that is a component,
+        // add children from that source first
         let mut children = if let Some(extend_source) = &self.extend {
             match extend_source {
                 ExtendSource::Component(source_ind) => {
@@ -96,6 +98,7 @@ impl ComponentNode {
             Vec::new()
         };
 
+        // children from the component itself come after children the extend source
         let mut children2: Vec<DastElementContent> = self
             .children
             .iter()
@@ -124,7 +127,7 @@ impl ComponentNode {
             name: self.component_type.clone(),
             attributes: HashMap::new(),
             children,
-            data: None,
+            data: Some(ElementData { id: self.ind }),
             position: self.position.clone(),
         }
     }

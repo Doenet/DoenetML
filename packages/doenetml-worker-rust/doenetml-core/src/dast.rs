@@ -47,7 +47,9 @@ pub struct DastElement {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ElementData {}
+pub struct ElementData {
+    pub id: usize,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
