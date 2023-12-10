@@ -281,7 +281,7 @@ export default React.memo(function CodeEditor(props) {
         <div key={editorKey} id={editorKey} style={editorStyle}>
             <Box flexGrow={1} w="100%" overflowY="scroll" overflowX="hidden">
                 <CodeMirror
-                    setInternalValueTo={updateInternalValueTo.current}
+                    value={updateInternalValueTo.current}
                     //TODO: read only isn't working <codeeditor disabled />
                     readOnly={SVs.disabled}
                     onBlur={() => {
@@ -297,8 +297,7 @@ export default React.memo(function CodeEditor(props) {
                     onFocus={() => {
                         // console.log(">>codeEditor FOCUS!!!!!")
                     }}
-                    onBeforeChange={onEditorChange}
-                    paddingBottom={paddingBottom}
+                    onChange={onEditorChange}
                 />
             </Box>
             {errorsAndWarnings}

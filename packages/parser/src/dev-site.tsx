@@ -89,10 +89,10 @@ function App() {
             >
                 <div style={{ flexBasis: 0, flexGrow: 1, maxWidth: "50%" }}>
                     <CodeMirror
-                        onBeforeChange={(val) => {
+                        onChange={(val) => {
                             setDoenetSource(val);
                         }}
-                        setInternalValueTo={INITIAL_DOENET_SOURCE}
+                        value={INITIAL_DOENET_SOURCE}
                     />
                 </div>
                 <div

@@ -61,8 +61,21 @@ export class LSP {
         });
     }
 
-    async updateDocument(uri: string, text: string) {
+    async closeDocument(uri: string) {
         if (!this.lspConn) {
+            await this.init();
+            await this.closeDocument(uri);
+            return;
+        }
+        await this.lspConn.textDocumentClosed({
+            textDocument: {
+                uri,
+            },
+        });
+    }
+
+    async updateDocument(uri: string, text: string) {
+        if (!this.lspConn || !this.versionCounter[uri]) {
             await this.initDocument(uri, text);
             return;
         }

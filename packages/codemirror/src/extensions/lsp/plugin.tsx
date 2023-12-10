@@ -2,21 +2,21 @@
 // BSD 3-Clause License
 // Copyright (c) 2021, Mahmud Ridwan
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
-// 
+//
 // * Redistributions of source code must retain the above copyright notice, this
 //   list of conditions and the following disclaimer.
-// 
+//
 // * Redistributions in binary form must reproduce the above copyright notice,
 //   this list of conditions and the following disclaimer in the documentation
 //   and/or other materials provided with the distribution.
-// 
+//
 // * Neither the name of the library nor the names of its
 //   contributors may be used to endorse or promote products derived from
 //   this software without specific prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -27,7 +27,6 @@
 // CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
 
 import { renderToString } from "react-dom/server";
 import React from "react";
@@ -80,7 +79,7 @@ const lspSeverityToCmSeverity = {
 } as const;
 
 // One language server is shared across all plugin instances
-const languageServer = new LSP();
+export const uniqueLanguageServerInstance = new LSP();
 
 export class LSPPlugin implements PluginValue {
     documentId: string;
@@ -106,13 +105,15 @@ export class LSPPlugin implements PluginValue {
         if (value === this.value) {
             return;
         }
-        await languageServer.updateDocument(this.uri, value);
+        await uniqueLanguageServerInstance.updateDocument(this.uri, value);
         this.pollForDiagnostics();
         this.value = value;
     }
 
     async pollForDiagnostics() {
-        this.diagnosticsPromise = languageServer.getDiagnostics(this.uri);
+        this.diagnosticsPromise = uniqueLanguageServerInstance.getDiagnostics(
+            this.uri,
+        );
         this.diagnostics = await this.diagnosticsPromise;
         this.processDiagnostics();
     }
@@ -171,7 +172,7 @@ export class LSPPlugin implements PluginValue {
             LSPCompletionTriggerKind.Invoked;
         let triggerCharacter: string | undefined;
         const precedingTriggerCharacter =
-            languageServer.completionTriggers.includes(
+            uniqueLanguageServerInstance.completionTriggers.includes(
                 line.text[pos - line.from - 1],
             );
         if (!explicit && precedingTriggerCharacter) {
@@ -187,7 +188,7 @@ export class LSPPlugin implements PluginValue {
             return null;
         }
         const position = offsetToPos(state.doc, pos);
-        const result = await languageServer.getCompletionItems(
+        const result = await uniqueLanguageServerInstance.getCompletionItems(
             this.uri,
             { line: position.line, character: position.character },
             {

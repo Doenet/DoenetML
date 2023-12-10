@@ -5,13 +5,22 @@
 
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { CodeMirror2 } from "./CodeMirror2";
+import { CodeMirror } from "./CodeMirror";
 
-ReactDOM.createRoot(document.getElementById("root")!).render(
-    <React.Fragment>
-        <CodeMirror2
-            onBeforeChange={() => {}}
-            value={`
+ReactDOM.createRoot(document.getElementById("root")!).render(<App />);
+
+function App() {
+    const [viewVisible, setViewVisible] = React.useState(true);
+
+    return (
+        <React.Fragment>
+            <button onClick={() => setViewVisible(!viewVisible)}>
+                {viewVisible ? "Hide Editor" : "Show Editor"}
+            </button>
+            {viewVisible && (
+                <CodeMirror
+                    onChange={() => {}}
+                    value={`
 <p xxx />
 <p>Use this to test DoenetML.
  Some text &amp;
@@ -25,27 +34,17 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
   
 </graph>
 `}
-            onBlur={
-                () => {} //console.log("blur")
-            }
-            onFocus={
-                () => {} //console.log("focus")
-            }
-            onCursorChange={(e) => console.log("cursor change", e)}
-        />
-        {
-            <CodeMirror2
-                onBeforeChange={() => {}}
+                    onBlur={() => console.log("blur")}
+                    onFocus={() => console.log("focus")}
+                    onCursorChange={(e) => console.log("cursor change", e)}
+                />
+            )}
+            <h5>Read only view below</h5>
+            <CodeMirror
+                onChange={() => {}}
                 value={`<p>foo</p>`}
-                onBlur={
-                    () => {} //console.log("blur")
-                }
-                onFocus={
-                    () => {}
-                    //console.log("focus")
-                }
                 readOnly={true}
             />
-        }
-    </React.Fragment>,
-);
+        </React.Fragment>
+    );
+}

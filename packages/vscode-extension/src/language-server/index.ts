@@ -20,6 +20,17 @@ import { addValidationSupport } from "./features/validate";
 import { addDocumentCompletionSupport } from "./features/completions";
 import { addDocumentHoverSupport } from "./features/hover";
 
+try {
+    globalThis.LSP_GLOBALS = {
+        config,
+        documentInfo,
+        documentSettings,
+        documents,
+    };
+} catch (e) {
+    console.log(e);
+}
+
 /* browser specific setup code */
 const messageReader = new BrowserMessageReader(self);
 const messageWriter = new BrowserMessageWriter(self);
