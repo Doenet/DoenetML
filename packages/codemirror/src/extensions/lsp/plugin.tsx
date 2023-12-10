@@ -53,7 +53,6 @@ import {
     CompletionContext,
     Completion,
 } from "@codemirror/autocomplete";
-import Markdown from "react-markdown";
 import type {
     MarkupContent,
     MarkedString,

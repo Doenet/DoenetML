@@ -9,6 +9,7 @@
         "./packages/static-assets",
         "./packages/parser",
         "./packages/lsp-tools",
+        "./packages/lsp",
         "./packages/doenetml-worker",
         "./packages/virtual-keyboard",
         "./packages/codemirror",
