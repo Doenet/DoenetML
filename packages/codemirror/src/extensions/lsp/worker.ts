@@ -1,5 +1,5 @@
 // @ts-ignore
-import LSPWorker from "@doenet/vscode-extension/language-server?worker";
+import LSPWorker from "@doenet/lsp/language-server.js?worker";
 import { initWorker } from "./utils/init-message-connection";
 import {
     Diagnostic,

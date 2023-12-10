@@ -48,6 +48,6 @@
     },
     "dependencies": {
         "@uiw/react-codemirror": "^4.21.21",
-        "react-markdown": "^9.0.1"
+        "micromark": "^4.0.0"
     }
 }

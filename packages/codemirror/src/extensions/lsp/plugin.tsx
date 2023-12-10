@@ -28,8 +28,8 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import { renderToString } from "react-dom/server";
 import React from "react";
+import { micromark } from "micromark";
 import {
     EditorView,
     PluginValue,
@@ -134,16 +134,14 @@ export class LSPPlugin implements PluginValue {
                         const div = document.createElement("div");
                         // We use renderToString so that we don't have to clean up any
                         // react listeners, etc. when the dom element is deleted by codemirror.
-                        div.innerHTML = renderToString(
-                            <div className="cm-lint-tooltip">
-                                <h4 className={"heading " + cmSeverity}>
-                                    {lspDiagnosticToName[severity!]}
-                                </h4>
-                                <div className="cm-lint-body">
-                                    <Markdown>{message}</Markdown>
-                                </div>
-                            </div>,
-                        );
+                        div.innerHTML = `<div class="cm-lint-tooltip"><h4 class="${
+                            "heading " + cmSeverity
+                        }">${
+                            lspDiagnosticToName[severity!]
+                        }</h4><div class="cm-lint-body">${micromark(
+                            message,
+                        )}</div>
+                            </div>`;
                         return div.firstChild as HTMLElement;
                     },
                 };
