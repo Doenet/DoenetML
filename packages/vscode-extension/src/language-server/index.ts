@@ -50,6 +50,7 @@ connection.onInitialize((params: InitializeParams) => {
             textDocumentSync: TextDocumentSyncKind.Incremental,
             // Tell the client that this server supports code completion.
             completionProvider: {
+                triggerCharacters: ["<", ".", "$", "/", '"', "'"],
                 resolveProvider: true,
             },
             documentFormattingProvider: true,
@@ -96,10 +97,10 @@ connection.onDidChangeWatchedFiles((_change) => {
 //
 // Add language features
 //
+addValidationSupport(connection, documentInfo);
 addFoldingRangeSupport(connection, documentInfo);
 addDocumentSymbolsSupport(connection, documentInfo);
 addDocumentFormattingSupport(connection, documentInfo);
-addValidationSupport(connection, documentInfo);
 addDocumentCompletionSupport(connection, documentInfo);
 addDocumentHoverSupport(connection, documentInfo);
 

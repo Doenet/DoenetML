@@ -342,7 +342,7 @@ export function CodeMirror({
     ]);
 
     //TODO any updates would force an update of each part of the config.
-    //Doesn't matter since there's only one toggle at the moment, but could cause unneccesary work later
+    //Doesn't matter since there's only one toggle at the moment, but could cause unnecessary work later
     useEffect(() => {
         // console.log(">>>config update")
         if (editorConfig.matchTag) {

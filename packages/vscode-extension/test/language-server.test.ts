@@ -50,4 +50,74 @@ describe("Doenet Language Server", async () => {
           }
         `);
     });
+    it("can get completions", async () => {
+        const worker: Worker = new LSPWorker();
+        const lspConn = await initWorker(worker);
+        await lspConn.textDocumentOpened({
+            textDocument: {
+                uri: "file:///test.doenet",
+                languageId: "doenet",
+                version: 1,
+                text: "<gra  ",
+            },
+        });
+        const diags = await lspConn.getCompletion({
+            textDocument: {
+                uri: "file:///test.doenet",
+            },
+            position: {
+                line: 0,
+                character: 3,
+            },
+        });
+        expect(diags).toMatchInlineSnapshot(`
+          [
+            {
+              "kind": 10,
+              "label": "graph",
+            },
+          ]
+        `);
+    });
+    it("can get completions after update", async () => {
+        const worker: Worker = new LSPWorker();
+        const lspConn = await initWorker(worker);
+        await lspConn.textDocumentOpened({
+            textDocument: {
+                uri: "file:///test.doenet",
+                languageId: "doenet",
+                version: 1,
+                text: "",
+            },
+        });
+        await lspConn.textDocumentChanged({
+            textDocument: { uri: "file:///test.doenet", version: 2 },
+            contentChanges: [
+                {
+                    text: "<gra  ",
+                    range: {
+                        start: { character: 0, line: 0 },
+                        end: { line: Number.MAX_SAFE_INTEGER, character: 0 },
+                    },
+                },
+            ],
+        });
+        const diags = await lspConn.getCompletion({
+            textDocument: {
+                uri: "file:///test.doenet",
+            },
+            position: {
+                line: 0,
+                character: 3,
+            },
+        });
+        expect(diags).toMatchInlineSnapshot(`
+          [
+            {
+              "kind": 10,
+              "label": "graph",
+            },
+          ]
+        `);
+    });
 });
