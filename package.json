@@ -42,11 +42,14 @@
         "prettier": "^3.0.3",
         "rollup-plugin-visualizer": "^5.9.2",
         "typescript": "^5.2.2",
-        "wasm-pack": "^0.12.1",
         "vite-node": "^0.34.6",
-        "vitest": "^0.34.6"
+        "vitest": "^0.34.6",
+        "wasm-pack": "^0.12.1"
     },
     "prettier": {
         "tabWidth": 4
+    },
+    "dependencies": {
+        "comlink": "^4.4.1"
     }
 }

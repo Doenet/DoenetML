@@ -1,1 +1,1 @@
-export * from "./CoreWorker.ts";
+export * from "./CoreWorker";

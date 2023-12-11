@@ -1,9 +1,10 @@
 import react from "@vitejs/plugin-react";
-import { defineConfig } from "vite";
+import { PluginOption, defineConfig } from "vite";
 import { viteStaticCopy, TransformOption } from "vite-plugin-static-copy";
 import dts from "vite-plugin-dts";
 import * as path from "node:path";
 import { createRequire } from "module";
+import { visualizer } from "rollup-plugin-visualizer";
 const require = createRequire(import.meta.url);
 
 // These are the dependencies that will not be bundled into the library.
@@ -21,7 +22,7 @@ export default defineConfig({
                     // `CoreWorker.js.map`
                     src: path.join(
                         require.resolve(
-                            "@doenet/doenetml-worker-rust/CoreWorker.js",
+                            "@doenet/doenetml-worker-rust/index.js",
                         ),
                         "../*",
                     ),
@@ -35,6 +36,7 @@ export default defineConfig({
             ],
         }),
         dts({ rollupTypes: true }),
+        visualizer() as PluginOption,
     ],
     server: {
         port: 8012,

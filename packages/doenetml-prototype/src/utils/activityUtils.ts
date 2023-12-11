@@ -7,9 +7,11 @@ import {
     isDastElementContent,
     lezerToDast,
 } from "@doenet/parser";
-import { doenetGlobalConfig } from "../global-config";
-import { DoenetMLFlags } from "../DoenetML";
+import { DoenetMLFlags } from "../doenet-applet";
 
+/**
+ * Normalize the DAST tree so that it is contained in a single `<document>` element.
+ */
 export function normalizeDocumentDast(dast: DastRoot) {
     // TODO: for now, ignoring docType children. Should we do something with them?
     let elementContentChildren = dast.children.filter(isDastElementContent);
@@ -61,56 +63,4 @@ function removeOuterBlankTexts(serializedComponents: DastElementContent[]) {
     }
 
     return serializedComponents;
-}
-
-export function createCoreWorker() {
-    return new Worker(doenetGlobalConfig.doenetWorkerUrl, {
-        type: "module",
-    });
-}
-
-export function initializeCoreWorker({
-    coreWorker,
-    doenetML,
-    dast,
-    flags,
-}: {
-    coreWorker: Worker;
-    doenetML: string;
-    dast: DastRoot;
-    flags: DoenetMLFlags;
-}) {
-    // Initializes core worker with the given arguments.
-    // Returns a promise.
-    // If the worker is successfully initialized, the promise is resolved
-    // If an error was encountered while initializing, the promise is rejected
-
-    let resolveInitializePromise: Function;
-    let rejectInitializePromise: Function;
-
-    let initializePromise = new Promise((resolve, reject) => {
-        resolveInitializePromise = resolve;
-        rejectInitializePromise = reject;
-    });
-
-    let initializeListener = function (e: MessageEvent) {
-        if (e.data.messageType === "initialized") {
-            coreWorker.removeEventListener("message", initializeListener);
-
-            resolveInitializePromise();
-        }
-    };
-
-    coreWorker.addEventListener("message", initializeListener);
-
-    coreWorker.postMessage({
-        messageType: "initializeWorker",
-        args: {
-            doenetML,
-            dast,
-            flags,
-        },
-    });
-
-    return initializePromise;
 }
