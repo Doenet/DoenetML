@@ -8,7 +8,7 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
-use doenetml_derive::ComponentNodeEnum;
+use doenetml_derive::ComponentNode;
 use strum_macros::EnumString;
 
 use crate::dast::{ElementData, FlatDastElement, FlatDastElementContent, Position as DastPosition};
@@ -20,7 +20,7 @@ use self::p::P;
 use self::section::Section;
 use self::text::Text;
 
-#[derive(Debug, EnumString, ComponentNodeEnum)]
+#[derive(Debug, EnumString, ComponentNode)]
 #[strum(ascii_case_insensitive)]
 pub enum ComponentEnum {
     _Root(_Root),

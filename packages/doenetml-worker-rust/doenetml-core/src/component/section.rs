@@ -1,7 +1,5 @@
 use std::collections::HashMap;
 
-use doenetml_derive::ComponentNode;
-
 use crate::dast::Position as DastPosition;
 use crate::{ComponentChild, ComponentInd, ExtendSource};
 

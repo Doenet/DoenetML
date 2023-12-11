@@ -1,7 +1,5 @@
 use std::collections::HashMap;
 
-use doenetml_derive::ComponentNode;
-
 use crate::dast::Position as DastPosition;
 use crate::{ComponentChild, ComponentInd, ExtendSource};
 
@@ -19,22 +17,4 @@ pub struct _Root {
     pub descendant_names: HashMap<String, Vec<ComponentInd>>,
 
     pub position: Option<DastPosition>,
-}
-
-impl _Root {
-    pub fn new(
-        ind: ComponentInd,
-        parent: Option<ComponentInd>,
-        extend: Option<ExtendSource>,
-        position: Option<DastPosition>,
-    ) -> Self {
-        _Root {
-            ind,
-            parent,
-            children: Vec::new(),
-            extend,
-            descendant_names: HashMap::new(),
-            position,
-        }
-    }
 }

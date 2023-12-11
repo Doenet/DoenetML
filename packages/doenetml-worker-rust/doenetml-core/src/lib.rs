@@ -1,6 +1,6 @@
 use std::{cell::RefCell, collections::HashMap, rc::Rc, str::FromStr};
 
-use component::{ComponentEnum, _root::_Root};
+use component::{ComponentEnum, ComponentNode, _root::_Root};
 use dast::{
     DastElementContent, DastError, DastFunctionMacro, DastMacro, DastRoot, FlatDastElement,
     PathPart,
@@ -73,12 +73,14 @@ pub fn create_doenetml_core(
     let mut components: Vec<Rc<RefCell<ComponentEnum>>> = Vec::new();
 
     // add root node
-    components.push(Rc::new(RefCell::new(ComponentEnum::_Root(_Root::new(
-        0,
-        None,
-        None,
-        dast_root.position.clone(),
-    )))));
+    components.push(Rc::new(RefCell::new(ComponentEnum::_Root(_Root {
+        ind: 0,
+        parent: None,
+        children: Vec::new(),
+        extend: None,
+        descendant_names: HashMap::new(),
+        position: dast_root.position.clone(),
+    }))));
 
     let (children, descendant_names) =
         create_component_children(&mut components, &dast_root.children, 0);
