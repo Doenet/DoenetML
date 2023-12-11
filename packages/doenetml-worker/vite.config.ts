@@ -10,7 +10,7 @@ export default defineConfig({
         lib: {
             entry: "src/index.ts",
             fileName: "CoreWorker",
-            formats: ["es"],
+            formats: ["iife"],
         },
         rollupOptions: {
             // @ts-ignore
