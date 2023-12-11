@@ -15,7 +15,7 @@ export default defineConfig({
                 {
                     src: path.join(
                         require.resolve(
-                            "@doenet/doenetml-worker/CoreWorker.js",
+                            "@doenet/doenetml-worker/CoreWorker.iife.js",
                         ),
                         "../*",
                     ),
