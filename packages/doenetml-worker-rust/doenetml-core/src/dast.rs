@@ -172,6 +172,18 @@ pub struct Point {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "type")]
+#[serde(rename = "root")]
+pub struct FlatDastRoot {
+    pub children: Vec<FlatDastElementContent>,
+
+    pub elements: Vec<FlatDastElement>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub position: Option<Position>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum FlatDastElementContent {
     Element(usize),

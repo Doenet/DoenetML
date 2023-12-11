@@ -1,4 +1,3 @@
-pub mod _root;
 pub mod document;
 pub mod p;
 pub mod section;
@@ -14,7 +13,6 @@ use strum_macros::EnumString;
 use crate::dast::{ElementData, FlatDastElement, FlatDastElementContent, Position as DastPosition};
 use crate::{ComponentChild, ComponentInd, ExtendSource};
 
-use self::_root::_Root;
 use self::document::Document;
 use self::p::P;
 use self::section::Section;
@@ -23,7 +21,6 @@ use self::text::Text;
 #[derive(Debug, EnumString, ComponentNode)]
 #[strum(ascii_case_insensitive)]
 pub enum ComponentEnum {
-    _Root(_Root),
     Text(Text),
     Section(Section),
     Document(Document),

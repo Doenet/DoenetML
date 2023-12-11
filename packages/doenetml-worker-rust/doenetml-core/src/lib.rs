@@ -1,9 +1,9 @@
 use std::{cell::RefCell, collections::HashMap, rc::Rc, str::FromStr};
 
-use component::{ComponentEnum, ComponentNode, _root::_Root};
+use component::{ComponentEnum, ComponentNode};
 use dast::{
     DastElementContent, DastError, DastFunctionMacro, DastMacro, DastRoot, FlatDastElement,
-    PathPart,
+    FlatDastElementContent, FlatDastRoot, PathPart, Position as DastPosition,
 };
 
 use regex::Regex;
@@ -29,6 +29,8 @@ pub struct DoenetMLCore {
     // This dast is currently not modified when macros are replaced or other interactions
     pub dast_root: DastRoot,
 
+    pub root: DoenetMLRoot,
+
     pub components: Vec<Rc<RefCell<ComponentEnum>>>,
 
     // pub components_as_traits: Vec<Rc<RefCell<dyn ComponentNode>>>,
@@ -39,11 +41,48 @@ pub struct DoenetMLCore {
 }
 
 impl DoenetMLCore {
-    pub fn to_flat_dast(&self) -> Vec<FlatDastElement> {
-        self.components
+    pub fn to_flat_dast(&self) -> FlatDastRoot {
+        let elements: Vec<FlatDastElement> = self
+            .components
             .iter()
             .map(|comp| comp.borrow().to_flat_dast(&self.components))
-            .collect()
+            .collect();
+
+        self.root.to_flat_dast(elements)
+    }
+}
+
+#[derive(Debug)]
+pub struct DoenetMLRoot {
+    pub children: Vec<ComponentChild>,
+
+    // map of descendant names to their indices
+    pub descendant_names: HashMap<String, Vec<ComponentInd>>,
+
+    pub position: Option<DastPosition>,
+}
+
+impl DoenetMLRoot {
+    fn to_flat_dast(&self, elements: Vec<FlatDastElement>) -> FlatDastRoot {
+        let children: Vec<FlatDastElementContent> = self
+            .children
+            .iter()
+            .filter_map(|child| match child {
+                ComponentChild::Component(comp_ind) => {
+                    Some(FlatDastElementContent::Element(*comp_ind))
+                }
+                ComponentChild::Text(s) => Some(FlatDastElementContent::Text(s.to_string())),
+                ComponentChild::Macro(_the_macro) => None,
+                ComponentChild::FunctionMacro(_function_macro) => None,
+                ComponentChild::Error(error) => Some(FlatDastElementContent::Error(error.clone())),
+            })
+            .collect();
+
+        FlatDastRoot {
+            children,
+            elements,
+            position: self.position.clone(),
+        }
     }
 }
 
@@ -72,26 +111,15 @@ pub fn create_doenetml_core(
 
     let mut components: Vec<Rc<RefCell<ComponentEnum>>> = Vec::new();
 
-    // add root node
-    components.push(Rc::new(RefCell::new(ComponentEnum::_Root(_Root {
-        ind: 0,
-        parent: None,
-        children: Vec::new(),
-        extend: None,
-        descendant_names: HashMap::new(),
-        position: dast_root.position.clone(),
-    }))));
-
     let (children, descendant_names) =
         create_component_children(&mut components, &dast_root.children, 0);
 
-    // Note: place the following in braces to make sure destructor on refcell is run
-    // so that components can be accessed again
-    {
-        let root_node = &mut components[0].borrow_mut();
-        root_node.set_children(children);
-        root_node.set_descendant_names(descendant_names);
-    }
+    // add root node
+    let root = DoenetMLRoot {
+        children,
+        descendant_names,
+        position: dast_root.position.clone(),
+    };
 
     replace_macro_referants(&mut components, 0);
 
@@ -99,6 +127,7 @@ pub fn create_doenetml_core(
 
     let core = DoenetMLCore {
         dast_root,
+        root,
         components,
         doenetml: doenetml.to_string(),
     };
