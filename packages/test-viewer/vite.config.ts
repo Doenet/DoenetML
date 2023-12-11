@@ -15,7 +15,7 @@ export default defineConfig({
                 {
                     src: path.join(
                         require.resolve(
-                            "@doenet/doenetml-worker-rust/CoreWorker.js",
+                            "@doenet/doenetml-worker-rust/index.js",
                         ),
                         "../*",
                     ),
