@@ -33,7 +33,10 @@ export function getCompletionItems(
     let containingElement = this.sourceObj.elementAtOffsetWithContext(offset);
     const element = containingElement.node;
     let cursorPosition = containingElement.cursorPosition;
-    if (!element && containingNode && containingNode.type === "text") {
+    if (
+        (!element && containingNode && containingNode.type === "text") ||
+        !containingNode
+    ) {
         // We're in the root of the document and not inside any special XML tags (like `<? foo ?>` or `<!DOCTYPE xml>`)
         // Find out what items we can complete.
 

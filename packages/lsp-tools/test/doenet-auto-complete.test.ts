@@ -185,6 +185,25 @@ describe("AutoCompleter", () => {
             `);
         }
     });
+    it("Can suggest completions after a `<` when it comes at the end of the string", () => {
+        let source: string;
+        let autoCompleter: AutoCompleter;
+
+        source = ` <`;
+        autoCompleter = new AutoCompleter(source, schema.elements);
+        {
+            let offset = source.indexOf("<") + 1;
+            let elm = autoCompleter.getCompletionItems(offset);
+            expect(elm).toMatchInlineSnapshot(`
+              [
+                {
+                  "kind": 10,
+                  "label": "a",
+                },
+              ]
+            `);
+        }
+    });
     it("Can get completion context", () => {
         let source: string;
         let autoCompleter: AutoCompleter;
