@@ -3,9 +3,9 @@ import {
     DocumentSymbol,
     SymbolKind,
 } from "vscode-languageserver/browser";
-import { DastNodes, toXml, visit } from "@doenet/parser";
+import { DastNodesV6, toXml } from "@doenet/parser";
 import { DocumentInfo } from "../globals";
-import { DoenetSourceObject } from "../../../../lsp-tools/dist";
+import { DoenetSourceObject } from "@doenet/lsp-tools";
 
 export function addDocumentSymbolsSupport(
     connection: Connection,
@@ -28,14 +28,14 @@ export function addDocumentSymbolsSupport(
  * Get a document symbol for the given node.
  */
 function nodeToSymbol(
-    node: DastNodes,
+    node: DastNodesV6,
     sourceObj: DoenetSourceObject,
 ): DocumentSymbol | undefined {
     switch (node.type) {
         case "element": {
             const attrs = node.attributes;
             const elmName = node.name;
-            for (const attr of attrs) {
+            for (const attr of Object.values(attrs)) {
                 if (attr.name === "name") {
                     // A name attribute defines a new symbol.
                     const name = toXml(attr.children);
@@ -73,7 +73,7 @@ function nodeToSymbol(
  * Recursively get all symbols for the given node's children.
  */
 function getChildrenSymbols(
-    node: DastNodes,
+    node: DastNodesV6,
     sourceObj: DoenetSourceObject,
 ): DocumentSymbol[] {
     const ret: DocumentSymbol[] = [];
