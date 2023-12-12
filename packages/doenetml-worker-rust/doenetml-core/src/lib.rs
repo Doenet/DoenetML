@@ -33,8 +33,6 @@ pub struct DoenetMLCore {
 
     pub components: Vec<Rc<RefCell<ComponentEnum>>>,
 
-    // pub components_as_traits: Vec<Rc<RefCell<dyn ComponentNode>>>,
-
     // The original DoenetML string
     // Main use is for components and properties that extract portions of the DoenetML
     pub doenetml: String,
@@ -187,8 +185,16 @@ fn create_component_children(
                     }
                 }
 
+                // To create a component for child_element,
+                // we match the name attribute (which is the component type)
+                // to the name of one of the variants of ComponentEnum
+                // (a case-insensitive match due to ComponentEnum tagging).
                 match ComponentEnum::from_str(&child_element.name) {
                     Ok(mut component_enum) => {
+                        // Since from_str is successful, we have a variant of ComponentEnum
+                        // corresponding to the name of the DastElement,
+                        // where all attributes of the structure were given their default values.
+                        // Initialize some of the attributes.
                         component_enum.initialize(
                             child_ind,
                             Some(parent_ind),
@@ -197,6 +203,8 @@ fn create_component_children(
 
                         components.push(Rc::new(RefCell::new(component_enum)));
 
+                        // recurse to children after adding to components
+                        // so that will get the correct indices for the children
                         let (child_children, child_descendent_names) = create_component_children(
                             components,
                             &child_element.children,
@@ -219,6 +227,9 @@ fn create_component_children(
                         component_children.push(ComponentChild::Component(child_ind));
                     }
                     Err(_err) => {
+                        // The name attribute of the DastElement did not (case-insensitive) match
+                        // any variants of ComponenentEnum,
+                        // so it was an invalid component type
                         let err_msg = format!("Invalid component type <{}>", child_element.name);
 
                         component_children.push(ComponentChild::Error(DastError {
