@@ -18,13 +18,17 @@ export function addFoldingRangeSupport(
 
         const ret: FoldingRange[] = [];
         visit(info.autoCompleter.sourceObj.dast, (node) => {
+            const position = node.position ?? {
+                start: { line: 1, column: 1 },
+                end: { line: 1, column: 1 },
+            };
             switch (node.type) {
                 case "comment": {
                     ret.push({
-                        startLine: node.position.start.line - 1,
-                        endLine: node.position.end.line - 1,
-                        startCharacter: node.position.start.column - 1,
-                        endCharacter: node.position.end.column - 1,
+                        startLine: position.start.line - 1,
+                        endLine: position.end.line - 1,
+                        startCharacter: position.start.column - 1,
+                        endCharacter: position.end.column - 1,
                         kind: FoldingRangeKind.Comment,
                     });
                     break;
@@ -34,16 +38,16 @@ export function addFoldingRangeSupport(
                     if (node.children.length === 0) {
                         return;
                     }
-                    const start = node.position.start.line;
-                    const end = node.position.end.line;
+                    const start = position.start.line;
+                    const end = position.end.line;
                     if (start === end) {
                         return;
                     }
                     ret.push({
                         startLine: start - 1,
                         endLine: end - 1,
-                        startCharacter: node.position.start.column - 1,
-                        endCharacter: node.position.end.column - 1,
+                        startCharacter: position.start.column - 1,
+                        endCharacter: position.end.column - 1,
                         kind: FoldingRangeKind.Region,
                     });
                     break;

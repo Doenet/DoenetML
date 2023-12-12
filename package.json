@@ -9,6 +9,7 @@
         "./packages/static-assets",
         "./packages/parser",
         "./packages/lsp-tools",
+        "./packages/lsp",
         "./packages/doenetml-worker",
         "./packages/virtual-keyboard",
         "./packages/codemirror",
@@ -46,5 +47,8 @@
     "prettier": {
         "tabWidth": 4
     },
-    "dependencies": {}
+    "dependencies": {
+        "@uiw/react-codemirror": "^4.21.21",
+        "micromark": "^4.0.0"
+    }
 }
