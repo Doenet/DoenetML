@@ -1,0 +1,29 @@
+.cm-lint-tooltip .heading {
+    margin-top: 0;
+    margin-bottom: 0.25em;
+    font-size: smaller;
+}
+.cm-lint-tooltip .heading.warning {
+    color: #a60;
+}
+.cm-lint-tooltip .heading.error {
+    color: #900;
+}
+.cm-diagnostic {
+    white-space: unset !important;
+}
+.cm-lint-body code {
+    font-size: larger;
+    white-space: pre-wrap;
+    color: #f2a;
+    padding: 0px 2px;
+}
+.cm-lint-body p {
+    margin: .25em 0;
+}
+.cm-lint-body p:last-child {
+    margin-bottom: 0;
+}
+.cm-lint-body p:first-child {
+    margin-top: 0;
+}

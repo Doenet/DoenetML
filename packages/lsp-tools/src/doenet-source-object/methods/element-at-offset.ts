@@ -22,11 +22,17 @@ export function elementAtOffsetWithContext(
     let cursorPosition: CursorPosition = "unknown";
     const prevChar = this.source.charAt(offset - 1);
     const exactNodeAtOffset = this.nodeAtOffset(offset);
+    const parent = exactNodeAtOffset ? this.getParent(exactNodeAtOffset) : null;
     let node = this.nodeAtOffset(offset, {
         type: "element",
     });
 
-    if (exactNodeAtOffset && exactNodeAtOffset !== node) {
+    if (
+        (exactNodeAtOffset && exactNodeAtOffset !== node) ||
+        !exactNodeAtOffset ||
+        !parent ||
+        (node?.type === "element" && node.name === "" && parent.type === "root")
+    ) {
         // If our exact node is not the same as our containing element, then we're a child of the containing
         // element and so we're in the body.
         cursorPosition = "body";

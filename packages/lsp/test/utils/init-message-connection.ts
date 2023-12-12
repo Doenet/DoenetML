@@ -2,7 +2,7 @@ import { createLspConnection } from "@qualified/lsp-connection";
 import { createMessageConnection } from "@qualified/vscode-jsonrpc-ww";
 
 /**
- * Initialize a WebWorker that runs a langauge server. The worker is initialized with
+ * Initialize a WebWorker that runs a language server. The worker is initialized with
  * `rootUri` set to `file:///` and `workspaceFolders` set to `null`.
  */
 export async function initWorker(worker: Worker) {

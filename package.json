@@ -9,6 +9,7 @@
         "./packages/static-assets",
         "./packages/parser",
         "./packages/lsp-tools",
+        "./packages/lsp",
         "./packages/doenetml-worker",
         "./packages/doenetml-worker-rust",
         "./packages/virtual-keyboard",
@@ -52,6 +53,8 @@
     "dependencies": {
         "@reduxjs/toolkit": "^2.0.1",
         "comlink": "^4.4.1",
-        "react-redux": "^9.0.4"
+        "react-redux": "^9.0.4",
+        "@uiw/react-codemirror": "^4.21.21",
+        "micromark": "^4.0.0"
     }
 }

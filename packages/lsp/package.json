@@ -1,0 +1,27 @@
+{
+    "name": "@doenet/lsp",
+    "type": "module",
+    "description": "DoenetML language server",
+    "version": "1.0.0",
+    "license": "AGPL-3.0-or-later",
+    "homepage": "https://github.com/Doenet/DoenetML#readme",
+    "private": false,
+    "repository": "github:Doenet/DoenetML",
+    "files": [
+        "/dist"
+    ],
+    "exports": {
+        ".": {
+            "import": "./dist/index.js"
+        },
+        "./language-server.js": {
+            "import": "./dist/index.js"
+        }
+    },
+    "scripts": {
+        "watch": "vite build --watch",
+        "build": "vite build",
+        "test": "vitest",
+        "compile_grammar": "npx lezer-generator --output src/generated-assets/lezer-doenet.ts src/doenet.grammar"
+    }
+}
