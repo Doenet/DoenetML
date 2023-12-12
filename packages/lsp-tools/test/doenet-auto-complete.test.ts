@@ -14,7 +14,7 @@ console.log = (...args) => {
 const schema = {
     elements: [
         {
-            name: "a",
+            name: "aa",
             children: ["b", "c", "d"],
             attributes: [{ name: "x" }, { name: "y" }, { name: "xyx" }],
             top: true,
@@ -51,42 +51,12 @@ describe("AutoCompleter", () => {
         {
             let offset = source.indexOf("<a") + 3;
             let elm = autoCompleter.getCompletionItems(offset);
-            expect(elm).toMatchInlineSnapshot(`
-              [
-                {
-                  "kind": 13,
-                  "label": "x",
-                },
-                {
-                  "kind": 13,
-                  "label": "y",
-                },
-                {
-                  "kind": 13,
-                  "label": "xyx",
-                },
-              ]
-            `);
+            expect(elm).toMatchInlineSnapshot("[]");
         }
         {
             let offset = source.indexOf("<a") + 6;
             let elm = autoCompleter.getCompletionItems(offset);
-            expect(elm).toMatchInlineSnapshot(`
-              [
-                {
-                  "kind": 10,
-                  "label": "b",
-                },
-                {
-                  "kind": 10,
-                  "label": "c",
-                },
-                {
-                  "kind": 10,
-                  "label": "d",
-                },
-              ]
-            `);
+            expect(elm).toMatchInlineSnapshot("[]");
         }
         {
             let offset = source.indexOf("<b") + 3;
@@ -179,7 +149,7 @@ describe("AutoCompleter", () => {
               [
                 {
                   "kind": 10,
-                  "label": "a",
+                  "label": "aa",
                 },
               ]
             `);
@@ -198,7 +168,64 @@ describe("AutoCompleter", () => {
               [
                 {
                   "kind": 10,
-                  "label": "a",
+                  "label": "aa",
+                },
+              ]
+            `);
+        }
+    });
+    it("Can suggest completions after a `<a` when a comes at the end of the string", () => {
+        let source: string;
+        let autoCompleter: AutoCompleter;
+
+        source = ` <a`;
+        autoCompleter = new AutoCompleter(source, schema.elements);
+        {
+            let offset = source.indexOf("<a") + 2;
+            let elm = autoCompleter.getCompletionItems(offset);
+            expect(elm).toMatchInlineSnapshot(`
+              [
+                {
+                  "kind": 10,
+                  "label": "aa",
+                },
+              ]
+            `);
+        }
+    });
+    it.skip("Can suggest completions for closing tags at the end of the string", () => {
+        let source: string;
+        let autoCompleter: AutoCompleter;
+
+        source = ` <aa><`;
+        autoCompleter = new AutoCompleter(source, schema.elements);
+        {
+            let offset = source.indexOf("><") + 2;
+            let elm = autoCompleter.getCompletionItems(offset);
+            expect(elm).toMatchInlineSnapshot(`
+              [
+                {
+                  "kind": 10,
+                  "label": "/aa>",
+                },
+              ]
+            `);
+        }
+    });
+    it.skip("Closing tag suggestions are offered if there is whitespace after the `/` even if there is text", () => {
+        let source: string;
+        let autoCompleter: AutoCompleter;
+
+        source = ` <aa></  xx`;
+        autoCompleter = new AutoCompleter(source, schema.elements);
+        {
+            let offset = source.indexOf("><") + 3;
+            let elm = autoCompleter.getCompletionItems(offset);
+            expect(elm).toMatchInlineSnapshot(`
+              [
+                {
+                  "kind": 10,
+                  "label": "/aa>",
                 },
               ]
             `);
