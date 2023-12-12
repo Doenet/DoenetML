@@ -2,6 +2,12 @@ import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "../../store";
 import { DastError, DastRoot } from "@doenet/parser";
+import type {
+    FlatDastElement,
+    FlatDastRoot,
+} from "@doenet/doenetml-worker-rust";
+
+type FlatDast = [FlatDastRoot, ...FlatDastElement[]];
 
 // Define a type for the slice state
 export interface DastState {
@@ -14,6 +20,7 @@ export interface DastState {
      */
     dastFromSource: DastRoot;
     dastErrors: DastError[];
+    flatDast: FlatDast;
 }
 
 // Define the initial state using that type
@@ -21,6 +28,7 @@ const initialState: DastState = {
     source: "",
     dastFromSource: { type: "root", children: [] },
     dastErrors: [],
+    flatDast: [{ type: "root", children: [], data: { id: 0 } }],
 };
 
 const dastSlice = createSlice({
@@ -35,6 +43,9 @@ const dastSlice = createSlice({
         },
         _setDastErrors: (state, action: PayloadAction<DastError[]>) => {
             state.dastErrors = action.payload;
+        },
+        _setFlatDast: (state, action: PayloadAction<FlatDast>) => {
+            state.flatDast = action.payload;
         },
     },
 });

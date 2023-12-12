@@ -1,10 +1,10 @@
 import * as Comlink from "comlink";
 import { createLoggingAsyncThunk } from "../../hooks";
-import { normalizeDocumentDast } from "../../../utils/activityUtils";
 import { CoreWorker } from "@doenet/doenetml-worker-rust";
 import { doenetGlobalConfig } from "../../../global-config";
 import { RootState } from "../../store";
 import { _coreReducerActions } from "./slice";
+import { _dastReducerActions } from "../dast";
 
 /**
  * Return a promise and its resolver.
@@ -95,6 +95,7 @@ export const coreThunks = {
             }
 
             const flatDast = await worker.createCore({});
+            dispatch(_dastReducerActions._setFlatDast(flatDast));
             console.log("flatDast", flatDast);
         },
     ),

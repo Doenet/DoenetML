@@ -1,8 +1,8 @@
 import { extractDastErrors, lezerToDast } from "@doenet/parser";
 import { createLoggingAsyncThunk } from "../../hooks";
 import { _dastReducerActions } from "./slice";
-import { normalizeDocumentDast } from "../../../utils/activityUtils";
 import { coreThunks } from "../core/thunks";
+import { normalizeDocumentDast } from "./utils/normalize-dast";
 
 export const dastThunks = {
     setSource: createLoggingAsyncThunk(

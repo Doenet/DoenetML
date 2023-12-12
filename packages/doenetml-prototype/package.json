@@ -24,7 +24,7 @@
         "dev": "vite",
         "build": "vite build",
         "preview": "vite preview",
-        "test": "echo \"No tests \"",
+        "test": "vitest",
         "lint": "eslint src --ext js,jsx --report-unused-disable-directives --max-warnings 0"
     },
     "peerDependencies": {
