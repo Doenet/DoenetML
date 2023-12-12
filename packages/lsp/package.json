@@ -1,7 +1,7 @@
 {
     "name": "@doenet/lsp",
     "type": "module",
-    "description": "Tools needed by the language server for DoenetML",
+    "description": "DoenetML language server",
     "version": "1.0.0",
     "license": "AGPL-3.0-or-later",
     "homepage": "https://github.com/Doenet/DoenetML#readme",
@@ -19,7 +19,6 @@
         }
     },
     "scripts": {
-        "dev": "vite",
         "watch": "vite build --watch",
         "build": "vite build",
         "test": "vitest",
