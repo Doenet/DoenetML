@@ -1,0 +1,12 @@
+{
+    "extends": "../../../tsconfig.build.json",
+    "compilerOptions": {
+        "rootDir": "../"
+    },
+    "include": ["../**/*.ts", "../**/*.tsx"],
+    "exclude": [
+        "node_modules",
+        "./vite.config.ts"
+    ],
+    "references": []
+}

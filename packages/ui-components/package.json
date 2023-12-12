@@ -18,6 +18,7 @@
     "scripts": {
         "dev": "vite",
         "watch": "vite build --watch",
+        "test": "echo \"No tests \"",
         "build": "vite build"
     },
     "dependencies": {},

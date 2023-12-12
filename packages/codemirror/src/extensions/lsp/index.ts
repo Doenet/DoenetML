@@ -1,0 +1,1 @@
+export { lspPlugin } from "./plugin";

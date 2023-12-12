@@ -1,8 +1,4 @@
-import {
-    Connection,
-    CompletionItem,
-    TextDocumentPositionParams,
-} from "vscode-languageserver/browser";
+import { Connection, CompletionItem } from "vscode-languageserver/browser";
 import { DocumentInfo } from "../globals";
 
 export function addDocumentCompletionSupport(
@@ -10,22 +6,16 @@ export function addDocumentCompletionSupport(
     documentInfo: DocumentInfo,
 ) {
     // This handler provides the initial list of the completion items.
-    connection.onCompletion(
-        (
-            textDocumentPosition: TextDocumentPositionParams,
-        ): CompletionItem[] => {
-            const info = documentInfo.get(
-                textDocumentPosition.textDocument.uri,
-            );
-            if (!info) {
-                return [];
-            }
-            const completions = info.autoCompleter.getCompletionItems(
-                textDocumentPosition.position,
-            );
-            return completions;
-        },
-    );
+    connection.onCompletion((params): CompletionItem[] => {
+        const info = documentInfo.get(params.textDocument.uri);
+        if (!info) {
+            return [];
+        }
+        const completions = info.autoCompleter.getCompletionItems(
+            params.position,
+        );
+        return completions;
+    });
 
     // XXX Give more meaningful information when we have more advanced documentation
     connection.onCompletionResolve((item: CompletionItem): CompletionItem => {

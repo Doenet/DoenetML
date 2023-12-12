@@ -9,7 +9,7 @@
         "./**/*.test.ts",
         "./**/*.stub.ts",
         "node_modules",
-        "**/tests/",
+        "**/test/",
         "**/dist/**/*",
         "./vite.config.ts"
     ],

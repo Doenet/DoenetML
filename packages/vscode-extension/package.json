@@ -1,5 +1,5 @@
 {
-    "name": "vscode-extension",
+    "name": "@doenet/vscode-extension",
     "displayName": "DoenetML support",
     "description": "A language server for DoenetML",
     "author": "Jason Siefken",
@@ -17,8 +17,9 @@
         "vscode": "^1.76.0"
     },
     "exports": {
-        "language-server": {
-            "import": "./extension/dist/language-server/index.js"
+        "./language-server": {
+            "import": "./extension/build/language-server/index.js",
+            "types": "./extension/build/language-server/index.d.ts"
         }
     },
     "scripts": {
