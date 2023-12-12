@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-// @ts-ignore
 // import { DoenetML } from "@doenet/doenetml";
 import { DoenetML } from "@doenet/doenetml-prototype";
 // @ts-ignore
@@ -175,7 +174,6 @@ export default function TestViewer() {
                     showFeedback,
                     showHints,
                 }}
-                paginate={paginate}
                 addVirtualKeyboard={true}
             />
         </div>

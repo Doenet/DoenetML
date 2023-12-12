@@ -74,30 +74,30 @@ export function DoenetML({
     darkMode,
 }: {
     doenetML: string;
-    flags: DoenetMLFlagsSubset;
-    cid: string;
-    activityId: string;
-    userId: string;
-    attemptNumber: number;
-    requestedVariantIndex: number;
-    apiURLs: {};
-    generatedVariantCallback: Function;
-    setErrorsAndWarningsCallback: Function;
-    forceDisable: boolean;
-    forceShowCorrectness: boolean;
-    forceShowSolution: boolean;
-    forceUnsuppressCheckwork: boolean;
-    addVirtualKeyboard: boolean;
-    addBottomPadding: boolean;
-    idsIncludeActivityId: boolean;
-    darkMode: string;
+    flags?: DoenetMLFlagsSubset;
+    cid?: string;
+    activityId?: string;
+    userId?: string;
+    attemptNumber?: number;
+    requestedVariantIndex?: number;
+    apiURLs?: {};
+    generatedVariantCallback?: Function;
+    setErrorsAndWarningsCallback?: Function;
+    forceDisable?: boolean;
+    forceShowCorrectness?: boolean;
+    forceShowSolution?: boolean;
+    forceUnsuppressCheckwork?: boolean;
+    addVirtualKeyboard?: boolean;
+    addBottomPadding?: boolean;
+    idsIncludeActivityId?: boolean;
+    darkMode?: string;
 }) {
     const thisPropSet = [
         doenetML,
-        cid,
-        activityId,
-        userId,
-        requestedVariantIndex,
+        cid || "CID",
+        activityId || "",
+        userId || "UID",
+        requestedVariantIndex || 0,
     ];
     const lastPropSet: React.MutableRefObject<(string | number)[]> = useRef([]);
 
@@ -144,21 +144,25 @@ export function DoenetML({
             <ActivityViewer
                 doenetML={doenetML}
                 flags={flags}
-                cid={cid}
+                cid={cid || "CID"}
                 activityId={activityId}
-                userId={userId}
+                userId={userId || "UID"}
                 attemptNumber={attemptNumber}
                 requestedVariantIndex={variantIndex.current}
-                apiURLs={apiURLs}
-                generatedVariantCallback={generatedVariantCallback}
-                setErrorsAndWarningsCallback={setErrorsAndWarningsCallback}
-                forceDisable={forceDisable}
-                forceShowCorrectness={forceShowCorrectness}
-                forceShowSolution={forceShowSolution}
-                forceUnsuppressCheckwork={forceUnsuppressCheckwork}
+                apiURLs={apiURLs || {}}
+                generatedVariantCallback={
+                    generatedVariantCallback || (() => {})
+                }
+                setErrorsAndWarningsCallback={
+                    setErrorsAndWarningsCallback || (() => {})
+                }
+                forceDisable={!!forceDisable}
+                forceShowCorrectness={!!forceShowCorrectness}
+                forceShowSolution={!!forceShowSolution}
+                forceUnsuppressCheckwork={!!forceUnsuppressCheckwork}
                 idsIncludeActivityId={idsIncludeActivityId}
                 addBottomPadding={addBottomPadding}
-                darkMode={darkMode}
+                darkMode={darkMode || "auto"}
             />
             <div className="before-keyboard" />
             {keyboard}

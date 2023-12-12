@@ -1,6 +1,7 @@
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 import { viteStaticCopy, TransformOption } from "vite-plugin-static-copy";
+import dts from "vite-plugin-dts";
 import * as path from "node:path";
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
@@ -33,6 +34,7 @@ export default defineConfig({
                 },
             ],
         }),
+        dts({ rollupTypes: true }),
     ],
     server: {
         port: 8012,
@@ -41,7 +43,7 @@ export default defineConfig({
         minify: false,
         lib: {
             entry: {
-                doenetml: "./src/index.ts",
+                index: "./src/index.ts",
                 "doenetml-inline-worker": "./src/index-inline-worker.ts",
             },
             formats: ["es"],
