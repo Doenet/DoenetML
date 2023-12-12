@@ -1,4 +1,4 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSelector, createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "../../store";
 import { DastError, DastRoot } from "@doenet/parser";
@@ -60,3 +60,14 @@ export const _dastReducerActions = { ...dastSlice.actions };
 const selfSelector = (state: RootState) => state.dast;
 export const errorsSelector = (state: RootState) =>
     selfSelector(state).dastErrors;
+
+export const nodeByIdSelector = createSelector(selfSelector, (state) => {
+    const flatDast = state.flatDast;
+    return (id: number) => {
+        const ret = flatDast[id];
+        if (!ret) {
+            throw new Error(`No node with id ${id}`);
+        }
+        return ret;
+    };
+});
