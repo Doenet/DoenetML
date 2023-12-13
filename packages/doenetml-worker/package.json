@@ -12,8 +12,8 @@
     ],
     "exports": {
         ".": {
-            "import": "./dist/CoreWorker.js",
-            "require": "./dist/CoreWorker.js"
+            "import": "./dist/CoreWorker.iife.js",
+            "require": "./dist/CoreWorker.iife.js"
         },
         "./*": {
             "import": "./dist/*",
