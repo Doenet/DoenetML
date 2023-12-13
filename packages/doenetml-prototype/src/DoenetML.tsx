@@ -36,7 +36,7 @@ const defaultFlags: DoenetMLFlags = {
     autoSubmit: false,
 };
 
-export function DoenetApplet({
+export function DoenetML({
     doenetML,
     flags: specifiedFlags = {},
     requestedVariantIndex,

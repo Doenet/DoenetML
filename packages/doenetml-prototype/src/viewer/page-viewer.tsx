@@ -1,5 +1,5 @@
 import React from "react";
-import { DoenetMLFlags } from "../doenet-applet";
+import { DoenetMLFlags } from "../DoenetML";
 import { useAppDispatch, useAppSelector } from "../state/hooks";
 import { dastActions, errorsSelector } from "../state/redux-slices/dast";
 

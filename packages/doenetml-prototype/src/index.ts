@@ -1,1 +1,1 @@
-export { DoenetApplet as DoenetML } from "./doenet-applet";
+export { DoenetML } from "./DoenetML";
