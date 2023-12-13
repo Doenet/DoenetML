@@ -2,8 +2,8 @@ use std::{cell::RefCell, collections::HashMap, rc::Rc, str::FromStr};
 
 use component::{ComponentEnum, ComponentNode};
 use dast::{
-    DastElementContent, DastError, DastFunctionMacro, DastMacro, DastRoot, FlatDastElement,
-    FlatDastElementContent, FlatDastRoot, PathPart, Position as DastPosition,
+    DastElementContent, DastError, DastFunctionMacro, DastMacro, DastRoot, DastWarning,
+    FlatDastElement, FlatDastElementContent, FlatDastRoot, PathPart, Position as DastPosition,
 };
 
 use regex::Regex;
@@ -33,6 +33,9 @@ pub struct DoenetMLCore {
 
     pub components: Vec<Rc<RefCell<ComponentEnum>>>,
 
+    pub errors: Vec<DastError>,
+    pub warnings: Vec<DastWarning>,
+
     // The original DoenetML string
     // Main use is for components and properties that extract portions of the DoenetML
     pub doenetml: String,
@@ -46,7 +49,14 @@ impl DoenetMLCore {
             .map(|comp| comp.borrow().to_flat_dast(&self.components))
             .collect();
 
-        self.root.to_flat_dast(elements)
+        let errors: Vec<DastError> = self.errors.iter().map(|error| error.clone()).collect();
+        let warnings: Vec<DastWarning> = self
+            .warnings
+            .iter()
+            .map(|warning| warning.clone())
+            .collect();
+
+        self.root.to_flat_dast(elements, errors, warnings)
     }
 }
 
@@ -61,7 +71,12 @@ pub struct DoenetMLRoot {
 }
 
 impl DoenetMLRoot {
-    fn to_flat_dast(&self, elements: Vec<FlatDastElement>) -> FlatDastRoot {
+    fn to_flat_dast(
+        &self,
+        elements: Vec<FlatDastElement>,
+        errors: Vec<DastError>,
+        warnings: Vec<DastWarning>,
+    ) -> FlatDastRoot {
         let children: Vec<FlatDastElementContent> = self
             .children
             .iter()
@@ -72,13 +87,15 @@ impl DoenetMLRoot {
                 ComponentChild::Text(s) => Some(FlatDastElementContent::Text(s.to_string())),
                 ComponentChild::Macro(_the_macro) => None,
                 ComponentChild::FunctionMacro(_function_macro) => None,
-                ComponentChild::Error(error) => Some(FlatDastElementContent::Error(error.clone())),
+                ComponentChild::Error(error_ind) => Some(FlatDastElementContent::Error(*error_ind)),
             })
             .collect();
 
         FlatDastRoot {
             children,
             elements,
+            errors,
+            warnings,
             position: self.position.clone(),
         }
     }
@@ -90,7 +107,7 @@ pub enum ComponentChild {
     Text(String),
     Macro(DastMacro),
     FunctionMacro(DastFunctionMacro),
-    Error(DastError),
+    Error(usize),
 }
 
 #[derive(Debug)]
@@ -108,9 +125,16 @@ pub fn create_doenetml_core(
     let dast_root: DastRoot = serde_json::from_str(dast_string).expect("Error extracting dast");
 
     let mut components: Vec<Rc<RefCell<ComponentEnum>>> = Vec::new();
+    let mut errors: Vec<DastError> = Vec::new();
+    let mut warnings: Vec<DastWarning> = Vec::new();
 
-    let (children, descendant_names) =
-        create_component_children(&mut components, &dast_root.children, 0);
+    let (children, descendant_names) = create_component_children(
+        &mut components,
+        &mut errors,
+        &mut warnings,
+        &dast_root.children,
+        0,
+    );
 
     // add root node
     let root = DoenetMLRoot {
@@ -127,6 +151,8 @@ pub fn create_doenetml_core(
         dast_root,
         root,
         components,
+        errors,
+        warnings,
         doenetml: doenetml.to_string(),
     };
 
@@ -135,6 +161,8 @@ pub fn create_doenetml_core(
 
 fn create_component_children(
     components: &mut Vec<Rc<RefCell<ComponentEnum>>>,
+    errors: &mut Vec<DastError>,
+    warnings: &mut Vec<DastWarning>,
     dast_children: &Vec<DastElementContent>,
     parent_ind: ComponentInd,
 ) -> (Vec<ComponentChild>, HashMap<String, Vec<ComponentInd>>) {
@@ -178,10 +206,12 @@ fn create_component_children(
                     }
 
                     if !valid_name {
-                        component_children.push(ComponentChild::Error(DastError {
+                        let error_ind = errors.len();
+                        errors.push(DastError {
                             message: msg_option.unwrap_or("Invalid component name".to_owned()),
                             position: None,
-                        }))
+                        });
+                        component_children.push(ComponentChild::Error(error_ind));
                     }
                 }
 
@@ -207,6 +237,8 @@ fn create_component_children(
                         // so that will get the correct indices for the children
                         let (child_children, child_descendent_names) = create_component_children(
                             components,
+                            errors,
+                            warnings,
                             &child_element.children,
                             child_ind,
                         );
@@ -232,10 +264,12 @@ fn create_component_children(
                         // so it was an invalid component type
                         let err_msg = format!("Invalid component type <{}>", child_element.name);
 
-                        component_children.push(ComponentChild::Error(DastError {
+                        let error_ind = errors.len();
+                        errors.push(DastError {
                             message: err_msg,
                             position: child_element.position.clone(),
-                        }));
+                        });
+                        component_children.push(ComponentChild::Error(error_ind));
                     }
                 }
             }
@@ -253,8 +287,9 @@ fn create_component_children(
                     .push(ComponentChild::FunctionMacro(child_function_macro.clone()));
             }
             DastElementContent::Error(child_error) => {
-                // for now, just stick in the dast error
-                component_children.push(ComponentChild::Error(child_error.clone()));
+                let error_ind = errors.len();
+                errors.push(child_error.clone());
+                component_children.push(ComponentChild::Error(error_ind));
             }
         }
     }

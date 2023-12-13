@@ -178,17 +178,19 @@ pub struct FlatDastRoot {
     pub children: Vec<FlatDastElementContent>,
 
     pub elements: Vec<FlatDastElement>,
+    pub errors: Vec<DastError>,
+    pub warnings: Vec<DastWarning>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub position: Option<Position>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(untagged)]
+#[serde(rename_all = "camelCase")]
 pub enum FlatDastElementContent {
     Element(usize),
     Text(String),
-    Error(DastError),
+    Error(usize),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -203,6 +205,16 @@ pub struct FlatDastElement {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub data: Option<ElementData>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub position: Option<Position>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "type")]
+#[serde(rename = "warning")]
+pub struct DastWarning {
+    pub message: String,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub position: Option<Position>,
