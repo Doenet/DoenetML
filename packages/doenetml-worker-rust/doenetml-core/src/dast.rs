@@ -1,5 +1,7 @@
-use serde::{Deserialize, Serialize};
+use serde::{ser::SerializeStruct, Deserialize, Serialize};
 use std::collections::HashMap;
+
+use crate::utils::log;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
@@ -46,9 +48,12 @@ pub struct DastElement {
     pub position: Option<Position>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ElementData {
     pub id: usize,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub message: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -178,6 +183,7 @@ pub struct FlatDastRoot {
     pub children: Vec<FlatDastElementContent>,
 
     pub elements: Vec<FlatDastElement>,
+    pub warnings: Vec<DastWarning>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub position: Option<Position>,
@@ -188,10 +194,9 @@ pub struct FlatDastRoot {
 pub enum FlatDastElementContent {
     Element(usize),
     Text(String),
-    Error(DastError),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "element")]
 pub struct FlatDastElement {
@@ -203,6 +208,69 @@ pub struct FlatDastElement {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub data: Option<ElementData>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub position: Option<Position>,
+}
+
+impl Serialize for FlatDastElement {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let have_position = self.position.is_some();
+
+        log!("serialize {}", self.name);
+
+        if self.name == "_error" {
+            let n_fields = 2 + if have_position { 1 } else { 0 };
+
+            let mut state = serializer.serialize_struct("error", n_fields)?;
+            state.serialize_field("type", "error")?;
+
+            let message = match &self.data {
+                Some(data) => {
+                    if let Some(message) = &data.message {
+                        message.clone()
+                    } else {
+                        "".to_string()
+                    }
+                }
+                None => "".to_string(),
+            };
+            state.serialize_field("message", &message)?;
+
+            if have_position {
+                state.serialize_field("position", &self.position)?;
+            }
+            state.end()
+        } else {
+            let have_data = self.data.is_some();
+
+            let n_fields = 4 + if have_data { 1 } else { 0 } + if have_position { 1 } else { 0 };
+
+            let mut state = serializer.serialize_struct("element", n_fields)?;
+
+            state.serialize_field("type", "element")?;
+            state.serialize_field("name", &self.name)?;
+            state.serialize_field("attributes", &self.attributes)?;
+            state.serialize_field("children", &self.children)?;
+            if have_data {
+                state.serialize_field("data", &self.data)?;
+            }
+            if have_position {
+                state.serialize_field("position", &self.position)?;
+            }
+            state.end()
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "type")]
+#[serde(rename = "warning")]
+pub struct DastWarning {
+    pub message: String,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub position: Option<Position>,
