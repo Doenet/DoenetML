@@ -27,7 +27,7 @@ jobs:
             - name: Build
               run: |
                   export NODE_OPTIONS="--max_old_space_size=4096"
-                  npm run build -ws
+                  npm run build && npm run build:all
 
             - name: Test
               run: npm test
