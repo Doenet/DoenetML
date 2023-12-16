@@ -38,11 +38,7 @@ async function setupLanguageServer(context: ExtensionContext) {
     // Options to control the language client
     const clientOptions: LanguageClientOptions = {
         // Register the server for plain text documents
-        documentSelector: [{ scheme: "file", language: "doenet" }],
-        synchronize: {
-            // Notify the server about file changes to '.clientrc files contained in the workspace
-            fileEvents: workspace.createFileSystemWatcher("**/.clientrc"),
-        },
+        documentSelector: [{ language: "doenet" }],
     };
 
     // Create a worker. The worker main file implements the language server.
@@ -115,6 +111,7 @@ async function setupLanguageServer(context: ExtensionContext) {
  * Allow a user to open a Doenet preview window.
  */
 function setupPreviewWindow(context: ExtensionContext) {
+    console.log("PREVIEW SETUP");
     // Register the preview window
     const showPreviewWindow = commands.registerCommand(
         "doenet.showPreview",

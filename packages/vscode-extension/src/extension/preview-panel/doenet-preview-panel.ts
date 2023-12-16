@@ -135,7 +135,14 @@ export class DoenetPreviewPanel {
           <meta charset="UTF-8" />
           <meta name="viewport" content="width=device-width, initial-scale=1.0" />
           <meta http-equiv="Content-Security-Policy"
-            content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline' 'self'; script-src 'nonce-${nonce}' 'unsafe-eval' vscode-webview: https://*.vscode-resource.vscode-cdn.net https://cdnjs.cloudflare.com/ajax/libs/mathjax/; worker-src blob:; img-src 'self'; font-src https://cdnjs.cloudflare.com/ajax/libs/mathjax/ https://*.vscode-resource.vscode-cdn.net;"
+            content="${[
+                `default-src 'none';`,
+                `style-src ${webview.cspSource} 'unsafe-inline' 'self';`,
+                `script-src 'nonce-${nonce}' 'unsafe-eval' vscode-webview: https://*.vscode-resource.vscode-cdn.net https://cdnjs.cloudflare.com/ajax/libs/mathjax/ https://doenet.vscode-unpkg.net/doenet;`,
+                `worker-src blob:;`,
+                `img-src 'self';`,
+                `font-src https://cdnjs.cloudflare.com/ajax/libs/mathjax/ https://*.vscode-resource.vscode-cdn.net https://doenet.vscode-unpkg.net/doenet;`,
+            ].join(" ")}"
           />
           <link rel="stylesheet" type="text/css" href="${stylesUri}">
           <title>Doenet Preview</title>
