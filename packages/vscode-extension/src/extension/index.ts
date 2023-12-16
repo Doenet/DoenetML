@@ -111,7 +111,6 @@ async function setupLanguageServer(context: ExtensionContext) {
  * Allow a user to open a Doenet preview window.
  */
 function setupPreviewWindow(context: ExtensionContext) {
-    console.log("PREVIEW SETUP");
     // Register the preview window
     const showPreviewWindow = commands.registerCommand(
         "doenet.showPreview",

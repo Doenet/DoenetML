@@ -138,10 +138,12 @@ export class DoenetPreviewPanel {
             content="${[
                 `default-src 'none';`,
                 `style-src ${webview.cspSource} 'unsafe-inline' 'self';`,
-                `script-src 'nonce-${nonce}' 'unsafe-eval' vscode-webview: https://*.vscode-resource.vscode-cdn.net https://cdnjs.cloudflare.com/ajax/libs/mathjax/ https://doenet.vscode-unpkg.net/doenet;`,
+                // Note: If there is a path-name, it must end with a slash to include subfolders (e.g., https://example.com/foo will not match https://example.com/foo/bar)
+                `script-src 'nonce-${nonce}' 'unsafe-eval' vscode-webview: https://*.vscode-resource.vscode-cdn.net https://cdnjs.cloudflare.com/ajax/libs/mathjax/ https://doenet.vscode-unpkg.net;`,
+                `script-src-elem 'nonce-${nonce}' 'unsafe-eval' vscode-webview: https://*.vscode-resource.vscode-cdn.net https://cdnjs.cloudflare.com/ajax/libs/mathjax/ https://doenet.vscode-unpkg.net http://localhost:3000/static/devextensions/;`,
                 `worker-src blob:;`,
                 `img-src 'self';`,
-                `font-src https://cdnjs.cloudflare.com/ajax/libs/mathjax/ https://*.vscode-resource.vscode-cdn.net https://doenet.vscode-unpkg.net/doenet;`,
+                `font-src https://cdnjs.cloudflare.com/ajax/libs/mathjax/ https://*.vscode-resource.vscode-cdn.net https://doenet.vscode-unpkg.net http://localhost:3000/static/devextensions/;`,
             ].join(" ")}"
           />
           <link rel="stylesheet" type="text/css" href="${stylesUri}">
@@ -174,6 +176,14 @@ export class DoenetPreviewPanel {
                             command: "setSource",
                             text: DoenetPreviewPanel.currentSource,
                         });
+                        return;
+                    case "ui-loaded":
+                        // XXX: This timeout is a hack. A proper way to wait for the UI to load
+                        // is needed.
+                        setTimeout(
+                            () => DoenetPreviewPanel.triggerRefresh(),
+                            1000,
+                        );
                         return;
                 }
             },
