@@ -54,6 +54,10 @@ function App() {
         setColorStyle(darkMode ? "dark" : "light");
     }, [darkMode]);
 
+    React.useLayoutEffect(() => {
+        vscode.postMessage({ command: "ui-loaded" });
+    }, []);
+
     function refreshClick() {
         vscode.postMessage({
             command: "refresh",

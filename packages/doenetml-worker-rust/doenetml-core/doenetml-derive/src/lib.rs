@@ -32,8 +32,13 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                     .clone()
                     .map(|x| x.clone().map(ident_camel_case));
 
-                // Convert struct name to camel case
-                let component_string = ident_camel_case(name.clone());
+                // Convert struct name to camel case, preserving any initial '_'
+                let mut component_string = name.to_string();
+                if component_string.starts_with("_") {
+                    component_string = format!("_{}", component_string.to_case(Case::Camel));
+                } else {
+                    component_string = component_string.to_case(Case::Camel);
+                }
 
                 quote! {
                     impl ComponentNode for #name {
@@ -72,8 +77,8 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                             self.extend = extend_source;
                         }
 
-                        fn get_component_type(&self) -> &'static str {
-                            stringify!(#component_string)
+                        fn get_component_type(&self) -> &str {
+                            #component_string
                         }
                         fn get_descendant_matches(&self, name: &str) -> Option<&Vec<ComponentInd>> {
                             self.descendant_names.get(name)

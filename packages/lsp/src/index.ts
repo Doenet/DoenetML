@@ -45,21 +45,20 @@ connection.onInitialize((params: InitializeParams) => {
 
     // Does the client support the `workspace/configuration` request?
     // If not, we fall back using global settings.
-    config.hasConfigurationCapability = !!(
-        capabilities.workspace && !!capabilities.workspace.configuration
-    );
-    config.hasWorkspaceFolderCapability = !!(
-        capabilities.workspace && !!capabilities.workspace.workspaceFolders
-    );
-    config.hasDiagnosticRelatedInformationCapability = !!(
-        capabilities.textDocument &&
-        capabilities.textDocument.publishDiagnostics &&
-        capabilities.textDocument.publishDiagnostics.relatedInformation
-    );
+    config.hasConfigurationCapability =
+        capabilities.workspace?.configuration || false;
+    config.hasWorkspaceFolderCapability =
+        capabilities.workspace?.workspaceFolders || false;
+    config.hasDiagnosticRelatedInformationCapability =
+        capabilities.textDocument?.publishDiagnostics?.relatedInformation ||
+        false;
 
     const result: InitializeResult = {
         capabilities: {
-            textDocumentSync: TextDocumentSyncKind.Incremental,
+            textDocumentSync: {
+                openClose: true,
+                change: TextDocumentSyncKind.Incremental,
+            },
             // Tell the client that this server supports code completion.
             completionProvider: {
                 triggerCharacters: ["<", ".", "$", "/", '"', "'"],

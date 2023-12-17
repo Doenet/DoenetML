@@ -54,3 +54,5 @@ client/server
 build
 test.doenet
 stats.html
+
+.wireit

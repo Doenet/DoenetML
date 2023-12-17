@@ -23,7 +23,26 @@
     "scripts": {
         "watch": "vite build --watch",
         "test": "echo \"No tests \"",
-        "build": "vite build"
+        "build": "wireit"
+    },
+    "wireit": {
+        "build": {
+            "command": "vite build",
+            "files": [
+                "src/**/*.ts",
+                "src/**/*.js",
+                "tsconfig.json"
+            ],
+            "output": [
+                "dist/**/*.js",
+                "dist/**/*.d.ts",
+                "dist/**/*.json"
+            ],
+            "dependencies": [
+                "../utils:build",
+                "../parser:build"
+            ]
+        }
     },
     "peerDependencies": {
         "react": "^18.2.0",

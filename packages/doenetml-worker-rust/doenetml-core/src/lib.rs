@@ -1,9 +1,9 @@
 use std::{cell::RefCell, collections::HashMap, rc::Rc, str::FromStr};
 
-use component::{ComponentEnum, ComponentNode};
+use component::{ComponentEnum, ComponentNode, _error::_Error, _external::_External};
 use dast::{
-    DastElementContent, DastError, DastFunctionMacro, DastMacro, DastRoot, FlatDastElement,
-    FlatDastElementContent, FlatDastRoot, PathPart, Position as DastPosition,
+    DastElementContent, DastError, DastFunctionMacro, DastMacro, DastRoot, DastWarning,
+    FlatDastElement, FlatDastElementContent, FlatDastRoot, PathPart, Position as DastPosition,
 };
 
 use regex::Regex;
@@ -33,6 +33,8 @@ pub struct DoenetMLCore {
 
     pub components: Vec<Rc<RefCell<ComponentEnum>>>,
 
+    pub warnings: Vec<DastWarning>,
+
     // The original DoenetML string
     // Main use is for components and properties that extract portions of the DoenetML
     pub doenetml: String,
@@ -46,7 +48,13 @@ impl DoenetMLCore {
             .map(|comp| comp.borrow().to_flat_dast(&self.components))
             .collect();
 
-        self.root.to_flat_dast(elements)
+        let warnings: Vec<DastWarning> = self
+            .warnings
+            .iter()
+            .map(|warning| warning.clone())
+            .collect();
+
+        self.root.to_flat_dast(elements, warnings)
     }
 }
 
@@ -61,7 +69,11 @@ pub struct DoenetMLRoot {
 }
 
 impl DoenetMLRoot {
-    fn to_flat_dast(&self, elements: Vec<FlatDastElement>) -> FlatDastRoot {
+    fn to_flat_dast(
+        &self,
+        elements: Vec<FlatDastElement>,
+        warnings: Vec<DastWarning>,
+    ) -> FlatDastRoot {
         let children: Vec<FlatDastElementContent> = self
             .children
             .iter()
@@ -72,13 +84,13 @@ impl DoenetMLRoot {
                 ComponentChild::Text(s) => Some(FlatDastElementContent::Text(s.to_string())),
                 ComponentChild::Macro(_the_macro) => None,
                 ComponentChild::FunctionMacro(_function_macro) => None,
-                ComponentChild::Error(error) => Some(FlatDastElementContent::Error(error.clone())),
             })
             .collect();
 
         FlatDastRoot {
             children,
             elements,
+            warnings,
             position: self.position.clone(),
         }
     }
@@ -90,7 +102,6 @@ pub enum ComponentChild {
     Text(String),
     Macro(DastMacro),
     FunctionMacro(DastFunctionMacro),
-    Error(DastError),
 }
 
 #[derive(Debug)]
@@ -108,9 +119,10 @@ pub fn create_doenetml_core(
     let dast_root: DastRoot = serde_json::from_str(dast_string).expect("Error extracting dast");
 
     let mut components: Vec<Rc<RefCell<ComponentEnum>>> = Vec::new();
+    let mut warnings: Vec<DastWarning> = Vec::new();
 
     let (children, descendant_names) =
-        create_component_children(&mut components, &dast_root.children, 0);
+        create_component_children(&mut components, &mut warnings, &dast_root.children, 0);
 
     // add root node
     let root = DoenetMLRoot {
@@ -127,6 +139,7 @@ pub fn create_doenetml_core(
         dast_root,
         root,
         components,
+        warnings,
         doenetml: doenetml.to_string(),
     };
 
@@ -135,6 +148,7 @@ pub fn create_doenetml_core(
 
 fn create_component_children(
     components: &mut Vec<Rc<RefCell<ComponentEnum>>>,
+    warnings: &mut Vec<DastWarning>,
     dast_children: &Vec<DastElementContent>,
     parent_ind: ComponentInd,
 ) -> (Vec<ComponentChild>, HashMap<String, Vec<ComponentInd>>) {
@@ -155,33 +169,13 @@ fn create_component_children(
                 let child_ind = components.len();
 
                 if let Some(name_attr) = child_element.attributes.get("name") {
-                    let mut valid_name = false;
-                    let mut msg_option: Option<String> = None;
-
                     if let Ok(name_string) = name_attr.get_string_value() {
-                        let re = Regex::new(r"^[a-zA-Z][a-zA-Z0-9_-]*$").unwrap();
-
-                        if re.is_match(&name_string) {
-                            // We found a valid name.
-                            // Add the child's index to the descendant_names vector for that name
-                            // (or create an entry with a vector consisting of just this index).
-                            descendant_names
-                                .entry(name_string.to_string())
-                                .and_modify(|name_indices| name_indices.push(child_ind))
-                                .or_insert(vec![child_ind]);
-
-                            valid_name = true;
-                        } else {
-                            msg_option =
-                                    Some("Invalid component name: ".to_owned() + &name_string + ". Must begin with a letter and contain only letters, numbers, hyphens, and underscores.")
-                        }
-                    }
-
-                    if !valid_name {
-                        component_children.push(ComponentChild::Error(DastError {
-                            message: msg_option.unwrap_or("Invalid component name".to_owned()),
-                            position: None,
-                        }))
+                        // Add the child's index to the descendant_names vector for that name
+                        // (or create an entry with a vector consisting of just this index).
+                        descendant_names
+                            .entry(name_string.to_string())
+                            .and_modify(|name_indices| name_indices.push(child_ind))
+                            .or_insert(vec![child_ind]);
                     }
                 }
 
@@ -189,55 +183,51 @@ fn create_component_children(
                 // we match the name attribute (which is the component type)
                 // to the name of one of the variants of ComponentEnum
                 // (a case-insensitive match due to ComponentEnum tagging).
-                match ComponentEnum::from_str(&child_element.name) {
-                    Ok(mut component_enum) => {
-                        // Since from_str is successful, we have a variant of ComponentEnum
-                        // corresponding to the name of the DastElement,
-                        // where all attributes of the structure were given their default values.
-                        // Initialize some of the attributes.
-                        component_enum.initialize(
-                            child_ind,
-                            Some(parent_ind),
-                            child_element.position.clone(),
-                        );
 
-                        components.push(Rc::new(RefCell::new(component_enum)));
+                let mut component_enum = ComponentEnum::from_str(&child_element.name)
+                    .unwrap_or_else(|_| {
+                        // if we didn't find a match, then create a component of type external
+                        ComponentEnum::_External(_External {
+                            name: child_element.name.clone(),
+                            ..Default::default()
+                        })
+                    });
 
-                        // recurse to children after adding to components
-                        // so that will get the correct indices for the children
-                        let (child_children, child_descendent_names) = create_component_children(
-                            components,
-                            &child_element.children,
-                            child_ind,
-                        );
+                // We have a variant of ComponentEnum
+                // corresponding to the name of the DastElement (or _external if no match)
+                // where all attributes of the structure were given their default values.
+                // Initialize some of the attributes.
+                component_enum.initialize(
+                    child_ind,
+                    Some(parent_ind),
+                    child_element.position.clone(),
+                );
 
-                        let child_node = &mut components[child_ind].borrow_mut();
+                components.push(Rc::new(RefCell::new(component_enum)));
 
-                        child_node.set_children(child_children);
-                        child_node.set_descendant_names(child_descendent_names.clone());
+                // recurse to children after adding to components
+                // so that will get the correct indices for the children
+                let (child_children, child_descendent_names) = create_component_children(
+                    components,
+                    warnings,
+                    &child_element.children,
+                    child_ind,
+                );
 
-                        // merge in the descendant names found from the child
-                        // into the overall descedant names for the parent
-                        for (comp_name, mut name_inds) in child_descendent_names {
-                            descendant_names
-                                .entry(comp_name)
-                                .and_modify(|name_indices| name_indices.append(&mut name_inds))
-                                .or_insert(name_inds);
-                        }
-                        component_children.push(ComponentChild::Component(child_ind));
-                    }
-                    Err(_err) => {
-                        // The name attribute of the DastElement did not (case-insensitive) match
-                        // any variants of ComponenentEnum,
-                        // so it was an invalid component type
-                        let err_msg = format!("Invalid component type <{}>", child_element.name);
+                let child_node = &mut components[child_ind].borrow_mut();
 
-                        component_children.push(ComponentChild::Error(DastError {
-                            message: err_msg,
-                            position: child_element.position.clone(),
-                        }));
-                    }
+                child_node.set_children(child_children);
+                child_node.set_descendant_names(child_descendent_names.clone());
+
+                // merge in the descendant names found from the child
+                // into the overall descedant names for the parent
+                for (comp_name, mut name_inds) in child_descendent_names {
+                    descendant_names
+                        .entry(comp_name)
+                        .and_modify(|name_indices| name_indices.append(&mut name_inds))
+                        .or_insert(name_inds);
                 }
+                component_children.push(ComponentChild::Component(child_ind));
             }
             DastElementContent::Text(child_text) => {
                 component_children.push(ComponentChild::Text(child_text.value.clone()));
@@ -253,8 +243,18 @@ fn create_component_children(
                     .push(ComponentChild::FunctionMacro(child_function_macro.clone()));
             }
             DastElementContent::Error(child_error) => {
-                // for now, just stick in the dast error
-                component_children.push(ComponentChild::Error(child_error.clone()));
+                let child_ind = components.len();
+
+                let mut error = _Error {
+                    ..Default::default()
+                };
+                error.initialize(child_ind, Some(parent_ind), child_error.position.clone());
+
+                error.message = child_error.message.clone();
+
+                components.push(Rc::new(RefCell::new(ComponentEnum::_Error(error))));
+
+                component_children.push(ComponentChild::Component(child_ind));
             }
         }
     }

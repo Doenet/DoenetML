@@ -20,8 +20,26 @@
     },
     "scripts": {
         "watch": "vite build --watch",
-        "build": "vite build",
+        "build": "wireit",
         "test": "vitest",
         "compile_grammar": "npx lezer-generator --output src/generated-assets/lezer-doenet.ts src/doenet.grammar"
+    },
+    "wireit": {
+        "build": {
+            "command": "vite build",
+            "files": [
+                "src/**/*.ts",
+                "tsconfig.json"
+            ],
+            "output": [
+                "dist/**/*.js",
+                "dist/**/*.d.ts",
+                "dist/**/*.json"
+            ],
+            "dependencies": [
+                "../lsp-tools:build",
+                "../parser:build"
+            ]
+        }
     }
 }
