@@ -31,6 +31,10 @@
             "command": "vite build",
             "files": [
                 "src/**/*.ts",
+                "src/**/*.tsx",
+                "src/**/*.js",
+                "src/**/*.jsx",
+                "src/**/*.css",
                 "tsconfig.json"
             ],
             "output": [
