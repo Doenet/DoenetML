@@ -1,3 +1,8 @@
+## v0.7.6
+
+-   Refresh the contents of the preview window when it is first opened.
+-   Make extension work in Chrome
+
 ## v0.7.3
 
 -   Add actions to format as XML or DoenetML

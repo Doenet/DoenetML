@@ -19,7 +19,8 @@
         "./packages/*"
     ],
     "scripts": {
-        "build": "npm run build -ws",
+        "build": "npm run build --workspace packages/test-viewer",
+        "build:all": "npm run build -ws",
         "test": "npm run test -ws -- run"
     },
     "repository": {
@@ -38,10 +39,12 @@
         "@rollup/pluginutils": "^5.0.5",
         "@vitest/web-worker": "^0.34.6",
         "@vscode/test-web": "^0.0.47",
+        "chalk": "^5.3.0",
         "compress-json": "^2.1.2",
         "jsdom": "^22.1.0",
         "prettier": "^3.0.3",
         "rollup-plugin-visualizer": "^5.9.2",
+        "ts-morph": "^21.0.1",
         "typescript": "^5.2.2",
         "wasm-pack": "^0.12.1",
         "vite-node": "^0.34.6",
@@ -52,6 +55,7 @@
     },
     "dependencies": {
         "@uiw/react-codemirror": "^4.21.21",
-        "micromark": "^4.0.0"
+        "micromark": "^4.0.0",
+        "wireit": "^0.14.1"
     }
 }
