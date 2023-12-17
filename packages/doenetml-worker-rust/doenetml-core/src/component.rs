@@ -1,3 +1,5 @@
+pub mod _error;
+pub mod _external;
 pub mod document;
 pub mod p;
 pub mod section;
@@ -13,6 +15,8 @@ use strum_macros::EnumString;
 use crate::dast::{ElementData, FlatDastElement, FlatDastElementContent, Position as DastPosition};
 use crate::{ComponentChild, ComponentInd, ExtendSource};
 
+use self::_error::_Error;
+use self::_external::_External;
 use self::document::Document;
 use self::p::P;
 use self::section::Section;
@@ -25,6 +29,8 @@ pub enum ComponentEnum {
     Section(Section),
     Document(Document),
     P(P),
+    _Error(_Error),
+    _External(_External),
 }
 
 pub trait ComponentNode {
@@ -84,7 +90,6 @@ pub trait ComponentNode {
                 ComponentChild::Text(s) => Some(FlatDastElementContent::Text(s.to_string())),
                 ComponentChild::Macro(_the_macro) => None,
                 ComponentChild::FunctionMacro(_function_macro) => None,
-                ComponentChild::Error(error) => Some(FlatDastElementContent::Error(error.clone())),
             })
             .collect();
 
@@ -96,7 +101,10 @@ pub trait ComponentNode {
             name: self.get_component_type().to_string(),
             attributes: HashMap::new(),
             children,
-            data: Some(ElementData { id: self.get_ind() }),
+            data: Some(ElementData {
+                id: self.get_ind(),
+                ..Default::default()
+            }),
             position: self.get_position().clone(),
         }
     }
