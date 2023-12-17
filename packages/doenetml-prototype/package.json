@@ -22,10 +22,36 @@
     },
     "scripts": {
         "dev": "vite",
-        "build": "vite build",
+        "build": "wireit",
         "preview": "vite preview",
         "test": "vitest",
         "lint": "eslint src --ext js,jsx --report-unused-disable-directives --max-warnings 0"
+    },
+    "wireit": {
+        "build": {
+            "command": "vite build",
+            "files": [
+                "src/**/*.ts",
+                "src/**/*.tsx",
+                "src/**/*.js",
+                "src/**/*.jsx",
+                "src/**/*.css",
+                "tsconfig.json"
+            ],
+            "output": [
+                "dist/**/*.js",
+                "dist/**/*.d.ts",
+                "dist/**/*.json"
+            ],
+            "dependencies": [
+                "../doenetml-worker:build",
+                "../codemirror:build",
+                "../ui-components:build",
+                "../utils:build",
+                "../virtual-keyboard:build",
+                "../parser:build"
+            ]
+        }
     },
     "peerDependencies": {
         "react": "^18.2.0",
