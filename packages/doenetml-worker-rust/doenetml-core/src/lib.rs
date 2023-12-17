@@ -187,11 +187,10 @@ fn create_component_children(
                 let mut component_enum = ComponentEnum::from_str(&child_element.name)
                     .unwrap_or_else(|_| {
                         // if we didn't find a match, then create a component of type external
-                        let mut external = _External {
+                        ComponentEnum::_External(_External {
+                            name: child_element.name.clone(),
                             ..Default::default()
-                        };
-                        external.name = child_element.name.clone();
-                        ComponentEnum::_External(external)
+                        })
                     });
 
                 // We have a variant of ComponentEnum
