@@ -36,7 +36,7 @@ cd packages/test-viewer
 npm run dev
 ```
 
-Paste demo code into `src/test/testCode.doenet` and navigate to the URL specified in the console (probably http://localhost:5173 )
+Paste demo code into `src/test/testCode.doenet` and navigate to the URL specified in the console (probably http://localhost:8012 )
 
 ## Demos
 
