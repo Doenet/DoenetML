@@ -13,9 +13,26 @@
     "main": "dist/doenet-standalone.js",
     "scripts": {
         "dev": "vite",
-        "build": "vite build",
+        "build": "wireit",
         "test": "echo \"No tests \"",
         "preview": "vite preview"
+    },
+    "wireit": {
+        "build": {
+            "command": "vite build",
+            "files": [
+                "src/**/*.ts",
+                "tsconfig.json"
+            ],
+            "output": [
+                "dist/**/*.js",
+                "dist/**/*.d.ts",
+                "dist/**/*.json"
+            ],
+            "dependencies": [
+                "../doenetml:build"
+            ]
+        }
     },
     "peerDependencies": {
         "react": "^18.2.0",

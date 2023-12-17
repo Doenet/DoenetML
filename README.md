@@ -22,15 +22,21 @@ Semantic markup for building interactive web activities.
 
 ## Quickstart
 
-In the project folder:
+In root directory, run
 
-`$ npm install`
+```bash
+npm install
+npm run build
+```
 
-`$ npm run dev`
+To test code, you can use the `projects/test-viewer` package.
 
-Paste demo code into `src/test/testCode.doenet`
+```bash
+cd packages/test-viewer
+npm run dev
+```
 
-Navigate to `localhost:5173`
+Paste demo code into `src/test/testCode.doenet` and navigate to the URL specified in the console (probably http://localhost:8012 )
 
 ## Demos
 
@@ -156,3 +162,43 @@ Now try changing the number
 JavaScript parses the DoenetML and calls Rust functions, passing in strings. On core creation, Rust returns a pointer to its main struct, existing in WASM linear memory. Javascript uses this to access the other core functions. Rust returns rendering data as strings.
 
 The Doenet Rust code is in the doenet-core crate, doenet-core/src/lib.rs being the main file. The crate can be built as a library independent of javascript, but without a parser, one would need pre-parsed DoenetML objects as its input. -->
+
+## Development
+
+DoenetML features are split into npm _workspace_ located in the `packages/*` directory. Each package is built
+using `vite`. Automatic building
+of dependencies is handled via the [wireit](https://github.com/google/wireit) project, which is configured in
+each workspace's `package.json`.
+
+### Automatic Rebuilding (watch mode)
+
+Because of the complicated build process for some packages, `npx vite build --watch` will often fail as dependencies
+get rebuilt. Instead you should use
+
+```bash
+npm run build --watch
+```
+
+from a package's directory to have `wireit` manage rebuilding of dependencies. For example, to automatically rebuild
+`doenetml` on any change and have that reflected in `test-viewer`, you could run
+
+```bash
+cd packages/doenetml
+npm run build --watch &
+cd ../test-viewer
+npm run dev
+```
+
+Since `doenetml` should include most packages as dependencies, a change to almost any package will cause it to be rebuilt
+automatically.
+
+### Consistency checks
+
+Keeping every `package.json` file consistent as well as keeping the `wireit` dependencies correct can be hard.
+Programs in `scripts/` can help.
+
+```bash
+npx vite-node scripts/ensure-consistency.ts
+```
+
+will show the dependencies imported by each package and cross-reference this with those dependencies specified in its `package.json`.

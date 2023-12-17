@@ -22,7 +22,25 @@
         "dev": "vite",
         "watch": "vite build --watch",
         "test": "echo \"No tests \"",
-        "build": "vite build"
+        "build": "wireit"
+    },
+    "wireit": {
+        "build": {
+            "command": "vite build",
+            "files": [
+                "src/**/*.ts",
+                "tsconfig.json"
+            ],
+            "output": [
+                "dist/**/*.js",
+                "dist/**/*.d.ts",
+                "dist/**/*.json"
+            ],
+            "dependencies": [
+                "../parser:build",
+                "../lsp:build"
+            ]
+        }
     },
     "dependencies": {
         "codemirror": "6.0.1",
