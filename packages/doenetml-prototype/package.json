@@ -44,11 +44,7 @@
                 "dist/**/*.json"
             ],
             "dependencies": [
-                "../doenetml-worker:build",
-                "../codemirror:build",
-                "../ui-components:build",
-                "../utils:build",
-                "../virtual-keyboard:build",
+                "../doenetml-worker-rust:build",
                 "../parser:build"
             ]
         }
