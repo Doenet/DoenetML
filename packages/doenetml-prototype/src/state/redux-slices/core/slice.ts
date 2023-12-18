@@ -1,7 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "../../store";
-import { DastError, DastRoot } from "@doenet/parser";
 
 export interface CoreState {
     /**
@@ -50,3 +49,5 @@ export const coreReducer = dastSlice.reducer;
  * Synchronous actions that directly manipulate data in the store.
  */
 export const _coreReducerActions = { ...dastSlice.actions };
+
+export const selfSelector = (state: RootState) => state.core;

@@ -3,7 +3,11 @@ import { useAppSelector } from "../state/hooks";
 import { elementsArraySelector } from "../state/redux-slices/dast";
 import { DastError } from "./error";
 import { getComponent } from "./get-component";
+import { VisibilitySensor } from "./visibility-sensor";
 
+/**
+ * Render a DoenetML element by id. This assumes that the element exists in the Redux store.
+ */
 export const Element = React.memo(({ id }: { id: number }) => {
     const value = useAppSelector((state) => {
         return elementsArraySelector(state)[id];
@@ -20,20 +24,28 @@ export const Element = React.memo(({ id }: { id: number }) => {
 
     const Component = getComponent(value);
 
-    if (Component.passthroughChildren) {
-        // We should render the children and pass them into the component
-        const children = value.children.map((child) => {
-            if (typeof child === "number") {
-                return <Element key={child} id={child} />;
-            } else {
-                return child;
-            }
-        });
+    // We should render the children and pass them into the component
+    const children = Component.passthroughChildren
+        ? value.children.map((child) => {
+              if (typeof child === "number") {
+                  return <Element key={child} id={child} />;
+              } else {
+                  return child;
+              }
+          })
+        : undefined;
+
+    if (Component.monitorVisibility) {
         return (
-            <Component.component node={value}>{children}</Component.component>
+            <VisibilitySensor
+                component={Component.component}
+                id={id}
+                node={value}
+                children={children}
+            />
         );
     }
 
     // If we make it here, the component will handle the rendering of its own children.
-    return <Component.component node={value} />;
+    return <Component.component node={value} children={children} />;
 });

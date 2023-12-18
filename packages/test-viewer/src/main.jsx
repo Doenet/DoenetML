@@ -1,4 +1,4 @@
-import React from "react";
+import React, { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import TestViewer from "./test/testViewer";
@@ -7,11 +7,13 @@ import TestViewer from "./test/testViewer";
 
 const root = createRoot(document.getElementById("root"));
 root.render(
-    <Router>
-        <Routes>
-            <Route path="*" element={<TestViewer />} />
-        </Routes>
-    </Router>,
+    <StrictMode>
+        <Router>
+            <Routes>
+                <Route path="*" element={<TestViewer />} />
+            </Routes>
+        </Router>
+    </StrictMode>,
 );
 
 // Hot Module Replacement (HMR) - Remove this snippet to remove HMR.

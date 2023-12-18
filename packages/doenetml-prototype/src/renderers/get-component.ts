@@ -2,14 +2,17 @@ import { BasicComponent, BasicComponentWithPassthroughChildren } from "./types";
 import { Document, Graph, M, P, Section } from "./components";
 import type { FlatDastElement } from "@doenet/doenetml-worker-rust";
 
+type CommonProps = {
+    monitorVisibility?: boolean;
+};
 type Component = {
     component: BasicComponent;
     passthroughChildren?: false;
-};
+} & CommonProps;
 type ComponentWithPassthroughChildren = {
     component: BasicComponentWithPassthroughChildren;
     passthroughChildren: true;
-};
+} & CommonProps;
 
 /**
  * A map of tag names to components. This is used for naive component rendering, where the
@@ -21,7 +24,11 @@ const COMPONENTS: Record<string, Component | ComponentWithPassthroughChildren> =
         document: { component: Document, passthroughChildren: true },
         m: { component: M, passthroughChildren: true },
         graph: { component: Graph },
-        section: { component: Section, passthroughChildren: true },
+        section: {
+            component: Section,
+            passthroughChildren: true,
+            monitorVisibility: true,
+        },
     };
 
 /**
@@ -45,7 +52,7 @@ export function getComponent(
     if (!component) {
         return {
             component: makeNullComponentWithMessage(
-                `No component for node ${node?.name}`,
+                `No component for element <${node?.name}>`,
             ),
         };
     }
