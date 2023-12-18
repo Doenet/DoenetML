@@ -1,7 +1,7 @@
 import React from "react";
 import { useAppSelector } from "../state/hooks";
 import { elementsArraySelector } from "../state/redux-slices/dast";
-import { DastError } from "./error";
+import { DastErrorComponent } from "./error";
 import { getComponent } from "./get-component";
 import { VisibilitySensor } from "./visibility-sensor";
 
@@ -19,7 +19,7 @@ export const Element = React.memo(({ id }: { id: number }) => {
     }
 
     if (value.type === "error") {
-        return <DastError errorNode={value} />;
+        return <DastErrorComponent errorNode={value} />;
     }
 
     const Component = getComponent(value);

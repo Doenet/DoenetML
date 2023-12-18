@@ -75,7 +75,7 @@ function UpdateSectionButton() {
             onClick={() => {
                 // Find the first math element and update it
                 const id = elements.findIndex(
-                    (e) => e.type === "element" && e.name === "section",
+                    (e) => e.type === "element" && e.name === "m",
                 );
                 if (id === -1) {
                     console.warn("No <section> element found", elements);
@@ -87,9 +87,9 @@ function UpdateSectionButton() {
                             id,
                             {
                                 type: "element",
-                                name: "section",
+                                name: "m",
                                 attributes: {},
-                                children: [`Updated contents ... ${Math.random()}`],
+                                children: [`\\frac{2}{${Math.random()}}`],
                                 data: { id },
                             },
                         ],
@@ -97,7 +97,7 @@ function UpdateSectionButton() {
                 );
             }}
         >
-            Update Section
+            Update Math
         </button>
     );
 }

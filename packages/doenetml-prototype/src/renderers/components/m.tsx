@@ -9,5 +9,9 @@ export const M: BasicComponentWithPassthroughChildren = ({ children }) => {
     if (onServer) {
         return <span className="process-math">{children}</span>;
     }
-    return <MathJax inline={true}>\({children}\)</MathJax>;
+    return (
+        <MathJax inline dynamic>
+            \({children}\)
+        </MathJax>
+    );
 };
