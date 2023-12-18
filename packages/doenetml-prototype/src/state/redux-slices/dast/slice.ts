@@ -2,12 +2,7 @@ import { createSelector, createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "../../store";
 import { DastError, DastRoot } from "@doenet/parser";
-import type {
-    FlatDastElement,
-    FlatDastRoot,
-} from "@doenet/doenetml-worker-rust";
-
-type FlatDast = [FlatDastRoot, ...FlatDastElement[]];
+import type { FlatDastRoot } from "@doenet/doenetml-worker-rust";
 
 // Define a type for the slice state
 export interface DastState {
@@ -20,7 +15,7 @@ export interface DastState {
      */
     dastFromSource: DastRoot;
     dastErrors: DastError[];
-    flatDast: FlatDast;
+    flatDastRoot: FlatDastRoot;
 }
 
 // Define the initial state using that type
@@ -28,7 +23,7 @@ const initialState: DastState = {
     source: "",
     dastFromSource: { type: "root", children: [] },
     dastErrors: [],
-    flatDast: [{ type: "root", children: [], data: { id: 0 } }],
+    flatDastRoot: { type: "root", children: [], elements: [], warnings: [] },
 };
 
 const dastSlice = createSlice({
@@ -44,8 +39,8 @@ const dastSlice = createSlice({
         _setDastErrors: (state, action: PayloadAction<DastError[]>) => {
             state.dastErrors = action.payload;
         },
-        _setFlatDast: (state, action: PayloadAction<FlatDast>) => {
-            state.flatDast = action.payload;
+        _setFlatDast: (state, action: PayloadAction<FlatDastRoot>) => {
+            state.flatDastRoot = action.payload;
         },
     },
 });
@@ -61,13 +56,5 @@ const selfSelector = (state: RootState) => state.dast;
 export const errorsSelector = (state: RootState) =>
     selfSelector(state).dastErrors;
 
-export const nodeByIdSelector = createSelector(selfSelector, (state) => {
-    const flatDast = state.flatDast;
-    return (id: number) => {
-        const ret = flatDast[id];
-        if (!ret) {
-            throw new Error(`No node with id ${id}`);
-        }
-        return ret;
-    };
-});
+export const elementsArraySelector = (state: RootState) =>
+    selfSelector(state).flatDastRoot.elements;

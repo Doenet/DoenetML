@@ -2,6 +2,7 @@ import React from "react";
 import { DoenetMLFlags } from "../DoenetML";
 import { useAppDispatch, useAppSelector } from "../state/hooks";
 import { dastActions, errorsSelector } from "../state/redux-slices/dast";
+import { Element } from "../renderers";
 
 export function PageViewer({
     source,
@@ -24,5 +25,6 @@ export function PageViewer({
         return `Error: ${JSON.stringify(errors)}`;
     }
 
-    return <p>Hello!</p>;
+    // Render the document element
+    return <Element id={0} />;
 }

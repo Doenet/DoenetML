@@ -1,10 +1,8 @@
 import React, { useRef } from "react";
-//@ts-ignore
-import { prng_alea } from "esm-seedrandom";
+import { MathJaxContext } from "better-react-mathjax";
 import { PageViewer } from "./viewer/page-viewer";
 import { Provider } from "react-redux";
 import { store } from "./state/store";
-let rngClass = prng_alea;
 
 export type DoenetMLFlags = {
     showCorrectness: boolean;
@@ -55,11 +53,13 @@ export function DoenetML({
 
     return (
         <Provider store={store}>
-            <PageViewer
-                source={doenetML}
-                flags={flags}
-                darkMode={darkMode || "auto"}
-            />
+            <MathJaxContext>
+                <PageViewer
+                    source={doenetML}
+                    flags={flags}
+                    darkMode={darkMode || "auto"}
+                />
+            </MathJaxContext>
         </Provider>
     );
 }

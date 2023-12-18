@@ -1,6 +1,6 @@
 import * as Comlink from "comlink";
 import init, { PublicDoenetMLCore } from "../pkg/doenetml_worker_rust";
-import type { DastRoot, DastElement } from "@doenet/parser";
+import type { DastRoot, DastElement, DastError } from "@doenet/parser";
 
 type Flags = Record<string, unknown>;
 
@@ -8,9 +8,11 @@ export interface FlatDastElement extends Omit<DastElement, "children"> {
     children: (number | string)[];
     data: { id: number };
 }
-export interface FlatDastRoot extends Omit<DastRoot, "children"> {
-    children: (number | string)[];
-    data: { id: number };
+export interface FlatDastRoot {
+    type: "root";
+    children: number[];
+    elements: (FlatDastElement | DastError)[];
+    warnings: unknown[];
 }
 
 export class CoreWorker {
@@ -35,7 +37,7 @@ export class CoreWorker {
 
     async createCore(args: {}) {
         console.log("CoreWorker.createCore", args, this.dast);
-        
+
         await init();
 
         try {
@@ -49,10 +51,7 @@ export class CoreWorker {
             throw err;
         }
 
-        return JSON.parse(this.doenetCore.return_dast()) as [
-            FlatDastRoot,
-            ...FlatDastElement[],
-        ];
+        return JSON.parse(this.doenetCore.return_dast()) as FlatDastRoot;
     }
 
     async terminate() {
@@ -62,4 +61,4 @@ export class CoreWorker {
 }
 
 // We are exporting `void`, but we have to export _something_ to get the module to work correctly
-export default Comlink.expose(new CoreWorker);
+export default Comlink.expose(new CoreWorker());

@@ -1,11 +1,31 @@
-<CodeEditor showResults resultsLocation="left" showFormatter>
-  <p>Use this to <m>a < b</m>test DoenetML</p> <graph showNavigation>
+<p>Use this to <m>a < b</m>test DoenetML</p>
+<graph showNavigation>
+  <line through="(-8,8) (9,6)" />
+  <line through="(0,4)" slope="1/2" styleNumber="2" />
 
-    <line through="(-8,8) (9,6)" />
-    <line through="(0,4)" slope="1/2" styleNumber="2" />
+  <line equation="y=2x-8" styleNumber="3" />
+  <line equation="x=-6" styleNumber="4" />
+</graph>
+<section boxed>
+  <problem>
+    <p>
+      This problem is nested inside a section. The default number does not
+      include the parent number.
+    </p>
+  </problem>
+</section>
 
-    <line equation="y=2x-8" styleNumber="3" />
-    <line equation="x=-6" styleNumber="4" />
-    
-  </graph>
-</CodeEditor>
+<section boxed>
+  <problem includeParentNumber="true">
+    <p>
+      This exercise is nested inside a section. Rendering of the parent section
+      number has been included.
+    </p>
+  </problem>
+</section>
+
+<problem><p><answer>42</answer></p></problem>
+
+<section>
+  <p><lorem generateWords="10" /></p>
+</section>
