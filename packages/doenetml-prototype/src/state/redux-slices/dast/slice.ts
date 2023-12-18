@@ -39,8 +39,20 @@ const dastSlice = createSlice({
         _setDastErrors: (state, action: PayloadAction<DastError[]>) => {
             state.dastErrors = action.payload;
         },
-        _setFlatDast: (state, action: PayloadAction<FlatDastRoot>) => {
+        _setFlatDastRoot: (state, action: PayloadAction<FlatDastRoot>) => {
             state.flatDastRoot = action.payload;
+        },
+        /**
+         * Upsert elements in flatDastRoot. Payload should be an array of
+         * pairs [id, newElement].
+         */
+        updateElements: (
+            state,
+            action: PayloadAction<[number, FlatDastRoot["elements"][number]][]>,
+        ) => {
+            for (const [index, element] of action.payload) {
+                state.flatDastRoot.elements[index] = element;
+            }
         },
     },
 });

@@ -1,7 +1,10 @@
 import { FlatDastElement } from "@doenet/doenetml-worker-rust";
 
-export type BasicComponentProps = { node: FlatDastElement };
-export type BasicComponent = React.FunctionComponent<BasicComponentProps>;
-export type BasicComponentWithPassthroughChildren = React.FunctionComponent<
-    React.PropsWithChildren<BasicComponentProps>
+export type BasicComponentProps<Data = {}> = {
+    node: FlatDastElement & { data: Data };
+};
+export type BasicComponent<Data = {}> = React.FunctionComponent<
+    BasicComponentProps<Data>
 >;
+export type BasicComponentWithPassthroughChildren<Data = {}> =
+    React.FunctionComponent<React.PropsWithChildren<BasicComponentProps<Data>>>;

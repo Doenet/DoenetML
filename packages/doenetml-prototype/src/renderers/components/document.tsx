@@ -4,5 +4,5 @@ import { BasicComponentWithPassthroughChildren } from "../types";
 export const Document: BasicComponentWithPassthroughChildren = ({
     children,
 }) => {
-    return <React.Fragment>{children}</React.Fragment>;
+    return <article className="doenet-document">{children}</article>;
 };

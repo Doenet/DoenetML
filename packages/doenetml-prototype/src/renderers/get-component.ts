@@ -1,5 +1,5 @@
 import { BasicComponent, BasicComponentWithPassthroughChildren } from "./types";
-import { Document, Graph, M, P } from "./components";
+import { Document, Graph, M, P, Section } from "./components";
 import type { FlatDastElement } from "@doenet/doenetml-worker-rust";
 
 type Component = {
@@ -21,6 +21,7 @@ const COMPONENTS: Record<string, Component | ComponentWithPassthroughChildren> =
         document: { component: Document, passthroughChildren: true },
         m: { component: M, passthroughChildren: true },
         graph: { component: Graph },
+        section: { component: Section, passthroughChildren: true },
     };
 
 /**

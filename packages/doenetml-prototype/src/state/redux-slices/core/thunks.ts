@@ -96,7 +96,7 @@ export const coreThunks = {
             }
 
             const flatDast = await worker.createCore({});
-            dispatch(_dastReducerActions._setFlatDast(flatDast));
+            dispatch(_dastReducerActions._setFlatDastRoot(flatDast));
             console.log("flatDast", flatDast);
             console.log("assembledDast", assembleFlatDast(flatDast));
         },
