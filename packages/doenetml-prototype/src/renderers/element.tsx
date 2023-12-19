@@ -26,13 +26,7 @@ export const Element = React.memo(({ id }: { id: number }) => {
 
     // We should render the children and pass them into the component
     const children = Component.passthroughChildren
-        ? value.children.map((child) => {
-              if (typeof child === "number") {
-                  return <Element key={child} id={child} />;
-              } else {
-                  return child;
-              }
-          })
+        ? flatDastChildrenToReactChildren(value.children)
         : undefined;
 
     if (Component.monitorVisibility) {
@@ -49,3 +43,18 @@ export const Element = React.memo(({ id }: { id: number }) => {
     // If we make it here, the component will handle the rendering of its own children.
     return <Component.component node={value} children={children} />;
 });
+
+/**
+ * Return `React.ReactNode`'s created from a `FlatDastElement`'s children.
+ */
+export function flatDastChildrenToReactChildren(
+    children: (number | string)[],
+): React.ReactNode {
+    return children.map((child) => {
+        if (typeof child === "number") {
+            return <Element key={child} id={child} />;
+        } else {
+            return child;
+        }
+    });
+}

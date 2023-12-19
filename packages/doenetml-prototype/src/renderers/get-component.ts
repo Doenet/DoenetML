@@ -1,6 +1,16 @@
 import { BasicComponent, BasicComponentWithPassthroughChildren } from "./types";
-import { Answer, Document, Graph, M, P, Problem, Section } from "./components";
+import {
+    Answer,
+    Document,
+    Graph,
+    M,
+    P,
+    Problem,
+    Section,
+    TextInput,
+} from "./components";
 import type { FlatDastElement } from "@doenet/doenetml-worker-rust";
+import { ChoiceInput } from "./components/choice-input";
 
 type CommonProps = {
     monitorVisibility?: boolean;
@@ -21,6 +31,7 @@ type ComponentWithPassthroughChildren = {
 const COMPONENTS: Record<string, Component | ComponentWithPassthroughChildren> =
     {
         answer: { component: Answer },
+        choiceInput: { component: ChoiceInput },
         p: { component: P, passthroughChildren: true },
         document: { component: Document, passthroughChildren: true },
         m: { component: M, passthroughChildren: true },
@@ -35,6 +46,7 @@ const COMPONENTS: Record<string, Component | ComponentWithPassthroughChildren> =
             passthroughChildren: true,
             monitorVisibility: true,
         },
+        textInput: { component: TextInput },
     };
 
 /**
