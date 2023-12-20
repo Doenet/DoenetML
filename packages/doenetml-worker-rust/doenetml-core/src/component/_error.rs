@@ -1,20 +1,20 @@
 use std::collections::HashMap;
 
 use crate::dast::Position as DastPosition;
-use crate::{ComponentChild, ComponentInd, ExtendSource};
+use crate::{ComponentChild, ComponentIdx, ExtendSource};
 
 use super::ComponentNode;
 
 #[derive(Debug, Default, ComponentNode)]
 pub struct _Error {
-    pub idx: ComponentInd,
-    pub parent: Option<ComponentInd>,
+    pub idx: ComponentIdx,
+    pub parent: Option<ComponentIdx>,
     pub children: Vec<ComponentChild>,
 
     pub extend: Option<ExtendSource>,
 
     // map of descendant names to their indices
-    pub descendant_names: HashMap<String, Vec<ComponentInd>>,
+    pub descendant_names: HashMap<String, Vec<ComponentIdx>>,
 
     pub position: Option<DastPosition>,
 

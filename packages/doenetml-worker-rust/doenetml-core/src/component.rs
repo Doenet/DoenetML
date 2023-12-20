@@ -13,7 +13,7 @@ use doenetml_derive::ComponentNode;
 use strum_macros::EnumString;
 
 use crate::dast::{ElementData, FlatDastElement, FlatDastElementContent, Position as DastPosition};
-use crate::{ComponentChild, ComponentInd, ExtendSource};
+use crate::{ComponentChild, ComponentIdx, ExtendSource};
 
 use self::_error::_Error;
 use self::_external::_External;
@@ -34,18 +34,18 @@ pub enum ComponentEnum {
 }
 
 pub trait ComponentNode {
-    fn get_idx(&self) -> ComponentInd;
-    fn set_idx(&mut self, idx: ComponentInd);
-    fn get_parent(&self) -> Option<ComponentInd>;
-    fn set_parent(&mut self, parent: Option<ComponentInd>);
+    fn get_idx(&self) -> ComponentIdx;
+    fn set_idx(&mut self, idx: ComponentIdx);
+    fn get_parent(&self) -> Option<ComponentIdx>;
+    fn set_parent(&mut self, parent: Option<ComponentIdx>);
     fn get_children(&self) -> &Vec<ComponentChild>;
     fn set_children(&mut self, children: Vec<ComponentChild>);
     fn replace_children(&mut self, new_children: Vec<ComponentChild>) -> Vec<ComponentChild>;
 
     fn initialize(
         &mut self,
-        idx: ComponentInd,
-        parent: Option<ComponentInd>,
+        idx: ComponentIdx,
+        parent: Option<ComponentIdx>,
         position: Option<DastPosition>,
     );
 
@@ -54,8 +54,8 @@ pub trait ComponentNode {
 
     fn get_component_type(&self) -> &str;
 
-    fn get_descendant_matches(&self, name: &str) -> Option<&Vec<ComponentInd>>;
-    fn set_descendant_names(&mut self, descendant_names: HashMap<String, Vec<ComponentInd>>);
+    fn get_descendant_matches(&self, name: &str) -> Option<&Vec<ComponentIdx>>;
+    fn set_descendant_names(&mut self, descendant_names: HashMap<String, Vec<ComponentIdx>>);
 
     fn get_position(&self) -> &Option<DastPosition>;
     fn set_position(&mut self, position: Option<DastPosition>);

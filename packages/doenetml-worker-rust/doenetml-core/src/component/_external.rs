@@ -1,20 +1,20 @@
 use std::collections::HashMap;
 
 use crate::dast::Position as DastPosition;
-use crate::{ComponentChild, ComponentInd, ExtendSource};
+use crate::{ComponentChild, ComponentIdx, ExtendSource};
 
 use super::ComponentNode;
 
 #[derive(Debug, Default)]
 pub struct _External {
-    pub idx: ComponentInd,
-    pub parent: Option<ComponentInd>,
+    pub idx: ComponentIdx,
+    pub parent: Option<ComponentIdx>,
     pub children: Vec<ComponentChild>,
 
     pub extend: Option<ExtendSource>,
 
     // map of descendant names to their indices
-    pub descendant_names: HashMap<String, Vec<ComponentInd>>,
+    pub descendant_names: HashMap<String, Vec<ComponentIdx>>,
 
     pub position: Option<DastPosition>,
 
@@ -22,16 +22,16 @@ pub struct _External {
 }
 
 impl ComponentNode for _External {
-    fn get_idx(&self) -> ComponentInd {
+    fn get_idx(&self) -> ComponentIdx {
         self.idx
     }
-    fn set_idx(&mut self, idx: ComponentInd) {
+    fn set_idx(&mut self, idx: ComponentIdx) {
         self.idx = idx;
     }
-    fn get_parent(&self) -> Option<ComponentInd> {
+    fn get_parent(&self) -> Option<ComponentIdx> {
         self.parent
     }
-    fn set_parent(&mut self, parent: Option<ComponentInd>) {
+    fn set_parent(&mut self, parent: Option<ComponentIdx>) {
         self.parent = parent;
     }
     fn get_children(&self) -> &Vec<ComponentChild> {
@@ -46,8 +46,8 @@ impl ComponentNode for _External {
 
     fn initialize(
         &mut self,
-        idx: ComponentInd,
-        parent: Option<ComponentInd>,
+        idx: ComponentIdx,
+        parent: Option<ComponentIdx>,
         position: Option<DastPosition>,
     ) {
         self.idx = idx;
@@ -67,10 +67,10 @@ impl ComponentNode for _External {
     fn get_component_type(&self) -> &str {
         &self.name
     }
-    fn get_descendant_matches(&self, name: &str) -> Option<&Vec<ComponentInd>> {
+    fn get_descendant_matches(&self, name: &str) -> Option<&Vec<ComponentIdx>> {
         self.descendant_names.get(name)
     }
-    fn set_descendant_names(&mut self, descendant_names: HashMap<String, Vec<ComponentInd>>) {
+    fn set_descendant_names(&mut self, descendant_names: HashMap<String, Vec<ComponentIdx>>) {
         self.descendant_names = descendant_names;
     }
 

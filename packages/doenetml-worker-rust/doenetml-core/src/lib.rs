@@ -16,12 +16,12 @@ use crate::utils::{log, log_debug, log_json};
 
 #[derive(Debug, Clone)]
 pub struct ComponentState {
-    pub component_ind: ComponentInd,
-    pub state_var_ind: StateVarInd,
+    pub component_ind: ComponentIdx,
+    pub state_var_ind: StateVarIdx,
 }
 
-pub type ComponentInd = usize;
-pub type StateVarInd = usize;
+pub type ComponentIdx = usize;
+pub type StateVarIdx = usize;
 
 #[derive(Debug)]
 pub struct DoenetMLCore {
@@ -63,7 +63,7 @@ pub struct DoenetMLRoot {
     pub children: Vec<ComponentChild>,
 
     // map of descendant names to their indices
-    pub descendant_names: HashMap<String, Vec<ComponentInd>>,
+    pub descendant_names: HashMap<String, Vec<ComponentIdx>>,
 
     pub position: Option<DastPosition>,
 }
@@ -98,7 +98,7 @@ impl DoenetMLRoot {
 
 #[derive(Debug)]
 pub enum ComponentChild {
-    Component(ComponentInd),
+    Component(ComponentIdx),
     Text(String),
     Macro(DastMacro),
     FunctionMacro(DastFunctionMacro),
@@ -106,9 +106,9 @@ pub enum ComponentChild {
 
 #[derive(Debug)]
 pub enum ExtendSource {
-    Component(ComponentInd),
+    Component(ComponentIdx),
     // TODO: what about array state variables?
-    StateVar((ComponentInd, StateVarInd)),
+    StateVar((ComponentIdx, StateVarIdx)),
 }
 
 pub fn create_doenetml_core(
@@ -150,9 +150,9 @@ fn create_component_children(
     components: &mut Vec<Rc<RefCell<ComponentEnum>>>,
     warnings: &mut Vec<DastWarning>,
     dast_children: &Vec<DastElementContent>,
-    parent_ind: ComponentInd,
-) -> (Vec<ComponentChild>, HashMap<String, Vec<ComponentInd>>) {
-    let mut descendant_names: HashMap<String, Vec<ComponentInd>> = HashMap::new();
+    parent_ind: ComponentIdx,
+) -> (Vec<ComponentChild>, HashMap<String, Vec<ComponentIdx>>) {
+    let mut descendant_names: HashMap<String, Vec<ComponentIdx>> = HashMap::new();
 
     let mut component_children: Vec<ComponentChild> = Vec::new();
 
@@ -264,7 +264,7 @@ fn create_component_children(
 
 fn replace_macro_referents(
     components: &mut Vec<Rc<RefCell<ComponentEnum>>>,
-    component_ind: ComponentInd,
+    component_ind: ComponentIdx,
 ) {
     // We need to temporarily put in an empty vector into the children field
     // and move the children into a separate vector.
@@ -321,8 +321,8 @@ fn replace_macro_referents(
 fn match_name_reference<'a>(
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
     path: &'a Vec<PathPart>,
-    comp_ind: ComponentInd,
-) -> Option<(ComponentInd, &'a [PathPart])> {
+    comp_ind: ComponentIdx,
+) -> Option<(ComponentIdx, &'a [PathPart])> {
     let comp = &components[comp_ind].borrow();
 
     // TODO: handle index of path
@@ -352,8 +352,8 @@ fn match_name_reference<'a>(
 fn match_descendant_names<'a>(
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
     path: &'a [PathPart],
-    comp_ind: ComponentInd,
-) -> Option<(ComponentInd, &'a [PathPart])> {
+    comp_ind: ComponentIdx,
+) -> Option<(ComponentIdx, &'a [PathPart])> {
     if path.len() > 0 {
         let comp = &components[comp_ind].borrow();
 
