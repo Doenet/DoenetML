@@ -1,28 +1,17 @@
-import nodePolyfills from "rollup-plugin-polyfill-node";
 import { defineConfig } from "vite";
+import dts from "vite-plugin-dts";
 
 // https://vitejs.dev/config/
 export default defineConfig({
+    plugins: [dts()],
     base: "./",
     build: {
-        minify: true,
+        minify: false,
         sourcemap: true,
         lib: {
             entry: "src/index.ts",
-            fileName: "CoreWorker",
+            fileName: "index",
             formats: ["es"],
         },
-        // rollupOptions: {
-        //     // @ts-ignore
-        //     plugins: [nodePolyfills()],
-        //     external: ["react", "react-dom", "styled-components"],
-        //     output: {
-        //         globals: {
-        //             react: "react",
-        //             "react-dom": "react-dom",
-        //             "styled-components": "styled-components",
-        //         },
-        //     },
-        // },
     },
 });

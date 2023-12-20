@@ -29,6 +29,7 @@
                 "dist/**/*.json"
             ],
             "dependencies": [
+                "../doenetml-prototype:build",
                 "../doenetml:build",
                 "../ui-components:build"
             ]

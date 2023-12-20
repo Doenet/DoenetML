@@ -46,14 +46,17 @@
         "rollup-plugin-visualizer": "^5.9.2",
         "ts-morph": "^21.0.1",
         "typescript": "^5.2.2",
-        "wasm-pack": "^0.12.1",
         "vite-node": "^0.34.6",
-        "vitest": "^0.34.6"
+        "vitest": "^0.34.6",
+        "wasm-pack": "^0.12.1"
     },
     "prettier": {
         "tabWidth": 4
     },
     "dependencies": {
+        "@reduxjs/toolkit": "^2.0.1",
+        "comlink": "^4.4.1",
+        "react-redux": "^9.0.4",
         "@uiw/react-codemirror": "^4.21.21",
         "micromark": "^4.0.0",
         "wireit": "^0.14.1"

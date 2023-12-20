@@ -174,7 +174,6 @@ export default function TestViewer() {
                     showFeedback,
                     showHints,
                 }}
-                addVirtualKeyboard={true}
             />
         </div>
     );

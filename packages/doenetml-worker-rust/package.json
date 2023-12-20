@@ -12,8 +12,9 @@
     ],
     "exports": {
         ".": {
-            "import": "./dist/CoreWorker.js",
-            "require": "./dist/CoreWorker.js"
+            "import": "./dist/index.js",
+            "require": "./dist/index.js",
+            "types": "./dist/index.d.js"
         },
         "./*": {
             "import": "./dist/*",
@@ -23,9 +24,43 @@
     "scripts": {
         "watch": "vite build --watch",
         "test": "echo \"No tests \"",
-        "build:rust": "npx wasm-pack build --target web --dev --features 'web-logging web-debug-log'",
-        "build:js": "vite build",
+        "build:rust": "wireit",
+        "build:js": "wireit",
         "build": "npm run build:rust && npm run build:js"
+    },
+    "wireit": {
+        "build:js": {
+            "command": "vite build",
+            "files": [
+                "src/**/*.ts",
+                "src/**/*.js",
+                "tsconfig.json"
+            ],
+            "output": [
+                "dist/**/*.js",
+                "dist/**/*.d.ts",
+                "dist/**/*.json"
+            ],
+            "dependencies": [
+                "../utils:build",
+                "../parser:build"
+            ]
+        },
+        "build:rust": {
+            "command": "npx wasm-pack build --target web --dev --features 'web-logging web-debug-log'",
+            "files": [
+                "src/**/*.ts",
+                "src/**/*.rs",
+                "doenet-core/**/*.rs",
+                "**/*/Cargo.toml"
+            ],
+            "output": [
+                "pkg/**/*.js",
+                "pkg/**/*.d.ts",
+                "pkg/**/*.wasm",
+                "pkg/**/*.json"
+            ]
+        }
     },
     "dependencies": {},
     "devDependencies": {
