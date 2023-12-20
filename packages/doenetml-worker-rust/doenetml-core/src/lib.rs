@@ -131,7 +131,7 @@ pub fn create_doenetml_core(
         position: dast_root.position.clone(),
     };
 
-    replace_macro_referants(&mut components, 0);
+    replace_macro_referents(&mut components, 0);
 
     // log!("after replace macros {:#?}", components);
 
@@ -220,7 +220,7 @@ fn create_component_children(
                 child_node.set_descendant_names(child_descendent_names.clone());
 
                 // merge in the descendant names found from the child
-                // into the overall descedant names for the parent
+                // into the overall descendant names for the parent
                 for (comp_name, mut name_inds) in child_descendent_names {
                     descendant_names
                         .entry(comp_name)
@@ -262,7 +262,7 @@ fn create_component_children(
     (component_children, descendant_names)
 }
 
-fn replace_macro_referants(
+fn replace_macro_referents(
     components: &mut Vec<Rc<RefCell<ComponentEnum>>>,
     component_ind: ComponentInd,
 ) {
@@ -279,7 +279,7 @@ fn replace_macro_referants(
             match child {
                 ComponentChild::Component(child_ind) => {
                     // recurse on component children
-                    replace_macro_referants(components, child_ind);
+                    replace_macro_referents(components, child_ind);
                     child
                 }
                 ComponentChild::Macro(ref dast_macro) => {

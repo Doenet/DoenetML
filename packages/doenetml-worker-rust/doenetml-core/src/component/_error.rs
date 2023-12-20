@@ -7,7 +7,7 @@ use super::ComponentNode;
 
 #[derive(Debug, Default, ComponentNode)]
 pub struct _Error {
-    pub ind: ComponentInd,
+    pub idx: ComponentInd,
     pub parent: Option<ComponentInd>,
     pub children: Vec<ComponentChild>,
 

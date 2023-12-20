@@ -7,7 +7,7 @@ use super::ComponentNode;
 
 #[derive(Debug, Default)]
 pub struct _External {
-    pub ind: ComponentInd,
+    pub idx: ComponentInd,
     pub parent: Option<ComponentInd>,
     pub children: Vec<ComponentChild>,
 
@@ -22,11 +22,11 @@ pub struct _External {
 }
 
 impl ComponentNode for _External {
-    fn get_ind(&self) -> ComponentInd {
-        self.ind
+    fn get_idx(&self) -> ComponentInd {
+        self.idx
     }
-    fn set_ind(&mut self, ind: ComponentInd) {
-        self.ind = ind;
+    fn set_idx(&mut self, idx: ComponentInd) {
+        self.idx = idx;
     }
     fn get_parent(&self) -> Option<ComponentInd> {
         self.parent
@@ -46,11 +46,11 @@ impl ComponentNode for _External {
 
     fn initialize(
         &mut self,
-        ind: ComponentInd,
+        idx: ComponentInd,
         parent: Option<ComponentInd>,
         position: Option<DastPosition>,
     ) {
-        self.ind = ind;
+        self.idx = idx;
         self.parent = parent;
         self.position = position;
     }

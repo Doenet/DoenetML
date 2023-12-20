@@ -34,8 +34,8 @@ pub enum ComponentEnum {
 }
 
 pub trait ComponentNode {
-    fn get_ind(&self) -> ComponentInd;
-    fn set_ind(&mut self, ind: ComponentInd);
+    fn get_idx(&self) -> ComponentInd;
+    fn set_idx(&mut self, idx: ComponentInd);
     fn get_parent(&self) -> Option<ComponentInd>;
     fn set_parent(&mut self, parent: Option<ComponentInd>);
     fn get_children(&self) -> &Vec<ComponentChild>;
@@ -44,7 +44,7 @@ pub trait ComponentNode {
 
     fn initialize(
         &mut self,
-        ind: ComponentInd,
+        idx: ComponentInd,
         parent: Option<ComponentInd>,
         position: Option<DastPosition>,
     );
@@ -65,12 +65,12 @@ pub trait ComponentNode {
         // add children from that source first
         let mut children = if let Some(extend_source) = self.get_extend() {
             match extend_source {
-                ExtendSource::Component(source_ind) => {
-                    let source_dast = components[*source_ind].borrow().to_flat_dast(components);
+                ExtendSource::Component(source_idx) => {
+                    let source_dast = components[*source_idx].borrow().to_flat_dast(components);
 
                     source_dast.children
                 }
-                ExtendSource::StateVar((_source_ind, _source_var_ind)) => {
+                ExtendSource::StateVar((_source_idx, _source_var_idx)) => {
                     // TODO: state variable extend source
                     Vec::new()
                 }
@@ -84,8 +84,8 @@ pub trait ComponentNode {
             .get_children()
             .iter()
             .filter_map(|child| match child {
-                ComponentChild::Component(comp_ind) => {
-                    Some(FlatDastElementContent::Element(*comp_ind))
+                ComponentChild::Component(comp_idx) => {
+                    Some(FlatDastElementContent::Element(*comp_idx))
                 }
                 ComponentChild::Text(s) => Some(FlatDastElementContent::Text(s.to_string())),
                 ComponentChild::Macro(_the_macro) => None,
@@ -102,7 +102,7 @@ pub trait ComponentNode {
             attributes: HashMap::new(),
             children,
             data: Some(ElementData {
-                id: self.get_ind(),
+                id: self.get_idx(),
                 ..Default::default()
             }),
             position: self.get_position().clone(),
