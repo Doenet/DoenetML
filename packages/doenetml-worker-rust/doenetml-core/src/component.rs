@@ -13,7 +13,7 @@ use doenetml_derive::ComponentNode;
 use strum_macros::EnumString;
 
 use crate::dast::{ElementData, FlatDastElement, FlatDastElementContent, Position as DastPosition};
-use crate::{ComponentChild, ComponentInd, ExtendSource};
+use crate::{ComponentChild, ComponentIdx, ExtendSource};
 
 use self::_error::_Error;
 use self::_external::_External;
@@ -34,18 +34,18 @@ pub enum ComponentEnum {
 }
 
 pub trait ComponentNode {
-    fn get_ind(&self) -> ComponentInd;
-    fn set_ind(&mut self, ind: ComponentInd);
-    fn get_parent(&self) -> Option<ComponentInd>;
-    fn set_parent(&mut self, parent: Option<ComponentInd>);
+    fn get_idx(&self) -> ComponentIdx;
+    fn set_idx(&mut self, idx: ComponentIdx);
+    fn get_parent(&self) -> Option<ComponentIdx>;
+    fn set_parent(&mut self, parent: Option<ComponentIdx>);
     fn get_children(&self) -> &Vec<ComponentChild>;
     fn set_children(&mut self, children: Vec<ComponentChild>);
     fn replace_children(&mut self, new_children: Vec<ComponentChild>) -> Vec<ComponentChild>;
 
     fn initialize(
         &mut self,
-        ind: ComponentInd,
-        parent: Option<ComponentInd>,
+        idx: ComponentIdx,
+        parent: Option<ComponentIdx>,
         position: Option<DastPosition>,
     );
 
@@ -54,8 +54,8 @@ pub trait ComponentNode {
 
     fn get_component_type(&self) -> &str;
 
-    fn get_descendant_matches(&self, name: &str) -> Option<&Vec<ComponentInd>>;
-    fn set_descendant_names(&mut self, descendant_names: HashMap<String, Vec<ComponentInd>>);
+    fn get_descendant_matches(&self, name: &str) -> Option<&Vec<ComponentIdx>>;
+    fn set_descendant_names(&mut self, descendant_names: HashMap<String, Vec<ComponentIdx>>);
 
     fn get_position(&self) -> &Option<DastPosition>;
     fn set_position(&mut self, position: Option<DastPosition>);
@@ -65,12 +65,12 @@ pub trait ComponentNode {
         // add children from that source first
         let mut children = if let Some(extend_source) = self.get_extend() {
             match extend_source {
-                ExtendSource::Component(source_ind) => {
-                    let source_dast = components[*source_ind].borrow().to_flat_dast(components);
+                ExtendSource::Component(source_idx) => {
+                    let source_dast = components[*source_idx].borrow().to_flat_dast(components);
 
                     source_dast.children
                 }
-                ExtendSource::StateVar((_source_ind, _source_var_ind)) => {
+                ExtendSource::StateVar((_source_idx, _source_var_idx)) => {
                     // TODO: state variable extend source
                     Vec::new()
                 }
@@ -84,8 +84,8 @@ pub trait ComponentNode {
             .get_children()
             .iter()
             .filter_map(|child| match child {
-                ComponentChild::Component(comp_ind) => {
-                    Some(FlatDastElementContent::Element(*comp_ind))
+                ComponentChild::Component(comp_idx) => {
+                    Some(FlatDastElementContent::Element(*comp_idx))
                 }
                 ComponentChild::Text(s) => Some(FlatDastElementContent::Text(s.to_string())),
                 ComponentChild::Macro(_the_macro) => None,
@@ -102,7 +102,7 @@ pub trait ComponentNode {
             attributes: HashMap::new(),
             children,
             data: Some(ElementData {
-                id: self.get_ind(),
+                id: self.get_idx(),
                 ..Default::default()
             }),
             position: self.get_position().clone(),

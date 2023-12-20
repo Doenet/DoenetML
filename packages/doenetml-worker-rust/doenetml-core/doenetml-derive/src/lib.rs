@@ -42,16 +42,16 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
 
                 quote! {
                     impl ComponentNode for #name {
-                        fn get_ind(&self) -> ComponentInd {
-                            self.ind
+                        fn get_idx(&self) -> ComponentIdx {
+                            self.idx
                         }
-                        fn set_ind(&mut self, ind: ComponentInd) {
-                            self.ind = ind;
+                        fn set_idx(&mut self, idx: ComponentIdx) {
+                            self.idx = idx;
                         }
-                        fn get_parent(&self) -> Option<ComponentInd> {
+                        fn get_parent(&self) -> Option<ComponentIdx> {
                             self.parent
                         }
-                        fn set_parent(&mut self, parent: Option<ComponentInd>) {
+                        fn set_parent(&mut self, parent: Option<ComponentIdx>) {
                             self.parent = parent;
                         }
                         fn get_children(&self) -> &Vec<ComponentChild> {
@@ -64,8 +64,8 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                             std::mem::replace(&mut self.children, new_children)
                         }
 
-                        fn initialize(&mut self, ind: ComponentInd, parent: Option<ComponentInd>, position: Option<DastPosition>) {
-                            self.ind = ind;
+                        fn initialize(&mut self, idx: ComponentIdx, parent: Option<ComponentIdx>, position: Option<DastPosition>) {
+                            self.idx = idx;
                             self.parent = parent;
                             self.position = position;
                         }
@@ -80,10 +80,10 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                         fn get_component_type(&self) -> &str {
                             #component_string
                         }
-                        fn get_descendant_matches(&self, name: &str) -> Option<&Vec<ComponentInd>> {
+                        fn get_descendant_matches(&self, name: &str) -> Option<&Vec<ComponentIdx>> {
                             self.descendant_names.get(name)
                         }
-                        fn set_descendant_names(&mut self, descendant_names: HashMap<String, Vec<ComponentInd>>) {
+                        fn set_descendant_names(&mut self, descendant_names: HashMap<String, Vec<ComponentIdx>>) {
                             self.descendant_names = descendant_names;
                         }
 
@@ -118,8 +118,8 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
             let enum_ident = name;
 
             let mut create_object_variant_arms = Vec::new();
-            let mut get_ind_variant_arms = Vec::new();
-            let mut set_ind_variant_arms = Vec::new();
+            let mut get_idx_variant_arms = Vec::new();
+            let mut set_idx_variant_arms = Vec::new();
             let mut get_parent_variant_arms = Vec::new();
             let mut set_parent_variant_arms = Vec::new();
             let mut get_children_variant_arms = Vec::new();
@@ -142,15 +142,15 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                     #enum_ident::#variant_ident(comp) => Box::new(comp),
                 });
 
-                get_ind_variant_arms.push(quote! {
+                get_idx_variant_arms.push(quote! {
                     #enum_ident::#variant_ident(comp) => {
-                        comp.get_ind()
+                        comp.get_idx()
                     },
                 });
 
-                set_ind_variant_arms.push(quote! {
+                set_idx_variant_arms.push(quote! {
                     #enum_ident::#variant_ident(ref mut comp) => {
-                        comp.set_ind(ind);
+                        comp.set_idx(idx);
                     },
                 });
 
@@ -186,7 +186,7 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
 
                 initialize_variant_arms.push(quote! {
                     #enum_ident::#variant_ident(ref mut comp) => {
-                        comp.initialize(ind, parent, position);
+                        comp.initialize(idx, parent, position);
                     },
                 });
 
@@ -251,25 +251,25 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
 
                 impl ComponentNode for #enum_ident {
 
-                    fn get_ind(&self) -> ComponentInd {
+                    fn get_idx(&self) -> ComponentIdx {
                         match self {
-                            #(#get_ind_variant_arms)*
+                            #(#get_idx_variant_arms)*
                         }
                     }
 
-                    fn set_ind(&mut self, ind: ComponentInd){
+                    fn set_idx(&mut self, idx: ComponentIdx){
                         match self {
-                            #(#set_ind_variant_arms)*
+                            #(#set_idx_variant_arms)*
                         }
                     }
 
-                    fn get_parent(&self) -> Option<ComponentInd> {
+                    fn get_parent(&self) -> Option<ComponentIdx> {
                         match self {
                             #(#get_parent_variant_arms)*
                         }
                     }
 
-                    fn set_parent(&mut self, parent: Option<ComponentInd>){
+                    fn set_parent(&mut self, parent: Option<ComponentIdx>){
                         match self {
                             #(#set_parent_variant_arms)*
                         }
@@ -293,7 +293,7 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                         }
                     }
 
-                    fn initialize(&mut self, ind: ComponentInd, parent: Option<ComponentInd>, position: Option<DastPosition>) {
+                    fn initialize(&mut self, idx: ComponentIdx, parent: Option<ComponentIdx>, position: Option<DastPosition>) {
                         match self {
                             #(#initialize_variant_arms)*
                         }
@@ -317,13 +317,13 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                         }
                     }
 
-                    fn set_descendant_names(&mut self, descendant_names: HashMap<String, Vec<ComponentInd>>) {
+                    fn set_descendant_names(&mut self, descendant_names: HashMap<String, Vec<ComponentIdx>>) {
                         match self {
                             #(#set_descendant_names_variant_arms)*
                         }
                     }
 
-                    fn get_descendant_matches(&self, name: &str) -> Option<&Vec<ComponentInd>> {
+                    fn get_descendant_matches(&self, name: &str) -> Option<&Vec<ComponentIdx>> {
                         match self {
                             #(#get_descendant_matches_variant_arms)*
                         }
