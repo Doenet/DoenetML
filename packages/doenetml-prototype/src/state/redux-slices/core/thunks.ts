@@ -3,20 +3,8 @@ import { createLoggingAsyncThunk } from "../../hooks";
 import { CoreWorker } from "@doenet/doenetml-worker-rust";
 import { doenetGlobalConfig } from "../../../global-config";
 import { RootState } from "../../store";
-import { _coreReducerActions } from "./slice";
+import { _coreReducerActions, selfSelector } from "./slice";
 import { _dastReducerActions } from "../dast";
-
-/**
- * Return a promise and its resolver.
- */
-function promiseAndResolver<T>() {
-    let resolver: (value: T) => void;
-    const promise = new Promise<T>((resolve) => {
-        resolver = resolve;
-    });
-
-    return { promise, resolve: resolver! };
-}
 
 /**
  * Create a DoenetCoreWorker that is wrapped in Comlink for a nice async API.
@@ -38,7 +26,7 @@ export const coreThunks = {
     _loadWorker: createLoggingAsyncThunk(
         "core/loadWorker",
         async (_: void, { dispatch, getState }) => {
-            const { workerCacheKey } = getState().core;
+            const { workerCacheKey } = selfSelector(getState());
             if (workerCacheKey != null && workerCache[workerCacheKey]?.worker) {
                 // There's already a worker loaded
                 return;
