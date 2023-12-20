@@ -16,11 +16,11 @@ export default defineConfig({
         viteStaticCopy({
             targets: [
                 {
-                    // Copy everything from the same directory as `CoreWorker.iife.js`. This will include
+                    // Copy everything from the same directory as `CoreWorker.js`. This will include
                     // `CoreWorker.js.map`
                     src: path.join(
                         require.resolve(
-                            "@doenet/doenetml-worker/CoreWorker.iife.js",
+                            "@doenet/doenetml-worker/CoreWorker.js",
                         ),
                         "../*",
                     ),

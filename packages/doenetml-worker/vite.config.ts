@@ -9,7 +9,7 @@ export default defineConfig({
         sourcemap: true,
         lib: {
             entry: "src/index.ts",
-            fileName: "CoreWorker",
+            fileName: (_format, _entryName) => "CoreWorker.js",
             formats: ["iife"],
             name: "doenetmlWorker"
         },
