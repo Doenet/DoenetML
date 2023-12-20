@@ -9,9 +9,14 @@ export const M: BasicComponentWithPassthroughChildren = ({ children }) => {
     if (onServer) {
         return <span className="process-math">{children}</span>;
     }
+    // better-react-mathjax cannot handle multiple children (it will not update when they change)
+    // so create a single string.
+    const childrenString = `\\(${
+        Array.isArray(children) ? children.join("") : String(children)
+    }\\)`;
     return (
         <MathJax inline dynamic>
-            \({children}\)
+            {childrenString}
         </MathJax>
     );
 };
