@@ -33,7 +33,7 @@ export function VisibilitySensor({
                         dispatch(
                             analyticsActions.visibilityChange({
                                 elementId: id,
-                                state: "visible",
+                                state: "invisible",
                             }),
                         );
                     }
