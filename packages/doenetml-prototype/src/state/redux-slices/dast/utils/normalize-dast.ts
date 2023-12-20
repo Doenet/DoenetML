@@ -14,7 +14,7 @@ import { unified } from "unified";
  */
 export function normalizeDocumentDast(dast: DastRoot) {
     const processor = unified()
-        .use(pluginRemoveComments)
+        .use(pluginRemoveCommentsInstructionsAndDocStrings)
         .use(pluginChangeCdataToText)
         .use(pluginEnsureDocumentElement);
     return processor.runSync(dast);
@@ -35,14 +35,21 @@ const pluginChangeCdataToText: Plugin<[], DastRoot, DastRoot> = () => {
 };
 
 /**
- * Remove all comment nodes from the DAST tree.
+ * Remove all comment/instruction/docstring nodes from the DAST tree.
  */
-const pluginRemoveComments: Plugin<[], DastRoot, DastRoot> = () => {
+const pluginRemoveCommentsInstructionsAndDocStrings: Plugin<
+    [],
+    DastRoot,
+    DastRoot
+> = () => {
     return (tree) => {
         visit(tree, (node) => {
             if (node.type === "element" || node.type === "root") {
                 node.children = node.children.filter(
-                    (n) => n.type !== "comment",
+                    (n) =>
+                        n.type !== "comment" &&
+                        n.type !== "instruction" &&
+                        n.type !== "doctype",
                 );
             }
         });
@@ -67,6 +74,7 @@ const pluginEnsureDocumentElement: Plugin<[], DastRoot, DastRoot> = () => {
             }
         } else {
             const children = trimWhitespaceNodes(
+                // This filtering may be redundant, but it should also be very fast.
                 filterNonDoenetXml(tree.children),
             );
             tree.children = [

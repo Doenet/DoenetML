@@ -27,8 +27,8 @@ const initialState: CoreState = {
     inErrorState: false,
 };
 
-const dastSlice = createSlice({
-    name: "dast",
+const coreSlice = createSlice({
+    name: "core",
     initialState,
     reducers: {
         _setInitialized: (state, action: PayloadAction<boolean>) => {
@@ -43,11 +43,11 @@ const dastSlice = createSlice({
     },
 });
 
-export const coreReducer = dastSlice.reducer;
+export const coreReducer = coreSlice.reducer;
 
 /**
  * Synchronous actions that directly manipulate data in the store.
  */
-export const _coreReducerActions = { ...dastSlice.actions };
+export const _coreReducerActions = { ...coreSlice.actions };
 
 export const selfSelector = (state: RootState) => state.core;
