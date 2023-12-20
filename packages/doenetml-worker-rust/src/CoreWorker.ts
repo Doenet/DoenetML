@@ -1,56 +1,65 @@
+import * as Comlink from "comlink";
 import init, { PublicDoenetMLCore } from "../pkg/doenetml_worker_rust";
+import type { DastRoot, DastElement } from "@doenet/parser";
 
-let doenetCore: PublicDoenetMLCore;
+type Flags = Record<string, unknown>;
 
-let coreBaseArgs;
-
-onmessage = function (e) {
-    if (e.data.messageType == "requestAction") {
-        // Assuming doenetCore has already been initialized
-        // console.log(e.data.args);
-        // handleAction(e.data.args);
-        // For debugging only
-        // this.debugStateValues = JSON.parse(doenetCore.display_all_state());
-    } else if (e.data.messageType === "createCore") {
-        createCore(e.data.args);
-    } else if (e.data.messageType === "initializeWorker") {
-        initializeWorker(e.data.args);
-    }
-};
-
-async function createCore(args) {
-    console.log("create core", args);
-    await init();
-
-    try {
-        doenetCore = PublicDoenetMLCore.new(
-            JSON.stringify(coreBaseArgs.dast),
-            coreBaseArgs.doenetML,
-            JSON.stringify(coreBaseArgs.flags),
-        );
-    } catch (err) {
-        console.error(err);
-        postMessage({ messageType: "inErrorState", errMsg: err.message });
-        return;
-    }
-
-    let dast = JSON.parse(doenetCore.return_dast());
-
-    postMessage({ messageType: "coreCreated", args: { dast } });
+export interface FlatDastElement extends Omit<DastElement, "children"> {
+    children: (number | string)[];
+    data: { id: number };
+}
+export interface FlatDastRoot extends Omit<DastRoot, "children"> {
+    children: (number | string)[];
+    data: { id: number };
 }
 
-// Note: we separate initializeWorker from createCore
-// so that we can call other analysis functions (such as determine variants)
-// even without creating the core.
-// (These analysis functions are not yet implemented)
-async function initializeWorker({ doenetML, dast, flags }) {
-    coreBaseArgs = {
-        doenetML,
-        dast,
-        flags,
-    };
+export class CoreWorker {
+    doenetCore?: PublicDoenetMLCore;
+    flags: Flags = {};
+    dast: DastRoot = { type: "root", children: [] };
+    source: string = "";
 
-    postMessage({
-        messageType: "initialized",
-    });
+    // Note: we separate initializeWorker from createCore
+    // so that we can call other analysis functions (such as determine variants)
+    // even without creating the core.
+    // (These analysis functions are not yet implemented)
+    async initializeWorker(args: {
+        source: string;
+        dast: DastRoot;
+        flags: Flags;
+    }) {
+        this.dast = args.dast;
+        this.flags = args.flags;
+        this.source = args.source;
+    }
+
+    async createCore(args: {}) {
+        console.log("CoreWorker.createCore", args, this.dast);
+        
+        await init();
+
+        try {
+            this.doenetCore = PublicDoenetMLCore.new(
+                JSON.stringify(this.dast),
+                this.source,
+                JSON.stringify(this.flags),
+            );
+        } catch (err) {
+            console.error(err);
+            throw err;
+        }
+
+        return JSON.parse(this.doenetCore.return_dast()) as [
+            FlatDastRoot,
+            ...FlatDastElement[],
+        ];
+    }
+
+    async terminate() {
+        console.log("CoreWorker.terminate");
+        this.doenetCore?.free();
+    }
 }
+
+// We are exporting `void`, but we have to export _something_ to get the module to work correctly
+export default Comlink.expose(new CoreWorker);

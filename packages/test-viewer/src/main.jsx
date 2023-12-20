@@ -2,7 +2,8 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import TestViewer from "./test/testViewer";
-import "@doenet/doenetml/style.css";
+// XXX: this file is currently not in @doenet/doenetml-prototype. Uncomment import when that is fixed.
+//import "@doenet/doenetml/style.css";
 
 const root = createRoot(document.getElementById("root"));
 root.render(

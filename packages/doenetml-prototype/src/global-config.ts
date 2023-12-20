@@ -1,6 +1,6 @@
 export const doenetGlobalConfig = {
     doenetWorkerUrl: new URL(
-        "/doenetml-worker/CoreWorker.js",
+        "/doenetml-worker/index.js",
         window.location.href,
     ).href,
 };

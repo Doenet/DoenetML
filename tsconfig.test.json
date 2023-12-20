@@ -1,0 +1,11 @@
+{
+    "extends": "./tsconfig.build.json",
+    "include": ["**/*.ts"],
+    "exclude": ["**/*.d.ts", "node_modules", "scripts", "*.config.ts"],
+    "compilerOptions": {
+        "rootDir": "./packages",
+        "paths": {
+            "@doenet/*": ["./packages/*/dist"]
+        }
+    }
+}
