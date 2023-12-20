@@ -1,0 +1,17 @@
+.doenet-document {
+    .choice-input {
+        label {
+            @apply max-w-full block cursor-pointer;
+        }
+        input[type="radio"] {
+            @apply me-2 ms-6 appearance-none;
+        }
+        input[type="radio"]::before {
+            @apply w-4 h-4 border-2 border-black rounded-full inline-block align-baseline translate-y-0.5;
+            content: "";
+        }
+        input[type="radio"]:checked::before {
+            @apply bg-blue-400 border-blue-800;
+        }
+    }
+}

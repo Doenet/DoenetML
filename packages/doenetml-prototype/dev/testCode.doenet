@@ -1,5 +1,11 @@
+<textInput prefill="hi" />
 <p>Use this to <m>a < b</m>test DoenetML</p>
 <p>A second paragraph!</p>
+<choiceInput>
+  <choice>A</choice>
+  <choice>B</choice>
+  <choice>C</choice>
+</choiceInput>
 <graph showNavigation>
   <line through="(-8,8) (9,6)" />
   <line through="(0,4)" slope="1/2" styleNumber="2" />

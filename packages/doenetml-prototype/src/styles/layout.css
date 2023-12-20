@@ -1,0 +1,16 @@
+.doenet-document {
+    @apply mx-3;
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        @apply m-0 my-2 p-0 text-lg font-bold;
+    }
+
+    .para {
+        @apply my-2;
+    }
+}

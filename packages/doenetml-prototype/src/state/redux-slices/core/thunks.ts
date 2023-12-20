@@ -5,6 +5,7 @@ import { doenetGlobalConfig } from "../../../global-config";
 import { RootState } from "../../store";
 import { _coreReducerActions, selfSelector } from "./slice";
 import { _dastReducerActions } from "../dast";
+import { assembleFlatDast } from "../dast/utils/assemble-flat-dast";
 
 /**
  * Create a DoenetCoreWorker that is wrapped in Comlink for a nice async API.
@@ -83,8 +84,9 @@ export const coreThunks = {
             }
 
             const flatDast = await worker.createCore({});
-            dispatch(_dastReducerActions._setFlatDast(flatDast));
+            dispatch(_dastReducerActions._setFlatDastRoot(flatDast));
             console.log("flatDast", flatDast);
+            console.log("assembledDast", assembleFlatDast(flatDast));
         },
     ),
 };
