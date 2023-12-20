@@ -1,7 +1,7 @@
 .doenet-document {
     .choice-input {
         label {
-            @apply max-w-full block;
+            @apply max-w-full block cursor-pointer;
         }
         input[type="radio"] {
             @apply me-2 ms-6 appearance-none;
