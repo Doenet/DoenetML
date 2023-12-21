@@ -14,24 +14,58 @@ static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
 #[wasm_bindgen(getter_with_clone)]
 #[derive(Debug)]
-pub struct PublicDoenetMLCore(DoenetMLCore);
+pub struct PublicDoenetMLCore {
+    core: Option<DoenetMLCore>,
+    dast_json: Option<String>,
+    source: String,
+    flags: Option<String>,
+    initialized: bool,
+}
 
 #[wasm_bindgen]
 impl PublicDoenetMLCore {
-    /// Create components from JSON tree and create all dependencies.
-    pub fn new(
-        dast_string: &str,
-        doenetml: &str,
-        flags_string: &str,
-    ) -> Result<PublicDoenetMLCore, String> {
+    pub fn new() -> PublicDoenetMLCore {
         utils::set_panic_hook();
-
-        let core = doenetml_core::create_doenetml_core(dast_string, doenetml, flags_string)?;
-
-        Ok(PublicDoenetMLCore(core))
+        PublicDoenetMLCore {
+            core: None,
+            dast_json: None,
+            source: "".to_string(),
+            flags: None,
+            initialized: false,
+        }
     }
 
-    pub fn return_dast(&self) -> String {
-        serde_json::to_string(&self.0.to_flat_dast()).unwrap()
+    pub fn set_source(&mut self, dast_json: &str, source: &str) {
+        self.dast_json = Some(dast_json.to_string());
+        self.source = source.to_string();
+        self.initialized = false;
+    }
+
+    pub fn set_flags(&mut self, flags: &str) {
+        self.flags = Some(flags.to_string());
+        self.initialized = false;
+    }
+
+    pub fn return_dast(&mut self) -> Result<String, String> {
+        if !self.initialized {
+            let flags = match &self.flags {
+                Some(f) => f,
+                None => return Err("Cannot create core before flags are set.".to_string()),
+            };
+            let dast_json = match &self.dast_json {
+                Some(d) => d,
+                None => return Err("Cannot create core before source is set.".to_string()),
+            };
+
+            // Create components from JSON tree and create all dependencies.
+            self.core = Some(doenetml_core::create_doenetml_core(
+                dast_json,
+                &self.source,
+                flags,
+            )?);
+            self.initialized = true;
+        }
+
+        Ok(serde_json::to_string(&self.core.as_ref().unwrap().to_flat_dast()).unwrap())
     }
 }

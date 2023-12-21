@@ -112,11 +112,11 @@ pub enum ExtendSource {
 }
 
 pub fn create_doenetml_core(
-    dast_string: &str,
-    doenetml: &str,
-    flags_string: &str,
+    dast_json: &str,
+    source: &str,
+    flags: &str,
 ) -> Result<DoenetMLCore, String> {
-    let dast_root: DastRoot = serde_json::from_str(dast_string).expect("Error extracting dast");
+    let dast_root: DastRoot = serde_json::from_str(dast_json).expect("Error extracting dast");
 
     let mut components: Vec<Rc<RefCell<ComponentEnum>>> = Vec::new();
     let mut warnings: Vec<DastWarning> = Vec::new();
@@ -140,7 +140,7 @@ pub fn create_doenetml_core(
         root,
         components,
         warnings,
-        doenetml: doenetml.to_string(),
+        doenetml: source.to_string(),
     };
 
     Ok(core)

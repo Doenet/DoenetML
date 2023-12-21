@@ -18,7 +18,7 @@ export function PageViewer({
     const isInErrorState = errors.length > 0;
 
     React.useEffect(() => {
-        dispatch(dastActions.setSourceAndStartWorker(source));
+        dispatch(dastActions.setSourceAndStartWorker({ source, flags }));
     }, [source]);
 
     if (isInErrorState) {

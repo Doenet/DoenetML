@@ -17,46 +17,65 @@ export interface FlatDastRoot {
 
 export class CoreWorker {
     doenetCore?: PublicDoenetMLCore;
-    flags: Flags = {};
-    dast: DastRoot = { type: "root", children: [] };
-    source: string = "";
+    wasm_initialized = false;
+    source_set = false;
+    flags_set = false;
 
-    // Note: we separate initializeWorker from createCore
-    // so that we can call other analysis functions (such as determine variants)
-    // even without creating the core.
-    // (These analysis functions are not yet implemented)
-    async initializeWorker(args: {
-        source: string;
-        dast: DastRoot;
-        flags: Flags;
-    }) {
-        this.dast = args.dast;
-        this.flags = args.flags;
-        this.source = args.source;
+    async setSource(args: { source: string; dast: DastRoot }) {
+        if (!this.wasm_initialized) {
+            await init();
+            this.wasm_initialized = true;
+        }
+
+        if (!this.doenetCore) {
+            this.doenetCore = PublicDoenetMLCore.new();
+        }
+
+        this.doenetCore.set_source(JSON.stringify(args.dast), args.source);
+        this.source_set = true;
     }
 
-    async createCore(args: {}) {
-        console.log("CoreWorker.createCore", args, this.dast);
+    async setFlags(args: { flags: Flags }) {
+        if (!this.wasm_initialized) {
+            await init();
+            this.wasm_initialized = true;
+        }
 
-        await init();
+        if (!this.doenetCore) {
+            this.doenetCore = PublicDoenetMLCore.new();
+        }
+
+        this.doenetCore.set_flags(JSON.stringify(args.flags));
+        this.flags_set = true;
+    }
+
+    async returnDast() {
+        if (!this.source_set || !this.flags_set || !this.doenetCore) {
+            throw Error("Cannot return dast before setting source and flags");
+        }
 
         try {
-            this.doenetCore = PublicDoenetMLCore.new(
-                JSON.stringify(this.dast),
-                this.source,
-                JSON.stringify(this.flags),
-            );
+            return JSON.parse(this.doenetCore.return_dast()) as FlatDastRoot;
         } catch (err) {
             console.error(err);
             throw err;
         }
-
-        return JSON.parse(this.doenetCore.return_dast()) as FlatDastRoot;
     }
 
     async terminate() {
         console.log("CoreWorker.terminate");
+
+        // TODO: need to call terminate on doenetCore
+        // so that it can attempt to send final state (to allow it to be saved)
+        // before terminating
+
         this.doenetCore?.free();
+        this.doenetCore = undefined;
+
+        // Since we store source and flags in doenetCore,
+        // we lose source and flags when terminating it.
+        this.source_set = false;
+        this.flags_set = false;
     }
 }
 
