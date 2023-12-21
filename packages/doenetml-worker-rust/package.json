@@ -51,7 +51,7 @@
             "files": [
                 "src/**/*.ts",
                 "src/**/*.rs",
-                "doenet-core/**/*.rs",
+                "doenetml-core/**/*.rs",
                 "**/*/Cargo.toml"
             ],
             "output": [
