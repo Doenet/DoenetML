@@ -611,11 +611,11 @@ export default React.memo(function BooleanInput(props) {
             />
         );
     } else {
-        let containerClass = "container";
-        let checkmarkClass = "checkmark";
+        let containerClass = "doenetml-boolean-container";
+        let checkmarkClass = "doenetml-checkmark";
         if (disabled) {
-            containerClass += " container-disabled";
-            checkmarkClass += " checkmark-disabled";
+            containerClass += " doenetml-boolean-container-disabled";
+            checkmarkClass += " doenetml-checkmark-disabled";
         }
         input = (
             <label className={containerClass}>

@@ -20,7 +20,7 @@ export function PageViewer({
 
     React.useEffect(() => {
         dispatch(globalActions.watchForDarkModePreferenceChange());
-        dispatch(dastActions.setSourceAndStartWorker(source));
+        dispatch(dastActions.setSourceAndStartWorker({ source, flags }));
     }, [source]);
 
     if (isInErrorState) {

@@ -684,7 +684,7 @@ export async function determineNumberOfActivityVariants(
 
 export function createCoreWorker() {
     return new Worker(doenetGlobalConfig.doenetWorkerUrl, {
-        type: "module",
+        type: "classic",
     });
 }
 

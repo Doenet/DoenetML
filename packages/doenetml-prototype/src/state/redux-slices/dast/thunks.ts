@@ -1,8 +1,10 @@
 import { extractDastErrors, lezerToDast } from "@doenet/parser";
 import { createLoggingAsyncThunk } from "../../hooks";
 import { _dastReducerActions } from "./slice";
-import { coreThunks } from "../core/thunks";
+import { coreThunks, getWorker } from "../core/thunks";
 import { normalizeDocumentDast } from "./utils/normalize-dast";
+import { DoenetMLFlags } from "../../../DoenetML";
+import { _coreReducerActions } from "../core";
 
 export const dastThunks = {
     setSource: createLoggingAsyncThunk(
@@ -17,13 +19,30 @@ export const dastThunks = {
 
             const errors = extractDastErrors(newDast);
             dispatch(_dastReducerActions._setDastErrors(errors));
+
+            await dispatch(coreThunks._loadWorker());
+
+            const worker = getWorker(getState());
+            if (worker == null) {
+                throw new Error("No worker loaded");
+            }
+
+            try {
+                await worker.setSource({ source, dast: newDast });
+            } catch (e) {
+                dispatch(_coreReducerActions._setInErrorState(true));
+            }
         },
     ),
     setSourceAndStartWorker: createLoggingAsyncThunk(
         "dast/setSourceAndStartWorker",
-        async (source: string, { dispatch, getState }) => {
+        async (
+            { source, flags }: { source: string; flags: DoenetMLFlags },
+            { dispatch, getState },
+        ) => {
             await dispatch(dastThunks.setSource(source));
-            await dispatch(coreThunks.launchCore());
+            await dispatch(coreThunks.setFlags(flags));
+            await dispatch(coreThunks.retrieveDast());
         },
     ),
 };

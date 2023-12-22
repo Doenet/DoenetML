@@ -22,7 +22,7 @@ export type DoenetMLFlags = {
 
 type DoenetMLFlagsSubset = Partial<DoenetMLFlags>;
 
-const defaultFlags: DoenetMLFlags = {
+export const defaultFlags: DoenetMLFlags = {
     showCorrectness: true,
     readOnly: false,
     solutionDisplayMode: "button",

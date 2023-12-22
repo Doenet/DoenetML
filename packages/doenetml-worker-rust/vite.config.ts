@@ -10,8 +10,9 @@ export default defineConfig({
         sourcemap: true,
         lib: {
             entry: "src/index.ts",
-            fileName: "index",
-            formats: ["es"],
+            fileName: (_format, _entryName) => "index.js",
+            formats: ["iife"],
+            name: "doenetmlWorker",
         },
     },
 });
