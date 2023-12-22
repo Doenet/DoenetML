@@ -13,7 +13,7 @@ import { DoenetMLFlags, defaultFlags } from "../../../DoenetML";
 export function createWrappedCoreWorker() {
     // TODO: after merge in #69, change to type: "classic"
     const worker = new Worker(doenetGlobalConfig.doenetWorkerUrl, {
-        type: "module",
+        type: "classic",
     });
 
     return Comlink.wrap(worker) as Comlink.Remote<CoreWorker>;
