@@ -18,7 +18,7 @@ pub struct PublicDoenetMLCore {
     core: Option<DoenetMLCore>,
     dast_json: Option<String>,
     source: String,
-    flags: Option<String>,
+    flags_json: Option<String>,
     initialized: bool,
 }
 
@@ -30,7 +30,7 @@ impl PublicDoenetMLCore {
             core: None,
             dast_json: None,
             source: "".to_string(),
-            flags: None,
+            flags_json: None,
             initialized: false,
         }
     }
@@ -42,13 +42,13 @@ impl PublicDoenetMLCore {
     }
 
     pub fn set_flags(&mut self, flags: &str) {
-        self.flags = Some(flags.to_string());
+        self.flags_json = Some(flags.to_string());
         self.initialized = false;
     }
 
     pub fn return_dast(&mut self) -> Result<String, String> {
         if !self.initialized {
-            let flags = match &self.flags {
+            let flags = match &self.flags_json {
                 Some(f) => f,
                 None => return Err("Cannot create core before flags are set.".to_string()),
             };

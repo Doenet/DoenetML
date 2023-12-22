@@ -42,7 +42,7 @@ export const dastThunks = {
         ) => {
             await dispatch(dastThunks.setSource(source));
             await dispatch(coreThunks.setFlags(flags));
-            await dispatch(coreThunks.getDast());
+            await dispatch(coreThunks.retrieveDast());
         },
     ),
 };

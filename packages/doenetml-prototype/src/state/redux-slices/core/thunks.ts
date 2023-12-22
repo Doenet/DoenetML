@@ -5,8 +5,7 @@ import { doenetGlobalConfig } from "../../../global-config";
 import { RootState } from "../../store";
 import { _coreReducerActions, selfSelector } from "./slice";
 import { _dastReducerActions } from "../dast";
-import { assembleFlatDast } from "../dast/utils/assemble-flat-dast";
-import { DoenetMLFlags } from "../../../DoenetML";
+import { DoenetMLFlags, defaultFlags } from "../../../DoenetML";
 
 /**
  * Create a DoenetCoreWorker that is wrapped in Comlink for a nice async API.
@@ -65,13 +64,14 @@ export const coreThunks = {
     /**
      * Launch the DoenetCore webworker with the given source string and DAST tree.
      */
-    getDast: createLoggingAsyncThunk(
-        "core/getDast",
+    retrieveDast: createLoggingAsyncThunk(
+        "core/retrieveDast",
         async (_, { dispatch, getState }) => {
-            const { flags } = selfSelector(getState());
+            let { flags } = selfSelector(getState());
 
             if (!flags) {
-                throw Error("Cannot get dast before setting flags.");
+                await dispatch(coreThunks.setFlags(defaultFlags));
+                flags = defaultFlags;
             }
 
             const worker = getWorker(getState());
@@ -82,8 +82,6 @@ export const coreThunks = {
             try {
                 const flatDast = await worker.returnDast();
                 dispatch(_dastReducerActions._setFlatDastRoot(flatDast));
-                console.log("flatDast", flatDast);
-                console.log("assembledDast", assembleFlatDast(flatDast));
             } catch (e) {
                 dispatch(_coreReducerActions._setInErrorState(true));
             }
