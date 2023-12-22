@@ -43,7 +43,8 @@
             ],
             "dependencies": [
                 "../utils:build",
-                "../parser:build"
+                "../parser:build",
+                "build:rust"
             ]
         },
         "build:rust": {
@@ -51,7 +52,7 @@
             "files": [
                 "src/**/*.ts",
                 "src/**/*.rs",
-                "doenet-core/**/*.rs",
+                "doenetml-core/**/*.rs",
                 "**/*/Cargo.toml"
             ],
             "output": [

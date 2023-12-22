@@ -1,16 +1,13 @@
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "../../store";
+import { DoenetMLFlags } from "../../../DoenetML";
 
 export interface CoreState {
     /**
-     * Whether core has been initialized.
+     * Flags specifying the behavior of core
      */
-    initialized: boolean;
-    /**
-     * Whether core has been started and initialized with a DAST tree
-     */
-    launched: boolean;
+    flags?: DoenetMLFlags;
     /**
      * The webworker used by core is stored outside of the redux store (since it is not serializable).
      * This key is used to retrieve it.
@@ -21,8 +18,7 @@ export interface CoreState {
 
 // Define the initial state using that type
 const initialState: CoreState = {
-    initialized: false,
-    launched: false,
+    flags: undefined,
     workerCacheKey: undefined,
     inErrorState: false,
 };
@@ -31,8 +27,8 @@ const coreSlice = createSlice({
     name: "core",
     initialState,
     reducers: {
-        _setInitialized: (state, action: PayloadAction<boolean>) => {
-            state.initialized = action.payload;
+        _setFlags: (state, action: PayloadAction<DoenetMLFlags>) => {
+            state.flags = action.payload;
         },
         _setWorkerCacheKey: (state, action: PayloadAction<number>) => {
             state.workerCacheKey = action.payload;

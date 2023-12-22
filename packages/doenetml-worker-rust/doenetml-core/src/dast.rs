@@ -220,8 +220,6 @@ impl Serialize for FlatDastElement {
     {
         let have_position = self.position.is_some();
 
-        log!("serialize {}", self.name);
-
         if self.name == "_error" {
             let n_fields = 2 + if have_position { 1 } else { 0 };
 
