@@ -11,7 +11,6 @@ import { DoenetMLFlags, defaultFlags } from "../../../DoenetML";
  * Create a DoenetCoreWorker that is wrapped in Comlink for a nice async API.
  */
 export function createWrappedCoreWorker() {
-    // TODO: after merge in #69, change to type: "classic"
     const worker = new Worker(doenetGlobalConfig.doenetWorkerUrl, {
         type: "classic",
     });
