@@ -42,7 +42,7 @@ export class CoreWorker {
         this.doenetCore.set_source(JSON.stringify(args.dast), args.source);
         this.source_set = true;
 
-        resolve!();
+        resolve();
     }
 
     async setFlags(args: { flags: Flags }) {
@@ -64,7 +64,7 @@ export class CoreWorker {
         this.doenetCore.set_flags(JSON.stringify(args.flags));
         this.flags_set = true;
 
-        resolve!();
+        resolve();
     }
 
     async returnDast() {
@@ -82,10 +82,10 @@ export class CoreWorker {
             let flat_dast = JSON.parse(
                 this.doenetCore.return_dast(),
             ) as FlatDastRoot;
-            resolve!();
+            resolve();
             return flat_dast;
         } catch (err) {
-            resolve!();
+            resolve();
 
             console.error(err);
             throw err;
@@ -111,7 +111,7 @@ export class CoreWorker {
         this.source_set = false;
         this.flags_set = false;
 
-        resolve!();
+        resolve();
     }
 }
 

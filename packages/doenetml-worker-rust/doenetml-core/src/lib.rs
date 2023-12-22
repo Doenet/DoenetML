@@ -114,7 +114,7 @@ pub enum ExtendSource {
 pub fn create_doenetml_core(
     dast_json: &str,
     source: &str,
-    flags: &str,
+    flags_json: &str,
 ) -> Result<DoenetMLCore, String> {
     let dast_root: DastRoot = serde_json::from_str(dast_json).expect("Error extracting dast");
 
