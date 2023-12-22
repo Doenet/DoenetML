@@ -1,4 +1,6 @@
 export function prerenderActivity({ cid, doenetId, flags }) {
+    // TODO - do we need to move this web worker to an iife as well?
+    // see - https://github.com/Doenet/DoenetML/pull/69
     let worker = new Worker("/utils/prerenderWorker.js", { type: "module" });
 
     // console.log(`Prerendering activity`, cid, doenetId, flags, worker);
