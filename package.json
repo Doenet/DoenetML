@@ -60,7 +60,9 @@
         "@uiw/react-codemirror": "^4.21.21",
         "autoprefixer": "^10.4.16",
         "comlink": "^4.4.1",
+        "jsxgraph": "^1.6.2",
         "micromark": "^4.0.0",
+        "react-icons": "^4.12.0",
         "react-redux": "^9.0.4",
         "tailwindcss": "^3.3.7",
         "wireit": "^0.14.1"

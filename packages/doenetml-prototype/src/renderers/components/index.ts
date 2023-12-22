@@ -6,3 +6,5 @@ export * from "./section";
 export * from "./problem";
 export * from "./answer";
 export * from "./text-input";
+export * from "./line";
+export * from "./point";

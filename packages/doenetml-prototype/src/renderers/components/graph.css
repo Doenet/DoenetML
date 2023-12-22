@@ -1,0 +1,66 @@
+.doenet-document {
+    .graph-container {
+        @apply max-w-full aspect-square border-2 border-black rounded-md touch-none select-none w-72 relative;
+        background-color: var(--canvas);
+        color: var(--canvastext);
+    }
+    .jsxgraph-container {
+        @apply w-full h-full;
+    }
+
+    .toolbar {
+        @apply p-0.5 rounded-md hover:bg-slate-300 hover:bg-opacity-40;
+    }
+
+    .toolbar.grouped-buttons .button {
+        @apply first:rounded-s-md last:rounded-e-md;
+    }
+
+    .jsxgraph-nav-buttons {
+        @apply flex flex-row justify-between absolute bottom-0 right-0 p-0.5 w-full items-end;
+    }
+
+    /* styles modified from https://ariakit.org/components/toolbar */
+    .button {
+        @apply p-1 rounded-none dn-button-transparent secondary;
+    }
+
+    .button[data-focus-visible] {
+        outline-style: solid;
+    }
+
+    .pan-buttons {
+        @apply rounded-full;
+        display: grid;
+        grid-template-areas:
+            ". north ."
+            "west center east"
+            ". south .";
+        justify-items: center;
+        align-items: center;
+    }
+
+    .pan-buttons > .north {
+        @apply rounded-t-md;
+        grid-area: north;
+    }
+
+    .pan-buttons > .south {
+        @apply rounded-b-md;
+        grid-area: south;
+    }
+
+    .pan-buttons > .east {
+        @apply rounded-r-md;
+        grid-area: east;
+    }
+
+    .pan-buttons > .west {
+        @apply rounded-l-md;
+        grid-area: west;
+    }
+
+    .pan-buttons > .center {
+        grid-area: center;
+    }
+}

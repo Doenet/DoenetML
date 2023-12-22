@@ -24,7 +24,7 @@ export const ChoiceInput: BasicComponent = ({ node }) => {
     return (
         <RadioProvider>
             <RadioGroup className="choice-input">
-                {choiceChildren.map((child) => (
+                {choiceChildren.map((child, i) => (
                     <label key={child.data.id}>
                         <Radio value={child.data.id} />
                         {flatDastChildrenToReactChildren(child.children)}

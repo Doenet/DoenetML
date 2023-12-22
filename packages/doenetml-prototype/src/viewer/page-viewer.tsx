@@ -3,6 +3,7 @@ import { DoenetMLFlags } from "../DoenetML";
 import { useAppDispatch, useAppSelector } from "../state/hooks";
 import { dastActions, errorsSelector } from "../state/redux-slices/dast";
 import { Element } from "../renderers";
+import { globalActions } from "../state/redux-slices/global";
 
 export function PageViewer({
     source,
@@ -18,6 +19,7 @@ export function PageViewer({
     const isInErrorState = errors.length > 0;
 
     React.useEffect(() => {
+        dispatch(globalActions.watchForDarkModePreferenceChange());
         dispatch(dastActions.setSourceAndStartWorker(source));
     }, [source]);
 

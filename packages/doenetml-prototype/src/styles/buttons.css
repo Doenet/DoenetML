@@ -1,0 +1,18 @@
+@layer components {
+    .dn-button-transparent {
+        @apply dn-button;
+        @apply bg-transparent border border-transparent  hover:bg-opacity-80;
+        @apply dark:bg-transparent dark:border-transparent  dark:hover:bg-opacity-80;
+    }
+    .dn-button {
+        @apply px-4 py-2 text-sm font-medium transition-colors active:translate-y-[-1px];
+        @apply focus-within:dn-outline;
+        @apply active:drop-shadow-md active:shadow-md;
+        @apply bg-white border border-gray-200 rounded-s-lg hover:bg-gray-100 hover:text-blue-700;
+        @apply hover:focus:ring-0;
+        @apply dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:text-white dark:hover:bg-gray-700  dark:focus:text-white;
+    }
+    .secondary {
+        @apply hover:bg-blue-500 hover:text-white;
+    }
+}
