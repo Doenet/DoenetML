@@ -10,6 +10,8 @@ use regex::Regex;
 
 pub mod component;
 pub mod dast;
+pub mod dependency;
+pub mod state;
 pub mod utils;
 
 use crate::utils::{log, log_debug, log_json};

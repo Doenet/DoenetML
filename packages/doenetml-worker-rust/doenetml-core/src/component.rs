@@ -10,6 +10,7 @@ use std::collections::HashMap;
 use std::rc::Rc;
 
 use doenetml_derive::ComponentNode;
+use serde::Serialize;
 use strum_macros::EnumString;
 
 use crate::dast::{ElementData, FlatDastElement, FlatDastElementContent, Position as DastPosition};
@@ -108,4 +109,13 @@ pub trait ComponentNode {
             position: self.get_position().clone(),
         }
     }
+}
+
+#[derive(Clone, PartialEq, Eq, Debug, Hash, Serialize)]
+pub enum ComponentProfile {
+    Text,
+    Number,
+    Boolean,
+    Math,
+    // Graphical,
 }
