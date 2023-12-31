@@ -9,11 +9,11 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
-use doenetml_derive::ComponentNode;
-use serde::Serialize;
+use doenetml_derive::{ComponentNode, RenderedComponentNode};
 use strum_macros::EnumString;
 
 use crate::dast::{ElementData, FlatDastElement, FlatDastElementContent, Position as DastPosition};
+use crate::state::StateVarReadOnlyViewTyped;
 use crate::{ComponentChild, ComponentIdx, ExtendSource};
 
 use self::_error::_Error;
@@ -23,7 +23,7 @@ use self::p::P;
 use self::section::Section;
 use self::text::Text;
 
-#[derive(Debug, EnumString, ComponentNode)]
+#[derive(Debug, EnumString, ComponentNode, RenderedComponentNode)]
 #[strum(ascii_case_insensitive)]
 pub enum ComponentEnum {
     Text(Text),
@@ -34,7 +34,7 @@ pub enum ComponentEnum {
     _External(_External),
 }
 
-pub trait ComponentNode {
+pub trait ComponentNode: RenderedComponentNode {
     fn get_idx(&self) -> ComponentIdx;
     fn set_idx(&mut self, idx: ComponentIdx);
     fn get_parent(&self) -> Option<ComponentIdx>;
@@ -50,7 +50,7 @@ pub trait ComponentNode {
         position: Option<DastPosition>,
     );
 
-    fn get_extend(&self) -> &Option<ExtendSource>;
+    fn get_extend(&self) -> Option<&ExtendSource>;
     fn set_extend(&mut self, extend_source: Option<ExtendSource>);
 
     fn get_component_type(&self) -> &str;
@@ -58,8 +58,10 @@ pub trait ComponentNode {
     fn get_descendant_matches(&self, name: &str) -> Option<&Vec<ComponentIdx>>;
     fn set_descendant_names(&mut self, descendant_names: HashMap<String, Vec<ComponentIdx>>);
 
-    fn get_position(&self) -> &Option<DastPosition>;
+    fn get_position(&self) -> Option<&DastPosition>;
     fn set_position(&mut self, position: Option<DastPosition>);
+
+    fn get_component_profile_state_variables(&self) -> &Vec<ComponentProfileStateVariables>;
 
     fn to_flat_dast(&self, components: &Vec<Rc<RefCell<ComponentEnum>>>) -> FlatDastElement {
         // if extending a source that is a component,
@@ -82,7 +84,7 @@ pub trait ComponentNode {
 
         // children from the component itself come after children the extend source
         let mut children2: Vec<FlatDastElementContent> = self
-            .get_children()
+            .get_rendered_children()
             .iter()
             .filter_map(|child| match child {
                 ComponentChild::Component(comp_idx) => {
@@ -106,16 +108,31 @@ pub trait ComponentNode {
                 id: self.get_idx(),
                 ..Default::default()
             }),
-            position: self.get_position().clone(),
+            position: self.get_position().cloned(),
         }
     }
 }
 
-#[derive(Clone, PartialEq, Eq, Debug, Hash, Serialize)]
+pub trait RenderedComponentNode {
+    fn get_rendered_children(&self) -> &Vec<ComponentChild>;
+}
+
+pub trait ComponentNodeBase {
+    fn initialize_state_variables(&mut self);
+}
+
+#[derive(Debug)]
 pub enum ComponentProfile {
     Text,
     Number,
+    Integer,
     Boolean,
-    Math,
-    // Graphical,
+}
+
+#[derive(Debug)]
+pub enum ComponentProfileStateVariables {
+    Text(StateVarReadOnlyViewTyped<String>),
+    Number(StateVarReadOnlyViewTyped<f64>),
+    Integer(StateVarReadOnlyViewTyped<i64>),
+    Boolean(StateVarReadOnlyViewTyped<bool>),
 }

@@ -73,7 +73,7 @@ pub trait StateVarInterface<T: Default + Clone>: std::fmt::Debug {
     /// in a form (presumably typed not with enums) for efficient calculation.
     fn save_dependencies_for_value_calculation(
         &mut self,
-        _dependencies: &Vec<Vec<Dependency>>,
+        dependencies: &Vec<Vec<Dependency>>,
     ) -> ();
 
     /// Calculate the value of the state variable from the current values of the dependencies
@@ -411,6 +411,24 @@ impl<T: Default + Clone> StateVarMutableViewTyped<T> {
 }
 
 impl<T: Default + Clone> StateVarReadOnlyViewTyped<T> {
+    /// Create a new unresolved StateVarReadOnlyViewTyped
+    ///
+    /// Although this state variable could never become resolved (as there is no mutable view),
+    /// we need this unresolved state variable as a placeholder to initialize fields
+    /// so that we don't need to add unnecessary Options.
+    pub fn new() -> Self {
+        StateVarReadOnlyViewTyped {
+            inner: Rc::new(RefCell::new(StateVarInner {
+                value: T::default(),
+                freshness: Freshness::Unresolved,
+                requested_value: T::default(),
+                used_default: false,
+                change_counter: 1, // Note: start at 1 so starts out indicating it changed
+            })),
+            change_counter_when_last_viewed: 0,
+        }
+    }
+
     /// Determine if the state variable has changed
     /// since we last called *get_fresh_value_record_viewed*.
     ///

@@ -8,13 +8,14 @@ use syn::{self, FieldsNamed, Ident};
 /// assuming they have the correct format.
 ///
 /// For structs, assume these fields:
-///    pub idx: ComponentIdx,
-///    pub parent: Option<ComponentIdx>,
-///    pub children: Vec<ComponentChild>,
-///    pub extend: Option<ExtendSource>,
-///    pub descendant_names: HashMap<String, Vec<ComponentIdx>>,
-///    pub position: Option<DastPosition>,
-///    pub state_variables: [struct of format in the process of determining]
+/// - pub idx: ComponentIdx,
+/// - pub parent: Option<ComponentIdx>,
+/// - pub children: Vec<ComponentChild>,
+/// - pub extend: Option<ExtendSource>,
+/// - pub descendant_names: HashMap<String, Vec<ComponentIdx>>,
+/// - pub position: Option<DastPosition>,
+/// - pub component_profile_state_variables: Vec<ComponentProfileStateVariables>,
+/// - pub state_variables: (TODO: in the process of determining)
 ///
 /// For enums, assume each variant implements ComponentNode.
 /// Implement ComponentNode methods by calling the corresponding method on the matched variant.
@@ -81,8 +82,8 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                             self.position = position;
                         }
 
-                        fn get_extend(&self) -> &Option<ExtendSource> {
-                            &self.extend
+                        fn get_extend(&self) -> Option<&ExtendSource> {
+                            self.extend.as_ref()
                         }
                         fn set_extend(&mut self, extend_source: Option<ExtendSource>) {
                             self.extend = extend_source;
@@ -98,14 +99,17 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                             self.descendant_names = descendant_names;
                         }
 
-                        fn get_position(&self) -> &Option<DastPosition> {
-                            &self.position
+                        fn get_position(&self) -> Option<&DastPosition> {
+                            self.position.as_ref()
                         }
 
                         fn set_position(&mut self, position: Option<DastPosition>) {
                             self.position = position;
                         }
 
+                        fn get_component_profile_state_variables(&self)  -> &Vec<ComponentProfileStateVariables> {
+                            &self.component_profile_state_variables
+                        }
 
                         // fn get_essential_state_vars(&self) -> &HashMap<StateVarName, EssentialStateVar> {
                         //     &self.essential_state_vars
@@ -144,6 +148,7 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
             let mut get_descendant_matches_variant_arms = Vec::new();
             let mut get_position_variant_arms = Vec::new();
             let mut set_position_variant_arms = Vec::new();
+            let mut get_component_profile_state_variables_variant_arms = Vec::new();
             let mut to_flat_dast_variant_arms = Vec::new();
 
             for variant in variants {
@@ -243,6 +248,12 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                     },
                 });
 
+                get_component_profile_state_variables_variant_arms.push(quote! {
+                    #enum_ident::#variant_ident(comp) => {
+                        comp.get_component_profile_state_variables()
+                    },
+                });
+
                 to_flat_dast_variant_arms.push(quote! {
                     #enum_ident::#variant_ident(comp) => {
                         comp.to_flat_dast(components)
@@ -310,7 +321,7 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                         }
                     }
 
-                    fn get_extend(&self) -> &Option<ExtendSource> {
+                    fn get_extend(&self) -> Option<&ExtendSource> {
                         match self {
                             #(#get_extend_variant_arms)*
                         }
@@ -340,7 +351,7 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                         }
                     }
 
-                    fn get_position(&self) -> &Option<DastPosition> {
+                    fn get_position(&self) -> Option<&DastPosition> {
                         match self {
                             #(#get_position_variant_arms)*
                         }
@@ -352,11 +363,70 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                         }
                     }
 
+                    fn get_component_profile_state_variables(&self) -> &Vec<ComponentProfileStateVariables> {
+                        match self {
+                            #(#get_component_profile_state_variables_variant_arms)*
+                        }
+                    }
+
                     fn to_flat_dast(&self, components: &Vec<Rc<RefCell<ComponentEnum>>>) -> FlatDastElement {
                         match self {
                             #(#to_flat_dast_variant_arms)*
                         }
                     }
+                }
+            }
+        }
+        _ => panic!("only structs and enums supported"),
+    };
+    output.into()
+}
+
+pub fn rendered_component_node_derive(input: TokenStream) -> TokenStream {
+    let ast: syn::DeriveInput = syn::parse(input).unwrap();
+    let name = &ast.ident;
+    let data = &ast.data;
+
+    let output = match data {
+        syn::Data::Struct(s) => match &s.fields {
+            syn::Fields::Named(FieldsNamed { .. }) => {
+                quote! {
+                    impl RenderedComponentNode for #name {
+                        fn get_rendered_children(&self) -> &Vec<ComponentChild> {
+                            &self.children
+                        }
+                    }
+                }
+            }
+            _ => panic!("only named fields supported"),
+        },
+        syn::Data::Enum(v) => {
+            let variants = &v.variants;
+            let enum_ident = name;
+
+            let mut get_rendered_children_variant_arms = Vec::new();
+
+            for variant in variants {
+                let variant_ident = &variant.ident;
+
+                get_rendered_children_variant_arms.push(quote! {
+                    #enum_ident::#variant_ident(comp) => {
+                        comp.get_rendered_children()
+                    },
+                });
+            }
+
+            quote! {
+
+                impl RenderedComponentNode for #enum_ident {
+
+
+                    fn get_rendered_children(&self) -> &Vec<ComponentChild> {
+                        match self {
+                            #(#get_rendered_children_variant_arms)*
+                        }
+                    }
+
                 }
             }
         }

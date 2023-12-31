@@ -3,9 +3,9 @@ use std::collections::HashMap;
 use crate::dast::Position as DastPosition;
 use crate::{ComponentChild, ComponentIdx, ExtendSource};
 
-use super::ComponentNode;
+use super::{ComponentNode, ComponentProfileStateVariables, RenderedComponentNode};
 
-#[derive(Debug, Default, ComponentNode)]
+#[derive(Debug, Default, ComponentNode, RenderedComponentNode)]
 pub struct Document {
     pub idx: ComponentIdx,
     pub parent: Option<ComponentIdx>,
@@ -17,4 +17,6 @@ pub struct Document {
     pub descendant_names: HashMap<String, Vec<ComponentIdx>>,
 
     pub position: Option<DastPosition>,
+
+    pub component_profile_state_variables: Vec<ComponentProfileStateVariables>,
 }

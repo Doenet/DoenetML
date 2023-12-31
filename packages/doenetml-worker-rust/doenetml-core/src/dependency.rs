@@ -4,11 +4,17 @@ use crate::{
 };
 
 /// A DependencyInstruction is used to make a Dependency based on the input document structure
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub enum DependencyInstruction {
     Child {
-        /// The dependency will only match child components that fulfill at least one of these profiles
-        desired_profiles: Vec<ComponentProfile>,
+        /// The dependency will match child components that has at least one of these profiles
+        /// unless the child component has one of the profiles in *exclude_if_prefer_profiles*
+        /// ranked higher
+        match_profiles: Vec<ComponentProfile>,
+
+        /// If a child component has one of these profiles ranked higher
+        /// than any in *match_profiles*, then the child is not matched.
+        exclude_if_prefer_profiles: Vec<ComponentProfile>,
     },
     StateVar {
         // TODO: will we need specify a particular component here?
