@@ -1,7 +1,9 @@
+use std::cell::RefCell;
 use std::collections::HashMap;
+use std::rc::Rc;
 
 use crate::component::ComponentProfile;
-use crate::dast::Position as DastPosition;
+use crate::dast::{ElementData, FlatDastElement, FlatDastElementContent, Position as DastPosition};
 use crate::dependency::{Dependency, DependencyInstruction};
 use crate::state::{
     StateVarInterface, StateVarMutableViewTyped, StateVarParameters, StateVarReadOnlyView,
@@ -10,7 +12,8 @@ use crate::state::{
 use crate::{ComponentChild, ComponentIdx, ExtendSource};
 
 use super::{
-    ComponentNode, ComponentNodeBase, ComponentProfileStateVariables, RenderedComponentNode,
+    ComponentEnum, ComponentNode, ComponentNodeBase, ComponentProfileStateVariables,
+    RenderedComponentNode,
 };
 
 #[derive(Debug, Default, ComponentNode)]
@@ -37,8 +40,25 @@ pub struct Text {
 }
 
 impl RenderedComponentNode for Text {
-    fn get_rendered_children(&self) -> &Vec<ComponentChild> {
-        &self.no_rendered_children
+    fn to_flat_dast(&self, _: &Vec<Rc<RefCell<ComponentEnum>>>) -> FlatDastElement {
+        let text_value = self
+            .rendered_state_variables
+            .value
+            .get_fresh_value()
+            .to_string();
+
+        let rendered_children = vec![FlatDastElementContent::Text(text_value)];
+
+        FlatDastElement {
+            name: self.get_component_type().to_string(),
+            attributes: HashMap::new(),
+            children: rendered_children,
+            data: Some(ElementData {
+                id: self.get_idx(),
+                ..Default::default()
+            }),
+            position: self.get_position().cloned(),
+        }
     }
 }
 #[derive(Debug)]

@@ -34,7 +34,7 @@ pub enum ComponentEnum {
     _External(_External),
 }
 
-pub trait ComponentNode: RenderedComponentNode {
+pub trait ComponentNode {
     fn get_idx(&self) -> ComponentIdx;
     fn set_idx(&mut self, idx: ComponentIdx);
     fn get_parent(&self) -> Option<ComponentIdx>;
@@ -62,7 +62,12 @@ pub trait ComponentNode: RenderedComponentNode {
     fn set_position(&mut self, position: Option<DastPosition>);
 
     fn get_component_profile_state_variables(&self) -> &Vec<ComponentProfileStateVariables>;
+}
 
+pub trait RenderedComponentNode: ComponentNode {
+    fn get_rendered_children(&self) -> &Vec<ComponentChild> {
+        self.get_children()
+    }
     fn to_flat_dast(&self, components: &Vec<Rc<RefCell<ComponentEnum>>>) -> FlatDastElement {
         // if extending a source that is a component,
         // add children from that source first
@@ -111,10 +116,6 @@ pub trait ComponentNode: RenderedComponentNode {
             position: self.get_position().cloned(),
         }
     }
-}
-
-pub trait RenderedComponentNode {
-    fn get_rendered_children(&self) -> &Vec<ComponentChild>;
 }
 
 pub trait ComponentNodeBase {

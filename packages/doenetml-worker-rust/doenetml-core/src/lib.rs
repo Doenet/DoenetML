@@ -1,6 +1,8 @@
 use std::{cell::RefCell, collections::HashMap, rc::Rc, str::FromStr};
 
-use component::{ComponentEnum, ComponentNode, _error::_Error, _external::_External};
+use component::{
+    ComponentEnum, ComponentNode, RenderedComponentNode, _error::_Error, _external::_External,
+};
 use dast::{
     DastElementContent, DastError, DastFunctionMacro, DastMacro, DastRoot, DastWarning,
     FlatDastElement, FlatDastElementContent, FlatDastRoot, PathPart, Position as DastPosition,

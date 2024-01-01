@@ -27,9 +27,9 @@ strum_macros = "0.25"
 [dev-dependencies]
 criterion = "0.3.6"
 
-[[bench]]
-name = "my_benchmark"
-harness = false
+# [[bench]]
+# name = "my_benchmark"
+# harness = false
 
 
 

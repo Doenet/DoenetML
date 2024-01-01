@@ -149,7 +149,6 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
             let mut get_position_variant_arms = Vec::new();
             let mut set_position_variant_arms = Vec::new();
             let mut get_component_profile_state_variables_variant_arms = Vec::new();
-            let mut to_flat_dast_variant_arms = Vec::new();
 
             for variant in variants {
                 let variant_ident = &variant.ident;
@@ -251,12 +250,6 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                 get_component_profile_state_variables_variant_arms.push(quote! {
                     #enum_ident::#variant_ident(comp) => {
                         comp.get_component_profile_state_variables()
-                    },
-                });
-
-                to_flat_dast_variant_arms.push(quote! {
-                    #enum_ident::#variant_ident(comp) => {
-                        comp.to_flat_dast(components)
                     },
                 });
             }
@@ -368,12 +361,6 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                             #(#get_component_profile_state_variables_variant_arms)*
                         }
                     }
-
-                    fn to_flat_dast(&self, components: &Vec<Rc<RefCell<ComponentEnum>>>) -> FlatDastElement {
-                        match self {
-                            #(#to_flat_dast_variant_arms)*
-                        }
-                    }
                 }
             }
         }
@@ -392,9 +379,7 @@ pub fn rendered_component_node_derive(input: TokenStream) -> TokenStream {
             syn::Fields::Named(FieldsNamed { .. }) => {
                 quote! {
                     impl RenderedComponentNode for #name {
-                        fn get_rendered_children(&self) -> &Vec<ComponentChild> {
-                            &self.children
-                        }
+                        // using default implementations for all traits so no code necessary here
                     }
                 }
             }
@@ -405,6 +390,7 @@ pub fn rendered_component_node_derive(input: TokenStream) -> TokenStream {
             let enum_ident = name;
 
             let mut get_rendered_children_variant_arms = Vec::new();
+            let mut to_flat_dast_variant_arms = Vec::new();
 
             for variant in variants {
                 let variant_ident = &variant.ident;
@@ -414,16 +400,27 @@ pub fn rendered_component_node_derive(input: TokenStream) -> TokenStream {
                         comp.get_rendered_children()
                     },
                 });
+
+                to_flat_dast_variant_arms.push(quote! {
+                    #enum_ident::#variant_ident(comp) => {
+                        comp.to_flat_dast(components)
+                    },
+                });
             }
 
             quote! {
 
                 impl RenderedComponentNode for #enum_ident {
 
-
                     fn get_rendered_children(&self) -> &Vec<ComponentChild> {
                         match self {
                             #(#get_rendered_children_variant_arms)*
+                        }
+                    }
+
+                    fn to_flat_dast(&self, components: &Vec<Rc<RefCell<ComponentEnum>>>) -> FlatDastElement {
+                        match self {
+                            #(#to_flat_dast_variant_arms)*
                         }
                     }
 
