@@ -9,12 +9,12 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
-use doenetml_derive::{ComponentNode, ComponentStateVariables, RenderedComponentNode};
+use doenetml_derive::{ComponentNode, RenderedComponentNode};
 use strum_macros::EnumString;
 
 use crate::dast::{ElementData, FlatDastElement, FlatDastElementContent, Position as DastPosition};
-use crate::state::{StateVarReadOnlyView, StateVarReadOnlyViewTyped, StateVarReference};
-use crate::{ComponentChild, ComponentIdx, ExtendSource, StateVarIdx};
+use crate::state::{StateVar, StateVarReadOnlyViewTyped};
+use crate::{ComponentChild, ComponentIdx, ExtendSource};
 
 use self::_error::_Error;
 use self::_external::_External;
@@ -61,6 +61,7 @@ pub trait ComponentNode {
     fn get_position(&self) -> Option<&DastPosition>;
     fn set_position(&mut self, position: Option<DastPosition>);
 
+    fn get_state_variables(&mut self) -> &mut Vec<StateVar>;
     fn get_component_profile_state_variables(&self) -> &Vec<ComponentProfileStateVariables>;
 }
 
@@ -120,22 +121,6 @@ pub trait RenderedComponentNode: ComponentNode {
 
 pub trait ComponentNodeBase {
     fn initialize_state_variables(&mut self);
-}
-
-pub trait ComponentStateVariables {
-    fn get_num_state_variables(&self) -> usize;
-
-    fn state_var_name_to_idx(&self, var_name: &str) -> Option<StateVarIdx>;
-
-    fn state_var_idx_to_state_var(
-        &mut self,
-        state_var_idx: StateVarIdx,
-    ) -> Option<StateVarReference>;
-
-    // fn create_new_read_only_view_from_state_var_idx(
-    //     &self,
-    //     state_var_idx: StateVarIdx,
-    // ) -> StateVarReadOnlyView;
 }
 
 #[derive(Debug)]

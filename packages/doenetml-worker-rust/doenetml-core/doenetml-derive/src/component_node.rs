@@ -1,8 +1,7 @@
 use convert_case::{Case, Casing};
 use proc_macro::TokenStream;
-use proc_macro2::Span;
 use quote::quote;
-use syn::{self, FieldsNamed, Ident};
+use syn::{self, FieldsNamed};
 
 /// Implement the ComponentNode trait for enums and structs
 /// assuming they have the correct format.
@@ -26,24 +25,7 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
 
     let output = match data {
         syn::Data::Struct(s) => match &s.fields {
-            syn::Fields::Named(FieldsNamed { named, .. }) => {
-                // Get names of fields of type StateVar struct
-                let state_var_fields = named
-                    .iter()
-                    .filter(|f| match &f.ty {
-                        syn::Type::Path(type_path) => {
-                            let type_name = &type_path.path.segments[0].ident;
-                            type_name == "StateVar"
-                        }
-                        _ => false,
-                    })
-                    .map(|f| &f.ident);
-
-                // Convert string names to camel case
-                let state_var_strings = state_var_fields
-                    .clone()
-                    .map(|x| x.clone().map(ident_camel_case));
-
+            syn::Fields::Named(FieldsNamed { .. }) => {
                 // Convert struct name to camel case, preserving any initial '_'
                 let mut component_string = name.to_string();
                 if component_string.starts_with("_") {
@@ -107,6 +89,10 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                             self.position = position;
                         }
 
+                        fn get_state_variables(&mut self) -> &mut Vec<StateVar> {
+                            &mut self.state_variables
+                        }
+
                         fn get_component_profile_state_variables(&self)  -> &Vec<ComponentProfileStateVariables> {
                             &self.component_profile_state_variables
                         }
@@ -115,14 +101,6 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                         //     &self.essential_state_vars
                         // }
 
-                        // fn get_state_var(&self, name: StateVarName) -> Option<&StateVar> {
-                        //     match name {
-                        //         #(
-                        //             stringify!(#state_var_strings) => Some(&self.#state_var_fields),
-                        //         )*
-                        //         _ => None,
-                        //     }
-                        // }
                     }
                 }
             }
@@ -148,6 +126,7 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
             let mut get_descendant_matches_variant_arms = Vec::new();
             let mut get_position_variant_arms = Vec::new();
             let mut set_position_variant_arms = Vec::new();
+            let mut get_state_variables_variant_arms = Vec::new();
             let mut get_component_profile_state_variables_variant_arms = Vec::new();
 
             for variant in variants {
@@ -244,6 +223,12 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                 set_position_variant_arms.push(quote! {
                     #enum_ident::#variant_ident(ref mut comp) => {
                         comp.set_position(position);
+                    },
+                });
+
+                get_state_variables_variant_arms.push(quote! {
+                    #enum_ident::#variant_ident(ref mut comp) => {
+                        comp.get_state_variables()
                     },
                 });
 
@@ -356,6 +341,12 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                         }
                     }
 
+                    fn get_state_variables(&mut self) -> &mut Vec<StateVar>{
+                        match self {
+                            #(#get_state_variables_variant_arms)*
+                        }
+                    }
+
                     fn get_component_profile_state_variables(&self) -> &Vec<ComponentProfileStateVariables> {
                         match self {
                             #(#get_component_profile_state_variables_variant_arms)*
@@ -430,8 +421,4 @@ pub fn rendered_component_node_derive(input: TokenStream) -> TokenStream {
         _ => panic!("only structs and enums supported"),
     };
     output.into()
-}
-
-fn ident_camel_case(ident: Ident) -> Ident {
-    Ident::new(&ident.to_string().to_case(Case::Camel), Span::call_site())
 }

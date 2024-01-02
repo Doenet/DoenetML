@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use crate::dast::Position as DastPosition;
+use crate::state::StateVar;
 use crate::{ComponentChild, ComponentIdx, ExtendSource};
 
 use super::{ComponentNode, ComponentProfileStateVariables, RenderedComponentNode};
@@ -15,6 +16,8 @@ pub struct _External {
     pub descendant_names: HashMap<String, Vec<ComponentIdx>>,
 
     pub position: Option<DastPosition>,
+
+    pub state_variables: Vec<StateVar>,
 
     pub component_profile_state_variables: Vec<ComponentProfileStateVariables>,
 
@@ -78,6 +81,10 @@ impl ComponentNode for _External {
 
     fn set_position(&mut self, position: Option<DastPosition>) {
         self.position = position;
+    }
+
+    fn get_state_variables(&mut self) -> &mut Vec<StateVar> {
+        &mut self.state_variables
     }
 
     fn get_component_profile_state_variables(&self) -> &Vec<ComponentProfileStateVariables> {

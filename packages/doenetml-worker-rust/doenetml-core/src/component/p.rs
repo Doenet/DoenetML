@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use crate::dast::Position as DastPosition;
+use crate::state::StateVar;
 use crate::{ComponentChild, ComponentIdx, ExtendSource};
 
 use super::{ComponentNode, ComponentProfileStateVariables, RenderedComponentNode};
@@ -17,6 +18,8 @@ pub struct P {
     pub descendant_names: HashMap<String, Vec<ComponentIdx>>,
 
     pub position: Option<DastPosition>,
+
+    pub state_variables: Vec<StateVar>,
 
     pub component_profile_state_variables: Vec<ComponentProfileStateVariables>,
 }

@@ -6,14 +6,14 @@ use crate::component::ComponentProfile;
 use crate::dast::{ElementData, FlatDastElement, FlatDastElementContent, Position as DastPosition};
 use crate::dependency::{Dependency, DependencyInstruction};
 use crate::state::{
-    StateVarInterface, StateVarMutableViewTyped, StateVarParameters, StateVarReadOnlyView,
-    StateVarReadOnlyViewTyped, StateVarReference, StateVarTyped,
+    StateVar, StateVarInterface, StateVarMutableViewTyped, StateVarParameters,
+    StateVarReadOnlyView, StateVarReadOnlyViewTyped, StateVarTyped,
 };
 use crate::{ComponentChild, ComponentIdx, ExtendSource};
 
 use super::{
     ComponentEnum, ComponentNode, ComponentNodeBase, ComponentProfileStateVariables,
-    ComponentStateVariables, RenderedComponentNode,
+    RenderedComponentNode,
 };
 
 #[derive(Debug, Default, ComponentNode)]
@@ -21,7 +21,6 @@ pub struct Text {
     pub idx: ComponentIdx,
     pub parent: Option<ComponentIdx>,
     pub children: Vec<ComponentChild>,
-    pub no_rendered_children: Vec<ComponentChild>,
 
     pub extend: Option<ExtendSource>,
 
@@ -30,16 +29,18 @@ pub struct Text {
 
     pub position: Option<DastPosition>,
 
-    pub component_profile_state_variables: Vec<ComponentProfileStateVariables>,
+    pub state_variables: Vec<StateVar>,
 
-    pub state_variables: TextStateVariables,
+    pub value_state_var_view: StateVarReadOnlyViewTyped<String>,
+
+    pub component_profile_state_variables: Vec<ComponentProfileStateVariables>,
 
     pub renderer_data: TextRendererData,
 }
 
 impl RenderedComponentNode for Text {
     fn to_flat_dast(&self, _: &Vec<Rc<RefCell<ComponentEnum>>>) -> FlatDastElement {
-        let text_value = self.state_variables.value.get_fresh_value().to_string();
+        let text_value = self.value_state_var_view.get_fresh_value().to_string();
 
         let rendered_children = vec![FlatDastElementContent::Text(text_value)];
 
@@ -56,14 +57,6 @@ impl RenderedComponentNode for Text {
     }
 }
 
-// #[derive(Debug)]
-#[derive(Debug, ComponentStateVariables)]
-#[state_variables_for_component(Text)]
-pub struct TextStateVariables {
-    pub value: StateVarTyped<String>,
-    pub text: StateVarTyped<String>,
-}
-
 #[derive(Debug, Default)]
 pub struct TextRendererData {
     pub id: ComponentIdx,
@@ -72,43 +65,46 @@ pub struct TextRendererData {
 
 impl ComponentNodeBase for Text {
     fn initialize_state_variables(&mut self) {
+        ///////////////////////
+        // Value state variable
+        ///////////////////////
+        let value_state_variable = StateVarTyped::new(
+            Box::new(ValueStateVarInterface::default()),
+            StateVarParameters {
+                for_renderer: true,
+                name: "value",
+                ..Default::default()
+            },
+        );
+
+        // save a view to field for easy access when create flat dast
+        self.value_state_var_view = value_state_variable.create_new_read_only_view();
+
+        // Use the value state variable for fulling the text component profile
         self.component_profile_state_variables = vec![ComponentProfileStateVariables::Text(
-            self.state_variables.value.create_new_read_only_view(),
-        )]
+            value_state_variable.create_new_read_only_view(),
+        )];
+        self.state_variables
+            .push(StateVar::String(value_state_variable));
+
+        //////////////////////
+        // Text state variable
+        //////////////////////
+        let text_state_variable = StateVarTyped::new(
+            Box::new(TextStateVarInterface::default()),
+            StateVarParameters {
+                name: "value",
+                ..Default::default()
+            },
+        );
+        self.state_variables
+            .push(StateVar::String(text_state_variable));
     }
 }
 
-impl Default for TextStateVariables {
-    fn default() -> Self {
-        TextStateVariables {
-            value: StateVarTyped::new(
-                Box::new(ValueStateVarInterface::new()),
-                StateVarParameters {
-                    for_renderer: true,
-                    ..Default::default()
-                },
-            ),
-            text: StateVarTyped::new(
-                Box::new(TextStateVarInterface::new()),
-                StateVarParameters {
-                    ..Default::default()
-                },
-            ),
-        }
-    }
-}
-
-#[derive(Debug)]
+#[derive(Debug, Default)]
 struct ValueStateVarInterface {
     string_child_values: Vec<StateVarReadOnlyViewTyped<String>>,
-}
-
-impl ValueStateVarInterface {
-    pub fn new() -> Self {
-        ValueStateVarInterface {
-            string_child_values: Vec::new(),
-        }
-    }
 }
 
 impl StateVarInterface<String> for ValueStateVarInterface {
@@ -156,17 +152,9 @@ impl StateVarInterface<String> for ValueStateVarInterface {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 struct TextStateVarInterface {
     value_sv: StateVarReadOnlyViewTyped<String>,
-}
-
-impl TextStateVarInterface {
-    pub fn new() -> Self {
-        TextStateVarInterface {
-            value_sv: StateVarReadOnlyViewTyped::new(),
-        }
-    }
 }
 
 impl StateVarInterface<String> for TextStateVarInterface {

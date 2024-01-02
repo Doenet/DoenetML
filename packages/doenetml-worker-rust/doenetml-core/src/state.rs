@@ -115,6 +115,7 @@ pub trait StateVarInterface<T: Default + Clone>: std::fmt::Debug {
 pub struct StateVarParameters<T> {
     pub for_renderer: bool,
     pub initial_essential_value: T,
+    pub name: &'static str,
 }
 
 /// A mutable view of the value of the state variable.
@@ -410,24 +411,6 @@ impl<T: Default + Clone> StateVarMutableViewTyped<T> {
 }
 
 impl<T: Default + Clone> StateVarReadOnlyViewTyped<T> {
-    /// Create a new unresolved StateVarReadOnlyViewTyped
-    ///
-    /// Although this state variable could never become resolved (as there is no mutable view),
-    /// we need this unresolved state variable as a placeholder to initialize fields
-    /// so that we don't need to add unnecessary Options.
-    pub fn new() -> Self {
-        StateVarReadOnlyViewTyped {
-            inner: Rc::new(RefCell::new(StateVarInner {
-                value: T::default(),
-                freshness: Freshness::Unresolved,
-                requested_value: T::default(),
-                used_default: false,
-                change_counter: 1, // Note: start at 1 so starts out indicating it changed
-            })),
-            change_counter_when_last_viewed: 0,
-        }
-    }
-
     /// Determine if the state variable has changed
     /// since we last called *get_fresh_value_record_viewed*.
     ///
@@ -503,6 +486,21 @@ impl<T: Default + Clone> StateVarReadOnlyViewTyped<T> {
     /// Get a reference to the current *requested_value* field
     pub fn get_requested_value<'a>(&'a self) -> impl Deref<Target = T> + 'a {
         Ref::map(self.inner.borrow(), |v| v.get_requested_value())
+    }
+}
+
+impl<T: Default + Clone> Default for StateVarReadOnlyViewTyped<T> {
+    fn default() -> Self {
+        StateVarReadOnlyViewTyped {
+            inner: Rc::new(RefCell::new(StateVarInner {
+                value: T::default(),
+                freshness: Freshness::Unresolved,
+                requested_value: T::default(),
+                used_default: false,
+                change_counter: 1, // Note: start at 1 so starts out indicating it changed
+            })),
+            change_counter_when_last_viewed: 0,
+        }
     }
 }
 
@@ -683,17 +681,16 @@ impl<T: Default + Clone> StateVarTyped<T> {
 // Particularly useful for having vectors of mixed type
 ///////////////////////////////////////////////////////////////////////
 
-/// An untyped, mutable reference to the entire *StateVarTyped* structure,
-/// in particular, to the methods of *StateVarInterface*.
+/// The base structure for a state variable.
 ///
-/// Unlike the state variable views, a *StateVarReference* should not live long
-/// as it prevents any other reference to the StateVarTyped.
+/// Provides access to the *StateVarInterface* methods
+/// as well as methods view and change the variable.
 #[derive(StateVarMethods)]
-pub enum StateVarReference<'a> {
-    Number(&'a mut StateVarTyped<f64>),
-    Integer(&'a mut StateVarTyped<i64>),
-    String(&'a mut StateVarTyped<String>),
-    Boolean(&'a mut StateVarTyped<bool>),
+pub enum StateVar {
+    Number(StateVarTyped<f64>),
+    Integer(StateVarTyped<i64>),
+    String(StateVarTyped<String>),
+    Boolean(StateVarTyped<bool>),
 }
 
 /// An untyped, mutable view of the value of the state variable.
@@ -727,7 +724,7 @@ pub enum StateVarValue {
     Boolean(bool),
 }
 
-impl<'a> fmt::Debug for StateVarReference<'a> {
+impl fmt::Debug for StateVar {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.get_freshness() {
             Freshness::Fresh => self.get_fresh_value().fmt(f),

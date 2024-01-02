@@ -1,6 +1,6 @@
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{self, Fields, FieldsUnnamed, Type, TypeReference};
+use syn::{self, Fields, FieldsUnnamed};
 
 use crate::util::find_type_from_state_var_typed;
 
@@ -11,12 +11,11 @@ use crate::util::find_type_from_state_var_typed;
 // For now, we have separate derive macros for StateVarMutableView and StateVarReadOnlyView,
 // and we have directly coded methods for StateVarValue
 
-/// Implement methods on the StateVarReference enum
+/// Implement methods on the StateVar enum
 pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
     let ast: syn::DeriveInput = syn::parse(input).unwrap();
     let name = &ast.ident;
     let data = &ast.data;
-    let generics = &ast.generics;
 
     // eprintln!("save var methods derive {:#?}", ast);
 
@@ -44,62 +43,48 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
             let mut state_var_return_for_renderer_arms = Vec::new();
             let mut state_var_return_initial_essential_value_arms = Vec::new();
 
-            let mut impl_from_state_var_typed_variants = Vec::new();
             let mut impl_try_from_state_var_value_to_state_var_typed_variants = Vec::new();
 
             for variant in variants {
                 let variant_ident = &variant.ident;
 
                 if let Fields::Unnamed(FieldsUnnamed { unnamed, .. }) = &variant.fields {
-                    let ty = &unnamed[0].ty;
-                    if let Type::Reference(TypeReference { elem, .. }) = ty {
-                        if let Some(state_var_type) = find_type_from_state_var_typed(elem) {
-                            impl_from_state_var_typed_variants.push(quote! {
-                                impl<'a> From<&'a mut StateVarTyped<#state_var_type>> for StateVarReference<'a> {
-                                    fn from(value: &'a mut StateVarTyped<#state_var_type>) -> Self {
-                                        StateVarReference::#variant_ident(value)
+                    if let Some(state_var_type) = find_type_from_state_var_typed(&unnamed[0].ty) {
+                        let mut try_from_variant_arms = Vec::new();
+
+                        for variant2 in variants {
+                            let variant2_ident = &variant2.ident;
+
+                            if variant2_ident == variant_ident {
+                                try_from_variant_arms.push(quote! {
+                                    StateVarValue::#variant2_ident(x) => Ok(x.clone()),
+                                });
+                            } else {
+                                let err_msg = &format!(
+                                    "Cannot convert StateVarValue::{} to {}",
+                                    &variant2_ident.to_string(),
+                                    &state_var_type.to_string()
+                                );
+                                try_from_variant_arms.push(quote! {
+                                    StateVarValue::#variant2_ident(_) => Err(#err_msg),
+                                });
+                            }
+                        }
+
+                        impl_try_from_state_var_value_to_state_var_typed_variants.push(quote! {
+                            impl TryFrom<StateVarValue> for #state_var_type {
+                                type Error = &'static str;
+                                fn try_from(v: StateVarValue) -> Result<Self, Self::Error> {
+                                    match v {
+                                        #(#try_from_variant_arms)*
                                     }
-                                }
-                            });
-
-                            let mut try_from_variant_arms = Vec::new();
-
-                            for variant2 in variants {
-                                let variant2_ident = &variant2.ident;
-
-                                if variant2_ident == variant_ident {
-                                    try_from_variant_arms.push(quote! {
-                                        StateVarValue::#variant2_ident(x) => Ok(x.clone()),
-                                    });
-                                } else {
-                                    let err_msg = &format!(
-                                        "Cannot convert StateVarValue::{} to {}",
-                                        &variant2_ident.to_string(),
-                                        &state_var_type.to_string()
-                                    );
-                                    try_from_variant_arms.push(quote! {
-                                        StateVarValue::#variant2_ident(_) => Err(#err_msg),
-                                    });
                                 }
                             }
-
-                            impl_try_from_state_var_value_to_state_var_typed_variants.push(
-                                quote! {
-                                    impl TryFrom<StateVarValue> for #state_var_type {
-                                        type Error = &'static str;
-                                        fn try_from(v: StateVarValue) -> Result<Self, Self::Error> {
-                                            match v {
-                                                #(#try_from_variant_arms)*
-                                            }
-                                        }
-                                    }
-                                },
-                            );
-                        }
+                        });
                     }
                 }
 
-                // arms for StateVarReference
+                // arms for StateVar
 
                 state_var_mark_stale_arms.push(quote! {
                     #enum_ident::#variant_ident(sv_typed) => {
@@ -213,11 +198,9 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
 
             quote! {
 
-                #(#impl_from_state_var_typed_variants)*
-
                 #(#impl_try_from_state_var_value_to_state_var_typed_variants)*
 
-                impl #generics #enum_ident #generics{
+                impl #enum_ident {
                     pub fn mark_stale(&mut self) {
                         match self {
                             #(#state_var_mark_stale_arms)*
@@ -242,7 +225,7 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
                         }
                     }
 
-                    pub fn create_read_only_view(&self) -> StateVarReadOnlyView {
+                    pub fn create_new_read_only_view(&self) -> StateVarReadOnlyView {
                         match self {
                             #(#state_var_create_read_only_view_arms)*
                         }
@@ -435,7 +418,7 @@ pub fn state_var_mutable_view_methods_derive(input: TokenStream) -> TokenStream 
                             #(#state_var_mutable_view_get_used_default_arms)*
                         }
                     }
-                    pub fn create_read_only_view(&self) -> StateVarReadOnlyView {
+                    pub fn create_new_read_only_view(&self) -> StateVarReadOnlyView {
                         match self {
                             #(#state_var_mutable_view_create_read_only_view_arms)*
                         }

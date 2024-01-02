@@ -4,8 +4,8 @@ use component::{
     ComponentEnum, ComponentNode, RenderedComponentNode, _error::_Error, _external::_External,
 };
 use dast::{
-    DastElementContent, DastError, DastFunctionMacro, DastMacro, DastRoot, DastWarning,
-    FlatDastElement, FlatDastElementContent, FlatDastRoot, PathPart, Position as DastPosition,
+    DastElementContent, DastFunctionMacro, DastMacro, DastRoot, DastWarning, FlatDastElement,
+    FlatDastElementContent, FlatDastRoot, PathPart, Position as DastPosition,
 };
 
 use dependency::Dependency;
@@ -165,7 +165,7 @@ pub enum ExtendSource {
 pub fn create_doenetml_core(
     dast_json: &str,
     source: &str,
-    flags_json: &str,
+    _flags_json: &str,
 ) -> Result<DoenetMLCore, String> {
     let dast_root: DastRoot = serde_json::from_str(dast_json).expect("Error extracting dast");
 
@@ -337,7 +337,7 @@ fn replace_macro_referents(
                     child
                 }
                 ComponentChild::Macro(ref dast_macro) => {
-                    if let Some((matched_ind, path_remainder)) =
+                    if let Some((matched_ind, _path_remainder)) =
                         match_name_reference(&components, &dast_macro.path, component_idx)
                     {
                         let new_ind = components.len();
