@@ -9,7 +9,7 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
-use doenetml_derive::{ComponentNode, RenderedComponentNode};
+use doenetml_derive::{ComponentNode, ComponentNodeStateVariables, RenderedComponentNode};
 use strum_macros::EnumString;
 
 use crate::dast::{ElementData, FlatDastElement, FlatDastElementContent, Position as DastPosition};
@@ -23,7 +23,7 @@ use self::p::P;
 use self::section::Section;
 use self::text::Text;
 
-#[derive(Debug, EnumString, ComponentNode, RenderedComponentNode)]
+#[derive(Debug, EnumString, ComponentNode, ComponentNodeStateVariables, RenderedComponentNode)]
 #[strum(ascii_case_insensitive)]
 pub enum ComponentEnum {
     Text(Text),
@@ -34,7 +34,7 @@ pub enum ComponentEnum {
     _External(_External),
 }
 
-pub trait ComponentNode {
+pub trait ComponentNode: ComponentNodeStateVariables {
     fn get_idx(&self) -> ComponentIdx;
     fn set_idx(&mut self, idx: ComponentIdx);
     fn get_parent(&self) -> Option<ComponentIdx>;
@@ -119,8 +119,8 @@ pub trait RenderedComponentNode: ComponentNode {
     }
 }
 
-pub trait ComponentNodeBase {
-    fn initialize_state_variables(&mut self);
+pub trait ComponentNodeStateVariables {
+    fn initialize_state_variables(&mut self) {}
 }
 
 #[derive(Debug)]

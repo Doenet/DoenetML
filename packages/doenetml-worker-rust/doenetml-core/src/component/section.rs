@@ -4,7 +4,10 @@ use crate::dast::Position as DastPosition;
 use crate::state::StateVar;
 use crate::{ComponentChild, ComponentIdx, ExtendSource};
 
-use super::{ComponentNode, ComponentProfileStateVariables, RenderedComponentNode};
+use super::{
+    ComponentNode, ComponentNodeStateVariables, ComponentProfileStateVariables,
+    RenderedComponentNode,
+};
 
 #[derive(Debug, Default, ComponentNode, RenderedComponentNode)]
 pub struct Section {
@@ -22,4 +25,8 @@ pub struct Section {
     pub state_variables: Vec<StateVar>,
 
     pub component_profile_state_variables: Vec<ComponentProfileStateVariables>,
+}
+
+impl ComponentNodeStateVariables for Section {
+    fn initialize_state_variables(&mut self) {}
 }

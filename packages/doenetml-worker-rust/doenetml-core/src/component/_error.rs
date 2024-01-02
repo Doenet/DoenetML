@@ -4,9 +4,12 @@ use crate::dast::Position as DastPosition;
 use crate::state::StateVar;
 use crate::{ComponentChild, ComponentIdx, ExtendSource};
 
-use super::{ComponentNode, ComponentProfileStateVariables, RenderedComponentNode};
+use super::{
+    ComponentNode, ComponentNodeStateVariables, ComponentProfileStateVariables,
+    RenderedComponentNode,
+};
 
-#[derive(Debug, Default, ComponentNode, RenderedComponentNode)]
+#[derive(Debug, Default, ComponentNode, ComponentNodeStateVariables, RenderedComponentNode)]
 pub struct _Error {
     pub idx: ComponentIdx,
     pub parent: Option<ComponentIdx>,

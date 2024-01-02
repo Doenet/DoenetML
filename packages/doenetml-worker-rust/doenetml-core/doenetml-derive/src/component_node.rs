@@ -422,3 +422,53 @@ pub fn rendered_component_node_derive(input: TokenStream) -> TokenStream {
     };
     output.into()
 }
+
+pub fn component_node_state_variables_derive(input: TokenStream) -> TokenStream {
+    let ast: syn::DeriveInput = syn::parse(input).unwrap();
+    let name = &ast.ident;
+    let data = &ast.data;
+
+    let output = match data {
+        syn::Data::Struct(s) => match &s.fields {
+            syn::Fields::Named(FieldsNamed { .. }) => {
+                quote! {
+                    impl ComponentNodeStateVariables for #name {
+                        // using default implementations for all traits so no code necessary here
+                    }
+                }
+            }
+            _ => panic!("only named fields supported"),
+        },
+        syn::Data::Enum(v) => {
+            let variants = &v.variants;
+            let enum_ident = name;
+
+            let mut initialize_state_variables_variant_arms = Vec::new();
+
+            for variant in variants {
+                let variant_ident = &variant.ident;
+
+                initialize_state_variables_variant_arms.push(quote! {
+                    #enum_ident::#variant_ident(comp) => {
+                        comp.initialize_state_variables()
+                    },
+                });
+            }
+
+            quote! {
+
+                impl ComponentNodeStateVariables for #enum_ident {
+
+                    fn initialize_state_variables(&mut self) {
+                        match self {
+                            #(#initialize_state_variables_variant_arms)*
+                        }
+                    }
+
+                }
+            }
+        }
+        _ => panic!("only structs and enums supported"),
+    };
+    output.into()
+}

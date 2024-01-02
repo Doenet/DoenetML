@@ -12,7 +12,7 @@ use crate::state::{
 use crate::{ComponentChild, ComponentIdx, ExtendSource};
 
 use super::{
-    ComponentEnum, ComponentNode, ComponentNodeBase, ComponentProfileStateVariables,
+    ComponentEnum, ComponentNode, ComponentNodeStateVariables, ComponentProfileStateVariables,
     RenderedComponentNode,
 };
 
@@ -63,7 +63,7 @@ pub struct TextRendererData {
     pub value: String,
 }
 
-impl ComponentNodeBase for Text {
+impl ComponentNodeStateVariables for Text {
     fn initialize_state_variables(&mut self) {
         ///////////////////////
         // Value state variable
