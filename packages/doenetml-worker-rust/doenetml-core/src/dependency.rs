@@ -1,6 +1,7 @@
 use crate::{
     component::ComponentProfile,
     state::{StateVarName, StateVarReadOnlyView},
+    StateVarIdx,
 };
 
 /// A DependencyInstruction is used to make a Dependency based on the input document structure
@@ -43,7 +44,7 @@ pub enum DependencyInstruction {
 pub enum DependencySource {
     StateVar {
         // component_type: ComponentType,
-        state_var_ind: usize,
+        state_var_idx: StateVarIdx,
     },
     Essential {
         value_type: &'static str,

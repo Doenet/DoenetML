@@ -9,7 +9,7 @@ use doenetml_derive::{StateVarMethods, StateVarMutableViewMethods, StateVarReadO
 
 use crate::dependency::{Dependency, DependencyInstruction, UpdatesRequested};
 
-/// The name (camelCase) of a state variable    
+/// The name (snake_case) of a state variable    
 pub type StateVarName = &'static str;
 
 /// The possible values of the freshness of a state variable.
@@ -115,7 +115,6 @@ pub trait StateVarInterface<T: Default + Clone>: std::fmt::Debug {
 pub struct StateVarParameters<T> {
     pub for_renderer: bool,
     pub initial_essential_value: T,
-    pub name: &'static str,
 }
 
 /// A mutable view of the value of the state variable.
@@ -617,7 +616,7 @@ impl<T: Default + Clone> StateVarTyped<T> {
     }
 
     /// Convenience function to call *calculate_state_var_from_dependencies* on interface
-    fn calculate_state_var_from_dependencies(&mut self) -> () {
+    fn calculate_state_var_from_dependencies(&self) -> () {
         self.interface
             .calculate_state_var_from_dependencies(&self.value)
     }
@@ -633,10 +632,10 @@ impl<T: Default + Clone> StateVarTyped<T> {
         )
     }
 
-    /// Get name of the state variable
-    fn get_name(&self) -> &'static str {
-        self.parameters.name
-    }
+    // /// Get name of the state variable
+    // fn get_name(&self) -> &'static str {
+    //     self.parameters.name
+    // }
 
     /// Return whether or not this state variable value should be sent to the renderer
     fn return_for_renderer(&self) -> bool {
@@ -678,18 +677,27 @@ impl<T: Default + Clone> StateVarTyped<T> {
     }
 }
 
+///////////////////////////////////////////////////////////////////////
 // State variable enum views that allow one to refer to state variables
 // without specifying type.
 // Particularly useful for having vectors of mixed type
+///////////////////////////////////////////////////////////////////////
 
+/// An untyped, mutable reference to the entire *StateVarTyped* structure,
+/// in particular, to the methods of *StateVarInterface*.
+///
+/// Unlike the state variable views, a *StateVarReference* should not live long
+/// as it prevents any other reference to the StateVarTyped.
 #[derive(StateVarMethods)]
-pub enum StateVar {
-    Number(StateVarTyped<f64>),
-    Integer(StateVarTyped<i64>),
-    String(StateVarTyped<String>),
-    Boolean(StateVarTyped<bool>),
+pub enum StateVarReference<'a> {
+    Number(&'a mut StateVarTyped<f64>),
+    Integer(&'a mut StateVarTyped<i64>),
+    String(&'a mut StateVarTyped<String>),
+    Boolean(&'a mut StateVarTyped<bool>),
 }
 
+/// An untyped, mutable view of the value of the state variable.
+/// It includes methods that allow one to view and change the variable.
 #[derive(StateVarMutableViewMethods)]
 pub enum StateVarMutableView {
     Number(StateVarMutableViewTyped<f64>),
@@ -698,6 +706,8 @@ pub enum StateVarMutableView {
     Boolean(StateVarMutableViewTyped<bool>),
 }
 
+/// An untyped, read-only view of the value of the state variable.
+/// It includes methods that allow one to view the variable.
 #[derive(StateVarReadOnlyViewMethods)]
 pub enum StateVarReadOnlyView {
     Number(StateVarReadOnlyViewTyped<f64>),
@@ -706,7 +716,18 @@ pub enum StateVarReadOnlyView {
     Boolean(StateVarReadOnlyViewTyped<bool>),
 }
 
-impl fmt::Debug for StateVar {
+/// This can contain the value of a state variable of any type,
+/// which is useful for function parameters.
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
+#[serde(untagged)]
+pub enum StateVarValue {
+    String(String),
+    Number(f64),
+    Integer(i64),
+    Boolean(bool),
+}
+
+impl<'a> fmt::Debug for StateVarReference<'a> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.get_freshness() {
             Freshness::Fresh => self.get_fresh_value().fmt(f),
@@ -732,66 +753,6 @@ impl fmt::Debug for StateVarReadOnlyView {
             Freshness::Fresh => self.get_fresh_value().fmt(f),
             Freshness::Stale => f.write_str("Stale"),
             Freshness::Unresolved => f.write_str("Unresolved"),
-        }
-    }
-}
-
-/// This can contain the value of a state variable of any type,
-/// which is useful for function parameters.
-#[derive(Debug, Clone, PartialEq, serde::Serialize)]
-#[serde(untagged)]
-pub enum StateVarValue {
-    String(String),
-    Number(f64),
-    Integer(i64),
-    Boolean(bool),
-}
-
-// Note: these TryFrom traits are needed for current implementation
-// of request_change_value_to on StateVar, etc.
-// TODO: add these via procedural macro
-
-impl TryFrom<StateVarValue> for String {
-    type Error = &'static str;
-    fn try_from(v: StateVarValue) -> Result<Self, Self::Error> {
-        match v {
-            StateVarValue::String(x) => Ok(x.to_string()),
-            StateVarValue::Number(_) => Err("cannot convert StateVarValue::Number to string"),
-            StateVarValue::Integer(_) => Err("cannot convert StateVarValue::Integer to string"),
-            StateVarValue::Boolean(_) => Err("cannot convert StateVarValue::Boolean to string"),
-        }
-    }
-}
-impl TryFrom<StateVarValue> for f64 {
-    type Error = &'static str;
-    fn try_from(v: StateVarValue) -> Result<Self, Self::Error> {
-        match v {
-            StateVarValue::Number(x) => Ok(x),
-            StateVarValue::Integer(x) => Ok(x as f64),
-            StateVarValue::String(_) => Err("cannot convert StateVarValue::String to number"),
-            StateVarValue::Boolean(_) => Err("cannot convert StateVarValue::Boolean to number"),
-        }
-    }
-}
-impl TryFrom<StateVarValue> for i64 {
-    type Error = &'static str;
-    fn try_from(v: StateVarValue) -> Result<Self, Self::Error> {
-        match v {
-            StateVarValue::Integer(x) => Ok(x),
-            StateVarValue::Number(_) => Err("cannot convert StateVarValue::Number to integer"),
-            StateVarValue::String(_) => Err("cannot convert StateVarValue::String to integer"),
-            StateVarValue::Boolean(_) => Err("cannot convert StateVarValue::Boolean to integer"),
-        }
-    }
-}
-impl TryFrom<StateVarValue> for bool {
-    type Error = &'static str;
-    fn try_from(v: StateVarValue) -> Result<Self, Self::Error> {
-        match v {
-            StateVarValue::Boolean(x) => Ok(x),
-            StateVarValue::Number(_) => Err("cannot convert StateVarValue::Number to boolean"),
-            StateVarValue::Integer(_) => Err("cannot convert StateVarValue::Integer to boolean"),
-            StateVarValue::String(_) => Err("cannot convert StateVarValue::String to boolean"),
         }
     }
 }

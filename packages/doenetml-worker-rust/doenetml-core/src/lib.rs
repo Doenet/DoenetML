@@ -8,7 +8,7 @@ use dast::{
     FlatDastElement, FlatDastElementContent, FlatDastRoot, PathPart, Position as DastPosition,
 };
 
-use regex::Regex;
+use dependency::Dependency;
 
 pub mod component;
 pub mod dast;
@@ -20,8 +20,8 @@ use crate::utils::{log, log_debug, log_json};
 
 #[derive(Debug, Clone)]
 pub struct ComponentState {
-    pub component_ind: ComponentIdx,
-    pub state_var_ind: StateVarIdx,
+    pub component_idx: ComponentIdx,
+    pub state_var_idx: StateVarIdx,
 }
 
 pub type ComponentIdx = usize;
@@ -29,18 +29,65 @@ pub type StateVarIdx = usize;
 
 #[derive(Debug)]
 pub struct DoenetMLCore {
-    // TODO: is there a reason to keep the original dast around?
-    // This dast is currently not modified when macros are replaced or other interactions
+    /// The root of the dast defining the document structure.
+    ///
+    /// **TODO**: is there a reason to keep the original dast around?
+    /// (This dast is currently not modified when macros are replaced or other interactions.)
     pub dast_root: DastRoot,
 
+    /// The root node of the document
     pub root: DoenetMLRoot,
 
+    /// Vector of all components
+    ///
+    /// Components may or may not be descendants of *root*.
+    ///
+    /// Each component is identified by its *ComponentIdx*, which is its index in this vector.
     pub components: Vec<Rc<RefCell<ComponentEnum>>>,
+
+    /// Vector of all state variables of all components.
+    ///
+    /// Structure of the nested vectors:
+    /// - The first index is the *ComponentIdx* of the component,
+    /// defined by the order in *components*.
+    /// - The second index is the *StateVarIdx*,
+    /// defined by the order in which state variables are defined for the component.
+    // pub component_state_variables: Vec<Vec<StateVar>>,
+
+    /// **The Dependency Graph**
+    /// A DAG whose vertices are the state variables (and attributes?)
+    /// of every component, and whose endpoint vertices are essential data.
+    ///
+    /// Used for
+    /// - producing values when determining a state variable
+    /// - tracking when a change affects other state variables
+    ///
+    /// Structure of the nested vectors:
+    /// - The first index is the *ComponentIdx* of the component,
+    /// defined by the order in *components*.
+    /// - The second index is the *StateVarIdx*,
+    /// defined by the order in which state variables are defined for the component.
+    /// - The third index is the index of the *DependencyInstruction* for the state variable.
+    /// - The inner vector is the dependencies that matched that DependencyInstruction.
+    pub dependencies: Vec<Vec<Vec<Vec<Dependency>>>>,
+
+    /// The inverse of the dependency graph *dependencies*.
+    /// It specifies the state variables that are dependent on each state variable
+    ///
+    /// Structure of the nested vectors:
+    /// - The first index is the *ComponentIdx* of the component,
+    /// defined by the order in *components*.
+    /// - The second index is the *StateVarIdx*,
+    /// defined by the order in which state variables are defined for the component.
+    /// - The inner vector is the list of component/state variable combinations
+    /// that are dependent on this state variable
+    pub dependent_on_state_var: Vec<Vec<Vec<ComponentState>>>,
 
     pub warnings: Vec<DastWarning>,
 
-    // The original DoenetML string
-    // Main use is for components and properties that extract portions of the DoenetML
+    /// The original DoenetML string
+    ///
+    /// Main use is for components and properties that extract portions of the DoenetML.
     pub doenetml: String,
 }
 
@@ -143,6 +190,9 @@ pub fn create_doenetml_core(
         dast_root,
         root,
         components,
+        // component_state_variables: Vec::new(),
+        dependencies: Vec::new(),
+        dependent_on_state_var: Vec::new(),
         warnings,
         doenetml: source.to_string(),
     };
@@ -268,12 +318,12 @@ fn create_component_children(
 
 fn replace_macro_referents(
     components: &mut Vec<Rc<RefCell<ComponentEnum>>>,
-    component_ind: ComponentIdx,
+    component_idx: ComponentIdx,
 ) {
     // We need to temporarily put in an empty vector into the children field
     // and move the children into a separate vector.
     // Otherwise, we cannot take ownership of the vectors components using .into_iter()
-    let old_children = components[component_ind]
+    let old_children = components[component_idx]
         .borrow_mut()
         .replace_children(vec![]);
 
@@ -288,7 +338,7 @@ fn replace_macro_referents(
                 }
                 ComponentChild::Macro(ref dast_macro) => {
                     if let Some((matched_ind, path_remainder)) =
-                        match_name_reference(&components, &dast_macro.path, component_ind)
+                        match_name_reference(&components, &dast_macro.path, component_idx)
                     {
                         let new_ind = components.len();
 
@@ -297,7 +347,7 @@ fn replace_macro_referents(
                         )
                         .unwrap();
 
-                        new_comp_enum.initialize(new_ind, Some(component_ind), None);
+                        new_comp_enum.initialize(new_ind, Some(component_idx), None);
 
                         // TODO: if have leftover path (stored in path_remainder),
                         // determine state variable it refers to
@@ -317,7 +367,7 @@ fn replace_macro_referents(
         })
         .collect();
 
-    components[component_ind]
+    components[component_idx]
         .borrow_mut()
         .set_children(new_children);
 }

@@ -7,13 +7,13 @@ use crate::dast::{ElementData, FlatDastElement, FlatDastElementContent, Position
 use crate::dependency::{Dependency, DependencyInstruction};
 use crate::state::{
     StateVarInterface, StateVarMutableViewTyped, StateVarParameters, StateVarReadOnlyView,
-    StateVarReadOnlyViewTyped, StateVarTyped,
+    StateVarReadOnlyViewTyped, StateVarReference, StateVarTyped,
 };
 use crate::{ComponentChild, ComponentIdx, ExtendSource};
 
 use super::{
     ComponentEnum, ComponentNode, ComponentNodeBase, ComponentProfileStateVariables,
-    RenderedComponentNode,
+    ComponentStateVariables, RenderedComponentNode,
 };
 
 #[derive(Debug, Default, ComponentNode)]
@@ -34,18 +34,12 @@ pub struct Text {
 
     pub state_variables: TextStateVariables,
 
-    pub rendered_state_variables: RenderedTextStateVariables,
-
     pub renderer_data: TextRendererData,
 }
 
 impl RenderedComponentNode for Text {
     fn to_flat_dast(&self, _: &Vec<Rc<RefCell<ComponentEnum>>>) -> FlatDastElement {
-        let text_value = self
-            .rendered_state_variables
-            .value
-            .get_fresh_value()
-            .to_string();
+        let text_value = self.state_variables.value.get_fresh_value().to_string();
 
         let rendered_children = vec![FlatDastElementContent::Text(text_value)];
 
@@ -61,14 +55,13 @@ impl RenderedComponentNode for Text {
         }
     }
 }
-#[derive(Debug)]
-pub struct TextStateVariables {
-    pub text: StateVarTyped<String>,
-}
 
-#[derive(Debug)]
-pub struct RenderedTextStateVariables {
+// #[derive(Debug)]
+#[derive(Debug, ComponentStateVariables)]
+#[state_variables_for_component(Text)]
+pub struct TextStateVariables {
     pub value: StateVarTyped<String>,
+    pub text: StateVarTyped<String>,
 }
 
 #[derive(Debug, Default)]
@@ -80,34 +73,24 @@ pub struct TextRendererData {
 impl ComponentNodeBase for Text {
     fn initialize_state_variables(&mut self) {
         self.component_profile_state_variables = vec![ComponentProfileStateVariables::Text(
-            self.rendered_state_variables
-                .value
-                .create_new_read_only_view(),
+            self.state_variables.value.create_new_read_only_view(),
         )]
-    }
-}
-
-impl Default for RenderedTextStateVariables {
-    fn default() -> Self {
-        RenderedTextStateVariables {
-            value: StateVarTyped::new(
-                Box::new(ValueStateVarInterface::new()),
-                StateVarParameters {
-                    name: "value",
-                    ..Default::default()
-                },
-            ),
-        }
     }
 }
 
 impl Default for TextStateVariables {
     fn default() -> Self {
         TextStateVariables {
+            value: StateVarTyped::new(
+                Box::new(ValueStateVarInterface::new()),
+                StateVarParameters {
+                    for_renderer: true,
+                    ..Default::default()
+                },
+            ),
             text: StateVarTyped::new(
                 Box::new(TextStateVarInterface::new()),
                 StateVarParameters {
-                    name: "value",
                     ..Default::default()
                 },
             ),
