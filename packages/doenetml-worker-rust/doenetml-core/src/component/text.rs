@@ -31,6 +31,10 @@ pub struct Text {
 
     pub state_variables: Vec<StateVar>,
 
+    pub rendered_state_variable_indices: Vec<usize>,
+
+    pub state_variable_name_to_index: HashMap<String, usize>,
+
     pub value_state_var_view: StateVarReadOnlyViewTyped<String>,
 
     pub component_profile_state_variables: Vec<ComponentProfileStateVariables>,
@@ -65,6 +69,8 @@ pub struct TextRendererData {
 
 impl ComponentNodeStateVariables for Text {
     fn initialize_state_variables(&mut self) {
+        self.state_variables = Vec::new();
+
         ///////////////////////
         // Value state variable
         ///////////////////////
@@ -83,6 +89,7 @@ impl ComponentNodeStateVariables for Text {
         // Use the value state variable for fulling the text component profile
         self.component_profile_state_variables = vec![ComponentProfileStateVariables::Text(
             value_state_variable.create_new_read_only_view(),
+            "value",
         )];
         self.state_variables
             .push(StateVar::String(value_state_variable));
@@ -93,7 +100,7 @@ impl ComponentNodeStateVariables for Text {
         let text_state_variable = StateVarTyped::new(
             Box::new(TextStateVarInterface::default()),
             StateVarParameters {
-                name: "value",
+                name: "text",
                 ..Default::default()
             },
         );

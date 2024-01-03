@@ -13,7 +13,7 @@ use doenetml_derive::{ComponentNode, ComponentNodeStateVariables, RenderedCompon
 use strum_macros::EnumString;
 
 use crate::dast::{ElementData, FlatDastElement, FlatDastElementContent, Position as DastPosition};
-use crate::state::{StateVar, StateVarReadOnlyViewTyped};
+use crate::state::{StateVar, StateVarName, StateVarReadOnlyView, StateVarReadOnlyViewTyped};
 use crate::{ComponentChild, ComponentIdx, ExtendSource};
 
 use self::_error::_Error;
@@ -61,7 +61,11 @@ pub trait ComponentNode: ComponentNodeStateVariables {
     fn get_position(&self) -> Option<&DastPosition>;
     fn set_position(&mut self, position: Option<DastPosition>);
 
+    fn get_num_state_variables(&self) -> usize;
     fn get_state_variables(&mut self) -> &mut Vec<StateVar>;
+    fn get_rendered_state_variable_indices(&self) -> &Vec<usize>;
+    fn get_state_variable_index_from_name(&self, name: &String) -> Option<usize>;
+
     fn get_component_profile_state_variables(&self) -> &Vec<ComponentProfileStateVariables>;
 }
 
@@ -123,7 +127,7 @@ pub trait ComponentNodeStateVariables {
     fn initialize_state_variables(&mut self) {}
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum ComponentProfile {
     Text,
     Number,
@@ -133,8 +137,43 @@ pub enum ComponentProfile {
 
 #[derive(Debug)]
 pub enum ComponentProfileStateVariables {
-    Text(StateVarReadOnlyViewTyped<String>),
-    Number(StateVarReadOnlyViewTyped<f64>),
-    Integer(StateVarReadOnlyViewTyped<i64>),
-    Boolean(StateVarReadOnlyViewTyped<bool>),
+    Text(StateVarReadOnlyViewTyped<String>, StateVarName),
+    Number(StateVarReadOnlyViewTyped<f64>, StateVarName),
+    Integer(StateVarReadOnlyViewTyped<i64>, StateVarName),
+    Boolean(StateVarReadOnlyViewTyped<bool>, StateVarName),
+}
+
+// TODO: derive these with macro?
+impl ComponentProfileStateVariables {
+    pub fn get_matching_profile(&self) -> ComponentProfile {
+        match self {
+            ComponentProfileStateVariables::Text(..) => ComponentProfile::Text,
+            ComponentProfileStateVariables::Number(..) => ComponentProfile::Number,
+            ComponentProfileStateVariables::Integer(..) => ComponentProfile::Integer,
+            ComponentProfileStateVariables::Boolean(..) => ComponentProfile::Boolean,
+        }
+    }
+
+    pub fn return_untyped_state_variable_view_and_name(
+        &self,
+    ) -> (StateVarReadOnlyView, StateVarName) {
+        match self {
+            ComponentProfileStateVariables::Text(sv, name) => (
+                StateVarReadOnlyView::String(sv.create_new_read_only_view()),
+                name,
+            ),
+            ComponentProfileStateVariables::Number(sv, name) => (
+                StateVarReadOnlyView::Number(sv.create_new_read_only_view()),
+                name,
+            ),
+            ComponentProfileStateVariables::Integer(sv, name) => (
+                StateVarReadOnlyView::Integer(sv.create_new_read_only_view()),
+                name,
+            ),
+            ComponentProfileStateVariables::Boolean(sv, name) => (
+                StateVarReadOnlyView::Boolean(sv.create_new_read_only_view()),
+                name,
+            ),
+        }
+    }
 }

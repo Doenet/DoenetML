@@ -22,6 +22,10 @@ pub struct _External {
 
     pub state_variables: Vec<StateVar>,
 
+    pub rendered_state_variable_indices: Vec<usize>,
+
+    pub state_variable_name_to_index: HashMap<String, usize>,
+
     pub component_profile_state_variables: Vec<ComponentProfileStateVariables>,
 
     pub name: String,
@@ -59,6 +63,27 @@ impl ComponentNode for _External {
         self.idx = idx;
         self.parent = parent;
         self.position = position;
+
+        self.initialize_state_variables();
+
+        self.rendered_state_variable_indices = self
+            .get_state_variables()
+            .iter()
+            .enumerate()
+            .filter_map(|(ind, state_var)| state_var.return_for_renderer().then(|| ind))
+            .collect();
+
+        self.state_variable_name_to_index = HashMap::new();
+
+        let name_to_index_pairs: Vec<_> = self
+            .get_state_variables()
+            .iter()
+            .enumerate()
+            .map(|(sv_idx, state_var)| (state_var.get_name().to_string(), sv_idx))
+            .collect();
+
+        self.state_variable_name_to_index
+            .extend(name_to_index_pairs);
     }
 
     fn get_extend(&self) -> Option<&ExtendSource> {
@@ -86,8 +111,20 @@ impl ComponentNode for _External {
         self.position = position;
     }
 
+    fn get_num_state_variables(&self) -> usize {
+        self.state_variables.len()
+    }
+
     fn get_state_variables(&mut self) -> &mut Vec<StateVar> {
         &mut self.state_variables
+    }
+
+    fn get_rendered_state_variable_indices(&self) -> &Vec<usize> {
+        &self.rendered_state_variable_indices
+    }
+
+    fn get_state_variable_index_from_name(&self, name: &String) -> Option<usize> {
+        self.state_variable_name_to_index.get(name).copied()
     }
 
     fn get_component_profile_state_variables(&self) -> &Vec<ComponentProfileStateVariables> {

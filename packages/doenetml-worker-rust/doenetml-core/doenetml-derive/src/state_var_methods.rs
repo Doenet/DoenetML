@@ -39,7 +39,7 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
             let mut state_var_set_dependencies_arms = Vec::new();
             let mut state_var_calculate_state_var_from_dependencies_arms = Vec::new();
             let mut state_var_request_dependencies_to_update_value_arms = Vec::new();
-            // let mut state_var_get_name_arms = Vec::new();
+            let mut state_var_get_name_arms = Vec::new();
             let mut state_var_return_for_renderer_arms = Vec::new();
             let mut state_var_return_initial_essential_value_arms = Vec::new();
 
@@ -177,11 +177,11 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
                     },
                 });
 
-                // state_var_get_name_arms.push(quote! {
-                //     #enum_ident::#variant_ident(sv_typed) => {
-                //         sv_typed.get_name()
-                //     },
-                // });
+                state_var_get_name_arms.push(quote! {
+                    #enum_ident::#variant_ident(sv_typed) => {
+                        sv_typed.get_name()
+                    },
+                });
 
                 state_var_return_for_renderer_arms.push(quote! {
                     #enum_ident::#variant_ident(sv_typed) => {
@@ -294,11 +294,11 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
                         }
                     }
 
-                    // pub fn get_name(&self) -> &'static str {
-                    //     match self {
-                    //         #(#state_var_get_name_arms)*
-                    //     }
-                    // }
+                    pub fn get_name(&self) -> &'static str {
+                        match self {
+                            #(#state_var_get_name_arms)*
+                        }
+                    }
 
                     pub fn return_for_renderer(&self) -> bool {
                         match self {

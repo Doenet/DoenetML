@@ -58,14 +58,10 @@ impl PublicDoenetMLCore {
             };
 
             // Create components from JSON tree and create all dependencies.
-            self.core = Some(doenetml_core::create_doenetml_core(
-                dast_json,
-                &self.source,
-                flags,
-            )?);
+            self.core = Some(DoenetMLCore::new(dast_json, &self.source, flags, None));
             self.initialized = true;
         }
 
-        Ok(serde_json::to_string(&self.core.as_ref().unwrap().to_flat_dast()).unwrap())
+        Ok(serde_json::to_string(&self.core.as_mut().unwrap().to_flat_dast()).unwrap())
     }
 }

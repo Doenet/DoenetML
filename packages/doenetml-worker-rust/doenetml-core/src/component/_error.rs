@@ -24,6 +24,10 @@ pub struct _Error {
 
     pub state_variables: Vec<StateVar>,
 
+    pub rendered_state_variable_indices: Vec<usize>,
+
+    pub state_variable_name_to_index: HashMap<String, usize>,
+
     pub component_profile_state_variables: Vec<ComponentProfileStateVariables>,
 
     pub message: String,

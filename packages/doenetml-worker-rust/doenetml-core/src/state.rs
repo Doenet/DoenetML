@@ -630,10 +630,10 @@ impl<T: Default + Clone> StateVarTyped<T> {
         )
     }
 
-    // /// Get name of the state variable
-    // fn get_name(&self) -> &'static str {
-    //     self.parameters.name
-    // }
+    /// Get name of the state variable
+    fn get_name(&self) -> &'static str {
+        self.parameters.name
+    }
 
     /// Return whether or not this state variable value should be sent to the renderer
     fn return_for_renderer(&self) -> bool {
