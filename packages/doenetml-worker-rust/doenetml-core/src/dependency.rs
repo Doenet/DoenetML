@@ -79,7 +79,10 @@ pub struct UpdatesRequested {
     pub dependency_idx: usize,
 }
 
-/// This function also creates essential data when a DependencyInstruction asks for it.
+/// Create the dependencies specified in the dependency instruction
+/// by finding elements in the document that match the instruction.
+///
+/// If an instruction asks for essential data, create it and add it to *essential_data*.
 pub fn create_dependencies_from_instruction_initialize_essential(
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
     component_idx: ComponentIdx,
@@ -92,6 +95,9 @@ pub fn create_dependencies_from_instruction_initialize_essential(
 
     match instruction {
         DependencyInstruction::StateVar { state_var_name } => {
+            // Create a dependency that references the value of state_var_name
+            // from the current component (TODO: specify another component)
+
             // For now, use component_idx as haven't create a way to grab another component
             let comp_idx = component_idx;
 
@@ -111,6 +117,9 @@ pub fn create_dependencies_from_instruction_initialize_essential(
         }
 
         DependencyInstruction::Parent { state_var_name } => {
+            // Create a dependency that references the value of state_var_name
+            // from the parent of this component
+
             let component = components[component_idx].borrow();
             let parent_idx = component
                 .get_parent()
@@ -135,6 +144,15 @@ pub fn create_dependencies_from_instruction_initialize_essential(
             match_profiles,
             exclude_if_prefer_profiles,
         } => {
+            // Create a dependency that references the profile state variable from all children
+            // that match match_profiles before matching exclude_if_prefer_profiles.
+
+            // Local enum to keep track of what children were found
+            // before creating dependencies from this enum in the end.
+            // Right now, it appears that the RelevantChild intermediate step is not needed,
+            // as we could create dependencies from children as we encounter them.
+            // However, the intermediate step will be needed when we parse math expressions
+            // from children, so leave it in for now.
             enum RelevantChild<'a> {
                 StateVar {
                     dependency: Dependency,
@@ -147,6 +165,14 @@ pub fn create_dependencies_from_instruction_initialize_essential(
             }
 
             let mut relevant_children: Vec<RelevantChild> = Vec::new();
+
+            // First check for the special case where we extend from a state variable.
+            // Treat that state variable as the state variable coming from a child.
+
+            // TODO: we haven't finished implementing the feature, but it seems this idea needs additional refinement.
+            // Extending from a state variable shouldn't add to all child dependencies regardless
+            // of component profile selected. There is no reason that this state variable
+            // should give a type that matches what would come from the component profile.
 
             let source_idx =
                 get_recursive_extend_source_component_when_exists(components, component_idx);
@@ -173,8 +199,12 @@ pub fn create_dependencies_from_instruction_initialize_essential(
                 });
             }
 
+            // For each component child (including those from an extend source)
+            // iterate through all its component profile state variables
+            // to see if one matches matches_profile before one matches exclude_if_prefer_profiles.
+
             let children_info =
-                get_children_info_including_from_extend_source(components, component_idx);
+                get_children_with_parent_including_from_extend_source(components, component_idx);
 
             for child_info in children_info.iter() {
                 match child_info {
@@ -218,6 +248,7 @@ pub fn create_dependencies_from_instruction_initialize_essential(
                         }
                     }
                     (ComponentChild::Text(string_value), parent_idx) => {
+                        // Text children are just strings, and they just match the Text profile
                         if match_profiles.contains(&ComponentProfile::Text) {
                             relevant_children.push(RelevantChild::String {
                                 value: string_value,
@@ -232,6 +263,7 @@ pub fn create_dependencies_from_instruction_initialize_essential(
             let mut dependencies = Vec::new();
 
             // Stores how many string children added per parent.
+            // Use it to generate the index for the EssentialDataOrigin so it points to the right string child
             let mut essential_data_numbering: HashMap<ComponentIdx, usize> = HashMap::new();
 
             for relevant_child in relevant_children {
@@ -243,6 +275,8 @@ pub fn create_dependencies_from_instruction_initialize_essential(
                         dependencies.push(child_dep);
                     }
 
+                    // For string children, we create an essential datum for them
+                    // so that they can be added to the dependency graph.
                     RelevantChild::String {
                         value: string_value,
                         parent: actual_parent_idx,
@@ -293,7 +327,9 @@ pub fn create_dependencies_from_instruction_initialize_essential(
 }
 
 /// Recurse until the name of the original source is found.
-/// This allows copies to share essential data.
+///
+/// When we store essential data, we store it with this original source name,
+/// allowing copies to share the same essential data as the source.
 fn get_recursive_extend_source_component_when_exists(
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
     component_idx: ComponentIdx,
@@ -306,7 +342,12 @@ fn get_recursive_extend_source_component_when_exists(
     }
 }
 
-fn get_children_info_including_from_extend_source(
+/// Return a vector of (child, parent_idx) tuples from the children of a component
+/// and children of any extend sources.
+///
+/// Since children from extend sources will have a different parent,
+/// we include the parent index in the output.
+fn get_children_with_parent_including_from_extend_source(
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
     component_idx: ComponentIdx,
 ) -> Vec<(ComponentChild, ComponentIdx)> {
@@ -314,7 +355,7 @@ fn get_children_info_including_from_extend_source(
 
     let mut children_vec =
         if let Some(&ExtendSource::Component(source_idx)) = component.get_extend() {
-            get_children_info_including_from_extend_source(components, source_idx)
+            get_children_with_parent_including_from_extend_source(components, source_idx)
         } else {
             Vec::new()
         };

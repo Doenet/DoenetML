@@ -48,6 +48,8 @@ pub enum InitialEssentialData {
     },
 }
 
+/// Returns whether or not we already have essential data stored
+/// for the given component_idx and origin.
 pub fn essential_data_exists_for(
     component_idx: ComponentIdx,
     origin: &EssentialDataOrigin,
@@ -56,7 +58,8 @@ pub fn essential_data_exists_for(
     essential_data[component_idx].contains_key(origin)
 }
 
-/// Add essential data for a state variable or string child
+/// Create a piece of essential data that will be indexed by component_idx and origin
+/// and it initialized to the value from initial_values
 pub fn create_essential_data_for(
     component_idx: ComponentIdx,
     origin: EssentialDataOrigin,
@@ -67,6 +70,7 @@ pub fn create_essential_data_for(
 
     assert!(!comp_essential_data.contains_key(&origin));
 
+    // TODO: if we don't add additional variants, then remove the enum and this match.
     let essential_state = match initial_values {
         InitialEssentialData::Single {
             value,
@@ -74,9 +78,8 @@ pub fn create_essential_data_for(
         } => EssentialStateVar::new_with_value(value, used_default),
     };
 
-    // log_debug!("New essential data for {} {:?} {:?}", component_name, origin, essential_state);
-
     comp_essential_data.insert(origin.clone(), essential_state);
 
+    // since we moved essential_state into the hash map, get a new reference to it here
     &comp_essential_data.get(&origin).unwrap()
 }

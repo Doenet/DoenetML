@@ -13,7 +13,7 @@ use dast::{
 
 use dependency::Dependency;
 use essential_state::{EssentialDataOrigin, EssentialStateDescription, EssentialStateVar};
-use state_var_calculations::{freshen_renderer_state_for_comp, StateVarCalculationState};
+use state_var_calculations::{freshen_renderer_state_for_component, StateVarCalculationState};
 
 pub mod component;
 pub mod component_creation;
@@ -79,8 +79,8 @@ pub struct DoenetMLCore {
     /// - The inner vector is the dependencies that matched that DependencyInstruction.
     pub dependencies: Vec<Vec<Vec<Vec<Dependency>>>>,
 
-    /// The inverse of the dependency graph *dependencies*.
-    /// It specifies the state variables that are dependent on each state variable
+    /// The inverse of the dependency graph *dependencies* (along with *dependent_on_essential*).
+    /// It specifies the state variables that are dependent on each state variable.
     ///
     /// Structure of the nested vectors:
     /// - The first index is the *ComponentIdx* of the component,
@@ -88,17 +88,36 @@ pub struct DoenetMLCore {
     /// - The second index is the *StateVarIdx*,
     /// defined by the order in which state variables are defined for the component.
     /// - The inner vector is the list of component/state variable combinations
-    /// that are dependent on this state variable
+    /// that are dependent on this state variable.
     pub dependent_on_state_var: Vec<Vec<Vec<ComponentStateDescription>>>,
 
+    /// The inverse of the dependency graph *dependencies* (along with *dependent_on_state_var*).
+    /// It specifies the state variables that are dependent on each piece of essential data.
+    ///
+    /// Data structure:
+    /// - The vector index is the *ComponentIdx* of the component,
+    /// defined by the order in *components*.
+    /// - The hash map key *EssentialDataOrigin* specifies how the component created the essential data.
+    /// - The hash map value vector is the list of component/state variable combinations
+    /// that are dependent on this piece of essential data.
     pub dependent_on_essential: Vec<HashMap<EssentialDataOrigin, Vec<ComponentStateDescription>>>,
 
     /// Endpoints of the dependency graph.
     /// Every update instruction will lead to these.
+    ///
+    /// Data structure:
+    /// - The vector index is the *ComponentIdx* of the component,
+    /// defined by the order in *components*.
+    /// - The hash map key *EssentialDataOrigin* specifies how the component created the essential data.
+    /// - The hash map value *EssentialStateVariable* is a *StateVarMutableView*
+    ///   that stores the value.
+    ///   (Note, unlike for state variables, *EssentialStateVariable* is not attached to any *StateVarTyped*,
+    ///   as it doesn't need a *StateVarInterface*.)
     pub essential_data: Vec<HashMap<EssentialDataOrigin, EssentialStateVar>>,
 
     /// if true, then we didn't read in initial essential_data
     /// so must initialize essential data when creating dependencies
+    /// TODO: how does this work?
     pub should_initialize_essential_data: bool,
 
     pub stale_renderers: HashSet<ComponentIdx>,
@@ -205,6 +224,8 @@ impl DoenetMLCore {
             comp.borrow_mut().initialize_state_variables();
         });
 
+        // TODO: what does should_initialize_essential_data mean?
+        // We are currently ignoring this flag (but haven't yet set up all types of essential data)
         let should_initialize_essential_data = existing_essential_data.is_none();
         let essential_data = existing_essential_data
             .unwrap_or_else(|| (0..components.len()).map(|_| HashMap::new()).collect());
@@ -245,9 +266,15 @@ impl DoenetMLCore {
         }
     }
 
-    pub fn freshen_renderer_state(&mut self) {
+    /// Freshen all the state variables for a component in *stale_renderers*
+    /// and recurse to rendered children.
+    ///
+    /// Returns a vector of the indices of the components reached.
+    pub fn freshen_renderer_state(&mut self) -> Vec<ComponentIdx> {
+        let mut components_freshened = Vec::new();
+
         for comp_idx in self.stale_renderers.iter() {
-            freshen_renderer_state_for_comp(
+            let new_components_freshened = freshen_renderer_state_for_component(
                 *comp_idx,
                 &self.components,
                 &mut self.dependencies,
@@ -256,11 +283,19 @@ impl DoenetMLCore {
                 &mut self.essential_data,
                 &mut self.freshen_stack,
                 self.should_initialize_essential_data,
-            )
+            );
+            components_freshened.extend(new_components_freshened);
         }
+        components_freshened
     }
 
+    /// Output all components as a flat dast,
+    /// where we create a vector of each component's dast element,
+    /// and dast elements refer to their children via its *ComponentIdx* in that vector.
+    ///
+    /// Include warnings as a separate vector (errors are embedded in the tree as elements).
     pub fn to_flat_dast(&mut self) -> FlatDastRoot {
+        // Since are outputting the whole dast, we ignore which components were freshened
         self.freshen_renderer_state();
 
         let elements: Vec<FlatDastElement> = self

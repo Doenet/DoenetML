@@ -11,12 +11,22 @@ use crate::{
     ComponentChild, ComponentIdx, ComponentStateDescription, ExtendSource,
 };
 
+/// Used to save the state in the middle of a calculation while freshening a state variable.
+/// Placed on a stack in order to implement recursion using a stack on the heap.
+///
+/// (When created documents so that had to recurse thousands of times,
+/// it would overflow the small stack created by WASM.
+/// One could alternatively increase the wasm stack size and use regular function recursion.)
 #[derive(Debug)]
 pub enum StateVarCalculationState {
     Unresolved(UnresolvedCalculationState),
     Stale(StaleCalculationState),
 }
 
+/// The state needed to save the partial progress made while a state variable is still unresolved.
+///
+/// Since unresolved means that we have not calculated all dependencies,
+/// we store the dependencies we have created so far, if any.
 #[derive(Debug)]
 pub struct UnresolvedCalculationState {
     component_state: ComponentStateDescription,
@@ -27,6 +37,10 @@ pub struct UnresolvedCalculationState {
     dependencies_for_state_var: Option<Vec<Vec<Dependency>>>,
 }
 
+/// The state needed to save the partial progress of a state variable that is resolved but still stale.
+///
+/// Since it is resolved, all dependencies have been calculated, so we just need to keep track
+/// of which instruction and value from the dependencies we are freshening.
 #[derive(Debug)]
 pub struct StaleCalculationState {
     component_state: ComponentStateDescription,
@@ -34,7 +48,11 @@ pub struct StaleCalculationState {
     val_idx: usize,
 }
 
-pub fn freshen_renderer_state_for_comp(
+/// Freshen all the state variables for a component that are designated as rendered
+/// and recurse to rendered children.
+///
+/// Returns a vector of the indices of the components reached.
+pub fn freshen_renderer_state_for_component(
     component_idx: ComponentIdx,
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
     dependencies: &mut Vec<Vec<Vec<Vec<Dependency>>>>,
@@ -43,15 +61,14 @@ pub fn freshen_renderer_state_for_comp(
     essential_data: &mut Vec<HashMap<EssentialDataOrigin, EssentialStateVar>>,
     freshen_stack: &mut Vec<StateVarCalculationState>,
     should_initialize_essential_data: bool,
-) {
-    // TODO: for efficiency, could create a vector of rendereds
+) -> Vec<usize> {
     let rendered_state_var_indices = components[component_idx]
         .borrow()
         .get_rendered_state_variable_indices()
         .clone();
 
-    let mut found_changed_state_var = false;
-    let mut state_values = serde_json::Map::new();
+    let mut components_freshened = Vec::new();
+
     for state_var_idx in rendered_state_var_indices {
         let component_state = ComponentStateDescription {
             component_idx,
@@ -67,23 +84,14 @@ pub fn freshen_renderer_state_for_comp(
             freshen_stack,
             should_initialize_essential_data,
         );
-
-        let mut comp = components[component_idx].borrow_mut();
-        let state_var = &mut comp.get_state_variables()[state_var_idx];
-
-        // let value = state_var.get_fresh_value();
-
-        if state_var.check_if_changed_since_last_rendered() {
-            found_changed_state_var = true;
-        }
-
-        state_var.record_rendered();
     }
+
+    components_freshened.push(component_idx);
 
     for child_idx in
         get_non_string_rendered_children_including_from_extend(component_idx, components)
     {
-        freshen_renderer_state_for_comp(
+        let new_components_freshened = freshen_renderer_state_for_component(
             child_idx,
             components,
             dependencies,
@@ -92,10 +100,17 @@ pub fn freshen_renderer_state_for_comp(
             essential_data,
             freshen_stack,
             should_initialize_essential_data,
-        )
+        );
+
+        components_freshened.extend(new_components_freshened);
     }
+
+    components_freshened
 }
 
+/// Returns a vector of the component indices of all rendered children that are elements.
+///
+/// If the component extends another component, the children from the extend source come first.
 fn get_non_string_rendered_children_including_from_extend(
     component_idx: ComponentIdx,
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
@@ -130,6 +145,10 @@ fn get_non_string_rendered_children_including_from_extend(
     children
 }
 
+/// If the state variable specified by original_component_state is stale or unresolved,
+/// then freshen the variable, resolving its dependencies if necessary.
+///
+/// If the state variable was not fresh, then recurse to its dependencies to freshen them.
 fn freshen_state_var(
     original_component_state: ComponentStateDescription,
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
@@ -140,6 +159,15 @@ fn freshen_state_var(
     freshen_stack: &mut Vec<StateVarCalculationState>,
     should_initialize_essential_data: bool,
 ) -> () {
+    // This function currently implements recursion through an iterative method,
+    // using a stack on the heap.
+    // This approach was chosen because the function recursion implementation would overflow
+    // the small WASM stack once it recursed a few thousands of times.
+    // An alternative approach would be to increase the size of the WASM stack.
+    // This approach was chosen because it is relatively easy to produce documents
+    // with thousands of levels in the dependency graph, and it wasn't clear what
+    // size WASM stack would be appropriate.
+
     let current_freshness = components[original_component_state.component_idx]
         .borrow_mut()
         .get_state_variables()[original_component_state.state_var_idx]
@@ -185,6 +213,10 @@ fn freshen_state_var(
 
                 let mut carryover_instruct_dependencies = unresolved_state.instruct_dependencies;
 
+                // Stack implementation note:
+                // In order to start with instruction from instruction_idx
+                // and value from val_idx, we initially skip val_idx values
+                // and then set initial_val_idx to zero to not skip values on further instructions.
                 let mut initial_val_idx = unresolved_state.val_idx;
 
                 for (instruction_idx, dep_instruction) in dependency_instructions
@@ -209,6 +241,9 @@ fn freshen_state_var(
                     carryover_instruct_dependencies = None;
 
                     if initial_creation_of_deps {
+                        // If we just created the dependencies, above,
+                        // then we need to add these dependencies to the inverse graph:
+                        // dependent_on_state_var or dependent_on_essential.
                         for dep in instruct_dependencies.iter() {
                             match &dep.source {
                                 DependencySource::StateVar {
@@ -339,6 +374,10 @@ fn freshen_state_var(
             StateVarCalculationState::Stale(stale_state) => {
                 let component_state = stale_state.component_state;
 
+                // Stack implementation note:
+                // In order to start with instruction from instruction_idx
+                // and value from val_idx, we initially skip val_idx values
+                // and then set initial_val_idx to zero to not skip values on further instructions.
                 let mut initial_val_idx = stale_state.val_idx;
 
                 let dependencies_for_state_var =
@@ -395,12 +434,19 @@ fn freshen_state_var(
                     initial_val_idx = 0;
                 }
 
+                // If we have gotten to this part,
+                // then we have freshened all dependencies
+                // for the state variable (component_idx, state_var_idx).
+                // We calculate its value if a dependency has changed,
+                // else restore its previous value.
+
                 let component_idx = component_state.component_idx;
                 let state_var_idx = component_state.state_var_idx;
 
                 let mut comp = components[component_idx].borrow_mut();
                 let state_var = &mut comp.get_state_variables()[state_var_idx];
 
+                // Check if any dependency has changed since we last called record_all_dependencies_viewed.
                 if state_var.check_if_any_dependency_changed_since_last_viewed() {
                     state_var.calculate_state_var_from_dependencies();
                     state_var.record_all_dependencies_viewed();
@@ -410,10 +456,4 @@ fn freshen_state_var(
             }
         }
     }
-
-    // log_debug!("Dependency values for {}: {:#?}", component_state, dependency_values);
-
-    // log_debug!("Updated {} to {:?}", component_state, updated_value);
-
-    // return updated_value;
 }
