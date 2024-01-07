@@ -4,6 +4,7 @@ pub mod document;
 pub mod p;
 pub mod section;
 pub mod text;
+pub mod text_input;
 
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -12,8 +13,13 @@ use std::rc::Rc;
 use doenetml_derive::{ComponentNode, ComponentNodeStateVariables, RenderedComponentNode};
 use strum_macros::EnumString;
 
-use crate::dast::{ElementData, FlatDastElement, FlatDastElementContent, Position as DastPosition};
-use crate::state::{StateVar, StateVarName, StateVarReadOnlyView, StateVarReadOnlyViewTyped};
+use crate::dast::{
+    ElementData, FlatDastElement, FlatDastElementContent, FlatDastElementUpdate,
+    Position as DastPosition,
+};
+use crate::state::{
+    StateVar, StateVarName, StateVarReadOnlyView, StateVarReadOnlyViewTyped, StateVarValue,
+};
 use crate::{ComponentChild, ComponentIdx, ExtendSource};
 
 use self::_error::_Error;
@@ -22,11 +28,22 @@ use self::document::Document;
 use self::p::P;
 use self::section::Section;
 use self::text::Text;
+use self::text_input::TextInput;
 
+/// camelCase
+pub type AttributeName = &'static str;
+
+/// A enum that can contain a component of any possible component type.
+///
+/// The component node traits are implemented on the `ComponentEnum`
+/// to allow easy access to the methods.
+///
+/// Each component type added to `ComponentEnum` must implement that component node traits.
 #[derive(Debug, EnumString, ComponentNode, ComponentNodeStateVariables, RenderedComponentNode)]
 #[strum(ascii_case_insensitive)]
 pub enum ComponentEnum {
     Text(Text),
+    TextInput(TextInput),
     Section(Section),
     Document(Document),
     P(P),
@@ -34,15 +51,32 @@ pub enum ComponentEnum {
     _External(_External),
 }
 
+/// The Component trait specifies methods that will, in general, be implemented by deriving them.
+/// It depends on the ComponentNodeStateVariables trait, which will be implemented
+/// individually for each component type.
 pub trait ComponentNode: ComponentNodeStateVariables {
+    /// Get the index of the component, which is its index in the `components` vector of `DoenetMLCore`.
     fn get_idx(&self) -> ComponentIdx;
+    /// Set the index of the component, which should be set to its index in the `components` vector of `DoenetMLCore`.
     fn set_idx(&mut self, idx: ComponentIdx);
+    /// Get the index of the parent node
     fn get_parent(&self) -> Option<ComponentIdx>;
+    /// Set the index of the parent node
     fn set_parent(&mut self, parent: Option<ComponentIdx>);
+    /// Get the vector containing the indices of all child component nodes and the literal string children.
     fn get_children(&self) -> &Vec<ComponentChild>;
+    /// Set the vector containing the indices of all child component nodes and the literal string children.
     fn set_children(&mut self, children: Vec<ComponentChild>);
+    /// Replace with new values the vector containing the indices of all child component nodes and the literal string children.
     fn replace_children(&mut self, new_children: Vec<ComponentChild>) -> Vec<ComponentChild>;
 
+    /// Perform the following steps to initialize a component
+    /// 1. Set its index, parent, and position in the original DoenetML string.
+    /// 2. Initialize the state variables by calling `initialize_state_variables()`
+    ///    from the `ComponentNodeStateVariables` trait.
+    /// 3. Calculate the data structures underlying
+    ///    - `get_rendered_state_variable_indices()`
+    ///    - `get_state_variable_index_from_name()`
     fn initialize(
         &mut self,
         idx: ComponentIdx,
@@ -50,40 +84,78 @@ pub trait ComponentNode: ComponentNodeStateVariables {
         position: Option<DastPosition>,
     );
 
+    /// Get the extend source of this component,
+    /// indicating any component or state variable that this component extends.
     fn get_extend(&self) -> Option<&ExtendSource>;
+
+    /// Set the extend source of this component,
+    /// indicating any component or state variable that this component extends.
     fn set_extend(&mut self, extend_source: Option<ExtendSource>);
 
+    /// Get the component type, which is the name of the component's struct
+    /// converted to camel case.
     fn get_component_type(&self) -> &str;
 
+    /// Get a vector of all the descendants of this component with name matching the `name` argument.
     fn get_descendant_matches(&self, name: &str) -> Option<&Vec<ComponentIdx>>;
+
+    /// Set the information used to calculate `get_descendant_names()`.
     fn set_descendant_names(&mut self, descendant_names: HashMap<String, Vec<ComponentIdx>>);
 
+    /// Get the position of this component in the original DoenetML string
     fn get_position(&self) -> Option<&DastPosition>;
+
+    /// Set the position, which should be the position of this component in the original DoenetML string
     fn set_position(&mut self, position: Option<DastPosition>);
 
+    /// Return the number of state variables for the component.
     fn get_num_state_variables(&self) -> usize;
+
+    /// Return a vector of all the state variables for the component.
+    ///
+    /// The index of a state variable in this vector is state variable's index.
+    ///
+    /// Requires a mutable reference due to many of the state variable methods changing values.
     fn get_state_variables(&mut self) -> &mut Vec<StateVar>;
+
+    /// Return a vector of the indices of each state variable that is sent to the renderer,
+    /// i.e., that has the `for_renderer` parameter set to true.
     fn get_rendered_state_variable_indices(&self) -> &Vec<usize>;
+
+    /// Attempt to match `name` to the name of a state variable and return its index if found.
     fn get_state_variable_index_from_name(&self, name: &String) -> Option<usize>;
 
-    fn get_component_profile_state_variables(&self) -> &Vec<ComponentProfileStateVariables>;
+    /// Return a vector of all component profile state variables of this component.
+    fn get_component_profile_state_variables(&self) -> &Vec<ComponentProfileStateVariable>;
 }
 
+/// The RenderedComponentNode trait can be derived for a component, giving it the default implementations.
+/// To add actions or what information is sent when rendering, a component type can implement
+/// the trait to override the defaults.
 pub trait RenderedComponentNode: ComponentNode {
+    /// Return the children that will be used in the flat dast sent to the renderer.
     fn get_rendered_children(&self) -> &Vec<ComponentChild> {
         self.get_children()
     }
-    fn to_flat_dast(&self, components: &Vec<Rc<RefCell<ComponentEnum>>>) -> FlatDastElement {
+
+    /// Return the flat dast element sent to the renderer.
+    fn to_flat_dast(&mut self, components: &Vec<Rc<RefCell<ComponentEnum>>>) -> FlatDastElement {
+        // TODO: components should not be able to override the entire to_flat_dast method,
+        // but instead just methods like .get_rendered_children that can be called in all places
+        // where one is making calculations about what will be rendered.
+
         // if extending a source that is a component,
         // add children from that source first
         let mut children = if let Some(extend_source) = self.get_extend() {
             match extend_source {
                 ExtendSource::Component(source_idx) => {
-                    let source_dast = components[*source_idx].borrow().to_flat_dast(components);
+                    let source_dast = components[*source_idx]
+                        .borrow_mut()
+                        .to_flat_dast(components);
 
                     source_dast.children
                 }
-                ExtendSource::StateVar((_source_idx, _source_var_idx)) => {
+                ExtendSource::StateVar(component_state) => {
                     // TODO: state variable extend source
                     Vec::new()
                 }
@@ -114,19 +186,66 @@ pub trait RenderedComponentNode: ComponentNode {
             name: self.get_component_type().to_string(),
             attributes: HashMap::new(),
             children,
-            data: Some(ElementData {
+            data: ElementData {
                 id: self.get_idx(),
                 ..Default::default()
-            }),
+            },
             position: self.get_position().cloned(),
         }
     }
+
+    /// Return a FlatDastElementUpdate that gives information about what elements of the rendered component
+    /// have changed since the component was last rendered,
+    /// i.e., since `to_flat_dast()` or `get_flat_dast_update()` have been called.`
+    fn get_flat_dast_update(&mut self) -> Option<FlatDastElementUpdate> {
+        None
+    }
+
+    /// Return a list of the action names that the renderer can call on this component.
+    /// The list much match
+    fn get_action_names(&self) -> Vec<String> {
+        vec![]
+    }
+
+    /// The function called when a renderer calls an action on this component.
+    /// Given an `action_name` that is in the vector returned by `get_action_names()`,
+    /// the function processes the `args` to return a vector where each component
+    /// specifies a state variable index and its desired value.
+    ///
+    /// Panics: if `action_name` is not in the vector returned by `get_action_names()`.
+    #[allow(unused)]
+    fn on_action<'a>(
+        &self,
+        action_name: &str,
+        args: HashMap<String, Vec<StateVarValue>>,
+        resolve_and_retrieve_state_var: &'a mut dyn FnMut(usize) -> StateVarValue,
+    ) -> Vec<(usize, StateVarValue)> {
+        panic!(
+            "Unknown action '{}' called on {}",
+            action_name,
+            self.get_component_type()
+        );
+    }
 }
 
+/// The ComponentNodeStateVariables should be implemented individually for each
+/// component type, as it will depend on its specific state variables.
 pub trait ComponentNodeStateVariables {
+    /// Create the state variables for the component and save them to the component structure,
+    /// along with any other state variable views for internal use by the component.
+    ///
+    /// Also create any component profile state variables.
+    ///
+    /// Assuming that the `ComponentNode` trait will be derived for the component, then
+    /// - the vector of state variables should be saved to a field named `state_variables`,
+    /// - the vector of component profile state variables should be saved to a field named
+    ///   `component_profile_state_variables`.
     fn initialize_state_variables(&mut self) {}
 }
 
+/// A `ComponentProfile` is used in the `DependencyInstruction` specifying children.
+/// A component profile will match children that have a `ComponentProfileStateVariable` of the corresponding type,
+/// and the resulting dependency will give the value of that state variable.
 #[derive(Debug, PartialEq)]
 pub enum ComponentProfile {
     Text,
@@ -135,8 +254,18 @@ pub enum ComponentProfile {
     Boolean,
 }
 
+/// When a component designates a component profile state variable,
+/// it means that the component can represent a state variable of a given type
+/// by using the value of that specified state variable.
+///
+/// The component profile state variables are used to match the component profiles
+/// specified in a dependency instruction requesting children.
+///
+/// A component specifies a vector of ComponentProfileStateVariables in priority order,
+/// where the first ComponentProfileStateVariable matching a ComponentProfile
+/// of a dependency instruction will determine the dependency.
 #[derive(Debug)]
-pub enum ComponentProfileStateVariables {
+pub enum ComponentProfileStateVariable {
     Text(StateVarReadOnlyViewTyped<String>, StateVarName),
     Number(StateVarReadOnlyViewTyped<f64>, StateVarName),
     Integer(StateVarReadOnlyViewTyped<i64>, StateVarName),
@@ -144,33 +273,41 @@ pub enum ComponentProfileStateVariables {
 }
 
 // TODO: derive these with macro?
-impl ComponentProfileStateVariables {
+impl ComponentProfileStateVariable {
+    /// Return the ComponentProfile that matches this ComponentProfileStateVariable
+    /// so that it can be matched with the ComponentProfiles of a child dependency instruction.
     pub fn get_matching_profile(&self) -> ComponentProfile {
         match self {
-            ComponentProfileStateVariables::Text(..) => ComponentProfile::Text,
-            ComponentProfileStateVariables::Number(..) => ComponentProfile::Number,
-            ComponentProfileStateVariables::Integer(..) => ComponentProfile::Integer,
-            ComponentProfileStateVariables::Boolean(..) => ComponentProfile::Boolean,
+            ComponentProfileStateVariable::Text(..) => ComponentProfile::Text,
+            ComponentProfileStateVariable::Number(..) => ComponentProfile::Number,
+            ComponentProfileStateVariable::Integer(..) => ComponentProfile::Integer,
+            ComponentProfileStateVariable::Boolean(..) => ComponentProfile::Boolean,
         }
     }
 
+    /// Return a state variable view of the component profile state variable as well as the state variable's name.
+    ///
+    /// Used to create the dependency matching ComponentProfile of a child dependency instruction.
+    ///
+    /// In this way, the state variable depending on the children can calculate its value
+    /// from the state variable value of the ComponentProfileStateVariable.
     pub fn return_untyped_state_variable_view_and_name(
         &self,
     ) -> (StateVarReadOnlyView, StateVarName) {
         match self {
-            ComponentProfileStateVariables::Text(sv, name) => (
+            ComponentProfileStateVariable::Text(sv, name) => (
                 StateVarReadOnlyView::String(sv.create_new_read_only_view()),
                 name,
             ),
-            ComponentProfileStateVariables::Number(sv, name) => (
+            ComponentProfileStateVariable::Number(sv, name) => (
                 StateVarReadOnlyView::Number(sv.create_new_read_only_view()),
                 name,
             ),
-            ComponentProfileStateVariables::Integer(sv, name) => (
+            ComponentProfileStateVariable::Integer(sv, name) => (
                 StateVarReadOnlyView::Integer(sv.create_new_read_only_view()),
                 name,
             ),
-            ComponentProfileStateVariables::Boolean(sv, name) => (
+            ComponentProfileStateVariable::Boolean(sv, name) => (
                 StateVarReadOnlyView::Boolean(sv.create_new_read_only_view()),
                 name,
             ),

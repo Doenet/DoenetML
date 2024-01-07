@@ -3,16 +3,19 @@ use std::collections::HashMap;
 use std::rc::Rc;
 
 use crate::component::ComponentProfile;
-use crate::dast::{ElementData, FlatDastElement, FlatDastElementContent, Position as DastPosition};
-use crate::dependency::{Dependency, DependencyInstruction};
+use crate::dast::{
+    ElementData, FlatDastElement, FlatDastElementContent, FlatDastElementUpdate,
+    Position as DastPosition,
+};
+use crate::dependency::{Dependency, DependencyInstruction, DependencyUpdatesRequested};
 use crate::state::{
     StateVar, StateVarInterface, StateVarMutableViewTyped, StateVarParameters,
-    StateVarReadOnlyView, StateVarReadOnlyViewTyped, StateVarTyped,
+    StateVarReadOnlyView, StateVarReadOnlyViewTyped, StateVarTyped, StateVarValue,
 };
 use crate::{ComponentChild, ComponentIdx, ExtendSource};
 
 use super::{
-    ComponentEnum, ComponentNode, ComponentNodeStateVariables, ComponentProfileStateVariables,
+    ComponentEnum, ComponentNode, ComponentNodeStateVariables, ComponentProfileStateVariable,
     RenderedComponentNode,
 };
 
@@ -37,14 +40,17 @@ pub struct Text {
 
     pub value_state_var_view: StateVarReadOnlyViewTyped<String>,
 
-    pub component_profile_state_variables: Vec<ComponentProfileStateVariables>,
+    pub component_profile_state_variables: Vec<ComponentProfileStateVariable>,
 
     pub renderer_data: TextRendererData,
 }
 
 impl RenderedComponentNode for Text {
-    fn to_flat_dast(&self, _: &Vec<Rc<RefCell<ComponentEnum>>>) -> FlatDastElement {
-        let text_value = self.value_state_var_view.get_fresh_value().to_string();
+    fn to_flat_dast(&mut self, _: &Vec<Rc<RefCell<ComponentEnum>>>) -> FlatDastElement {
+        let text_value = self
+            .value_state_var_view
+            .get_fresh_value_record_viewed()
+            .to_string();
 
         let rendered_children = vec![FlatDastElementContent::Text(text_value)];
 
@@ -52,11 +58,32 @@ impl RenderedComponentNode for Text {
             name: self.get_component_type().to_string(),
             attributes: HashMap::new(),
             children: rendered_children,
-            data: Some(ElementData {
+            data: ElementData {
                 id: self.get_idx(),
                 ..Default::default()
-            }),
+            },
             position: self.get_position().cloned(),
+        }
+    }
+
+    fn get_flat_dast_update(&mut self) -> Option<FlatDastElementUpdate> {
+        if self
+            .value_state_var_view
+            .check_if_changed_since_last_viewed()
+        {
+            let text_value = self
+                .value_state_var_view
+                .get_fresh_value_record_viewed()
+                .to_string();
+            let rendered_children = vec![FlatDastElementContent::Text(text_value)];
+
+            Some(FlatDastElementUpdate {
+                changed_attributes: None,
+                new_children: Some(rendered_children),
+                changed_state: None,
+            })
+        } else {
+            None
         }
     }
 }
@@ -87,7 +114,7 @@ impl ComponentNodeStateVariables for Text {
         self.value_state_var_view = value_state_variable.create_new_read_only_view();
 
         // Use the value state variable for fulling the text component profile
-        self.component_profile_state_variables = vec![ComponentProfileStateVariables::Text(
+        self.component_profile_state_variables = vec![ComponentProfileStateVariable::Text(
             value_state_variable.create_new_read_only_view(),
             "value",
         )];
@@ -157,6 +184,26 @@ impl StateVarInterface<String> for ValueStateVarInterface {
 
         state_var.set_value(value);
     }
+
+    fn request_dependencies_to_update_value(
+        &self,
+        state_var: &StateVarReadOnlyViewTyped<String>,
+        _is_direct_change_from_renderer: bool,
+    ) -> Result<Vec<DependencyUpdatesRequested>, ()> {
+        if self.string_child_values.len() != 1 {
+            // TODO: implement for no children where saves to essential value
+            Err(())
+        } else {
+            let desired_value = state_var.get_requested_value();
+
+            self.string_child_values[0].request_change_value_to(desired_value.clone());
+
+            Ok(vec![DependencyUpdatesRequested {
+                instruction_idx: 0,
+                dependency_idx: 0,
+            }])
+        }
+    }
 }
 
 #[derive(Debug, Default)]
@@ -189,5 +236,20 @@ impl StateVarInterface<String> for TextStateVarInterface {
         state_var: &StateVarMutableViewTyped<String>,
     ) -> () {
         state_var.set_value(self.value_sv.get_fresh_value().clone());
+    }
+
+    fn request_dependencies_to_update_value(
+        &self,
+        state_var: &StateVarReadOnlyViewTyped<String>,
+        _is_direct_change_from_renderer: bool,
+    ) -> Result<Vec<DependencyUpdatesRequested>, ()> {
+        let desired_value = state_var.get_requested_value();
+
+        self.value_sv.request_change_value_to(desired_value.clone());
+
+        Ok(vec![DependencyUpdatesRequested {
+            instruction_idx: 0,
+            dependency_idx: 0,
+        }])
     }
 }

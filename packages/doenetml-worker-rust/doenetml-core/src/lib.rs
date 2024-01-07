@@ -8,18 +8,23 @@ use component::{ComponentEnum, ComponentNode, ComponentNodeStateVariables, Rende
 use component_creation::{create_component_children, replace_macro_referents};
 use dast::{
     DastFunctionMacro, DastMacro, DastRoot, DastWarning, FlatDastElement, FlatDastElementContent,
-    FlatDastRoot, Position as DastPosition,
+    FlatDastElementUpdate, FlatDastRoot, Position as DastPosition,
 };
 
 use dependency::Dependency;
-use essential_state::{EssentialDataOrigin, EssentialStateDescription, EssentialStateVar};
-use state_var_calculations::{freshen_renderer_state_for_component, StateVarCalculationState};
+use essential_state::{EssentialDataOrigin, EssentialStateVar};
+use state::{Freshness, StateVarValue};
+use state_var_calculations::{
+    freshen_renderer_state_for_component, freshen_state_var, get_state_var_value,
+    process_state_variable_update_request, StateVarCalculationState, StateVariableUpdateRequest,
+};
 
 pub mod component;
 pub mod component_creation;
 pub mod dast;
 pub mod dependency;
 pub mod essential_state;
+pub mod parse_json;
 pub mod state;
 pub mod state_var_calculations;
 pub mod utils;
@@ -35,6 +40,7 @@ pub struct ComponentStateDescription {
 pub type ComponentIdx = usize;
 pub type StateVarIdx = usize;
 
+/// All the state of DoenetML document with methods to interact with it.
 #[derive(Debug)]
 pub struct DoenetMLCore {
     /// The root of the dast defining the document structure.
@@ -52,15 +58,6 @@ pub struct DoenetMLCore {
     ///
     /// Each component is identified by its *ComponentIdx*, which is its index in this vector.
     pub components: Vec<Rc<RefCell<ComponentEnum>>>,
-
-    /// Vector of all state variables of all components.
-    ///
-    /// Structure of the nested vectors:
-    /// - The first index is the *ComponentIdx* of the component,
-    /// defined by the order in *components*.
-    /// - The second index is the *StateVarIdx*,
-    /// defined by the order in which state variables are defined for the component.
-    // pub component_state_variables: Vec<Vec<StateVar>>,
 
     /// **The Dependency Graph**
     /// A DAG whose vertices are the state variables (and attributes?)
@@ -124,9 +121,9 @@ pub struct DoenetMLCore {
 
     pub freshen_stack: Vec<StateVarCalculationState>,
 
-    pub mark_stale_stack: Vec<(ComponentIdx, StateVarIdx)>,
+    pub mark_stale_stack: Vec<ComponentStateDescription>,
 
-    pub update_stack: Vec<UpdateRequest>,
+    pub update_stack: Vec<StateVariableUpdateRequest>,
 
     pub warnings: Vec<DastWarning>,
 
@@ -174,6 +171,10 @@ impl DoenetMLRoot {
     }
 }
 
+/// Information specifying a child of a component.
+/// - If the child is a component, we just store its index.
+/// - If the child is a string, store that string
+/// TODO: can we eliminate macros eventually since they should be converted to components and strings?
 #[derive(Debug, Clone)]
 pub enum ComponentChild {
     Component(ComponentIdx),
@@ -182,18 +183,27 @@ pub enum ComponentChild {
     FunctionMacro(DastFunctionMacro),
 }
 
+/// Information of the source that a component is extending, which is currently
+/// either another component or a state variable.
 #[derive(Debug)]
 pub enum ExtendSource {
     Component(ComponentIdx),
     // TODO: what about array state variables?
-    StateVar((ComponentIdx, StateVarIdx)),
+    // TODO: when shadowing a state variable, some times more than one state variable is shadow,
+    // so probably need a larger data structure here.
+    // This feature is not yet implemented
+    StateVar(ComponentStateDescription),
 }
 
-/// Internal structure used to track changes
-#[derive(Debug, Clone)]
-pub enum UpdateRequest {
-    SetEssentialValue(EssentialStateDescription),
-    SetStateVar(ComponentStateDescription),
+/// Specification of an action call received from renderer
+#[derive(Debug)]
+pub struct Action {
+    pub component_idx: ComponentIdx,
+    pub action_name: String,
+
+    /// The keys are not state variable names.
+    /// They are whatever name the renderer calls the new value.
+    pub args: HashMap<String, Vec<StateVarValue>>,
 }
 
 impl DoenetMLCore {
@@ -289,6 +299,108 @@ impl DoenetMLCore {
         components_freshened
     }
 
+    /// Run the action specified by the `action` json and return any changes to the output flat dast.
+    ///
+    /// The behavior of an action is defined by each component type. Based on the arguments
+    /// to the action, it will request that certain state variables have new values.
+    ///
+    /// The `action` json should be an object with these fields
+    /// - `component_idx`: the index of the component originating the action
+    /// - `action_name`: the name of the action
+    /// - `args`: an object containing data that will be interpreted by the action implementation.
+    ///   The values of each field must be quantities that can be converted into `StateVarValue`
+    ///   or a vector of `StateVarValue`.
+    pub fn handle_action(&mut self, action: &str) -> HashMap<ComponentIdx, FlatDastElementUpdate> {
+        let action = parse_json::parse_action_from_json(action)
+            .unwrap_or_else(|_| panic!("Error parsing json action: {}", action));
+
+        if action.action_name == "recordVisibilityChange" {
+            return HashMap::new();
+        }
+
+        let component_idx = action.component_idx;
+
+        // We allow actions to resolve and get the value of any state variable from the component.
+        // To accomplish this, we pass in a function closure that will
+        // - take a state variable index,
+        // - freshen the state variable, if needed, and
+        // - return the state variable's value
+        let mut state_var_resolver = |state_var_idx: usize| {
+            get_state_var_value(
+                ComponentStateDescription {
+                    component_idx,
+                    state_var_idx,
+                },
+                &self.components,
+                &mut self.dependencies,
+                &mut self.dependent_on_state_var,
+                &mut self.dependent_on_essential,
+                &mut self.essential_data,
+                &mut self.freshen_stack,
+                self.should_initialize_essential_data,
+            )
+        };
+
+        {
+            let component = self.components[component_idx].borrow();
+
+            // A call to on_action from a component processes the arguments and returns a vector
+            // of component state variables with requested new values
+            let state_vars_to_update =
+                component.on_action(&action.action_name, action.args, &mut state_var_resolver);
+
+            for (state_var_idx, requested_value) in state_vars_to_update {
+                let mut component = self.components[component_idx].borrow_mut();
+                let state_variable = &component.get_state_variables()[state_var_idx];
+
+                // Record the requested value directly on the state variable.
+                // Later calls from within process_state_variable_update_request
+                // will call request_dependencies_to_update_value on the state variable
+                // which will look up this requested value.
+                state_variable.request_change_value_to(requested_value);
+
+                // Since the requested value is stored in the state variable,
+                // now we just need to keep track of which state variable we are seeking to update.
+                let component_state = ComponentStateDescription {
+                    component_idx,
+                    state_var_idx,
+                };
+
+                // If state variable is unresolved, then calculate its value to resolve it.
+                // This could occur only once, but actions are free to seek to modify any state variable,
+                // even if it hasn't been accessed before.
+                if state_variable.get_freshness() == Freshness::Unresolved {
+                    freshen_state_var(
+                        component_state,
+                        &self.components,
+                        &mut self.dependencies,
+                        &mut self.dependent_on_state_var,
+                        &mut self.dependent_on_essential,
+                        &mut self.essential_data,
+                        &mut self.freshen_stack,
+                        self.should_initialize_essential_data,
+                    );
+                }
+
+                // Recurse in the inverse direction along to dependency graph
+                // to infer how to set the leaves (essential state variables)
+                // to attempt to set the state variable to its requested value.
+                process_state_variable_update_request(
+                    StateVariableUpdateRequest::SetStateVar(component_state),
+                    &self.components,
+                    &mut self.dependencies,
+                    &mut self.dependent_on_state_var,
+                    &mut self.dependent_on_essential,
+                    &mut self.essential_data,
+                    &mut self.stale_renderers,
+                    &mut self.mark_stale_stack,
+                    &mut self.update_stack,
+                );
+            }
+        }
+        self.get_flat_dast_updates()
+    }
+
     /// Output all components as a flat dast,
     /// where we create a vector of each component's dast element,
     /// and dast elements refer to their children via its *ComponentIdx* in that vector.
@@ -301,7 +413,7 @@ impl DoenetMLCore {
         let elements: Vec<FlatDastElement> = self
             .components
             .iter()
-            .map(|comp| comp.borrow().to_flat_dast(&self.components))
+            .map(|comp| comp.borrow_mut().to_flat_dast(&self.components))
             .collect();
 
         let warnings: Vec<DastWarning> = self
@@ -311,5 +423,18 @@ impl DoenetMLCore {
             .collect();
 
         self.root.to_flat_dast(elements, warnings)
+    }
+
+    pub fn get_flat_dast_updates(&mut self) -> HashMap<ComponentIdx, FlatDastElementUpdate> {
+        let components_changed = self.freshen_renderer_state();
+
+        let mut flat_dast_updates: HashMap<ComponentIdx, FlatDastElementUpdate> = HashMap::new();
+        for component_idx in components_changed {
+            let mut component = self.components[component_idx].borrow_mut();
+            if let Some(element_update) = component.get_flat_dast_update() {
+                flat_dast_updates.insert(component_idx, element_update);
+            }
+        }
+        flat_dast_updates
     }
 }

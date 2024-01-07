@@ -5,7 +5,7 @@ use crate::state::StateVar;
 use crate::{ComponentChild, ComponentIdx, ExtendSource};
 
 use super::{
-    ComponentNode, ComponentNodeStateVariables, ComponentProfileStateVariables,
+    ComponentNode, ComponentNodeStateVariables, ComponentProfileStateVariable,
     RenderedComponentNode,
 };
 
@@ -26,7 +26,7 @@ pub struct _External {
 
     pub state_variable_name_to_index: HashMap<String, usize>,
 
-    pub component_profile_state_variables: Vec<ComponentProfileStateVariables>,
+    pub component_profile_state_variables: Vec<ComponentProfileStateVariable>,
 
     pub name: String,
 }
@@ -127,7 +127,7 @@ impl ComponentNode for _External {
         self.state_variable_name_to_index.get(name).copied()
     }
 
-    fn get_component_profile_state_variables(&self) -> &Vec<ComponentProfileStateVariables> {
+    fn get_component_profile_state_variables(&self) -> &Vec<ComponentProfileStateVariable> {
         &self.component_profile_state_variables
     }
 }

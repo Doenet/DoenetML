@@ -92,6 +92,50 @@ export class CoreWorker {
         }
     }
 
+    // TODO: TypeScript for args. Here's is the rust type for the args
+
+    // struct ActionStructure {
+    //     componentIdx: usize,
+    //     actionName: String,
+    //     args: HashMap<String, ArgValue>,
+    // }
+
+    // enum ArgValue {
+    //     Bool(bool),
+    //     Number(serde_json::Number),
+    //     NumberArray(Vec<serde_json::Number>),
+    //     String(String),
+    // }
+    async handleAction(args: any) {
+        const isProcessingPromise = this.isProcessingPromise;
+        let { promise, resolve } = promiseWithResolver();
+        this.isProcessingPromise = promise;
+
+        await isProcessingPromise;
+
+        if (!this.source_set || !this.flags_set || !this.doenetCore) {
+            throw Error("Cannot handle action before setting source and flags");
+        }
+
+        // TODO: handle case if handleAction is called before returnDast
+
+        try {
+            // TODO: Do we need to cast flat_dast_element_updates into a TypeScript type
+            // like we did for flat_dast, above?
+
+            let flat_dast_element_updates = JSON.parse(
+                this.doenetCore.handle_action(args),
+            );
+            resolve();
+            return flat_dast_element_updates;
+        } catch (err) {
+            resolve();
+
+            console.error(err);
+            throw err;
+        }
+    }
+
     async terminate() {
         const isProcessingPromise = this.isProcessingPromise;
         let { promise, resolve } = promiseWithResolver();

@@ -1,7 +1,7 @@
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use crate::{
-    component::{ComponentEnum, ComponentNode, ComponentProfile},
+    component::{AttributeName, ComponentEnum, ComponentNode, ComponentProfile},
     essential_state::{
         create_essential_data_for, EssentialDataOrigin, EssentialStateVar, InitialEssentialData,
     },
@@ -38,10 +38,10 @@ pub enum DependencyInstruction {
     //     attribute_name: AttributeName,
     //     default_value: StateVarValue,
     // },
-    // Essential {
-    //     /// Use the string of this attribute
-    //     prefill: Option<AttributeName>,
-    // },
+    Essential {
+        /// Use the string of this attribute
+        prefill: Option<AttributeName>,
+    },
 }
 
 // TODO: determine what the structure of DependencySource should be
@@ -74,7 +74,7 @@ pub struct Dependency {
 ///
 /// The actual requested values for those dependencies were stored
 /// in the *requested_value* field of their state variables.
-pub struct UpdatesRequested {
+pub struct DependencyUpdatesRequested {
     pub instruction_idx: usize,
     pub dependency_idx: usize,
 }
@@ -94,6 +94,48 @@ pub fn create_dependencies_from_instruction_initialize_essential(
     // log!("Creating dependency {}:{} from instruction {:?}", component_name, state_var_idx, instruction);
 
     match instruction {
+        DependencyInstruction::Essential { prefill } => {
+            let source_idx =
+                get_recursive_extend_source_component_when_exists(components, component_idx);
+            let essential_origin = EssentialDataOrigin::StateVar(state_var_idx);
+
+            let essential_data_view =
+                if let Some(current_view) = essential_data[source_idx].get(&essential_origin) {
+                    current_view.create_new_read_only_view()
+                } else {
+                    let mut used_default = false;
+
+                    // TODO: implement getting initial data from prefill attribute
+                    // For now just use initial essential value and set used_default to true
+                    let initial_data = components[component_idx].borrow_mut().get_state_variables()
+                        [state_var_idx]
+                        .return_initial_essential_value();
+                    used_default = true;
+
+                    let initial_data = InitialEssentialData::Single {
+                        value: initial_data,
+                        used_default,
+                    };
+
+                    let new_view = create_essential_data_for(
+                        source_idx,
+                        essential_origin.clone(),
+                        initial_data,
+                        essential_data,
+                    );
+
+                    new_view.create_new_read_only_view()
+                };
+
+            vec![Dependency {
+                source: DependencySource::Essential {
+                    component_idx: source_idx,
+                    origin: essential_origin,
+                },
+                value: essential_data_view,
+            }]
+        }
+
         DependencyInstruction::StateVar { state_var_name } => {
             // Create a dependency that references the value of state_var_name
             // from the current component (TODO: specify another component)
@@ -105,7 +147,7 @@ pub fn create_dependencies_from_instruction_initialize_essential(
 
             let sv_idx = comp
                 .get_state_variable_index_from_name(&state_var_name.to_string())
-                .expect(&format!("Invalid state variable 1: {}", state_var_name));
+                .unwrap_or_else(|| panic!("Invalid state variable 1: {}", state_var_name));
 
             vec![Dependency {
                 source: DependencySource::StateVar {
@@ -129,7 +171,7 @@ pub fn create_dependencies_from_instruction_initialize_essential(
 
             let sv_idx = parent
                 .get_state_variable_index_from_name(&state_var_name.to_string())
-                .expect(&format!("Invalid state variable 2: {}", state_var_name));
+                .unwrap_or_else(|| panic!("Invalid state variable 2: {}", state_var_name));
 
             vec![Dependency {
                 source: DependencySource::StateVar {
@@ -166,38 +208,42 @@ pub fn create_dependencies_from_instruction_initialize_essential(
 
             let mut relevant_children: Vec<RelevantChild> = Vec::new();
 
-            // First check for the special case where we extend from a state variable.
-            // Treat that state variable as the state variable coming from a child.
+            // // First check for the special case where we extend from a state variable.
+            // // Treat that state variable as the state variable coming from a child.
 
-            // TODO: we haven't finished implementing the feature, but it seems this idea needs additional refinement.
-            // Extending from a state variable shouldn't add to all child dependencies regardless
-            // of component profile selected. There is no reason that this state variable
-            // should give a type that matches what would come from the component profile.
+            // // TODO: we haven't finished implementing the feature, but it seems this idea needs additional refinement.
+            // // Extending from a state variable shouldn't add to all child dependencies regardless
+            // // of component profile selected. There is no reason that this state variable
+            // // should give a type that matches what would come from the component profile.
 
-            let source_idx =
-                get_recursive_extend_source_component_when_exists(components, component_idx);
-            let source = components[source_idx].borrow();
+            // // In fact, just commenting this out for now, as it just seems too incomplete
 
-            if let Some(&ExtendSource::StateVar((comp_idx, sv_idx))) = source.get_extend() {
-                // copying a state var means we don't inherit its children,
-                // so we depend on it directly
+            // let source_idx =
+            //     get_recursive_extend_source_component_when_exists(components, component_idx);
+            // let source = components[source_idx].borrow();
 
-                let mut comp_of_state_var = components[comp_idx].borrow_mut();
+            // if let Some(&ExtendSource::StateVar(component_state)) = source.get_extend() {
+            //     // copying a state var means we don't inherit its children,
+            //     // so we depend on it directly
+            //     let comp_idx = component_state.component_idx;
+            //     let sv_idx = component_state.state_var_idx;
 
-                let state_var_dep = Dependency {
-                    source: DependencySource::StateVar {
-                        component_idx: comp_idx,
-                        state_var_idx: sv_idx,
-                    },
-                    value: comp_of_state_var.get_state_variables()[sv_idx]
-                        .create_new_read_only_view(),
-                };
+            //     let mut comp_of_state_var = components[comp_idx].borrow_mut();
 
-                relevant_children.push(RelevantChild::StateVar {
-                    dependency: state_var_dep,
-                    parent: source_idx,
-                });
-            }
+            //     let state_var_dep = Dependency {
+            //         source: DependencySource::StateVar {
+            //             component_idx: comp_idx,
+            //             state_var_idx: sv_idx,
+            //         },
+            //         value: comp_of_state_var.get_state_variables()[sv_idx]
+            //             .create_new_read_only_view(),
+            //     };
+
+            //     relevant_children.push(RelevantChild::StateVar {
+            //         dependency: state_var_dep,
+            //         parent: source_idx,
+            //     });
+            // }
 
             // For each component child (including those from an extend source)
             // iterate through all its component profile state variables
@@ -231,7 +277,7 @@ pub fn create_dependencies_from_instruction_initialize_essential(
 
                             let sv_idx = child
                                 .get_state_variable_index_from_name(&sv_name.to_string())
-                                .expect(&format!("Invalid state variable 3: {}", sv_name));
+                                .unwrap_or_else(|| panic!("Invalid state variable 3: {}", sv_name));
 
                             let state_var_dep = Dependency {
                                 source: DependencySource::StateVar {

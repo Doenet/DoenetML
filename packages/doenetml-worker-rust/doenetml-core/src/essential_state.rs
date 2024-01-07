@@ -48,15 +48,18 @@ pub enum InitialEssentialData {
     },
 }
 
-/// Returns whether or not we already have essential data stored
-/// for the given component_idx and origin.
-pub fn essential_data_exists_for(
-    component_idx: ComponentIdx,
-    origin: &EssentialDataOrigin,
-    essential_data: &Vec<HashMap<EssentialDataOrigin, EssentialStateVar>>,
-) -> bool {
-    essential_data[component_idx].contains_key(origin)
-}
+// TODO: do we still need this function?
+// In cases where used it before, now get the value that exists as well.
+
+// /// Returns whether or not we already have essential data stored
+// /// for the given component_idx and origin.
+// pub fn essential_data_exists_for(
+//     component_idx: ComponentIdx,
+//     origin: &EssentialDataOrigin,
+//     essential_data: &Vec<HashMap<EssentialDataOrigin, EssentialStateVar>>,
+// ) -> bool {
+//     essential_data[component_idx].contains_key(origin)
+// }
 
 /// Create a piece of essential data that will be indexed by component_idx and origin
 /// and it initialized to the value from initial_values

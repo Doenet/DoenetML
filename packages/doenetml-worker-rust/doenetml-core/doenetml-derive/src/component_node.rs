@@ -13,7 +13,7 @@ use syn::{self, FieldsNamed};
 /// - pub extend: Option<ExtendSource>,
 /// - pub descendant_names: HashMap<String, Vec<ComponentIdx>>,
 /// - pub position: Option<DastPosition>,
-/// - pub component_profile_state_variables: Vec<ComponentProfileStateVariables>,
+/// - pub component_profile_state_variables: Vec<ComponentProfileStateVariable>,
 /// - pub state_variables: (TODO: in the process of determining)
 ///
 /// For enums, assume each variant implements ComponentNode.
@@ -125,7 +125,7 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                             self.state_variable_name_to_index.get(name).copied()
                         }
 
-                        fn get_component_profile_state_variables(&self)  -> &Vec<ComponentProfileStateVariables> {
+                        fn get_component_profile_state_variables(&self)  -> &Vec<ComponentProfileStateVariable> {
                             &self.component_profile_state_variables
                         }
 
@@ -418,7 +418,7 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                         }
                     }
 
-                    fn get_component_profile_state_variables(&self) -> &Vec<ComponentProfileStateVariables> {
+                    fn get_component_profile_state_variables(&self) -> &Vec<ComponentProfileStateVariable> {
                         match self {
                             #(#get_component_profile_state_variables_variant_arms)*
                         }
@@ -464,7 +464,7 @@ pub fn rendered_component_node_derive(input: TokenStream) -> TokenStream {
                 });
 
                 to_flat_dast_variant_arms.push(quote! {
-                    #enum_ident::#variant_ident(comp) => {
+                    #enum_ident::#variant_ident(ref mut comp) => {
                         comp.to_flat_dast(components)
                     },
                 });
@@ -480,7 +480,7 @@ pub fn rendered_component_node_derive(input: TokenStream) -> TokenStream {
                         }
                     }
 
-                    fn to_flat_dast(&self, components: &Vec<Rc<RefCell<ComponentEnum>>>) -> FlatDastElement {
+                    fn to_flat_dast(&mut self, components: &Vec<Rc<RefCell<ComponentEnum>>>) -> FlatDastElement {
                         match self {
                             #(#to_flat_dast_variant_arms)*
                         }
