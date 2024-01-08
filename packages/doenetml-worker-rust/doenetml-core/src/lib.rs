@@ -15,7 +15,7 @@ use dependency::Dependency;
 use essential_state::{EssentialDataOrigin, EssentialStateVar};
 use state::{Freshness, StateVarName, StateVarValue};
 use state_var_calculations::{
-    freshen_renderer_state_for_component, freshen_state_var, get_state_var_value,
+    freshen_all_stale_renderer_states, freshen_state_var, get_state_var_value,
     process_state_variable_update_request, StateVarCalculationState, StateVariableUpdateRequest,
 };
 
@@ -117,12 +117,12 @@ pub struct DoenetMLCore {
     /// TODO: how does this work?
     pub should_initialize_essential_data: bool,
 
-    pub stale_renderers: HashSet<ComponentIdx>,
+    pub stale_renderers: Vec<ComponentIdx>,
 
+    // To prevent unnecessary reallocations of temporary vectors, like stacks,
+    // we store them on the DoenetMLCore struct so that they will stay allocated.
     pub freshen_stack: Vec<StateVarCalculationState>,
-
     pub mark_stale_stack: Vec<ComponentStateDescription>,
-
     pub update_stack: Vec<StateVariableUpdateRequest>,
 
     pub warnings: Vec<DastWarning>,
@@ -279,7 +279,7 @@ impl DoenetMLCore {
         // Initialize with the document element being stale.
         // (We assume that dast_json is normalized so that the only child of root
         // is the document tag.)
-        let stale_renderers = HashSet::from([0]);
+        let stale_renderers = Vec::from([0]);
 
         DoenetMLCore {
             dast_root,
@@ -304,22 +304,16 @@ impl DoenetMLCore {
     ///
     /// Returns a vector of the indices of the components reached.
     pub fn freshen_renderer_state(&mut self) -> Vec<ComponentIdx> {
-        let mut components_freshened = Vec::new();
-
-        for comp_idx in self.stale_renderers.iter() {
-            let new_components_freshened = freshen_renderer_state_for_component(
-                *comp_idx,
-                &self.components,
-                &mut self.dependencies,
-                &mut self.dependent_on_state_var,
-                &mut self.dependent_on_essential,
-                &mut self.essential_data,
-                &mut self.freshen_stack,
-                self.should_initialize_essential_data,
-            );
-            components_freshened.extend(new_components_freshened);
-        }
-        components_freshened
+        freshen_all_stale_renderer_states(
+            &mut self.stale_renderers,
+            &self.components,
+            &mut self.dependencies,
+            &mut self.dependent_on_state_var,
+            &mut self.dependent_on_essential,
+            &mut self.essential_data,
+            &mut self.freshen_stack,
+            self.should_initialize_essential_data,
+        )
     }
 
     /// Run the action specified by the `action` json and return any changes to the output flat dast.

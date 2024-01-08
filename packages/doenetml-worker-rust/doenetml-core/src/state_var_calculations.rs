@@ -63,8 +63,8 @@ pub struct StaleCalculationState {
 /// and recurse to rendered children.
 ///
 /// Returns a vector of the indices of the components reached.
-pub fn freshen_renderer_state_for_component(
-    component_idx: ComponentIdx,
+pub fn freshen_all_stale_renderer_states(
+    stale_renderers: &mut Vec<ComponentIdx>,
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
     dependencies: &mut Vec<Vec<Vec<Vec<Dependency>>>>,
     dependent_on_state_var: &mut Vec<Vec<Vec<ComponentStateDescription>>>,
@@ -73,49 +73,50 @@ pub fn freshen_renderer_state_for_component(
     freshen_stack: &mut Vec<StateVarCalculationState>,
     should_initialize_essential_data: bool,
 ) -> Vec<usize> {
-    let rendered_state_var_indices = components[component_idx]
-        .borrow()
-        .get_rendered_state_variable_indices()
-        .clone();
+    // recursively get a list of all rendered descendants of the components in stale_renderers
+    let mut stale_renderer_idx = 0;
+    while stale_renderer_idx < stale_renderers.len() {
+        let component_idx = stale_renderers[stale_renderer_idx];
+        stale_renderer_idx += 1;
 
-    let mut components_freshened = Vec::new();
-
-    for state_var_idx in rendered_state_var_indices {
-        let component_state = ComponentStateDescription {
+        stale_renderers.extend(get_non_string_rendered_children_including_from_extend(
             component_idx,
-            state_var_idx,
-        };
-        freshen_state_var(
-            component_state,
             components,
-            dependencies,
-            dependent_on_state_var,
-            dependent_on_essential,
-            essential_data,
-            freshen_stack,
-            should_initialize_essential_data,
-        );
+        ));
     }
 
-    components_freshened.push(component_idx);
+    // deduplicate the list of stale renderers,
+    // sorting first since .dedup removes only consecutive duplicates.
+    stale_renderers.sort_unstable();
+    stale_renderers.dedup();
 
-    for child_idx in
-        get_non_string_rendered_children_including_from_extend(component_idx, components)
-    {
-        let new_components_freshened = freshen_renderer_state_for_component(
-            child_idx,
-            components,
-            dependencies,
-            dependent_on_state_var,
-            dependent_on_essential,
-            essential_data,
-            freshen_stack,
-            should_initialize_essential_data,
-        );
+    for component_idx in stale_renderers.iter() {
+        let rendered_state_var_indices = components[*component_idx]
+            .borrow()
+            .get_rendered_state_variable_indices()
+            .clone();
 
-        components_freshened.extend(new_components_freshened);
+        for state_var_idx in rendered_state_var_indices {
+            let component_state = ComponentStateDescription {
+                component_idx: *component_idx,
+                state_var_idx,
+            };
+            freshen_state_var(
+                component_state,
+                components,
+                dependencies,
+                dependent_on_state_var,
+                dependent_on_essential,
+                essential_data,
+                freshen_stack,
+                should_initialize_essential_data,
+            );
+        }
     }
 
+    let components_freshened = stale_renderers.clone();
+
+    stale_renderers.clear();
     components_freshened
 }
 
@@ -523,7 +524,7 @@ pub fn process_state_variable_update_request(
     dependent_on_state_var: &mut Vec<Vec<Vec<ComponentStateDescription>>>,
     dependent_on_essential: &mut Vec<HashMap<EssentialDataOrigin, Vec<ComponentStateDescription>>>,
     essential_data: &mut Vec<HashMap<EssentialDataOrigin, EssentialStateVar>>,
-    stale_renderers: &mut HashSet<ComponentIdx>,
+    stale_renderers: &mut Vec<ComponentIdx>,
     mark_stale_stack: &mut Vec<ComponentStateDescription>,
     update_stack: &mut Vec<StateVariableUpdateRequest>,
 ) {
@@ -597,7 +598,7 @@ fn mark_stale_state_var_and_dependencies(
     original_component_state: ComponentStateDescription,
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
     dependent_on_state_var: &mut Vec<Vec<Vec<ComponentStateDescription>>>,
-    stale_renderers: &mut HashSet<ComponentIdx>,
+    stale_renderers: &mut Vec<ComponentIdx>,
     mark_stale_stack: &mut Vec<ComponentStateDescription>,
 ) {
     // This function currently implements recursion through an iterative method,
@@ -618,7 +619,7 @@ fn mark_stale_state_var_and_dependencies(
             state_var.mark_stale();
 
             if state_var.get_for_renderer() {
-                stale_renderers.insert(component_idx);
+                stale_renderers.push(component_idx);
             }
 
             let states_depending_on_me = &dependent_on_state_var[component_idx][state_var_idx];
@@ -644,7 +645,7 @@ fn mark_stale_essential_datum_dependencies(
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
     dependent_on_state_var: &mut Vec<Vec<Vec<ComponentStateDescription>>>,
     dependent_on_essential: &mut Vec<HashMap<EssentialDataOrigin, Vec<ComponentStateDescription>>>,
-    stale_renderers: &mut HashSet<ComponentIdx>,
+    stale_renderers: &mut Vec<ComponentIdx>,
     mark_stale_stack: &mut Vec<ComponentStateDescription>,
 ) {
     let component_idx = essential_state.component_idx;
