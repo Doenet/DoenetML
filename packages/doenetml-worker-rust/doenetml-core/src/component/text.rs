@@ -12,6 +12,7 @@ use crate::state::{
     StateVar, StateVarInterface, StateVarMutableViewTyped, StateVarParameters,
     StateVarReadOnlyView, StateVarReadOnlyViewTyped, StateVarTyped, StateVarValue,
 };
+use crate::utils::KeyValueIgnoreCase;
 use crate::{ComponentChild, ComponentIdx, ExtendSource};
 
 use super::{
@@ -35,6 +36,8 @@ pub struct Text {
     pub state_variables: Vec<StateVar>,
 
     pub rendered_state_variable_indices: Vec<usize>,
+
+    pub public_state_variable_indices: Vec<usize>,
 
     pub state_variable_name_to_index: HashMap<String, usize>,
 
@@ -101,6 +104,13 @@ impl ComponentNodeStateVariables for Text {
         ///////////////////////
         // Value state variable
         ///////////////////////
+
+        // Note: since "value" has index 0 and it is the state variable that will
+        // shadow if there is any ExtendSource::StateVar, then we don't need
+        // to check self.extend and alter it even if there is an ExtendSource::StateVar.
+        // An ExtendSource::StateVar will always initially have the first shadowing_index
+        // with the default value of 0.
+
         let value_state_variable = StateVarTyped::new(
             Box::new(ValueStateVarInterface::default()),
             StateVarParameters {
@@ -142,11 +152,29 @@ struct ValueStateVarInterface {
 }
 
 impl StateVarInterface<String> for ValueStateVarInterface {
-    fn return_dependency_instructions(&self) -> Vec<DependencyInstruction> {
-        vec![DependencyInstruction::Child {
+    fn return_dependency_instructions(
+        &self,
+        extend_source: Option<&ExtendSource>,
+    ) -> Vec<DependencyInstruction> {
+        let mut dep_instructs = Vec::with_capacity(2);
+
+        dep_instructs.push(DependencyInstruction::Child {
             match_profiles: vec![ComponentProfile::Text],
             exclude_if_prefer_profiles: vec![],
-        }]
+        });
+
+        if let Some(ExtendSource::StateVar(extend_state_var_description)) = extend_source {
+            let match1 = &extend_state_var_description.state_variable_matching[0];
+            if match1.shadowing_idx == 0 {
+                // determined that "value" is shadowing
+                dep_instructs.push(DependencyInstruction::StateVar {
+                    component_idx: Some(extend_state_var_description.component_idx),
+                    state_var_name: match1.shadowed_name,
+                })
+            }
+        }
+
+        dep_instructs
     }
 
     fn save_dependencies_for_value_calculation(
@@ -155,7 +183,16 @@ impl StateVarInterface<String> for ValueStateVarInterface {
     ) -> () {
         let children = &dependencies[0];
 
-        let mut string_vals = Vec::with_capacity(children.len());
+        let mut string_vals = Vec::with_capacity(children.len() + dependencies.len() - 1);
+
+        if dependencies.len() == 2 {
+            let extend_value = &dependencies[1][0].value;
+            if let StateVarReadOnlyView::String(extend_string_value) = extend_value {
+                string_vals.push(extend_string_value.create_new_read_only_view())
+            } else {
+                panic!("Got a non-string value in extend source for a Text component");
+            }
+        }
 
         for Dependency {
             value: child_value, ..
@@ -212,8 +249,12 @@ struct TextStateVarInterface {
 }
 
 impl StateVarInterface<String> for TextStateVarInterface {
-    fn return_dependency_instructions(&self) -> Vec<DependencyInstruction> {
+    fn return_dependency_instructions(
+        &self,
+        _extend_source: Option<&ExtendSource>,
+    ) -> Vec<DependencyInstruction> {
         vec![DependencyInstruction::StateVar {
+            component_idx: None,
             state_var_name: "value",
         }]
     }

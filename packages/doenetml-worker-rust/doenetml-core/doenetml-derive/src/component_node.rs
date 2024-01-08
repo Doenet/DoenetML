@@ -39,14 +39,8 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                         fn get_idx(&self) -> ComponentIdx {
                             self.idx
                         }
-                        fn set_idx(&mut self, idx: ComponentIdx) {
-                            self.idx = idx;
-                        }
                         fn get_parent(&self) -> Option<ComponentIdx> {
                             self.parent
-                        }
-                        fn set_parent(&mut self, parent: Option<ComponentIdx>) {
-                            self.parent = parent;
                         }
                         fn get_children(&self) -> &Vec<ComponentChild> {
                             &self.children
@@ -58,9 +52,16 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                             std::mem::replace(&mut self.children, new_children)
                         }
 
-                        fn initialize(&mut self, idx: ComponentIdx, parent: Option<ComponentIdx>, position: Option<DastPosition>) {
+                        fn initialize(
+                            &mut self,
+                            idx: ComponentIdx,
+                            parent: Option<ComponentIdx>,
+                            extend_source: Option<ExtendSource>,
+                            position: Option<DastPosition>,
+                        ) {
                             self.idx = idx;
                             self.parent = parent;
+                            self.extend = extend_source;
                             self.position = position;
 
                             self.initialize_state_variables();
@@ -69,7 +70,14 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                                 .get_state_variables()
                                 .iter()
                                 .enumerate()
-                                .filter_map(|(ind, state_var)| state_var.return_for_renderer().then(|| ind))
+                                .filter_map(|(ind, state_var)| state_var.get_for_renderer().then(|| ind))
+                                .collect();
+
+                            self.public_state_variable_indices = self
+                                .get_state_variables()
+                                .iter()
+                                .enumerate()
+                                .filter_map(|(ind, state_var)| state_var.get_is_public().then(|| ind))
                                 .collect();
 
                             let name_to_index_pairs: Vec<_> = self
@@ -86,9 +94,6 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
 
                         fn get_extend(&self) -> Option<&ExtendSource> {
                             self.extend.as_ref()
-                        }
-                        fn set_extend(&mut self, extend_source: Option<ExtendSource>) {
-                            self.extend = extend_source;
                         }
 
                         fn get_component_type(&self) -> &str {
@@ -113,7 +118,11 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                             self.state_variables.len()
                         }
 
-                        fn get_state_variables(&mut self) -> &mut Vec<StateVar> {
+                        fn get_state_variables(&self) -> &Vec<StateVar> {
+                            &self.state_variables
+                        }
+
+                        fn get_state_variables_mut(&mut self) -> &mut Vec<StateVar> {
                             &mut self.state_variables
                         }
 
@@ -121,8 +130,19 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                             &self.rendered_state_variable_indices
                         }
 
+
+                        fn get_public_state_variable_indices(&self) -> &Vec<usize> {
+                            &self.public_state_variable_indices
+                        }
+
                         fn get_state_variable_index_from_name(&self, name: &String) -> Option<usize> {
                             self.state_variable_name_to_index.get(name).copied()
+                        }
+
+                        fn get_state_variable_index_from_name_case_insensitive(&self, name: &String) -> Option<usize> {
+                            self.state_variable_name_to_index
+                                .get_key_value_ignore_case(name)
+                                .map(|(k, v)| *v)
                         }
 
                         fn get_component_profile_state_variables(&self)  -> &Vec<ComponentProfileStateVariable> {
@@ -144,15 +164,12 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
 
             let mut create_object_variant_arms = Vec::new();
             let mut get_idx_variant_arms = Vec::new();
-            let mut set_idx_variant_arms = Vec::new();
             let mut get_parent_variant_arms = Vec::new();
-            let mut set_parent_variant_arms = Vec::new();
             let mut get_children_variant_arms = Vec::new();
             let mut set_children_variant_arms = Vec::new();
             let mut replace_children_variant_arms = Vec::new();
             let mut initialize_variant_arms = Vec::new();
             let mut get_extend_variant_arms = Vec::new();
-            let mut set_extend_variant_arms = Vec::new();
             let mut get_component_type_variant_arms = Vec::new();
             let mut set_descendant_names_variant_arms = Vec::new();
             let mut get_descendant_matches_variant_arms = Vec::new();
@@ -160,8 +177,11 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
             let mut set_position_variant_arms = Vec::new();
             let mut get_num_state_variables_variant_arms = Vec::new();
             let mut get_state_variables_variant_arms = Vec::new();
+            let mut get_state_variables_mut_variant_arms = Vec::new();
             let mut get_rendered_state_variable_indices_variant_arms = Vec::new();
+            let mut get_public_state_variable_indices_variant_arms = Vec::new();
             let mut get_state_variable_index_from_name_variant_arms = Vec::new();
+            let mut get_state_variable_index_from_name_case_insensitive_variant_arms = Vec::new();
             let mut get_component_profile_state_variables_variant_arms = Vec::new();
 
             for variant in variants {
@@ -177,21 +197,9 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                     },
                 });
 
-                set_idx_variant_arms.push(quote! {
-                    #enum_ident::#variant_ident(ref mut comp) => {
-                        comp.set_idx(idx);
-                    },
-                });
-
                 get_parent_variant_arms.push(quote! {
                     #enum_ident::#variant_ident(comp) => {
                         comp.get_parent()
-                    },
-                });
-
-                set_parent_variant_arms.push(quote! {
-                    #enum_ident::#variant_ident(ref mut comp) => {
-                        comp.set_parent(parent);
                     },
                 });
 
@@ -215,19 +223,13 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
 
                 initialize_variant_arms.push(quote! {
                     #enum_ident::#variant_ident(ref mut comp) => {
-                        comp.initialize(idx, parent, position);
+                        comp.initialize(idx, parent, extend_source, position);
                     },
                 });
 
                 get_extend_variant_arms.push(quote! {
                     #enum_ident::#variant_ident(comp) => {
                         comp.get_extend()
-                    },
-                });
-
-                set_extend_variant_arms.push(quote! {
-                    #enum_ident::#variant_ident(ref mut comp) => {
-                        comp.set_extend(extend_source);
                     },
                 });
 
@@ -268,8 +270,14 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                 });
 
                 get_state_variables_variant_arms.push(quote! {
-                    #enum_ident::#variant_ident(ref mut comp) => {
+                    #enum_ident::#variant_ident(comp) => {
                         comp.get_state_variables()
+                    },
+                });
+
+                get_state_variables_mut_variant_arms.push(quote! {
+                    #enum_ident::#variant_ident(ref mut comp) => {
+                        comp.get_state_variables_mut()
                     },
                 });
 
@@ -279,9 +287,21 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                     },
                 });
 
+                get_public_state_variable_indices_variant_arms.push(quote! {
+                    #enum_ident::#variant_ident(comp) => {
+                        comp.get_public_state_variable_indices()
+                    },
+                });
+
                 get_state_variable_index_from_name_variant_arms.push(quote! {
                     #enum_ident::#variant_ident(comp) => {
                         comp.get_state_variable_index_from_name(name)
+                    },
+                });
+
+                get_state_variable_index_from_name_case_insensitive_variant_arms.push(quote! {
+                    #enum_ident::#variant_ident(comp) => {
+                        comp.get_state_variable_index_from_name_case_insensitive(name)
                     },
                 });
 
@@ -310,21 +330,9 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                         }
                     }
 
-                    fn set_idx(&mut self, idx: ComponentIdx){
-                        match self {
-                            #(#set_idx_variant_arms)*
-                        }
-                    }
-
                     fn get_parent(&self) -> Option<ComponentIdx> {
                         match self {
                             #(#get_parent_variant_arms)*
-                        }
-                    }
-
-                    fn set_parent(&mut self, parent: Option<ComponentIdx>){
-                        match self {
-                            #(#set_parent_variant_arms)*
                         }
                     }
 
@@ -346,7 +354,13 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                         }
                     }
 
-                    fn initialize(&mut self, idx: ComponentIdx, parent: Option<ComponentIdx>, position: Option<DastPosition>) {
+                    fn initialize(
+                        &mut self,
+                        idx: ComponentIdx,
+                        parent: Option<ComponentIdx>,
+                        extend_source: Option<ExtendSource>,
+                        position: Option<DastPosition>,
+                    ) {
                         match self {
                             #(#initialize_variant_arms)*
                         }
@@ -355,12 +369,6 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                     fn get_extend(&self) -> Option<&ExtendSource> {
                         match self {
                             #(#get_extend_variant_arms)*
-                        }
-                    }
-
-                    fn set_extend(&mut self, extend_source: Option<ExtendSource>) {
-                        match self {
-                            #(#set_extend_variant_arms)*
                         }
                     }
 
@@ -400,9 +408,15 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                         }
                     }
 
-                    fn get_state_variables(&mut self) -> &mut Vec<StateVar>{
+                    fn get_state_variables(&self) -> &Vec<StateVar>{
                         match self {
                             #(#get_state_variables_variant_arms)*
+                        }
+                    }
+
+                    fn get_state_variables_mut(&mut self) -> &mut Vec<StateVar>{
+                        match self {
+                            #(#get_state_variables_mut_variant_arms)*
                         }
                     }
 
@@ -412,9 +426,21 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                         }
                     }
 
+                    fn get_public_state_variable_indices(&self) -> &Vec<usize> {
+                        match self {
+                            #(#get_public_state_variable_indices_variant_arms)*
+                        }
+                    }
+
                     fn get_state_variable_index_from_name(&self, name: &String) -> Option<usize> {
                         match self {
                             #(#get_state_variable_index_from_name_variant_arms)*
+                        }
+                    }
+
+                    fn get_state_variable_index_from_name_case_insensitive(&self, name: &String) -> Option<usize> {
+                        match self {
+                            #(#get_state_variable_index_from_name_case_insensitive_variant_arms)*
                         }
                     }
 

@@ -7,7 +7,10 @@ use std::{
 
 use doenetml_derive::{StateVarMethods, StateVarMutableViewMethods, StateVarReadOnlyViewMethods};
 
-use crate::dependency::{Dependency, DependencyInstruction, DependencyUpdatesRequested};
+use crate::{
+    dependency::{Dependency, DependencyInstruction, DependencyUpdatesRequested},
+    ExtendSource,
+};
 
 /// The name (snake_case) of a state variable    
 pub type StateVarName = &'static str;
@@ -60,7 +63,10 @@ pub trait StateVarInterface<T: Default + Clone>: std::fmt::Debug {
     /// for this state variable based on the structure of the document,
     /// e.g., the children, attributes, or other state variables
     /// of the component of this state variable
-    fn return_dependency_instructions(&self) -> Vec<DependencyInstruction>;
+    fn return_dependency_instructions(
+        &self,
+        extend_source: Option<&ExtendSource>,
+    ) -> Vec<DependencyInstruction>;
 
     /// Given the structure of the document and the dependency instructions,
     /// the actual dependencies will be determined and passed to `save_dependencies_for_value_calculation`.
@@ -108,11 +114,16 @@ pub trait StateVarInterface<T: Default + Clone>: std::fmt::Debug {
 ///   and sent to the renderer
 /// - initial_essential_value: TODO, but presumably the initial value of its essential value
 /// - name: the name of the state variable
+/// - is_public: if true, the state variable can be referenced by a macro.
+///   A state variable should be public only if its type has a default component type associated with it,
+///   which informs which type of component to create when it is referenced,
+///   should a component need to be created.
 #[derive(Debug, Default)]
 pub struct StateVarParameters<T> {
     pub for_renderer: bool,
     pub initial_essential_value: T,
     pub name: &'static str,
+    pub is_public: bool,
 }
 
 /// A mutable view of the value of the state variable.
@@ -588,8 +599,11 @@ impl<T: Default + Clone> StateVarTyped<T> {
     }
 
     /// Convenience function to call `return_dependency_instructions` on interface
-    pub fn return_dependency_instructions(&self) -> Vec<DependencyInstruction> {
-        self.interface.return_dependency_instructions()
+    pub fn return_dependency_instructions(
+        &self,
+        extend_source: Option<&ExtendSource>,
+    ) -> Vec<DependencyInstruction> {
+        self.interface.return_dependency_instructions(extend_source)
     }
 
     /// Call `save_dependencies_for_value_calculation` on interface
@@ -604,13 +618,13 @@ impl<T: Default + Clone> StateVarTyped<T> {
     }
 
     /// Convenience function to call `calculate_state_var_from_dependencies` on interface
-    fn calculate_state_var_from_dependencies(&self) -> () {
+    pub fn calculate_state_var_from_dependencies(&self) -> () {
         self.interface
             .calculate_state_var_from_dependencies(&self.value)
     }
 
     /// Convenience function to call `request_dependencies_to_update_value` on interface
-    fn request_dependencies_to_update_value(
+    pub fn request_dependencies_to_update_value(
         &self,
         is_direct_change_from_renderer: bool,
     ) -> Result<Vec<DependencyUpdatesRequested>, ()> {
@@ -621,19 +635,24 @@ impl<T: Default + Clone> StateVarTyped<T> {
     }
 
     /// Get name of the state variable
-    fn get_name(&self) -> &'static str {
+    pub fn get_name(&self) -> &'static str {
         self.parameters.name
     }
 
+    /// Return whether or not a macro can reference the state variable
+    pub fn get_is_public(&self) -> bool {
+        self.parameters.is_public
+    }
+
     /// Return whether or not this state variable value should be sent to the renderer
-    fn return_for_renderer(&self) -> bool {
+    pub fn get_for_renderer(&self) -> bool {
         self.parameters.for_renderer
     }
 
     /// Return the initial essential value of this state variable
     ///
     /// TODO: determine how this is used
-    fn return_initial_essential_value(&self) -> T {
+    pub fn return_initial_essential_value(&self) -> T {
         self.parameters.initial_essential_value.clone()
     }
 
@@ -700,6 +719,21 @@ pub enum StateVarValue {
     Number(f64),
     Integer(i64),
     Boolean(bool),
+}
+
+impl StateVar {
+    /// If creating a component from a reference to this state variable
+    /// then create a component of the given type.
+    ///
+    /// TODO: presumably, there should be a way to override this default.
+    pub fn get_default_component_type(&self) -> &'static str {
+        match self {
+            StateVar::Number(_) => "number",
+            StateVar::Integer(_) => "number",
+            StateVar::String(_) => "text",
+            StateVar::Boolean(_) => "boolean",
+        }
+    }
 }
 
 impl fmt::Debug for StateVar {

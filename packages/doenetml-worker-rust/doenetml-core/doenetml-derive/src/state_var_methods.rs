@@ -38,7 +38,8 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
             let mut state_var_calculate_state_var_from_dependencies_arms = Vec::new();
             let mut state_var_request_dependencies_to_update_value_arms = Vec::new();
             let mut state_var_get_name_arms = Vec::new();
-            let mut state_var_return_for_renderer_arms = Vec::new();
+            let mut state_var_get_for_renderer_arms = Vec::new();
+            let mut state_var_get_is_public_arms = Vec::new();
             let mut state_var_return_initial_essential_value_arms = Vec::new();
 
             let mut impl_try_from_state_var_value_to_state_var_typed_variants = Vec::new();
@@ -145,7 +146,7 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
 
                 state_var_return_dependency_instructions_arms.push(quote! {
                     #enum_ident::#variant_ident(sv_typed) => {
-                        sv_typed.return_dependency_instructions()
+                        sv_typed.return_dependency_instructions(extend_source)
                     },
                 });
 
@@ -173,9 +174,15 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
                     },
                 });
 
-                state_var_return_for_renderer_arms.push(quote! {
+                state_var_get_for_renderer_arms.push(quote! {
                     #enum_ident::#variant_ident(sv_typed) => {
-                        sv_typed.return_for_renderer()
+                        sv_typed.get_for_renderer()
+                    },
+                });
+
+                state_var_get_is_public_arms.push(quote! {
+                    #enum_ident::#variant_ident(sv_typed) => {
+                        sv_typed.get_is_public()
                     },
                 });
 
@@ -194,7 +201,7 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
                     /// If the state variable is Fresh, set its freshness to Stale.
                     ///
                     /// Panics: if the state variable is Unresolved.
-                    pub fn mark_stale(&mut self) {
+                    pub fn mark_stale(&self) {
                         match self {
                             #(#state_var_mark_stale_arms)*
                         }
@@ -286,7 +293,7 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
 
                     /// Return a vector dependency instructions, which will be used to
                     /// calculate dependencies from the document structure.
-                    pub fn return_dependency_instructions(&self) -> Vec<DependencyInstruction> {
+                    pub fn return_dependency_instructions(&self, extend_source: Option<&ExtendSource>) -> Vec<DependencyInstruction> {
                         match self {
                             #(#state_var_return_dependency_instructions_arms)*
                         }
@@ -358,10 +365,21 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
                     /// was specified to be true when the state variable was defined.
                     ///
                     /// The `for_renderer` parameters determine if this state variable value
-                    /// should be sent to the renderer
-                    pub fn return_for_renderer(&self) -> bool {
+                    /// should be sent to the renderer.
+                    pub fn get_for_renderer(&self) -> bool {
                         match self {
-                            #(#state_var_return_for_renderer_arms)*
+                            #(#state_var_get_for_renderer_arms)*
+                        }
+                    }
+
+                    /// Returns whether or not the `is_public` parameter
+                    /// was specified to be true when the state variable was defined.
+                    ///
+                    /// The `is_public` parameters determine if this state variable value
+                    /// can be referenced by a macro.
+                    pub fn get_is_public(&self) -> bool {
+                        match self {
+                            #(#state_var_get_is_public_arms)*
                         }
                     }
 

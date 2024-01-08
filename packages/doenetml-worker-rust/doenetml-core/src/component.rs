@@ -57,12 +57,8 @@ pub enum ComponentEnum {
 pub trait ComponentNode: ComponentNodeStateVariables {
     /// Get the index of the component, which is its index in the `components` vector of `DoenetMLCore`.
     fn get_idx(&self) -> ComponentIdx;
-    /// Set the index of the component, which should be set to its index in the `components` vector of `DoenetMLCore`.
-    fn set_idx(&mut self, idx: ComponentIdx);
     /// Get the index of the parent node
     fn get_parent(&self) -> Option<ComponentIdx>;
-    /// Set the index of the parent node
-    fn set_parent(&mut self, parent: Option<ComponentIdx>);
     /// Get the vector containing the indices of all child component nodes and the literal string children.
     fn get_children(&self) -> &Vec<ComponentChild>;
     /// Set the vector containing the indices of all child component nodes and the literal string children.
@@ -71,26 +67,24 @@ pub trait ComponentNode: ComponentNodeStateVariables {
     fn replace_children(&mut self, new_children: Vec<ComponentChild>) -> Vec<ComponentChild>;
 
     /// Perform the following steps to initialize a component
-    /// 1. Set its index, parent, and position in the original DoenetML string.
+    /// 1. Set its index, parent, extend source, and position in the original DoenetML string.
     /// 2. Initialize the state variables by calling `initialize_state_variables()`
     ///    from the `ComponentNodeStateVariables` trait.
     /// 3. Calculate the data structures underlying
     ///    - `get_rendered_state_variable_indices()`
+    ///    - `get_public_state_variable_indices()`
     ///    - `get_state_variable_index_from_name()`
     fn initialize(
         &mut self,
         idx: ComponentIdx,
         parent: Option<ComponentIdx>,
+        extend_source: Option<ExtendSource>,
         position: Option<DastPosition>,
     );
 
     /// Get the extend source of this component,
     /// indicating any component or state variable that this component extends.
     fn get_extend(&self) -> Option<&ExtendSource>;
-
-    /// Set the extend source of this component,
-    /// indicating any component or state variable that this component extends.
-    fn set_extend(&mut self, extend_source: Option<ExtendSource>);
 
     /// Get the component type, which is the name of the component's struct
     /// converted to camel case.
@@ -114,16 +108,34 @@ pub trait ComponentNode: ComponentNodeStateVariables {
     /// Return a vector of all the state variables for the component.
     ///
     /// The index of a state variable in this vector is state variable's index.
+    fn get_state_variables(&self) -> &Vec<StateVar>;
+
+    /// Return a mutable vector of all the state variables for the component.
     ///
-    /// Requires a mutable reference due to many of the state variable methods changing values.
-    fn get_state_variables(&mut self) -> &mut Vec<StateVar>;
+    /// The index of a state variable in this vector is state variable's index.
+    ///
+    /// Since the state variable value and most meta data are behind a RefCell,
+    /// a mutable view is not needed even to set the value. A mutable view is needed
+    /// only to set values that are on the StateVar that aren't behind the RefCell.
+    /// Currently, the methods needing mut are those involving dependencies:
+    /// - `record_all_dependencies_viewed()`
+    /// - `set_dependencies()`
+    fn get_state_variables_mut(&mut self) -> &mut Vec<StateVar>;
 
     /// Return a vector of the indices of each state variable that is sent to the renderer,
     /// i.e., that has the `for_renderer` parameter set to true.
     fn get_rendered_state_variable_indices(&self) -> &Vec<usize>;
 
+    /// Return a vector of the indices of each state variable that is public,
+    /// i.e., that can be referenced with a macro.
+    fn get_public_state_variable_indices(&self) -> &Vec<usize>;
+
     /// Attempt to match `name` to the name of a state variable and return its index if found.
     fn get_state_variable_index_from_name(&self, name: &String) -> Option<usize>;
+
+    /// Attempt to match `name` to the name of a state variable using a case-insensitive match
+    /// and return its index if found.
+    fn get_state_variable_index_from_name_case_insensitive(&self, name: &String) -> Option<usize>;
 
     /// Return a vector of all component profile state variables of this component.
     fn get_component_profile_state_variables(&self) -> &Vec<ComponentProfileStateVariable>;
@@ -146,20 +158,12 @@ pub trait RenderedComponentNode: ComponentNode {
 
         // if extending a source that is a component,
         // add children from that source first
-        let mut children = if let Some(extend_source) = self.get_extend() {
-            match extend_source {
-                ExtendSource::Component(source_idx) => {
-                    let source_dast = components[*source_idx]
-                        .borrow_mut()
-                        .to_flat_dast(components);
+        let mut children = if let Some(ExtendSource::Component(source_idx)) = self.get_extend() {
+            let source_dast = components[*source_idx]
+                .borrow_mut()
+                .to_flat_dast(components);
 
-                    source_dast.children
-                }
-                ExtendSource::StateVar(component_state) => {
-                    // TODO: state variable extend source
-                    Vec::new()
-                }
-            }
+            source_dast.children
         } else {
             Vec::new()
         };

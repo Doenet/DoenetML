@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use crate::dast::Position as DastPosition;
 use crate::state::StateVar;
+use crate::utils::KeyValueIgnoreCase;
 use crate::{ComponentChild, ComponentIdx, ExtendSource};
 
 use super::{
@@ -24,6 +25,8 @@ pub struct _External {
 
     pub rendered_state_variable_indices: Vec<usize>,
 
+    pub public_state_variable_indices: Vec<usize>,
+
     pub state_variable_name_to_index: HashMap<String, usize>,
 
     pub component_profile_state_variables: Vec<ComponentProfileStateVariable>,
@@ -35,14 +38,8 @@ impl ComponentNode for _External {
     fn get_idx(&self) -> ComponentIdx {
         self.idx
     }
-    fn set_idx(&mut self, idx: ComponentIdx) {
-        self.idx = idx;
-    }
     fn get_parent(&self) -> Option<ComponentIdx> {
         self.parent
-    }
-    fn set_parent(&mut self, parent: Option<ComponentIdx>) {
-        self.parent = parent;
     }
     fn get_children(&self) -> &Vec<ComponentChild> {
         &self.children
@@ -58,6 +55,7 @@ impl ComponentNode for _External {
         &mut self,
         idx: ComponentIdx,
         parent: Option<ComponentIdx>,
+        _extend_source: Option<ExtendSource>,
         position: Option<DastPosition>,
     ) {
         self.idx = idx;
@@ -70,7 +68,14 @@ impl ComponentNode for _External {
             .get_state_variables()
             .iter()
             .enumerate()
-            .filter_map(|(ind, state_var)| state_var.return_for_renderer().then(|| ind))
+            .filter_map(|(ind, state_var)| state_var.get_for_renderer().then(|| ind))
+            .collect();
+
+        self.public_state_variable_indices = self
+            .get_state_variables()
+            .iter()
+            .enumerate()
+            .filter_map(|(ind, state_var)| state_var.get_is_public().then(|| ind))
             .collect();
 
         self.state_variable_name_to_index = HashMap::new();
@@ -89,7 +94,6 @@ impl ComponentNode for _External {
     fn get_extend(&self) -> Option<&ExtendSource> {
         None
     }
-    fn set_extend(&mut self, _extend_source: Option<ExtendSource>) {}
 
     // The main reason we customize the implementation of ComponentNode
     // is to use this custom component type coming from name
@@ -115,7 +119,11 @@ impl ComponentNode for _External {
         self.state_variables.len()
     }
 
-    fn get_state_variables(&mut self) -> &mut Vec<StateVar> {
+    fn get_state_variables(&self) -> &Vec<StateVar> {
+        &self.state_variables
+    }
+
+    fn get_state_variables_mut(&mut self) -> &mut Vec<StateVar> {
         &mut self.state_variables
     }
 
@@ -123,8 +131,18 @@ impl ComponentNode for _External {
         &self.rendered_state_variable_indices
     }
 
+    fn get_public_state_variable_indices(&self) -> &Vec<usize> {
+        &self.public_state_variable_indices
+    }
+
     fn get_state_variable_index_from_name(&self, name: &String) -> Option<usize> {
         self.state_variable_name_to_index.get(name).copied()
+    }
+
+    fn get_state_variable_index_from_name_case_insensitive(&self, name: &String) -> Option<usize> {
+        self.state_variable_name_to_index
+            .get_key_value_ignore_case(name)
+            .map(|(k, v)| *v)
     }
 
     fn get_component_profile_state_variables(&self) -> &Vec<ComponentProfileStateVariable> {

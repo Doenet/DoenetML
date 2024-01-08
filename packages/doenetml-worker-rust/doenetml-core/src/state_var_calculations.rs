@@ -136,16 +136,8 @@ fn get_non_string_rendered_children_including_from_extend(
 
     let component = components[component_idx].borrow_mut();
 
-    let mut children = if let Some(extend_source) = component.get_extend() {
-        match extend_source {
-            &ExtendSource::Component(source_idx) => {
-                get_non_string_rendered_children_including_from_extend(source_idx, components)
-            }
-            ExtendSource::StateVar(_component_state) => {
-                // TODO: state variable extend source
-                Vec::new()
-            }
-        }
+    let mut children = if let Some(&ExtendSource::Component(source_idx)) = component.get_extend() {
+        get_non_string_rendered_children_including_from_extend(source_idx, components)
     } else {
         Vec::new()
     };
@@ -188,7 +180,7 @@ pub fn freshen_state_var(
     // size WASM stack would be appropriate.
 
     let current_freshness = components[original_component_state.component_idx]
-        .borrow_mut()
+        .borrow()
         .get_state_variables()[original_component_state.state_var_idx]
         .get_freshness();
 
@@ -222,8 +214,9 @@ pub fn freshen_state_var(
 
                 let dependency_instructions =
                     unresolved_state.dependency_instructions.unwrap_or_else(|| {
-                        components[component_idx].borrow_mut().get_state_variables()[state_var_idx]
-                            .return_dependency_instructions()
+                        let component = components[component_idx].borrow();
+                        component.get_state_variables()[state_var_idx]
+                            .return_dependency_instructions(component.get_extend())
                     });
 
                 let mut dependencies_for_state_var = unresolved_state
@@ -266,20 +259,20 @@ pub fn freshen_state_var(
                         for dep in instruct_dependencies.iter() {
                             match &dep.source {
                                 DependencySource::StateVar {
-                                    component_idx: inner_comp_ind,
-                                    state_var_idx: inner_sv_ind,
+                                    component_idx: inner_comp_idx,
+                                    state_var_idx: inner_sv_idx,
                                 } => {
-                                    let vec_dep = &mut dependent_on_state_var[*inner_comp_ind];
-                                    vec_dep[*inner_sv_ind].push(ComponentStateDescription {
+                                    let vec_dep = &mut dependent_on_state_var[*inner_comp_idx];
+                                    vec_dep[*inner_sv_idx].push(ComponentStateDescription {
                                         component_idx,
                                         state_var_idx,
                                     });
                                 }
                                 DependencySource::Essential {
-                                    component_idx: inner_comp_ind,
+                                    component_idx: inner_comp_idx,
                                     origin,
                                 } => {
-                                    let vec_dep = dependent_on_essential[*inner_comp_ind]
+                                    let vec_dep = dependent_on_essential[*inner_comp_idx]
                                         .entry(origin.clone())
                                         .or_insert(Vec::new());
                                     vec_dep.push(ComponentStateDescription {
@@ -386,7 +379,7 @@ pub fn freshen_state_var(
                 // We set the dependencies and calculate its value
 
                 let mut comp = components[component_idx].borrow_mut();
-                let state_var = &mut comp.get_state_variables()[state_var_idx];
+                let state_var = &mut comp.get_state_variables_mut()[state_var_idx];
 
                 state_var.set_dependencies(&dependencies_for_state_var);
 
@@ -474,7 +467,7 @@ pub fn freshen_state_var(
                 let state_var_idx = component_state.state_var_idx;
 
                 let mut comp = components[component_idx].borrow_mut();
-                let state_var = &mut comp.get_state_variables()[state_var_idx];
+                let state_var = &mut comp.get_state_variables_mut()[state_var_idx];
 
                 // Check if any dependency has changed since we last called record_all_dependencies_viewed.
                 if state_var.check_if_any_dependency_changed_since_last_viewed() {
@@ -512,7 +505,7 @@ pub fn get_state_var_value(
     );
 
     components[original_component_state.component_idx]
-        .borrow_mut()
+        .borrow()
         .get_state_variables()[original_component_state.state_var_idx]
         .get_fresh_value()
 }
@@ -618,13 +611,13 @@ fn mark_stale_state_var_and_dependencies(
         state_var_idx,
     }) = mark_stale_stack.pop()
     {
-        let mut component = components[component_idx].borrow_mut();
-        let state_var = &mut component.get_state_variables()[state_var_idx];
+        let component = components[component_idx].borrow();
+        let state_var = &component.get_state_variables()[state_var_idx];
 
         if state_var.get_freshness() == Freshness::Fresh {
             state_var.mark_stale();
 
-            if state_var.return_for_renderer() {
+            if state_var.get_for_renderer() {
                 stale_renderers.insert(component_idx);
             }
 
@@ -687,62 +680,24 @@ fn request_dependencies_to_update_value_including_shadow(
 ) -> Vec<StateVariableUpdateRequest> {
     let component_idx = component_state.component_idx;
     let state_var_idx = component_state.state_var_idx;
-    let mut component = components[component_idx].borrow_mut();
+    let component = components[component_idx].borrow();
     let state_variable = &component.get_state_variables()[state_var_idx];
 
-    if let Some(_source_component_ref_state) = state_var_is_shadowing(component_state, components) {
-        // TODO: state variable shadowing needs to be updated to state variable traits
+    let requests =
+        state_variable.request_dependencies_to_update_value(is_direct_change_from_renderer);
 
-        unimplemented!("Need to implement shadowing of state variables");
-    } else {
-        let requests =
-            state_variable.request_dependencies_to_update_value(is_direct_change_from_renderer);
+    let update_requests = requests
+        .map(|req| {
+            convert_dependency_updates_requested_to_state_variable_update_requests(
+                component_state,
+                req,
+                components,
+                dependencies,
+            )
+        })
+        .unwrap_or(vec![]);
 
-        let update_requests = requests
-            .map(|req| {
-                convert_dependency_updates_requested_to_state_variable_update_requests(
-                    component_state,
-                    req,
-                    components,
-                    dependencies,
-                )
-            })
-            .unwrap_or(vec![]);
-
-        update_requests
-    }
-}
-
-/// Detect if a state var is shadowing because of a ExtendSource
-/// and has a primary input state variable, which is needed.
-fn state_var_is_shadowing(
-    component_state: ComponentStateDescription,
-    components: &Vec<Rc<RefCell<ComponentEnum>>>,
-) -> Option<ComponentStateDescription> {
-    // TODO: we have not yet implemented extending a component via a state variable.
-    // Allowing only the "primary input state var" to shadow seems incomplete.
-    None
-
-    // let component_idx = component_state.component_idx;
-    // let state_var_idx = component_state.state_var_idx;
-    // let component = components[component_idx].borrow();
-
-    // if let Some(ExtendSource::StateVar(component_ref_state)) = component.get_extend() {
-    //     if let Some(primary_input_state_var_ind) = component.get_primary_input_state_var_ind() {
-    //         if state_var_idx == primary_input_state_var_ind {
-    //             Some(*component_ref_state)
-    //         } else {
-    //             None
-    //         }
-    //     } else {
-    //         panic!(
-    //             "{} component type doesn't have a primary input state var",
-    //             component.get_component_type()
-    //         );
-    //     }
-    // } else {
-    //     None
-    // }
+    update_requests
 }
 
 /// Convert the dependency update results of `request_dependencies_to_update_value()`

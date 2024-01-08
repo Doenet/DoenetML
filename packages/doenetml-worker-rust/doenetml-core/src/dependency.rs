@@ -23,12 +23,10 @@ pub enum DependencyInstruction {
         exclude_if_prefer_profiles: Vec<ComponentProfile>,
     },
     StateVar {
-        // TODO: will we need specify a particular component here?
-        // For now, a StateVar dependency instruction will just get a state variable
-        // from the given component
-        // component_name: Option<ComponentName>,
+        /// If None, state variable is from the component giving the instruction.
+        component_idx: Option<ComponentIdx>,
 
-        // Must match the name of a state variable
+        /// Must match the name of a state variable
         state_var_name: StateVarName,
     },
     Parent {
@@ -107,7 +105,7 @@ pub fn create_dependencies_from_instruction_initialize_essential(
 
                     // TODO: implement getting initial data from prefill attribute
                     // For now just use initial essential value and set used_default to true
-                    let initial_data = components[component_idx].borrow_mut().get_state_variables()
+                    let initial_data = components[component_idx].borrow().get_state_variables()
                         [state_var_idx]
                         .return_initial_essential_value();
                     used_default = true;
@@ -136,12 +134,13 @@ pub fn create_dependencies_from_instruction_initialize_essential(
             }]
         }
 
-        DependencyInstruction::StateVar { state_var_name } => {
+        DependencyInstruction::StateVar {
+            component_idx: comp_idx,
+            state_var_name,
+        } => {
             // Create a dependency that references the value of state_var_name
-            // from the current component (TODO: specify another component)
 
-            // For now, use component_idx as haven't create a way to grab another component
-            let comp_idx = component_idx;
+            let comp_idx = comp_idx.unwrap_or(component_idx);
 
             let mut comp = components[comp_idx].borrow_mut();
 
@@ -207,43 +206,6 @@ pub fn create_dependencies_from_instruction_initialize_essential(
             }
 
             let mut relevant_children: Vec<RelevantChild> = Vec::new();
-
-            // // First check for the special case where we extend from a state variable.
-            // // Treat that state variable as the state variable coming from a child.
-
-            // // TODO: we haven't finished implementing the feature, but it seems this idea needs additional refinement.
-            // // Extending from a state variable shouldn't add to all child dependencies regardless
-            // // of component profile selected. There is no reason that this state variable
-            // // should give a type that matches what would come from the component profile.
-
-            // // In fact, just commenting this out for now, as it just seems too incomplete
-
-            // let source_idx =
-            //     get_recursive_extend_source_component_when_exists(components, component_idx);
-            // let source = components[source_idx].borrow();
-
-            // if let Some(&ExtendSource::StateVar(component_state)) = source.get_extend() {
-            //     // copying a state var means we don't inherit its children,
-            //     // so we depend on it directly
-            //     let comp_idx = component_state.component_idx;
-            //     let sv_idx = component_state.state_var_idx;
-
-            //     let mut comp_of_state_var = components[comp_idx].borrow_mut();
-
-            //     let state_var_dep = Dependency {
-            //         source: DependencySource::StateVar {
-            //             component_idx: comp_idx,
-            //             state_var_idx: sv_idx,
-            //         },
-            //         value: comp_of_state_var.get_state_variables()[sv_idx]
-            //             .create_new_read_only_view(),
-            //     };
-
-            //     relevant_children.push(RelevantChild::StateVar {
-            //         dependency: state_var_dep,
-            //         parent: source_idx,
-            //     });
-            // }
 
             // For each component child (including those from an extend source)
             // iterate through all its component profile state variables

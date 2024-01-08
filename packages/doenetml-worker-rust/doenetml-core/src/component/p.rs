@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use crate::dast::Position as DastPosition;
 use crate::state::StateVar;
+use crate::utils::KeyValueIgnoreCase;
 use crate::{ComponentChild, ComponentIdx, ExtendSource};
 
 use super::{
@@ -25,6 +26,8 @@ pub struct P {
     pub state_variables: Vec<StateVar>,
 
     pub rendered_state_variable_indices: Vec<usize>,
+
+    pub public_state_variable_indices: Vec<usize>,
 
     pub state_variable_name_to_index: HashMap<String, usize>,
 

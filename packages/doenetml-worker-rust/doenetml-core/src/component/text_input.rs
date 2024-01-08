@@ -10,6 +10,7 @@ use crate::state::{
     StateVar, StateVarInterface, StateVarMutableViewTyped, StateVarParameters,
     StateVarReadOnlyView, StateVarReadOnlyViewTyped, StateVarTyped, StateVarValue,
 };
+use crate::utils::KeyValueIgnoreCase;
 use crate::{ComponentChild, ComponentIdx, ExtendSource};
 
 use super::{
@@ -33,6 +34,8 @@ pub struct TextInput {
     pub state_variables: Vec<StateVar>,
 
     pub rendered_state_variable_indices: Vec<usize>,
+
+    pub public_state_variable_indices: Vec<usize>,
 
     pub state_variable_name_to_index: HashMap<String, usize>,
 
@@ -149,6 +152,7 @@ impl ComponentNodeStateVariables for TextInput {
             Box::new(ValueStateVarInterface::default()),
             StateVarParameters {
                 name: "value",
+                is_public: true,
                 ..Default::default()
             },
         );
@@ -168,6 +172,7 @@ impl ComponentNodeStateVariables for TextInput {
             Box::new(ImmediateValueStateVarInterface::default()),
             StateVarParameters {
                 name: "immediateValue",
+                is_public: true,
                 for_renderer: true,
                 ..Default::default()
             },
@@ -218,15 +223,20 @@ struct ValueStateVarInterface {
 }
 
 impl StateVarInterface<String> for ValueStateVarInterface {
-    fn return_dependency_instructions(&self) -> Vec<DependencyInstruction> {
+    fn return_dependency_instructions(
+        &self,
+        extend_source: Option<&ExtendSource>,
+    ) -> Vec<DependencyInstruction> {
         vec![
             DependencyInstruction::Essential {
                 prefill: Some("prefill"),
             },
             DependencyInstruction::StateVar {
+                component_idx: None,
                 state_var_name: "immediateValue",
             },
             DependencyInstruction::StateVar {
+                component_idx: None,
                 state_var_name: "syncImmediateValue",
             },
             // DependencyInstruction::StateVar {
@@ -353,12 +363,16 @@ struct ImmediateValueStateVarInterface {
 }
 
 impl StateVarInterface<String> for ImmediateValueStateVarInterface {
-    fn return_dependency_instructions(&self) -> Vec<DependencyInstruction> {
+    fn return_dependency_instructions(
+        &self,
+        _extend_source: Option<&ExtendSource>,
+    ) -> Vec<DependencyInstruction> {
         vec![
             DependencyInstruction::Essential {
                 prefill: Some("prefill"),
             },
             DependencyInstruction::StateVar {
+                component_idx: None,
                 state_var_name: "syncImmediateValue",
             },
             // DependencyInstruction::StateVar {
@@ -460,7 +474,10 @@ struct SyncImmediateValueStateVarInterface {
 }
 
 impl StateVarInterface<bool> for SyncImmediateValueStateVarInterface {
-    fn return_dependency_instructions(&self) -> Vec<DependencyInstruction> {
+    fn return_dependency_instructions(
+        &self,
+        _extend_source: Option<&ExtendSource>,
+    ) -> Vec<DependencyInstruction> {
         vec![DependencyInstruction::Essential { prefill: None }]
     }
 

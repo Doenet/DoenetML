@@ -13,7 +13,7 @@ use dast::{
 
 use dependency::Dependency;
 use essential_state::{EssentialDataOrigin, EssentialStateVar};
-use state::{Freshness, StateVarValue};
+use state::{Freshness, StateVarName, StateVarValue};
 use state_var_calculations::{
     freshen_renderer_state_for_component, freshen_state_var, get_state_var_value,
     process_state_variable_update_request, StateVarCalculationState, StateVariableUpdateRequest,
@@ -153,8 +153,8 @@ impl DoenetMLRoot {
             .children
             .iter()
             .filter_map(|child| match child {
-                ComponentChild::Component(comp_ind) => {
-                    Some(FlatDastElementContent::Element(*comp_ind))
+                ComponentChild::Component(comp_idx) => {
+                    Some(FlatDastElementContent::Element(*comp_idx))
                 }
                 ComponentChild::Text(s) => Some(FlatDastElementContent::Text(s.to_string())),
                 ComponentChild::Macro(_the_macro) => None,
@@ -187,12 +187,35 @@ pub enum ComponentChild {
 /// either another component or a state variable.
 #[derive(Debug)]
 pub enum ExtendSource {
+    /// The component is extending another entire component, given by the component index
     Component(ComponentIdx),
     // TODO: what about array state variables?
-    // TODO: when shadowing a state variable, some times more than one state variable is shadow,
-    // so probably need a larger data structure here.
-    // This feature is not yet implemented
-    StateVar(ComponentStateDescription),
+    /// The component is extending the state variable of another component
+    StateVar(ExtendStateVariableDescription),
+}
+
+/// Description of the shadowing of state variables
+/// when a component extends the state variable of another component
+#[derive(Debug)]
+pub struct ExtendStateVariableDescription {
+    /// the component being extended
+    pub component_idx: ComponentIdx,
+
+    /// the matching of which state variables are shadowing which state variables
+    pub state_variable_matching: Vec<StateVariableShadowingMatch>,
+}
+
+/// Description of which state variable is shadowing
+/// another state variable when extending a component
+#[derive(Debug)]
+pub struct StateVariableShadowingMatch {
+    /// The state variable index in the extending component
+    /// whose value will match (shadow) the state variable
+    /// from the component being extended
+    pub shadowing_idx: StateVarIdx,
+
+    /// The state variable name in the component being extended
+    pub shadowed_name: StateVarName,
 }
 
 /// Specification of an action call received from renderer
@@ -219,7 +242,7 @@ impl DoenetMLCore {
         let mut warnings: Vec<DastWarning> = Vec::new();
 
         let (children, descendant_names) =
-            create_component_children(&mut components, &mut warnings, &dast_root.children, 0);
+            create_component_children(&mut components, &mut warnings, &dast_root.children, None);
 
         // add root node
         let root = DoenetMLRoot {
@@ -350,7 +373,7 @@ impl DoenetMLCore {
                 component.on_action(&action.action_name, action.args, &mut state_var_resolver);
 
             for (state_var_idx, requested_value) in state_vars_to_update {
-                let mut component = self.components[component_idx].borrow_mut();
+                let component = self.components[component_idx].borrow();
                 let state_variable = &component.get_state_variables()[state_var_idx];
 
                 // Record the requested value directly on the state variable.
