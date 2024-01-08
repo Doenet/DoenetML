@@ -1,6 +1,6 @@
 <textInput prefill="hi" />
 <p>Use this to <m>a < b</m>test DoenetML</p>
-<p>A second paragraph!</p>
+<p>A second paragraph! <text>with text</text></p>
 <choiceInput>
   <choice>A</choice>
   <choice>B</choice>

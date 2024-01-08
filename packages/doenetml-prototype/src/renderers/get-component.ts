@@ -9,6 +9,7 @@ import {
     PointInGraph,
     Problem,
     Section,
+    Text,
     TextInput,
 } from "./components";
 import type { FlatDastElement } from "@doenet/doenetml-worker-rust";
@@ -53,6 +54,7 @@ const TEXT_MODE_COMPONENTS: Record<
         monitorVisibility: true,
     },
     textInput: { component: TextInput },
+    text: { component: Text, passthroughChildren: true },
 };
 
 const GRAPH_MODE_COMPONENTS: Record<
