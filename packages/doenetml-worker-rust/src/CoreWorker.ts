@@ -82,13 +82,12 @@ export class CoreWorker {
             let flat_dast = JSON.parse(
                 this.doenetCore.return_dast(),
             ) as FlatDastRoot;
-            resolve();
             return flat_dast;
         } catch (err) {
-            resolve();
-
             console.error(err);
             throw err;
+        } finally {
+            resolve();
         }
     }
 
@@ -126,13 +125,12 @@ export class CoreWorker {
             let flat_dast_element_updates = JSON.parse(
                 this.doenetCore.handle_action(args),
             );
-            resolve();
             return flat_dast_element_updates;
         } catch (err) {
-            resolve();
-
             console.error(err);
             throw err;
+        } finally {
+            resolve();
         }
     }
 
