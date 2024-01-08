@@ -1231,7 +1231,7 @@ export default class RegularPolygon extends Polygon {
                                 "point",
                                 {
                                     componentType: "mathList",
-                                    isAttribute: "xs",
+                                    isAttributeNamed: "xs",
                                 },
                             ],
                         ];
@@ -1241,6 +1241,7 @@ export default class RegularPolygon extends Polygon {
             isArray: true,
             numDimensions: 2,
             entryPrefixes: ["vertexX", "vertex"],
+            returnEntryDimensions: (prefix) => (prefix === "vertex" ? 1 : 0),
             getArrayKeysFromVarName({
                 arrayEntryPrefix,
                 varEnding,
@@ -1542,7 +1543,7 @@ export default class RegularPolygon extends Polygon {
                                 "point",
                                 {
                                     componentType: "mathList",
-                                    isAttribute: "xs",
+                                    isAttributeNamed: "xs",
                                 },
                             ],
                         ];

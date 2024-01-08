@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { mergeAdjacentTextInArray } from "../src/dast-to-xml/utils";
 import { MacroParser } from "../src/macros/parser";
+import { MacroParser as MacroParserV06 } from "../src/macros-v6/parser";
 import { macroToString } from "../src/macros/macro-to-string";
+import { macroToString as macroToStringV06 } from "../src/macros-v6/macro-to-string";
 import { DastNodes } from "../src/types";
 
-describe("Macro parsing", () => {
+describe("Macro parsing of v0.6 macros", () => {
     {
         const validMacros = `$t
             $t1
@@ -31,7 +33,115 @@ describe("Macro parsing", () => {
             $(x-y.a-b)
             $(t.x)
             $(t-x[1].y{a="b"})
-            $(t[1]/x)`.split(/\s+/g);
+            $(t[1]/x)
+            $x[2$y$$f(3)]`.split(/\s+/g);
+
+        for (const macroStr of validMacros) {
+            it(`should parse macro \`${macroStr}\``, () => {
+                expect(MacroParserV06.parse(macroStr)).toMatchSnapshot();
+            });
+        }
+    }
+    it("Parses `$x.` as a macro followed by a string", () => {
+        expect(MacroParserV06.parse("$x.")).toMatchObject([
+            { type: "macro" },
+            { type: "text", value: "." },
+        ]);
+    });
+    it("Parses `$x{z}[5]` as a macro followed by a string", () => {
+        expect(MacroParserV06.parse("$x{z}[5]")).toMatchObject([
+            { type: "macro" },
+            { type: "text", value: "[5]" },
+        ]);
+    });
+    it("Parses invalid macros as strings", () => {
+        expect(
+            mergeAdjacentTextInArray(
+                MacroParserV06.parse("$(x{z}[5])") as DastNodes[],
+            ),
+        ).toMatchObject([{ type: "text", value: "$(x{z}[5])" }]);
+    });
+    {
+        const validMacros = `$t
+            $t1
+            $_t
+            $t[1]
+            $t[1.5]
+            $t[$x]
+            $t[a][b]
+            $t.x
+            $t.x.y
+            $t.x[1].y
+            $t.x[1][2].y
+            $t.x[1].y[2]
+            $t{a}
+            $t{a="b"}
+            $t{a="$b"}
+            $t[1]{a="b"}
+            $t.x[1]{a="b"}.y
+            $(/t)
+            $(../t)
+            $(x-y)
+            $(x-y/a-b)
+            $(x-y.a-b)
+            $(t-x[1].y{a="b"})
+            $(t[1]/x)
+            $(t.x-y)`.split(/\n\s+/g);
+
+        for (const macroStr of validMacros) {
+            it(`should print macro \`${macroStr}\``, () => {
+                const parsed = MacroParserV06.parse(macroStr);
+                expect(macroToStringV06(parsed)).toEqual(macroStr);
+            });
+        }
+    }
+    {
+        const validFunctions = `$$f
+            $$f1(y)
+            $$f[1](y)
+            $$f[$x](y)
+            $$f[a][b](y)
+            $$(/f)(y)
+            $$(../f)(y)
+            $$f($x)
+            $$(x-y.z{t})(m)
+            $$f(x, y)`.split(/\n\s+/g);
+
+        for (const macroStr of validFunctions) {
+            it(`should print macro \`${macroStr}\``, () => {
+                const parsed = MacroParserV06.parse(macroStr);
+                expect(macroToStringV06(parsed)).toEqual(macroStr);
+            });
+        }
+    }
+});
+
+describe("Macro parsing of v0.7 macros", () => {
+    {
+        const validMacros = `$t
+            $t1
+            $t_1
+            $_t
+            $t[1]
+            $t[1.5]
+            $t[$x]
+            $t[a][b]
+            $t.x
+            $t.x.y
+            $t.x[1].y
+            $t.x[1][2].y
+            $t.x[1].y[2]
+            $t{a}
+            $t{a="b"}
+            $t{a="$b"}
+            $t[1]{a="b"}
+            $t.x[1]{a="b"}.y
+            $(t)
+            $(x-y)
+            $(x-y.a-b)
+            $(t.x)
+            $(t-x[1].y{a="b"})
+            $x[2$y$$f(3)]`.split(/\s+/g);
 
         for (const macroStr of validMacros) {
             it(`should parse macro \`${macroStr}\``, () => {
@@ -43,6 +153,38 @@ describe("Macro parsing", () => {
         expect(MacroParser.parse("$x.")).toMatchObject([
             { type: "macro" },
             { type: "text", value: "." },
+        ]);
+    });
+    it("Parens close macro capturing", () => {
+        expect(MacroParser.parse("$(x).y")).toMatchObject([
+            { type: "macro" },
+            { type: "text", value: ".y" },
+        ]);
+    });
+    it("Parens close macro capturing of []", () => {
+        expect(MacroParser.parse("$(x)[1]")).toMatchObject([
+            { type: "macro" },
+            { type: "text", value: "[1]" },
+        ]);
+    });
+    it("Empty indices are captured", () => {
+        expect(MacroParser.parse("$x[]")).toMatchObject([
+            {
+                type: "macro",
+                path: [
+                    {
+                        type: "pathPart",
+                        name: "x",
+                        index: [
+                            {
+                                type: "index",
+                                value: [],
+                            },
+                        ],
+                    },
+                ],
+                attributes: {},
+            },
         ]);
     });
     it("Parses `$x{z}[5]` as a macro followed by a string", () => {
@@ -76,13 +218,9 @@ describe("Macro parsing", () => {
             $t{a="$b"}
             $t[1]{a="b"}
             $t.x[1]{a="b"}.y
-            $(/t)
-            $(../t)
             $(x-y)
-            $(x-y/a-b)
             $(x-y.a-b)
             $(t-x[1].y{a="b"})
-            $(t[1]/x)
             $(t.x-y)`.split(/\n\s+/g);
 
         for (const macroStr of validMacros) {
@@ -94,12 +232,11 @@ describe("Macro parsing", () => {
     }
     {
         const validFunctions = `$$f
+            $$f()
             $$f1(y)
             $$f[1](y)
             $$f[$x](y)
             $$f[a][b](y)
-            $$(/f)(y)
-            $$(../f)(y)
             $$f($x)
             $$(x-y.z{t})(m)
             $$f(x, y)`.split(/\n\s+/g);
@@ -111,4 +248,10 @@ describe("Macro parsing", () => {
             });
         }
     }
+    it("Unbalanced parens for functions are not processed", () => {
+        expect(MacroParser.parse("$$f(")).toMatchObject([
+            { type: "function" },
+            { type: "text", value: "(" },
+        ]);
+    });
 });

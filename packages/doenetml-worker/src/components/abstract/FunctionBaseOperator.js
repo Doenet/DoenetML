@@ -23,10 +23,10 @@ export default class FunctionOperator extends Function {
         return sugarInstructions;
     }
 
-    static returnStateVariableDefinitions({ numerics }) {
-        let stateVariableDefinitions = super.returnStateVariableDefinitions({
+    static returnStateVariableDefinitions(numerics) {
+        let stateVariableDefinitions = super.returnStateVariableDefinitions(
             numerics,
-        });
+        );
 
         let componentType = this.componentType;
 

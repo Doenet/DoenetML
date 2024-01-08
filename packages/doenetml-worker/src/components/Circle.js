@@ -57,9 +57,9 @@ export default class Circle extends Curve {
         return GraphicalComponent.returnChildGroups();
     }
 
-    static returnStateVariableDefinitions(args) {
+    static returnStateVariableDefinitions(numerics) {
         let stateVariableDefinitions =
-            GraphicalComponent.returnStateVariableDefinitions(args);
+            GraphicalComponent.returnStateVariableDefinitions(numerics);
 
         Object.assign(
             stateVariableDefinitions,
@@ -436,7 +436,7 @@ export default class Circle extends Curve {
                                 "point",
                                 {
                                     componentType: "mathList",
-                                    isAttribute: "xs",
+                                    isAttributeNamed: "xs",
                                 },
                             ],
                         ];
@@ -446,6 +446,8 @@ export default class Circle extends Curve {
             isArray: true,
             numDimensions: 2,
             entryPrefixes: ["throughPointX", "throughPoint"],
+            returnEntryDimensions: (prefix) =>
+                prefix === "throughPoint" ? 1 : 0,
             getArrayKeysFromVarName({
                 arrayEntryPrefix,
                 varEnding,
@@ -2434,7 +2436,7 @@ export default class Circle extends Curve {
                                 "point",
                                 {
                                     componentType: "mathList",
-                                    isAttribute: "xs",
+                                    isAttributeNamed: "xs",
                                 },
                             ],
                         ];

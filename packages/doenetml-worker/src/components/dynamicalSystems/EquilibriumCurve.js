@@ -25,10 +25,10 @@ export default class EquilibriumCurve extends Curve {
         return attributes;
     }
 
-    static returnStateVariableDefinitions({ numerics }) {
-        let stateVariableDefinitions = super.returnStateVariableDefinitions({
+    static returnStateVariableDefinitions(numerics) {
+        let stateVariableDefinitions = super.returnStateVariableDefinitions(
             numerics,
-        });
+        );
 
         stateVariableDefinitions.dashed = {
             forRenderer: true,

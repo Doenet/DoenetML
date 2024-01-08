@@ -9,8 +9,9 @@ export default defineConfig({
         sourcemap: true,
         lib: {
             entry: "src/index.ts",
-            fileName: "CoreWorker",
-            formats: ["es"],
+            fileName: (_format, _entryName) => "CoreWorker.js",
+            formats: ["iife"],
+            name: "doenetmlWorker"
         },
         rollupOptions: {
             // @ts-ignore

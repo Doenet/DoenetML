@@ -1,4 +1,5 @@
-import { ENTITY_MAP } from "./entity-map";
+//import { ENTITY_MAP } from "./entity-map";
+import { ENTITY_MAP } from "@doenet/static-assets";
 
 export function entityStringToRawString(entityStr: string): string {
     if (!entityStr.startsWith("&")) {
@@ -16,12 +17,13 @@ export function entityStringToRawString(entityStr: string): string {
                     : parseInt(entityStr.slice(2, entityStr.length - 1), 10);
             return String.fromCharCode(val);
         }
-        if (entityStr in ENTITY_MAP) {
-            return ENTITY_MAP[entityStr];
+        const trimmedEntityString = entityStr.slice(1, entityStr.length - 1);
+        if (trimmedEntityString in ENTITY_MAP) {
+            return ENTITY_MAP[trimmedEntityString];
         }
     } catch (e: any) {
         console.warn(
-            `Encountered error when converting entity "${entityStr}": ${e.message}`
+            `Encountered error when converting entity "${entityStr}": ${e.message}`,
         );
     }
     console.warn(`Cannot convert XML entity "${entityStr}"`);

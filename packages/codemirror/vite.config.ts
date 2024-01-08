@@ -1,10 +1,11 @@
-import { defineConfig } from "vite";
+import { visualizer } from "rollup-plugin-visualizer";
+import { PluginOption, defineConfig } from "vite";
 import dts from "vite-plugin-dts";
 
 // https://vitejs.dev/config/
 export default defineConfig({
     base: "./",
-    plugins: [dts({ rollupTypes: true })],
+    plugins: [dts({ rollupTypes: true }), visualizer() as PluginOption],
     build: {
         minify: false,
         sourcemap: true,
@@ -14,7 +15,7 @@ export default defineConfig({
             formats: ["es"],
         },
         rollupOptions: {
-            external: ["react", "react-dom", "styled-components"],
+            external: ["react", "react-dom", "react-dom/server"],
         },
     },
 });

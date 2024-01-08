@@ -97,10 +97,14 @@ globalThis.onmessage = function (e) {
         }
     } else if (e.data.messageType === "terminate") {
         if (core) {
-            core.terminate().then(() => {
-                core = null;
-                postMessage({ messageType: "terminated" });
-            });
+            core.terminate()
+                .then(() => {
+                    core = null;
+                    postMessage({ messageType: "terminated" });
+                })
+                .catch(() => {
+                    postMessage({ messageType: "terminateFailed" });
+                });
         } else {
             postMessage({ messageType: "terminated" });
         }
@@ -110,6 +114,8 @@ globalThis.onmessage = function (e) {
             actionName: "submitAllAnswers",
             args: e.data.args,
         });
+    } else if (e.data.messageType === "saveImmediately") {
+        core.saveImmediately();
     }
 };
 

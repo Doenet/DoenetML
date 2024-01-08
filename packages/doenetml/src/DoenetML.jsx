@@ -81,7 +81,7 @@ export function DoenetML({
     forceShowSolution,
     forceUnsuppressCheckwork,
     addVirtualKeyboard = true,
-    addBottomPadding = true,
+    addBottomPadding = false,
     location,
     navigate,
     updateDataOnContentChange = false,

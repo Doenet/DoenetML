@@ -21,17 +21,32 @@
     "scripts": {
         "dev": "vite",
         "watch": "vite build --watch",
-        "build": "vite build"
+        "test": "echo \"No tests \"",
+        "build": "wireit"
+    },
+    "wireit": {
+        "build": {
+            "command": "vite build",
+            "files": [
+                "src/**/*.ts",
+                "tsconfig.json"
+            ],
+            "output": [
+                "dist/**/*.js",
+                "dist/**/*.d.ts",
+                "dist/**/*.json"
+            ]
+        }
     },
     "dependencies": {
         "recoil": "^0.7.7",
         "react": "^18.2.0",
         "@chakra-ui/icons": "^2.0.19",
         "@chakra-ui/react": "^2.7.0",
-        "better-react-mathjax": "^2.0.1",
+        "better-react-mathjax": "^2.0.3",
         "@fortawesome/react-fontawesome": "^0.2.0",
         "@fortawesome/free-solid-svg-icons": "^6.1.2",
-        "react-icons": "^4.9.0"
+        "react-icons": "^4.11.0"
     },
     "devDependencies": {
         "vite": "^4.5.0",

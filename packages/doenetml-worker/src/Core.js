@@ -32,7 +32,10 @@ import {
     verifyReplacementsMatchSpecifiedType,
 } from "./utils/copy";
 import { DependencyHandler } from "./Dependencies";
-import { returnDefaultGetArrayKeysFromVarName } from "./utils/stateVariables";
+import {
+    returnDefaultArrayVarNameFromPropIndex,
+    returnDefaultGetArrayKeysFromVarName,
+} from "./utils/stateVariables";
 import { nanoid } from "nanoid";
 import { get as idb_get, set as idb_set } from "idb-keyval";
 import axios from "axios";
@@ -228,6 +231,9 @@ export default class Core {
         });
         this.errorWarnings.errors.push(...res.errors);
         this.errorWarnings.warnings.push(...res.warnings);
+
+        this.failedToSavePageState = false;
+        this.failedToSaveCreditForItem = false;
 
         // console.log(`serialized components at the beginning`)
         // console.log(deepClone(serializedComponents));
@@ -455,7 +461,6 @@ export default class Core {
             this.saveSubmissions({
                 pageCreditAchieved:
                     await this.document.stateValues.creditAchieved,
-                suppressToast: true,
             });
         }
 
@@ -3645,10 +3650,9 @@ export default class Core {
 
         //  add state variable definitions from component class
         let newDefinitions =
-            componentClass.returnNormalizedStateVariableDefinitions({
-                attributeNames: Object.keys(stateVariableDefinitions),
-                numerics: this.numerics,
-            });
+            componentClass.returnNormalizedStateVariableDefinitions(
+                this.numerics,
+            );
 
         Object.assign(stateVariableDefinitions, newDefinitions);
 
@@ -3686,7 +3690,7 @@ export default class Core {
             let varName = attributeSpecification.createStateVariable;
 
             let stateVarDef = (stateVariableDefinitions[varName] = {
-                isAttribute: true,
+                isAttribute: true, // Note: isAttribute is not accessed anywhere
                 hasEssential: true,
             });
 
@@ -3955,7 +3959,7 @@ export default class Core {
             let varName = attributeSpecification.createStateVariable;
 
             let stateVarDef = (stateVariableDefinitions[varName] = {
-                isAttribute: true,
+                isAttribute: true, // Note: isAttribute is not accessed anywhere
                 hasEssential: true,
             });
 
@@ -4183,7 +4187,7 @@ export default class Core {
             }
 
             let stateVarDef = (stateVariableDefinitions[varName] = {
-                isAttribute: true,
+                isAttribute: true, // Note: isAttribute is not accessed anywhere
                 hasEssential: true,
             });
 
@@ -5259,6 +5263,7 @@ export default class Core {
         if (arrayStateVarObj.shadowingInstructions) {
             stateVarObj.shadowingInstructions = {};
 
+            // See description of returnWrappingComponents in initializeArrayStateVariable, below.
             stateVarObj.wrappingComponents =
                 arrayStateVarObj.shadowingInstructions.returnWrappingComponents(
                     arrayEntryPrefix,
@@ -5498,6 +5503,19 @@ export default class Core {
             stateVarObj.numDimensions = 1;
         }
 
+        let entryPrefixes = stateVarObj.entryPrefixes;
+
+        if (!entryPrefixes) {
+            entryPrefixes = stateVarObj.entryPrefixes = [stateVariable];
+        }
+
+        if (!component.arrayEntryPrefixes) {
+            component.arrayEntryPrefixes = {};
+        }
+        for (let prefix of entryPrefixes) {
+            component.arrayEntryPrefixes[prefix] = stateVariable;
+        }
+
         if (stateVarObj.numDimensions > 1) {
             // for multiple dimensions, have to convert from arrayKey
             // to multi-index when getting or setting
@@ -5709,21 +5727,23 @@ export default class Core {
                 };
             }
 
+            // arrayVarNameFromPropIndex is a function that calculates the name
+            // an array entry state variable that corresponds to the specified propIndex.
+            // It is a consequence of retrofitting the ability to index an array (e.g., $a.b[1])
+            // onto a system that was designed with just array entry variables (e..g, $a.b1).
+            // arrayVarNameFromPropIndex can be specified in the definition of the array state variable.
+            // Since numDimensions > 1 here, the default arrayVarNameFromPropIndex
+            // is to turn $a.b[1][2][3] to $a.p1_2_3,
+            // where "p" is the first entry prefix of the array "b".
+
+            // TODO: if we redesign arrays to be based on indices (or even slices),
+            // then arrayVarNameFromPropIndex will be obsolete.
             if (!stateVarObj.arrayVarNameFromPropIndex) {
-                stateVarObj.arrayVarNameFromPropIndex = function (
-                    propIndex,
-                    varName,
-                ) {
-                    return (
-                        entryPrefixes[0] +
-                        [
-                            ...propIndex.map((x) => Math.round(Number(x))),
-                            ...Array(
-                                stateVarObj.numDimensions - propIndex.length,
-                            ).fill(1),
-                        ].join("_")
+                stateVarObj.arrayVarNameFromPropIndex =
+                    returnDefaultArrayVarNameFromPropIndex(
+                        stateVarObj.numDimensions,
+                        entryPrefixes[0],
                     );
-                };
             }
 
             stateVarObj.adjustArrayToNewArraySize = async function () {
@@ -5807,13 +5827,20 @@ export default class Core {
                 };
             }
 
+            // arrayVarNameFromPropIndex is a function that calculates the name
+            // an array entry state variable that corresponds to the specified propIndex.
+            // It is a consequence of retrofitting the ability to index an array (e.g., $a.b[1])
+            // onto a system that was designed with just array entry variables (e..g, $a.b1).
+            // arrayVarNameFromPropIndex can be specified in the definition of the array state variable.
+            // Since numDimensions = 1 here, the default arrayVarNameFromPropIndex
+            // is to turn $a.b[1] to $a.p1,
+            // where "p" is the first entry prefix of the array "b".
+
+            // TODO: if we redesign arrays to be based on indices (or even slices),
+            // then arrayVarNameFromPropIndex will be obsolete.
             if (!stateVarObj.arrayVarNameFromPropIndex) {
-                stateVarObj.arrayVarNameFromPropIndex = function (
-                    propIndex,
-                    varName,
-                ) {
-                    return entryPrefixes[0] + propIndex[0];
-                };
+                stateVarObj.arrayVarNameFromPropIndex =
+                    returnDefaultArrayVarNameFromPropIndex(1, entryPrefixes[0]);
             }
 
             stateVarObj.adjustArrayToNewArraySize = async function () {
@@ -5832,25 +5859,42 @@ export default class Core {
         // dimensions, as we just want the string representation
         stateVarObj.indexToKey = (index) => String(index);
 
-        let entryPrefixes = stateVarObj.entryPrefixes;
-
-        if (!entryPrefixes) {
-            entryPrefixes = stateVarObj.entryPrefixes = [stateVariable];
-        }
-
-        if (!component.arrayEntryPrefixes) {
-            component.arrayEntryPrefixes = {};
-        }
-        for (let prefix of entryPrefixes) {
-            component.arrayEntryPrefixes[prefix] = stateVariable;
-        }
-
         if (!stateVarObj.returnEntryDimensions) {
-            stateVarObj.returnEntryDimensions = () => 1;
+            stateVarObj.returnEntryDimensions = () => 0;
         }
 
         if (stateVarObj.shadowingInstructions) {
-            // function that returns wrapping components for whole array or entries (if given prefix)
+            // returnWrappingComponents is a function that returns the wrapping components for
+            // - the whole array (if called with no arguments), or
+            // - an array entry (if called with an array entry prefix as the argument)
+            // It returns wrappingComponents, which is an array of arrays.
+            // Each inner array corresponds to a dimension of the array,
+            // starting with the inner dimension,
+            // so that wrappingComponents[numDimensions-1], if it exists,
+            // corresponds to the wrapping of the entire array (or array entry),
+            // leading to the return of a single component.
+            // Each element of the inner array indicates a wrapping of the corresponding dimension,
+            // and they are applied in reverse order.
+            // Each element can be either:
+            // - a string corresponding to the component type used to wrap
+            // - an object with fields:
+            //   - componentType: a string corresponding to the component type used to wrap
+            //   - isAttributeNamed: a string giving the name of the attribute that this
+            //     wrapping component should be for the wrapping component immediately preceding
+            //     (no effect if isAttributeNamed appears in the first wrapping component)
+            // Unless the subsequent wrapping component has been designated isAttributeNamed,
+            // each wrapping component takes as children either
+            // - the subsequent wrapping component if it exists,
+            // - else the original array components.
+            //
+            // TODO: wrapping components (like most array features) was designed before
+            // we had array indexing such as $a.b[1].
+            // Hence it is based on array entries such as $a.b1, where b is the "prefix".
+            // $a.b[1] has to be converted to something like $a.b1
+            // before calculating wrapping components.
+            // We should rework wrapping components (and other array features)
+            // to make array indexing (maybe even including slices) be the basis.
+
             if (!stateVarObj.shadowingInstructions.returnWrappingComponents) {
                 stateVarObj.shadowingInstructions.returnWrappingComponents = (
                     prefix,
@@ -6576,6 +6620,13 @@ export default class Core {
         });
     }
 
+    // arrayEntryNamesFromPropIndex is essentially a wrapper around
+    // stateVarObj.arrayVarNameFromPropIndex.
+    // (See above description of arrayVarNameFromPropIndex for technical debt commentary.)
+    // It calls arrayVarNameFromPropIndex on each of an array of stateVariables,
+    // first creating any missing array entry state variables,
+    // logs warnings,
+    // and returns an array of the resulting state variables.
     async arrayEntryNamesFromPropIndex({
         stateVariables,
         component,
@@ -10810,7 +10861,6 @@ export default class Core {
         canSkipUpdatingRenderer = false,
         skipRendererUpdate = false,
         sourceInformation = {},
-        suppressToast = false, // temporary
     }) {
         if (warnings && warnings.length > 0) {
             this.errorWarnings.warnings.push(...warnings);
@@ -11184,14 +11234,6 @@ export default class Core {
             // console.log(">>>>resp from record event", resp.data)
         } catch (e) {
             console.error(`Error saving event: ${e.message}`);
-            // postMessage({
-            //   messageType: "sendToast",
-            //   coreId: this.coreId,
-            //   args: {
-            //     message: `Error saving event: ${e.message}`,
-            //     alertType: "error"
-            //   }
-            // })
         }
     }
 
@@ -12711,6 +12753,26 @@ export default class Core {
         }
     }
 
+    async saveImmediately() {
+        if (this.savePageStateTimeoutID) {
+            // if in debounce to save page to local storage
+            // then immediate save to local storage
+            // and override timeout to save to database
+            clearTimeout(this.savePageStateTimeoutID);
+            await this.saveState(true);
+        } else {
+            // else override timeout to save any pending changes to database
+            await this.saveChangesToDatabase(true);
+        }
+
+        postMessage({
+            messageType: "saveImmediatelyResult",
+            success: !(
+                this.failedToSavePageState || this.failedToSaveCreditForItem
+            ),
+        });
+    }
+
     async saveState(overrideThrottle = false) {
         this.savePageStateTimeoutID = null;
 
@@ -12791,17 +12853,23 @@ export default class Core {
             this.saveChangesToDatabase();
         }, 60000);
 
-        // TODO: find out how to test if not online
-        // and send this toast if not online:
+        let pause100 = function () {
+            return new Promise((resolve, reject) => {
+                setTimeout(resolve, 100);
+            });
+        };
 
-        // postMessage({
-        //   messageType: "sendToast",
-        //   coreId: this.coreId,
-        //   args: {
-        //     message: "You're not connected to the internet. Changes are not saved. ",
-        //     alertType: "error"
-        //   }
-        // })
+        if (this.savingPageState) {
+            for (let i = 0; i < 100; i++) {
+                await pause100();
+
+                if (!this.savingPageState) {
+                    break;
+                }
+            }
+        }
+
+        this.pageStateToBeSavedToDatabase.serverSaveId = this.serverSaveId;
 
         if (this.apiURLs.postMessages) {
             postMessage({
@@ -12814,6 +12882,8 @@ export default class Core {
         
         let resp;
 
+        this.savingPageState = true;
+
         try {
             resp = await axios.post(
                 this.apiURLs.savePageState,
@@ -12821,28 +12891,36 @@ export default class Core {
             );
         } catch (e) {
             postMessage({
-                messageType: "sendToast",
+                messageType: "sendAlert",
                 coreId: this.coreId,
                 args: {
-                    message:
-                        "Error synchronizing data.  Changes not saved to the server.",
+                    message: `Error. Latest changes not saved. ${resp.data.message}`,
                     alertType: "error",
+                    id: "dataError",
                 },
             });
+
+            this.failedToSavePageState = true;
+            this.savingPageState = false;
+
             return;
         }
 
-        console.log("result from saving to database:", resp.data);
+        this.savingPageState = false;
 
         if (resp.status === null) {
             postMessage({
-                messageType: "sendToast",
+                messageType: "sendAlert",
                 coreId: this.coreId,
                 args: {
-                    message: `Error synchronizing data.  Changes not saved to the server.  Are you connected to the internet?`,
+                    message: `Error. Latest changes not saved. Are you connected to the internet?`,
                     alertType: "error",
+                    id: "dataError",
                 },
             });
+
+            this.failedToSavePageState = true;
+
             return;
         }
 
@@ -12850,15 +12928,21 @@ export default class Core {
 
         if (!data.success) {
             postMessage({
-                messageType: "sendToast",
+                messageType: "sendAlert",
                 coreId: this.coreId,
                 args: {
-                    message: data.message,
+                    message: `Error. Latest changes not saved. ${data.message}`,
                     alertType: "error",
+                    id: "dataError",
                 },
             });
+
+            this.failedToSavePageState = true;
+
             return;
         }
+
+        this.failedToSavePageState = false;
 
         this.serverSaveId = data.saveId;
 
@@ -12922,7 +13006,7 @@ export default class Core {
         // console.log(">>>>recordContentInteraction data",data)
     }
 
-    saveSubmissions({ pageCreditAchieved, suppressToast = false }) {
+    saveSubmissions({ pageCreditAchieved }) {
         if (!this.flags.allowSaveSubmissions) {
             return;
         }
@@ -12940,8 +13024,6 @@ export default class Core {
             itemNumber: this.itemNumber,
         };
 
-        console.log("payload for save credit for item", payload);
-
         axios
             .post(this.apiURLs.saveCreditForItem, payload)
             .then((resp) => {
@@ -12949,22 +13031,28 @@ export default class Core {
 
                 if (resp.status === null) {
                     postMessage({
-                        messageType: "sendToast",
+                        messageType: "sendAlert",
                         coreId: this.coreId,
                         args: {
-                            message: `Credit not saved due to error.  Are you connected to the internet?`,
+                            message: `Credit not saved due to error. Are you connected to the internet?`,
                             alertType: "error",
+                            id: "creditDataError",
                         },
                     });
+
+                    this.failedToSaveCreditForItem = true;
                 } else if (!resp.data.success) {
                     postMessage({
-                        messageType: "sendToast",
+                        messageType: "sendAlert",
                         coreId: this.coreId,
                         args: {
-                            message: `Credit not saved due to error: ${resp.data.message}`,
+                            message: resp.data.message,
                             alertType: "error",
+                            id: "creditDataError",
                         },
                     });
+
+                    this.failedToSaveCreditForItem = true;
                 } else {
                     let data = resp.data;
 
@@ -12984,81 +13072,21 @@ export default class Core {
                         },
                     });
 
-                    //TODO: need type warning (red but doesn't hang around)
-                    if (data.viewedSolution) {
-                        if (!suppressToast) {
-                            postMessage({
-                                messageType: "sendToast",
-                                coreId: this.coreId,
-                                args: {
-                                    message:
-                                        "No credit awarded since solution was viewed.",
-                                    alertType: "info",
-                                },
-                            });
-                        }
-                    }
-                    if (data.timeExpired) {
-                        if (!suppressToast) {
-                            postMessage({
-                                messageType: "sendToast",
-                                coreId: this.coreId,
-                                args: {
-                                    message:
-                                        "No credit awarded since the time allowed has expired.",
-                                    alertType: "info",
-                                },
-                            });
-                        }
-                    }
-                    if (data.pastDueDate) {
-                        if (!suppressToast) {
-                            postMessage({
-                                messageType: "sendToast",
-                                coreId: this.coreId,
-                                args: {
-                                    message:
-                                        "No credit awarded since the due date has passed.",
-                                    alertType: "info",
-                                },
-                            });
-                        }
-                    }
-                    if (data.exceededAttemptsAllowed) {
-                        if (!suppressToast) {
-                            postMessage({
-                                messageType: "sendToast",
-                                coreId: this.coreId,
-                                args: {
-                                    message:
-                                        "No credit awarded since no more attempts are allowed.",
-                                    alertType: "info",
-                                },
-                            });
-                        }
-                    }
-                    if (data.databaseError) {
-                        postMessage({
-                            messageType: "sendToast",
-                            coreId: this.coreId,
-                            args: {
-                                message:
-                                    "Credit not saved due to database error.",
-                                alertType: "error",
-                            },
-                        });
-                    }
+                    this.failedToSaveCreditForItem = false;
                 }
             })
             .catch((e) => {
                 postMessage({
-                    messageType: "sendToast",
+                    messageType: "sendAlert",
                     coreId: this.coreId,
                     args: {
                         message: `Credit not saved due to error: ${e.message}`,
                         alertType: "error",
+                        id: "creditDataError",
                     },
                 });
+
+                this.failedToSaveCreditForItem = true;
             });
     }
 
@@ -13191,11 +13219,12 @@ export default class Core {
             if (resp.status === null) {
                 let message = `Cannot show solution due to error.  Are you connected to the internet?`;
                 postMessage({
-                    messageType: "sendToast",
+                    messageType: "sendAlert",
                     coreId: this.coreId,
                     args: {
                         message,
                         alertType: "error",
+                        id: "solutionDataError",
                     },
                 });
                 return {
@@ -13224,11 +13253,12 @@ export default class Core {
             let message = `Cannot show solution due to error.`;
 
             postMessage({
-                messageType: "sendToast",
+                messageType: "sendAlert",
                 coreId: this.coreId,
                 args: {
                     message,
                     alertType: "error",
+                    id: "solutionDataError",
                 },
             });
 
@@ -13338,15 +13368,10 @@ export default class Core {
             }
         }
 
-        if (this.savePageStateTimeoutID) {
-            // if in debounce to save page to local storage
-            // then immediate save to local storage
-            // and override timeout to save to database
-            clearTimeout(this.savePageStateTimeoutID);
-            await this.saveState(true);
-        } else {
-            // else override timeout to save any pending changes to database
-            await this.saveChangesToDatabase(true);
+        await this.saveImmediately();
+
+        if (this.failedToSavePageState || this.failedToSaveCreditForItem) {
+            throw Error("Terminating core failed due to failure to save data.");
         }
     }
 

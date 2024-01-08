@@ -18,7 +18,22 @@
     "scripts": {
         "dev": "vite",
         "watch": "vite build --watch",
-        "build": "vite build"
+        "test": "echo \"No tests \"",
+        "build": "wireit"
+    },
+    "wireit": {
+        "build": {
+            "command": "vite build",
+            "files": [
+                "src/**/*.ts",
+                "tsconfig.json"
+            ],
+            "output": [
+                "dist/**/*.js",
+                "dist/**/*.d.ts",
+                "dist/**/*.json"
+            ]
+        }
     },
     "dependencies": {},
     "devDependencies": {}

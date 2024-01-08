@@ -2406,7 +2406,6 @@ export class MatrixInput extends Input {
                     } else {
                         // entire matrix
                         // wrap inner dimension by matrixRow and outer dimension by matrix
-                        // don't wrap outer dimension (for entire array)
                         return [["matrixRow"], ["matrix"]];
                     }
                 },
@@ -2414,6 +2413,15 @@ export class MatrixInput extends Input {
             isArray: true,
             numDimensions: 2,
             entryPrefixes: ["matrixEntry", "row", "column", "rows", "columns"],
+            returnEntryDimensions: (prefix) => {
+                if (prefix === "matrixEntry") {
+                    return 0;
+                } else if (prefix === "rows" || prefix === "columns") {
+                    return 2;
+                } else {
+                    return 1;
+                }
+            },
             getArrayKeysFromVarName({
                 arrayEntryPrefix,
                 varEnding,

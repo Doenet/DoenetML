@@ -1,0 +1,18 @@
+{
+    "extends": "../../tsconfig.build.json",
+    "compilerOptions": {
+        "outDir": "./dist/",
+        "rootDir": "./src",
+        "lib": ["ES2020", "WebWorker"]
+    },
+    "include": ["./**/*.ts", "./**/*.tsx"],
+    "exclude": [
+        "./**/*.test.ts",
+        "./**/*.stub.ts",
+        "node_modules",
+        "**/test/",
+        "**/dist/**/*",
+        "./vite.config.ts"
+    ],
+    "references": []
+}

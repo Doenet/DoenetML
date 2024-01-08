@@ -3829,7 +3829,8 @@ class StateVariableComponentTypeDependency extends StateVariableDependency {
                             stateVarObj.componentType;
 
                         if (stateVarObj.isArray) {
-                            // if array, use componentType from wrapping components, if exist
+                            // If array, use componentType from wrapping components, if exist.
+                            // See description of returnWrappingComponents in Core.js.
                             if (stateVarObj.wrappingComponents?.length > 0) {
                                 let wrapCT =
                                     stateVarObj.wrappingComponents[

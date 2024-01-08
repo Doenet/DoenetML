@@ -1135,7 +1135,7 @@ export default class MathComponent extends InlineComponent {
                                 "vector",
                                 {
                                     componentType: "mathList",
-                                    isAttribute: "xs",
+                                    isAttributeNamed: "xs",
                                 },
                             ],
                         ];
@@ -1403,7 +1403,6 @@ export default class MathComponent extends InlineComponent {
                     } else {
                         // entire matrix
                         // wrap inner dimension by matrixRow and outer dimension by matrix
-                        // don't wrap outer dimension (for entire array)
                         return [["matrixRow"], ["matrix"]];
                     }
                 },
@@ -1411,6 +1410,15 @@ export default class MathComponent extends InlineComponent {
             isArray: true,
             numDimensions: 2,
             entryPrefixes: ["matrixEntry", "row", "column", "rows", "columns"],
+            returnEntryDimensions: (prefix) => {
+                if (prefix === "matrixEntry") {
+                    return 0;
+                } else if (prefix === "rows" || prefix === "columns") {
+                    return 2;
+                } else {
+                    return 1;
+                }
+            },
             getArrayKeysFromVarName({
                 arrayEntryPrefix,
                 varEnding,

@@ -207,10 +207,10 @@ export default class Curve extends GraphicalComponent {
         return childGroups;
     }
 
-    static returnStateVariableDefinitions({ numerics }) {
-        let stateVariableDefinitions = super.returnStateVariableDefinitions({
+    static returnStateVariableDefinitions(numerics) {
+        let stateVariableDefinitions = super.returnStateVariableDefinitions(
             numerics,
-        });
+        );
 
         Object.assign(
             stateVariableDefinitions,
@@ -727,7 +727,7 @@ export default class Curve extends GraphicalComponent {
                                 "point",
                                 {
                                     componentType: "mathList",
-                                    isAttribute: "xs",
+                                    isAttributeNamed: "xs",
                                 },
                             ],
                         ];
@@ -737,6 +737,8 @@ export default class Curve extends GraphicalComponent {
             isArray: true,
             numDimensions: 2,
             entryPrefixes: ["throughPointX", "throughPoint"],
+            returnEntryDimensions: (prefix) =>
+                prefix === "throughPoint" ? 1 : 0,
             getArrayKeysFromVarName({
                 arrayEntryPrefix,
                 varEnding,
@@ -1222,7 +1224,7 @@ export default class Curve extends GraphicalComponent {
                                 "vector",
                                 {
                                     componentType: "mathList",
-                                    isAttribute: "xs",
+                                    isAttributeNamed: "xs",
                                 },
                             ],
                         ];
@@ -1235,12 +1237,28 @@ export default class Curve extends GraphicalComponent {
                 "controlVectors",
             ],
             numDimensions: 3,
+            returnEntryDimensions: (prefix) => {
+                if (prefix === "controlVector") {
+                    return 1;
+                } else if (prefix === "controlVectors") {
+                    return 2;
+                } else {
+                    return 0;
+                }
+            },
             stateVariablesDeterminingDependencies: [
                 "vectorControlDirections",
                 "numThroughPoints",
             ],
-            returnEntryDimensions: (prefix) =>
-                prefix === "controlVectors" ? 2 : 1,
+            returnEntryDimensions: (prefix) => {
+                if (prefix === "controlVector") {
+                    return 1;
+                } else if (prefix === "controlVectors") {
+                    return 2;
+                } else {
+                    return 0;
+                }
+            },
             getArrayKeysFromVarName({
                 arrayEntryPrefix,
                 varEnding,
@@ -1710,7 +1728,7 @@ export default class Curve extends GraphicalComponent {
                                 "point",
                                 {
                                     componentType: "mathList",
-                                    isAttribute: "xs",
+                                    isAttributeNamed: "xs",
                                 },
                             ],
                         ];
@@ -1719,8 +1737,15 @@ export default class Curve extends GraphicalComponent {
             },
             entryPrefixes: ["controlPointX", "controlPoint", "controlPoints"],
             numDimensions: 3,
-            returnEntryDimensions: (prefix) =>
-                prefix === "controlPoints" ? 2 : 1,
+            returnEntryDimensions: (prefix) => {
+                if (prefix === "controlPoint") {
+                    return 1;
+                } else if (prefix === "controlPoints") {
+                    return 2;
+                } else {
+                    return 0;
+                }
+            },
             getArrayKeysFromVarName({
                 arrayEntryPrefix,
                 varEnding,
@@ -3057,7 +3082,7 @@ export default class Curve extends GraphicalComponent {
                                 "point",
                                 {
                                     componentType: "mathList",
-                                    isAttribute: "xs",
+                                    isAttributeNamed: "xs",
                                 },
                             ],
                         ];
@@ -3067,6 +3092,8 @@ export default class Curve extends GraphicalComponent {
             isArray: true,
             numDimensions: 2,
             entryPrefixes: ["xCriticalPointX", "xCriticalPoint"],
+            returnEntryDimensions: (prefix) =>
+                prefix === "xCriticalPoint" ? 1 : 0,
             getArrayKeysFromVarName({
                 arrayEntryPrefix,
                 varEnding,
@@ -3316,7 +3343,7 @@ export default class Curve extends GraphicalComponent {
                                 "point",
                                 {
                                     componentType: "mathList",
-                                    isAttribute: "xs",
+                                    isAttributeNamed: "xs",
                                 },
                             ],
                         ];
@@ -3326,6 +3353,8 @@ export default class Curve extends GraphicalComponent {
             isArray: true,
             numDimensions: 2,
             entryPrefixes: ["yCriticalPointX", "yCriticalPoint"],
+            returnEntryDimensions: (prefix) =>
+                prefix === "yCriticalPoint" ? 1 : 0,
             getArrayKeysFromVarName({
                 arrayEntryPrefix,
                 varEnding,
@@ -3576,7 +3605,7 @@ export default class Curve extends GraphicalComponent {
                                 "point",
                                 {
                                     componentType: "mathList",
-                                    isAttribute: "xs",
+                                    isAttributeNamed: "xs",
                                 },
                             ],
                         ];
@@ -3586,6 +3615,8 @@ export default class Curve extends GraphicalComponent {
             isArray: true,
             numDimensions: 2,
             entryPrefixes: ["curvatureChangePointX", "curvatureChangePoint"],
+            returnEntryDimensions: (prefix) =>
+                prefix === "curvatureChangePoint" ? 1 : 0,
             getArrayKeysFromVarName({
                 arrayEntryPrefix,
                 varEnding,

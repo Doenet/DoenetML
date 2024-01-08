@@ -824,13 +824,14 @@ export function PageViewer({
             }
         } else {
             // TODO: are there cases where will get an infinite loop here?
-            sendAlert(
-                `Reverted page to state saved on device ${changedOnDevice}`,
-                "info",
-            );
-
-            coreId.current = nanoid();
-            setPageContentChanged(true);
+            // TODO: since we removed the pageContentChanged feature, it's not clear what to do here.
+            // We should either make this work correctly or remove any calls to resetPage.
+            // sendAlert(
+            //     `Reverted page to state saved on device ${changedOnDevice}`,
+            //     "info",
+            // );
+            // coreId.current = nanoid();
+            // setPageContentChanged(true);
         }
     }
 

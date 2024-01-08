@@ -217,7 +217,7 @@ function calculateInitialRendererState({
     flags = {},
 }) {
     let coreWorker = new Worker(doenetGlobalConfig.doenetWorkerUrl, {
-        type: "module",
+        type: "classic",
     });
 
     coreWorker.postMessage({

@@ -20,7 +20,21 @@
     },
     "scripts": {
         "test": "echo \"No tests \"",
-        "build": "vite build",
-        "build:schema": "vite-node ./scripts/generate-schema.ts"
+        "build": "wireit",
+        "build:schema": "vite-node ./scripts/generate-schema.ts && vite-node ./scripts/generate-entity-map.ts"
+    },
+    "wireit": {
+        "build": {
+            "command": "vite build",
+            "files": [
+                "src/**/*.ts",
+                "tsconfig.json"
+            ],
+            "output": [
+                "dist/**/*.js",
+                "dist/**/*.d.ts",
+                "dist/**/*.json"
+            ]
+        }
     }
 }
