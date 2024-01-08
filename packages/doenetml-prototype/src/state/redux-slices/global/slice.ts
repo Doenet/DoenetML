@@ -1,4 +1,4 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 import type { RootState } from "../../store";
 
 export interface GlobalState {
@@ -6,17 +6,26 @@ export interface GlobalState {
      * Whether the component is being rendered via SSR.
      */
     renderingOnServer: boolean;
+    /**
+     * Whether dark mode is the preferred theme.
+     */
+    darkMode: boolean;
 }
 
 // Define the initial state using that type
 const initialState: GlobalState = {
     renderingOnServer: typeof process !== "undefined" && !process?.env?.browser,
+    darkMode: false,
 };
 
 const dastSlice = createSlice({
     name: "global",
     initialState,
-    reducers: {},
+    reducers: {
+        _setDarkMode: (state, action: PayloadAction<boolean>) => {
+            state.darkMode = action.payload;
+        },
+    },
 });
 
 export const globalReducer = dastSlice.reducer;

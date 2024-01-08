@@ -1,6 +1,6 @@
 <textInput prefill="hi" />
 <p>Use this to <m>a < b</m>test DoenetML</p>
-<p>A second paragraph!</p>
+<p>A second paragraph! <text>with text</text></p>
 <choiceInput>
   <choice>A</choice>
   <choice>B</choice>
@@ -8,10 +8,13 @@
 </choiceInput>
 <graph showNavigation>
   <line through="(-8,8) (9,6)" />
+  <point>(2,3)</point>
+  <!--
   <line through="(0,4)" slope="1/2" styleNumber="2" />
 
   <line equation="y=2x-8" styleNumber="3" />
   <line equation="x=-6" styleNumber="4" />
+  -->
 </graph>
 <section boxed>
   <p>A lovely section.</p>
