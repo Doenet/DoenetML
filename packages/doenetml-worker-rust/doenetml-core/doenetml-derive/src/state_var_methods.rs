@@ -25,6 +25,7 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
             let enum_ident = name;
 
             let mut state_var_mark_stale_arms = Vec::new();
+            let mut state_var_set_as_resolved_arms = Vec::new();
             let mut state_var_get_freshness_arms = Vec::new();
             let mut state_var_get_restore_previous_value_arms = Vec::new();
             let mut state_var_get_used_default_arms = Vec::new();
@@ -93,6 +94,12 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
                 state_var_mark_stale_arms.push(quote! {
                     #enum_ident::#variant_ident(sv_typed) => {
                         sv_typed.mark_stale()
+                    },
+                });
+
+                state_var_set_as_resolved_arms.push(quote! {
+                    #enum_ident::#variant_ident(sv_typed) => {
+                        sv_typed.set_as_resolved()
                     },
                 });
 
@@ -201,10 +208,19 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
                 impl #enum_ident {
                     /// If the state variable is Fresh, set its freshness to Stale.
                     ///
-                    /// Panics: if the state variable is Unresolved.
+                    /// Panics: if the state variable is Unresolved or Resolved.
                     pub fn mark_stale(&self) {
                         match self {
                             #(#state_var_mark_stale_arms)*
+                        }
+                    }
+
+                    /// If the state variable is Unresolved, set its freshness to Resolved.
+                    ///
+                    /// Panics: if the state variable is Fresh or Stale.
+                    pub fn set_as_resolved(&self) {
+                        match self {
+                            #(#state_var_set_as_resolved_arms)*
                         }
                     }
 
@@ -212,9 +228,13 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
                     ///
                     /// Possible values
                     /// - Fresh: the state variable value has been calculated and can be accessed with `get_fresh_value()`.
+                    ///   Calls to `set_as_resolved()` will panic.
                     /// - Stale: a dependency value has changed so that the state variable value needs to be recalculated.
-                    ///   Calls to `get_fresh_value()` will panic.
+                    ///   Calls to `get_fresh_value()` and `set_as_resolved()` will panic.
                     /// - Unresolved: the dependencies for the state variable have not yet been calculated.
+                    ///   Calls to `get_fresh_value()`, `restore_previous_value()`, or `mark_stale()` will panic.
+                    /// - Resolved: the dependencies for the state variable have been created,
+                    ///   but the value has never been calculated.
                     ///   Calls to `get_fresh_value()`, `restore_previous_value()`, or `mark_stale()` will panic.
                     pub fn get_freshness(&self) -> Freshness {
                         match self {
@@ -420,6 +440,7 @@ pub fn state_var_mutable_view_methods_derive(input: TokenStream) -> TokenStream 
 
             let mut state_var_mutable_view_new_with_value_arms = Vec::new();
             let mut state_var_mutable_view_mark_stale_arms = Vec::new();
+            let mut state_var_mutable_view_set_as_resolved_arms = Vec::new();
             let mut state_var_mutable_view_get_freshness_arms = Vec::new();
             let mut state_var_mutable_view_get_used_default_arms = Vec::new();
             let mut state_var_mutable_view_create_read_only_view_arms = Vec::new();
@@ -440,6 +461,12 @@ pub fn state_var_mutable_view_methods_derive(input: TokenStream) -> TokenStream 
                 state_var_mutable_view_mark_stale_arms.push(quote! {
                     StateVarMutableView::#variant_ident(sv_typed) => {
                         sv_typed.mark_stale()
+                    },
+                });
+
+                state_var_mutable_view_set_as_resolved_arms.push(quote! {
+                    StateVarMutableView::#variant_ident(sv_typed) => {
+                        sv_typed.set_as_resolved()
                     },
                 });
 
@@ -499,13 +526,26 @@ pub fn state_var_mutable_view_methods_derive(input: TokenStream) -> TokenStream 
                         };
                     }
 
+                    /// If the state variable is Unresolved, set its freshness to Resolved.
+                    ///
+                    /// Panics: if the state variable is Fresh or Stale.
+                    pub fn set_as_resolved(&self) {
+                        match self {
+                            #(#state_var_mutable_view_set_as_resolved_arms)*
+                        }
+                    }
+
                     /// Return the current freshness of the variable
                     ///
                     /// Possible values
                     /// - Fresh: the state variable value has been calculated and can be accessed with `get_fresh_value()`.
+                    ///   Calls to `set_as_resolved()` will panic.
                     /// - Stale: a dependency value has changed so that the state variable value needs to be recalculated.
-                    ///   Calls to `get_fresh_value()` will panic.
+                    ///   Calls to `get_fresh_value()` and `set_as_resolved()` will panic.
                     /// - Unresolved: the dependencies for the state variable have not yet been calculated.
+                    ///   Calls to `get_fresh_value()`, `restore_previous_value()`, or `mark_stale()` will panic.
+                    /// - Resolved: the dependencies for the state variable have been created,
+                    ///   but the value has never been calculated.
                     ///   Calls to `get_fresh_value()`, `restore_previous_value()`, or `mark_stale()` will panic.
                     pub fn get_freshness(&self) -> Freshness {
                         match self {

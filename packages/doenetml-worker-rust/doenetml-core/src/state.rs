@@ -18,12 +18,15 @@ pub type StateVarName = &'static str;
 /// The possible values of the freshness of a state variable.
 /// - Fresh: the state variable value has been calculated from given base variable values
 /// - Stale: a base variable influencing this state variable has changed so it must be recalculated
-/// - Unresolved: the dependencies for this state variable have not yet been calculated
+/// - Unresolved: the dependencies for this state variable have not yet been created
+/// - Resolved: the dependencies for this state variable have been created,
+///   but the value has not yet been calculated
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Freshness {
     Fresh,
     Stale,
     Unresolved,
+    Resolved,
 }
 
 /// StateVarTyped<T> is the base data structure for the value of a state variable.
@@ -196,12 +199,11 @@ impl<T: Default + Clone> StateVarInner<T> {
     }
 
     /// Attempts to retrieve a reference to the last value (fresh or not) of the state variable.
-    /// If the state variable is unresolved, returns None.
+    /// If the state variable is unresolved or merely resolved, returns None.
     pub fn try_get_last_value<'a>(&'a self) -> Option<&'a T> {
-        if self.freshness == Freshness::Unresolved {
-            None
-        } else {
-            Some(&self.value)
+        match self.freshness {
+            Freshness::Unresolved | Freshness::Resolved => None,
+            Freshness::Fresh | Freshness::Stale => Some(&self.value),
         }
     }
 
@@ -212,8 +214,21 @@ impl<T: Default + Clone> StateVarInner<T> {
                 self.freshness = Freshness::Stale;
             }
             Freshness::Stale => (),
+            Freshness::Unresolved | Freshness::Resolved => {
+                panic!("Cannot mark an unresolved or merely resolved state variable as stale.");
+            }
+        }
+    }
+
+    /// Set the freshness of the variable to Resolved
+    pub fn set_as_resolved(&mut self) {
+        match self.freshness {
             Freshness::Unresolved => {
-                panic!("Cannot mark an unresolved state variable as stale.");
+                self.freshness = Freshness::Resolved;
+            }
+            Freshness::Resolved => (),
+            Freshness::Fresh | Freshness::Stale => {
+                panic!("Cannot set a fresh or stale state variable to resolved.");
             }
         }
     }
@@ -245,8 +260,8 @@ impl<T: Default + Clone> StateVarInner<T> {
                 self.freshness = Freshness::Fresh;
             }
             Freshness::Fresh => (),
-            Freshness::Unresolved => {
-                panic!("Cannot restore previous value to an unresolved state variable");
+            Freshness::Unresolved | Freshness::Resolved => {
+                panic!("Cannot restore previous value to an unresolved or merely resolved state variable");
             }
         }
     }
@@ -393,6 +408,11 @@ impl<T: Default + Clone> StateVarMutableViewTyped<T> {
     /// Set the freshness of the variable to Stale
     pub fn mark_stale(&self) {
         self.inner.borrow_mut().mark_stale()
+    }
+
+    /// Set the freshness of the variable to Resolved
+    pub fn set_as_resolved(&self) {
+        self.inner.borrow_mut().set_as_resolved()
     }
 
     /// Return the current freshness of the variable
@@ -583,6 +603,11 @@ impl<T: Default + Clone> StateVarTyped<T> {
         self.value.inner.borrow_mut().mark_stale()
     }
 
+    /// Set the freshness of the variable to Resolved
+    pub fn set_as_resolved(&self) {
+        self.value.inner.borrow_mut().set_as_resolved()
+    }
+
     /// Return the current freshness of the variable
     pub fn get_freshness(&self) -> Freshness {
         self.value.inner.borrow().freshness
@@ -745,6 +770,7 @@ impl fmt::Debug for StateVar {
             Freshness::Fresh => self.get_fresh_value().fmt(f),
             Freshness::Stale => f.write_str("Stale"),
             Freshness::Unresolved => f.write_str("Unresolved"),
+            Freshness::Resolved => f.write_str("Resolved"),
         }
     }
 }
@@ -755,6 +781,7 @@ impl fmt::Debug for StateVarMutableView {
             Freshness::Fresh => self.get_fresh_value().fmt(f),
             Freshness::Stale => f.write_str("Stale"),
             Freshness::Unresolved => f.write_str("Unresolved"),
+            Freshness::Resolved => f.write_str("Resolved"),
         }
     }
 }
@@ -765,6 +792,7 @@ impl fmt::Debug for StateVarReadOnlyView {
             Freshness::Fresh => self.get_fresh_value().fmt(f),
             Freshness::Stale => f.write_str("Stale"),
             Freshness::Unresolved => f.write_str("Unresolved"),
+            Freshness::Resolved => f.write_str("Resolved"),
         }
     }
 }

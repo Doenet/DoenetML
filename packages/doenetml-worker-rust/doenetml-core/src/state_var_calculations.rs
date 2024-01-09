@@ -175,7 +175,7 @@ pub fn freshen_state_var(
         .get_freshness();
 
     // If the current state variable is fresh, there's nothing to do.
-    // If it is unresolved, resolve it so that it is now stale.
+    // If it is unresolved, resolve it
     match original_freshness {
         Freshness::Fresh => return (),
         Freshness::Unresolved => {
@@ -189,10 +189,10 @@ pub fn freshen_state_var(
                 should_initialize_essential_data,
             );
         }
-        Freshness::Stale => (),
+        Freshness::Stale | Freshness::Resolved => (),
     };
 
-    // At this point, the state variable is stale.
+    // At this point, the state variable is stale or resolved.
 
     freshen_stack.push(original_state_var_ptr);
 
@@ -210,13 +210,13 @@ pub fn freshen_state_var(
             Freshness::Unresolved => {
                 panic!("Should not have an unresolved state variable here!")
             }
-            Freshness::Stale => (),
+            Freshness::Stale | Freshness::Resolved => (),
         };
 
         let dependencies_for_state_var =
             &dependencies[state_var_ptr.component_idx][state_var_ptr.state_var_idx];
 
-        let mut found_stale_dependency = false;
+        let mut found_stale_or_resolved_dependency = false;
 
         for deps in dependencies_for_state_var.iter() {
             for dep in deps.iter() {
@@ -236,10 +236,10 @@ pub fn freshen_state_var(
                             // No need to recurse if the state var of the dependency is already fresh
                             // so don't do anything to just continue the inner loop
                             Freshness::Fresh => (),
-                            Freshness::Stale => {
-                                if !found_stale_dependency {
+                            Freshness::Stale | Freshness::Resolved => {
+                                if !found_stale_or_resolved_dependency {
                                     freshen_stack.push(state_var_ptr);
-                                    found_stale_dependency = true;
+                                    found_stale_or_resolved_dependency = true;
                                 }
 
                                 // Recurse by putting two items on the stack
@@ -258,7 +258,7 @@ pub fn freshen_state_var(
             }
         }
 
-        if !found_stale_dependency {
+        if !found_stale_or_resolved_dependency {
             // All the dependencies of state_var_ptr are fresh.
             // We calculate its value if a dependency has changed,
             // else restore its previous value.
@@ -384,6 +384,8 @@ pub fn resolve_state_var(
 
         dependencies_for_component[state_var_idx] = dependencies_for_state_var;
     }
+
+    components[component_idx].borrow().get_state_variables()[state_var_idx].set_as_resolved();
 
     for new_state_var_ptr in unresolved_state_variable_dependencies {
         resolve_state_var(
