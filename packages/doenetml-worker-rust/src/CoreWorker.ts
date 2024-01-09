@@ -4,7 +4,7 @@ import type { DastRoot, DastElement, DastError } from "@doenet/parser";
 
 type Flags = Record<string, unknown>;
 
-type Action = {
+export type Action = {
     componentIdx: number;
     actionName: string;
     args: ActionArgs;
@@ -14,9 +14,17 @@ type ActionArgs = Record<string, ActionArgValue>;
 
 type ActionArgValue = boolean | number | number[] | string;
 
+export type ElementUpdate = {
+    type: "elementUpdate";
+    changed_attributes?: Record<string, unknown>;
+    new_children?: (number | string)[];
+    changed_state?: Record<string, unknown>;
+};
+export type ElementUpdates = Record<number, ElementUpdate>;
+
 export interface FlatDastElement extends Omit<DastElement, "children"> {
     children: (number | string)[];
-    data: { id: number };
+    data: { id: number; state?: Record<string, unknown> };
 }
 export interface FlatDastRoot {
     type: "root";
@@ -101,7 +109,7 @@ export class CoreWorker {
         }
     }
 
-    async dispatchAction(action: Action) {
+    async dispatchAction(action: Action): Promise<ElementUpdates> {
         const isProcessingPromise = this.isProcessingPromise;
         let { promise, resolve } = promiseWithResolver();
         this.isProcessingPromise = promise;
