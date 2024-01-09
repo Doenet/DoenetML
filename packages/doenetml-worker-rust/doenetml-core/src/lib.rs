@@ -12,8 +12,10 @@ use essential_state::{EssentialDataOrigin, EssentialStateVar};
 use state::{Freshness, StateVarName, StateVarValue};
 use state_var_calculations::{
     freshen_all_stale_renderer_states, freshen_state_var, get_state_var_value,
-    process_state_variable_update_request, StateVarCalculationState, StateVariableUpdateRequest,
+    StateVarCalculationState, StateVariableUpdateRequest,
 };
+
+use state_var_updates::process_state_variable_update_request;
 
 pub mod component;
 pub mod component_creation;
@@ -23,6 +25,7 @@ pub mod essential_state;
 pub mod parse_json;
 pub mod state;
 pub mod state_var_calculations;
+pub mod state_var_updates;
 pub mod utils;
 
 use crate::utils::{log, log_debug, log_json};
