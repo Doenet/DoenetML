@@ -11,6 +11,35 @@ use crate::{
     ComponentChild, ComponentIdx, ComponentStateDescription, ExtendSource,
 };
 
+/// Freshen the state variable specified by original_component_state,
+/// then get its fresh value
+pub fn get_state_var_value(
+    original_component_state: ComponentStateDescription,
+    components: &Vec<Rc<RefCell<ComponentEnum>>>,
+    dependencies: &mut Vec<Vec<Vec<Vec<Dependency>>>>,
+    dependent_on_state_var: &mut Vec<Vec<Vec<ComponentStateDescription>>>,
+    dependent_on_essential: &mut Vec<HashMap<EssentialDataOrigin, Vec<ComponentStateDescription>>>,
+    essential_data: &mut Vec<HashMap<EssentialDataOrigin, EssentialStateVar>>,
+    freshen_stack: &mut Vec<StateVarCalculationState>,
+    should_initialize_essential_data: bool,
+) -> StateVarValue {
+    freshen_state_var(
+        original_component_state,
+        components,
+        dependencies,
+        dependent_on_state_var,
+        dependent_on_essential,
+        essential_data,
+        freshen_stack,
+        should_initialize_essential_data,
+    );
+
+    components[original_component_state.component_idx]
+        .borrow()
+        .get_state_variables()[original_component_state.state_var_idx]
+        .get_fresh_value()
+}
+
 /// Internal structure used to track changes
 #[derive(Debug, Clone)]
 pub enum StateVariableUpdateRequest {
@@ -471,33 +500,4 @@ pub fn freshen_state_var(
             }
         }
     }
-}
-
-/// Freshen the state variable specified by original_component_state,
-/// then get its fresh value
-pub fn get_state_var_value(
-    original_component_state: ComponentStateDescription,
-    components: &Vec<Rc<RefCell<ComponentEnum>>>,
-    dependencies: &mut Vec<Vec<Vec<Vec<Dependency>>>>,
-    dependent_on_state_var: &mut Vec<Vec<Vec<ComponentStateDescription>>>,
-    dependent_on_essential: &mut Vec<HashMap<EssentialDataOrigin, Vec<ComponentStateDescription>>>,
-    essential_data: &mut Vec<HashMap<EssentialDataOrigin, EssentialStateVar>>,
-    freshen_stack: &mut Vec<StateVarCalculationState>,
-    should_initialize_essential_data: bool,
-) -> StateVarValue {
-    freshen_state_var(
-        original_component_state,
-        components,
-        dependencies,
-        dependent_on_state_var,
-        dependent_on_essential,
-        essential_data,
-        freshen_stack,
-        should_initialize_essential_data,
-    );
-
-    components[original_component_state.component_idx]
-        .borrow()
-        .get_state_variables()[original_component_state.state_var_idx]
-        .get_fresh_value()
 }
