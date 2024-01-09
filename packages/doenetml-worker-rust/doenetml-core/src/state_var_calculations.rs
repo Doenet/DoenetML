@@ -8,23 +8,23 @@ use crate::{
     },
     essential_state::{EssentialDataOrigin, EssentialStateDescription, EssentialStateVar},
     state::{Freshness, StateVarValue},
-    ComponentChild, ComponentIdx, ComponentStateDescription, ExtendSource,
+    ComponentChild, ComponentIdx, ExtendSource, StateVarPointer,
 };
 
-/// Freshen the state variable specified by original_component_state,
+/// Freshen the state variable specified by original_state_var_ptr,
 /// then get its fresh value
 pub fn get_state_var_value(
-    original_component_state: ComponentStateDescription,
+    original_state_var_ptr: StateVarPointer,
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
     dependencies: &mut Vec<Vec<Vec<Vec<Dependency>>>>,
-    dependent_on_state_var: &mut Vec<Vec<Vec<ComponentStateDescription>>>,
-    dependent_on_essential: &mut Vec<HashMap<EssentialDataOrigin, Vec<ComponentStateDescription>>>,
+    dependent_on_state_var: &mut Vec<Vec<Vec<StateVarPointer>>>,
+    dependent_on_essential: &mut Vec<HashMap<EssentialDataOrigin, Vec<StateVarPointer>>>,
     essential_data: &mut Vec<HashMap<EssentialDataOrigin, EssentialStateVar>>,
     freshen_stack: &mut Vec<StateVarCalculationState>,
     should_initialize_essential_data: bool,
 ) -> StateVarValue {
     freshen_state_var(
-        original_component_state,
+        original_state_var_ptr,
         components,
         dependencies,
         dependent_on_state_var,
@@ -34,9 +34,9 @@ pub fn get_state_var_value(
         should_initialize_essential_data,
     );
 
-    components[original_component_state.component_idx]
+    components[original_state_var_ptr.component_idx]
         .borrow()
-        .get_state_variables()[original_component_state.state_var_idx]
+        .get_state_variables()[original_state_var_ptr.state_var_idx]
         .get_fresh_value()
 }
 
@@ -44,7 +44,7 @@ pub fn get_state_var_value(
 #[derive(Debug, Clone)]
 pub enum StateVariableUpdateRequest {
     SetEssentialValue(EssentialStateDescription),
-    SetStateVar(ComponentStateDescription),
+    SetStateVar(StateVarPointer),
 }
 
 /// Used to save the state in the middle of a calculation while freshening a state variable.
@@ -61,7 +61,7 @@ pub enum StateVarCalculationState {
 /// we store the dependencies we have created so far, if any.
 #[derive(Debug)]
 pub struct UnresolvedCalculationState {
-    component_state: ComponentStateDescription,
+    state_var_ptr: StateVarPointer,
     instruction_idx: usize,
     val_idx: usize,
     dependency_instructions: Option<Vec<DependencyInstruction>>,
@@ -75,7 +75,7 @@ pub struct UnresolvedCalculationState {
 /// of which instruction and value from the dependencies we are freshening.
 #[derive(Debug)]
 pub struct StaleCalculationState {
-    component_state: ComponentStateDescription,
+    state_var_ptr: StateVarPointer,
     instruction_idx: usize,
     val_idx: usize,
 }
@@ -88,8 +88,8 @@ pub fn freshen_all_stale_renderer_states(
     stale_renderers: &mut Vec<ComponentIdx>,
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
     dependencies: &mut Vec<Vec<Vec<Vec<Dependency>>>>,
-    dependent_on_state_var: &mut Vec<Vec<Vec<ComponentStateDescription>>>,
-    dependent_on_essential: &mut Vec<HashMap<EssentialDataOrigin, Vec<ComponentStateDescription>>>,
+    dependent_on_state_var: &mut Vec<Vec<Vec<StateVarPointer>>>,
+    dependent_on_essential: &mut Vec<HashMap<EssentialDataOrigin, Vec<StateVarPointer>>>,
     essential_data: &mut Vec<HashMap<EssentialDataOrigin, EssentialStateVar>>,
     freshen_stack: &mut Vec<StateVarCalculationState>,
     should_initialize_essential_data: bool,
@@ -118,12 +118,12 @@ pub fn freshen_all_stale_renderer_states(
             .clone();
 
         for state_var_idx in rendered_state_var_indices {
-            let component_state = ComponentStateDescription {
+            let state_var_ptr = StateVarPointer {
                 component_idx: *component_idx,
                 state_var_idx,
             };
             freshen_state_var(
-                component_state,
+                state_var_ptr,
                 components,
                 dependencies,
                 dependent_on_state_var,
@@ -177,16 +177,16 @@ fn get_non_string_rendered_children_including_from_extend(
     children
 }
 
-/// If the state variable specified by original_component_state is stale or unresolved,
+/// If the state variable specified by original_state_var_ptr is stale or unresolved,
 /// then freshen the variable, resolving its dependencies if necessary.
 ///
 /// If the state variable was not fresh, then recurse to its dependencies to freshen them.
 pub fn freshen_state_var(
-    original_component_state: ComponentStateDescription,
+    original_state_var_ptr: StateVarPointer,
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
     dependencies: &mut Vec<Vec<Vec<Vec<Dependency>>>>,
-    dependent_on_state_var: &mut Vec<Vec<Vec<ComponentStateDescription>>>,
-    dependent_on_essential: &mut Vec<HashMap<EssentialDataOrigin, Vec<ComponentStateDescription>>>,
+    dependent_on_state_var: &mut Vec<Vec<Vec<StateVarPointer>>>,
+    dependent_on_essential: &mut Vec<HashMap<EssentialDataOrigin, Vec<StateVarPointer>>>,
     essential_data: &mut Vec<HashMap<EssentialDataOrigin, EssentialStateVar>>,
     freshen_stack: &mut Vec<StateVarCalculationState>,
     should_initialize_essential_data: bool,
@@ -200,16 +200,16 @@ pub fn freshen_state_var(
     // with thousands of levels in the dependency graph, and it wasn't clear what
     // size WASM stack would be appropriate.
 
-    let current_freshness = components[original_component_state.component_idx]
+    let current_freshness = components[original_state_var_ptr.component_idx]
         .borrow()
-        .get_state_variables()[original_component_state.state_var_idx]
+        .get_state_variables()[original_state_var_ptr.state_var_idx]
         .get_freshness();
 
     let initial_calculation_state = match current_freshness {
         // No need to do anything if the state var is already fresh
         Freshness::Fresh => return (),
         Freshness::Unresolved => StateVarCalculationState::Unresolved(UnresolvedCalculationState {
-            component_state: original_component_state,
+            state_var_ptr: original_state_var_ptr,
             instruction_idx: 0,
             val_idx: 0,
             dependency_instructions: None,
@@ -217,7 +217,7 @@ pub fn freshen_state_var(
             dependencies_for_state_var: None,
         }),
         Freshness::Stale => StateVarCalculationState::Stale(StaleCalculationState {
-            component_state: original_component_state.clone(),
+            state_var_ptr: original_state_var_ptr.clone(),
             instruction_idx: 0,
             val_idx: 0,
         }),
@@ -228,10 +228,10 @@ pub fn freshen_state_var(
     'stack_loop: while let Some(calculation_state) = freshen_stack.pop() {
         match calculation_state {
             StateVarCalculationState::Unresolved(unresolved_state) => {
-                let component_state = unresolved_state.component_state;
+                let state_var_ptr = unresolved_state.state_var_ptr;
 
-                let component_idx = component_state.component_idx;
-                let state_var_idx = component_state.state_var_idx;
+                let component_idx = state_var_ptr.component_idx;
+                let state_var_idx = state_var_ptr.state_var_idx;
 
                 let dependency_instructions =
                     unresolved_state.dependency_instructions.unwrap_or_else(|| {
@@ -284,7 +284,7 @@ pub fn freshen_state_var(
                                     state_var_idx: inner_sv_idx,
                                 } => {
                                     let vec_dep = &mut dependent_on_state_var[*inner_comp_idx];
-                                    vec_dep[*inner_sv_idx].push(ComponentStateDescription {
+                                    vec_dep[*inner_sv_idx].push(StateVarPointer {
                                         component_idx,
                                         state_var_idx,
                                     });
@@ -296,7 +296,7 @@ pub fn freshen_state_var(
                                     let vec_dep = dependent_on_essential[*inner_comp_idx]
                                         .entry(origin.clone())
                                         .or_insert(Vec::new());
-                                    vec_dep.push(ComponentStateDescription {
+                                    vec_dep.push(StateVarPointer {
                                         component_idx,
                                         state_var_idx,
                                     });
@@ -315,7 +315,7 @@ pub fn freshen_state_var(
                             state_var_idx: sv_idx_inner,
                         } = &dep.source
                         {
-                            let new_component_state = ComponentStateDescription {
+                            let new_state_var_ptr = StateVarPointer {
                                 component_idx: *comp_idx_inner,
                                 state_var_idx: *sv_idx_inner,
                             };
@@ -331,7 +331,7 @@ pub fn freshen_state_var(
                                     // and then continuing at start of stack loop
                                     freshen_stack.push(StateVarCalculationState::Unresolved(
                                         UnresolvedCalculationState {
-                                            component_state,
+                                            state_var_ptr,
                                             instruction_idx,
                                             val_idx,
                                             dependency_instructions: Some(dependency_instructions),
@@ -343,7 +343,7 @@ pub fn freshen_state_var(
                                     ));
                                     freshen_stack.push(StateVarCalculationState::Unresolved(
                                         UnresolvedCalculationState {
-                                            component_state: new_component_state,
+                                            state_var_ptr: new_state_var_ptr,
                                             instruction_idx: 0,
                                             val_idx: 0,
                                             dependency_instructions: None,
@@ -362,7 +362,7 @@ pub fn freshen_state_var(
                                     // and then continuing at start of stack loop
                                     freshen_stack.push(StateVarCalculationState::Unresolved(
                                         UnresolvedCalculationState {
-                                            component_state,
+                                            state_var_ptr,
                                             instruction_idx,
                                             val_idx,
                                             dependency_instructions: Some(dependency_instructions),
@@ -374,7 +374,7 @@ pub fn freshen_state_var(
                                     ));
                                     freshen_stack.push(StateVarCalculationState::Stale(
                                         StaleCalculationState {
-                                            component_state: new_component_state,
+                                            state_var_ptr: new_state_var_ptr,
                                             instruction_idx: 0,
                                             val_idx: 0,
                                         },
@@ -412,7 +412,7 @@ pub fn freshen_state_var(
                 state_var.record_all_dependencies_viewed();
             }
             StateVarCalculationState::Stale(stale_state) => {
-                let component_state = stale_state.component_state;
+                let state_var_ptr = stale_state.state_var_ptr;
 
                 // Stack implementation note:
                 // In order to start with instruction from instruction_idx
@@ -421,7 +421,7 @@ pub fn freshen_state_var(
                 let mut initial_val_idx = stale_state.val_idx;
 
                 let dependencies_for_state_var =
-                    &dependencies[component_state.component_idx][component_state.state_var_idx];
+                    &dependencies[state_var_ptr.component_idx][state_var_ptr.state_var_idx];
 
                 for (instruction_idx, deps) in dependencies_for_state_var
                     .iter()
@@ -434,7 +434,7 @@ pub fn freshen_state_var(
                             state_var_idx,
                         } = &dep.source
                         {
-                            let new_component_state = ComponentStateDescription {
+                            let new_state_var_ptr = StateVarPointer {
                                 component_idx: *component_idx,
                                 state_var_idx: *state_var_idx,
                             };
@@ -450,14 +450,14 @@ pub fn freshen_state_var(
                                     // and then continuing at start of stack loop
                                     freshen_stack.push(StateVarCalculationState::Stale(
                                         StaleCalculationState {
-                                            component_state,
+                                            state_var_ptr,
                                             instruction_idx,
                                             val_idx,
                                         },
                                     ));
                                     freshen_stack.push(StateVarCalculationState::Stale(
                                         StaleCalculationState {
-                                            component_state: new_component_state,
+                                            state_var_ptr: new_state_var_ptr,
                                             instruction_idx: 0,
                                             val_idx: 0,
                                         },
@@ -484,8 +484,8 @@ pub fn freshen_state_var(
                 // We calculate its value if a dependency has changed,
                 // else restore its previous value.
 
-                let component_idx = component_state.component_idx;
-                let state_var_idx = component_state.state_var_idx;
+                let component_idx = state_var_ptr.component_idx;
+                let state_var_idx = state_var_ptr.state_var_idx;
 
                 let mut comp = components[component_idx].borrow_mut();
                 let state_var = &mut comp.get_state_variables_mut()[state_var_idx];

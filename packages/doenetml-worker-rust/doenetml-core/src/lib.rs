@@ -30,8 +30,9 @@ pub mod utils;
 
 use crate::utils::{log, log_debug, log_json};
 
+/// Pointer to a component's state variable
 #[derive(Debug, Clone, Copy)]
-pub struct ComponentStateDescription {
+pub struct StateVarPointer {
     pub component_idx: ComponentIdx,
     pub state_var_idx: StateVarIdx,
 }
@@ -85,7 +86,7 @@ pub struct DoenetMLCore {
     /// defined by the order in which state variables are defined for the component.
     /// - The inner vector is the list of component/state variable combinations
     /// that are dependent on this state variable.
-    pub dependent_on_state_var: Vec<Vec<Vec<ComponentStateDescription>>>,
+    pub dependent_on_state_var: Vec<Vec<Vec<StateVarPointer>>>,
 
     /// The inverse of the dependency graph *dependencies* (along with *dependent_on_state_var*).
     /// It specifies the state variables that are dependent on each piece of essential data.
@@ -96,10 +97,14 @@ pub struct DoenetMLCore {
     /// - The hash map key *EssentialDataOrigin* specifies how the component created the essential data.
     /// - The hash map value vector is the list of component/state variable combinations
     /// that are dependent on this piece of essential data.
-    pub dependent_on_essential: Vec<HashMap<EssentialDataOrigin, Vec<ComponentStateDescription>>>,
+    pub dependent_on_essential: Vec<HashMap<EssentialDataOrigin, Vec<StateVarPointer>>>,
 
     /// Endpoints of the dependency graph.
     /// Every update instruction will lead to these.
+    ///
+    /// The essential data are the only data needed to construct the document state
+    /// as all other state variables are calculated from them.
+    /// When saving state to a database, only essential data needs to be saved.
     ///
     /// Data structure:
     /// - The vector index is the *ComponentIdx* of the component,
@@ -121,7 +126,7 @@ pub struct DoenetMLCore {
     // To prevent unnecessary reallocations of temporary vectors, like stacks,
     // we store them on the DoenetMLCore struct so that they will stay allocated.
     pub freshen_stack: Vec<StateVarCalculationState>,
-    pub mark_stale_stack: Vec<ComponentStateDescription>,
+    pub mark_stale_stack: Vec<StateVarPointer>,
     pub update_stack: Vec<StateVariableUpdateRequest>,
 
     pub warnings: Vec<DastWarning>,
@@ -353,7 +358,7 @@ impl DoenetMLCore {
         // - return the state variable's value
         let mut state_var_resolver = |state_var_idx: usize| {
             get_state_var_value(
-                ComponentStateDescription {
+                StateVarPointer {
                     component_idx,
                     state_var_idx,
                 },
@@ -387,7 +392,7 @@ impl DoenetMLCore {
 
                 // Since the requested value is stored in the state variable,
                 // now we just need to keep track of which state variable we are seeking to update.
-                let component_state = ComponentStateDescription {
+                let state_var_ptr = StateVarPointer {
                     component_idx,
                     state_var_idx,
                 };
@@ -397,7 +402,7 @@ impl DoenetMLCore {
                 // even if it hasn't been accessed before.
                 if state_variable.get_freshness() == Freshness::Unresolved {
                     freshen_state_var(
-                        component_state,
+                        state_var_ptr,
                         &self.components,
                         &mut self.dependencies,
                         &mut self.dependent_on_state_var,
@@ -412,7 +417,7 @@ impl DoenetMLCore {
                 // to infer how to set the leaves (essential state variables)
                 // to attempt to set the state variable to its requested value.
                 process_state_variable_update_request(
-                    StateVariableUpdateRequest::SetStateVar(component_state),
+                    StateVariableUpdateRequest::SetStateVar(state_var_ptr),
                     &self.components,
                     &mut self.dependencies,
                     &mut self.dependent_on_state_var,

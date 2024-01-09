@@ -6,7 +6,7 @@ use crate::{
     essential_state::{EssentialDataOrigin, EssentialStateDescription, EssentialStateVar},
     state::Freshness,
     state_var_calculations::StateVariableUpdateRequest,
-    ComponentIdx, ComponentStateDescription,
+    ComponentIdx, StateVarPointer,
 };
 
 /// Recurse in the inverse direction along the dependency graph to attempt to satisfy
@@ -19,11 +19,11 @@ pub fn process_state_variable_update_request(
     initial_update_request: StateVariableUpdateRequest,
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
     dependencies: &mut Vec<Vec<Vec<Vec<Dependency>>>>,
-    dependent_on_state_var: &mut Vec<Vec<Vec<ComponentStateDescription>>>,
-    dependent_on_essential: &mut Vec<HashMap<EssentialDataOrigin, Vec<ComponentStateDescription>>>,
+    dependent_on_state_var: &mut Vec<Vec<Vec<StateVarPointer>>>,
+    dependent_on_essential: &mut Vec<HashMap<EssentialDataOrigin, Vec<StateVarPointer>>>,
     essential_data: &mut Vec<HashMap<EssentialDataOrigin, EssentialStateVar>>,
     stale_renderers: &mut Vec<ComponentIdx>,
-    mark_stale_stack: &mut Vec<ComponentStateDescription>,
+    mark_stale_stack: &mut Vec<StateVarPointer>,
     update_stack: &mut Vec<StateVariableUpdateRequest>,
 ) {
     // This function currently implements recursion through an iterative method,
@@ -61,8 +61,8 @@ pub fn process_state_variable_update_request(
                 );
             }
 
-            StateVariableUpdateRequest::SetStateVar(component_state) => {
-                // The requested value for the state variable of component_state
+            StateVariableUpdateRequest::SetStateVar(state_var_ptr) => {
+                // The requested value for the state variable of state_var_ptr
                 // has already been set in a previous step.
                 // Now, we need to calculate the requested values of its dependencies
                 // that will lead to its requested value.
@@ -70,7 +70,7 @@ pub fn process_state_variable_update_request(
                 // The vector dep_update_requests will contain just the identities
                 // of the state variables or essential data that we need to recurse to.
                 let mut dep_update_requests = request_dependencies_to_update_value_including_shadow(
-                    component_state,
+                    state_var_ptr,
                     components,
                     dependencies,
                     is_direct_change_from_renderer,
@@ -87,25 +87,25 @@ pub fn process_state_variable_update_request(
     }
 }
 
-/// Mark the state variable in original_component_state stale
+/// Mark the state variable in original_state_var_ptr stale
 /// and then recurse to its dependencies.
 ///
 /// Also, if a state variable has the for_renderer parameter set,
 /// then record the component in stale_renderers.
 fn mark_stale_state_var_and_dependencies(
-    original_component_state: ComponentStateDescription,
+    original_state_var_ptr: StateVarPointer,
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
-    dependent_on_state_var: &mut Vec<Vec<Vec<ComponentStateDescription>>>,
+    dependent_on_state_var: &mut Vec<Vec<Vec<StateVarPointer>>>,
     stale_renderers: &mut Vec<ComponentIdx>,
-    mark_stale_stack: &mut Vec<ComponentStateDescription>,
+    mark_stale_stack: &mut Vec<StateVarPointer>,
 ) {
     // This function currently implements recursion through an iterative method,
     // using a stack on the heap.
     // See comment in freshen_state_var for the motivation.
 
-    mark_stale_stack.push(original_component_state);
+    mark_stale_stack.push(original_state_var_ptr);
 
-    while let Some(ComponentStateDescription {
+    while let Some(StateVarPointer {
         component_idx,
         state_var_idx,
     }) = mark_stale_stack.pop()
@@ -122,13 +122,13 @@ fn mark_stale_state_var_and_dependencies(
 
             let states_depending_on_me = &dependent_on_state_var[component_idx][state_var_idx];
 
-            for ComponentStateDescription {
+            for StateVarPointer {
                 component_idx: new_comp_idx,
                 state_var_idx: new_sv_idx,
             } in states_depending_on_me.iter()
             {
                 // Recurse by adding the state variables to the stack
-                mark_stale_stack.push(ComponentStateDescription {
+                mark_stale_stack.push(StateVarPointer {
                     component_idx: *new_comp_idx,
                     state_var_idx: *new_sv_idx,
                 });
@@ -141,19 +141,19 @@ fn mark_stale_state_var_and_dependencies(
 fn mark_stale_essential_datum_dependencies(
     essential_state: &EssentialStateDescription,
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
-    dependent_on_state_var: &mut Vec<Vec<Vec<ComponentStateDescription>>>,
-    dependent_on_essential: &mut Vec<HashMap<EssentialDataOrigin, Vec<ComponentStateDescription>>>,
+    dependent_on_state_var: &mut Vec<Vec<Vec<StateVarPointer>>>,
+    dependent_on_essential: &mut Vec<HashMap<EssentialDataOrigin, Vec<StateVarPointer>>>,
     stale_renderers: &mut Vec<ComponentIdx>,
-    mark_stale_stack: &mut Vec<ComponentStateDescription>,
+    mark_stale_stack: &mut Vec<StateVarPointer>,
 ) {
     let component_idx = essential_state.component_idx;
 
     // log!("Marking stale essential {}:{:?}", component_name, origin);
 
     if let Some(vec_deps) = dependent_on_essential[component_idx].get(&essential_state.origin) {
-        vec_deps.iter().for_each(|component_state| {
+        vec_deps.iter().for_each(|state_var_ptr| {
             mark_stale_state_var_and_dependencies(
-                *component_state,
+                *state_var_ptr,
                 components,
                 dependent_on_state_var,
                 stale_renderers,
@@ -164,7 +164,7 @@ fn mark_stale_essential_datum_dependencies(
 }
 
 /// Determine what state variables must be changed to attempt to create the desired value
-/// that has been saved to the state variable specified by *component_state*.
+/// that has been saved to the state variable specified by *state_var_ptr*.
 ///
 /// If *is_direct_change_from_renderer* is true, then the desired value for the state variable
 /// was specified directly from the action itself.
@@ -172,13 +172,13 @@ fn mark_stale_essential_datum_dependencies(
 /// Returns a vector specifying which state variables or essential data have been requested to change.
 /// The actual requested values will be added directly to the state variables or essential data.
 fn request_dependencies_to_update_value_including_shadow(
-    component_state: ComponentStateDescription,
+    state_var_ptr: StateVarPointer,
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
     dependencies: &Vec<Vec<Vec<Vec<Dependency>>>>,
     is_direct_change_from_renderer: bool,
 ) -> Vec<StateVariableUpdateRequest> {
-    let component_idx = component_state.component_idx;
-    let state_var_idx = component_state.state_var_idx;
+    let component_idx = state_var_ptr.component_idx;
+    let state_var_idx = state_var_ptr.state_var_idx;
     let component = components[component_idx].borrow();
     let state_variable = &component.get_state_variables()[state_var_idx];
 
@@ -188,7 +188,7 @@ fn request_dependencies_to_update_value_including_shadow(
     let update_requests = requests
         .map(|req| {
             convert_dependency_updates_requested_to_state_variable_update_requests(
-                component_state,
+                state_var_ptr,
                 req,
                 components,
                 dependencies,
@@ -203,16 +203,15 @@ fn request_dependencies_to_update_value_including_shadow(
 /// into state variable update requests by determining the state variables
 /// referenced by the dependencies.
 fn convert_dependency_updates_requested_to_state_variable_update_requests(
-    component_state: ComponentStateDescription,
+    state_var_ptr: StateVarPointer,
     requests: Vec<DependencyUpdatesRequested>,
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
     dependencies: &Vec<Vec<Vec<Vec<Dependency>>>>,
 ) -> Vec<StateVariableUpdateRequest> {
-    let component_idx = component_state.component_idx;
-    let state_var_idx = component_state.state_var_idx;
+    let component_idx = state_var_ptr.component_idx;
+    let state_var_idx = state_var_ptr.state_var_idx;
 
-    let my_dependencies =
-        &dependencies[component_state.component_idx][component_state.state_var_idx];
+    let my_dependencies = &dependencies[state_var_ptr.component_idx][state_var_ptr.state_var_idx];
 
     let mut update_requests = Vec::new();
 
@@ -247,11 +246,11 @@ fn convert_dependency_updates_requested_to_state_variable_update_requests(
             } => {
                 // TODO: receiving multiple dependencies because of multiple instances
 
-                let component_state = ComponentStateDescription {
+                let state_var_ptr = StateVarPointer {
                     component_idx: *component_idx,
                     state_var_idx: *state_var_idx,
                 };
-                update_requests.push(StateVariableUpdateRequest::SetStateVar(component_state));
+                update_requests.push(StateVariableUpdateRequest::SetStateVar(state_var_ptr));
             }
         }
     }
