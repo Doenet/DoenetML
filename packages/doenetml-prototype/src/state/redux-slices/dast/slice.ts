@@ -86,7 +86,7 @@ const dastSlice = createSlice({
                     console.warn("Updating attributes is not yet implemented");
                 }
                 if (update.new_children) {
-                    console.warn("Updating children is not yet implemented");
+                    elm.children = update.new_children;
                 }
             }
         },

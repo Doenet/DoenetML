@@ -17,7 +17,7 @@ type ActionArgValue = boolean | number | number[] | string;
 export type ElementUpdate = {
     type: "elementUpdate";
     changed_attributes?: Record<string, unknown>;
-    new_children?: unknown;
+    new_children?: (number | string)[];
     changed_state?: Record<string, unknown>;
 };
 export type ElementUpdates = Record<number, ElementUpdate>;
