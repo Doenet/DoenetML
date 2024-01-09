@@ -23,6 +23,7 @@ ndarray = {version = "0.15.6", features = ["serde"]}
 instant = { version = "0.1", features = [ "wasm-bindgen" ] }
 strum = "0.25"
 strum_macros = "0.25"
+tailcall = "0.1.6"
 
 [dev-dependencies]
 criterion = "0.3.6"
