@@ -2,7 +2,10 @@ import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "../../store";
 import { DastError, DastRoot } from "@doenet/parser";
-import type { FlatDastRoot } from "@doenet/doenetml-worker-rust";
+import type {
+    ElementUpdates,
+    FlatDastRoot,
+} from "@doenet/doenetml-worker-rust";
 
 // Define a type for the slice state
 export interface DastState {
@@ -52,6 +55,39 @@ const dastSlice = createSlice({
         ) => {
             for (const [index, element] of action.payload) {
                 state.flatDastRoot.elements[index] = element;
+            }
+        },
+        /**
+         * Process an `elementUpdate` coming from Core.
+         */
+        processElementUpdates: (
+            state,
+            action: PayloadAction<ElementUpdates>,
+        ) => {
+            for (const [id, update] of Object.entries(action.payload)) {
+                const elm = state.flatDastRoot.elements[Number(id)];
+                if (elm == null) {
+                    console.error(
+                        "Failed to find element in FlatDast with id =",
+                        id,
+                        "during element update request.",
+                    );
+                    continue;
+                }
+                if (elm.type === "error") {
+                    throw new Error("Updating errors is not yet implemented");
+                }
+                if (update.changed_state) {
+                    elm.data ??= { id: Number(id), state: {} };
+                    elm.data.state ??= {};
+                    Object.assign(elm.data.state, update.changed_state);
+                }
+                if (update.changed_attributes) {
+                    console.warn("Updating attributes is not yet implemented");
+                }
+                if (update.new_children) {
+                    elm.children = update.new_children;
+                }
             }
         },
     },
