@@ -5,7 +5,7 @@ use std::rc::Rc;
 use serde::{Deserialize, Serialize};
 
 use crate::dast::{ElementData, FlatDastElement, FlatDastElementUpdate, Position as DastPosition};
-use crate::dependency::{Dependency, DependencyInstruction, DependencyUpdatesRequested};
+use crate::dependency::{Dependency, DependencyInstruction, DependencyValueUpdateRequest};
 use crate::state::{
     StateVar, StateVarInterface, StateVarMutableViewTyped, StateVarParameters,
     StateVarReadOnlyView, StateVarReadOnlyViewTyped, StateVarTyped, StateVarValue,
@@ -274,7 +274,7 @@ impl StateVarInterface<String> for ValueStateVarInterface {
         // }
     }
 
-    fn calculate_state_var_from_dependencies(
+    fn calculate_state_var_from_dependencies_and_mark_fresh(
         &self,
         state_var: &StateVarMutableViewTyped<String>,
     ) -> () {
@@ -310,7 +310,7 @@ impl StateVarInterface<String> for ValueStateVarInterface {
         &self,
         state_var: &StateVarReadOnlyViewTyped<String>,
         _is_direct_change_from_renderer: bool,
-    ) -> Result<Vec<DependencyUpdatesRequested>, ()> {
+    ) -> Result<Vec<DependencyValueUpdateRequest>, ()> {
         let desired_value = state_var.get_requested_value();
         let bind_value_to_used_default = true; //self.bind_value_to.get_used_default();
 
@@ -322,15 +322,15 @@ impl StateVarInterface<String> for ValueStateVarInterface {
             self.sync_values.request_change_value_to(true);
 
             Ok(vec![
-                DependencyUpdatesRequested {
+                DependencyValueUpdateRequest {
                     instruction_idx: 0,
                     dependency_idx: 0,
                 },
-                DependencyUpdatesRequested {
+                DependencyValueUpdateRequest {
                     instruction_idx: 1,
                     dependency_idx: 0,
                 },
-                DependencyUpdatesRequested {
+                DependencyValueUpdateRequest {
                     instruction_idx: 2,
                     dependency_idx: 0,
                 },
@@ -342,11 +342,11 @@ impl StateVarInterface<String> for ValueStateVarInterface {
             // self.sync_values.request_change_value_to(true);
 
             // Ok(vec![
-            //     DependencyUpdatesRequested {
+            //     DependencyValueUpdateRequest {
             //         instruction_idx: 3,
             //         dependency_idx: 0,
             //     },
-            //     DependencyUpdatesRequested {
+            //     DependencyValueUpdateRequest {
             //         instruction_idx: 2,
             //         dependency_idx: 0,
             //     },
@@ -404,7 +404,7 @@ impl StateVarInterface<String> for ImmediateValueStateVarInterface {
         // }
     }
 
-    fn calculate_state_var_from_dependencies(
+    fn calculate_state_var_from_dependencies_and_mark_fresh(
         &self,
         state_var: &StateVarMutableViewTyped<String>,
     ) -> () {
@@ -439,7 +439,7 @@ impl StateVarInterface<String> for ImmediateValueStateVarInterface {
         &self,
         state_var: &StateVarReadOnlyViewTyped<String>,
         is_direct_change_from_renderer: bool,
-    ) -> Result<Vec<DependencyUpdatesRequested>, ()> {
+    ) -> Result<Vec<DependencyValueUpdateRequest>, ()> {
         let desired_value = state_var.get_requested_value();
 
         let mut updates = Vec::with_capacity(2);
@@ -448,7 +448,7 @@ impl StateVarInterface<String> for ImmediateValueStateVarInterface {
         self.essential_value
             .request_change_value_to(desired_value.clone());
 
-        updates.push(DependencyUpdatesRequested {
+        updates.push(DependencyValueUpdateRequest {
             instruction_idx: 0,
             dependency_idx: 0,
         });
@@ -458,7 +458,7 @@ impl StateVarInterface<String> for ImmediateValueStateVarInterface {
             // self.bind_value_to
             //     .request_change_value_to(desired_value.clone());
 
-            // updates.push(DependencyUpdatesRequested {
+            // updates.push(DependencyValueUpdateRequest {
             //     instruction_idx: 2,
             //     dependency_idx: 0,
             // });
@@ -492,7 +492,7 @@ impl StateVarInterface<bool> for SyncImmediateValueStateVarInterface {
         }
     }
 
-    fn calculate_state_var_from_dependencies(
+    fn calculate_state_var_from_dependencies_and_mark_fresh(
         &self,
         state_var: &StateVarMutableViewTyped<bool>,
     ) -> () {
@@ -503,12 +503,12 @@ impl StateVarInterface<bool> for SyncImmediateValueStateVarInterface {
         &self,
         state_var: &StateVarReadOnlyViewTyped<bool>,
         _is_direct_change_from_renderer: bool,
-    ) -> Result<Vec<DependencyUpdatesRequested>, ()> {
+    ) -> Result<Vec<DependencyValueUpdateRequest>, ()> {
         let desired_value = state_var.get_requested_value();
 
         self.essential_value.request_change_value_to(*desired_value);
 
-        Ok(vec![DependencyUpdatesRequested {
+        Ok(vec![DependencyValueUpdateRequest {
             instruction_idx: 0,
             dependency_idx: 0,
         }])

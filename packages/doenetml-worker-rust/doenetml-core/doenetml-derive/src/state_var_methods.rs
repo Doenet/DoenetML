@@ -35,7 +35,8 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
             let mut state_var_record_all_dependencies_viewed_arms = Vec::new();
             let mut state_var_return_dependency_instructions_arms = Vec::new();
             let mut state_var_set_dependencies_arms = Vec::new();
-            let mut state_var_calculate_state_var_from_dependencies_arms = Vec::new();
+            let mut state_var_calculate_state_var_from_dependencies_and_mark_fresh_arms =
+                Vec::new();
             let mut state_var_request_dependencies_to_update_value_arms = Vec::new();
             let mut state_var_get_name_arms = Vec::new();
             let mut state_var_get_for_renderer_arms = Vec::new();
@@ -156,9 +157,9 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
                     },
                 });
 
-                state_var_calculate_state_var_from_dependencies_arms.push(quote! {
+                state_var_calculate_state_var_from_dependencies_and_mark_fresh_arms.push(quote! {
                     #enum_ident::#variant_ident(sv_typed) => {
-                        sv_typed.calculate_state_var_from_dependencies()
+                        sv_typed.calculate_state_var_from_dependencies_and_mark_fresh()
                     },
                 });
 
@@ -306,7 +307,7 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
                     /// `return_dependency_instructions()` as well as the document structure.
                     ///
                     /// The dependencies are saved to the state variable and will be used
-                    /// in calls to `calculate_state_var_from_dependencies()`
+                    /// in calls to `calculate_state_var_from_dependencies_and_mark_fresh()`
                     /// and `request_dependencies_to_update_value()`.
                     pub fn set_dependencies(&mut self, dependencies: &Vec<Vec<Dependency>>) {
                         match self {
@@ -324,9 +325,9 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
                     ///
                     /// The value is stored in the state variable and can be retrieved by calling
                     /// `get_fresh_value()`.
-                    pub fn calculate_state_var_from_dependencies(&self) {
+                    pub fn calculate_state_var_from_dependencies_and_mark_fresh(&self) {
                         match self {
-                            #(#state_var_calculate_state_var_from_dependencies_arms)*
+                            #(#state_var_calculate_state_var_from_dependencies_and_mark_fresh_arms)*
                         }
                     }
 
@@ -347,7 +348,7 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
                     pub fn request_dependencies_to_update_value(
                         &self,
                         is_direct_change_from_renderer: bool,
-                    ) -> Result<Vec<DependencyUpdatesRequested>, ()> {
+                    ) -> Result<Vec<DependencyValueUpdateRequest>, ()> {
                         match self {
                             #(#state_var_request_dependencies_to_update_value_arms)*
                         }

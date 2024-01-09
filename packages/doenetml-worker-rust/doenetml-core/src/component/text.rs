@@ -7,7 +7,7 @@ use crate::dast::{
     ElementData, FlatDastElement, FlatDastElementContent, FlatDastElementUpdate,
     Position as DastPosition,
 };
-use crate::dependency::{Dependency, DependencyInstruction, DependencyUpdatesRequested};
+use crate::dependency::{Dependency, DependencyInstruction, DependencyValueUpdateRequest};
 use crate::state::{
     StateVar, StateVarInterface, StateVarMutableViewTyped, StateVarParameters,
     StateVarReadOnlyView, StateVarReadOnlyViewTyped, StateVarTyped, StateVarValue,
@@ -207,7 +207,7 @@ impl StateVarInterface<String> for ValueStateVarInterface {
         self.string_child_values = string_vals;
     }
 
-    fn calculate_state_var_from_dependencies(
+    fn calculate_state_var_from_dependencies_and_mark_fresh(
         &self,
         state_var: &StateVarMutableViewTyped<String>,
     ) -> () {
@@ -225,7 +225,7 @@ impl StateVarInterface<String> for ValueStateVarInterface {
         &self,
         state_var: &StateVarReadOnlyViewTyped<String>,
         _is_direct_change_from_renderer: bool,
-    ) -> Result<Vec<DependencyUpdatesRequested>, ()> {
+    ) -> Result<Vec<DependencyValueUpdateRequest>, ()> {
         if self.string_child_values.len() != 1 {
             // TODO: implement for no children where saves to essential value
             Err(())
@@ -234,7 +234,7 @@ impl StateVarInterface<String> for ValueStateVarInterface {
 
             self.string_child_values[0].request_change_value_to(desired_value.clone());
 
-            Ok(vec![DependencyUpdatesRequested {
+            Ok(vec![DependencyValueUpdateRequest {
                 instruction_idx: 0,
                 dependency_idx: 0,
             }])
@@ -271,7 +271,7 @@ impl StateVarInterface<String> for TextStateVarInterface {
         }
     }
 
-    fn calculate_state_var_from_dependencies(
+    fn calculate_state_var_from_dependencies_and_mark_fresh(
         &self,
         state_var: &StateVarMutableViewTyped<String>,
     ) -> () {
@@ -282,12 +282,12 @@ impl StateVarInterface<String> for TextStateVarInterface {
         &self,
         state_var: &StateVarReadOnlyViewTyped<String>,
         _is_direct_change_from_renderer: bool,
-    ) -> Result<Vec<DependencyUpdatesRequested>, ()> {
+    ) -> Result<Vec<DependencyValueUpdateRequest>, ()> {
         let desired_value = state_var.get_requested_value();
 
         self.value_sv.request_change_value_to(desired_value.clone());
 
-        Ok(vec![DependencyUpdatesRequested {
+        Ok(vec![DependencyValueUpdateRequest {
             instruction_idx: 0,
             dependency_idx: 0,
         }])

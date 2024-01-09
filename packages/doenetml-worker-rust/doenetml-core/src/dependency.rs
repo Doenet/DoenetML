@@ -59,7 +59,7 @@ pub enum DependencySource {
 
 /// Gives both the source of the dependency and the current value of the dependency
 ///
-/// Passed into *calculate_state_var_from_dependencies*
+/// Passed into *calculate_state_var_from_dependencies_and_mark_fresh*
 #[derive(Debug)]
 pub struct Dependency {
     pub source: DependencySource,
@@ -72,7 +72,7 @@ pub struct Dependency {
 ///
 /// The actual requested values for those dependencies were stored
 /// in the *requested_value* field of their state variables.
-pub struct DependencyUpdatesRequested {
+pub struct DependencyValueUpdateRequest {
     pub instruction_idx: usize,
     pub dependency_idx: usize,
 }

@@ -101,8 +101,6 @@ export class CoreWorker {
         }
     }
 
-    // TODO: TypeScript for args. Here's is the rust type for the args
-
     async dispatchAction(action: Action) {
         const isProcessingPromise = this.isProcessingPromise;
         let { promise, resolve } = promiseWithResolver();

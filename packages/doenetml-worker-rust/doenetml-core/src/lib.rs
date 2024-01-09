@@ -11,8 +11,8 @@ use dependency::Dependency;
 use essential_state::{EssentialDataOrigin, EssentialStateVar};
 use state::{Freshness, StateVarName, StateVarValue};
 use state_var_calculations::{
-    freshen_all_stale_renderer_states, freshen_state_var, get_state_var_value,
-    StateVarCalculationState, StateVariableUpdateRequest,
+    freshen_all_stale_renderer_states, get_state_var_value, resolve_state_var,
+    StateVariableUpdateRequest,
 };
 
 use state_var_updates::process_state_variable_update_request;
@@ -121,11 +121,13 @@ pub struct DoenetMLCore {
     /// TODO: how does this work?
     pub should_initialize_essential_data: bool,
 
+    /// List of the rendered components that have stale `for_renderer` state variables.
+    /// TODO: currently is not restricted to rendered components.
     pub stale_renderers: Vec<ComponentIdx>,
 
     // To prevent unnecessary reallocations of temporary vectors, like stacks,
     // we store them on the DoenetMLCore struct so that they will stay allocated.
-    pub freshen_stack: Vec<StateVarCalculationState>,
+    pub freshen_stack: Vec<StateVarPointer>,
     pub mark_stale_stack: Vec<StateVarPointer>,
     pub update_stack: Vec<StateVariableUpdateRequest>,
 
@@ -397,18 +399,17 @@ impl DoenetMLCore {
                     state_var_idx,
                 };
 
-                // If state variable is unresolved, then calculate its value to resolve it.
+                // If state variable is unresolved, then resolve it.
                 // This could occur only once, but actions are free to seek to modify any state variable,
                 // even if it hasn't been accessed before.
                 if state_variable.get_freshness() == Freshness::Unresolved {
-                    freshen_state_var(
+                    resolve_state_var(
                         state_var_ptr,
                         &self.components,
                         &mut self.dependencies,
                         &mut self.dependent_on_state_var,
                         &mut self.dependent_on_essential,
                         &mut self.essential_data,
-                        &mut self.freshen_stack,
                         self.should_initialize_essential_data,
                     );
                 }

@@ -8,7 +8,7 @@ use std::{
 use doenetml_derive::{StateVarMethods, StateVarMutableViewMethods, StateVarReadOnlyViewMethods};
 
 use crate::{
-    dependency::{Dependency, DependencyInstruction, DependencyUpdatesRequested},
+    dependency::{Dependency, DependencyInstruction, DependencyValueUpdateRequest},
     ExtendSource,
 };
 
@@ -81,7 +81,10 @@ pub trait StateVarInterface<T: Default + Clone>: std::fmt::Debug {
     /// Calculate the value of the state variable from the current values of the dependencies
     /// that were stored in `save_dependencies_for_value_calculation`.
     /// Save the result in state_var argument that is passed in.
-    fn calculate_state_var_from_dependencies(&self, state_var: &StateVarMutableViewTyped<T>) -> ();
+    fn calculate_state_var_from_dependencies_and_mark_fresh(
+        &self,
+        state_var: &StateVarMutableViewTyped<T>,
+    ) -> ();
 
     /// Given the requested value stored in the meta data of the state_var argument,
     /// calculate the desired values of the dependencies
@@ -102,7 +105,7 @@ pub trait StateVarInterface<T: Default + Clone>: std::fmt::Debug {
         &self,
         state_var: &StateVarReadOnlyViewTyped<T>,
         is_direct_change_from_renderer: bool,
-    ) -> Result<Vec<DependencyUpdatesRequested>, ()> {
+    ) -> Result<Vec<DependencyValueUpdateRequest>, ()> {
         // The default implementation returns an Err indicating the the state variable
         // cannot be changed by requesting it be set to a value
         Err(())
@@ -310,7 +313,7 @@ impl<T: Default + Clone> StateVarMutableViewTyped<T> {
     ///
     /// Note: calls to `get_fresh_value` are ignored when determining when last viewed.
     pub fn check_if_changed_since_last_viewed(&self) -> bool {
-        self.inner.borrow().get_change_counter() > self.change_counter_when_last_viewed
+        self.inner.borrow().get_change_counter() != self.change_counter_when_last_viewed
     }
 
     /// If the variable is fresh, get a reference to its current value
@@ -426,7 +429,7 @@ impl<T: Default + Clone> StateVarReadOnlyViewTyped<T> {
     ///
     /// Note: calls to `get_fresh_value` are ignored when determining when last viewed.
     pub fn check_if_changed_since_last_viewed(&self) -> bool {
-        self.inner.borrow().get_change_counter() > self.change_counter_when_last_viewed
+        self.inner.borrow().get_change_counter() != self.change_counter_when_last_viewed
     }
 
     /// If the variable is fresh, get a reference to its current value
@@ -617,17 +620,17 @@ impl<T: Default + Clone> StateVarTyped<T> {
             .collect();
     }
 
-    /// Convenience function to call `calculate_state_var_from_dependencies` on interface
-    pub fn calculate_state_var_from_dependencies(&self) -> () {
+    /// Convenience function to call `calculate_state_var_from_dependencies_and_mark_fresh` on interface
+    pub fn calculate_state_var_from_dependencies_and_mark_fresh(&self) -> () {
         self.interface
-            .calculate_state_var_from_dependencies(&self.value)
+            .calculate_state_var_from_dependencies_and_mark_fresh(&self.value)
     }
 
     /// Convenience function to call `request_dependencies_to_update_value` on interface
     pub fn request_dependencies_to_update_value(
         &self,
         is_direct_change_from_renderer: bool,
-    ) -> Result<Vec<DependencyUpdatesRequested>, ()> {
+    ) -> Result<Vec<DependencyValueUpdateRequest>, ()> {
         self.interface.request_dependencies_to_update_value(
             &self.immutable_view_of_value,
             is_direct_change_from_renderer,

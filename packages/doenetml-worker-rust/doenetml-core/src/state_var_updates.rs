@@ -2,7 +2,7 @@ use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use crate::{
     component::{ComponentEnum, ComponentNode},
-    dependency::{Dependency, DependencySource, DependencyUpdatesRequested},
+    dependency::{Dependency, DependencySource, DependencyValueUpdateRequest},
     essential_state::{EssentialDataOrigin, EssentialStateDescription, EssentialStateVar},
     state::Freshness,
     state_var_calculations::StateVariableUpdateRequest,
@@ -204,7 +204,7 @@ fn request_dependencies_to_update_value_including_shadow(
 /// referenced by the dependencies.
 fn convert_dependency_updates_requested_to_state_variable_update_requests(
     state_var_ptr: StateVarPointer,
-    requests: Vec<DependencyUpdatesRequested>,
+    requests: Vec<DependencyValueUpdateRequest>,
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
     dependencies: &Vec<Vec<Vec<Vec<Dependency>>>>,
 ) -> Vec<StateVariableUpdateRequest> {
@@ -215,7 +215,7 @@ fn convert_dependency_updates_requested_to_state_variable_update_requests(
 
     let mut update_requests = Vec::new();
 
-    for DependencyUpdatesRequested {
+    for DependencyValueUpdateRequest {
         instruction_idx,
         dependency_idx,
     } in requests
