@@ -4,6 +4,16 @@ import type { DastRoot, DastElement, DastError } from "@doenet/parser";
 
 type Flags = Record<string, unknown>;
 
+type Action = {
+    componentIdx: number;
+    actionName: string;
+    args: ActionArgs;
+};
+
+type ActionArgs = Record<string, ActionArgValue>;
+
+type ActionArgValue = boolean | number | number[] | string;
+
 export interface FlatDastElement extends Omit<DastElement, "children"> {
     children: (number | string)[];
     data: { id: number };
@@ -93,19 +103,7 @@ export class CoreWorker {
 
     // TODO: TypeScript for args. Here's is the rust type for the args
 
-    // struct ActionStructure {
-    //     componentIdx: usize,
-    //     actionName: String,
-    //     args: HashMap<String, ArgValue>,
-    // }
-
-    // enum ArgValue {
-    //     Bool(bool),
-    //     Number(serde_json::Number),
-    //     NumberArray(Vec<serde_json::Number>),
-    //     String(String),
-    // }
-    async handleAction(args: any) {
+    async dispatchAction(action: Action) {
         const isProcessingPromise = this.isProcessingPromise;
         let { promise, resolve } = promiseWithResolver();
         this.isProcessingPromise = promise;
@@ -116,14 +114,14 @@ export class CoreWorker {
             throw Error("Cannot handle action before setting source and flags");
         }
 
-        // TODO: handle case if handleAction is called before returnDast
+        // TODO: handle case if dispatchAction is called before returnDast
 
         try {
             // TODO: Do we need to cast flat_dast_element_updates into a TypeScript type
             // like we did for flat_dast, above?
 
             let flat_dast_element_updates = JSON.parse(
-                this.doenetCore.handle_action(args),
+                this.doenetCore.dispatch_action(JSON.stringify(action)),
             );
             return flat_dast_element_updates;
         } catch (err) {

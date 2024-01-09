@@ -65,7 +65,7 @@ impl PublicDoenetMLCore {
         Ok(serde_json::to_string(&self.core.as_mut().unwrap().to_flat_dast()).unwrap())
     }
 
-    pub fn handle_action(&mut self, action: &str) -> String {
-        serde_json::to_string(&self.core.as_mut().unwrap().handle_action(action)).unwrap()
+    pub fn dispatch_action(&mut self, action: &str) -> String {
+        serde_json::to_string(&self.core.as_mut().unwrap().dispatch_action(action)).unwrap()
     }
 }

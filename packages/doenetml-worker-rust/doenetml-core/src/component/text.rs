@@ -105,12 +105,6 @@ impl ComponentNodeStateVariables for Text {
         // Value state variable
         ///////////////////////
 
-        // Note: since "value" has index 0 and it is the state variable that will
-        // shadow if there is any ExtendSource::StateVar, then we don't need
-        // to check self.extend and alter it even if there is an ExtendSource::StateVar.
-        // An ExtendSource::StateVar will always initially have the first shadowing_index
-        // with the default value of 0.
-
         let value_state_variable = StateVarTyped::new(
             Box::new(ValueStateVarInterface::default()),
             StateVarParameters {
@@ -164,13 +158,18 @@ impl StateVarInterface<String> for ValueStateVarInterface {
         });
 
         if let Some(ExtendSource::StateVar(extend_state_var_description)) = extend_source {
-            let match1 = &extend_state_var_description.state_variable_matching[0];
-            if match1.shadowing_idx == 0 {
-                // determined that "value" is shadowing
-                dep_instructs.push(DependencyInstruction::StateVar {
-                    component_idx: Some(extend_state_var_description.component_idx),
-                    state_var_name: match1.shadowed_name,
-                })
+            for state_var_match in extend_state_var_description.state_variable_matching.iter() {
+                if state_var_match.shadowing_name.is_none() // "value" is the primary state variable for text
+                    || state_var_match.shadowing_name.unwrap() == "value"
+                {
+                    // determined that "value" is shadowing
+                    dep_instructs.push(DependencyInstruction::StateVar {
+                        component_idx: Some(extend_state_var_description.component_idx),
+                        state_var_name: state_var_match.shadowed_name,
+                    });
+
+                    break;
+                }
             }
         }
 

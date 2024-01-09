@@ -3,7 +3,7 @@ use std::collections::HashMap;
 
 use crate::{state::StateVarValue, Action};
 
-/// The structure of the json argument in a call to handle_action.
+/// The structure of the json argument in a call to dispatch_action.
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct ActionStructure {

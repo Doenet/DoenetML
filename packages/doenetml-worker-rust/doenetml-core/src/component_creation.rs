@@ -382,7 +382,7 @@ fn match_public_state_variable<'a>(
     let extend_source = ExtendSource::StateVar(ExtendStateVariableDescription {
         component_idx: matched_component_idx,
         state_variable_matching: vec![StateVariableShadowingMatch {
-            shadowing_idx: 0,
+            shadowing_name: None, // use the primary state variable (as determined by component type)
             shadowed_name: matched_state_var_name,
         }],
     });

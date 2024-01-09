@@ -479,6 +479,9 @@ pub fn rendered_component_node_derive(input: TokenStream) -> TokenStream {
 
             let mut get_rendered_children_variant_arms = Vec::new();
             let mut to_flat_dast_variant_arms = Vec::new();
+            let mut get_flat_dast_update_variant_arms = Vec::new();
+            let mut get_action_names_variant_arms = Vec::new();
+            let mut on_action_variant_arms = Vec::new();
 
             for variant in variants {
                 let variant_ident = &variant.ident;
@@ -492,6 +495,24 @@ pub fn rendered_component_node_derive(input: TokenStream) -> TokenStream {
                 to_flat_dast_variant_arms.push(quote! {
                     #enum_ident::#variant_ident(ref mut comp) => {
                         comp.to_flat_dast(components)
+                    },
+                });
+
+                get_flat_dast_update_variant_arms.push(quote! {
+                    #enum_ident::#variant_ident(ref mut comp) => {
+                        comp.get_flat_dast_update()
+                    },
+                });
+
+                get_action_names_variant_arms.push(quote! {
+                    #enum_ident::#variant_ident(comp) => {
+                        comp.get_action_names()
+                    },
+                });
+
+                on_action_variant_arms.push(quote! {
+                    #enum_ident::#variant_ident(comp) => {
+                        comp.on_action(action_name, args, resolve_and_retrieve_state_var)
                     },
                 });
             }
@@ -509,6 +530,29 @@ pub fn rendered_component_node_derive(input: TokenStream) -> TokenStream {
                     fn to_flat_dast(&mut self, components: &Vec<Rc<RefCell<ComponentEnum>>>) -> FlatDastElement {
                         match self {
                             #(#to_flat_dast_variant_arms)*
+                        }
+                    }
+
+                    fn get_flat_dast_update(&mut self) -> Option<FlatDastElementUpdate> {
+                        match self {
+                            #(#get_flat_dast_update_variant_arms)*
+                        }
+                    }
+
+                    fn get_action_names(&self) -> Vec<String> {
+                        match self {
+                            #(#get_action_names_variant_arms)*
+                        }
+                    }
+
+                    fn on_action<'a>(
+                        &self,
+                        action_name: &str,
+                        args: HashMap<String, Vec<StateVarValue>>,
+                        resolve_and_retrieve_state_var: &'a mut dyn FnMut(usize) -> StateVarValue,
+                    ) -> Vec<(usize, StateVarValue)> {
+                        match self {
+                            #(#on_action_variant_arms)*
                         }
                     }
 

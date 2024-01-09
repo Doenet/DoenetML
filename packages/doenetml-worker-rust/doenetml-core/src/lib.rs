@@ -1,8 +1,4 @@
-use std::{
-    cell::RefCell,
-    collections::{HashMap, HashSet},
-    rc::Rc,
-};
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use component::{ComponentEnum, ComponentNode, ComponentNodeStateVariables, RenderedComponentNode};
 use component_creation::{create_component_children, replace_macro_referents};
@@ -174,6 +170,7 @@ impl DoenetMLRoot {
 /// Information specifying a child of a component.
 /// - If the child is a component, we just store its index.
 /// - If the child is a string, store that string
+///
 /// TODO: can we eliminate macros eventually since they should be converted to components and strings?
 #[derive(Debug, Clone)]
 pub enum ComponentChild {
@@ -209,10 +206,16 @@ pub struct ExtendStateVariableDescription {
 /// another state variable when extending a component
 #[derive(Debug)]
 pub struct StateVariableShadowingMatch {
-    /// The state variable index in the extending component
+    /// The state variable name in the extending component
     /// whose value will match (shadow) the state variable
     /// from the component being extended
-    pub shadowing_idx: StateVarIdx,
+    ///
+    /// If None, then the "primary" state variable as determined by the component type
+    /// should be the shadowing state variable.
+    /// The type of the primary state variable should match the state variable type
+    /// for which `StateVarValue.get_default_component_type()`
+    /// yields the component type.
+    pub shadowing_name: Option<StateVarName>,
 
     /// The state variable name in the component being extended
     pub shadowed_name: StateVarName,
@@ -327,7 +330,10 @@ impl DoenetMLCore {
     /// - `args`: an object containing data that will be interpreted by the action implementation.
     ///   The values of each field must be quantities that can be converted into `StateVarValue`
     ///   or a vector of `StateVarValue`.
-    pub fn handle_action(&mut self, action: &str) -> HashMap<ComponentIdx, FlatDastElementUpdate> {
+    pub fn dispatch_action(
+        &mut self,
+        action: &str,
+    ) -> HashMap<ComponentIdx, FlatDastElementUpdate> {
         let action = parse_json::parse_action_from_json(action)
             .unwrap_or_else(|_| panic!("Error parsing json action: {}", action));
 
