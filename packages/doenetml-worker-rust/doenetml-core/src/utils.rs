@@ -9,16 +9,17 @@ where
     K: ToString + std::cmp::Eq + std::hash::Hash,
 {
     /// Match key to the HashMap keys, ignoring case.
-    /// Return the original key-value pair the the HashMap.
+    /// Return the original key-value pair the HashMap.
     fn get_key_value_ignore_case<'a>(&'a self, key: &str) -> Option<(&'a K, &'a V)> {
-        let lowercase_to_original: HashMap<String, &K> = self
-            .keys()
-            .map(|k| (k.to_string().to_lowercase(), k))
-            .collect();
+        let lower_case_key = key.to_lowercase();
 
-        lowercase_to_original
-            .get(&key.to_string().to_lowercase())
-            .and_then(|k| self.get_key_value(k))
+        for k in self.keys() {
+            if k.to_string().to_lowercase() == lower_case_key {
+                return Some((k, self.get(k).unwrap()));
+            }
+        }
+
+        None
     }
 }
 

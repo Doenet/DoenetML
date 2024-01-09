@@ -24,10 +24,6 @@ pub enum StateVariableUpdateRequest {
 
 /// Used to save the state in the middle of a calculation while freshening a state variable.
 /// Placed on a stack in order to implement recursion using a stack on the heap.
-///
-/// (When created documents so that had to recurse thousands of times,
-/// it would overflow the small stack created by WASM.
-/// One could alternatively increase the wasm stack size and use regular function recursion.)
 #[derive(Debug)]
 pub enum StateVarCalculationState {
     Unresolved(UnresolvedCalculationState),
@@ -143,16 +139,15 @@ fn get_non_string_rendered_children_including_from_extend(
         Vec::new()
     };
 
-    let mut children2 = component
-        .get_rendered_children()
-        .iter()
-        .filter_map(|child| match child {
-            &ComponentChild::Component(comp_idx) => Some(comp_idx),
-            _ => None,
-        })
-        .collect();
-
-    children.append(&mut children2);
+    children.extend(
+        component
+            .get_rendered_children()
+            .iter()
+            .filter_map(|child| match child {
+                &ComponentChild::Component(comp_idx) => Some(comp_idx),
+                _ => None,
+            }),
+    );
 
     children
 }
