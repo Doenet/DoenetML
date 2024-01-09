@@ -125,7 +125,7 @@ fn get_non_string_rendered_children_including_from_extend(
     // And, if they override the behavior is should be through methods called in both places,
     // like the .get_rendered_children method.
 
-    let component = components[component_idx].borrow_mut();
+    let component = components[component_idx].borrow();
 
     let mut children = if let Some(&ExtendSource::Component(source_idx)) = component.get_extend() {
         get_non_string_rendered_children_including_from_extend(source_idx, components)
@@ -385,7 +385,9 @@ pub fn resolve_state_var(
         dependencies_for_component[state_var_idx] = dependencies_for_state_var;
     }
 
-    components[component_idx].borrow().get_state_variables()[state_var_idx].set_as_resolved();
+    {
+        components[component_idx].borrow().get_state_variables()[state_var_idx].set_as_resolved();
+    }
 
     for new_state_var_ptr in unresolved_state_variable_dependencies {
         resolve_state_var(

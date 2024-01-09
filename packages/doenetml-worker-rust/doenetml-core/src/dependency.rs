@@ -142,7 +142,7 @@ pub fn create_dependencies_from_instruction_initialize_essential(
 
             let comp_idx = comp_idx.unwrap_or(component_idx);
 
-            let mut comp = components[comp_idx].borrow_mut();
+            let comp = components[comp_idx].borrow();
 
             let sv_idx = comp
                 .get_state_variable_index_from_name(&state_var_name.to_string())
@@ -166,7 +166,7 @@ pub fn create_dependencies_from_instruction_initialize_essential(
                 .get_parent()
                 .expect("Component asks for a parent but there is none.");
 
-            let mut parent = components[parent_idx].borrow_mut();
+            let parent = components[parent_idx].borrow();
 
             let sv_idx = parent
                 .get_state_variable_index_from_name(&state_var_name.to_string())

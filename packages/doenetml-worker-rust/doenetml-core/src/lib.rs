@@ -375,22 +375,29 @@ impl DoenetMLCore {
         };
 
         {
-            let component = self.components[component_idx].borrow();
-
             // A call to on_action from a component processes the arguments and returns a vector
             // of component state variables with requested new values
-            let state_vars_to_update =
-                component.on_action(&action.action_name, action.args, &mut state_var_resolver);
+            let state_vars_to_update = self.components[component_idx].borrow().on_action(
+                &action.action_name,
+                action.args,
+                &mut state_var_resolver,
+            );
 
             for (state_var_idx, requested_value) in state_vars_to_update {
-                let component = self.components[component_idx].borrow();
-                let state_variable = &component.get_state_variables()[state_var_idx];
+                let freshness;
 
-                // Record the requested value directly on the state variable.
-                // Later calls from within process_state_variable_update_request
-                // will call request_dependencies_to_update_value on the state variable
-                // which will look up this requested value.
-                state_variable.request_change_value_to(requested_value);
+                {
+                    let component = self.components[component_idx].borrow();
+                    let state_variable = &component.get_state_variables()[state_var_idx];
+
+                    // Record the requested value directly on the state variable.
+                    // Later calls from within process_state_variable_update_request
+                    // will call request_dependencies_to_update_value on the state variable
+                    // which will look up this requested value.
+                    state_variable.request_change_value_to(requested_value);
+
+                    freshness = state_variable.get_freshness();
+                }
 
                 // Since the requested value is stored in the state variable,
                 // now we just need to keep track of which state variable we are seeking to update.
@@ -402,7 +409,7 @@ impl DoenetMLCore {
                 // If state variable is unresolved, then resolve it.
                 // This could occur only once, but actions are free to seek to modify any state variable,
                 // even if it hasn't been accessed before.
-                if state_variable.get_freshness() == Freshness::Unresolved {
+                if freshness == Freshness::Unresolved {
                     resolve_state_var(
                         state_var_ptr,
                         &self.components,
