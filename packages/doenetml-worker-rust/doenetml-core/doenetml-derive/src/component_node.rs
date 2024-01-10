@@ -1,7 +1,7 @@
 use convert_case::{Case, Casing};
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{self, parse::Parser, FieldsNamed};
+use syn::{self, FieldsNamed};
 
 /// Implement the ComponentNode trait for enums and structs
 /// assuming they have the correct format.
