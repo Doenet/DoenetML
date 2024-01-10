@@ -206,7 +206,7 @@ struct ValueStateVarInterface {
 impl StateVarInterface<String> for ValueStateVarInterface {
     fn return_dependency_instructions(
         &self,
-        extend_source: Option<&ExtendSource>,
+        _extend_source: Option<&ExtendSource>,
     ) -> Vec<DependencyInstruction> {
         vec![
             DependencyInstruction::Essential {

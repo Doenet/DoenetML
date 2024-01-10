@@ -12,7 +12,7 @@ use crate::dast::{
 use crate::dependency::{Dependency, DependencyInstruction, DependencyValueUpdateRequest};
 use crate::state::{
     StateVar, StateVarInterface, StateVarMutableViewTyped, StateVarParameters,
-    StateVarReadOnlyView, StateVarReadOnlyViewTyped, StateVarTyped, StateVarValue,
+    StateVarReadOnlyView, StateVarReadOnlyViewTyped, StateVarTyped,
 };
 use crate::utils::KeyValueIgnoreCase;
 use crate::{ComponentChild, ComponentIdx, ExtendSource};

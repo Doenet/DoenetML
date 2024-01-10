@@ -126,7 +126,7 @@ impl ComponentNode for _External {
     fn get_state_variable_index_from_name_case_insensitive(&self, name: &String) -> Option<usize> {
         self.state_variable_name_to_index
             .get_key_value_ignore_case(name)
-            .map(|(k, v)| *v)
+            .map(|(_k, v)| *v)
     }
 
     fn get_component_profile_state_variables(&self) -> &Vec<ComponentProfileStateVariable> {

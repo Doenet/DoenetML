@@ -22,6 +22,7 @@ where
 }
 
 /// Macros for logging.
+#[allow(unused)]
 macro_rules! log {
     ( $( $t:tt )* ) => {
 
@@ -32,6 +33,7 @@ macro_rules! log {
         println!( $( $t )* )
     }
 }
+#[allow(unused)]
 macro_rules! log_json {
     ( $label:expr, $a:expr ) => {
         #[cfg(feature = "web")]
@@ -41,6 +43,7 @@ macro_rules! log_json {
         );
     };
 }
+#[allow(unused)]
 macro_rules! log_debug {
     ( $( $t:tt )* ) => {
 

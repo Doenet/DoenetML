@@ -28,6 +28,7 @@ pub mod state_var_calculations;
 pub mod state_var_updates;
 pub mod utils;
 
+#[allow(unused)]
 use crate::utils::{log, log_debug, log_json};
 
 /// Pointer to a component's state variable

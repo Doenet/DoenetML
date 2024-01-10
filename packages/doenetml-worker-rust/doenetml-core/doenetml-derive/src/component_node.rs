@@ -207,8 +207,8 @@ pub fn component_node_state_variables_derive(input: TokenStream) -> TokenStream 
 
 pub fn add_standard_component_fields_impl(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let component_fields_to_add = [
-        quote! { pub idx: ComponentIdx},
-        quote! { pub parent: Option<ComponentIdx>},
+        quote! {pub idx: ComponentIdx},
+        quote! {pub parent: Option<ComponentIdx>},
         quote! {pub children: Vec<ComponentChild>},
         quote! {pub extend: Option<ExtendSource>},
         quote! {pub descendant_names: HashMap<String, Vec<ComponentIdx>>},
