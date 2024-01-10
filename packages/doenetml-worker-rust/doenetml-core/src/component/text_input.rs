@@ -2,6 +2,7 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
+use doenetml_derive::add_standard_component_fields;
 use serde::{Deserialize, Serialize};
 
 use crate::dast::{ElementData, FlatDastElement, FlatDastElementUpdate, Position as DastPosition};
@@ -18,30 +19,10 @@ use super::{
     RenderedComponentNode,
 };
 
+#[add_standard_component_fields]
 #[derive(Debug, Default, ComponentNode)]
 pub struct TextInput {
-    pub idx: ComponentIdx,
-    pub parent: Option<ComponentIdx>,
-    pub children: Vec<ComponentChild>,
-
-    pub extend: Option<ExtendSource>,
-
-    // map of descendant names to their indices
-    pub descendant_names: HashMap<String, Vec<ComponentIdx>>,
-
-    pub position: Option<DastPosition>,
-
-    pub state_variables: Vec<StateVar>,
-
-    pub rendered_state_variable_indices: Vec<usize>,
-
-    pub public_state_variable_indices: Vec<usize>,
-
-    pub state_variable_name_to_index: HashMap<String, usize>,
-
     pub immediate_value_state_var_view: StateVarReadOnlyViewTyped<String>,
-
-    pub component_profile_state_variables: Vec<ComponentProfileStateVariable>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -1,7 +1,7 @@
 use convert_case::{Case, Casing};
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{self, FieldsNamed};
+use syn::{self, parse::Parser, FieldsNamed};
 
 /// Implement the ComponentNode trait for enums and structs
 /// assuming they have the correct format.
@@ -203,4 +203,43 @@ pub fn component_node_state_variables_derive(input: TokenStream) -> TokenStream 
         _ => panic!("only structs and enums supported"),
     };
     output.into()
+}
+
+pub fn add_standard_component_fields_impl(_attr: TokenStream, item: TokenStream) -> TokenStream {
+    let component_fields_to_add = [
+        quote! { pub idx: ComponentIdx},
+        quote! { pub parent: Option<ComponentIdx>},
+        quote! {pub children: Vec<ComponentChild>},
+        quote! {pub extend: Option<ExtendSource>},
+        quote! {pub descendant_names: HashMap<String, Vec<ComponentIdx>>},
+        quote! {pub position: Option<DastPosition>},
+        quote! {pub state_variables: Vec<StateVar>},
+        quote! {pub rendered_state_variable_indices: Vec<usize>},
+        quote! {pub public_state_variable_indices: Vec<usize>},
+        quote! {pub state_variable_name_to_index: HashMap<String, usize>},
+        quote! {pub component_profile_state_variables: Vec<ComponentProfileStateVariable>},
+    ];
+
+    let mut ast: syn::DeriveInput = syn::parse(item).unwrap();
+
+    match &mut ast.data {
+        syn::Data::Struct(ref mut struct_data) => {
+            match &mut struct_data.fields {
+                syn::Fields::Named(fields) => {
+                    for tokens in component_fields_to_add {
+                        fields
+                            .named
+                            .push(syn::Field::parse_named.parse2(tokens).unwrap());
+                    }
+                }
+                _ => (),
+            }
+
+            return quote! {
+                #ast
+            }
+            .into();
+        }
+        _ => panic!("`add_standard_component_fields` has to be used with structs."),
+    }
 }

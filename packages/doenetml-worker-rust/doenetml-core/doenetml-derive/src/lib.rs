@@ -1,7 +1,8 @@
 extern crate proc_macro2;
 
 use component_node::{
-    component_node_derive, component_node_state_variables_derive, rendered_component_node_derive,
+    add_standard_component_fields_impl, component_node_derive,
+    component_node_state_variables_derive, rendered_component_node_derive,
 };
 use proc_macro::TokenStream;
 use state_var_methods::{
@@ -41,4 +42,9 @@ pub fn state_var_mutable_view_methods_derive_wrapper(input: TokenStream) -> Toke
 #[proc_macro_derive(StateVarReadOnlyViewMethods)]
 pub fn state_var_read_only_view_methods_derive_wrapper(input: TokenStream) -> TokenStream {
     state_var_read_only_view_methods_derive(input)
+}
+
+#[proc_macro_attribute]
+pub fn add_standard_component_fields(attr: TokenStream, item: TokenStream) -> TokenStream {
+    add_standard_component_fields_impl(attr, item)
 }
