@@ -2,8 +2,6 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
-use doenetml_derive::add_standard_component_fields;
-
 use crate::component::ComponentProfile;
 use crate::dast::{
     ElementData, FlatDastElement, FlatDastElementContent, FlatDastElementUpdate,
@@ -18,13 +16,14 @@ use crate::utils::KeyValueIgnoreCase;
 use crate::{ComponentChild, ComponentIdx, ExtendSource};
 
 use super::{
-    ComponentEnum, ComponentNode, ComponentNodeStateVariables, ComponentProfileStateVariable,
-    RenderedComponentNode,
+    ComponentCommonData, ComponentEnum, ComponentNode, ComponentNodeStateVariables,
+    ComponentProfileStateVariable, RenderedComponentNode,
 };
 
-#[add_standard_component_fields]
 #[derive(Debug, Default, ComponentNode)]
 pub struct Text {
+    pub common: ComponentCommonData,
+
     pub value_state_var_view: StateVarReadOnlyViewTyped<String>,
 
     pub renderer_data: TextRendererData,
@@ -81,7 +80,7 @@ pub struct TextRendererData {
 
 impl ComponentNodeStateVariables for Text {
     fn initialize_state_variables(&mut self) {
-        self.state_variables = Vec::new();
+        self.common.state_variables = Vec::new();
 
         ///////////////////////
         // Value state variable
@@ -100,11 +99,12 @@ impl ComponentNodeStateVariables for Text {
         self.value_state_var_view = value_state_variable.create_new_read_only_view();
 
         // Use the value state variable for fulling the text component profile
-        self.component_profile_state_variables = vec![ComponentProfileStateVariable::Text(
+        self.common.component_profile_state_variables = vec![ComponentProfileStateVariable::Text(
             value_state_variable.create_new_read_only_view(),
             "value",
         )];
-        self.state_variables
+        self.common
+            .state_variables
             .push(StateVar::String(value_state_variable));
 
         //////////////////////
@@ -117,7 +117,8 @@ impl ComponentNodeStateVariables for Text {
                 ..Default::default()
             },
         );
-        self.state_variables
+        self.common
+            .state_variables
             .push(StateVar::String(text_state_variable));
     }
 }

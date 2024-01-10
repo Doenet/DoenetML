@@ -1,38 +1,37 @@
 use std::collections::HashMap;
 
-use doenetml_derive::add_standard_component_fields;
-
 use crate::dast::Position as DastPosition;
 use crate::state::StateVar;
 use crate::utils::KeyValueIgnoreCase;
 use crate::{ComponentChild, ComponentIdx, ExtendSource};
 
 use super::{
-    ComponentNode, ComponentNodeStateVariables, ComponentProfileStateVariable,
+    ComponentCommonData, ComponentNode, ComponentNodeStateVariables, ComponentProfileStateVariable,
     RenderedComponentNode,
 };
 
-#[add_standard_component_fields]
 #[derive(Debug, Default, RenderedComponentNode, ComponentNodeStateVariables)]
 pub struct _External {
+    pub common: ComponentCommonData,
+
     pub name: String,
 }
 
 impl ComponentNode for _External {
     fn get_idx(&self) -> ComponentIdx {
-        self.idx
+        self.common.idx
     }
     fn get_parent(&self) -> Option<ComponentIdx> {
-        self.parent
+        self.common.parent
     }
     fn get_children(&self) -> &Vec<ComponentChild> {
-        &self.children
+        &self.common.children
     }
     fn set_children(&mut self, children: Vec<ComponentChild>) {
-        self.children = children;
+        self.common.children = children;
     }
     fn replace_children(&mut self, new_children: Vec<ComponentChild>) -> Vec<ComponentChild> {
-        std::mem::replace(&mut self.children, new_children)
+        std::mem::replace(&mut self.common.children, new_children)
     }
 
     fn initialize(
@@ -42,27 +41,27 @@ impl ComponentNode for _External {
         _extend_source: Option<ExtendSource>,
         position: Option<DastPosition>,
     ) {
-        self.idx = idx;
-        self.parent = parent;
-        self.position = position;
+        self.common.idx = idx;
+        self.common.parent = parent;
+        self.common.position = position;
 
         self.initialize_state_variables();
 
-        self.rendered_state_variable_indices = self
+        self.common.rendered_state_variable_indices = self
             .get_state_variables()
             .iter()
             .enumerate()
             .filter_map(|(ind, state_var)| state_var.get_for_renderer().then(|| ind))
             .collect();
 
-        self.public_state_variable_indices = self
+        self.common.public_state_variable_indices = self
             .get_state_variables()
             .iter()
             .enumerate()
             .filter_map(|(ind, state_var)| state_var.get_is_public().then(|| ind))
             .collect();
 
-        self.state_variable_name_to_index = HashMap::new();
+        self.common.state_variable_name_to_index = HashMap::new();
 
         let name_to_index_pairs: Vec<_> = self
             .get_state_variables()
@@ -71,7 +70,8 @@ impl ComponentNode for _External {
             .map(|(sv_idx, state_var)| (state_var.get_name().to_string(), sv_idx))
             .collect();
 
-        self.state_variable_name_to_index
+        self.common
+            .state_variable_name_to_index
             .extend(name_to_index_pairs);
     }
 
@@ -85,51 +85,52 @@ impl ComponentNode for _External {
         &self.name
     }
     fn get_descendant_matches(&self, name: &str) -> Option<&Vec<ComponentIdx>> {
-        self.descendant_names.get(name)
+        self.common.descendant_names.get(name)
     }
     fn set_descendant_names(&mut self, descendant_names: HashMap<String, Vec<ComponentIdx>>) {
-        self.descendant_names = descendant_names;
+        self.common.descendant_names = descendant_names;
     }
 
     fn get_position(&self) -> Option<&DastPosition> {
-        self.position.as_ref()
+        self.common.position.as_ref()
     }
 
     fn set_position(&mut self, position: Option<DastPosition>) {
-        self.position = position;
+        self.common.position = position;
     }
 
     fn get_num_state_variables(&self) -> usize {
-        self.state_variables.len()
+        self.common.state_variables.len()
     }
 
     fn get_state_variables(&self) -> &Vec<StateVar> {
-        &self.state_variables
+        &self.common.state_variables
     }
 
     fn get_state_variables_mut(&mut self) -> &mut Vec<StateVar> {
-        &mut self.state_variables
+        &mut self.common.state_variables
     }
 
     fn get_rendered_state_variable_indices(&self) -> &Vec<usize> {
-        &self.rendered_state_variable_indices
+        &self.common.rendered_state_variable_indices
     }
 
     fn get_public_state_variable_indices(&self) -> &Vec<usize> {
-        &self.public_state_variable_indices
+        &self.common.public_state_variable_indices
     }
 
     fn get_state_variable_index_from_name(&self, name: &String) -> Option<usize> {
-        self.state_variable_name_to_index.get(name).copied()
+        self.common.state_variable_name_to_index.get(name).copied()
     }
 
     fn get_state_variable_index_from_name_case_insensitive(&self, name: &String) -> Option<usize> {
-        self.state_variable_name_to_index
+        self.common
+            .state_variable_name_to_index
             .get_key_value_ignore_case(name)
             .map(|(_k, v)| *v)
     }
 
     fn get_component_profile_state_variables(&self) -> &Vec<ComponentProfileStateVariable> {
-        &self.component_profile_state_variables
+        &self.common.component_profile_state_variables
     }
 }

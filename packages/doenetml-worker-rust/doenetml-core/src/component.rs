@@ -54,6 +54,30 @@ pub enum ComponentEnum {
     _External(_External),
 }
 
+#[derive(Debug, Default)]
+pub struct ComponentCommonData {
+    pub idx: ComponentIdx,
+    pub parent: Option<ComponentIdx>,
+    pub children: Vec<ComponentChild>,
+
+    pub extend: Option<ExtendSource>,
+
+    // map of descendant names to their indices
+    pub descendant_names: HashMap<String, Vec<ComponentIdx>>,
+
+    pub position: Option<DastPosition>,
+
+    pub state_variables: Vec<StateVar>,
+
+    pub rendered_state_variable_indices: Vec<usize>,
+
+    pub public_state_variable_indices: Vec<usize>,
+
+    pub state_variable_name_to_index: HashMap<String, usize>,
+
+    pub component_profile_state_variables: Vec<ComponentProfileStateVariable>,
+}
+
 /// The Component trait specifies methods that will, in general, be implemented by deriving them.
 /// It depends on the ComponentNodeStateVariables trait, which will be implemented
 /// individually for each component type.

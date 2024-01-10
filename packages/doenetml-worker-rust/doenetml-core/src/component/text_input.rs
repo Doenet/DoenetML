@@ -2,7 +2,6 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
-use doenetml_derive::add_standard_component_fields;
 use serde::{Deserialize, Serialize};
 
 use crate::dast::{ElementData, FlatDastElement, FlatDastElementUpdate, Position as DastPosition};
@@ -15,13 +14,14 @@ use crate::utils::KeyValueIgnoreCase;
 use crate::{ComponentChild, ComponentIdx, ExtendSource};
 
 use super::{
-    ComponentEnum, ComponentNode, ComponentNodeStateVariables, ComponentProfileStateVariable,
-    RenderedComponentNode,
+    ComponentCommonData, ComponentEnum, ComponentNode, ComponentNodeStateVariables,
+    ComponentProfileStateVariable, RenderedComponentNode,
 };
 
-#[add_standard_component_fields]
 #[derive(Debug, Default, ComponentNode)]
 pub struct TextInput {
+    pub common: ComponentCommonData,
+
     pub immediate_value_state_var_view: StateVarReadOnlyViewTyped<String>,
 }
 
@@ -99,11 +99,11 @@ impl RenderedComponentNode for TextInput {
 
                 vec![
                     (
-                        self.state_variable_name_to_index["immediateValue"],
+                        self.common.state_variable_name_to_index["immediateValue"],
                         new_val.clone(),
                     ),
                     (
-                        self.state_variable_name_to_index["syncImmediateValue"],
+                        self.common.state_variable_name_to_index["syncImmediateValue"],
                         StateVarValue::Boolean(false),
                     ),
                 ]
@@ -111,10 +111,10 @@ impl RenderedComponentNode for TextInput {
 
             "updateValue" => {
                 let new_val = resolve_and_retrieve_state_var(
-                    self.state_variable_name_to_index["immediateValue"],
+                    self.common.state_variable_name_to_index["immediateValue"],
                 );
 
-                vec![(self.state_variable_name_to_index["value"], new_val)]
+                vec![(self.common.state_variable_name_to_index["value"], new_val)]
             }
 
             _ => panic!("Unknown action '{}' called on textInput", action_name),
@@ -124,7 +124,7 @@ impl RenderedComponentNode for TextInput {
 
 impl ComponentNodeStateVariables for TextInput {
     fn initialize_state_variables(&mut self) {
-        self.state_variables = Vec::new();
+        self.common.state_variables = Vec::new();
 
         ///////////////////////
         // Value state variable
@@ -139,11 +139,12 @@ impl ComponentNodeStateVariables for TextInput {
         );
 
         // Use the value state variable for fulling the text component profile
-        self.component_profile_state_variables = vec![ComponentProfileStateVariable::Text(
+        self.common.component_profile_state_variables = vec![ComponentProfileStateVariable::Text(
             value_state_variable.create_new_read_only_view(),
             "value",
         )];
-        self.state_variables
+        self.common
+            .state_variables
             .push(StateVar::String(value_state_variable));
 
         /////////////////////////////////
@@ -163,7 +164,8 @@ impl ComponentNodeStateVariables for TextInput {
         self.immediate_value_state_var_view =
             immediate_value_state_variable.create_new_read_only_view();
 
-        self.state_variables
+        self.common
+            .state_variables
             .push(StateVar::String(immediate_value_state_variable));
 
         //////////////////////////////////////
@@ -177,7 +179,8 @@ impl ComponentNodeStateVariables for TextInput {
                 ..Default::default()
             },
         );
-        self.state_variables
+        self.common
+            .state_variables
             .push(StateVar::Boolean(sync_immediate_value_state_variable));
 
         // ///////////////////////////////
