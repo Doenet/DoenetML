@@ -11,6 +11,7 @@ use std::collections::HashMap;
 use std::rc::Rc;
 
 use doenetml_derive::{ComponentNode, ComponentNodeStateVariables, RenderedComponentNode};
+use enum_dispatch::enum_dispatch;
 use strum_macros::EnumString;
 
 use crate::dast::{
@@ -39,7 +40,9 @@ pub type AttributeName = &'static str;
 /// to allow easy access to the methods.
 ///
 /// Each component type added to `ComponentEnum` must implement that component node traits.
-#[derive(Debug, EnumString, ComponentNode, ComponentNodeStateVariables, RenderedComponentNode)]
+
+#[derive(Debug, EnumString)]
+#[enum_dispatch(ComponentNode, ComponentNodeStateVariables, RenderedComponentNode)]
 #[strum(ascii_case_insensitive)]
 pub enum ComponentEnum {
     Text(Text),
@@ -54,6 +57,7 @@ pub enum ComponentEnum {
 /// The Component trait specifies methods that will, in general, be implemented by deriving them.
 /// It depends on the ComponentNodeStateVariables trait, which will be implemented
 /// individually for each component type.
+#[enum_dispatch]
 pub trait ComponentNode: ComponentNodeStateVariables {
     /// Get the index of the component, which is its index in the `components` vector of `DoenetMLCore`.
     fn get_idx(&self) -> ComponentIdx;
@@ -144,6 +148,7 @@ pub trait ComponentNode: ComponentNodeStateVariables {
 /// The RenderedComponentNode trait can be derived for a component, giving it the default implementations.
 /// To add actions or what information is sent when rendering, a component type can implement
 /// the trait to override the defaults.
+#[enum_dispatch]
 pub trait RenderedComponentNode: ComponentNode {
     /// Return the children that will be used in the flat dast sent to the renderer.
     fn get_rendered_children(&self) -> &Vec<ComponentChild> {
@@ -234,6 +239,7 @@ pub trait RenderedComponentNode: ComponentNode {
 
 /// The ComponentNodeStateVariables should be implemented individually for each
 /// component type, as it will depend on its specific state variables.
+#[enum_dispatch]
 pub trait ComponentNodeStateVariables {
     /// Create the state variables for the component and save them to the component structure,
     /// along with any other state variable views for internal use by the component.
