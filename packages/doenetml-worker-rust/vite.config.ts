@@ -9,7 +9,7 @@ export default defineConfig({
         minify: false,
         sourcemap: true,
         lib: {
-            entry: "src/index.ts",
+            entry: "lib-js-wasm-binding/src/index.ts",
             fileName: (_format, _entryName) => "index.js",
             formats: ["iife"],
             name: "doenetmlWorker",
