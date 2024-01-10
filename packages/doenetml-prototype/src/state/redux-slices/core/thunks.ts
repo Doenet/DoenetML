@@ -1,6 +1,6 @@
 import * as Comlink from "comlink";
 import { createLoggingAsyncThunk } from "../../hooks";
-import { CoreWorker } from "@doenet/doenetml-worker-rust";
+import { Action, CoreWorker } from "@doenet/doenetml-worker-rust";
 import { doenetGlobalConfig } from "../../../global-config";
 import { RootState } from "../../store";
 import { _coreReducerActions, selfSelector } from "./slice";
@@ -83,6 +83,23 @@ export const coreThunks = {
                 dispatch(_dastReducerActions._setFlatDastRoot(flatDast));
             } catch (e) {
                 dispatch(_coreReducerActions._setInErrorState(true));
+            }
+        },
+    ),
+    dispatchAction: createLoggingAsyncThunk(
+        "core/dispatchAction",
+        async (action: Action, { dispatch, getState }) => {
+            const worker = getWorker(getState());
+            if (worker == null) {
+                throw new Error("No worker loaded");
+            }
+
+            try {
+                const updates = await worker.dispatchAction(action);
+                dispatch(_dastReducerActions.processElementUpdates(updates));
+            } catch (e) {
+                dispatch(_coreReducerActions._setInErrorState(true));
+                console.warn(e);
             }
         },
     ),

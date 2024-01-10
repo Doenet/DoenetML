@@ -1,7 +1,7 @@
 use serde::{ser::SerializeStruct, Deserialize, Serialize};
 use std::collections::HashMap;
 
-use crate::utils::log;
+use crate::state::StateVarValue;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
@@ -53,7 +53,13 @@ pub struct ElementData {
     pub id: usize,
 
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub action_names: Option<Vec<String>>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub message: Option<String>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub state: Option<HashMap<String, StateVarValue>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -206,14 +212,15 @@ pub struct FlatDastElement {
 
     pub children: Vec<FlatDastElementContent>,
 
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub data: Option<ElementData>,
+    pub data: ElementData,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub position: Option<Position>,
 }
 
 impl Serialize for FlatDastElement {
+    /// Implement a custom serialize for FlatDastElement in order to treat
+    /// name="_error" special to turn it into type="error"
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
@@ -226,15 +233,10 @@ impl Serialize for FlatDastElement {
             let mut state = serializer.serialize_struct("error", n_fields)?;
             state.serialize_field("type", "error")?;
 
-            let message = match &self.data {
-                Some(data) => {
-                    if let Some(message) = &data.message {
-                        message.clone()
-                    } else {
-                        "".to_string()
-                    }
-                }
-                None => "".to_string(),
+            let message = if let Some(message) = &self.data.message {
+                message.clone()
+            } else {
+                "".to_string()
             };
             state.serialize_field("message", &message)?;
 
@@ -243,9 +245,7 @@ impl Serialize for FlatDastElement {
             }
             state.end()
         } else {
-            let have_data = self.data.is_some();
-
-            let n_fields = 4 + if have_data { 1 } else { 0 } + if have_position { 1 } else { 0 };
+            let n_fields = 5 + if have_position { 1 } else { 0 };
 
             let mut state = serializer.serialize_struct("element", n_fields)?;
 
@@ -253,9 +253,7 @@ impl Serialize for FlatDastElement {
             state.serialize_field("name", &self.name)?;
             state.serialize_field("attributes", &self.attributes)?;
             state.serialize_field("children", &self.children)?;
-            if have_data {
-                state.serialize_field("data", &self.data)?;
-            }
+            state.serialize_field("data", &self.data)?;
             if have_position {
                 state.serialize_field("position", &self.position)?;
             }
@@ -272,4 +270,18 @@ pub struct DastWarning {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub position: Option<Position>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "type")]
+#[serde(rename = "elementUpdate")]
+pub struct FlatDastElementUpdate {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub changed_attributes: Option<HashMap<String, DastAttribute>>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub new_children: Option<Vec<FlatDastElementContent>>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub changed_state: Option<HashMap<String, StateVarValue>>,
 }

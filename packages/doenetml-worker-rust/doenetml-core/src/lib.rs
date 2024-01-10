@@ -1,61 +1,143 @@
-use std::{cell::RefCell, collections::HashMap, rc::Rc, str::FromStr};
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
-use component::{ComponentEnum, ComponentNode, _error::_Error, _external::_External};
+use component::{ComponentEnum, ComponentNode, ComponentNodeStateVariables, RenderedComponentNode};
+use component_creation::{create_component_children, replace_macro_referents};
 use dast::{
-    DastElementContent, DastError, DastFunctionMacro, DastMacro, DastRoot, DastWarning,
-    FlatDastElement, FlatDastElementContent, FlatDastRoot, PathPart, Position as DastPosition,
+    DastFunctionMacro, DastMacro, DastRoot, DastWarning, FlatDastElement, FlatDastElementContent,
+    FlatDastElementUpdate, FlatDastRoot, Position as DastPosition,
 };
 
-use regex::Regex;
+use dependency::Dependency;
+use essential_state::{EssentialDataOrigin, EssentialStateVar};
+use state::{Freshness, StateVarName, StateVarValue};
+use state_var_calculations::{
+    freshen_all_stale_renderer_states, get_state_var_value, resolve_state_var,
+    StateVariableUpdateRequest,
+};
+
+use state_var_updates::process_state_variable_update_request;
 
 pub mod component;
+pub mod component_creation;
 pub mod dast;
+pub mod dependency;
+pub mod essential_state;
+pub mod parse_json;
+pub mod state;
+pub mod state_var_calculations;
+pub mod state_var_updates;
 pub mod utils;
 
+#[allow(unused)]
 use crate::utils::{log, log_debug, log_json};
 
-#[derive(Debug, Clone)]
-pub struct ComponentState {
-    pub component_ind: ComponentIdx,
-    pub state_var_ind: StateVarIdx,
+/// Pointer to a component's state variable
+#[derive(Debug, Clone, Copy)]
+pub struct StateVarPointer {
+    pub component_idx: ComponentIdx,
+    pub state_var_idx: StateVarIdx,
 }
 
 pub type ComponentIdx = usize;
 pub type StateVarIdx = usize;
 
+/// All the state of DoenetML document with methods to interact with it.
 #[derive(Debug)]
 pub struct DoenetMLCore {
-    // TODO: is there a reason to keep the original dast around?
-    // This dast is currently not modified when macros are replaced or other interactions
+    /// The root of the dast defining the document structure.
+    ///
+    /// **TODO**: is there a reason to keep the original dast around?
+    /// (This dast is currently not modified when macros are replaced or other interactions.)
     pub dast_root: DastRoot,
 
+    /// The root node of the document
     pub root: DoenetMLRoot,
 
+    /// Vector of all components
+    ///
+    /// Components may or may not be descendants of *root*.
+    ///
+    /// Each component is identified by its *ComponentIdx*, which is its index in this vector.
     pub components: Vec<Rc<RefCell<ComponentEnum>>>,
+
+    /// **The Dependency Graph**
+    /// A DAG whose vertices are the state variables (and attributes?)
+    /// of every component, and whose endpoint vertices are essential data.
+    ///
+    /// Used for
+    /// - producing values when determining a state variable
+    /// - tracking when a change affects other state variables
+    ///
+    /// Structure of the nested vectors:
+    /// - The first index is the *ComponentIdx* of the component,
+    /// defined by the order in *components*.
+    /// - The second index is the *StateVarIdx*,
+    /// defined by the order in which state variables are defined for the component.
+    /// - The third index is the index of the *DependencyInstruction* for the state variable.
+    /// - The inner vector is the dependencies that matched that DependencyInstruction.
+    pub dependencies: Vec<Vec<Vec<Vec<Dependency>>>>,
+
+    /// The inverse of the dependency graph *dependencies* (along with *dependent_on_essential*).
+    /// It specifies the state variables that are dependent on each state variable.
+    ///
+    /// Structure of the nested vectors:
+    /// - The first index is the *ComponentIdx* of the component,
+    /// defined by the order in *components*.
+    /// - The second index is the *StateVarIdx*,
+    /// defined by the order in which state variables are defined for the component.
+    /// - The inner vector is the list of component/state variable combinations
+    /// that are dependent on this state variable.
+    pub dependent_on_state_var: Vec<Vec<Vec<StateVarPointer>>>,
+
+    /// The inverse of the dependency graph *dependencies* (along with *dependent_on_state_var*).
+    /// It specifies the state variables that are dependent on each piece of essential data.
+    ///
+    /// Data structure:
+    /// - The vector index is the *ComponentIdx* of the component,
+    /// defined by the order in *components*.
+    /// - The hash map key *EssentialDataOrigin* specifies how the component created the essential data.
+    /// - The hash map value vector is the list of component/state variable combinations
+    /// that are dependent on this piece of essential data.
+    pub dependent_on_essential: Vec<HashMap<EssentialDataOrigin, Vec<StateVarPointer>>>,
+
+    /// Endpoints of the dependency graph.
+    /// Every update instruction will lead to these.
+    ///
+    /// The essential data are the only data needed to construct the document state
+    /// as all other state variables are calculated from them.
+    /// When saving state to a database, only essential data needs to be saved.
+    ///
+    /// Data structure:
+    /// - The vector index is the *ComponentIdx* of the component,
+    /// defined by the order in *components*.
+    /// - The hash map key *EssentialDataOrigin* specifies how the component created the essential data.
+    /// - The hash map value *EssentialStateVariable* is a *StateVarMutableView*
+    ///   that stores the value.
+    ///   (Note, unlike for state variables, *EssentialStateVariable* is not attached to any *StateVarTyped*,
+    ///   as it doesn't need a *StateVarInterface*.)
+    pub essential_data: Vec<HashMap<EssentialDataOrigin, EssentialStateVar>>,
+
+    /// if true, then we didn't read in initial essential_data
+    /// so must initialize essential data when creating dependencies
+    /// TODO: how does this work?
+    pub should_initialize_essential_data: bool,
+
+    /// List of the rendered components that have stale `for_renderer` state variables.
+    /// TODO: currently is not restricted to rendered components.
+    pub stale_renderers: Vec<ComponentIdx>,
+
+    // To prevent unnecessary reallocations of temporary vectors, like stacks,
+    // we store them on the DoenetMLCore struct so that they will stay allocated.
+    pub freshen_stack: Vec<StateVarPointer>,
+    pub mark_stale_stack: Vec<StateVarPointer>,
+    pub update_stack: Vec<StateVariableUpdateRequest>,
 
     pub warnings: Vec<DastWarning>,
 
-    // The original DoenetML string
-    // Main use is for components and properties that extract portions of the DoenetML
+    /// The original DoenetML string
+    ///
+    /// Main use is for components and properties that extract portions of the DoenetML.
     pub doenetml: String,
-}
-
-impl DoenetMLCore {
-    pub fn to_flat_dast(&self) -> FlatDastRoot {
-        let elements: Vec<FlatDastElement> = self
-            .components
-            .iter()
-            .map(|comp| comp.borrow().to_flat_dast(&self.components))
-            .collect();
-
-        let warnings: Vec<DastWarning> = self
-            .warnings
-            .iter()
-            .map(|warning| warning.clone())
-            .collect();
-
-        self.root.to_flat_dast(elements, warnings)
-    }
 }
 
 #[derive(Debug)]
@@ -78,8 +160,8 @@ impl DoenetMLRoot {
             .children
             .iter()
             .filter_map(|child| match child {
-                ComponentChild::Component(comp_ind) => {
-                    Some(FlatDastElementContent::Element(*comp_ind))
+                ComponentChild::Component(comp_idx) => {
+                    Some(FlatDastElementContent::Element(*comp_idx))
                 }
                 ComponentChild::Text(s) => Some(FlatDastElementContent::Text(s.to_string())),
                 ComponentChild::Macro(_the_macro) => None,
@@ -96,7 +178,12 @@ impl DoenetMLRoot {
     }
 }
 
-#[derive(Debug)]
+/// Information specifying a child of a component.
+/// - If the child is a component, we just store its index.
+/// - If the child is a string, store that string
+///
+/// TODO: can we eliminate macros eventually since they should be converted to components and strings?
+#[derive(Debug, Clone)]
 pub enum ComponentChild {
     Component(ComponentIdx),
     Text(String),
@@ -104,269 +191,290 @@ pub enum ComponentChild {
     FunctionMacro(DastFunctionMacro),
 }
 
+/// Information of the source that a component is extending, which is currently
+/// either another component or a state variable.
 #[derive(Debug)]
 pub enum ExtendSource {
+    /// The component is extending another entire component, given by the component index
     Component(ComponentIdx),
     // TODO: what about array state variables?
-    StateVar((ComponentIdx, StateVarIdx)),
+    /// The component is extending the state variable of another component
+    StateVar(ExtendStateVariableDescription),
 }
 
-pub fn create_doenetml_core(
-    dast_json: &str,
-    source: &str,
-    flags_json: &str,
-) -> Result<DoenetMLCore, String> {
-    let dast_root: DastRoot = serde_json::from_str(dast_json).expect("Error extracting dast");
+/// Description of the shadowing of state variables
+/// when a component extends the state variable of another component
+#[derive(Debug)]
+pub struct ExtendStateVariableDescription {
+    /// the component being extended
+    pub component_idx: ComponentIdx,
 
-    let mut components: Vec<Rc<RefCell<ComponentEnum>>> = Vec::new();
-    let mut warnings: Vec<DastWarning> = Vec::new();
-
-    let (children, descendant_names) =
-        create_component_children(&mut components, &mut warnings, &dast_root.children, 0);
-
-    // add root node
-    let root = DoenetMLRoot {
-        children,
-        descendant_names,
-        position: dast_root.position.clone(),
-    };
-
-    replace_macro_referents(&mut components, 0);
-
-    // log!("after replace macros {:#?}", components);
-
-    let core = DoenetMLCore {
-        dast_root,
-        root,
-        components,
-        warnings,
-        doenetml: source.to_string(),
-    };
-
-    Ok(core)
+    /// the matching of which state variables are shadowing which state variables
+    pub state_variable_matching: Vec<StateVariableShadowingMatch>,
 }
 
-fn create_component_children(
-    components: &mut Vec<Rc<RefCell<ComponentEnum>>>,
-    warnings: &mut Vec<DastWarning>,
-    dast_children: &Vec<DastElementContent>,
-    parent_ind: ComponentIdx,
-) -> (Vec<ComponentChild>, HashMap<String, Vec<ComponentIdx>>) {
-    let mut descendant_names: HashMap<String, Vec<ComponentIdx>> = HashMap::new();
+/// Description of which state variable is shadowing
+/// another state variable when extending a component
+#[derive(Debug)]
+pub struct StateVariableShadowingMatch {
+    /// The state variable name in the extending component
+    /// whose value will match (shadow) the state variable
+    /// from the component being extended
+    ///
+    /// If None, then the "primary" state variable as determined by the component type
+    /// should be the shadowing state variable.
+    /// The type of the primary state variable should match the state variable type
+    /// for which `StateVarValue.get_default_component_type()`
+    /// yields the component type.
+    pub shadowing_name: Option<StateVarName>,
 
-    let mut component_children: Vec<ComponentChild> = Vec::new();
+    /// The state variable name in the component being extended
+    pub shadowed_name: StateVarName,
+}
 
-    for child in dast_children {
-        match child {
-            DastElementContent::Element(child_element) => {
-                // For element children, both create component and add to descendant names:
-                // 1. Look for a name attribute with valid value and add to descendant names.
-                // 2. Create component for the child
-                // 3. Recurse to child's children, and add in any descendant names found
+/// Specification of an action call received from renderer
+#[derive(Debug)]
+pub struct Action {
+    pub component_idx: ComponentIdx,
+    pub action_name: String,
 
-                // TODO: need to add attributes and determine approach for component types
+    /// The keys are not state variable names.
+    /// They are whatever name the renderer calls the new value.
+    pub args: HashMap<String, Vec<StateVarValue>>,
+}
 
-                let child_ind = components.len();
+impl DoenetMLCore {
+    pub fn new(
+        dast_json: &str,
+        source: &str,
+        _flags_json: &str,
+        existing_essential_data: Option<Vec<HashMap<EssentialDataOrigin, EssentialStateVar>>>,
+    ) -> Self {
+        let dast_root: DastRoot = serde_json::from_str(dast_json).expect("Error extracting dast");
 
-                if let Some(name_attr) = child_element.attributes.get("name") {
-                    if let Ok(name_string) = name_attr.get_string_value() {
-                        // Add the child's index to the descendant_names vector for that name
-                        // (or create an entry with a vector consisting of just this index).
-                        descendant_names
-                            .entry(name_string.to_string())
-                            .and_modify(|name_indices| name_indices.push(child_ind))
-                            .or_insert(vec![child_ind]);
-                    }
+        let mut components: Vec<Rc<RefCell<ComponentEnum>>> = Vec::new();
+        let mut warnings: Vec<DastWarning> = Vec::new();
+
+        let (children, descendant_names) =
+            create_component_children(&mut components, &mut warnings, &dast_root.children, None);
+
+        // add root node
+        let root = DoenetMLRoot {
+            children,
+            descendant_names,
+            position: dast_root.position.clone(),
+        };
+
+        replace_macro_referents(&mut components, 0);
+
+        components.iter().for_each(|comp| {
+            comp.borrow_mut().initialize_state_variables();
+        });
+
+        // TODO: what does should_initialize_essential_data mean?
+        // We are currently ignoring this flag (but haven't yet set up all types of essential data)
+        let should_initialize_essential_data = existing_essential_data.is_none();
+        let essential_data = existing_essential_data
+            .unwrap_or_else(|| (0..components.len()).map(|_| HashMap::new()).collect());
+
+        let mut dependencies = Vec::with_capacity(components.len());
+        let mut dependent_on_state_var = Vec::with_capacity(components.len());
+        let mut dependent_on_essential = Vec::with_capacity(components.len());
+
+        for ind in 0..components.len() {
+            // create vector of length num of state var defs, where each entry is zero-length vector
+            let num_inner_state_var_defs = components[ind].borrow().get_num_state_variables();
+            dependencies.push((0..num_inner_state_var_defs).map(|_| vec![]).collect());
+            dependent_on_state_var.push(vec![Vec::new(); num_inner_state_var_defs]);
+
+            dependent_on_essential.push(HashMap::new());
+        }
+
+        // Initialize with the document element being stale.
+        // (We assume that dast_json is normalized so that the only child of root
+        // is the document tag.)
+        let stale_renderers = Vec::from([0]);
+
+        DoenetMLCore {
+            dast_root,
+            root,
+            components,
+            dependencies,
+            dependent_on_state_var,
+            dependent_on_essential,
+            essential_data,
+            stale_renderers,
+            should_initialize_essential_data,
+            freshen_stack: Vec::new(),
+            mark_stale_stack: Vec::new(),
+            update_stack: Vec::new(),
+            warnings,
+            doenetml: source.to_string(),
+        }
+    }
+
+    /// Freshen all the state variables for a component in *stale_renderers*
+    /// and recurse to rendered children.
+    ///
+    /// Returns a vector of the indices of the components reached.
+    pub fn freshen_renderer_state(&mut self) -> Vec<ComponentIdx> {
+        freshen_all_stale_renderer_states(
+            &mut self.stale_renderers,
+            &self.components,
+            &mut self.dependencies,
+            &mut self.dependent_on_state_var,
+            &mut self.dependent_on_essential,
+            &mut self.essential_data,
+            &mut self.freshen_stack,
+            self.should_initialize_essential_data,
+        )
+    }
+
+    /// Run the action specified by the `action` json and return any changes to the output flat dast.
+    ///
+    /// The behavior of an action is defined by each component type. Based on the arguments
+    /// to the action, it will request that certain state variables have new values.
+    ///
+    /// The `action` json should be an object with these fields
+    /// - `component_idx`: the index of the component originating the action
+    /// - `action_name`: the name of the action
+    /// - `args`: an object containing data that will be interpreted by the action implementation.
+    ///   The values of each field must be quantities that can be converted into `StateVarValue`
+    ///   or a vector of `StateVarValue`.
+    pub fn dispatch_action(
+        &mut self,
+        action: &str,
+    ) -> HashMap<ComponentIdx, FlatDastElementUpdate> {
+        let action = parse_json::parse_action_from_json(action)
+            .unwrap_or_else(|_| panic!("Error parsing json action: {}", action));
+
+        if action.action_name == "recordVisibilityChange" {
+            return HashMap::new();
+        }
+
+        let component_idx = action.component_idx;
+
+        // We allow actions to resolve and get the value of any state variable from the component.
+        // To accomplish this, we pass in a function closure that will
+        // - take a state variable index,
+        // - freshen the state variable, if needed, and
+        // - return the state variable's value
+        let mut state_var_resolver = |state_var_idx: usize| {
+            get_state_var_value(
+                StateVarPointer {
+                    component_idx,
+                    state_var_idx,
+                },
+                &self.components,
+                &mut self.dependencies,
+                &mut self.dependent_on_state_var,
+                &mut self.dependent_on_essential,
+                &mut self.essential_data,
+                &mut self.freshen_stack,
+                self.should_initialize_essential_data,
+            )
+        };
+
+        {
+            // A call to on_action from a component processes the arguments and returns a vector
+            // of component state variables with requested new values
+            let state_vars_to_update = self.components[component_idx].borrow().on_action(
+                &action.action_name,
+                action.args,
+                &mut state_var_resolver,
+            );
+
+            for (state_var_idx, requested_value) in state_vars_to_update {
+                let freshness;
+
+                {
+                    let component = self.components[component_idx].borrow();
+                    let state_variable = &component.get_state_variables()[state_var_idx];
+
+                    // Record the requested value directly on the state variable.
+                    // Later calls from within process_state_variable_update_request
+                    // will call request_dependencies_to_update_value on the state variable
+                    // which will look up this requested value.
+                    state_variable.request_change_value_to(requested_value);
+
+                    freshness = state_variable.get_freshness();
                 }
 
-                // To create a component for child_element,
-                // we match the name attribute (which is the component type)
-                // to the name of one of the variants of ComponentEnum
-                // (a case-insensitive match due to ComponentEnum tagging).
-
-                let mut component_enum = ComponentEnum::from_str(&child_element.name)
-                    .unwrap_or_else(|_| {
-                        // if we didn't find a match, then create a component of type external
-                        ComponentEnum::_External(_External {
-                            name: child_element.name.clone(),
-                            ..Default::default()
-                        })
-                    });
-
-                // We have a variant of ComponentEnum
-                // corresponding to the name of the DastElement (or _external if no match)
-                // where all attributes of the structure were given their default values.
-                // Initialize some of the attributes.
-                component_enum.initialize(
-                    child_ind,
-                    Some(parent_ind),
-                    child_element.position.clone(),
-                );
-
-                components.push(Rc::new(RefCell::new(component_enum)));
-
-                // recurse to children after adding to components
-                // so that will get the correct indices for the children
-                let (child_children, child_descendent_names) = create_component_children(
-                    components,
-                    warnings,
-                    &child_element.children,
-                    child_ind,
-                );
-
-                let child_node = &mut components[child_ind].borrow_mut();
-
-                child_node.set_children(child_children);
-                child_node.set_descendant_names(child_descendent_names.clone());
-
-                // merge in the descendant names found from the child
-                // into the overall descendant names for the parent
-                for (comp_name, mut name_inds) in child_descendent_names {
-                    descendant_names
-                        .entry(comp_name)
-                        .and_modify(|name_indices| name_indices.append(&mut name_inds))
-                        .or_insert(name_inds);
-                }
-                component_children.push(ComponentChild::Component(child_ind));
-            }
-            DastElementContent::Text(child_text) => {
-                component_children.push(ComponentChild::Text(child_text.value.clone()));
-            }
-            DastElementContent::Macro(child_macro) => {
-                // for now, just stick in the dast macro
-                component_children.push(ComponentChild::Macro(child_macro.clone()));
-            }
-            DastElementContent::FunctionMacro(child_function_macro) => {
-                // for now, just stick in the dast function macro,
-                // which clearly is wrong as it will include elements as children
-                component_children
-                    .push(ComponentChild::FunctionMacro(child_function_macro.clone()));
-            }
-            DastElementContent::Error(child_error) => {
-                let child_ind = components.len();
-
-                let mut error = _Error {
-                    ..Default::default()
+                // Since the requested value is stored in the state variable,
+                // now we just need to keep track of which state variable we are seeking to update.
+                let state_var_ptr = StateVarPointer {
+                    component_idx,
+                    state_var_idx,
                 };
-                error.initialize(child_ind, Some(parent_ind), child_error.position.clone());
 
-                error.message = child_error.message.clone();
-
-                components.push(Rc::new(RefCell::new(ComponentEnum::_Error(error))));
-
-                component_children.push(ComponentChild::Component(child_ind));
-            }
-        }
-    }
-
-    (component_children, descendant_names)
-}
-
-fn replace_macro_referents(
-    components: &mut Vec<Rc<RefCell<ComponentEnum>>>,
-    component_ind: ComponentIdx,
-) {
-    // We need to temporarily put in an empty vector into the children field
-    // and move the children into a separate vector.
-    // Otherwise, we cannot take ownership of the vectors components using .into_iter()
-    let old_children = components[component_ind]
-        .borrow_mut()
-        .replace_children(vec![]);
-
-    let new_children = old_children
-        .into_iter()
-        .map(|child| {
-            match child {
-                ComponentChild::Component(child_ind) => {
-                    // recurse on component children
-                    replace_macro_referents(components, child_ind);
-                    child
+                // If state variable is unresolved, then resolve it.
+                // This could occur only once, but actions are free to seek to modify any state variable,
+                // even if it hasn't been accessed before.
+                if freshness == Freshness::Unresolved {
+                    resolve_state_var(
+                        state_var_ptr,
+                        &self.components,
+                        &mut self.dependencies,
+                        &mut self.dependent_on_state_var,
+                        &mut self.dependent_on_essential,
+                        &mut self.essential_data,
+                        self.should_initialize_essential_data,
+                    );
                 }
-                ComponentChild::Macro(ref dast_macro) => {
-                    if let Some((matched_ind, path_remainder)) =
-                        match_name_reference(&components, &dast_macro.path, component_ind)
-                    {
-                        let new_ind = components.len();
 
-                        let mut new_comp_enum = ComponentEnum::from_str(
-                            &components[matched_ind].borrow().get_component_type(),
-                        )
-                        .unwrap();
-
-                        new_comp_enum.initialize(new_ind, Some(component_ind), None);
-
-                        // TODO: if have leftover path (stored in path_remainder),
-                        // determine state variable it refers to
-                        new_comp_enum.set_extend(Some(ExtendSource::Component(matched_ind)));
-
-                        components.push(Rc::new(RefCell::new(new_comp_enum)));
-
-                        ComponentChild::Component(new_ind)
-                    } else {
-                        // did not match macro so just keep it as a macro for now
-                        child
-                    }
-                }
-                // TODO: need to recurse to arguments of function macros
-                _ => child,
-            }
-        })
-        .collect();
-
-    components[component_ind]
-        .borrow_mut()
-        .set_children(new_children);
-}
-
-fn match_name_reference<'a>(
-    components: &Vec<Rc<RefCell<ComponentEnum>>>,
-    path: &'a Vec<PathPart>,
-    comp_ind: ComponentIdx,
-) -> Option<(ComponentIdx, &'a [PathPart])> {
-    let comp = &components[comp_ind].borrow();
-
-    // TODO: handle index of path
-
-    if let Some(matched_inds) = comp.get_descendant_matches(&path[0].name) {
-        if matched_inds.len() == 1 {
-            // matched initial part of the macro path
-            // check if can match any additional parts of the path
-            return match_descendant_names(components, &path[1..], matched_inds[0]);
-        } else {
-            // If there is more than one component that matches the name,
-            // then we have no match (do not recurse to parent).
-            // We are assuming there are no zero length vectors,
-            // as they are treated in the same way as if there is more than one match.
-            return None;
-        }
-    } else if let Some(parent_ind) = comp.get_parent() {
-        // since the initial path piece was not found in this component's descendants,
-        // recurse to parent
-        return match_name_reference(components, path, parent_ind);
-    } else {
-        // we reached the root with no match found
-        return None;
-    }
-}
-
-fn match_descendant_names<'a>(
-    components: &Vec<Rc<RefCell<ComponentEnum>>>,
-    path: &'a [PathPart],
-    comp_ind: ComponentIdx,
-) -> Option<(ComponentIdx, &'a [PathPart])> {
-    if path.len() > 0 {
-        let comp = &components[comp_ind].borrow();
-
-        // TODO: handle index of path
-
-        if let Some(matched_inds) = comp.get_descendant_matches(&path[0].name) {
-            if matched_inds.len() == 1 {
-                // matched initial part of the macro path
-                // check if can match any additional parts of the path
-                return match_descendant_names(components, &path[1..], matched_inds[0]);
+                // Recurse in the inverse direction along to dependency graph
+                // to infer how to set the leaves (essential state variables)
+                // to attempt to set the state variable to its requested value.
+                process_state_variable_update_request(
+                    StateVariableUpdateRequest::SetStateVar(state_var_ptr),
+                    &self.components,
+                    &mut self.dependencies,
+                    &mut self.dependent_on_state_var,
+                    &mut self.dependent_on_essential,
+                    &mut self.essential_data,
+                    &mut self.stale_renderers,
+                    &mut self.mark_stale_stack,
+                    &mut self.update_stack,
+                );
             }
         }
+        self.get_flat_dast_updates()
     }
 
-    Some((comp_ind, path))
+    /// Output all components as a flat dast,
+    /// where we create a vector of each component's dast element,
+    /// and dast elements refer to their children via its *ComponentIdx* in that vector.
+    ///
+    /// Include warnings as a separate vector (errors are embedded in the tree as elements).
+    pub fn to_flat_dast(&mut self) -> FlatDastRoot {
+        // Since are outputting the whole dast, we ignore which components were freshened
+        self.freshen_renderer_state();
+
+        let elements: Vec<FlatDastElement> = self
+            .components
+            .iter()
+            .map(|comp| comp.borrow_mut().to_flat_dast(&self.components))
+            .collect();
+
+        let warnings: Vec<DastWarning> = self
+            .warnings
+            .iter()
+            .map(|warning| warning.clone())
+            .collect();
+
+        self.root.to_flat_dast(elements, warnings)
+    }
+
+    pub fn get_flat_dast_updates(&mut self) -> HashMap<ComponentIdx, FlatDastElementUpdate> {
+        let components_changed = self.freshen_renderer_state();
+
+        let mut flat_dast_updates: HashMap<ComponentIdx, FlatDastElementUpdate> = HashMap::new();
+        for component_idx in components_changed {
+            let mut component = self.components[component_idx].borrow_mut();
+            if let Some(element_update) = component.get_flat_dast_update() {
+                flat_dast_updates.insert(component_idx, element_update);
+            }
+        }
+        flat_dast_updates
+    }
 }

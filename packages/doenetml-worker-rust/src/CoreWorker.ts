@@ -4,9 +4,27 @@ import type { DastRoot, DastElement, DastError } from "@doenet/parser";
 
 type Flags = Record<string, unknown>;
 
+export type Action = {
+    componentIdx: number;
+    actionName: string;
+    args: ActionArgs;
+};
+
+type ActionArgs = Record<string, ActionArgValue>;
+
+type ActionArgValue = boolean | number | number[] | string;
+
+export type ElementUpdate = {
+    type: "elementUpdate";
+    changed_attributes?: Record<string, unknown>;
+    new_children?: (number | string)[];
+    changed_state?: Record<string, unknown>;
+};
+export type ElementUpdates = Record<number, ElementUpdate>;
+
 export interface FlatDastElement extends Omit<DastElement, "children"> {
     children: (number | string)[];
-    data: { id: number };
+    data: { id: number; state?: Record<string, unknown> };
 }
 export interface FlatDastRoot {
     type: "root";
@@ -82,13 +100,41 @@ export class CoreWorker {
             let flat_dast = JSON.parse(
                 this.doenetCore.return_dast(),
             ) as FlatDastRoot;
-            resolve();
             return flat_dast;
         } catch (err) {
-            resolve();
-
             console.error(err);
             throw err;
+        } finally {
+            resolve();
+        }
+    }
+
+    async dispatchAction(action: Action): Promise<ElementUpdates> {
+        const isProcessingPromise = this.isProcessingPromise;
+        let { promise, resolve } = promiseWithResolver();
+        this.isProcessingPromise = promise;
+
+        await isProcessingPromise;
+
+        if (!this.source_set || !this.flags_set || !this.doenetCore) {
+            throw Error("Cannot handle action before setting source and flags");
+        }
+
+        // TODO: handle case if dispatchAction is called before returnDast
+
+        try {
+            // TODO: Do we need to cast flat_dast_element_updates into a TypeScript type
+            // like we did for flat_dast, above?
+
+            let flat_dast_element_updates = JSON.parse(
+                this.doenetCore.dispatch_action(JSON.stringify(action)),
+            );
+            return flat_dast_element_updates;
+        } catch (err) {
+            console.error(err);
+            throw err;
+        } finally {
+            resolve();
         }
     }
 

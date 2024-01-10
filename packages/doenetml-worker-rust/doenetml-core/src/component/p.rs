@@ -1,20 +1,20 @@
 use std::collections::HashMap;
 
 use crate::dast::Position as DastPosition;
+use crate::state::StateVar;
+use crate::utils::KeyValueIgnoreCase;
 use crate::{ComponentChild, ComponentIdx, ExtendSource};
 
-use super::ComponentNode;
+use super::{
+    ComponentCommonData, ComponentNode, ComponentNodeStateVariables, ComponentProfileStateVariable,
+    RenderedComponentNode,
+};
 
-#[derive(Debug, Default, ComponentNode)]
+#[derive(Debug, Default, ComponentNode, RenderedComponentNode)]
 pub struct P {
-    pub idx: ComponentIdx,
-    pub parent: Option<ComponentIdx>,
-    pub children: Vec<ComponentChild>,
+    pub common: ComponentCommonData,
+}
 
-    pub extend: Option<ExtendSource>,
-
-    // map of descendant names to their indices
-    pub descendant_names: HashMap<String, Vec<ComponentIdx>>,
-
-    pub position: Option<DastPosition>,
+impl ComponentNodeStateVariables for P {
+    fn initialize_state_variables(&mut self) {}
 }
