@@ -216,49 +216,63 @@ pub fn freshen_state_var(
         let dependencies_for_state_var =
             &dependencies[state_var_ptr.component_idx][state_var_ptr.state_var_idx];
 
-        let mut found_stale_or_resolved_dependency = false;
+        // If we find a stale or resolved dependency
+        // (i.e., not fresh, as we shouldn't have unresolved)
+        // then we aren't ready to freshen this state variable.
+        // In this case, we will put state_var_ptr on the stack
+        // followed by its stale/resolved dependencies,
+        // and skip the calculation/freshen step at the end.
+        // (The calculation/freshen step will occur when it comes off the stack
+        // next time, as at that point, its dependencies will all be fresh.)
+        let mut state_var_ptr_is_ready_to_freshen = true;
 
         for deps in dependencies_for_state_var.iter() {
             for dep in deps.iter() {
-                match &dep.source {
-                    DependencySource::StateVar {
-                        component_idx,
-                        state_var_idx,
-                    } => {
-                        let new_state_var_ptr = StateVarPointer {
-                            component_idx: *component_idx,
-                            state_var_idx: *state_var_idx,
-                        };
-
-                        let new_current_freshness = dep.value.get_freshness();
-
-                        match new_current_freshness {
-                            // No need to recurse if the state var of the dependency is already fresh
-                            // so don't do anything to just continue the inner loop
-                            Freshness::Fresh => (),
-                            Freshness::Stale | Freshness::Resolved => {
-                                if !found_stale_or_resolved_dependency {
-                                    freshen_stack.push(state_var_ptr);
-                                    found_stale_or_resolved_dependency = true;
-                                }
-
-                                // Recurse by putting two items on the stack
-                                // and then continuing at start of stack loop
-                                freshen_stack.push(new_state_var_ptr);
+                // If can create a state_var_ptr from dep.source,
+                // it means it is a DependencySource::StateVar,
+                // so we need to check if that state variable is fresh.
+                // (There is nothing to do for DependencySource::Essential.)
+                if let Ok(dep_state_var_ptr) = StateVarPointer::try_from(&dep.source) {
+                    match dep.value.get_freshness() {
+                        // No need to recurse if the state var of the dependency is already fresh
+                        // so don't do anything to just continue the inner loop
+                        Freshness::Fresh => (),
+                        Freshness::Stale | Freshness::Resolved => {
+                            // If this is the first time we found a stale/resolved dependency,
+                            // this means we have not yet put state_var_ptr on the stack,
+                            // so we do that now.
+                            if state_var_ptr_is_ready_to_freshen {
+                                freshen_stack.push(state_var_ptr);
+                                state_var_ptr_is_ready_to_freshen = false;
                             }
-                            Freshness::Unresolved => {
-                                panic!("How did a stale state variable depend on an unresolved state variable?")
-                            }
-                        };
-                    }
-                    // nothing to add to stack if have an essential state variable
-                    // as they cannot be stale
-                    DependencySource::Essential { .. } => (),
-                }
+
+                            // Before we can freshen state_var_ptr,
+                            // we have to freshen dep_state_var_ptr.
+                            // We put that on the stack (which will be after where
+                            // state_var_ptr is on the stack).
+                            freshen_stack.push(dep_state_var_ptr);
+                        }
+                        Freshness::Unresolved => {
+                            panic!("How did a stale state variable depend on an unresolved state variable?")
+                        }
+                    };
+                };
             }
         }
 
-        if !found_stale_or_resolved_dependency {
+        // At this point, we have gone through all the dependencies.
+        // We have two possibilities.
+        // 1. The state variable state_var_ptr is ready to freshen
+        //    because all its dependencies are fresh.
+        //    In this case we calculate its value to freshen it.
+        // 2. We found a stale or resolved dependency of state_var_ptr
+        //    so it is not ready to freshen.
+        //    In this case, we have already put state_var_ptr
+        //    and each stale/resolved dep_state_var_ptr on the stack.
+        //    There is nothing to do now.
+        //    We'll calculate and freshen state_var_ptr next time it comes off the stack.
+
+        if state_var_ptr_is_ready_to_freshen {
             // All the dependencies of state_var_ptr are fresh.
             // We calculate its value if a dependency has changed,
             // else restore its previous value.
@@ -294,7 +308,7 @@ pub fn resolve_state_var(
     let component_idx = state_var_ptr.component_idx;
     let state_var_idx = state_var_ptr.state_var_idx;
 
-    let dependency_instructions;
+    let dependency_instructions: Vec<DependencyInstruction>;
 
     {
         let component = components[component_idx].borrow();

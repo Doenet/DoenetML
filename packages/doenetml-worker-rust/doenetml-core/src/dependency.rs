@@ -6,7 +6,7 @@ use crate::{
         create_essential_data_for, EssentialDataOrigin, EssentialStateVar, InitialEssentialData,
     },
     state::{StateVarName, StateVarReadOnlyView, StateVarValue},
-    ComponentChild, ComponentIdx, ExtendSource, StateVarIdx,
+    ComponentChild, ComponentIdx, ExtendSource, StateVarIdx, StateVarPointer,
 };
 
 /// A DependencyInstruction is used to make a Dependency based on the input document structure
@@ -55,6 +55,25 @@ pub enum DependencySource {
         origin: EssentialDataOrigin,
         // value_type: &'static str,
     },
+}
+
+impl TryFrom<&DependencySource> for StateVarPointer {
+    type Error = &'static str;
+
+    fn try_from(ds: &DependencySource) -> Result<Self, Self::Error> {
+        match ds {
+            DependencySource::StateVar {
+                component_idx,
+                state_var_idx,
+            } => Ok(StateVarPointer {
+                component_idx: *component_idx,
+                state_var_idx: *state_var_idx,
+            }),
+            DependencySource::Essential { .. } => {
+                Err("Cannot convert essential dependency source to a state variable pointer.")
+            }
+        }
+    }
 }
 
 /// Gives both the source of the dependency and the current value of the dependency
