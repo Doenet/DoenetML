@@ -1,4 +1,4 @@
-use crate::components::preamble::*;
+use crate::components::prelude::*;
 
 #[derive(Debug, Default, ComponentNode, ComponentNodeStateVariables, RenderedComponentNode)]
 pub struct _Error {

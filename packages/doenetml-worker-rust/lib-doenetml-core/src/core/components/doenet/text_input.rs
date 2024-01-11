@@ -4,7 +4,7 @@ use std::rc::Rc;
 
 use serde::{Deserialize, Serialize};
 
-use crate::components::preamble::*;
+use crate::components::prelude::*;
 
 #[derive(Debug, Default, ComponentNode)]
 pub struct TextInput {

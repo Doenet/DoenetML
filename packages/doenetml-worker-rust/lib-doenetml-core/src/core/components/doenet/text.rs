@@ -2,7 +2,7 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
-use crate::components::preamble::*;
+use crate::components::prelude::*;
 
 #[derive(Debug, Default, ComponentNode)]
 pub struct Text {
