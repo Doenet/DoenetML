@@ -1,9 +1,17 @@
-use doenetml_core::{create_doenetml_core, DoenetMLCore};
+use anyhow::Result;
+use doenetml_core::DoenetMLCore;
 
-fn main() {
-    println!("Hello, world!");
+fn main() -> Result<()> {
+    println!("Running DoenetML Core in Standalone Mode");
 
     let program = r#"{"type":"root","children":[{"type":"element","name":"document","attributes":{},"children":[{"type":"element","name":"text","attributes":{},"children":[{"type":"text","value":"hello "},{"type":"element","name":"text","attributes":{},"children":[{"type":"text","value":"there"}]}]}]}]}"#;
 
-    let result = doenetml_core::create_doenetml_core(&program, "", "");
+    let mut core = DoenetMLCore::new(program, "", "", None);
+
+    let result = core.to_flat_dast();
+
+    let processed_string = serde_json::to_string(&result)?;
+    println!("{}", processed_string);
+
+    Ok(())
 }
