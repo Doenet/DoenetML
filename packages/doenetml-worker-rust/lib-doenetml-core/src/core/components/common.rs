@@ -1,16 +1,7 @@
-pub mod _error;
-pub mod _external;
-pub mod document;
-pub mod p;
-pub mod section;
-pub mod text;
-pub mod text_input;
-
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
-use doenetml_derive::{ComponentNode, ComponentNodeStateVariables, RenderedComponentNode};
 use enum_dispatch::enum_dispatch;
 use strum_macros::EnumString;
 
@@ -23,13 +14,13 @@ use crate::state::{
 };
 use crate::{ComponentChild, ComponentIdx, ExtendSource};
 
-use self::_error::_Error;
-use self::_external::_External;
-use self::document::Document;
-use self::p::P;
-use self::section::Section;
-use self::text::Text;
-use self::text_input::TextInput;
+use super::_error::_Error;
+use super::_external::_External;
+use super::doenet::document::Document;
+use super::doenet::p::P;
+use super::doenet::section::Section;
+use super::doenet::text::Text;
+use super::doenet::text_input::TextInput;
 
 /// camelCase
 pub type AttributeName = &'static str;

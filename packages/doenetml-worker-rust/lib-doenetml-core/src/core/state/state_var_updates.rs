@@ -1,11 +1,11 @@
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use crate::{
-    component::{ComponentEnum, ComponentNode},
+    components::{ComponentEnum, ComponentNode},
     dependency::{Dependency, DependencySource, DependencyValueUpdateRequest},
-    essential_state::{EssentialDataOrigin, EssentialStateDescription, EssentialStateVar},
+    state::essential_state::{EssentialDataOrigin, EssentialStateDescription, EssentialStateVar},
+    state::state_var_calculations::StateVariableUpdateRequest,
     state::Freshness,
-    state_var_calculations::StateVariableUpdateRequest,
     ComponentIdx, StateVarPointer,
 };
 

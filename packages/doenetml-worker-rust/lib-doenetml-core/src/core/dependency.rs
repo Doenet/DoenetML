@@ -1,8 +1,8 @@
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use crate::{
-    component::{AttributeName, ComponentEnum, ComponentNode, ComponentProfile},
-    essential_state::{
+    components::{AttributeName, ComponentEnum, ComponentNode, ComponentProfile},
+    state::essential_state::{
         create_essential_data_for, EssentialDataOrigin, EssentialStateVar, InitialEssentialData,
     },
     state::{StateVarName, StateVarReadOnlyView, StateVarValue},
