@@ -2,23 +2,7 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
-use crate::component::ComponentProfile;
-use crate::dast::{
-    ElementData, FlatDastElement, FlatDastElementContent, FlatDastElementUpdate,
-    Position as DastPosition,
-};
-use crate::dependency::{Dependency, DependencyInstruction, DependencyValueUpdateRequest};
-use crate::state::{
-    StateVar, StateVarInterface, StateVarMutableViewTyped, StateVarParameters,
-    StateVarReadOnlyView, StateVarReadOnlyViewTyped, StateVarTyped,
-};
-use crate::utils::KeyValueIgnoreCase;
-use crate::{ComponentChild, ComponentIdx, ExtendSource};
-
-use super::{
-    ComponentCommonData, ComponentEnum, ComponentNode, ComponentNodeStateVariables,
-    ComponentProfileStateVariable, RenderedComponentNode,
-};
+use crate::components::preamble::*;
 
 #[derive(Debug, Default, ComponentNode)]
 pub struct Text {

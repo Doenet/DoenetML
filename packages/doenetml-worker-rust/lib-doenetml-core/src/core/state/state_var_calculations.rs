@@ -3,12 +3,12 @@ use std::{cell::RefCell, collections::HashMap, rc::Rc};
 use tailcall::tailcall;
 
 use crate::{
-    component::{ComponentEnum, ComponentNode, RenderedComponentNode},
+    components::{ComponentEnum, ComponentNode, RenderedComponentNode},
     dependency::{
         create_dependencies_from_instruction_initialize_essential, Dependency,
         DependencyInstruction, DependencySource,
     },
-    essential_state::{EssentialDataOrigin, EssentialStateDescription, EssentialStateVar},
+    state::essential_state::{EssentialDataOrigin, EssentialStateDescription, EssentialStateVar},
     state::{Freshness, StateVarValue},
     ComponentChild, ComponentIdx, ExtendSource, StateVarPointer,
 };

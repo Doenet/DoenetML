@@ -1,14 +1,4 @@
-use std::collections::HashMap;
-
-use crate::dast::Position as DastPosition;
-use crate::state::StateVar;
-use crate::utils::KeyValueIgnoreCase;
-use crate::{ComponentChild, ComponentIdx, ExtendSource};
-
-use super::{
-    ComponentCommonData, ComponentNode, ComponentNodeStateVariables, ComponentProfileStateVariable,
-    RenderedComponentNode,
-};
+use crate::components::preamble::*;
 
 #[derive(Debug, Default, RenderedComponentNode, ComponentNodeStateVariables)]
 pub struct _External {

@@ -1,7 +1,7 @@
 use std::{cell::RefCell, collections::HashMap, rc::Rc, str::FromStr};
 
 use crate::{
-    component::{ComponentEnum, ComponentNode, _error::_Error, _external::_External},
+    components::{ComponentEnum, ComponentNode, _error::_Error, _external::_External},
     dast::{DastElementContent, DastWarning, PathPart},
     ComponentChild, ComponentIdx, ExtendSource, ExtendStateVariableDescription,
     StateVariableShadowingMatch,

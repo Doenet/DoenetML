@@ -4,19 +4,7 @@ use std::rc::Rc;
 
 use serde::{Deserialize, Serialize};
 
-use crate::dast::{ElementData, FlatDastElement, FlatDastElementUpdate, Position as DastPosition};
-use crate::dependency::{Dependency, DependencyInstruction, DependencyValueUpdateRequest};
-use crate::state::{
-    StateVar, StateVarInterface, StateVarMutableViewTyped, StateVarParameters,
-    StateVarReadOnlyView, StateVarReadOnlyViewTyped, StateVarTyped, StateVarValue,
-};
-use crate::utils::KeyValueIgnoreCase;
-use crate::{ComponentChild, ComponentIdx, ExtendSource};
-
-use super::{
-    ComponentCommonData, ComponentEnum, ComponentNode, ComponentNodeStateVariables,
-    ComponentProfileStateVariable, RenderedComponentNode,
-};
+use crate::components::preamble::*;
 
 #[derive(Debug, Default, ComponentNode)]
 pub struct TextInput {
