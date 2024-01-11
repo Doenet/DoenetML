@@ -1,0 +1,15 @@
+[package]
+name = "doenetml-derive"
+description = "Derive macros for use in Rust for DoenetMLCore"
+version = { workspace = true }
+edition = { workspace = true }
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+proc-macro = true
+
+[dependencies]
+quote = { workspace = true }
+proc-macro2 = { workspace = true }
+syn = { workspace = true }
+convert_case = { workspace = true }

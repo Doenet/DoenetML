@@ -32,9 +32,10 @@
         "build:js": {
             "command": "vite build",
             "files": [
-                "src/**/*.ts",
-                "src/**/*.js",
+                "lib-*/src/**/*.ts",
+                "lib-*/src/**/*.js",
                 "tsconfig.json",
+                "lib-*/tsconfig.json",
                 "vite.config.ts"
             ],
             "output": [
@@ -49,18 +50,16 @@
             ]
         },
         "build:rust": {
-            "command": "npx wasm-pack build --target web --dev --features 'web-logging web-debug-log'",
+            "command": "npx wasm-pack build lib-js-wasm-binding --target web --dev --features 'web-logging web-debug-log'",
             "files": [
-                "src/**/*.ts",
-                "src/**/*.rs",
-                "doenetml-core/**/*.rs",
+                "lib-*/**/*.rs",
                 "**/*/Cargo.toml"
             ],
             "output": [
-                "pkg/**/*.js",
-                "pkg/**/*.d.ts",
-                "pkg/**/*.wasm",
-                "pkg/**/*.json"
+                "lib-*/pkg/**/*.js",
+                "lib-*/pkg/**/*.d.ts",
+                "lib-*/pkg/**/*.wasm",
+                "lib-*/pkg/**/*.json"
             ]
         }
     },

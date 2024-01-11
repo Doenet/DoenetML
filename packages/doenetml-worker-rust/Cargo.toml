@@ -1,57 +1,44 @@
-[package]
-name = "doenetml-worker-rust"
-version = "0.1.0"
+[workspace]
+resolver = "2"
+members = ["lib-*"]
+default-members = ["lib-js-wasm-binding"]
+
+[workspace.package]
+name = "donetml-core"
+version = "0.7.0"
+description = "A library for parsing and evaluating DonetML documents."
 authors = ["Duane Nykamp <nykamp@umn.edu>"]
 edition = "2021"
-description = "DoenetML core worker in rust"
 
-[lib]
-crate-type = ["cdylib", "rlib"]
-
-[features]
-default = ["console_error_panic_hook"]
-web-debug-log = ['doenetml-core/web-debug-log']
-
-web-logging = ['doenetml-core/web']
-
-[dependencies.web-sys]
-version = "0.3"
-features = [
-  "console",
-]
-
-[dependencies.js-sys]
-version = "0.3.59"
-
-[dependencies]
-wasm-bindgen = "0.2.81"
-# web-sys = {version = "0.3", features =}
-
-doenetml-core = { path = "doenetml-core" }
-
-
+[workspace.dependencies]
+wasm-bindgen = { version = "0.2.81", features = ["serde-serialize"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+regex = "1.10.2"
+web-sys = { version = "0.3", features = ["console"] }
+js-sys = "0.3.59"
+lazy_static = "1.4.0"
+enum-as-inner = "0.5.1"
+ndarray = { version = "0.15.6", features = ["serde"] }
+instant = { version = "0.1", features = ["wasm-bindgen"] }
+strum = "0.25"
+strum_macros = "0.25"
+tailcall = "0.1.6"
+enum_dispatch = "0.3.12"
+evalexpr = { version = "8.1.0", features = ["serde_support"] }
 # The `console_error_panic_hook` crate provides better debugging of panics by
 # logging them with `console.error`. This is great for development, but requires
 # all the `std::fmt` and `std::panicking` infrastructure, so isn't great for
 # code size when deploying.
-console_error_panic_hook = { version = "0.1.6", optional = true }
-
+console_error_panic_hook = { version = "0.1.6" }
 # `wee_alloc` is a tiny allocator for wasm that is only ~1K in code size
 # compared to the default allocator's ~10K. It is slower than the default
 # allocator, however.
 #
 # Unfortunately, `wee_alloc` requires nightly Rust when targeting wasm for now.
-wee_alloc = { version = "0.4.5", optional = true }
-
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-regex = "1.10.2"
-
-[dev-dependencies]
-wasm-bindgen-test = "0.3.13"
-
-[profile.release]
-# Tell `rustc` to optimize for small code size.
-opt-level = "s"
-
-
+wee_alloc = { version = "0.4.5" }
+quote = "1"
+proc-macro2 = "1.0"
+syn = "2.0"
+convert_case = "0.5.0"
+anyhow = "1.0.79"
