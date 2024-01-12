@@ -12,7 +12,7 @@ use crate::dast::{
 use crate::state::{
     StateVar, StateVarName, StateVarReadOnlyView, StateVarReadOnlyViewTyped, StateVarValue,
 };
-use crate::{ComponentChild, ComponentIdx, ExtendSource};
+use crate::{ComponentIdx, ComponentPointerTextOrMacro, ExtendSource};
 
 use super::_error::_Error;
 use super::_external::_External;
@@ -49,7 +49,7 @@ pub enum ComponentEnum {
 pub struct ComponentCommonData {
     pub idx: ComponentIdx,
     pub parent: Option<ComponentIdx>,
-    pub children: Vec<ComponentChild>,
+    pub children: Vec<ComponentPointerTextOrMacro>,
 
     pub extend: Option<ExtendSource>,
 
@@ -79,11 +79,14 @@ pub trait ComponentNode: ComponentNodeStateVariables {
     /// Get the index of the parent node
     fn get_parent(&self) -> Option<ComponentIdx>;
     /// Get the vector containing the indices of all child component nodes and the literal string children.
-    fn get_children(&self) -> &Vec<ComponentChild>;
+    fn get_children(&self) -> &Vec<ComponentPointerTextOrMacro>;
     /// Set the vector containing the indices of all child component nodes and the literal string children.
-    fn set_children(&mut self, children: Vec<ComponentChild>);
+    fn set_children(&mut self, children: Vec<ComponentPointerTextOrMacro>);
     /// Replace with new values the vector containing the indices of all child component nodes and the literal string children.
-    fn replace_children(&mut self, new_children: Vec<ComponentChild>) -> Vec<ComponentChild>;
+    fn replace_children(
+        &mut self,
+        new_children: Vec<ComponentPointerTextOrMacro>,
+    ) -> Vec<ComponentPointerTextOrMacro>;
 
     /// Perform the following steps to initialize a component
     /// 1. Set its index, parent, extend source, and position in the original DoenetML string.
@@ -166,7 +169,7 @@ pub trait ComponentNode: ComponentNodeStateVariables {
 #[enum_dispatch]
 pub trait RenderedComponentNode: ComponentNode {
     /// Return the children that will be used in the flat dast sent to the renderer.
-    fn get_rendered_children(&self) -> &Vec<ComponentChild> {
+    fn get_rendered_children(&self) -> &Vec<ComponentPointerTextOrMacro> {
         self.get_children()
     }
 
@@ -193,12 +196,14 @@ pub trait RenderedComponentNode: ComponentNode {
             .get_rendered_children()
             .iter()
             .filter_map(|child| match child {
-                ComponentChild::Component(comp_idx) => {
+                ComponentPointerTextOrMacro::Component(comp_idx) => {
                     Some(FlatDastElementContent::Element(*comp_idx))
                 }
-                ComponentChild::Text(s) => Some(FlatDastElementContent::Text(s.to_string())),
-                ComponentChild::Macro(_the_macro) => None,
-                ComponentChild::FunctionMacro(_function_macro) => None,
+                ComponentPointerTextOrMacro::Text(s) => {
+                    Some(FlatDastElementContent::Text(s.to_string()))
+                }
+                ComponentPointerTextOrMacro::Macro(_the_macro) => None,
+                ComponentPointerTextOrMacro::FunctionMacro(_function_macro) => None,
             })
             .collect();
 

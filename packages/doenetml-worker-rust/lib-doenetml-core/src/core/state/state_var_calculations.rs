@@ -10,7 +10,7 @@ use crate::{
     },
     state::essential_state::{EssentialDataOrigin, EssentialStateDescription, EssentialStateVar},
     state::{Freshness, StateVarValue},
-    ComponentChild, ComponentIdx, ExtendSource, StateVarPointer,
+    ComponentIdx, ComponentPointerTextOrMacro, ExtendSource, StateVarPointer,
 };
 
 /// Freshen the state variable specified by original_state_var_ptr,
@@ -138,7 +138,7 @@ fn get_non_string_rendered_children_including_from_extend(
             .get_rendered_children()
             .iter()
             .filter_map(|child| match child {
-                &ComponentChild::Component(comp_idx) => Some(comp_idx),
+                &ComponentPointerTextOrMacro::Component(comp_idx) => Some(comp_idx),
                 _ => None,
             }),
     );

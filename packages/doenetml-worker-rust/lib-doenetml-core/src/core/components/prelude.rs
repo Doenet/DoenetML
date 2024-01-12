@@ -9,7 +9,7 @@ pub use crate::dast::Position as DastPosition;
 pub use crate::state::StateVar;
 
 pub use crate::utils::KeyValueIgnoreCase;
-pub use crate::{ComponentChild, ComponentIdx, ExtendSource};
+pub use crate::{ComponentIdx, ComponentPointerTextOrMacro, ExtendSource};
 
 pub use crate::components::{
     ComponentCommonData, ComponentNode, ComponentNodeStateVariables, ComponentProfileStateVariable,
@@ -20,7 +20,9 @@ pub use crate::components::{
 
 pub use crate::components::ComponentEnum;
 pub use crate::components::ComponentProfile;
-pub use crate::dast::{ElementData, FlatDastElement, FlatDastElementUpdate, FlatDastElementContent};
+pub use crate::dast::{
+    ElementData, FlatDastElement, FlatDastElementContent, FlatDastElementUpdate,
+};
 pub use crate::dependency::{Dependency, DependencyInstruction, DependencyValueUpdateRequest};
 pub use crate::state::{
     StateVarInterface, StateVarMutableViewTyped, StateVarParameters, StateVarReadOnlyView,

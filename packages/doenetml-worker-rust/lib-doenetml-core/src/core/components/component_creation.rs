@@ -3,7 +3,7 @@ use std::{cell::RefCell, collections::HashMap, rc::Rc, str::FromStr};
 use crate::{
     components::{ComponentEnum, ComponentNode, _error::_Error, _external::_External},
     dast::{DastElementContent, DastWarning, PathPart},
-    ComponentChild, ComponentIdx, ExtendSource, ExtendStateVariableDescription,
+    ComponentIdx, ComponentPointerTextOrMacro, ExtendSource, ExtendStateVariableDescription,
     StateVariableShadowingMatch,
 };
 
@@ -11,16 +11,16 @@ use crate::{
 /// Gather names of the descendants for later use in replacing macros.
 ///
 /// Components created are saved to the `components` vector and only their index is returned
-/// (as part of `ComponentChild::Component`)
+/// (as part of `ComponentPointerTextOrMacro::Component`)
 ///
-/// Strings are turned into `ComponentChild::Text`.
+/// Strings are turned into `ComponentPointerTextOrMacro::Text`.
 ///
-/// Macros and FunctionMacros are also left unexpanded and simply turned into their `ComponentChild` variants.
+/// Macros and FunctionMacros are also left unexpanded and simply turned into their `ComponentPointerTextOrMacro` variants.
 ///
 /// Errors are turned into components of type "_error" and treated like other components.
 ///
 /// Returns a tuple containing
-/// - A vector of the `ComponentChild` variants created from the `dast_children`
+/// - A vector of the `ComponentPointerTextOrMacro` variants created from the `dast_children`
 /// - A hash map with keys being the component names encountered,
 ///   and the values being vectors of the component indices where that name was encountered.
 pub fn create_component_children(
@@ -28,10 +28,13 @@ pub fn create_component_children(
     warnings: &mut Vec<DastWarning>,
     dast_children: &Vec<DastElementContent>,
     parent_idx_option: Option<ComponentIdx>,
-) -> (Vec<ComponentChild>, HashMap<String, Vec<ComponentIdx>>) {
+) -> (
+    Vec<ComponentPointerTextOrMacro>,
+    HashMap<String, Vec<ComponentIdx>>,
+) {
     let mut descendant_names: HashMap<String, Vec<ComponentIdx>> = HashMap::new();
 
-    let mut component_children: Vec<ComponentChild> = Vec::new();
+    let mut component_children: Vec<ComponentPointerTextOrMacro> = Vec::new();
 
     for child in dast_children {
         match child {
@@ -105,20 +108,22 @@ pub fn create_component_children(
                         .and_modify(|name_indices| name_indices.append(&mut name_inds))
                         .or_insert(name_inds);
                 }
-                component_children.push(ComponentChild::Component(child_idx));
+                component_children.push(ComponentPointerTextOrMacro::Component(child_idx));
             }
             DastElementContent::Text(child_text) => {
-                component_children.push(ComponentChild::Text(child_text.value.clone()));
+                component_children
+                    .push(ComponentPointerTextOrMacro::Text(child_text.value.clone()));
             }
             DastElementContent::Macro(child_macro) => {
                 // for now, just stick in the dast macro
-                component_children.push(ComponentChild::Macro(child_macro.clone()));
+                component_children.push(ComponentPointerTextOrMacro::Macro(child_macro.clone()));
             }
             DastElementContent::FunctionMacro(child_function_macro) => {
                 // for now, just stick in the dast function macro,
                 // which clearly is wrong as it will include elements as children
-                component_children
-                    .push(ComponentChild::FunctionMacro(child_function_macro.clone()));
+                component_children.push(ComponentPointerTextOrMacro::FunctionMacro(
+                    child_function_macro.clone(),
+                ));
             }
             DastElementContent::Error(child_error) => {
                 let child_idx = components.len();
@@ -137,7 +142,7 @@ pub fn create_component_children(
 
                 components.push(Rc::new(RefCell::new(ComponentEnum::_Error(error))));
 
-                component_children.push(ComponentChild::Component(child_idx));
+                component_children.push(ComponentPointerTextOrMacro::Component(child_idx));
             }
         }
     }
@@ -174,12 +179,12 @@ pub fn replace_macro_referents(
         .into_iter()
         .map(|child| {
             match child {
-                ComponentChild::Component(child_idx) => {
+                ComponentPointerTextOrMacro::Component(child_idx) => {
                     // recurse on component children
                     replace_macro_referents(components, child_idx);
                     child
                 }
-                ComponentChild::Macro(ref dast_macro) => {
+                ComponentPointerTextOrMacro::Macro(ref dast_macro) => {
                     if let Some((matched_component_idx, path_remainder)) =
                         match_name_reference(&components, &dast_macro.path, component_idx)
                     {
@@ -213,7 +218,7 @@ pub fn replace_macro_referents(
 
                             components.push(Rc::new(RefCell::new(new_comp_enum)));
 
-                            ComponentChild::Component(new_idx)
+                            ComponentPointerTextOrMacro::Component(new_idx)
                         }
                     } else {
                         // did not match macro to a component so just keep it as a macro for now
@@ -324,13 +329,13 @@ fn match_descendant_names<'a>(
 /// If a (case-insensitive) match of a public state variable to the path name is found,
 /// then create a component that will extend the value of that state variable.
 /// The component will receive an ExtendSource specifying that it should shadow the matched state variable.
-/// The component is added to the components vector and a `ComponentChild::Component`` referencing
+/// The component is added to the components vector and a `ComponentPointerTextOrMacro::Component`` referencing
 /// that new component is returned.
 ///
 /// If a public state variable is not found, then the match is canceled.
 ///
 /// Returns:
-/// - a `ComponentChild::Component`` referencing the newly created component if a match is found
+/// - a `ComponentPointerTextOrMacro::Component`` referencing the newly created component if a match is found
 /// - None if no match is found
 ///
 /// TODO: this function is incomplete as path index and multiple path parts are ignored.
@@ -339,7 +344,7 @@ fn match_public_state_variable<'a>(
     path: &'a [PathPart],
     matched_component_idx: ComponentIdx,
     parent_idx: ComponentIdx,
-) -> Option<ComponentChild> {
+) -> Option<ComponentPointerTextOrMacro> {
     // attempt to match the next part of the path to a public state variable
     // of matched_component
 
@@ -391,5 +396,5 @@ fn match_public_state_variable<'a>(
 
     components.push(Rc::new(RefCell::new(new_comp_enum)));
 
-    Some(ComponentChild::Component(new_idx))
+    Some(ComponentPointerTextOrMacro::Component(new_idx))
 }

@@ -133,7 +133,7 @@ pub struct DoenetMLCore {
 
 #[derive(Debug)]
 pub struct DoenetMLRoot {
-    pub children: Vec<ComponentChild>,
+    pub children: Vec<ComponentPointerTextOrMacro>,
 
     // map of descendant names to their indices
     pub descendant_names: HashMap<String, Vec<ComponentIdx>>,
@@ -151,12 +151,14 @@ impl DoenetMLRoot {
             .children
             .iter()
             .filter_map(|child| match child {
-                ComponentChild::Component(comp_idx) => {
+                ComponentPointerTextOrMacro::Component(comp_idx) => {
                     Some(FlatDastElementContent::Element(*comp_idx))
                 }
-                ComponentChild::Text(s) => Some(FlatDastElementContent::Text(s.to_string())),
-                ComponentChild::Macro(_the_macro) => None,
-                ComponentChild::FunctionMacro(_function_macro) => None,
+                ComponentPointerTextOrMacro::Text(s) => {
+                    Some(FlatDastElementContent::Text(s.to_string()))
+                }
+                ComponentPointerTextOrMacro::Macro(_the_macro) => None,
+                ComponentPointerTextOrMacro::FunctionMacro(_function_macro) => None,
             })
             .collect();
 
@@ -169,13 +171,13 @@ impl DoenetMLRoot {
     }
 }
 
-/// Information specifying a child of a component.
-/// - If the child is a component, we just store its index.
-/// - If the child is a string, store that string
+/// Information specifying a component, string or macro, used for component children or attributes.
+/// - For a component, we just store its index.
+/// - For a string, store that string
 ///
 /// TODO: can we eliminate macros eventually since they should be converted to components and strings?
 #[derive(Debug, Clone)]
-pub enum ComponentChild {
+pub enum ComponentPointerTextOrMacro {
     Component(ComponentIdx),
     Text(String),
     Macro(DastMacro),

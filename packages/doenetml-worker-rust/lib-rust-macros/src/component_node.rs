@@ -9,7 +9,7 @@ use syn::{self, FieldsNamed};
 /// For structs, assume these fields:
 /// - pub idx: ComponentIdx,
 /// - pub parent: Option<ComponentIdx>,
-/// - pub children: Vec<ComponentChild>,
+/// - pub children: Vec<ComponentPointerTextOrMacro>,
 /// - pub extend: Option<ExtendSource>,
 /// - pub descendant_names: HashMap<String, Vec<ComponentIdx>>,
 /// - pub position: Option<DastPosition>,
@@ -42,13 +42,13 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                         fn get_parent(&self) -> Option<ComponentIdx> {
                             self.common.parent
                         }
-                        fn get_children(&self) -> &Vec<ComponentChild> {
+                        fn get_children(&self) -> &Vec<ComponentPointerTextOrMacro> {
                             &self.common.children
                         }
-                        fn set_children(&mut self, children: Vec<ComponentChild>) {
+                        fn set_children(&mut self, children: Vec<ComponentPointerTextOrMacro>) {
                             self.common.children = children;
                         }
-                        fn replace_children(&mut self, new_children: Vec<ComponentChild>) -> Vec<ComponentChild> {
+                        fn replace_children(&mut self, new_children: Vec<ComponentPointerTextOrMacro>) -> Vec<ComponentPointerTextOrMacro> {
                             std::mem::replace(&mut self.common.children, new_children)
                         }
 

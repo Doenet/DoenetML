@@ -6,7 +6,7 @@ use crate::{
         create_essential_data_for, EssentialDataOrigin, EssentialStateVar, InitialEssentialData,
     },
     state::{StateVarName, StateVarReadOnlyView, StateVarValue},
-    ComponentChild, ComponentIdx, ExtendSource, StateVarIdx, StateVarPointer,
+    ComponentIdx, ComponentPointerTextOrMacro, ExtendSource, StateVarIdx, StateVarPointer,
 };
 
 /// A DependencyInstruction is used to make a Dependency based on the input document structure
@@ -235,7 +235,7 @@ pub fn create_dependencies_from_instruction_initialize_essential(
 
             for child_info in children_info.iter() {
                 match child_info {
-                    (ComponentChild::Component(child_idx), parent_idx) => {
+                    (ComponentPointerTextOrMacro::Component(child_idx), parent_idx) => {
                         let child = components[*child_idx].borrow();
 
                         let mut child_matches_with_profile = None;
@@ -274,7 +274,7 @@ pub fn create_dependencies_from_instruction_initialize_essential(
                             });
                         }
                     }
-                    (ComponentChild::Text(string_value), parent_idx) => {
+                    (ComponentPointerTextOrMacro::Text(string_value), parent_idx) => {
                         // Text children are just strings, and they just match the Text profile
                         if match_profiles.contains(&ComponentProfile::Text) {
                             relevant_children.push(RelevantChild::String {
@@ -377,7 +377,7 @@ fn get_recursive_extend_source_component_when_exists(
 fn get_children_with_parent_including_from_extend_source(
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
     component_idx: ComponentIdx,
-) -> Vec<(ComponentChild, ComponentIdx)> {
+) -> Vec<(ComponentPointerTextOrMacro, ComponentIdx)> {
     let component = components[component_idx].borrow();
 
     let mut children_vec =

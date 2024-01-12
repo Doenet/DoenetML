@@ -14,13 +14,16 @@ impl ComponentNode for _External {
     fn get_parent(&self) -> Option<ComponentIdx> {
         self.common.parent
     }
-    fn get_children(&self) -> &Vec<ComponentChild> {
+    fn get_children(&self) -> &Vec<ComponentPointerTextOrMacro> {
         &self.common.children
     }
-    fn set_children(&mut self, children: Vec<ComponentChild>) {
+    fn set_children(&mut self, children: Vec<ComponentPointerTextOrMacro>) {
         self.common.children = children;
     }
-    fn replace_children(&mut self, new_children: Vec<ComponentChild>) -> Vec<ComponentChild> {
+    fn replace_children(
+        &mut self,
+        new_children: Vec<ComponentPointerTextOrMacro>,
+    ) -> Vec<ComponentPointerTextOrMacro> {
         std::mem::replace(&mut self.common.children, new_children)
     }
 
