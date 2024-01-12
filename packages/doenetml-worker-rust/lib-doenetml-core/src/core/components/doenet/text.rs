@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use std::rc::Rc;
 
 use crate::components::prelude::*;
-use crate::state::base_state_var_interfaces::{
+use crate::state_var_interfaces::text_state_var_interfaces::{
     GeneralStringStateVarInterface, SingleDependencyStringStateVarInterface,
 };
 
