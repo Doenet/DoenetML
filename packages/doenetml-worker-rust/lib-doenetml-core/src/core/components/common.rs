@@ -271,7 +271,7 @@ pub trait ComponentNodeStateVariables {
 /// A `ComponentProfile` is used in the `DependencyInstruction` specifying children.
 /// A component profile will match children that have a `ComponentProfileStateVariable` of the corresponding type,
 /// and the resulting dependency will give the value of that state variable.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum ComponentProfile {
     Text,
     Number,
@@ -289,7 +289,7 @@ pub enum ComponentProfile {
 /// A component specifies a vector of ComponentProfileStateVariables in priority order,
 /// where the first ComponentProfileStateVariable matching a ComponentProfile
 /// of a dependency instruction will determine the dependency.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum ComponentProfileStateVariable {
     Text(StateVarReadOnlyViewTyped<String>, StateVarName),
     Number(StateVarReadOnlyViewTyped<f64>, StateVarName),

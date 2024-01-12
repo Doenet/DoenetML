@@ -39,6 +39,8 @@ pub struct StateVarTyped<T: Default + Clone> {
 
     /// A reference to the same value of the state variable
     /// in a structure that does not allow the value to be mutated.
+    /// It is just a cached copy of the result of calling
+    /// `.create_new_read_only_view()` on `.value`, saved here for efficiency.
     /// Sent to functions to give them read only access to the variable.
     immutable_view_of_value: StateVarReadOnlyViewTyped<T>,
 
@@ -48,7 +50,10 @@ pub struct StateVarTyped<T: Default + Clone> {
     interface: Box<dyn StateVarInterface<T>>,
 
     /// Additional parameters determining the behavior of the state variable
-    parameters: StateVarParameters<T>,
+    parameters: StateVarParameters,
+
+    /// - initial_essential_value: TODO, but presumably the initial value of its essential value
+    initial_essential_value: T,
 
     /// A vector that points to a copy of the values of all the dependencies
     /// of this state variable, where the values are behind untyped enums in order to have a vector.
@@ -69,6 +74,7 @@ pub trait StateVarInterface<T: Default + Clone>: std::fmt::Debug {
     fn return_dependency_instructions(
         &self,
         extend_source: Option<&ExtendSource>,
+        parameters: &StateVarParameters,
     ) -> Vec<DependencyInstruction>;
 
     /// Given the structure of the document and the dependency instructions,
@@ -118,18 +124,40 @@ pub trait StateVarInterface<T: Default + Clone>: std::fmt::Debug {
 /// Parameters that influence the behavior of the state variable
 /// - for_renderer: if true, the value of the state variable will always be calculated
 ///   and sent to the renderer
-/// - initial_essential_value: TODO, but presumably the initial value of its essential value
 /// - name: the name of the state variable
 /// - is_public: if true, the state variable can be referenced by a macro.
 ///   A state variable should be public only if its type has a default component type associated with it,
 ///   which informs which type of component to create when it is referenced,
 ///   should a component need to be created.
 #[derive(Debug, Default)]
-pub struct StateVarParameters<T> {
+pub struct StateVarParameters {
+    /// If true, the value of the state variable will always be calculated
+    /// and sent to the renderer.
     pub for_renderer: bool,
-    pub initial_essential_value: T,
+
+    /// the name of the state variable
     pub name: &'static str,
+
+    /// If true, the state variable can be referenced by a macro.
     pub is_public: bool,
+
+    /// Hint for a dependency instruction that can be used by `return_dependency_instructions()`
+    /// of a state variable interface.
+    ///
+    /// May cause a subsequent `return_dependencies()` to panic if the resulting dependency
+    /// returns an incompatible type.
+    pub dependency_instruction_hint: Option<DependencyInstruction>,
+
+    /// Hint telling `return_dependency_instructions()` whether or not to use `extend_source`.
+    ///
+    /// If true and the extend source is a state variable where the shadowing name matches
+    /// the name of this state variable, then create a dependency from the shadowed state variable
+    pub create_dependency_from_extend_source: bool,
+
+    /// If true and `create_dependency_from_extend_source` is true,
+    /// then if the extend source is a state variable where the shadowing name is None,
+    /// create a dependency from the shadowed state variable.
+    pub is_primary_state_variable_for_shadowing_extend_source: bool,
 }
 
 /// A mutable view of the value of the state variable.
@@ -158,7 +186,11 @@ pub struct StateVarReadOnlyViewTyped<T: Default + Clone> {
     change_counter_when_last_viewed: u32,
 }
 
-/// The value of a state variable along with its meta data
+/// The value of a state variable along with its meta data.
+///
+/// Since StateVarInner (via StateVarMutableViewTyped and StateVarReadOnlyViewTyped)
+/// is also used for essential data, we keep extra fields, like parameters,
+/// off this structure and put them only in StateVarTyped.
 #[derive(Debug)]
 struct StateVarInner<T: Default + Clone> {
     /// The value of the state variable.
@@ -537,11 +569,18 @@ impl<T: Default + Clone> Default for StateVarReadOnlyViewTyped<T> {
     }
 }
 
+impl<T: Default + Clone> Clone for StateVarReadOnlyViewTyped<T> {
+    fn clone(&self) -> Self {
+        self.create_new_read_only_view()
+    }
+}
+
 impl<T: Default + Clone> StateVarTyped<T> {
     /// Create a new state variable with the supplied interface and parameters
     pub fn new(
         interface: Box<dyn StateVarInterface<T>>,
-        parameters: StateVarParameters<T>,
+        parameters: StateVarParameters,
+        initial_essential_value: T,
     ) -> Self {
         let value = StateVarMutableViewTyped::new();
         StateVarTyped {
@@ -549,6 +588,7 @@ impl<T: Default + Clone> StateVarTyped<T> {
             value,
             interface,
             parameters,
+            initial_essential_value,
             all_dependency_values: vec![],
         }
     }
@@ -631,7 +671,8 @@ impl<T: Default + Clone> StateVarTyped<T> {
         &self,
         extend_source: Option<&ExtendSource>,
     ) -> Vec<DependencyInstruction> {
-        self.interface.return_dependency_instructions(extend_source)
+        self.interface
+            .return_dependency_instructions(extend_source, &self.parameters)
     }
 
     /// Call `save_dependencies_for_value_calculation` on interface
@@ -681,7 +722,7 @@ impl<T: Default + Clone> StateVarTyped<T> {
     ///
     /// TODO: determine how this is used
     pub fn return_initial_essential_value(&self) -> T {
-        self.parameters.initial_essential_value.clone()
+        self.initial_essential_value.clone()
     }
 
     /// Record that the fact each of the dependencies in `all_dependency_values` were viewed.

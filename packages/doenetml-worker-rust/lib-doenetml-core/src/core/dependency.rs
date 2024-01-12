@@ -10,7 +10,7 @@ use crate::{
 };
 
 /// A DependencyInstruction is used to make a Dependency based on the input document structure
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum DependencyInstruction {
     Child {
         /// The dependency will match child components that has at least one of these profiles

@@ -124,6 +124,7 @@ impl ComponentNodeStateVariables for TextInput {
                 is_public: true,
                 ..Default::default()
             },
+            Default::default(),
         );
 
         // Use the value state variable for fulling the text component profile
@@ -146,6 +147,7 @@ impl ComponentNodeStateVariables for TextInput {
                 for_renderer: true,
                 ..Default::default()
             },
+            Default::default(),
         );
 
         // save a view to field for easy access when create flat dast
@@ -163,9 +165,9 @@ impl ComponentNodeStateVariables for TextInput {
             Box::new(SyncImmediateValueStateVarInterface::default()),
             StateVarParameters {
                 name: "syncImmediateValue",
-                initial_essential_value: true,
                 ..Default::default()
             },
+            true,
         );
         self.common
             .state_variables
@@ -198,6 +200,7 @@ impl StateVarInterface<String> for ValueStateVarInterface {
     fn return_dependency_instructions(
         &self,
         _extend_source: Option<&ExtendSource>,
+        _parameters: &StateVarParameters,
     ) -> Vec<DependencyInstruction> {
         vec![
             DependencyInstruction::Essential {
@@ -338,6 +341,7 @@ impl StateVarInterface<String> for ImmediateValueStateVarInterface {
     fn return_dependency_instructions(
         &self,
         _extend_source: Option<&ExtendSource>,
+        _parameters: &StateVarParameters,
     ) -> Vec<DependencyInstruction> {
         vec![
             DependencyInstruction::Essential {
@@ -449,6 +453,7 @@ impl StateVarInterface<bool> for SyncImmediateValueStateVarInterface {
     fn return_dependency_instructions(
         &self,
         _extend_source: Option<&ExtendSource>,
+        _parameters: &StateVarParameters,
     ) -> Vec<DependencyInstruction> {
         vec![DependencyInstruction::Essential { prefill: None }]
     }
