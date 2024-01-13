@@ -16,7 +16,8 @@
         "./packages/codemirror",
         "./packages/doenetml",
         "./packages/doenetml-prototype",
-        "./packages/*"
+        "./packages/*",
+        "./packages/doenetml-worker-rust/lib-js-wasm-binding/pkg"
     ],
     "scripts": {
         "build": "npm run build --workspace packages/test-viewer",

@@ -2,9 +2,13 @@ mod utils;
 
 extern crate web_sys;
 
+use std::collections::HashMap;
+
+use serde::Serialize;
+use tsify::Tsify;
 use wasm_bindgen::prelude::*;
 
-use doenetml_core::DoenetMLCore;
+use doenetml_core::{dast::FlatDastElementUpdate, Action, ComponentIdx, DoenetMLCore};
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.
@@ -20,6 +24,12 @@ pub struct PublicDoenetMLCore {
     source: String,
     flags_json: Option<String>,
     initialized: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Tsify)]
+#[tsify(into_wasm_abi)]
+pub struct ActionResponse {
+    payload: HashMap<ComponentIdx, FlatDastElementUpdate>,
 }
 
 #[wasm_bindgen]
@@ -65,7 +75,14 @@ impl PublicDoenetMLCore {
         Ok(serde_json::to_string(&self.core.as_mut().unwrap().to_flat_dast()).unwrap())
     }
 
-    pub fn dispatch_action(&mut self, action: &str) -> String {
-        serde_json::to_string(&self.core.as_mut().unwrap().dispatch_action(action)).unwrap()
+    /// Send an action to DoenetMLCore. This is often in response to a user
+    /// interaction with a component (and requesting a change to that component, like
+    /// changing the value of a slider).
+    ///
+    /// Returns updates to the FlatDast.
+    pub fn dispatch_action(&mut self, action: Action) -> ActionResponse {
+        ActionResponse {
+            payload: self.core.as_mut().unwrap().dispatch_action(action),
+        }
     }
 }

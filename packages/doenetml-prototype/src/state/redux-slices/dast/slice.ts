@@ -3,9 +3,11 @@ import type { PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "../../store";
 import { DastError, DastRoot } from "@doenet/parser";
 import type {
-    ElementUpdates,
+    ActionResponse,
     FlatDastRoot,
 } from "@doenet/doenetml-worker-rust";
+
+type ElementUpdates = ActionResponse["payload"];
 
 // Define a type for the slice state
 export interface DastState {
@@ -77,16 +79,16 @@ const dastSlice = createSlice({
                 if (elm.type === "error") {
                     throw new Error("Updating errors is not yet implemented");
                 }
-                if (update.changed_state) {
+                if (update.changedState) {
                     elm.data ??= { id: Number(id), state: {} };
                     elm.data.state ??= {};
-                    Object.assign(elm.data.state, update.changed_state);
+                    Object.assign(elm.data.state, update.changedState);
                 }
-                if (update.changed_attributes) {
+                if (update.changedAttributes) {
                     console.warn("Updating attributes is not yet implemented");
                 }
-                if (update.new_children) {
-                    elm.children = update.new_children;
+                if (update.newChildren) {
+                    elm.children = update.newChildren;
                 }
             }
         },

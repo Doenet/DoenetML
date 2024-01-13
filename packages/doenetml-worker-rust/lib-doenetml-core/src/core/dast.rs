@@ -1,11 +1,16 @@
 use serde::{ser::SerializeStruct, Deserialize, Serialize};
 use std::collections::HashMap;
+#[cfg(feature = "web")]
+use tsify::Tsify;
+#[cfg(feature = "web")]
+use wasm_bindgen::prelude::*;
 
 use crate::state::StateVarValue;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "root")]
+#[cfg_attr(feature = "web", derive(Tsify))]
 pub struct DastRoot {
     pub children: Vec<DastElementContent>,
 
@@ -15,6 +20,7 @@ pub struct DastRoot {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
+#[cfg_attr(feature = "web", derive(Tsify))]
 pub enum DastElementContent {
     Element(DastElement),
     Text(DastText),
@@ -25,6 +31,7 @@ pub enum DastElementContent {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
+#[cfg_attr(feature = "web", derive(Tsify))]
 pub enum DastTextMacroContent {
     Text(DastText),
     Macro(DastMacro),
@@ -34,6 +41,7 @@ pub enum DastTextMacroContent {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "element")]
+#[cfg_attr(feature = "web", derive(Tsify))]
 pub struct DastElement {
     pub name: String,
 
@@ -49,6 +57,7 @@ pub struct DastElement {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[cfg_attr(feature = "web", derive(Tsify))]
 pub struct ElementData {
     pub id: usize,
 
@@ -65,6 +74,7 @@ pub struct ElementData {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "text")]
+#[cfg_attr(feature = "web", derive(Tsify))]
 pub struct DastText {
     pub value: String,
 
@@ -76,11 +86,13 @@ pub struct DastText {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "web", derive(Tsify))]
 pub struct TextData {}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "attribute")]
+#[cfg_attr(feature = "web", derive(Tsify))]
 pub struct DastAttribute {
     pub name: String,
     pub children: Vec<DastTextMacroContent>,
@@ -118,6 +130,7 @@ impl DastAttribute {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "macro")]
+#[cfg_attr(feature = "web", derive(Tsify))]
 pub struct DastMacro {
     pub path: Vec<PathPart>,
     pub attributes: HashMap<String, DastAttribute>,
@@ -129,6 +142,7 @@ pub struct DastMacro {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "function")]
+#[cfg_attr(feature = "web", derive(Tsify))]
 pub struct DastFunctionMacro {
     pub path: Vec<PathPart>,
     pub input: Option<Vec<Vec<DastElementContent>>>,
@@ -140,6 +154,7 @@ pub struct DastFunctionMacro {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "pathPart")]
+#[cfg_attr(feature = "web", derive(Tsify))]
 pub struct PathPart {
     pub name: String,
     pub index: Vec<DastIndex>,
@@ -151,6 +166,7 @@ pub struct PathPart {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "index")]
+#[cfg_attr(feature = "web", derive(Tsify))]
 pub struct DastIndex {
     pub value: Vec<DastTextMacroContent>,
 
@@ -161,6 +177,7 @@ pub struct DastIndex {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "error")]
+#[cfg_attr(feature = "web", derive(Tsify))]
 pub struct DastError {
     pub message: String,
 
@@ -169,12 +186,14 @@ pub struct DastError {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "web", derive(Tsify))]
 pub struct Position {
     pub start: Point,
     pub end: Point,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "web", derive(Tsify))]
 pub struct Point {
     pub line: usize,
     pub column: usize,
@@ -185,6 +204,7 @@ pub struct Point {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "root")]
+#[cfg_attr(feature = "web", derive(Tsify))]
 pub struct FlatDastRoot {
     pub children: Vec<FlatDastElementContent>,
 
@@ -197,6 +217,7 @@ pub struct FlatDastRoot {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
+#[cfg_attr(feature = "web", derive(Tsify))]
 pub enum FlatDastElementContent {
     Element(usize),
     Text(String),
@@ -205,6 +226,7 @@ pub enum FlatDastElementContent {
 #[derive(Debug, Clone, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "element")]
+#[cfg_attr(feature = "web", derive(Tsify))]
 pub struct FlatDastElement {
     pub name: String,
 
@@ -265,6 +287,7 @@ impl Serialize for FlatDastElement {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "warning")]
+#[cfg_attr(feature = "web", derive(Tsify))]
 pub struct DastWarning {
     pub message: String,
 
@@ -275,6 +298,8 @@ pub struct DastWarning {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "elementUpdate")]
+#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "web", derive(Tsify))]
 pub struct FlatDastElementUpdate {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub changed_attributes: Option<HashMap<String, DastAttribute>>,

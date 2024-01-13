@@ -1,5 +1,10 @@
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
+#[cfg(feature = "web")]
+use tsify::{declare, Tsify};
+#[cfg(feature = "web")]
+use wasm_bindgen::prelude::*;
+
 use super::components::component_creation::{create_component_children, replace_macro_referents};
 use super::components::{
     ComponentEnum, ComponentNode, ComponentNodeStateVariables, RenderedComponentNode,
@@ -29,6 +34,7 @@ pub struct StateVarPointer {
     pub state_var_idx: StateVarIdx,
 }
 
+#[cfg_attr(feature = "web", declare)]
 pub type ComponentIdx = usize;
 pub type StateVarIdx = usize;
 
@@ -225,6 +231,9 @@ pub struct StateVariableShadowingMatch {
 
 /// Specification of an action call received from renderer
 #[derive(Debug)]
+#[cfg_attr(feature = "web", derive(serde::Serialize, serde::Deserialize, Tsify))]
+#[cfg_attr(feature = "web", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
 pub struct Action {
     pub component_idx: ComponentIdx,
     pub action_name: String,
@@ -332,13 +341,28 @@ impl DoenetMLCore {
     /// - `args`: an object containing data that will be interpreted by the action implementation.
     ///   The values of each field must be quantities that can be converted into `StateVarValue`
     ///   or a vector of `StateVarValue`.
+    #[cfg(not(feature = "web"))]
     pub fn dispatch_action(
         &mut self,
         action: &str,
     ) -> HashMap<ComponentIdx, FlatDastElementUpdate> {
         let action = parse_json::parse_action_from_json(action)
             .unwrap_or_else(|_| panic!("Error parsing json action: {}", action));
+        self._do_dispatch_action(action)
+    }
 
+    #[cfg(feature = "web")]
+    pub fn dispatch_action(
+        &mut self,
+        action: Action,
+    ) -> HashMap<ComponentIdx, FlatDastElementUpdate> {
+        self._do_dispatch_action(action)
+    }
+
+    pub fn _do_dispatch_action(
+        &mut self,
+        action: Action,
+    ) -> HashMap<ComponentIdx, FlatDastElementUpdate> {
         if action.action_name == "recordVisibilityChange" {
             return HashMap::new();
         }
