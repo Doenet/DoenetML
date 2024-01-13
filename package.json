@@ -21,8 +21,8 @@
     ],
     "scripts": {
         "build": "npm run build --workspace packages/test-viewer",
-        "build:all": "npm run build -ws",
-        "test": "npm run test -ws -- run"
+        "build:all": "npm run build -ws --if-present",
+        "test": "npm run test -ws --if-present -- run"
     },
     "repository": {
         "type": "git",
