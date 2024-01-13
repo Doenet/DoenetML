@@ -323,6 +323,8 @@ pub struct DastWarning {
     pub position: Option<Position>,
 }
 
+/// An update to a single element in the Dast tree.
+/// It may contain changes to the element's attributes, children, or `data.state`.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "elementUpdate")]
