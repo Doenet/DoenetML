@@ -21,7 +21,6 @@ ndarray = { workspace = true }
 instant = { workspace = true }
 strum = { workspace = true }
 strum_macros = { workspace = true }
-tailcall = { workspace = true }
 enum_dispatch = { workspace = true }
 anyhow = { workspace = true }
 

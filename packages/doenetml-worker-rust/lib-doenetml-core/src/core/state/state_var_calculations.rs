@@ -1,7 +1,5 @@
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
-use tailcall::tailcall;
-
 use crate::{
     components::{ComponentEnum, ComponentNode, RenderedComponentNode},
     dependency::{
@@ -294,9 +292,8 @@ pub fn freshen_state_var(
     }
 }
 
-#[tailcall]
 pub fn resolve_state_var(
-    state_var_ptr: StateVarPointer,
+    original_state_var_ptr: StateVarPointer,
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
     dependencies: &mut Vec<Vec<Vec<Vec<Dependency>>>>,
     dependent_on_state_var: &mut Vec<Vec<Vec<StateVarPointer>>>,
@@ -305,6 +302,12 @@ pub fn resolve_state_var(
     // freshen_stack: &mut Vec<StateVarCalculationState>,
     should_initialize_essential_data: bool,
 ) {
+    // Since resolving state variables won't recurse with repeated actions,
+    // will go ahead and allocate the stack locally, for simplicity.
+    let mut resolve_stack = Vec::new();
+    resolve_stack.push(original_state_var_ptr);
+
+    while let Some(state_var_ptr) = resolve_stack.pop() {
     let component_idx = state_var_ptr.component_idx;
     let state_var_idx = state_var_ptr.state_var_idx;
 
@@ -317,15 +320,15 @@ pub fn resolve_state_var(
         let current_freshness = state_var.get_freshness();
 
         if current_freshness != Freshness::Unresolved {
-            return ();
+                // nothing to do if the state variable is already resolved
+                continue;
         }
 
-        dependency_instructions = state_var.return_dependency_instructions(component.get_extend());
+            dependency_instructions =
+                state_var.return_dependency_instructions(component.get_extend());
     }
 
     let mut dependencies_for_state_var = Vec::with_capacity(dependency_instructions.len());
-
-    let mut unresolved_state_variable_dependencies: Vec<StateVarPointer> = Vec::new();
 
     for dep_instruction in dependency_instructions.iter() {
         let instruct_dependencies = create_dependencies_from_instruction_initialize_essential(
@@ -380,7 +383,8 @@ pub fn resolve_state_var(
                 let new_current_freshness = dep.value.get_freshness();
 
                 if new_current_freshness == Freshness::Unresolved {
-                    unresolved_state_variable_dependencies.push(new_state_var_ptr);
+                        // recurse to any unresolved dependencies
+                        resolve_stack.push(new_state_var_ptr);
                 }
             }
         }
@@ -400,18 +404,8 @@ pub fn resolve_state_var(
     }
 
     {
-        components[component_idx].borrow().get_state_variables()[state_var_idx].set_as_resolved();
+            components[component_idx].borrow().get_state_variables()[state_var_idx]
+                .set_as_resolved();
     }
-
-    for new_state_var_ptr in unresolved_state_variable_dependencies {
-        resolve_state_var(
-            new_state_var_ptr,
-            components,
-            dependencies,
-            dependent_on_state_var,
-            dependent_on_essential,
-            essential_data,
-            should_initialize_essential_data,
-        )
     }
 }
