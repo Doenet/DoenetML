@@ -7,6 +7,7 @@ use wasm_bindgen::prelude::*;
 
 use crate::state::StateVarValue;
 
+/// Allowed children of the root node
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "root")]
@@ -18,6 +19,7 @@ pub struct DastRoot {
     pub position: Option<Position>,
 }
 
+/// Allowed children of an element node
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 #[cfg_attr(feature = "web", derive(Tsify))]
@@ -29,6 +31,7 @@ pub enum DastElementContent {
     Error(DastError),
 }
 
+/// Allowed children of an attribute node
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 #[cfg_attr(feature = "web", derive(Tsify))]
@@ -38,6 +41,7 @@ pub enum DastTextMacroContent {
     FunctionMacro(DastFunctionMacro),
 }
 
+/// An element node
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "element")]
@@ -56,6 +60,8 @@ pub struct DastElement {
     pub position: Option<Position>,
 }
 
+/// Additional data associated with an element. The majority of the data
+/// that DoenetMLCore produces will end up in `ElementData`
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[cfg_attr(feature = "web", derive(Tsify))]
 pub struct ElementData {
@@ -71,6 +77,7 @@ pub struct ElementData {
     pub state: Option<HashMap<String, StateVarValue>>,
 }
 
+/// A text node
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "text")]
@@ -89,6 +96,9 @@ pub struct DastText {
 #[cfg_attr(feature = "web", derive(Tsify))]
 pub struct TextData {}
 
+/// An attribute. Unlike in XML, attributes can have non-string children.
+/// It is up to the serializer to convert the non-string children into a
+/// correct attribute value.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "attribute")]
@@ -127,6 +137,7 @@ impl DastAttribute {
     }
 }
 
+/// A macro (i.e., a macro that starts with `$`)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "macro")]
@@ -139,6 +150,7 @@ pub struct DastMacro {
     pub position: Option<Position>,
 }
 
+/// A function macro (i.e., a macro that starts with `$$`)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "function")]
@@ -151,6 +163,7 @@ pub struct DastFunctionMacro {
     pub position: Option<Position>,
 }
 
+/// A part of a macro path
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "pathPart")]
@@ -163,6 +176,7 @@ pub struct PathPart {
     pub position: Option<Position>,
 }
 
+/// An index into a macro path
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "index")]
@@ -174,6 +188,9 @@ pub struct DastIndex {
     pub position: Option<Position>,
 }
 
+/// An error node that can be inserted into the Dast tree.
+/// Because `DastError`s can be inserted into the tree, they
+/// can appear close to whatever caused the error.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "error")]
@@ -185,6 +202,7 @@ pub struct DastError {
     pub position: Option<Position>,
 }
 
+/// Range in a source string
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "web", derive(Tsify))]
 pub struct Position {
@@ -192,6 +210,7 @@ pub struct Position {
     pub end: Point,
 }
 
+/// Location in a source string
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "web", derive(Tsify))]
 pub struct Point {
@@ -201,6 +220,10 @@ pub struct Point {
     pub offset: Option<usize>,
 }
 
+/// Root element of `FlatDast`, which flattens the tree structure of `Dast`.
+/// All `text` nodes are converted into literal strings. Each `element` is given
+/// a unique id and children of elements/roots are represented as an array of
+/// ids and string literals.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "root")]
@@ -223,6 +246,9 @@ pub enum FlatDastElementContent {
     Text(String),
 }
 
+/// A flattened version of DastElement that is easier to serialize
+/// Instead of children, an array of references to to child ids is used
+/// for element children, and `text` children are included as literal strings.
 #[derive(Debug, Clone, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "element")]
@@ -284,6 +310,7 @@ impl Serialize for FlatDastElement {
     }
 }
 
+/// Non-fatal error produced when running DoenetMLCore
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "warning")]
