@@ -278,7 +278,8 @@ pub trait ComponentNodeStateVariables {
 /// and the resulting dependency will give the value of that state variable.
 #[derive(Debug, Clone, PartialEq)]
 pub enum ComponentProfile {
-    Text,
+    Text,   // matched by text state variables, also matched by literal string children
+    String, // matched by literal string children only
     Number,
     Integer,
     Boolean,
@@ -297,6 +298,7 @@ pub enum ComponentProfile {
 #[derive(Debug, Clone)]
 pub enum ComponentProfileStateVariable {
     Text(StateVarReadOnlyViewTyped<String>, StateVarName),
+    String(StateVarReadOnlyViewTyped<String>, StateVarName),
     Number(StateVarReadOnlyViewTyped<f64>, StateVarName),
     Integer(StateVarReadOnlyViewTyped<i64>, StateVarName),
     Boolean(StateVarReadOnlyViewTyped<bool>, StateVarName),
@@ -309,6 +311,7 @@ impl ComponentProfileStateVariable {
     pub fn get_matching_profile(&self) -> ComponentProfile {
         match self {
             ComponentProfileStateVariable::Text(..) => ComponentProfile::Text,
+            ComponentProfileStateVariable::String(..) => ComponentProfile::String,
             ComponentProfileStateVariable::Number(..) => ComponentProfile::Number,
             ComponentProfileStateVariable::Integer(..) => ComponentProfile::Integer,
             ComponentProfileStateVariable::Boolean(..) => ComponentProfile::Boolean,
@@ -326,6 +329,10 @@ impl ComponentProfileStateVariable {
     ) -> (StateVarReadOnlyView, StateVarName) {
         match self {
             ComponentProfileStateVariable::Text(sv, name) => (
+                StateVarReadOnlyView::String(sv.create_new_read_only_view()),
+                name,
+            ),
+            ComponentProfileStateVariable::String(sv, name) => (
                 StateVarReadOnlyView::String(sv.create_new_read_only_view()),
                 name,
             ),

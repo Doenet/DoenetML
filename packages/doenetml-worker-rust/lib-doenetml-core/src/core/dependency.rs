@@ -275,8 +275,10 @@ pub fn create_dependencies_from_instruction_initialize_essential(
                         }
                     }
                     (ComponentPointerTextOrMacro::Text(string_value), parent_idx) => {
-                        // Text children are just strings, and they just match the Text profile
-                        if match_profiles.contains(&ComponentProfile::Text) {
+                        // Text children are just strings, and they just match the String or Text profiles
+                        if match_profiles.contains(&ComponentProfile::String)
+                            || match_profiles.contains(&ComponentProfile::Text)
+                        {
                             relevant_children.push(RelevantChild::String {
                                 value: string_value,
                                 parent: *parent_idx,

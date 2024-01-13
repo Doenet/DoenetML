@@ -7,6 +7,8 @@ use crate::{
     ExtendSource,
 };
 
+use super::common::create_dependency_instruction_from_extend_source;
+
 // use super::{
 //     StateVarInterface, StateVarMutableViewTyped, StateVarParameters, StateVarReadOnlyView,
 //     StateVarReadOnlyViewTyped,
@@ -30,30 +32,10 @@ impl StateVarInterface<String> for GeneralStringStateVarInterface {
         let mut dep_instructs: Vec<DependencyInstruction> = Vec::with_capacity(2);
 
         if parameters.create_dependency_from_extend_source {
-            if let Some(ExtendSource::StateVar(extend_state_var_description)) = extend_source {
-                for state_var_match in extend_state_var_description.state_variable_matching.iter() {
-                    if state_var_match
-                        .shadowing_name
-                        .and_then(|name| Some(name == parameters.name))
-                        .or_else(|| {
-                            Some(parameters.is_primary_state_variable_for_shadowing_extend_source)
-                        })
-                        .unwrap()
-                    {
-                        // Either
-                        // 1. shadowing name was supplied and it matches the name of the state variable, or
-                        // 2. shadowing name was not supplied and this variable is the primary state variable
-                        //    for use when shadowing extend sources.
-                        // Therefore, we shadow the extend source.
-
-                        dep_instructs.push(DependencyInstruction::StateVar {
-                            component_idx: Some(extend_state_var_description.component_idx),
-                            state_var_name: state_var_match.shadowed_name,
-                        });
-
-                        break;
-                    }
-                }
+            if let Some(dep_inst) =
+                create_dependency_instruction_from_extend_source(extend_source, parameters)
+            {
+                dep_instructs.push(dep_inst)
             }
         }
 
