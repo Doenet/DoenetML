@@ -228,6 +228,7 @@ pub struct Point {
 #[serde(tag = "type")]
 #[serde(rename = "root")]
 #[cfg_attr(feature = "web", derive(Tsify))]
+#[cfg_attr(feature = "web", tsify(into_wasm_abi))]
 pub struct FlatDastRoot {
     pub children: Vec<FlatDastElementContent>,
 

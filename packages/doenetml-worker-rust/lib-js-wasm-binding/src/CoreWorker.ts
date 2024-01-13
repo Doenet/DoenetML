@@ -9,17 +9,6 @@ import type { DastRoot, DastElement, DastError } from "@doenet/parser";
 
 type Flags = Record<string, unknown>;
 
-export interface FlatDastElement extends Omit<DastElement, "children"> {
-    children: (number | string)[];
-    data: { id: number; state?: Record<string, unknown> };
-}
-export interface FlatDastRoot {
-    type: "root";
-    children: number[];
-    elements: (FlatDastElement | DastError)[];
-    warnings: unknown[];
-}
-
 export class CoreWorker {
     doenetCore?: PublicDoenetMLCore;
     wasm_initialized = false;
@@ -84,9 +73,7 @@ export class CoreWorker {
         }
 
         try {
-            let flat_dast = JSON.parse(
-                this.doenetCore.return_dast(),
-            ) as FlatDastRoot;
+            let flat_dast = this.doenetCore.return_dast();
             return flat_dast;
         } catch (err) {
             console.error(err);
