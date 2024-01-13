@@ -44,14 +44,14 @@ impl ComponentNode for _External {
             .get_state_variables()
             .iter()
             .enumerate()
-            .filter_map(|(ind, state_var)| state_var.get_for_renderer().then(|| ind))
+            .filter_map(|(ind, state_var)| state_var.get_for_renderer().then_some(ind))
             .collect();
 
         self.common.public_state_variable_indices = self
             .get_state_variables()
             .iter()
             .enumerate()
-            .filter_map(|(ind, state_var)| state_var.get_is_public().then(|| ind))
+            .filter_map(|(ind, state_var)| state_var.get_is_public().then_some(ind))
             .collect();
 
         self.common.state_variable_name_to_index = HashMap::new();
@@ -112,11 +112,11 @@ impl ComponentNode for _External {
         &self.common.public_state_variable_indices
     }
 
-    fn get_state_variable_index_from_name(&self, name: &String) -> Option<usize> {
+    fn get_state_variable_index_from_name(&self, name: &str) -> Option<usize> {
         self.common.state_variable_name_to_index.get(name).copied()
     }
 
-    fn get_state_variable_index_from_name_case_insensitive(&self, name: &String) -> Option<usize> {
+    fn get_state_variable_index_from_name_case_insensitive(&self, name: &str) -> Option<usize> {
         self.common
             .state_variable_name_to_index
             .get_key_value_ignore_case(name)

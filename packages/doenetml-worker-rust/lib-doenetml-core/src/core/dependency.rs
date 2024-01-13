@@ -164,7 +164,7 @@ pub fn create_dependencies_from_instruction_initialize_essential(
             let comp = components[comp_idx].borrow();
 
             let sv_idx = comp
-                .get_state_variable_index_from_name(&state_var_name.to_string())
+                .get_state_variable_index_from_name(state_var_name)
                 .unwrap_or_else(|| panic!("Invalid state variable 1: {}", state_var_name));
 
             vec![Dependency {
@@ -188,7 +188,7 @@ pub fn create_dependencies_from_instruction_initialize_essential(
             let parent = components[parent_idx].borrow();
 
             let sv_idx = parent
-                .get_state_variable_index_from_name(&state_var_name.to_string())
+                .get_state_variable_index_from_name(state_var_name)
                 .unwrap_or_else(|| panic!("Invalid state variable 2: {}", state_var_name));
 
             vec![Dependency {
@@ -257,7 +257,7 @@ pub fn create_dependencies_from_instruction_initialize_essential(
                                 profile_sv.return_untyped_state_variable_view_and_name();
 
                             let sv_idx = child
-                                .get_state_variable_index_from_name(&sv_name.to_string())
+                                .get_state_variable_index_from_name(sv_name)
                                 .unwrap_or_else(|| panic!("Invalid state variable 3: {}", sv_name));
 
                             let state_var_dep = Dependency {
@@ -312,7 +312,7 @@ pub fn create_dependencies_from_instruction_initialize_essential(
                     } => {
                         let index = essential_data_numbering
                             .entry(actual_parent_idx)
-                            .or_insert(0 as usize);
+                            .or_insert(0_usize);
 
                         let essential_origin = EssentialDataOrigin::StringChild(*index);
 

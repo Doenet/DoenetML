@@ -74,7 +74,7 @@ impl ComponentNodeStateVariables for Text {
         ///////////////////////
 
         let value_state_variable = StateVarTyped::new(
-            Box::new(GeneralStringStateVarInterface::default()),
+            Box::<GeneralStringStateVarInterface>::default(),
             StateVarParameters {
                 for_renderer: true,
                 name: "value",
@@ -85,7 +85,6 @@ impl ComponentNodeStateVariables for Text {
                 create_dependency_from_extend_source: true,
                 is_primary_state_variable_for_shadowing_extend_source: true,
                 is_public: true,
-                ..Default::default()
             },
             Default::default(),
         );
@@ -106,7 +105,7 @@ impl ComponentNodeStateVariables for Text {
         // Text state variable
         //////////////////////
         let text_state_variable = StateVarTyped::new(
-            Box::new(SingleDependencyStringStateVarInterface::default()),
+            Box::<SingleDependencyStringStateVarInterface>::default(),
             StateVarParameters {
                 name: "text",
                 dependency_instruction_hint: Some(DependencyInstruction::StateVar {

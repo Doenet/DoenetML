@@ -1,8 +1,8 @@
 use crate::{
     components::prelude::{
-        Dependency, DependencyInstruction, DependencyValueUpdateRequest, StateVarInterface,
-        StateVarMutableViewTyped, StateVarParameters, StateVarReadOnlyView,
-        StateVarReadOnlyViewTyped,
+        Dependency, DependencyInstruction, DependencyValueUpdateRequest,
+        RequestDependencyUpdateError, StateVarInterface, StateVarMutableViewTyped,
+        StateVarParameters, StateVarReadOnlyView, StateVarReadOnlyViewTyped,
     },
     ExtendSource,
 };
@@ -46,10 +46,7 @@ impl StateVarInterface<String> for GeneralStringStateVarInterface {
         dep_instructs
     }
 
-    fn save_dependencies_for_value_calculation(
-        &mut self,
-        dependencies: &Vec<Vec<Dependency>>,
-    ) -> () {
+    fn save_dependencies_for_value_calculation(&mut self, dependencies: &Vec<Vec<Dependency>>) {
         let num_dependencies = dependencies.iter().fold(0, |a, c| a + c.len());
 
         let mut string_vals = Vec::with_capacity(num_dependencies);
@@ -73,7 +70,7 @@ impl StateVarInterface<String> for GeneralStringStateVarInterface {
     fn calculate_state_var_from_dependencies_and_mark_fresh(
         &self,
         state_var: &StateVarMutableViewTyped<String>,
-    ) -> () {
+    ) {
         // TODO: can we implement this without cloning the inner value?
         let value: String = self
             .string_dependency_values
@@ -88,10 +85,10 @@ impl StateVarInterface<String> for GeneralStringStateVarInterface {
         &self,
         state_var: &StateVarReadOnlyViewTyped<String>,
         _is_direct_change_from_renderer: bool,
-    ) -> Result<Vec<DependencyValueUpdateRequest>, ()> {
+    ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
         if self.string_dependency_values.len() != 1 {
             // TODO: implement for no dependencies where saves to essential value?
-            Err(())
+            Err(RequestDependencyUpdateError::CouldNotUpdate)
         } else {
             let desired_value = state_var.get_requested_value();
 
@@ -141,11 +138,8 @@ impl StateVarInterface<String> for SingleDependencyStringStateVarInterface {
         dep_instructs
     }
 
-    fn save_dependencies_for_value_calculation(
-        &mut self,
-        dependencies: &Vec<Vec<Dependency>>,
-    ) -> () {
-        if dependencies.len() == 0 {
+    fn save_dependencies_for_value_calculation(&mut self, dependencies: &Vec<Vec<Dependency>>) {
+        if dependencies.is_empty() {
             panic!("SingleDependencyStringStateVarInterface requires a dependency");
         }
 
@@ -161,7 +155,7 @@ impl StateVarInterface<String> for SingleDependencyStringStateVarInterface {
     fn calculate_state_var_from_dependencies_and_mark_fresh(
         &self,
         state_var: &StateVarMutableViewTyped<String>,
-    ) -> () {
+    ) {
         state_var.set_value(self.string_dependency_value.get_fresh_value().clone());
     }
 
@@ -169,7 +163,7 @@ impl StateVarInterface<String> for SingleDependencyStringStateVarInterface {
         &self,
         state_var: &StateVarReadOnlyViewTyped<String>,
         _is_direct_change_from_renderer: bool,
-    ) -> Result<Vec<DependencyValueUpdateRequest>, ()> {
+    ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
         let desired_value = state_var.get_requested_value();
 
         self.string_dependency_value

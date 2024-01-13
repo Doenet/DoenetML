@@ -25,6 +25,6 @@ pub use crate::dast::{
 };
 pub use crate::dependency::{Dependency, DependencyInstruction, DependencyValueUpdateRequest};
 pub use crate::state::{
-    StateVarInterface, StateVarMutableViewTyped, StateVarParameters, StateVarReadOnlyView,
-    StateVarReadOnlyViewTyped, StateVarTyped, StateVarValue,
+    RequestDependencyUpdateError, StateVarInterface, StateVarMutableViewTyped, StateVarParameters,
+    StateVarReadOnlyView, StateVarReadOnlyViewTyped, StateVarTyped, StateVarValue,
 };

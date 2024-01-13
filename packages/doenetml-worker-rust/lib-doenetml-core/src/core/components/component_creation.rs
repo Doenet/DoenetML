@@ -2,7 +2,7 @@ use std::{cell::RefCell, collections::HashMap, rc::Rc, str::FromStr};
 
 use crate::{
     components::{ComponentEnum, ComponentNode, _error::_Error, _external::_External},
-    dast::{DastElementContent, DastWarning, PathPart},
+    dast::{DastElementContent, PathPart},
     ComponentIdx, ComponentPointerTextOrMacro, ExtendSource, ExtendStateVariableDescription,
     StateVariableShadowingMatch,
 };
@@ -25,7 +25,6 @@ use crate::{
 ///   and the values being vectors of the component indices where that name was encountered.
 pub fn create_component_children(
     components: &mut Vec<Rc<RefCell<ComponentEnum>>>,
-    warnings: &mut Vec<DastWarning>,
     dast_children: &Vec<DastElementContent>,
     parent_idx_option: Option<ComponentIdx>,
 ) -> (
@@ -88,12 +87,8 @@ pub fn create_component_children(
 
                 // recurse to children after adding to components
                 // so that will get the correct indices for the children
-                let (child_children, child_descendent_names) = create_component_children(
-                    components,
-                    warnings,
-                    &child_element.children,
-                    Some(child_idx),
-                );
+                let (child_children, child_descendent_names) =
+                    create_component_children(components, &child_element.children, Some(child_idx));
 
                 let child_node = &mut components[child_idx].borrow_mut();
 
@@ -186,9 +181,9 @@ pub fn replace_macro_referents(
                 }
                 ComponentPointerTextOrMacro::Macro(ref dast_macro) => {
                     if let Some((matched_component_idx, path_remainder)) =
-                        match_name_reference(&components, &dast_macro.path, component_idx)
+                        match_name_reference(components, &dast_macro.path, component_idx)
                     {
-                        if path_remainder.len() > 0 {
+                        if !path_remainder.is_empty() {
                             // Have a remaining part of the path that wasn't matched by component names.
                             // Attempt to match it to a public state variable of the component,
                             // returning the macro for now if no match
@@ -263,20 +258,20 @@ fn match_name_reference<'a>(
         if matched_indices.len() == 1 {
             // matched initial part of the macro path
             // check if can match any additional parts of the path
-            return match_descendant_names(components, &path[1..], matched_indices[0]);
+            match_descendant_names(components, &path[1..], matched_indices[0])
         } else {
             // If there is more than one component that matches the name,
             // then we have no match (do not recurse to parent).
             // (We are assuming there are no zero length vectors of descendent matches.)
-            return None;
+            None
         }
     } else if let Some(parent_idx) = comp.get_parent() {
         // since the initial path piece was not found in this component's descendants,
         // recurse to parent
-        return match_name_reference(components, path, parent_idx);
+        match_name_reference(components, path, parent_idx)
     } else {
         // we reached the root with no match found
-        return None;
+        None
     }
 }
 
@@ -300,7 +295,7 @@ fn match_descendant_names<'a>(
     path: &'a [PathPart],
     comp_idx: ComponentIdx,
 ) -> Option<(ComponentIdx, &'a [PathPart])> {
-    if path.len() > 0 {
+    if !path.is_empty() {
         let comp = &components[comp_idx].borrow();
 
         // TODO: handle index of path
@@ -339,9 +334,9 @@ fn match_descendant_names<'a>(
 /// - None if no match is found
 ///
 /// TODO: this function is incomplete as path index and multiple path parts are ignored.
-fn match_public_state_variable<'a>(
+fn match_public_state_variable(
     components: &mut Vec<Rc<RefCell<ComponentEnum>>>,
-    path: &'a [PathPart],
+    path: &[PathPart],
     matched_component_idx: ComponentIdx,
     parent_idx: ComponentIdx,
 ) -> Option<ComponentPointerTextOrMacro> {

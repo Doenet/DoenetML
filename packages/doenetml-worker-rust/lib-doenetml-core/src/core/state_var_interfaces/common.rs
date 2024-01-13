@@ -11,9 +11,8 @@ pub fn create_dependency_instruction_from_extend_source(
         for state_var_match in extend_state_var_description.state_variable_matching.iter() {
             if state_var_match
                 .shadowing_name
-                .and_then(|name| Some(name == parameters.name))
-                .or_else(|| Some(parameters.is_primary_state_variable_for_shadowing_extend_source))
-                .unwrap()
+                .map(|name| name == parameters.name)
+                .unwrap_or(parameters.is_primary_state_variable_for_shadowing_extend_source)
             {
                 // Either
                 // 1. shadowing name was supplied and it matches the name of the state variable, or

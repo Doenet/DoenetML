@@ -1,6 +1,8 @@
 use serde::{ser::SerializeStruct, Deserialize, Serialize};
 use std::collections::HashMap;
 
+use thiserror::Error;
+
 use crate::state::StateVarValue;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -90,7 +92,7 @@ pub struct DastAttribute {
 }
 
 impl DastAttribute {
-    pub fn get_string_value(&self) -> Result<String, ()> {
+    pub fn get_string_value(&self) -> Result<String, NoValueFound> {
         if self.children.len() == 1 {
             if let DastTextMacroContent::Text(name_text) = &self.children[0] {
                 // have string attribute
@@ -98,11 +100,11 @@ impl DastAttribute {
             }
         }
 
-        Err(())
+        Err(NoValueFound)
     }
 
-    pub fn get_string_value_or_implicit_true(&self) -> Result<String, ()> {
-        if self.children.len() == 0 {
+    pub fn get_string_value_or_implicit_true(&self) -> Result<String, NoValueFound> {
+        if self.children.is_empty() {
             return Ok("true".to_string());
         } else if self.children.len() == 1 {
             if let DastTextMacroContent::Text(name_text) = &self.children[0] {
@@ -111,7 +113,7 @@ impl DastAttribute {
             }
         }
 
-        Err(())
+        Err(NoValueFound)
     }
 }
 
@@ -285,3 +287,7 @@ pub struct FlatDastElementUpdate {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub changed_state: Option<HashMap<String, StateVarValue>>,
 }
+
+#[derive(Debug, Error)]
+#[error("no value found")]
+pub struct NoValueFound;

@@ -28,7 +28,7 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
             syn::Fields::Named(FieldsNamed { .. }) => {
                 // Convert struct name to camel case, preserving any initial '_'
                 let mut component_string = name.to_string();
-                if component_string.starts_with("_") {
+                if component_string.starts_with('_') {
                     component_string = format!("_{}", component_string.to_case(Case::Camel));
                 } else {
                     component_string = component_string.to_case(Case::Camel);
@@ -70,14 +70,14 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                                 .get_state_variables()
                                 .iter()
                                 .enumerate()
-                                .filter_map(|(ind, state_var)| state_var.get_for_renderer().then(|| ind))
+                                .filter_map(|(ind, state_var)| state_var.get_for_renderer().then_some(ind))
                                 .collect();
 
                             self.common.public_state_variable_indices = self
                                 .get_state_variables()
                                 .iter()
                                 .enumerate()
-                                .filter_map(|(ind, state_var)| state_var.get_is_public().then(|| ind))
+                                .filter_map(|(ind, state_var)| state_var.get_is_public().then_some(ind))
                                 .collect();
 
                             let name_to_index_pairs: Vec<_> = self
@@ -135,11 +135,11 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                             &self.common.public_state_variable_indices
                         }
 
-                        fn get_state_variable_index_from_name(&self, name: &String) -> Option<usize> {
+                        fn get_state_variable_index_from_name(&self, name: &str) -> Option<usize> {
                             self.common.state_variable_name_to_index.get(name).copied()
                         }
 
-                        fn get_state_variable_index_from_name_case_insensitive(&self, name: &String) -> Option<usize> {
+                        fn get_state_variable_index_from_name_case_insensitive(&self, name: &str) -> Option<usize> {
                             self.common.state_variable_name_to_index
                                 .get_key_value_ignore_case(name)
                                 .map(|(k, v)| *v)

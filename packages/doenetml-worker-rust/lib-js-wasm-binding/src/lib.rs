@@ -24,6 +24,7 @@ pub struct PublicDoenetMLCore {
 
 #[wasm_bindgen]
 impl PublicDoenetMLCore {
+    #[allow(clippy::new_without_default)]
     pub fn new() -> PublicDoenetMLCore {
         utils::set_panic_hook();
         PublicDoenetMLCore {

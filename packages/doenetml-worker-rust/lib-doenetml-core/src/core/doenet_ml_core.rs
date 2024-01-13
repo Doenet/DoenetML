@@ -51,7 +51,46 @@ pub struct DoenetMLCore {
     /// Each component is identified by its *ComponentIdx*, which is its index in this vector.
     pub components: Vec<Rc<RefCell<ComponentEnum>>>,
 
+    /// A DAG whose vertices are the state variables (and attributes?)
+    /// of every component, and whose endpoint vertices are essential data.
+    pub dependency_graph: DependencyGraph,
+
+    /// Endpoints of the dependency graph.
+    /// Every update instruction will lead to these.
+    ///
+    /// The essential data are the only data needed to construct the document state
+    /// as all other state variables are calculated from them.
+    /// When saving state to a database, only essential data needs to be saved.
+    ///
+    /// Data structure:
+    /// - The vector index is the *ComponentIdx* of the component,
+    /// defined by the order in *components*.
+    /// - The hash map key *EssentialDataOrigin* specifies how the component created the essential data.
+    /// - The hash map value *EssentialStateVariable* is a *StateVarMutableView*
+    ///   that stores the value.
+    ///   (Note, unlike for state variables, *EssentialStateVariable* is not attached to any *StateVarTyped*,
+    ///   as it doesn't need a *StateVarInterface*.)
+    pub essential_data: Vec<HashMap<EssentialDataOrigin, EssentialStateVar>>,
+
+    /// if true, then we didn't read in initial essential_data
+    /// so must initialize essential data when creating dependencies
+    /// TODO: how does this work?
+    pub should_initialize_essential_data: bool,
+
+    pub bookkeeping: CoreBookkeeping,
+
+    pub warnings: Vec<DastWarning>,
+
+    /// The original DoenetML string
+    ///
+    /// Main use is for components and properties that extract portions of the DoenetML.
+    pub doenetml: String,
+}
+
+#[derive(Debug)]
+pub struct DependencyGraph {
     /// **The Dependency Graph**
+    ///
     /// A DAG whose vertices are the state variables (and attributes?)
     /// of every component, and whose endpoint vertices are essential data.
     ///
@@ -90,29 +129,9 @@ pub struct DoenetMLCore {
     /// - The hash map value vector is the list of component/state variable combinations
     /// that are dependent on this piece of essential data.
     pub dependent_on_essential: Vec<HashMap<EssentialDataOrigin, Vec<StateVarPointer>>>,
-
-    /// Endpoints of the dependency graph.
-    /// Every update instruction will lead to these.
-    ///
-    /// The essential data are the only data needed to construct the document state
-    /// as all other state variables are calculated from them.
-    /// When saving state to a database, only essential data needs to be saved.
-    ///
-    /// Data structure:
-    /// - The vector index is the *ComponentIdx* of the component,
-    /// defined by the order in *components*.
-    /// - The hash map key *EssentialDataOrigin* specifies how the component created the essential data.
-    /// - The hash map value *EssentialStateVariable* is a *StateVarMutableView*
-    ///   that stores the value.
-    ///   (Note, unlike for state variables, *EssentialStateVariable* is not attached to any *StateVarTyped*,
-    ///   as it doesn't need a *StateVarInterface*.)
-    pub essential_data: Vec<HashMap<EssentialDataOrigin, EssentialStateVar>>,
-
-    /// if true, then we didn't read in initial essential_data
-    /// so must initialize essential data when creating dependencies
-    /// TODO: how does this work?
-    pub should_initialize_essential_data: bool,
-
+}
+#[derive(Debug)]
+pub struct CoreBookkeeping {
     /// List of the rendered components that have stale `for_renderer` state variables.
     /// TODO: currently is not restricted to rendered components.
     pub stale_renderers: Vec<ComponentIdx>,
@@ -122,13 +141,6 @@ pub struct DoenetMLCore {
     pub freshen_stack: Vec<StateVarPointer>,
     pub mark_stale_stack: Vec<StateVarPointer>,
     pub update_stack: Vec<StateVariableUpdateRequest>,
-
-    pub warnings: Vec<DastWarning>,
-
-    /// The original DoenetML string
-    ///
-    /// Main use is for components and properties that extract portions of the DoenetML.
-    pub doenetml: String,
 }
 
 #[derive(Debug)]
@@ -246,10 +258,10 @@ impl DoenetMLCore {
         let dast_root: DastRoot = serde_json::from_str(dast_json).expect("Error extracting dast");
 
         let mut components: Vec<Rc<RefCell<ComponentEnum>>> = Vec::new();
-        let mut warnings: Vec<DastWarning> = Vec::new();
+        let warnings: Vec<DastWarning> = Vec::new();
 
         let (children, descendant_names) =
-            create_component_children(&mut components, &mut warnings, &dast_root.children, None);
+            create_component_children(&mut components, &dast_root.children, None);
 
         // add root node
         let root = DoenetMLRoot {
@@ -274,9 +286,9 @@ impl DoenetMLCore {
         let mut dependent_on_state_var = Vec::with_capacity(components.len());
         let mut dependent_on_essential = Vec::with_capacity(components.len());
 
-        for ind in 0..components.len() {
+        for comp in &components {
             // create vector of length num of state var defs, where each entry is zero-length vector
-            let num_inner_state_var_defs = components[ind].borrow().get_num_state_variables();
+            let num_inner_state_var_defs = comp.borrow().get_num_state_variables();
             dependencies.push((0..num_inner_state_var_defs).map(|_| vec![]).collect());
             dependent_on_state_var.push(vec![Vec::new(); num_inner_state_var_defs]);
 
@@ -292,15 +304,19 @@ impl DoenetMLCore {
             dast_root,
             root,
             components,
-            dependencies,
-            dependent_on_state_var,
-            dependent_on_essential,
+            dependency_graph: DependencyGraph {
+                dependencies,
+                dependent_on_state_var,
+                dependent_on_essential,
+            },
             essential_data,
-            stale_renderers,
             should_initialize_essential_data,
-            freshen_stack: Vec::new(),
-            mark_stale_stack: Vec::new(),
-            update_stack: Vec::new(),
+            bookkeeping: CoreBookkeeping {
+                stale_renderers,
+                freshen_stack: Vec::new(),
+                mark_stale_stack: Vec::new(),
+                update_stack: Vec::new(),
+            },
             warnings,
             doenetml: source.to_string(),
         }
@@ -312,13 +328,10 @@ impl DoenetMLCore {
     /// Returns a vector of the indices of the components reached.
     pub fn freshen_renderer_state(&mut self) -> Vec<ComponentIdx> {
         freshen_all_stale_renderer_states(
-            &mut self.stale_renderers,
+            &mut self.bookkeeping,
             &self.components,
-            &mut self.dependencies,
-            &mut self.dependent_on_state_var,
-            &mut self.dependent_on_essential,
+            &mut self.dependency_graph,
             &mut self.essential_data,
-            &mut self.freshen_stack,
             self.should_initialize_essential_data,
         )
     }
@@ -359,11 +372,9 @@ impl DoenetMLCore {
                     state_var_idx,
                 },
                 &self.components,
-                &mut self.dependencies,
-                &mut self.dependent_on_state_var,
-                &mut self.dependent_on_essential,
+                &mut self.dependency_graph,
                 &mut self.essential_data,
-                &mut self.freshen_stack,
+                &mut self.bookkeeping.freshen_stack,
                 self.should_initialize_essential_data,
             )
         };
@@ -407,9 +418,7 @@ impl DoenetMLCore {
                     resolve_state_var(
                         state_var_ptr,
                         &self.components,
-                        &mut self.dependencies,
-                        &mut self.dependent_on_state_var,
-                        &mut self.dependent_on_essential,
+                        &mut self.dependency_graph,
                         &mut self.essential_data,
                         self.should_initialize_essential_data,
                     );
@@ -421,13 +430,9 @@ impl DoenetMLCore {
                 process_state_variable_update_request(
                     StateVariableUpdateRequest::SetStateVar(state_var_ptr),
                     &self.components,
-                    &mut self.dependencies,
-                    &mut self.dependent_on_state_var,
-                    &mut self.dependent_on_essential,
+                    &mut self.dependency_graph,
                     &mut self.essential_data,
-                    &mut self.stale_renderers,
-                    &mut self.mark_stale_stack,
-                    &mut self.update_stack,
+                    &mut self.bookkeeping,
                 );
             }
         }
@@ -449,13 +454,7 @@ impl DoenetMLCore {
             .map(|comp| comp.borrow_mut().to_flat_dast(&self.components))
             .collect();
 
-        let warnings: Vec<DastWarning> = self
-            .warnings
-            .iter()
-            .map(|warning| warning.clone())
-            .collect();
-
-        self.root.to_flat_dast(elements, warnings)
+        self.root.to_flat_dast(elements, self.warnings.to_vec())
     }
 
     pub fn get_flat_dast_updates(&mut self) -> HashMap<ComponentIdx, FlatDastElementUpdate> {

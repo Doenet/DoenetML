@@ -63,6 +63,7 @@ pub enum InitialEssentialData {
 
 /// Create a piece of essential data that will be indexed by component_idx and origin
 /// and it initialized to the value from initial_values
+#[allow(clippy::ptr_arg)]
 pub fn create_essential_data_for(
     component_idx: ComponentIdx,
     origin: EssentialDataOrigin,
@@ -84,5 +85,5 @@ pub fn create_essential_data_for(
     comp_essential_data.insert(origin.clone(), essential_state);
 
     // since we moved essential_state into the hash map, get a new reference to it here
-    &comp_essential_data.get(&origin).unwrap()
+    comp_essential_data.get(&origin).unwrap()
 }

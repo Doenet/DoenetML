@@ -75,11 +75,11 @@ impl RenderedComponentNode for TextInput {
         ]
     }
 
-    fn on_action<'a>(
+    fn on_action(
         &self,
         action_name: &str,
         args: HashMap<String, Vec<StateVarValue>>,
-        resolve_and_retrieve_state_var: &'a mut dyn FnMut(usize) -> StateVarValue,
+        resolve_and_retrieve_state_var: &mut dyn FnMut(usize) -> StateVarValue,
     ) -> Vec<(usize, StateVarValue)> {
         match action_name {
             "updateImmediateValue" => {
@@ -118,7 +118,7 @@ impl ComponentNodeStateVariables for TextInput {
         // Value state variable
         ///////////////////////
         let value_state_variable = StateVarTyped::new(
-            Box::new(ValueStateVarInterface::default()),
+            Box::<ValueStateVarInterface>::default(),
             StateVarParameters {
                 name: "value",
                 is_public: true,
@@ -140,7 +140,7 @@ impl ComponentNodeStateVariables for TextInput {
         // Immediate value state variable
         /////////////////////////////////
         let immediate_value_state_variable = StateVarTyped::new(
-            Box::new(ImmediateValueStateVarInterface::default()),
+            Box::<ImmediateValueStateVarInterface>::default(),
             StateVarParameters {
                 name: "immediateValue",
                 is_public: true,
@@ -162,7 +162,7 @@ impl ComponentNodeStateVariables for TextInput {
         // Sync immediate value state variable
         //////////////////////////////////////
         let sync_immediate_value_state_variable = StateVarTyped::new(
-            Box::new(SyncImmediateValueStateVarInterface::default()),
+            Box::<SyncImmediateValueStateVarInterface>::default(),
             StateVarParameters {
                 name: "syncImmediateValue",
                 ..Default::default()
@@ -177,7 +177,7 @@ impl ComponentNodeStateVariables for TextInput {
         // // Bind value to state variable
         // ///////////////////////////////
         // let bind_value_to_state_variable = StateVarTyped::new(
-        //     Box::new(BindValueToInterface::default()),
+        //     Box::<BindValueToInterface>::default(),
         //     StateVarParameters {
         //         name: "bindValueTo",
         //         ..Default::default()
@@ -220,10 +220,7 @@ impl StateVarInterface<String> for ValueStateVarInterface {
         ]
     }
 
-    fn save_dependencies_for_value_calculation(
-        &mut self,
-        dependencies: &Vec<Vec<Dependency>>,
-    ) -> () {
+    fn save_dependencies_for_value_calculation(&mut self, dependencies: &Vec<Vec<Dependency>>) {
         if let StateVarReadOnlyView::String(essential_value) = &dependencies[0][0].value {
             self.essential_value = essential_value.create_new_read_only_view();
         } else {
@@ -252,7 +249,7 @@ impl StateVarInterface<String> for ValueStateVarInterface {
     fn calculate_state_var_from_dependencies_and_mark_fresh(
         &self,
         state_var: &StateVarMutableViewTyped<String>,
-    ) -> () {
+    ) {
         let bind_value_to_used_default = true; // = self.bind_value_to.get_used_default();
 
         let value = if *self.sync_values.get_fresh_value() {
@@ -265,11 +262,7 @@ impl StateVarInterface<String> for ValueStateVarInterface {
         };
 
         let value_changed = if let Some(old_value) = state_var.try_get_last_value() {
-            if value != *old_value {
-                true
-            } else {
-                false
-            }
+            value != *old_value
         } else {
             true
         };
@@ -285,7 +278,7 @@ impl StateVarInterface<String> for ValueStateVarInterface {
         &self,
         state_var: &StateVarReadOnlyViewTyped<String>,
         _is_direct_change_from_renderer: bool,
-    ) -> Result<Vec<DependencyValueUpdateRequest>, ()> {
+    ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
         let desired_value = state_var.get_requested_value();
         let bind_value_to_used_default = true; //self.bind_value_to.get_used_default();
 
@@ -357,10 +350,7 @@ impl StateVarInterface<String> for ImmediateValueStateVarInterface {
         ]
     }
 
-    fn save_dependencies_for_value_calculation(
-        &mut self,
-        dependencies: &Vec<Vec<Dependency>>,
-    ) -> () {
+    fn save_dependencies_for_value_calculation(&mut self, dependencies: &Vec<Vec<Dependency>>) {
         if let StateVarReadOnlyView::String(essential_value) = &dependencies[0][0].value {
             self.essential_value = essential_value.create_new_read_only_view();
         } else {
@@ -383,7 +373,7 @@ impl StateVarInterface<String> for ImmediateValueStateVarInterface {
     fn calculate_state_var_from_dependencies_and_mark_fresh(
         &self,
         state_var: &StateVarMutableViewTyped<String>,
-    ) -> () {
+    ) {
         let bind_value_to_used_default = true; //self.bind_value_to.get_used_default();
 
         let immediate_value = if !bind_value_to_used_default && *self.sync_values.get_fresh_value()
@@ -395,11 +385,7 @@ impl StateVarInterface<String> for ImmediateValueStateVarInterface {
         };
 
         let value_changed = if let Some(old_value) = state_var.try_get_last_value() {
-            if immediate_value != *old_value {
-                true
-            } else {
-                false
-            }
+            immediate_value != *old_value
         } else {
             true
         };
@@ -415,7 +401,7 @@ impl StateVarInterface<String> for ImmediateValueStateVarInterface {
         &self,
         state_var: &StateVarReadOnlyViewTyped<String>,
         is_direct_change_from_renderer: bool,
-    ) -> Result<Vec<DependencyValueUpdateRequest>, ()> {
+    ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
         let desired_value = state_var.get_requested_value();
 
         let mut updates = Vec::with_capacity(2);
@@ -458,10 +444,7 @@ impl StateVarInterface<bool> for SyncImmediateValueStateVarInterface {
         vec![DependencyInstruction::Essential { prefill: None }]
     }
 
-    fn save_dependencies_for_value_calculation(
-        &mut self,
-        dependencies: &Vec<Vec<Dependency>>,
-    ) -> () {
+    fn save_dependencies_for_value_calculation(&mut self, dependencies: &Vec<Vec<Dependency>>) {
         if let StateVarReadOnlyView::Boolean(essential_value) = &dependencies[0][0].value {
             self.essential_value = essential_value.create_new_read_only_view();
         } else {
@@ -472,15 +455,15 @@ impl StateVarInterface<bool> for SyncImmediateValueStateVarInterface {
     fn calculate_state_var_from_dependencies_and_mark_fresh(
         &self,
         state_var: &StateVarMutableViewTyped<bool>,
-    ) -> () {
-        state_var.set_value(self.essential_value.get_fresh_value().clone());
+    ) {
+        state_var.set_value(*self.essential_value.get_fresh_value());
     }
 
     fn request_dependencies_to_update_value(
         &self,
         state_var: &StateVarReadOnlyViewTyped<bool>,
         _is_direct_change_from_renderer: bool,
-    ) -> Result<Vec<DependencyValueUpdateRequest>, ()> {
+    ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
         let desired_value = state_var.get_requested_value();
 
         self.essential_value.request_change_value_to(*desired_value);

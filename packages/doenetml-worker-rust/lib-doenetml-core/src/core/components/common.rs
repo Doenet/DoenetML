@@ -153,11 +153,11 @@ pub trait ComponentNode: ComponentNodeStateVariables {
     fn get_public_state_variable_indices(&self) -> &Vec<usize>;
 
     /// Attempt to match `name` to the name of a state variable and return its index if found.
-    fn get_state_variable_index_from_name(&self, name: &String) -> Option<usize>;
+    fn get_state_variable_index_from_name(&self, name: &str) -> Option<usize>;
 
     /// Attempt to match `name` to the name of a state variable using a case-insensitive match
     /// and return its index if found.
-    fn get_state_variable_index_from_name_case_insensitive(&self, name: &String) -> Option<usize>;
+    fn get_state_variable_index_from_name_case_insensitive(&self, name: &str) -> Option<usize>;
 
     /// Return a vector of all component profile state variables of this component.
     fn get_component_profile_state_variables(&self) -> &Vec<ComponentProfileStateVariable>;
@@ -243,11 +243,11 @@ pub trait RenderedComponentNode: ComponentNode {
     ///
     /// Panics: if `action_name` is not in the vector returned by `get_action_names()`.
     #[allow(unused)]
-    fn on_action<'a>(
+    fn on_action(
         &self,
         action_name: &str,
         args: HashMap<String, Vec<StateVarValue>>,
-        resolve_and_retrieve_state_var: &'a mut dyn FnMut(usize) -> StateVarValue,
+        resolve_and_retrieve_state_var: &mut dyn FnMut(usize) -> StateVarValue,
     ) -> Vec<(usize, StateVarValue)> {
         panic!(
             "Unknown action '{}' called on {}",

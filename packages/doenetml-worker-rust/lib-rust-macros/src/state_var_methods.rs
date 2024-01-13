@@ -368,7 +368,7 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
                     pub fn request_dependencies_to_update_value(
                         &self,
                         is_direct_change_from_renderer: bool,
-                    ) -> Result<Vec<DependencyValueUpdateRequest>, ()> {
+                    ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
                         match self {
                             #(#state_var_request_dependencies_to_update_value_arms)*
                         }
