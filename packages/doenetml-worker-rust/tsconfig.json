@@ -4,5 +4,8 @@
         "rootDir": "./lib-js-wasm-binding/src",
         "outDir": "./dist/",
     },
-    "include": ["./lib-js-wasm-binding/src/**/*.ts", "./lib-js-wasm-binding/pkg/**/*.ts"]
+    "include": [
+        "./lib-js-wasm-binding/src/**/*.ts",
+        "./lib-js-wasm-binding/pkg/**/*.ts"
+    ]
 }

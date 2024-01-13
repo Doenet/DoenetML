@@ -18,7 +18,7 @@ export const TextInput: BasicComponent<TextInputData> = ({ node }) => {
             coreActions.dispatchAction({
                 actionName: "updateValue",
                 componentIdx: id,
-                args: { text: value },
+                args: { text: [value] },
             }),
         );
     }, [dispatch, value]);
@@ -38,7 +38,7 @@ export const TextInput: BasicComponent<TextInputData> = ({ node }) => {
                             coreActions.dispatchAction({
                                 actionName: "updateImmediateValue",
                                 componentIdx: id,
-                                args: { text: e.target.value },
+                                args: { text: [e.target.value] },
                             }),
                         );
                     }}

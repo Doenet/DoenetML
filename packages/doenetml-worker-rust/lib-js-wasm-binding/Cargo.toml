@@ -1,5 +1,5 @@
 [package]
-name = "doenetml-worker-rust"
+name = "lib-doenetml-worker-rust"
 version = { workspace = true }
 authors = { workspace = true }
 edition = { workspace = true }
@@ -15,7 +15,7 @@ web-logging = ['doenetml-core/web']
 
 [dependencies]
 # internal dependency
-doenetml-core = { path = "../lib-doenetml-core" }
+doenetml-core = { path = "../lib-doenetml-core", features = ["web"] }
 js-sys = { workspace = true }
 web-sys = { workspace = true }
 wasm-bindgen = { workspace = true }
@@ -33,6 +33,7 @@ wee_alloc = { workspace = true, optional = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 regex = { workspace = true }
+tsify = { workspace = true }
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3.13"

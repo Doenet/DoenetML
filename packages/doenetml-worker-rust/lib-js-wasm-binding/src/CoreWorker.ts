@@ -1,26 +1,13 @@
 import * as Comlink from "comlink";
-import init, { PublicDoenetMLCore } from "../pkg/doenetml_worker_rust";
+import init, {
+    Action,
+    ActionResponse,
+    PublicDoenetMLCore,
+} from "lib-doenetml-worker-rust";
+export type * from "lib-doenetml-worker-rust";
 import type { DastRoot, DastElement, DastError } from "@doenet/parser";
 
 type Flags = Record<string, unknown>;
-
-export type Action = {
-    componentIdx: number;
-    actionName: string;
-    args: ActionArgs;
-};
-
-type ActionArgs = Record<string, ActionArgValue>;
-
-type ActionArgValue = boolean | number | number[] | string;
-
-export type ElementUpdate = {
-    type: "elementUpdate";
-    changed_attributes?: Record<string, unknown>;
-    new_children?: (number | string)[];
-    changed_state?: Record<string, unknown>;
-};
-export type ElementUpdates = Record<number, ElementUpdate>;
 
 export interface FlatDastElement extends Omit<DastElement, "children"> {
     children: (number | string)[];
@@ -109,7 +96,7 @@ export class CoreWorker {
         }
     }
 
-    async dispatchAction(action: Action): Promise<ElementUpdates> {
+    async dispatchAction(action: Action): Promise<ActionResponse> {
         const isProcessingPromise = this.isProcessingPromise;
         let { promise, resolve } = promiseWithResolver();
         this.isProcessingPromise = promise;
@@ -123,12 +110,8 @@ export class CoreWorker {
         // TODO: handle case if dispatchAction is called before returnDast
 
         try {
-            // TODO: Do we need to cast flat_dast_element_updates into a TypeScript type
-            // like we did for flat_dast, above?
-
-            let flat_dast_element_updates = JSON.parse(
-                this.doenetCore.dispatch_action(JSON.stringify(action)),
-            );
+            let flat_dast_element_updates =
+                this.doenetCore.dispatch_action(action);
             return flat_dast_element_updates;
         } catch (err) {
             console.error(err);
