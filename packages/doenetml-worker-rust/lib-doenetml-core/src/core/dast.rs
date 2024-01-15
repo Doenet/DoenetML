@@ -7,7 +7,7 @@ use wasm_bindgen::prelude::*;
 
 use crate::state::StateVarValue;
 
-/// Allowed children of the root node
+/// Dast root node
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "root")]
@@ -19,7 +19,7 @@ pub struct DastRoot {
     pub position: Option<Position>,
 }
 
-/// Allowed children of an element node
+/// Allowed children of an element node or the root node
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 #[cfg_attr(feature = "web", derive(Tsify))]
