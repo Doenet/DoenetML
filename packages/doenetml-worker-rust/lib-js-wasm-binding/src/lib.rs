@@ -8,7 +8,10 @@ use serde::Serialize;
 use tsify::Tsify;
 use wasm_bindgen::prelude::*;
 
-use doenetml_core::{dast::FlatDastElementUpdate, Action, ComponentIdx, DoenetMLCore};
+use doenetml_core::{
+    dast::{FlatDastElementContent, FlatDastElementUpdate, FlatDastRoot},
+    Action, ComponentIdx, DoenetMLCore,
+};
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.
@@ -56,7 +59,7 @@ impl PublicDoenetMLCore {
         self.initialized = false;
     }
 
-    pub fn return_dast(&mut self) -> Result<String, String> {
+    pub fn return_dast(&mut self) -> Result<FlatDastRoot, String> {
         if !self.initialized {
             let flags = match &self.flags_json {
                 Some(f) => f,
@@ -72,7 +75,7 @@ impl PublicDoenetMLCore {
             self.initialized = true;
         }
 
-        Ok(serde_json::to_string(&self.core.as_mut().unwrap().to_flat_dast()).unwrap())
+        Ok(self.core.as_mut().unwrap().to_flat_dast())
     }
 
     /// Send an action to DoenetMLCore. This is often in response to a user

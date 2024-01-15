@@ -76,6 +76,11 @@ const dastSlice = createSlice({
                     );
                     continue;
                 }
+
+                // XXX The serializer in Core plays a trick where it treats errors and elements
+                // as elements. Then at serialization time, it changes the type of an error to `"error"`.
+                // The Typescript type exporting doesn't understand this trick, so we special case it manually.
+                // @ts-ignore
                 if (elm.type === "error") {
                     throw new Error("Updating errors is not yet implemented");
                 }
