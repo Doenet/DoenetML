@@ -3,8 +3,31 @@ use std::collections::HashMap;
 use std::rc::Rc;
 
 use serde::{Deserialize, Serialize};
+use strum::VariantNames;
+use strum_macros::EnumVariantNames;
 
-use crate::components::prelude::*;
+use crate::{
+    components::{actions::ActionBody, prelude::*},
+    AllActions,
+};
+
+#[derive(Debug, Deserialize, Serialize)]
+#[cfg_attr(feature = "web", derive(tsify::Tsify))]
+#[cfg_attr(feature = "web", tsify(from_wasm_abi))]
+#[serde(expecting = "`text` must be a string")]
+pub struct TextInputActionArgs {
+    pub text: String,
+}
+
+#[derive(Debug, Deserialize, Serialize, EnumVariantNames)]
+#[serde(tag = "actionName", rename_all = "camelCase")]
+#[strum(serialize_all = "camelCase")]
+#[cfg_attr(feature = "web", derive(tsify::Tsify))]
+#[cfg_attr(feature = "web", tsify(from_wasm_abi))]
+pub enum TextInputAction {
+    UpdateImmediateValue(ActionBody<TextInputActionArgs>),
+    UpdateValue,
+}
 
 #[derive(Debug, Default, ComponentNode)]
 pub struct TextInput {
@@ -69,26 +92,27 @@ impl RenderedComponentNode for TextInput {
     }
 
     fn get_action_names(&self) -> Vec<String> {
-        vec![
-            "updateImmediateValue".to_string(),
-            "updateValue".to_string(),
-        ]
+        TextInputAction::VARIANTS
+            .iter()
+            .map(|s| s.to_string())
+            .collect()
     }
 
     fn on_action<'a>(
         &self,
-        action_name: &str,
-        args: HashMap<String, Vec<StateVarValue>>,
+        action: AllActions,
         resolve_and_retrieve_state_var: &'a mut dyn FnMut(usize) -> StateVarValue,
     ) -> Vec<(usize, StateVarValue)> {
-        match action_name {
-            "updateImmediateValue" => {
-                let new_val = args.get("text").expect("No text argument").first().unwrap();
+        // The type of `action` should have already been verified, so an
+        // error here is a programming logic error, not an API error.
+        let action: TextInputAction = action.try_into().unwrap();
 
+        match action {
+            TextInputAction::UpdateImmediateValue(ActionBody { args }) => {
                 vec![
                     (
                         self.common.state_variable_name_to_index["immediateValue"],
-                        new_val.clone(),
+                        StateVarValue::String(args.text),
                     ),
                     (
                         self.common.state_variable_name_to_index["syncImmediateValue"],
@@ -97,15 +121,13 @@ impl RenderedComponentNode for TextInput {
                 ]
             }
 
-            "updateValue" => {
+            TextInputAction::UpdateValue => {
                 let new_val = resolve_and_retrieve_state_var(
                     self.common.state_variable_name_to_index["immediateValue"],
                 );
 
                 vec![(self.common.state_variable_name_to_index["value"], new_val)]
             }
-
-            _ => panic!("Unknown action '{}' called on textInput", action_name),
         }
     }
 }

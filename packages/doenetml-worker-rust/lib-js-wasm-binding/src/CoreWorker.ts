@@ -2,11 +2,15 @@ import * as Comlink from "comlink";
 import init, {
     Action,
     ActionResponse,
+    AllActions,
     PublicDoenetMLCore,
 } from "lib-doenetml-worker-rust";
 export type * from "lib-doenetml-worker-rust";
 import type { DastRoot, DastElement, DastError } from "@doenet/parser";
 
+export type AnyActionType = AllActions[keyof AllActions] & {
+    componentIdx: number;
+};
 type Flags = Record<string, unknown>;
 
 export class CoreWorker {
@@ -83,7 +87,7 @@ export class CoreWorker {
         }
     }
 
-    async dispatchAction(action: Action): Promise<ActionResponse> {
+    async dispatchAction(action: AnyActionType): Promise<ActionResponse> {
         const isProcessingPromise = this.isProcessingPromise;
         let { promise, resolve } = promiseWithResolver();
         this.isProcessingPromise = promise;
@@ -97,8 +101,9 @@ export class CoreWorker {
         // TODO: handle case if dispatchAction is called before returnDast
 
         try {
-            let flat_dast_element_updates =
-                this.doenetCore.dispatch_action(action);
+            let flat_dast_element_updates = this.doenetCore.dispatch_action(
+                JSON.stringify(action),
+            );
             return flat_dast_element_updates;
         } catch (err) {
             console.error(err);

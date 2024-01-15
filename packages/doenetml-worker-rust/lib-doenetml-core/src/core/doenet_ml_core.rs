@@ -1,3 +1,4 @@
+use serde::{Deserialize, Serialize};
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 #[cfg(feature = "web")]
@@ -23,7 +24,7 @@ use super::state::state_var_calculations::{
 use super::state::state_var_updates::process_state_variable_update_request;
 use super::state::{Freshness, StateVarName, StateVarValue};
 
-use crate::utils::parse_json;
+use crate::components::doenet::text_input::TextInputAction;
 #[allow(unused)]
 use crate::utils::{log, log_debug, log_json};
 
@@ -243,6 +244,14 @@ pub struct Action {
     pub args: HashMap<String, Vec<StateVarValue>>,
 }
 
+#[derive(Debug, Deserialize, Serialize, derive_more::TryInto)]
+#[cfg_attr(feature = "web", derive(Tsify))]
+#[cfg_attr(feature = "web", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "web", tsify(from_wasm_abi))]
+pub enum AllActions {
+    TextInput(TextInputAction),
+}
+
 impl DoenetMLCore {
     pub fn new(
         dast_json: &str,
@@ -341,34 +350,20 @@ impl DoenetMLCore {
     /// - `args`: an object containing data that will be interpreted by the action implementation.
     ///   The values of each field must be quantities that can be converted into `StateVarValue`
     ///   or a vector of `StateVarValue`.
-    #[cfg(not(feature = "web"))]
     pub fn dispatch_action(
         &mut self,
-        action: &str,
+        action_json: &str,
     ) -> HashMap<ComponentIdx, FlatDastElementUpdate> {
-        let action = parse_json::parse_action_from_json(action)
-            .unwrap_or_else(|_| panic!("Error parsing json action: {}", action));
-        self._do_dispatch_action(action)
-    }
+        let (component_idx, action) = self.deserialize_action(action_json).unwrap();
 
-    #[cfg(feature = "web")]
-    pub fn dispatch_action(
-        &mut self,
-        action: Action,
-    ) -> HashMap<ComponentIdx, FlatDastElementUpdate> {
-        self._do_dispatch_action(action)
+        self._do_dispatch_action(component_idx, action)
     }
 
     pub fn _do_dispatch_action(
         &mut self,
-        action: Action,
+        component_idx: ComponentIdx,
+        action: AllActions,
     ) -> HashMap<ComponentIdx, FlatDastElementUpdate> {
-        if action.action_name == "recordVisibilityChange" {
-            return HashMap::new();
-        }
-
-        let component_idx = action.component_idx;
-
         // We allow actions to resolve and get the value of any state variable from the component.
         // To accomplish this, we pass in a function closure that will
         // - take a state variable index,
@@ -393,11 +388,9 @@ impl DoenetMLCore {
         {
             // A call to on_action from a component processes the arguments and returns a vector
             // of component state variables with requested new values
-            let state_vars_to_update = self.components[component_idx].borrow().on_action(
-                &action.action_name,
-                action.args,
-                &mut state_var_resolver,
-            );
+            let state_vars_to_update = self.components[component_idx]
+                .borrow()
+                .on_action(action, &mut state_var_resolver);
 
             for (state_var_idx, requested_value) in state_vars_to_update {
                 let freshness;

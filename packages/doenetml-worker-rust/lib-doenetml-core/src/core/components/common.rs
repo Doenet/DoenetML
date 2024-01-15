@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use std::rc::Rc;
 
 use enum_dispatch::enum_dispatch;
-use strum_macros::EnumString;
+use strum_macros::{Display, EnumString};
 
 use crate::dast::{
     ElementData, FlatDastElement, FlatDastElementContent, FlatDastElementUpdate,
@@ -12,7 +12,7 @@ use crate::dast::{
 use crate::state::{
     StateVar, StateVarName, StateVarReadOnlyView, StateVarReadOnlyViewTyped, StateVarValue,
 };
-use crate::{ComponentChild, ComponentIdx, ExtendSource};
+use crate::{ComponentChild, ComponentIdx, ExtendSource, AllActions};
 
 use super::_error::_Error;
 use super::_external::_External;
@@ -32,7 +32,7 @@ pub type AttributeName = &'static str;
 ///
 /// Each component type added to `ComponentEnum` must implement that component node traits.
 
-#[derive(Debug, EnumString)]
+#[derive(Debug, EnumString, Display)]
 #[enum_dispatch(ComponentNode, ComponentNodeStateVariables, RenderedComponentNode)]
 #[strum(ascii_case_insensitive)]
 pub enum ComponentEnum {
@@ -240,13 +240,12 @@ pub trait RenderedComponentNode: ComponentNode {
     #[allow(unused)]
     fn on_action<'a>(
         &self,
-        action_name: &str,
-        args: HashMap<String, Vec<StateVarValue>>,
+        action: AllActions,
         resolve_and_retrieve_state_var: &'a mut dyn FnMut(usize) -> StateVarValue,
     ) -> Vec<(usize, StateVarValue)> {
         panic!(
-            "Unknown action '{}' called on {}",
-            action_name,
+            "Unknown action '{:?}' called on {}",
+            action,
             self.get_component_type()
         );
     }

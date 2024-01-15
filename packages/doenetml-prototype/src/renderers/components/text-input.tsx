@@ -4,8 +4,10 @@ import { useAppDispatch, useAppSelector } from "../../state/hooks";
 import { renderingOnServerSelector } from "../../state/redux-slices/global";
 import "./text-input.css";
 import { coreActions } from "../../state/redux-slices/core";
+import { TextInputAction } from "../../../../doenetml-worker-rust/dist/CoreWorker";
 
 type TextInputData = { state: { immediateValue: string } };
+type Action = TextInputAction & { componentIdx: number };
 
 export const TextInput: BasicComponent<TextInputData> = ({ node }) => {
     const onServer = useAppSelector(renderingOnServerSelector);
@@ -14,13 +16,11 @@ export const TextInput: BasicComponent<TextInputData> = ({ node }) => {
     const dispatch = useAppDispatch();
 
     const updateValue = React.useCallback(() => {
-        dispatch(
-            coreActions.dispatchAction({
-                actionName: "updateValue",
-                componentIdx: id,
-                args: { text: [value] },
-            }),
-        );
+        let action: Action = {
+            actionName: "updateValue",
+            componentIdx: id,
+        };
+        dispatch(coreActions.dispatchAction(action));
     }, [dispatch, value]);
 
     if (onServer) {
@@ -34,13 +34,12 @@ export const TextInput: BasicComponent<TextInputData> = ({ node }) => {
                     type="text"
                     value={value}
                     onChange={(e) => {
-                        dispatch(
-                            coreActions.dispatchAction({
-                                actionName: "updateImmediateValue",
-                                componentIdx: id,
-                                args: { text: [e.target.value] },
-                            }),
-                        );
+                        const action: Action = {
+                            actionName: "updateImmediateValue",
+                            componentIdx: id,
+                            args: { text: e.target.value },
+                        };
+                        dispatch(coreActions.dispatchAction(action));
                     }}
                     onBlur={updateValue}
                     onKeyUp={(e) => {

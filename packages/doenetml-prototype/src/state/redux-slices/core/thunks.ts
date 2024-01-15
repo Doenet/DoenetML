@@ -1,6 +1,6 @@
 import * as Comlink from "comlink";
 import { createLoggingAsyncThunk } from "../../hooks";
-import { Action, CoreWorker } from "@doenet/doenetml-worker-rust";
+import { AnyActionType, CoreWorker } from "@doenet/doenetml-worker-rust";
 import { doenetGlobalConfig } from "../../../global-config";
 import { RootState } from "../../store";
 import { _coreReducerActions, selfSelector } from "./slice";
@@ -88,7 +88,7 @@ export const coreThunks = {
     ),
     dispatchAction: createLoggingAsyncThunk(
         "core/dispatchAction",
-        async (action: Action, { dispatch, getState }) => {
+        async (action: AnyActionType, { dispatch, getState }) => {
             const worker = getWorker(getState());
             if (worker == null) {
                 throw new Error("No worker loaded");

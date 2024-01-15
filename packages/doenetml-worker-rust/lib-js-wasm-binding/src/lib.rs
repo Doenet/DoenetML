@@ -9,8 +9,8 @@ use tsify::Tsify;
 use wasm_bindgen::prelude::*;
 
 use doenetml_core::{
-    dast::{FlatDastElementContent, FlatDastElementUpdate, FlatDastRoot},
-    Action, ComponentIdx, DoenetMLCore,
+    dast::{FlatDastElementUpdate, FlatDastRoot},
+    ComponentIdx, DoenetMLCore,
 };
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
@@ -83,9 +83,9 @@ impl PublicDoenetMLCore {
     /// changing the value of a slider).
     ///
     /// Returns updates to the FlatDast.
-    pub fn dispatch_action(&mut self, action: Action) -> ActionResponse {
+    pub fn dispatch_action(&mut self, action_json: &str) -> ActionResponse {
         ActionResponse {
-            payload: self.core.as_mut().unwrap().dispatch_action(action),
+            payload: self.core.as_mut().unwrap().dispatch_action(action_json),
         }
     }
 }
