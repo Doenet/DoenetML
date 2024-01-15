@@ -4,7 +4,7 @@ import { useAppDispatch, useAppSelector } from "../../state/hooks";
 import { renderingOnServerSelector } from "../../state/redux-slices/global";
 import "./text-input.css";
 import { coreActions } from "../../state/redux-slices/core";
-import { TextInputAction } from "../../../../doenetml-worker-rust/dist/CoreWorker";
+import { TextInputAction } from "lib-doenetml-worker-rust";
 
 type TextInputData = { state: { immediateValue: string } };
 type Action = TextInputAction & { componentIdx: number };
