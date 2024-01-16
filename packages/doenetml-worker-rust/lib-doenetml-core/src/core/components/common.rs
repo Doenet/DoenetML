@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use std::rc::Rc;
 
 use enum_dispatch::enum_dispatch;
-use strum_macros::{Display, EnumString};
+use strum_macros::EnumString;
 
 use serde::{Deserialize, Serialize};
 
@@ -35,7 +35,7 @@ pub type AttributeName = &'static str;
 ///
 /// Each component type added to `ComponentEnum` must implement that component node traits.
 
-#[derive(Debug, EnumString, Display)]
+#[derive(Debug, EnumString)]
 #[enum_dispatch(ComponentNode, ComponentNodeStateVariables, RenderedComponentNode)]
 #[strum(ascii_case_insensitive)]
 pub enum ComponentEnum {
