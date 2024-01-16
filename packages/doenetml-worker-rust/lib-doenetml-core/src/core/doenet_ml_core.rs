@@ -229,13 +229,11 @@ pub struct StateVariableShadowingMatch {
 
 impl DoenetMLCore {
     pub fn new(
-        dast_json: &str,
+        dast_root: DastRoot,
         source: &str,
         _flags_json: &str,
         existing_essential_data: Option<Vec<HashMap<EssentialDataOrigin, EssentialStateVar>>>,
     ) -> Self {
-        let dast_root: DastRoot = serde_json::from_str(dast_json).expect("Error extracting dast");
-
         let mut components: Vec<Rc<RefCell<ComponentEnum>>> = Vec::new();
         let mut warnings: Vec<DastWarning> = Vec::new();
 

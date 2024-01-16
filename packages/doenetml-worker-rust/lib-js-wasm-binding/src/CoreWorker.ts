@@ -4,6 +4,7 @@ import init, {
     ActionResponse,
     ActionsEnum,
     PublicDoenetMLCore,
+    DastRoot as DastRootInCore
 } from "lib-doenetml-worker-rust";
 export type * from "lib-doenetml-worker-rust";
 import type { DastRoot } from "@doenet/parser";
@@ -40,7 +41,10 @@ export class CoreWorker {
             this.doenetCore = PublicDoenetMLCore.new();
         }
 
-        this.doenetCore.set_source(JSON.stringify(args.dast), args.source);
+        // We need to cast `args.dast` to `DastRootInCore` because
+        // a real `DastRoot` allows things like comments and cdata, etc.
+        // These are assume to be filtered out by the time we send data to core.
+        this.doenetCore.set_source(args.dast as DastRootInCore, args.source);
         this.source_set = true;
 
         resolve();
