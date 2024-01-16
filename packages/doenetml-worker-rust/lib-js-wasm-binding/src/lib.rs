@@ -86,7 +86,7 @@ impl PublicDoenetMLCore {
     /// Returns updates to the FlatDast.
     pub fn dispatch_action(&mut self, action: Action) -> Result<ActionResponse, String> {
         Ok(ActionResponse {
-            payload: self.core.as_mut().unwrap().dispatch_action(action),
+            payload: self.core.as_mut().unwrap().dispatch_action(action)?,
         })
     }
 }

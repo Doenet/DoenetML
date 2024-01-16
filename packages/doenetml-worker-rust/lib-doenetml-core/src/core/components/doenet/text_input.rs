@@ -6,10 +6,7 @@ use serde::{Deserialize, Serialize};
 use strum::VariantNames;
 use strum_macros::EnumVariantNames;
 
-use crate::components::{
-    actions::{Action, ActionBody},
-    prelude::*,
-};
+use crate::components::{actions::ActionBody, prelude::*, ActionsEnum};
 
 #[derive(Debug, Deserialize, Serialize)]
 #[cfg_attr(feature = "web", derive(tsify::Tsify))]
@@ -100,33 +97,34 @@ impl RenderedComponentNode for TextInput {
 
     fn on_action<'a>(
         &self,
-        action: Action,
+        action: ActionsEnum,
         resolve_and_retrieve_state_var: &'a mut dyn FnMut(usize) -> StateVarValue,
-    ) -> Vec<(usize, StateVarValue)> {
+    ) -> Result<Vec<(usize, StateVarValue)>, String> {
         // The type of `action` should have already been verified, so an
         // error here is a programming logic error, not an API error.
-        let action: TextInputAction = action.action.try_into().unwrap();
+        let action: TextInputAction = action.try_into()?;
 
         match action {
-            TextInputAction::UpdateImmediateValue(ActionBody { args }) => {
-                vec![
-                    (
-                        self.common.state_variable_name_to_index["immediateValue"],
-                        StateVarValue::String(args.text),
-                    ),
-                    (
-                        self.common.state_variable_name_to_index["syncImmediateValue"],
-                        StateVarValue::Boolean(false),
-                    ),
-                ]
-            }
+            TextInputAction::UpdateImmediateValue(ActionBody { args }) => Ok(vec![
+                (
+                    self.common.state_variable_name_to_index["immediateValue"],
+                    StateVarValue::String(args.text),
+                ),
+                (
+                    self.common.state_variable_name_to_index["syncImmediateValue"],
+                    StateVarValue::Boolean(false),
+                ),
+            ]),
 
             TextInputAction::UpdateValue => {
                 let new_val = resolve_and_retrieve_state_var(
                     self.common.state_variable_name_to_index["immediateValue"],
                 );
 
-                vec![(self.common.state_variable_name_to_index["value"], new_val)]
+                Ok(vec![(
+                    self.common.state_variable_name_to_index["value"],
+                    new_val,
+                )])
             }
         }
     }

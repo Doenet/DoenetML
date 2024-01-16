@@ -328,7 +328,7 @@ impl DoenetMLCore {
     pub fn dispatch_action(
         &mut self,
         action: Action,
-    ) -> HashMap<ComponentIdx, FlatDastElementUpdate> {
+    ) -> Result<HashMap<ComponentIdx, FlatDastElementUpdate>, String> {
         let component_idx = action.component_idx;
 
         // We allow actions to resolve and get the value of any state variable from the component.
@@ -357,7 +357,7 @@ impl DoenetMLCore {
             // of component state variables with requested new values
             let state_vars_to_update = self.components[component_idx]
                 .borrow()
-                .on_action(action, &mut state_var_resolver);
+                .on_action(action.action, &mut state_var_resolver)?;
 
             for (state_var_idx, requested_value) in state_vars_to_update {
                 let freshness;
@@ -413,7 +413,7 @@ impl DoenetMLCore {
                 );
             }
         }
-        self.get_flat_dast_updates()
+        Ok(self.get_flat_dast_updates())
     }
 
     /// Output all components as a flat dast,

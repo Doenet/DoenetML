@@ -18,7 +18,6 @@ use crate::{ComponentChild, ComponentIdx, ExtendSource};
 
 use super::_error::_Error;
 use super::_external::_External;
-use super::actions::Action;
 use super::doenet::document::Document;
 use super::doenet::p::P;
 use super::doenet::section::Section;
@@ -254,14 +253,14 @@ pub trait RenderedComponentNode: ComponentNode {
     #[allow(unused)]
     fn on_action<'a>(
         &self,
-        action: Action,
+        action: ActionsEnum,
         resolve_and_retrieve_state_var: &'a mut dyn FnMut(usize) -> StateVarValue,
-    ) -> Vec<(usize, StateVarValue)> {
-        panic!(
+    ) -> Result<Vec<(usize, StateVarValue)>, String> {
+        Err(format!(
             "Unknown action '{:?}' called on {}",
             action,
             self.get_component_type()
-        );
+        ))
     }
 }
 
