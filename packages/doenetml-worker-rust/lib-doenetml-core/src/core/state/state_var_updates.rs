@@ -114,7 +114,7 @@ fn mark_stale_state_var_and_dependencies(
         if state_var.get_freshness() == Freshness::Fresh {
             state_var.mark_stale();
 
-            if state_var.get_for_renderer() {
+            if state_var.get_for_renderer() && component.get_is_rendered() {
                 stale_renderers.push(component_idx);
             }
 

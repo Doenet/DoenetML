@@ -1,9 +1,9 @@
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
-use super::components::component_creation::{create_component_children, replace_macro_referents};
-use super::components::{
-    ComponentEnum, ComponentNode, ComponentNodeStateVariables, RenderedComponentNode,
+use super::components::component_creation::{
+    create_component_children, replace_macro_referents_of_children_evaluate_attributes,
 };
+use super::components::{ComponentEnum, ComponentNode, RenderedComponentNode};
 use super::dast::{
     DastFunctionMacro, DastMacro, DastRoot, DastWarning, FlatDastElement, FlatDastElementContent,
     FlatDastElementUpdate, FlatDastRoot, Position as DastPosition,
@@ -270,11 +270,7 @@ impl DoenetMLCore {
             position: dast_root.position.clone(),
         };
 
-        replace_macro_referents(&mut components, 0);
-
-        components.iter().for_each(|comp| {
-            comp.borrow_mut().initialize_state_variables();
-        });
+        replace_macro_referents_of_children_evaluate_attributes(&mut components, 0);
 
         // TODO: what does should_initialize_essential_data mean?
         // We are currently ignoring this flag (but haven't yet set up all types of essential data)
@@ -445,6 +441,7 @@ impl DoenetMLCore {
     ///
     /// Include warnings as a separate vector (errors are embedded in the tree as elements).
     pub fn to_flat_dast(&mut self) -> FlatDastRoot {
+        log!("***Calling to flat dast on core****");
         // Since are outputting the whole dast, we ignore which components were freshened
         self.freshen_renderer_state();
 

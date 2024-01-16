@@ -21,7 +21,7 @@ pub use crate::components::{
 pub use crate::components::ComponentEnum;
 pub use crate::components::ComponentProfile;
 pub use crate::dast::{
-    ElementData, FlatDastElement, FlatDastElementContent, FlatDastElementUpdate,
+    DastAttribute, ElementData, FlatDastElement, FlatDastElementContent, FlatDastElementUpdate,
 };
 pub use crate::dependency::{Dependency, DependencyInstruction, DependencyValueUpdateRequest};
 pub use crate::state::{

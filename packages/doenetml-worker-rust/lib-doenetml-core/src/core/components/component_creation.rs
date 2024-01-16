@@ -2,10 +2,13 @@ use std::{cell::RefCell, collections::HashMap, rc::Rc, str::FromStr};
 
 use crate::{
     components::{ComponentEnum, ComponentNode, _error::_Error, _external::_External},
-    dast::{DastElementContent, PathPart},
+    dast::{DastElement, DastElementContent, DastTextMacroContent, PathPart},
+    utils::KeyValueIgnoreCase,
     ComponentIdx, ComponentPointerTextOrMacro, ExtendSource, ExtendStateVariableDescription,
     StateVariableShadowingMatch,
 };
+
+use super::RenderedComponentNode;
 
 /// Transform `dast_children` that are elements into components, recursing to their children.
 /// Gather names of the descendants for later use in replacing macros.
@@ -39,15 +42,17 @@ pub fn create_component_children(
         match child {
             DastElementContent::Element(child_element) => {
                 // For element children, both create component and add to descendant names:
-                // 1. Look for a name attribute with valid value and add to descendant names.
-                // 2. Create component for the child
-                // 3. Recurse to child's children, and add in any descendant names found
+                // 1. Create component for the child and recuse to child's children
+                // 2. Look for a name attribute with valid value and add to descendant names.
+                // 3. Add in any descendant names found from child's children
 
-                // TODO: need to add attributes
+                let (child_idx, child_descendent_names) =
+                    create_child(components, child_element, parent_idx_option);
 
-                let child_idx = components.len();
+                let mut child = components[child_idx].borrow_mut();
+                let unevaluated_attributes = child.get_unevaluated_attributes_mut();
 
-                if let Some(name_attr) = child_element.attributes.get("name") {
+                if let Some(name_attr) = unevaluated_attributes.remove("name") {
                     if let Ok(name_string) = name_attr.get_string_value() {
                         // Add the child's index to the descendant_names vector for that name
                         // (or create an entry with a vector consisting of just this index).
@@ -57,43 +62,6 @@ pub fn create_component_children(
                             .or_insert(vec![child_idx]);
                     }
                 }
-
-                // To create a component for child_element,
-                // we match the name attribute (which is the component type)
-                // to the name of one of the variants of ComponentEnum
-                // (a case-insensitive match due to ComponentEnum tagging).
-
-                let mut component_enum = ComponentEnum::from_str(&child_element.name)
-                    .unwrap_or_else(|_| {
-                        // if we didn't find a match, then create a component of type external
-                        ComponentEnum::_External(_External {
-                            name: child_element.name.clone(),
-                            ..Default::default()
-                        })
-                    });
-
-                // We have a variant of ComponentEnum
-                // corresponding to the name of the DastElement (or _external if no match)
-                // where all attributes of the structure were given their default values.
-                // Initialize some of the attributes.
-                component_enum.initialize(
-                    child_idx,
-                    parent_idx_option,
-                    None,
-                    child_element.position.clone(),
-                );
-
-                components.push(Rc::new(RefCell::new(component_enum)));
-
-                // recurse to children after adding to components
-                // so that will get the correct indices for the children
-                let (child_children, child_descendent_names) =
-                    create_component_children(components, &child_element.children, Some(child_idx));
-
-                let child_node = &mut components[child_idx].borrow_mut();
-
-                child_node.set_children(child_children);
-                child_node.set_descendant_names(child_descendent_names.clone());
 
                 // merge in the descendant names found from the child
                 // into the overall descendant names for the parent
@@ -130,6 +98,7 @@ pub fn create_component_children(
                     child_idx,
                     parent_idx_option,
                     None,
+                    HashMap::new(),
                     child_error.position.clone(),
                 );
 
@@ -145,8 +114,62 @@ pub fn create_component_children(
     (component_children, descendant_names)
 }
 
+/// Create a component from `child_element` and recurse via `create_component_children` to its children.
+///
+/// Return a tuple with:
+/// - component index for the child created
+/// - descendant names found for child, which is a hash map with keys being the component names encountered,
+///   and the values being vectors of the component indices where that name was encountered.
+fn create_child(
+    components: &mut Vec<Rc<RefCell<ComponentEnum>>>,
+    child_element: &DastElement,
+    parent_idx_option: Option<usize>,
+) -> (usize, HashMap<String, Vec<usize>>) {
+    let child_idx = components.len();
+
+    // To create a component for child_element,
+    // we match the name attribute (which is the component type)
+    // to the name of one of the variants of ComponentEnum
+    // (a case-insensitive match due to ComponentEnum tagging).
+
+    let mut component_enum = ComponentEnum::from_str(&child_element.name).unwrap_or_else(|_| {
+        // if we didn't find a match, then create a component of type external
+        ComponentEnum::_External(_External {
+            name: child_element.name.clone(),
+            ..Default::default()
+        })
+    });
+
+    // We have a variant of ComponentEnum
+    // corresponding to the name of the DastElement (or _external if no match)
+    // where all attributes of the structure were given their default values.
+    // Initialize some of the attributes.
+    component_enum.initialize(
+        child_idx,
+        parent_idx_option,
+        None,
+        child_element.attributes.clone(),
+        child_element.position.clone(),
+    );
+
+    components.push(Rc::new(RefCell::new(component_enum)));
+
+    // recurse to children after adding to components
+    // so that will get the correct indices for the children
+    let (child_children, child_descendent_names) =
+        create_component_children(components, &child_element.children, Some(child_idx));
+
+    let child_node = &mut components[child_idx].borrow_mut();
+
+    child_node.set_children(child_children);
+    child_node.set_descendant_names(child_descendent_names.clone());
+
+    (child_idx, child_descendent_names)
+}
+
 /// Attempt to replace macro children with components that extend the macro referent,
 /// recursing to component children.
+/// Also evaluate attributes and replace macro referents in those attributes.
 ///
 /// Match as much of the macro path as possible to nested component names.
 /// If the beginning of the path matches a component, but part of the path remains,
@@ -159,7 +182,7 @@ pub fn create_component_children(
 /// - Function macros are ignored
 /// - The index of a path is ignored
 /// - Only the first part of the remainder of a path is used; additional parts are ignored.
-pub fn replace_macro_referents(
+pub fn replace_macro_referents_of_children_evaluate_attributes(
     components: &mut Vec<Rc<RefCell<ComponentEnum>>>,
     component_idx: ComponentIdx,
 ) {
@@ -172,63 +195,88 @@ pub fn replace_macro_referents(
 
     let new_children = old_children
         .into_iter()
-        .map(|child| {
-            match child {
-                ComponentPointerTextOrMacro::Component(child_idx) => {
-                    // recurse on component children
-                    replace_macro_referents(components, child_idx);
-                    child
-                }
-                ComponentPointerTextOrMacro::Macro(ref dast_macro) => {
-                    if let Some((matched_component_idx, path_remainder)) =
-                        match_name_reference(components, &dast_macro.path, component_idx)
-                    {
-                        if !path_remainder.is_empty() {
-                            // Have a remaining part of the path that wasn't matched by component names.
-                            // Attempt to match it to a public state variable of the component,
-                            // returning the macro for now if no match
-                            match_public_state_variable(
-                                components,
-                                path_remainder,
-                                matched_component_idx,
-                                component_idx,
-                            )
-                            .unwrap_or(child)
-                        } else {
-                            let new_idx = components.len();
-
-                            let mut new_comp_enum = ComponentEnum::from_str(
-                                components[matched_component_idx]
-                                    .borrow()
-                                    .get_component_type(),
-                            )
-                            .unwrap();
-
-                            new_comp_enum.initialize(
-                                new_idx,
-                                Some(component_idx),
-                                Some(ExtendSource::Component(matched_component_idx)),
-                                None,
-                            );
-
-                            components.push(Rc::new(RefCell::new(new_comp_enum)));
-
-                            ComponentPointerTextOrMacro::Component(new_idx)
-                        }
-                    } else {
-                        // did not match macro to a component so just keep it as a macro for now
-                        child
-                    }
-                }
-                // TODO: need to recurse to arguments of function macros
-                _ => child,
-            }
-        })
+        .map(|child| replace_macro_referents_evaluate_attributes(components, child, component_idx))
         .collect();
 
     components[component_idx]
         .borrow_mut()
         .set_children(new_children);
+}
+
+/// Attempt to replace macro with components that extend the macro referent,
+/// recursing to component children if find a component rather than a macro.
+/// Also evaluate attributes and replace macro referents in those attributes.
+///
+/// Match as much of the macro path as possible to nested component names.
+/// If the beginning of the path matches a component, but part of the path remains,
+/// match the remainder of the path to the matched component's public state variables.
+///
+/// If cannot match the beginning of the path to component names or cannot match
+/// the first part of the remainder to a state variable, then the macro is left as the child.
+///
+/// TODO: this features is only partially implemented
+/// - Function macros are ignored
+/// - The index of a path is ignored
+/// - Only the first part of the remainder of a path is used; additional parts are ignored.
+fn replace_macro_referents_evaluate_attributes(
+    components: &mut Vec<Rc<RefCell<ComponentEnum>>>,
+    comp_ptr_text_macro: ComponentPointerTextOrMacro,
+    parent_idx: ComponentIdx,
+) -> ComponentPointerTextOrMacro {
+    match comp_ptr_text_macro {
+        ComponentPointerTextOrMacro::Component(comp_idx) => {
+            // recurse to children of components
+            replace_macro_referents_of_children_evaluate_attributes(components, comp_idx);
+
+            evaluate_attributes_replace_macros(components, comp_idx);
+
+            comp_ptr_text_macro
+        }
+        ComponentPointerTextOrMacro::Macro(ref dast_macro) => {
+            if let Some((matched_component_idx, path_remainder)) =
+                match_name_reference(components, &dast_macro.path, parent_idx)
+            {
+                if !path_remainder.is_empty() {
+                    // Have a remaining part of the path that wasn't matched by component names.
+                    // Attempt to match it to a public state variable of the component,
+                    // returning the macro for now if no match
+                    match_public_state_variable(
+                        components,
+                        path_remainder,
+                        matched_component_idx,
+                        parent_idx,
+                    )
+                    .unwrap_or(comp_ptr_text_macro)
+                } else {
+                    let new_idx = components.len();
+
+                    let mut new_comp_enum = ComponentEnum::from_str(
+                        components[matched_component_idx]
+                            .borrow()
+                            .get_component_type(),
+                    )
+                    .unwrap();
+
+                    new_comp_enum.initialize(
+                        new_idx,
+                        Some(parent_idx),
+                        Some(ExtendSource::Component(matched_component_idx)),
+                        HashMap::new(),
+                        None,
+                    );
+
+                    components.push(Rc::new(RefCell::new(new_comp_enum)));
+
+                    ComponentPointerTextOrMacro::Component(new_idx)
+                }
+            } else {
+                // did not match macro to a component so just keep it as a macro for now
+                comp_ptr_text_macro
+            }
+        }
+        // TODO: need to recurse to arguments of function macros
+        _ => comp_ptr_text_macro,
+    }
 }
 
 /// Match the first path part of a macro to a unique descendant name of the component with `comp_idx`.
@@ -387,9 +435,84 @@ fn match_public_state_variable(
         }],
     });
 
-    new_comp_enum.initialize(new_idx, Some(parent_idx), Some(extend_source), None);
+    new_comp_enum.initialize(
+        new_idx,
+        Some(parent_idx),
+        Some(extend_source),
+        HashMap::new(),
+        None,
+    );
 
     components.push(Rc::new(RefCell::new(new_comp_enum)));
 
     Some(ComponentPointerTextOrMacro::Component(new_idx))
+}
+
+/// Evaluate attributes of a parent component and create attribute children for all matched attributes.
+/// Then replace all macro referents in those attribute children.
+fn evaluate_attributes_replace_macros(
+    components: &mut Vec<Rc<RefCell<ComponentEnum>>>,
+    parent_idx: ComponentIdx,
+) {
+    let mut attribute_children = HashMap::new();
+
+    let parent_attribute_names = components[parent_idx].borrow().get_attribute_names();
+
+    {
+        let mut parent: std::cell::RefMut<'_, ComponentEnum> = components[parent_idx].borrow_mut();
+        let unevaluated_attributes = parent.get_unevaluated_attributes_mut();
+
+        for attribute_name in parent_attribute_names {
+            match unevaluated_attributes.remove_ignore_case(&attribute_name) {
+                Some(dast_attr) => {
+                    let children: Vec<ComponentPointerTextOrMacro> = dast_attr
+                        .children
+                        .iter()
+                        .map(|child| {
+                            match child {
+                                DastTextMacroContent::Text(child_text) => {
+                                    ComponentPointerTextOrMacro::Text(child_text.value.clone())
+                                }
+                                DastTextMacroContent::Macro(child_macro) => {
+                                    // for now, just stick in the dast macro
+                                    ComponentPointerTextOrMacro::Macro(child_macro.clone())
+                                }
+                                DastTextMacroContent::FunctionMacro(child_function_macro) => {
+                                    // for now, just stick in the dast function macro,
+                                    // which clearly is wrong as it will include elements as children
+                                    ComponentPointerTextOrMacro::FunctionMacro(
+                                        child_function_macro.clone(),
+                                    )
+                                }
+                            }
+                        })
+                        .collect();
+
+                    attribute_children.insert(attribute_name, children);
+                }
+                None => {
+                    // If attribute was not in the dast, do not insert an entry.
+                    // That way we can distinguish between an empty attribute and a attribute that isn't present.
+                }
+            }
+        }
+    }
+
+    // replace the macros in all the attributes
+    attribute_children = attribute_children
+        .into_iter()
+        .map(|(attr, children)| {
+            let children = children
+                .into_iter()
+                .map(|child| {
+                    replace_macro_referents_evaluate_attributes(components, child, parent_idx)
+                })
+                .collect();
+            (attr, children)
+        })
+        .collect();
+
+    let mut parent = components[parent_idx].borrow_mut();
+
+    parent.set_attribute_children(attribute_children);
 }

@@ -125,7 +125,7 @@ impl StateVarInterface<String> for SingleDependencyStringStateVarInterface {
             panic!("Cannot create dependency from extend source for SingleDependencyStringStateVarInterface");
         }
 
-        let mut dep_instructs: Vec<DependencyInstruction> = Vec::with_capacity(2);
+        let mut dep_instructs: Vec<DependencyInstruction> = Vec::with_capacity(1);
 
         if let Some(dependency_instruction) = &parameters.dependency_instruction_hint {
             dep_instructs.push(dependency_instruction.clone());

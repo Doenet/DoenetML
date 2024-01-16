@@ -75,6 +75,10 @@ pub fn freshen_all_stale_renderer_states(
     stale_renderers.dedup();
 
     for component_idx in stale_renderers.iter() {
+        components[*component_idx]
+            .borrow_mut()
+            .set_is_rendered(true);
+
         let rendered_state_var_indices = components[*component_idx]
             .borrow()
             .get_rendered_state_variable_indices()

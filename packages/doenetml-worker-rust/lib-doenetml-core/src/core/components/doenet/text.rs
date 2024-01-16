@@ -18,10 +18,13 @@ pub struct Text {
 
 impl RenderedComponentNode for Text {
     fn to_flat_dast(&mut self, _: &Vec<Rc<RefCell<ComponentEnum>>>) -> FlatDastElement {
-        let text_value = self
-            .value_state_var_view
-            .get_fresh_value_record_viewed()
-            .to_string();
+        let text_value = if self.get_is_rendered() {
+            self.value_state_var_view
+                .get_fresh_value_record_viewed()
+                .to_string()
+        } else {
+            "".to_string()
+        };
 
         let rendered_children = vec![FlatDastElementContent::Text(text_value)];
 
@@ -42,10 +45,14 @@ impl RenderedComponentNode for Text {
             .value_state_var_view
             .check_if_changed_since_last_viewed()
         {
-            let text_value = self
-                .value_state_var_view
-                .get_fresh_value_record_viewed()
-                .to_string();
+            let text_value = if self.get_is_rendered() {
+                self.value_state_var_view
+                    .get_fresh_value_record_viewed()
+                    .to_string()
+            } else {
+                "".to_string()
+            };
+
             let rendered_children = vec![FlatDastElementContent::Text(text_value)];
 
             Some(FlatDastElementUpdate {

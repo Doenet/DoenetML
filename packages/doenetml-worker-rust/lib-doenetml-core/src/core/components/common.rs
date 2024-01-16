@@ -6,8 +6,8 @@ use enum_dispatch::enum_dispatch;
 use strum_macros::EnumString;
 
 use crate::dast::{
-    ElementData, FlatDastElement, FlatDastElementContent, FlatDastElementUpdate,
-    Position as DastPosition,
+    DastAttribute, DastMacro, ElementData, FlatDastElement, FlatDastElementContent,
+    FlatDastElementUpdate, Position as DastPosition,
 };
 use crate::state::{
     StateVar, StateVarName, StateVarReadOnlyView, StateVarReadOnlyViewTyped, StateVarValue,
@@ -67,6 +67,18 @@ pub struct ComponentCommonData {
     pub state_variable_name_to_index: HashMap<String, usize>,
 
     pub component_profile_state_variables: Vec<ComponentProfileStateVariable>,
+
+    pub attribute_children: HashMap<String, Vec<ComponentPointerTextOrMacro>>,
+
+    pub unevaluated_attributes: HashMap<String, DastAttribute>,
+
+    pub is_rendered: bool,
+}
+
+#[derive(Debug)]
+pub enum AttributeBasis {
+    StateVar(StateVar),
+    Reference(DastMacro),
 }
 
 /// The Component trait specifies methods that will, in general, be implemented by deriving them.
@@ -101,6 +113,7 @@ pub trait ComponentNode: ComponentNodeStateVariables {
         idx: ComponentIdx,
         parent: Option<ComponentIdx>,
         extend_source: Option<ExtendSource>,
+        attributes: HashMap<String, DastAttribute>,
         position: Option<DastPosition>,
     );
 
@@ -161,6 +174,35 @@ pub trait ComponentNode: ComponentNodeStateVariables {
 
     /// Return a vector of all component profile state variables of this component.
     fn get_component_profile_state_variables(&self) -> &Vec<ComponentProfileStateVariable>;
+
+    /// Set the hash map containing for each attribute the vector of
+    /// indices of all child component nodes and the literal string children.
+    fn set_attribute_children(
+        &mut self,
+        attribute_children: HashMap<String, Vec<ComponentPointerTextOrMacro>>,
+    );
+
+    /// Get the hash map of all attributes that have not yet been evaluated to create attribute children.
+    ///
+    /// The hash map initially contains all attributes received from the dast,
+    /// but then attributes that are defined for the component are removed.
+    fn get_unevaluated_attributes(&self) -> &HashMap<String, DastAttribute>;
+
+    /// Get a mutable reference to the hash map of all attributes that have not yet been evaluated to create attribute children.
+    ///
+    /// The hash map initially contains all attributes received from the dast,
+    /// but then attributes that are defined for the component are removed.
+    fn get_unevaluated_attributes_mut(&mut self) -> &mut HashMap<String, DastAttribute>;
+
+    /// Get whether or not this component is to be rendered.
+    ///
+    /// Used to determine if its rendered state variables need to be freshened and set to the renderer.
+    fn get_is_rendered(&self) -> bool;
+
+    /// Set whether or not this component is to be rendered.
+    ///
+    /// Used to determine if its rendered state variables need to be freshened and set to the renderer.
+    fn set_is_rendered(&mut self, is_rendered: bool);
 }
 
 /// The RenderedComponentNode trait can be derived for a component, giving it the default implementations.
@@ -228,6 +270,13 @@ pub trait RenderedComponentNode: ComponentNode {
     /// i.e., since `to_flat_dast()` or `get_flat_dast_update()` have been called.`
     fn get_flat_dast_update(&mut self) -> Option<FlatDastElementUpdate> {
         None
+    }
+
+    /// Return a list of the attribute names that the component will accept
+    fn get_attribute_names(&self) -> Vec<String> {
+        // TODO: add default attribute names, like hide and disabled?
+        // If so, should provide a mechanism for including default state variables depending on them.
+        vec![]
     }
 
     /// Return a list of the action names that the renderer can call on this component.

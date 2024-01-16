@@ -22,10 +22,13 @@ pub struct TextInputRenderData {
 
 impl RenderedComponentNode for TextInput {
     fn to_flat_dast(&mut self, _: &Vec<Rc<RefCell<ComponentEnum>>>) -> FlatDastElement {
-        let immediate_value = self
-            .immediate_value_state_var_view
+        let immediate_value = if self.get_is_rendered() {
+            self.immediate_value_state_var_view
             .get_fresh_value_record_viewed()
-            .to_string();
+                .to_string()
+        } else {
+            "".to_string()
+        };
 
         FlatDastElement {
             name: self.get_component_type().to_string(),
@@ -50,10 +53,13 @@ impl RenderedComponentNode for TextInput {
             .immediate_value_state_var_view
             .check_if_changed_since_last_viewed()
         {
-            let immediate_value = self
-                .immediate_value_state_var_view
+            let immediate_value = if self.get_is_rendered() {
+                self.immediate_value_state_var_view
                 .get_fresh_value_record_viewed()
-                .to_string();
+                    .to_string()
+            } else {
+                "".to_string()
+            };
 
             Some(FlatDastElementUpdate {
                 changed_attributes: None,
@@ -66,6 +72,14 @@ impl RenderedComponentNode for TextInput {
         } else {
             None
         }
+    }
+
+    fn get_attribute_names(&self) -> Vec<String> {
+        vec![
+            "bindValueTo".to_string(),
+            "hide".to_string(),
+            "disabled".to_string(),
+        ]
     }
 
     fn get_action_names(&self) -> Vec<String> {

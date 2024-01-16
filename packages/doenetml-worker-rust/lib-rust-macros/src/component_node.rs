@@ -57,12 +57,14 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                             idx: ComponentIdx,
                             parent: Option<ComponentIdx>,
                             extend_source: Option<ExtendSource>,
+                            attributes: HashMap<String, DastAttribute>,
                             position: Option<DastPosition>,
                         ) {
                             self.common.idx = idx;
                             self.common.parent = parent;
                             self.common.extend = extend_source;
                             self.common.position = position;
+                            self.common.unevaluated_attributes = attributes;
 
                             self.initialize_state_variables();
 
@@ -149,9 +151,28 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                             &self.common.component_profile_state_variables
                         }
 
-                        // fn get_essential_state_vars(&self) -> &HashMap<StateVarName, EssentialStateVar> {
-                        //     &self.essential_state_vars
-                        // }
+                        fn set_attribute_children(
+                            &mut self,
+                            attribute_children: HashMap<String, Vec<ComponentPointerTextOrMacro>>,
+                        ) {
+                            self.common.attribute_children = attribute_children;
+                        }
+
+                        fn get_unevaluated_attributes(&self) -> &HashMap<String, DastAttribute> {
+                            &self.common.unevaluated_attributes
+                        }
+
+                        fn get_unevaluated_attributes_mut(&mut self) -> &mut HashMap<String, DastAttribute> {
+                            &mut self.common.unevaluated_attributes
+                        }
+
+                        fn get_is_rendered(&self) -> bool {
+                            self.common.is_rendered
+                        }
+
+                        fn set_is_rendered(&mut self, is_rendered: bool) {
+                            self.common.is_rendered = is_rendered;
+                        }
 
                     }
                 }
