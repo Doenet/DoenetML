@@ -1,8 +1,5 @@
-use serde::{Deserialize, Serialize};
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
-#[cfg(feature = "web")]
-use tsify::{declare, Tsify};
 #[cfg(feature = "web")]
 use wasm_bindgen::prelude::*;
 
@@ -22,9 +19,9 @@ use super::state::state_var_calculations::{
     StateVariableUpdateRequest,
 };
 use super::state::state_var_updates::process_state_variable_update_request;
-use super::state::{Freshness, StateVarName, StateVarValue};
+use super::state::{Freshness, StateVarName};
 
-use crate::components::doenet::text_input::TextInputAction;
+use crate::components::actions::Action;
 #[allow(unused)]
 use crate::utils::{log, log_debug, log_json};
 
@@ -35,7 +32,7 @@ pub struct StateVarPointer {
     pub state_var_idx: StateVarIdx,
 }
 
-#[cfg_attr(feature = "web", declare)]
+#[cfg_attr(feature = "web", tsify::declare)]
 pub type ComponentIdx = usize;
 pub type StateVarIdx = usize;
 
@@ -230,28 +227,6 @@ pub struct StateVariableShadowingMatch {
     pub shadowed_name: StateVarName,
 }
 
-/// Specification of an action call received from renderer
-#[derive(Debug)]
-#[cfg_attr(feature = "web", derive(serde::Serialize, serde::Deserialize, Tsify))]
-#[cfg_attr(feature = "web", serde(rename_all = "camelCase"))]
-#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
-pub struct Action {
-    pub component_idx: ComponentIdx,
-    pub action_name: String,
-
-    /// The keys are not state variable names.
-    /// They are whatever name the renderer calls the new value.
-    pub args: HashMap<String, Vec<StateVarValue>>,
-}
-
-#[derive(Debug, Deserialize, Serialize, derive_more::TryInto)]
-#[cfg_attr(feature = "web", derive(Tsify))]
-#[cfg_attr(feature = "web", serde(rename_all = "camelCase"))]
-#[cfg_attr(feature = "web", tsify(from_wasm_abi))]
-pub enum AllActions {
-    TextInput(TextInputAction),
-}
-
 impl DoenetMLCore {
     pub fn new(
         dast_json: &str,
@@ -352,18 +327,10 @@ impl DoenetMLCore {
     ///   or a vector of `StateVarValue`.
     pub fn dispatch_action(
         &mut self,
-        action_json: &str,
+        action: Action,
     ) -> HashMap<ComponentIdx, FlatDastElementUpdate> {
-        let (component_idx, action) = self.deserialize_action(action_json).unwrap();
+        let component_idx = action.component_idx;
 
-        self._do_dispatch_action(component_idx, action)
-    }
-
-    pub fn _do_dispatch_action(
-        &mut self,
-        component_idx: ComponentIdx,
-        action: AllActions,
-    ) -> HashMap<ComponentIdx, FlatDastElementUpdate> {
         // We allow actions to resolve and get the value of any state variable from the component.
         // To accomplish this, we pass in a function closure that will
         // - take a state variable index,

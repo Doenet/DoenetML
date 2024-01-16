@@ -6,9 +6,9 @@ use serde::{Deserialize, Serialize};
 use strum::VariantNames;
 use strum_macros::EnumVariantNames;
 
-use crate::{
-    components::{actions::ActionBody, prelude::*},
-    AllActions,
+use crate::components::{
+    actions::{Action, ActionBody},
+    prelude::*,
 };
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -100,12 +100,12 @@ impl RenderedComponentNode for TextInput {
 
     fn on_action<'a>(
         &self,
-        action: AllActions,
+        action: Action,
         resolve_and_retrieve_state_var: &'a mut dyn FnMut(usize) -> StateVarValue,
     ) -> Vec<(usize, StateVarValue)> {
         // The type of `action` should have already been verified, so an
         // error here is a programming logic error, not an API error.
-        let action: TextInputAction = action.try_into().unwrap();
+        let action: TextInputAction = action.action.try_into().unwrap();
 
         match action {
             TextInputAction::UpdateImmediateValue(ActionBody { args }) => {

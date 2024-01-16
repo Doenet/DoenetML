@@ -9,6 +9,7 @@ use tsify::Tsify;
 use wasm_bindgen::prelude::*;
 
 use doenetml_core::{
+    components::actions::Action,
     dast::{FlatDastElementUpdate, FlatDastRoot},
     ComponentIdx, DoenetMLCore,
 };
@@ -83,9 +84,9 @@ impl PublicDoenetMLCore {
     /// changing the value of a slider).
     ///
     /// Returns updates to the FlatDast.
-    pub fn dispatch_action(&mut self, action_json: &str) -> ActionResponse {
-        ActionResponse {
-            payload: self.core.as_mut().unwrap().dispatch_action(action_json),
-        }
+    pub fn dispatch_action(&mut self, action: Action) -> Result<ActionResponse, String> {
+        Ok(ActionResponse {
+            payload: self.core.as_mut().unwrap().dispatch_action(action),
+        })
     }
 }

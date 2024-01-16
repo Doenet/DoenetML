@@ -5,6 +5,8 @@ use std::rc::Rc;
 use enum_dispatch::enum_dispatch;
 use strum_macros::{Display, EnumString};
 
+use serde::{Deserialize, Serialize};
+
 use crate::dast::{
     ElementData, FlatDastElement, FlatDastElementContent, FlatDastElementUpdate,
     Position as DastPosition,
@@ -12,15 +14,16 @@ use crate::dast::{
 use crate::state::{
     StateVar, StateVarName, StateVarReadOnlyView, StateVarReadOnlyViewTyped, StateVarValue,
 };
-use crate::{ComponentChild, ComponentIdx, ExtendSource, AllActions};
+use crate::{ComponentChild, ComponentIdx, ExtendSource};
 
 use super::_error::_Error;
 use super::_external::_External;
+use super::actions::Action;
 use super::doenet::document::Document;
 use super::doenet::p::P;
 use super::doenet::section::Section;
 use super::doenet::text::Text;
-use super::doenet::text_input::TextInput;
+use super::doenet::text_input::{TextInput, TextInputAction};
 
 /// camelCase
 pub type AttributeName = &'static str;
@@ -43,6 +46,17 @@ pub enum ComponentEnum {
     P(P),
     _Error(_Error),
     _External(_External),
+}
+
+/// An enum listing the actions that are available for each component type.
+/// A deserialized version of this action will be sent to the component.
+#[derive(Debug, Deserialize, Serialize, derive_more::TryInto)]
+#[serde(tag = "component")]
+#[cfg_attr(feature = "web", derive(tsify::Tsify))]
+#[cfg_attr(feature = "web", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "web", tsify(from_wasm_abi))]
+pub enum ActionsEnum {
+    TextInput(TextInputAction),
 }
 
 #[derive(Debug, Default)]
@@ -240,7 +254,7 @@ pub trait RenderedComponentNode: ComponentNode {
     #[allow(unused)]
     fn on_action<'a>(
         &self,
-        action: AllActions,
+        action: Action,
         resolve_and_retrieve_state_var: &'a mut dyn FnMut(usize) -> StateVarValue,
     ) -> Vec<(usize, StateVarValue)> {
         panic!(

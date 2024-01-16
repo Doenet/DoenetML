@@ -1,16 +1,19 @@
 import * as Comlink from "comlink";
 import init, {
-    Action,
+    Action as _Action,
     ActionResponse,
-    AllActions,
+    ActionsEnum,
     PublicDoenetMLCore,
 } from "lib-doenetml-worker-rust";
 export type * from "lib-doenetml-worker-rust";
-import type { DastRoot, DastElement, DastError } from "@doenet/parser";
+import type { DastRoot } from "@doenet/parser";
 
-export type AnyActionType = AllActions[keyof AllActions] & {
-    componentIdx: number;
-};
+/**
+ * Action type for use with typescript. There are errors with the type
+ * exported by `lib-doenetml-worker-rust`, so use this version instead.
+ */
+export type Action = ActionsEnum & { componentIdx: number };
+
 type Flags = Record<string, unknown>;
 
 export class CoreWorker {
@@ -87,7 +90,7 @@ export class CoreWorker {
         }
     }
 
-    async dispatchAction(action: AnyActionType): Promise<ActionResponse> {
+    async dispatchAction(action: Action): Promise<ActionResponse> {
         const isProcessingPromise = this.isProcessingPromise;
         let { promise, resolve } = promiseWithResolver();
         this.isProcessingPromise = promise;
@@ -101,9 +104,8 @@ export class CoreWorker {
         // TODO: handle case if dispatchAction is called before returnDast
 
         try {
-            let flat_dast_element_updates = this.doenetCore.dispatch_action(
-                JSON.stringify(action),
-            );
+            let flat_dast_element_updates =
+                this.doenetCore.dispatch_action(action);
             return flat_dast_element_updates;
         } catch (err) {
             console.error(err);
