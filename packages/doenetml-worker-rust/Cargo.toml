@@ -42,3 +42,5 @@ syn = "2.0"
 convert_case = "0.5.0"
 anyhow = "1.0.79"
 thiserror = "1.0.56"
+tsify = { git = "https://github.com/siefkenj/tsify.git", branch = "next" }
+derive_more = "0.99.17"

@@ -1,37 +1,21 @@
 import * as Comlink from "comlink";
-import init, { PublicDoenetMLCore } from "../pkg/doenetml_worker_rust";
-import type { DastRoot, DastElement, DastError } from "@doenet/parser";
+import init, {
+    Action as _Action,
+    ActionResponse,
+    ActionsEnum,
+    PublicDoenetMLCore,
+    DastRoot as DastRootInCore
+} from "lib-doenetml-worker-rust";
+export type * from "lib-doenetml-worker-rust";
+import type { DastRoot } from "@doenet/parser";
+
+/**
+ * Action type for use with typescript. There are errors with the type
+ * exported by `lib-doenetml-worker-rust`, so use this version instead.
+ */
+export type Action = ActionsEnum & { componentIdx: number };
 
 type Flags = Record<string, unknown>;
-
-export type Action = {
-    componentIdx: number;
-    actionName: string;
-    args: ActionArgs;
-};
-
-type ActionArgs = Record<string, ActionArgValue>;
-
-type ActionArgValue = boolean | number | number[] | string;
-
-export type ElementUpdate = {
-    type: "elementUpdate";
-    changed_attributes?: Record<string, unknown>;
-    new_children?: (number | string)[];
-    changed_state?: Record<string, unknown>;
-};
-export type ElementUpdates = Record<number, ElementUpdate>;
-
-export interface FlatDastElement extends Omit<DastElement, "children"> {
-    children: (number | string)[];
-    data: { id: number; state?: Record<string, unknown> };
-}
-export interface FlatDastRoot {
-    type: "root";
-    children: number[];
-    elements: (FlatDastElement | DastError)[];
-    warnings: unknown[];
-}
 
 export class CoreWorker {
     doenetCore?: PublicDoenetMLCore;
@@ -57,7 +41,10 @@ export class CoreWorker {
             this.doenetCore = PublicDoenetMLCore.new();
         }
 
-        this.doenetCore.set_source(JSON.stringify(args.dast), args.source);
+        // We need to cast `args.dast` to `DastRootInCore` because
+        // a real `DastRoot` allows things like comments and cdata, etc.
+        // These are assume to be filtered out by the time we send data to core.
+        this.doenetCore.set_source(args.dast as DastRootInCore, args.source);
         this.source_set = true;
 
         resolve();
@@ -97,9 +84,7 @@ export class CoreWorker {
         }
 
         try {
-            let flat_dast = JSON.parse(
-                this.doenetCore.return_dast(),
-            ) as FlatDastRoot;
+            let flat_dast = this.doenetCore.return_dast();
             return flat_dast;
         } catch (err) {
             console.error(err);
@@ -109,7 +94,7 @@ export class CoreWorker {
         }
     }
 
-    async dispatchAction(action: Action): Promise<ElementUpdates> {
+    async dispatchAction(action: Action): Promise<ActionResponse> {
         const isProcessingPromise = this.isProcessingPromise;
         let { promise, resolve } = promiseWithResolver();
         this.isProcessingPromise = promise;
@@ -123,12 +108,8 @@ export class CoreWorker {
         // TODO: handle case if dispatchAction is called before returnDast
 
         try {
-            // TODO: Do we need to cast flat_dast_element_updates into a TypeScript type
-            // like we did for flat_dast, above?
-
-            let flat_dast_element_updates = JSON.parse(
-                this.doenetCore.dispatch_action(JSON.stringify(action)),
-            );
+            let flat_dast_element_updates =
+                this.doenetCore.dispatch_action(action);
             return flat_dast_element_updates;
         } catch (err) {
             console.error(err);

@@ -1,4 +1,5 @@
 import React from "react";
+import { Action } from "@doenet/doenetml-worker-rust";
 import { BasicComponent } from "../types";
 import { useAppDispatch, useAppSelector } from "../../state/hooks";
 import { renderingOnServerSelector } from "../../state/redux-slices/global";
@@ -14,13 +15,12 @@ export const TextInput: BasicComponent<TextInputData> = ({ node }) => {
     const dispatch = useAppDispatch();
 
     const updateValue = React.useCallback(() => {
-        dispatch(
-            coreActions.dispatchAction({
-                actionName: "updateValue",
-                componentIdx: id,
-                args: { text: value },
-            }),
-        );
+        let action: Action = {
+            component: "textInput",
+            actionName: "updateValue",
+            componentIdx: id,
+        };
+        dispatch(coreActions.dispatchAction(action));
     }, [dispatch, value]);
 
     if (onServer) {
@@ -34,13 +34,13 @@ export const TextInput: BasicComponent<TextInputData> = ({ node }) => {
                     type="text"
                     value={value}
                     onChange={(e) => {
-                        dispatch(
-                            coreActions.dispatchAction({
-                                actionName: "updateImmediateValue",
-                                componentIdx: id,
-                                args: { text: e.target.value },
-                            }),
-                        );
+                        const action: Action = {
+                            component: "textInput",
+                            componentIdx: id,
+                            actionName: "updateImmediateValue",
+                            args: { text: e.target.value },
+                        };
+                        dispatch(coreActions.dispatchAction(action));
                     }}
                     onBlur={updateValue}
                     onKeyUp={(e) => {

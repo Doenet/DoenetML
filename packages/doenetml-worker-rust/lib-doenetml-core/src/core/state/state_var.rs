@@ -4,6 +4,10 @@ use std::{
     ops::Deref,
     rc::Rc,
 };
+#[cfg(feature = "web")]
+use tsify::Tsify;
+#[cfg(feature = "web")]
+use wasm_bindgen::prelude::*;
 
 use thiserror::Error;
 
@@ -802,6 +806,8 @@ pub enum StateVarReadOnlyView {
 /// which is useful for function parameters.
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 #[serde(untagged)]
+#[cfg_attr(feature = "web", derive(Tsify))]
+#[cfg_attr(feature = "web", tsify(from_wasm_abi))]
 pub enum StateVarValue {
     String(String),
     Number(f64),

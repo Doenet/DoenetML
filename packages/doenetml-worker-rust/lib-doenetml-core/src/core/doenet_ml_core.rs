@@ -1,8 +1,12 @@
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
+#[cfg(feature = "web")]
+use wasm_bindgen::prelude::*;
+
 use super::components::component_creation::{
     create_component_children, replace_macro_referents_of_children_evaluate_attributes,
 };
+
 use super::components::{ComponentEnum, ComponentNode, RenderedComponentNode};
 use super::dast::{
     DastFunctionMacro, DastMacro, DastRoot, DastWarning, FlatDastElement, FlatDastElementContent,
@@ -16,9 +20,9 @@ use super::state::state_var_calculations::{
     StateVariableUpdateRequest,
 };
 use super::state::state_var_updates::process_state_variable_update_request;
-use super::state::{Freshness, StateVarName, StateVarValue};
+use super::state::{Freshness, StateVarName};
 
-use crate::utils::parse_json;
+use crate::components::actions::Action;
 #[allow(unused)]
 use crate::utils::{log, log_debug, log_json};
 
@@ -29,6 +33,7 @@ pub struct StateVarPointer {
     pub state_var_idx: StateVarIdx,
 }
 
+#[cfg_attr(feature = "web", tsify::declare)]
 pub type ComponentIdx = usize;
 pub type StateVarIdx = usize;
 
@@ -237,26 +242,13 @@ pub struct StateVariableShadowingMatch {
     pub shadowed_name: StateVarName,
 }
 
-/// Specification of an action call received from renderer
-#[derive(Debug)]
-pub struct Action {
-    pub component_idx: ComponentIdx,
-    pub action_name: String,
-
-    /// The keys are not state variable names.
-    /// They are whatever name the renderer calls the new value.
-    pub args: HashMap<String, Vec<StateVarValue>>,
-}
-
 impl DoenetMLCore {
     pub fn new(
-        dast_json: &str,
+        dast_root: DastRoot,
         source: &str,
         _flags_json: &str,
         existing_essential_data: Option<Vec<HashMap<EssentialDataOrigin, EssentialStateVar>>>,
     ) -> Self {
-        let dast_root: DastRoot = serde_json::from_str(dast_json).expect("Error extracting dast");
-
         let mut components: Vec<Rc<RefCell<ComponentEnum>>> = Vec::new();
         let warnings: Vec<DastWarning> = Vec::new();
 
@@ -345,15 +337,8 @@ impl DoenetMLCore {
     ///   or a vector of `StateVarValue`.
     pub fn dispatch_action(
         &mut self,
-        action: &str,
-    ) -> HashMap<ComponentIdx, FlatDastElementUpdate> {
-        let action = parse_json::parse_action_from_json(action)
-            .unwrap_or_else(|_| panic!("Error parsing json action: {}", action));
-
-        if action.action_name == "recordVisibilityChange" {
-            return HashMap::new();
-        }
-
+        action: Action,
+    ) -> Result<HashMap<ComponentIdx, FlatDastElementUpdate>, String> {
         let component_idx = action.component_idx;
 
         // We allow actions to resolve and get the value of any state variable from the component.
@@ -378,11 +363,9 @@ impl DoenetMLCore {
         {
             // A call to on_action from a component processes the arguments and returns a vector
             // of component state variables with requested new values
-            let state_vars_to_update = self.components[component_idx].borrow().on_action(
-                &action.action_name,
-                action.args,
-                &mut state_var_resolver,
-            );
+            let state_vars_to_update = self.components[component_idx]
+                .borrow()
+                .on_action(action.action, &mut state_var_resolver)?;
 
             for (state_var_idx, requested_value) in state_vars_to_update {
                 let freshness;
@@ -432,7 +415,7 @@ impl DoenetMLCore {
                 );
             }
         }
-        self.get_flat_dast_updates()
+        Ok(self.get_flat_dast_updates())
     }
 
     /// Output all components as a flat dast,

@@ -96,7 +96,9 @@ export const coreThunks = {
 
             try {
                 const updates = await worker.dispatchAction(action);
-                dispatch(_dastReducerActions.processElementUpdates(updates));
+                dispatch(
+                    _dastReducerActions.processElementUpdates(updates.payload),
+                );
             } catch (e) {
                 dispatch(_coreReducerActions._setInErrorState(true));
                 console.warn(e);

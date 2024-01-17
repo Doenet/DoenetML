@@ -1,13 +1,20 @@
 use serde::{ser::SerializeStruct, Deserialize, Serialize};
 use std::collections::HashMap;
+#[cfg(feature = "web")]
+use tsify::Tsify;
+#[cfg(feature = "web")]
+use wasm_bindgen::prelude::*;
 
 use thiserror::Error;
 
 use crate::state::StateVarValue;
 
+/// Dast root node
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "root")]
+#[cfg_attr(feature = "web", derive(Tsify))]
+#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
 pub struct DastRoot {
     pub children: Vec<DastElementContent>,
 
@@ -15,8 +22,10 @@ pub struct DastRoot {
     pub position: Option<Position>,
 }
 
+/// Allowed children of an element node or the root node
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
+#[cfg_attr(feature = "web", derive(Tsify))]
 pub enum DastElementContent {
     Element(DastElement),
     Text(DastText),
@@ -25,17 +34,21 @@ pub enum DastElementContent {
     Error(DastError),
 }
 
+/// Allowed children of an attribute node
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
+#[cfg_attr(feature = "web", derive(Tsify))]
 pub enum DastTextMacroContent {
     Text(DastText),
     Macro(DastMacro),
     FunctionMacro(DastFunctionMacro),
 }
 
+/// An element node
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "element")]
+#[cfg_attr(feature = "web", derive(Tsify))]
 pub struct DastElement {
     pub name: String,
 
@@ -50,7 +63,10 @@ pub struct DastElement {
     pub position: Option<Position>,
 }
 
+/// Additional data associated with an element. The majority of the data
+/// that DoenetMLCore produces will end up in `ElementData`
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[cfg_attr(feature = "web", derive(Tsify))]
 pub struct ElementData {
     pub id: usize,
 
@@ -64,9 +80,11 @@ pub struct ElementData {
     pub state: Option<HashMap<String, StateVarValue>>,
 }
 
+/// A text node
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "text")]
+#[cfg_attr(feature = "web", derive(Tsify))]
 pub struct DastText {
     pub value: String,
 
@@ -78,11 +96,16 @@ pub struct DastText {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "web", derive(Tsify))]
 pub struct TextData {}
 
+/// An attribute. Unlike in XML, attributes can have non-string children.
+/// It is up to the serializer to convert the non-string children into a
+/// correct attribute value.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "attribute")]
+#[cfg_attr(feature = "web", derive(Tsify))]
 pub struct DastAttribute {
     pub name: String,
     pub children: Vec<DastTextMacroContent>,
@@ -117,9 +140,11 @@ impl DastAttribute {
     }
 }
 
+/// A macro (i.e., a macro that starts with `$`)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "macro")]
+#[cfg_attr(feature = "web", derive(Tsify))]
 pub struct DastMacro {
     pub path: Vec<PathPart>,
     pub attributes: HashMap<String, DastAttribute>,
@@ -128,9 +153,11 @@ pub struct DastMacro {
     pub position: Option<Position>,
 }
 
+/// A function macro (i.e., a macro that starts with `$$`)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "function")]
+#[cfg_attr(feature = "web", derive(Tsify))]
 pub struct DastFunctionMacro {
     pub path: Vec<PathPart>,
     pub input: Option<Vec<Vec<DastElementContent>>>,
@@ -139,9 +166,11 @@ pub struct DastFunctionMacro {
     pub position: Option<Position>,
 }
 
+/// A part of a macro path
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "pathPart")]
+#[cfg_attr(feature = "web", derive(Tsify))]
 pub struct PathPart {
     pub name: String,
     pub index: Vec<DastIndex>,
@@ -150,9 +179,11 @@ pub struct PathPart {
     pub position: Option<Position>,
 }
 
+/// An index into a macro path
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "index")]
+#[cfg_attr(feature = "web", derive(Tsify))]
 pub struct DastIndex {
     pub value: Vec<DastTextMacroContent>,
 
@@ -160,9 +191,13 @@ pub struct DastIndex {
     pub position: Option<Position>,
 }
 
+/// An error node that can be inserted into the Dast tree.
+/// Because `DastError`s can be inserted into the tree, they
+/// can appear close to whatever caused the error.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "error")]
+#[cfg_attr(feature = "web", derive(Tsify))]
 pub struct DastError {
     pub message: String,
 
@@ -170,13 +205,17 @@ pub struct DastError {
     pub position: Option<Position>,
 }
 
+/// Range in a source string
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "web", derive(Tsify))]
 pub struct Position {
     pub start: Point,
     pub end: Point,
 }
 
+/// Location in a source string
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "web", derive(Tsify))]
 pub struct Point {
     pub line: usize,
     pub column: usize,
@@ -184,9 +223,15 @@ pub struct Point {
     pub offset: Option<usize>,
 }
 
+/// Root element of `FlatDast`, which flattens the tree structure of `Dast`.
+/// All `text` nodes are converted into literal strings. Each `element` is given
+/// a unique id and children of elements/roots are represented as an array of
+/// ids and string literals.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "root")]
+#[cfg_attr(feature = "web", derive(Tsify))]
+#[cfg_attr(feature = "web", tsify(into_wasm_abi))]
 pub struct FlatDastRoot {
     pub children: Vec<FlatDastElementContent>,
 
@@ -199,14 +244,19 @@ pub struct FlatDastRoot {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
+#[cfg_attr(feature = "web", derive(Tsify))]
 pub enum FlatDastElementContent {
     Element(usize),
     Text(String),
 }
 
+/// A flattened version of DastElement that is easier to serialize
+/// Instead of children, an array of references to to child ids is used
+/// for element children, and `text` children are included as literal strings.
 #[derive(Debug, Clone, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "element")]
+#[cfg_attr(feature = "web", derive(Tsify))]
 pub struct FlatDastElement {
     pub name: String,
 
@@ -264,9 +314,11 @@ impl Serialize for FlatDastElement {
     }
 }
 
+/// Non-fatal error produced when running DoenetMLCore
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "warning")]
+#[cfg_attr(feature = "web", derive(Tsify))]
 pub struct DastWarning {
     pub message: String,
 
@@ -274,9 +326,13 @@ pub struct DastWarning {
     pub position: Option<Position>,
 }
 
+/// An update to a single element in the Dast tree.
+/// It may contain changes to the element's attributes, children, or `data.state`.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename = "elementUpdate")]
+#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "web", derive(Tsify))]
 pub struct FlatDastElementUpdate {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub changed_attributes: Option<HashMap<String, DastAttribute>>,
