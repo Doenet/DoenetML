@@ -30,6 +30,7 @@ export const dastThunks = {
             try {
                 await worker.setSource({ source, dast: newDast });
             } catch (e) {
+                console.error("Error when setting source in Core.", e);
                 dispatch(_coreReducerActions._setInErrorState(true));
             }
         },

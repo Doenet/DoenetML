@@ -12,6 +12,7 @@ use crate::state::StateVarValue;
 #[serde(tag = "type")]
 #[serde(rename = "root")]
 #[cfg_attr(feature = "web", derive(Tsify))]
+#[cfg_attr(feature = "web", tsify(into_wasm_abi, from_wasm_abi))]
 pub struct DastRoot {
     pub children: Vec<DastElementContent>,
 

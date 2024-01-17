@@ -1,11 +1,19 @@
 import * as Comlink from "comlink";
 import init, {
-    Action,
+    Action as _Action,
     ActionResponse,
+    ActionsEnum,
     PublicDoenetMLCore,
+    DastRoot as DastRootInCore
 } from "lib-doenetml-worker-rust";
 export type * from "lib-doenetml-worker-rust";
-import type { DastRoot, DastElement, DastError } from "@doenet/parser";
+import type { DastRoot } from "@doenet/parser";
+
+/**
+ * Action type for use with typescript. There are errors with the type
+ * exported by `lib-doenetml-worker-rust`, so use this version instead.
+ */
+export type Action = ActionsEnum & { componentIdx: number };
 
 type Flags = Record<string, unknown>;
 
@@ -33,7 +41,10 @@ export class CoreWorker {
             this.doenetCore = PublicDoenetMLCore.new();
         }
 
-        this.doenetCore.set_source(JSON.stringify(args.dast), args.source);
+        // We need to cast `args.dast` to `DastRootInCore` because
+        // a real `DastRoot` allows things like comments and cdata, etc.
+        // These are assume to be filtered out by the time we send data to core.
+        this.doenetCore.set_source(args.dast as DastRootInCore, args.source);
         this.source_set = true;
 
         resolve();

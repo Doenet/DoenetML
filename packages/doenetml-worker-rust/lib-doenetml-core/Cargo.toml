@@ -30,6 +30,7 @@ tsify = { workspace = true }
 # all the `std::fmt` and `std::panicking` infrastructure, so isn't great for
 # code size when deploying.
 console_error_panic_hook = { workspace = true, optional = true }
+derive_more = { workspace = true }
 
 [dev-dependencies]
 criterion = "0.3.6"
