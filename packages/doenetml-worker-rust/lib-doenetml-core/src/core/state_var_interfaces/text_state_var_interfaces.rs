@@ -4,6 +4,7 @@ use crate::{
         RequestDependencyUpdateError, StateVarInterface, StateVarMutableViewTyped,
         StateVarParameters, StateVarReadOnlyView, StateVarReadOnlyViewTyped,
     },
+    dependency::DependencySource,
     ExtendSource,
 };
 
@@ -18,9 +19,13 @@ use super::common::create_dependency_instruction_from_extend_source;
 ///
 /// If `create_dependency_from_extend_source` is true and have an extend source extending this variable,
 /// then prepend the shadowed state variable.
+///
+/// If the state variable has a single dependency that is an essential state variable,
+/// then propagate the `used_default` attribute of the essential state variable.
 #[derive(Debug, Default)]
 pub struct GeneralStringStateVarInterface {
     string_dependency_values: Vec<StateVarReadOnlyViewTyped<String>>,
+    from_single_essential: bool,
 }
 
 impl StateVarInterface<String> for GeneralStringStateVarInterface {
@@ -65,20 +70,35 @@ impl StateVarInterface<String> for GeneralStringStateVarInterface {
         }
 
         self.string_dependency_values = string_vals;
+
+        if num_dependencies == 1 {
+            if let DependencySource::Essential { .. } = dependencies[0][0].source {
+                self.from_single_essential = true;
+            }
+        }
     }
 
     fn calculate_state_var_from_dependencies_and_mark_fresh(
         &self,
         state_var: &StateVarMutableViewTyped<String>,
     ) {
-        // TODO: can we implement this without cloning the inner value?
-        let value: String = self
-            .string_dependency_values
-            .iter()
-            .map(|v| v.get_fresh_value().clone())
-            .collect();
+        if self.from_single_essential {
+            // if we are basing it on a single essential variable,
+            // then we propagate used_default as well as the value.
+            state_var.set_value_and_used_default(
+                self.string_dependency_values[0].get_fresh_value().clone(),
+                self.string_dependency_values[0].get_used_default(),
+            );
+        } else {
+            // TODO: can we implement this without cloning the inner value?
+            let value: String = self
+                .string_dependency_values
+                .iter()
+                .map(|v| v.get_fresh_value().clone())
+                .collect();
 
-        state_var.set_value(value);
+            state_var.set_value(value);
+        }
     }
 
     fn request_dependencies_to_update_value(

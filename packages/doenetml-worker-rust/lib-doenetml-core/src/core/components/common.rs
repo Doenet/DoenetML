@@ -68,7 +68,7 @@ pub struct ComponentCommonData {
 
     pub component_profile_state_variables: Vec<ComponentProfileStateVariable>,
 
-    pub attribute_children: HashMap<String, Vec<ComponentPointerTextOrMacro>>,
+    pub attribute_children: HashMap<AttributeName, Vec<ComponentPointerTextOrMacro>>,
 
     pub unevaluated_attributes: HashMap<String, DastAttribute>,
 
@@ -179,7 +179,7 @@ pub trait ComponentNode: ComponentNodeStateVariables {
     /// indices of all child component nodes and the literal string children.
     fn set_attribute_children(
         &mut self,
-        attribute_children: HashMap<String, Vec<ComponentPointerTextOrMacro>>,
+        attribute_children: HashMap<AttributeName, Vec<ComponentPointerTextOrMacro>>,
     );
 
     fn get_attribute_children_for_attribute(
@@ -278,7 +278,7 @@ pub trait RenderedComponentNode: ComponentNode {
     }
 
     /// Return a list of the attribute names that the component will accept
-    fn get_attribute_names(&self) -> Vec<String> {
+    fn get_attribute_names(&self) -> Vec<AttributeName> {
         // TODO: add default attribute names, like hide and disabled?
         // If so, should provide a mechanism for including default state variables depending on them.
         vec![]

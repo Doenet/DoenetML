@@ -37,10 +37,7 @@ pub enum DependencyInstruction {
         match_profiles: Vec<ComponentProfile>,
         // TODO: do we need to add exclude_if_prefer_profiles?
     },
-    Essential {
-        /// Use the string of this attribute
-        prefill: Option<AttributeName>,
-    },
+    Essential,
 }
 
 // TODO: determine what the structure of DependencySource should be
@@ -112,9 +109,12 @@ pub fn create_dependencies_from_instruction_initialize_essential(
     // log!("Creating dependency {}:{} from instruction {:?}", component_name, state_var_idx, instruction);
 
     match instruction {
-        DependencyInstruction::Essential { prefill } => {
+        DependencyInstruction::Essential => {
+            // We recurse to extend source components so that this essential data
+            // is shared with the extend source any any other components that extend from it.
             let source_idx =
                 get_recursive_extend_source_component_when_exists(components, component_idx);
+
             let essential_origin = EssentialDataOrigin::StateVar(state_var_idx);
 
             let essential_data_view =
@@ -123,8 +123,7 @@ pub fn create_dependencies_from_instruction_initialize_essential(
                 } else {
                     let mut used_default = false;
 
-                    // TODO: implement getting initial data from prefill attribute
-                    // For now just use default value and set used_default to true
+                    // Use the default value for the state variable and set used_default to true
                     let initial_data = components[component_idx].borrow().get_state_variables()
                         [state_var_idx]
                         .return_default_value();
@@ -356,32 +355,37 @@ pub fn create_dependencies_from_instruction_initialize_essential(
                 // Create an essential dependency with the default_value for the state variable
 
                 // Treat the essential data as though it came from the first string child
+                // of the component, except recursing to extend source components
+                // in order to share the essential data with the extend source.
+
+                let source_idx =
+                    get_recursive_extend_source_component_when_exists(components, component_idx);
+
                 let essential_origin = EssentialDataOrigin::StringChild(0);
 
-                let essential_data_view = if let Some(current_view) =
-                    essential_data[component_idx].get(&essential_origin)
-                {
-                    current_view.create_new_read_only_view()
-                } else {
-                    let initial_data = components[component_idx].borrow().get_state_variables()
-                        [state_var_idx]
-                        .return_default_value();
+                let essential_data_view =
+                    if let Some(current_view) = essential_data[source_idx].get(&essential_origin) {
+                        current_view.create_new_read_only_view()
+                    } else {
+                        let initial_data = components[source_idx].borrow().get_state_variables()
+                            [state_var_idx]
+                            .return_default_value();
 
-                    let new_view = create_essential_data_for(
-                        component_idx,
-                        essential_origin.clone(),
-                        InitialEssentialData::Single {
-                            value: initial_data,
-                            used_default: true,
-                        },
-                        essential_data,
-                    );
-                    new_view.create_new_read_only_view()
-                };
+                        let new_view = create_essential_data_for(
+                            source_idx,
+                            essential_origin.clone(),
+                            InitialEssentialData::Single {
+                                value: initial_data,
+                                used_default: true,
+                            },
+                            essential_data,
+                        );
+                        new_view.create_new_read_only_view()
+                    };
 
                 dependencies.push(Dependency {
                     source: DependencySource::Essential {
-                        component_idx,
+                        component_idx: source_idx,
                         origin: essential_origin,
                     },
                     value: essential_data_view,
@@ -395,15 +399,17 @@ pub fn create_dependencies_from_instruction_initialize_essential(
             attribute_name,
             match_profiles,
         } => {
-            let component = components[component_idx].borrow();
-
-            let attribute_children = component
-                .get_attribute_children_for_attribute(attribute_name)
+            let (attribute_children, parent_idx) =
+                get_attribute_children_with_parent_falling_back_to_extend_source(
+                    components,
+                    component_idx,
+                    &attribute_name,
+                )
                 .unwrap_or_else(|| {
                     panic!(
                         "Invalid attribute {} for component of type {}",
                         attribute_name,
-                        component.get_component_type()
+                        components[component_idx].borrow().get_component_type()
                     );
                 });
 
@@ -459,17 +465,16 @@ pub fn create_dependencies_from_instruction_initialize_essential(
                                 essential_data_index,
                             );
 
-                            // TODO: ignoring should_initialize_essential_data
-                            // Do we need to do something different if it is false?
-
+                            // Essential data is from parent_idx, so it will be shared with the extend_source
+                            // if the children came from an extend_source
                             let essential_data_view = if let Some(current_view) =
-                                essential_data[component_idx].get(&essential_origin)
+                                essential_data[parent_idx].get(&essential_origin)
                             {
                                 current_view.create_new_read_only_view()
                             } else {
                                 let value = StateVarValue::String(string_value.clone());
                                 let new_view = create_essential_data_for(
-                                    component_idx,
+                                    parent_idx,
                                     essential_origin.clone(),
                                     InitialEssentialData::Single {
                                         value,
@@ -482,7 +487,7 @@ pub fn create_dependencies_from_instruction_initialize_essential(
 
                             dependencies.push(Dependency {
                                 source: DependencySource::Essential {
-                                    component_idx,
+                                    component_idx: parent_idx,
                                     origin: essential_origin,
                                 },
                                 value: essential_data_view,
@@ -497,35 +502,41 @@ pub fn create_dependencies_from_instruction_initialize_essential(
 
             if dependencies.is_empty() {
                 // Found no matching attribute children.
-                // Create an essential dependency with the default_value for the state variable
+                // This means that the component and any component extend sources do not have any attribute children.
 
-                // Treat the essential data as though it came from the first string child
+                // Create an essential dependency with the default_value for the state variable
+                // Treat the essential data as though it came from the first string attribute child
+                // of the component, except recursing to extend source components
+                // in order to share the essential data with the extend source.
+
+                let source_idx =
+                    get_recursive_extend_source_component_when_exists(components, component_idx);
+
                 let essential_origin = EssentialDataOrigin::AttributeChild(&attribute_name, 0);
 
-                let essential_data_view = if let Some(current_view) =
-                    essential_data[component_idx].get(&essential_origin)
-                {
-                    current_view.create_new_read_only_view()
-                } else {
-                    let initial_data = components[component_idx].borrow().get_state_variables()
-                        [state_var_idx]
-                        .return_default_value();
+                let essential_data_view =
+                    if let Some(current_view) = essential_data[source_idx].get(&essential_origin) {
+                        current_view.create_new_read_only_view()
+                    } else {
+                        let initial_data = components[source_idx].borrow().get_state_variables()
+                            [state_var_idx]
+                            .return_default_value();
 
-                    let new_view = create_essential_data_for(
-                        component_idx,
-                        essential_origin.clone(),
-                        InitialEssentialData::Single {
-                            value: initial_data,
-                            used_default: true,
-                        },
-                        essential_data,
-                    );
-                    new_view.create_new_read_only_view()
-                };
+                        let new_view = create_essential_data_for(
+                            source_idx,
+                            essential_origin.clone(),
+                            InitialEssentialData::Single {
+                                value: initial_data,
+                                used_default: true,
+                            },
+                            essential_data,
+                        );
+                        new_view.create_new_read_only_view()
+                    };
 
                 dependencies.push(Dependency {
                     source: DependencySource::Essential {
-                        component_idx,
+                        component_idx: source_idx,
                         origin: essential_origin,
                     },
                     value: essential_data_view,
@@ -579,4 +590,36 @@ fn get_children_with_parent_including_from_extend_source(
     );
 
     children_vec
+}
+
+/// Return the attribute children for `attribute`,
+/// falling back to the attribute children of any extend source if none found for the component.
+///
+/// Returns an option of a tuple with components
+/// - a vector of the attribute children found
+/// - the index of the parent where those attribute children were found.
+fn get_attribute_children_with_parent_falling_back_to_extend_source(
+    components: &Vec<Rc<RefCell<ComponentEnum>>>,
+    component_idx: ComponentIdx,
+    attribute: AttributeName,
+) -> Option<(Vec<ComponentPointerTextOrMacro>, ComponentIdx)> {
+    let component = components[component_idx].borrow();
+
+    let attribute_children_option = component.get_attribute_children_for_attribute(attribute);
+
+    match attribute_children_option {
+        Some(attribute_children) => {
+            // if we found the attribute but there are no children, then recurse to extend source, if it exists
+            if attribute_children.is_empty() {
+                if let Some(&ExtendSource::Component(source_idx)) = component.get_extend() {
+                    return get_attribute_children_with_parent_falling_back_to_extend_source(
+                        components, source_idx, attribute,
+                    );
+                }
+            }
+
+            Some((attribute_children.clone(), component_idx))
+        }
+        None => None,
+    }
 }

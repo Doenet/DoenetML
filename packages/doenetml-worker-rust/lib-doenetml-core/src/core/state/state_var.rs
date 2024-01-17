@@ -271,10 +271,12 @@ impl<T: Default + Clone> StateVarInner<T> {
         }
     }
 
-    /// Set the value of the state variable to `new_val`, mark it as Fresh, and increment the change counter.
+    /// Set the value of the state variable to `new_val`, mark it as Fresh,
+    /// set 'used_default` to false, and increment the change counter.
     pub fn set_value(&mut self, new_val: T) {
         self.value = new_val;
         self.freshness = Freshness::Fresh;
+        self.used_default = false;
         self.change_counter += 1;
     }
 
@@ -421,8 +423,8 @@ impl<T: Default + Clone> StateVarMutableViewTyped<T> {
         }
     }
 
-    /// Set the value of the state variable to the supplied value
-    /// and mark it fresh
+    /// Set the value of the state variable to the supplied value,
+    /// set 'used_default` to false, and mark it fresh
     pub fn set_value(&self, new_val: T) {
         self.inner.borrow_mut().set_value(new_val);
     }
@@ -621,8 +623,8 @@ impl<T: Default + Clone> StateVarTyped<T> {
         Ref::map(self.value.inner.borrow(), |v| v.get_fresh_value())
     }
 
-    /// Set the value of the state variable to the supplied value
-    /// and mark it fresh
+    /// Set the value of the state variable to the supplied value,
+    /// set 'used_default` to false, and mark it fresh
     pub fn set_value(&self, new_val: T) {
         self.value.inner.borrow_mut().set_value(new_val);
     }

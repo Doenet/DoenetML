@@ -4,6 +4,7 @@ use crate::{
         RequestDependencyUpdateError, StateVarInterface, StateVarMutableViewTyped,
         StateVarParameters, StateVarReadOnlyView, StateVarReadOnlyViewTyped,
     },
+    dependency::DependencySource,
     ExtendSource,
 };
 
@@ -18,13 +19,17 @@ use super::common::create_dependency_instruction_from_extend_source;
 ///
 /// If `create_dependency_from_extend_source` is true and have an extend source extending this variable,
 /// then prepend the shadowed state variable.
+///
+/// If the state variable has a single boolean dependency that is an essential state variable,
+/// then propagate the `used_default` attribute of the essential state variable.
 #[derive(Debug, Default)]
 pub struct GeneralBooleanStateVarInterface {
     boolean_or_strings_dependency_values: BooleanOrStrings,
+    from_single_essential: bool,
 }
 
 #[derive(Debug)]
-pub enum BooleanOrStrings {
+enum BooleanOrStrings {
     Boolean(StateVarReadOnlyViewTyped<bool>),
     Strings(Vec<StateVarReadOnlyViewTyped<String>>),
 }
@@ -95,6 +100,10 @@ impl StateVarInterface<bool> for GeneralBooleanStateVarInterface {
             }
 
             self.boolean_or_strings_dependency_values = BooleanOrStrings::Boolean(bool_val);
+
+            if let DependencySource::Essential { .. } = dependencies[0][0].source {
+                self.from_single_essential = true;
+            }
         } else {
             self.boolean_or_strings_dependency_values = BooleanOrStrings::Strings(string_vals);
         }
@@ -106,7 +115,16 @@ impl StateVarInterface<bool> for GeneralBooleanStateVarInterface {
     ) {
         match &self.boolean_or_strings_dependency_values {
             BooleanOrStrings::Boolean(boolean_value) => {
-                state_var.set_value(*boolean_value.get_fresh_value());
+                if self.from_single_essential {
+                    // if we are basing it on a single essential variable,
+                    // then we propagate used_default as well as the value.
+                    state_var.set_value_and_used_default(
+                        *boolean_value.get_fresh_value(),
+                        boolean_value.get_used_default(),
+                    );
+                } else {
+                    state_var.set_value(*boolean_value.get_fresh_value());
+                }
             }
             BooleanOrStrings::Strings(string_values) => {
                 let value: String = string_values

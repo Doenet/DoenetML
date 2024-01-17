@@ -153,7 +153,7 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
 
                         fn set_attribute_children(
                             &mut self,
-                            attribute_children: HashMap<String, Vec<ComponentPointerTextOrMacro>>,
+                            attribute_children: HashMap<AttributeName, Vec<ComponentPointerTextOrMacro>>,
                         ) {
                             self.common.attribute_children = attribute_children;
                         }

@@ -267,6 +267,8 @@ fn replace_macro_referents_evaluate_attributes(
 
                     components.push(Rc::new(RefCell::new(new_comp_enum)));
 
+                    evaluate_attributes_replace_macros(components, new_idx);
+
                     ComponentPointerTextOrMacro::Component(new_idx)
                 }
             } else {
@@ -445,6 +447,8 @@ fn match_public_state_variable(
 
     components.push(Rc::new(RefCell::new(new_comp_enum)));
 
+    evaluate_attributes_replace_macros(components, new_idx);
+
     Some(ComponentPointerTextOrMacro::Component(new_idx))
 }
 
@@ -463,7 +467,7 @@ fn evaluate_attributes_replace_macros(
         let unevaluated_attributes = parent.get_unevaluated_attributes_mut();
 
         for attribute_name in parent_attribute_names {
-            match unevaluated_attributes.remove_ignore_case(&attribute_name) {
+            match unevaluated_attributes.remove_ignore_case(attribute_name) {
                 Some(dast_attr) => {
                     let mut children: Vec<ComponentPointerTextOrMacro> = dast_attr
                         .children
