@@ -42,7 +42,7 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
             let mut state_var_get_name_arms = Vec::new();
             let mut state_var_get_for_renderer_arms = Vec::new();
             let mut state_var_get_is_public_arms = Vec::new();
-            let mut state_var_return_initial_essential_value_arms = Vec::new();
+            let mut state_var_return_default_value_arms = Vec::new();
 
             let mut impl_try_from_state_var_value_to_state_var_typed_variants = Vec::new();
 
@@ -194,9 +194,9 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
                     },
                 });
 
-                state_var_return_initial_essential_value_arms.push(quote! {
+                state_var_return_default_value_arms.push(quote! {
                     #enum_ident::#variant_ident(sv_typed) => {
-                        StateVarValue::#variant_ident(sv_typed.return_initial_essential_value())
+                        StateVarValue::#variant_ident(sv_typed.return_default_value())
                     },
                 });
             }
@@ -404,15 +404,15 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
                         }
                     }
 
-                    /// Returns the value of the `initial_essential_value` parameters
+                    /// Returns the value of the `default_value` parameters
                     /// specified when the state variable was defined.
                     ///
-                    /// If no `initial_essential_value` parameter was specified,
+                    /// If no `default_value` parameter was specified,
                     /// this function will return the default value for the type of state variable,
                     /// which presumably will be meaningless.
-                    pub fn return_initial_essential_value(&self) -> StateVarValue {
+                    pub fn return_default_value(&self) -> StateVarValue {
                         match self {
-                            #(#state_var_return_initial_essential_value_arms)*
+                            #(#state_var_return_default_value_arms)*
                         }
                     }
 

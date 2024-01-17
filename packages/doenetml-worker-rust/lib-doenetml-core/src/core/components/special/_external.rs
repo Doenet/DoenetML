@@ -136,6 +136,13 @@ impl ComponentNode for _External {
         self.common.attribute_children = attribute_children;
     }
 
+    fn get_attribute_children_for_attribute(
+        &self,
+        attribute: AttributeName,
+    ) -> Option<&Vec<ComponentPointerTextOrMacro>> {
+        self.common.attribute_children.get(attribute)
+    }
+
     fn get_unevaluated_attributes(&self) -> &HashMap<String, DastAttribute> {
         &self.common.unevaluated_attributes
     }

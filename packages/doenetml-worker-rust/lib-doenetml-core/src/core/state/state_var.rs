@@ -54,8 +54,8 @@ pub struct StateVarTyped<T: Default + Clone> {
     /// Additional parameters determining the behavior of the state variable
     parameters: StateVarParameters,
 
-    /// - initial_essential_value: TODO, but presumably the initial value of its essential value
-    initial_essential_value: T,
+    /// Value if don't have dependencies that determine the value
+    default_value: T,
 
     /// A vector that points to a copy of the values of all the dependencies
     /// of this state variable, where the values are behind untyped enums in order to have a vector.
@@ -592,7 +592,7 @@ impl<T: Default + Clone> StateVarTyped<T> {
     pub fn new(
         interface: Box<dyn StateVarInterface<T>>,
         parameters: StateVarParameters,
-        initial_essential_value: T,
+        default_value: T,
     ) -> Self {
         let value = StateVarMutableViewTyped::new();
         StateVarTyped {
@@ -600,7 +600,7 @@ impl<T: Default + Clone> StateVarTyped<T> {
             value,
             interface,
             parameters,
-            initial_essential_value,
+            default_value,
             all_dependency_values: vec![],
         }
     }
@@ -730,11 +730,9 @@ impl<T: Default + Clone> StateVarTyped<T> {
         self.parameters.for_renderer
     }
 
-    /// Return the initial essential value of this state variable
-    ///
-    /// TODO: determine how this is used
-    pub fn return_initial_essential_value(&self) -> T {
-        self.initial_essential_value.clone()
+    /// Return the default value of this state variable
+    pub fn return_default_value(&self) -> T {
+        self.default_value.clone()
     }
 
     /// Record that the fact each of the dependencies in `all_dependency_values` were viewed.
@@ -747,9 +745,16 @@ impl<T: Default + Clone> StateVarTyped<T> {
 
     /// Check if a dependency has changed since we last called `record_all_dependencies_viewed`.
     pub fn check_if_any_dependency_changed_since_last_viewed(&self) -> bool {
-        self.all_dependency_values
-            .iter()
-            .any(|state_var| state_var.check_if_changed_since_last_viewed())
+        if self.all_dependency_values.is_empty() {
+            // if there are no dependencies, then report true if state variable is Unresolved or Resolved,
+            // as in that case, we still need to calculate the state variable
+            let this_freshness = self.get_freshness();
+            this_freshness == Freshness::Resolved || this_freshness == Freshness::Unresolved
+        } else {
+            self.all_dependency_values
+                .iter()
+                .any(|state_var| state_var.check_if_changed_since_last_viewed())
+        }
     }
 }
 

@@ -182,6 +182,11 @@ pub trait ComponentNode: ComponentNodeStateVariables {
         attribute_children: HashMap<String, Vec<ComponentPointerTextOrMacro>>,
     );
 
+    fn get_attribute_children_for_attribute(
+        &self,
+        attribute: AttributeName,
+    ) -> Option<&Vec<ComponentPointerTextOrMacro>>;
+
     /// Get the hash map of all attributes that have not yet been evaluated to create attribute children.
     ///
     /// The hash map initially contains all attributes received from the dast,

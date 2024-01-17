@@ -465,7 +465,7 @@ fn evaluate_attributes_replace_macros(
         for attribute_name in parent_attribute_names {
             match unevaluated_attributes.remove_ignore_case(&attribute_name) {
                 Some(dast_attr) => {
-                    let children: Vec<ComponentPointerTextOrMacro> = dast_attr
+                    let mut children: Vec<ComponentPointerTextOrMacro> = dast_attr
                         .children
                         .iter()
                         .map(|child| {
@@ -488,11 +488,19 @@ fn evaluate_attributes_replace_macros(
                         })
                         .collect();
 
+                    // If there are no children, we add a blank string child to indicate that
+                    // the attribute was specified.
+                    if children.is_empty() {
+                        children = vec![ComponentPointerTextOrMacro::Text("".to_string())];
+                    }
+
                     attribute_children.insert(attribute_name, children);
                 }
                 None => {
-                    // If attribute was not in the dast, do not insert an entry.
-                    // That way we can distinguish between an empty attribute and a attribute that isn't present.
+                    // If the attribute was not in the dast, insert an empty vector.
+                    // This will be distinguished from the case where an attribute was specified with no content,
+                    // as in the latter case, we add a single empty string child (see above).
+                    attribute_children.insert(attribute_name, vec![]);
                 }
             }
         }

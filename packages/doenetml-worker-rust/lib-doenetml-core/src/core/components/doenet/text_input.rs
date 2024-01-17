@@ -4,7 +4,10 @@ use std::rc::Rc;
 
 use serde::{Deserialize, Serialize};
 
-use crate::components::prelude::*;
+use crate::{
+    components::prelude::*,
+    state_var_interfaces::boolean_state_var_interfaces::GeneralBooleanStateVarInterface,
+};
 
 #[derive(Debug, Default, ComponentNode)]
 pub struct TextInput {
@@ -199,6 +202,48 @@ impl ComponentNodeStateVariables for TextInput {
         // );
         // self.state_variables
         //     .push(StateVar::String(bind_value_to_state_variable));
+
+        //////////////////////
+        // Hide state variable
+        //////////////////////
+        let hide_state_var = StateVarTyped::new(
+            Box::<GeneralBooleanStateVarInterface>::default(),
+            StateVarParameters {
+                name: "hide",
+                dependency_instruction_hint: Some(DependencyInstruction::AttributeChild {
+                    attribute_name: "hide",
+                    match_profiles: vec![ComponentProfile::Text, ComponentProfile::Boolean],
+                }),
+                for_renderer: true,
+                ..Default::default()
+            },
+            false,
+        );
+
+        self.common
+            .state_variables
+            .push(StateVar::Boolean(hide_state_var));
+
+        //////////////////////////
+        // Disabled state variable
+        //////////////////////////
+        let disabled_state_var = StateVarTyped::new(
+            Box::<GeneralBooleanStateVarInterface>::default(),
+            StateVarParameters {
+                name: "disabled",
+                dependency_instruction_hint: Some(DependencyInstruction::AttributeChild {
+                    attribute_name: "disabled",
+                    match_profiles: vec![ComponentProfile::Text, ComponentProfile::Boolean],
+                }),
+                for_renderer: true,
+                ..Default::default()
+            },
+            false,
+        );
+
+        self.common
+            .state_variables
+            .push(StateVar::Boolean(disabled_state_var));
     }
 }
 

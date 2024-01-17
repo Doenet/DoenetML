@@ -32,10 +32,11 @@ pub enum DependencyInstruction {
     Parent {
         state_var_name: StateVarName,
     },
-    // Attribute {
-    //     attribute_name: AttributeName,
-    //     default_value: StateVarValue,
-    // },
+    AttributeChild {
+        attribute_name: AttributeName,
+        match_profiles: Vec<ComponentProfile>,
+        // TODO: do we need to add exclude_if_prefer_profiles?
+    },
     Essential {
         /// Use the string of this attribute
         prefill: Option<AttributeName>,
@@ -123,10 +124,10 @@ pub fn create_dependencies_from_instruction_initialize_essential(
                     let mut used_default = false;
 
                     // TODO: implement getting initial data from prefill attribute
-                    // For now just use initial essential value and set used_default to true
+                    // For now just use default value and set used_default to true
                     let initial_data = components[component_idx].borrow().get_state_variables()
                         [state_var_idx]
-                        .return_initial_essential_value();
+                        .return_default_value();
                     used_default = true;
 
                     let initial_data = InitialEssentialData::Single {
@@ -348,6 +349,187 @@ pub fn create_dependencies_from_instruction_initialize_essential(
                         *index += 1;
                     }
                 }
+            }
+
+            if dependencies.is_empty() {
+                // Found no matching children.
+                // Create an essential dependency with the default_value for the state variable
+
+                // Treat the essential data as though it came from the first string child
+                let essential_origin = EssentialDataOrigin::StringChild(0);
+
+                let essential_data_view = if let Some(current_view) =
+                    essential_data[component_idx].get(&essential_origin)
+                {
+                    current_view.create_new_read_only_view()
+                } else {
+                    let initial_data = components[component_idx].borrow().get_state_variables()
+                        [state_var_idx]
+                        .return_default_value();
+
+                    let new_view = create_essential_data_for(
+                        component_idx,
+                        essential_origin.clone(),
+                        InitialEssentialData::Single {
+                            value: initial_data,
+                            used_default: true,
+                        },
+                        essential_data,
+                    );
+                    new_view.create_new_read_only_view()
+                };
+
+                dependencies.push(Dependency {
+                    source: DependencySource::Essential {
+                        component_idx,
+                        origin: essential_origin,
+                    },
+                    value: essential_data_view,
+                });
+            }
+
+            dependencies
+        }
+
+        DependencyInstruction::AttributeChild {
+            attribute_name,
+            match_profiles,
+        } => {
+            let component = components[component_idx].borrow();
+
+            let attribute_children = component
+                .get_attribute_children_for_attribute(attribute_name)
+                .unwrap_or_else(|| {
+                    panic!(
+                        "Invalid attribute {} for component of type {}",
+                        attribute_name,
+                        component.get_component_type()
+                    );
+                });
+
+            let mut dependencies = Vec::new();
+
+            // Stores how many string children added.
+            // Use it to generate the index for the EssentialDataOrigin so it points to the right string child
+            let mut essential_data_index = 0;
+
+            for child in attribute_children.iter() {
+                match child {
+                    ComponentPointerTextOrMacro::Component(child_idx) => {
+                        let child = components[*child_idx].borrow();
+
+                        let mut child_matches_with_profile = None;
+                        for child_profile_state_var in
+                            child.get_component_profile_state_variables().iter()
+                        {
+                            let child_profile = child_profile_state_var.get_matching_profile();
+
+                            if match_profiles.contains(&child_profile) {
+                                child_matches_with_profile = Some(child_profile_state_var);
+                                break;
+                            }
+                        }
+
+                        if let Some(profile_sv) = child_matches_with_profile {
+                            let (state_var_view, sv_name) =
+                                profile_sv.return_untyped_state_variable_view_and_name();
+
+                            let sv_idx = child
+                                .get_state_variable_index_from_name(sv_name)
+                                .unwrap_or_else(|| panic!("Invalid state variable 3: {}", sv_name));
+
+                            let state_var_dep = Dependency {
+                                source: DependencySource::StateVar {
+                                    component_idx: *child_idx,
+                                    state_var_idx: sv_idx,
+                                },
+                                value: state_var_view,
+                            };
+
+                            dependencies.push(state_var_dep);
+                        }
+                    }
+                    ComponentPointerTextOrMacro::Text(string_value) => {
+                        // Text children are just strings, and they just match the String or Text profiles
+                        if match_profiles.contains(&ComponentProfile::String)
+                            || match_profiles.contains(&ComponentProfile::Text)
+                        {
+                            let essential_origin = EssentialDataOrigin::AttributeChild(
+                                &attribute_name,
+                                essential_data_index,
+                            );
+
+                            // TODO: ignoring should_initialize_essential_data
+                            // Do we need to do something different if it is false?
+
+                            let essential_data_view = if let Some(current_view) =
+                                essential_data[component_idx].get(&essential_origin)
+                            {
+                                current_view.create_new_read_only_view()
+                            } else {
+                                let value = StateVarValue::String(string_value.clone());
+                                let new_view = create_essential_data_for(
+                                    component_idx,
+                                    essential_origin.clone(),
+                                    InitialEssentialData::Single {
+                                        value,
+                                        used_default: false,
+                                    },
+                                    essential_data,
+                                );
+                                new_view.create_new_read_only_view()
+                            };
+
+                            dependencies.push(Dependency {
+                                source: DependencySource::Essential {
+                                    component_idx,
+                                    origin: essential_origin,
+                                },
+                                value: essential_data_view,
+                            });
+
+                            essential_data_index += 1;
+                        }
+                    }
+                    _ => (),
+                }
+            }
+
+            if dependencies.is_empty() {
+                // Found no matching attribute children.
+                // Create an essential dependency with the default_value for the state variable
+
+                // Treat the essential data as though it came from the first string child
+                let essential_origin = EssentialDataOrigin::AttributeChild(&attribute_name, 0);
+
+                let essential_data_view = if let Some(current_view) =
+                    essential_data[component_idx].get(&essential_origin)
+                {
+                    current_view.create_new_read_only_view()
+                } else {
+                    let initial_data = components[component_idx].borrow().get_state_variables()
+                        [state_var_idx]
+                        .return_default_value();
+
+                    let new_view = create_essential_data_for(
+                        component_idx,
+                        essential_origin.clone(),
+                        InitialEssentialData::Single {
+                            value: initial_data,
+                            used_default: true,
+                        },
+                        essential_data,
+                    );
+                    new_view.create_new_read_only_view()
+                };
+
+                dependencies.push(Dependency {
+                    source: DependencySource::Essential {
+                        component_idx,
+                        origin: essential_origin,
+                    },
+                    value: essential_data_view,
+                });
             }
 
             dependencies
