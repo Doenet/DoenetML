@@ -1,7 +1,8 @@
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use crate::{
-    components::{AttributeName, ComponentEnum, ComponentNode, ComponentProfile},
+    attribute::AttributeName,
+    components::{ComponentEnum, ComponentNode, ComponentProfile},
     state::essential_state::{
         create_essential_data_for, EssentialDataOrigin, EssentialStateVar, InitialEssentialData,
     },

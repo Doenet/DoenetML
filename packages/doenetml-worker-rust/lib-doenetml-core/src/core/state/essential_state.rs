@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use serde::Serialize;
 
 use crate::{
-    components::AttributeName,
+    attribute::AttributeName,
     state::{StateVarMutableView, StateVarValue},
     ComponentIdx, StateVarIdx,
 };

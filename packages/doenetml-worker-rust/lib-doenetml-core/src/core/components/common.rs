@@ -5,6 +5,7 @@ use std::rc::Rc;
 use enum_dispatch::enum_dispatch;
 use strum_macros::EnumString;
 
+use crate::attribute::{AttributeName, AttributeType};
 use crate::dast::{
     DastAttribute, DastMacro, ElementData, FlatDastElement, FlatDastElementContent,
     FlatDastElementUpdate, Position as DastPosition,
@@ -21,9 +22,6 @@ use super::doenet::p::P;
 use super::doenet::section::Section;
 use super::doenet::text::Text;
 use super::doenet::text_input::TextInput;
-
-/// camelCase
-pub type AttributeName = &'static str;
 
 /// A enum that can contain a component of any possible component type.
 ///
@@ -67,6 +65,8 @@ pub struct ComponentCommonData {
     pub state_variable_name_to_index: HashMap<String, usize>,
 
     pub component_profile_state_variables: Vec<ComponentProfileStateVariable>,
+
+    pub attribute_types: HashMap<AttributeName, AttributeType>,
 
     pub attribute_children: HashMap<AttributeName, Vec<ComponentPointerTextOrMacro>>,
 

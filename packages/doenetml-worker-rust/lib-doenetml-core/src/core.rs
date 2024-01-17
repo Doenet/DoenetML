@@ -1,3 +1,4 @@
+pub mod attribute;
 pub mod components;
 pub mod dast;
 pub mod dependency;

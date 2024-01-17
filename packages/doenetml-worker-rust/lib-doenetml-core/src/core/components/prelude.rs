@@ -18,7 +18,7 @@ pub use crate::components::{
 
 // These imports are commonly used in components
 
-pub use crate::components::AttributeName;
+pub use crate::attribute::AttributeName;
 pub use crate::components::ComponentEnum;
 pub use crate::components::ComponentProfile;
 pub use crate::dast::{
