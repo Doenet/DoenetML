@@ -105,7 +105,6 @@ pub fn create_dependencies_from_instruction_initialize_essential(
     state_var_idx: usize,
     instruction: &DependencyInstruction,
     essential_data: &mut Vec<HashMap<EssentialDataOrigin, EssentialStateVar>>,
-    should_initialize_essential_data: bool,
 ) -> Vec<Dependency> {
     // log!("Creating dependency {}:{} from instruction {:?}", component_name, state_var_idx, instruction);
 
@@ -122,17 +121,14 @@ pub fn create_dependencies_from_instruction_initialize_essential(
                 if let Some(current_view) = essential_data[source_idx].get(&essential_origin) {
                     current_view.create_new_read_only_view()
                 } else {
-                    let mut used_default = false;
-
                     // Use the default value for the state variable and set used_default to true
                     let initial_data = components[component_idx].borrow().get_state_variables()
                         [state_var_idx]
                         .return_default_value();
-                    used_default = true;
 
                     let initial_data = InitialEssentialData::Single {
                         value: initial_data,
-                        used_default,
+                        used_default: true,
                     };
 
                     let new_view = create_essential_data_for(
@@ -217,7 +213,7 @@ pub fn create_dependencies_from_instruction_initialize_essential(
             enum RelevantChild<'a> {
                 StateVar {
                     dependency: Dependency,
-                    parent: ComponentIdx,
+                    _parent: ComponentIdx,
                 },
                 String {
                     value: &'a String,
@@ -271,7 +267,7 @@ pub fn create_dependencies_from_instruction_initialize_essential(
 
                             relevant_children.push(RelevantChild::StateVar {
                                 dependency: state_var_dep,
-                                parent: *parent_idx,
+                                _parent: *parent_idx,
                             });
                         }
                     }
@@ -316,9 +312,6 @@ pub fn create_dependencies_from_instruction_initialize_essential(
                             .or_insert(0_usize);
 
                         let essential_origin = EssentialDataOrigin::StringChild(*index);
-
-                        // TODO: ignoring should_initialize_essential_data
-                        // Do we need to do something different if it is false?
 
                         let essential_data_view = if let Some(current_view) =
                             essential_data[actual_parent_idx].get(&essential_origin)
@@ -404,7 +397,7 @@ pub fn create_dependencies_from_instruction_initialize_essential(
                 get_attribute_children_with_parent_falling_back_to_extend_source(
                     components,
                     component_idx,
-                    &attribute_name,
+                    attribute_name,
                 )
                 .unwrap_or_else(|| {
                     panic!(
@@ -462,7 +455,7 @@ pub fn create_dependencies_from_instruction_initialize_essential(
                             || match_profiles.contains(&ComponentProfile::Text)
                         {
                             let essential_origin = EssentialDataOrigin::AttributeChild(
-                                &attribute_name,
+                                attribute_name,
                                 essential_data_index,
                             );
 
@@ -513,7 +506,7 @@ pub fn create_dependencies_from_instruction_initialize_essential(
                 let source_idx =
                     get_recursive_extend_source_component_when_exists(components, component_idx);
 
-                let essential_origin = EssentialDataOrigin::AttributeChild(&attribute_name, 0);
+                let essential_origin = EssentialDataOrigin::AttributeChild(attribute_name, 0);
 
                 let essential_data_view =
                     if let Some(current_view) = essential_data[source_idx].get(&essential_origin) {

@@ -132,7 +132,7 @@ impl StateVarInterface<bool> for GeneralBooleanStateVarInterface {
                     .map(|v| v.get_fresh_value().clone())
                     .collect();
 
-                if value.eq_ignore_ascii_case("true") || value == "" {
+                if value.eq_ignore_ascii_case("true") || value.is_empty() {
                     state_var.set_value(true);
                 } else {
                     state_var.set_value(false);
@@ -227,7 +227,7 @@ impl StateVarInterface<bool> for SingleDependencyBooleanStateVarInterface {
         &self,
         state_var: &StateVarMutableViewTyped<bool>,
     ) {
-        state_var.set_value(self.boolean_dependency_value.get_fresh_value().clone());
+        state_var.set_value(*self.boolean_dependency_value.get_fresh_value());
     }
 
     fn request_dependencies_to_update_value(

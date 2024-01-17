@@ -20,7 +20,6 @@ pub fn get_state_var_value(
     dependency_graph: &mut DependencyGraph,
     essential_data: &mut Vec<HashMap<EssentialDataOrigin, EssentialStateVar>>,
     freshen_stack: &mut Vec<StateVarPointer>,
-    should_initialize_essential_data: bool,
 ) -> StateVarValue {
     freshen_state_var(
         original_state_var_ptr,
@@ -28,7 +27,6 @@ pub fn get_state_var_value(
         dependency_graph,
         essential_data,
         freshen_stack,
-        should_initialize_essential_data,
     );
 
     components[original_state_var_ptr.component_idx]
@@ -53,7 +51,6 @@ pub fn freshen_all_stale_renderer_states(
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
     dependency_graph: &mut DependencyGraph,
     essential_data: &mut Vec<HashMap<EssentialDataOrigin, EssentialStateVar>>,
-    should_initialize_essential_data: bool,
 ) -> Vec<usize> {
     let stale_renderers = &mut bookkeeping.stale_renderers;
 
@@ -95,7 +92,6 @@ pub fn freshen_all_stale_renderer_states(
                 dependency_graph,
                 essential_data,
                 &mut bookkeeping.freshen_stack,
-                should_initialize_essential_data,
             );
         }
     }
@@ -152,7 +148,6 @@ pub fn freshen_state_var(
     dependency_graph: &mut DependencyGraph,
     essential_data: &mut Vec<HashMap<EssentialDataOrigin, EssentialStateVar>>,
     freshen_stack: &mut Vec<StateVarPointer>,
-    should_initialize_essential_data: bool,
 ) {
     // This function currently implements recursion through an iterative method,
     // using a stack on the heap.
@@ -178,7 +173,6 @@ pub fn freshen_state_var(
                 components,
                 dependency_graph,
                 essential_data,
-                should_initialize_essential_data,
             );
         }
         Freshness::Stale | Freshness::Resolved => (),
@@ -292,7 +286,6 @@ pub fn resolve_state_var(
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
     dependency_graph: &mut DependencyGraph,
     essential_data: &mut Vec<HashMap<EssentialDataOrigin, EssentialStateVar>>,
-    should_initialize_essential_data: bool,
 ) {
     // Since resolving state variables won't recurse with repeated actions,
     // will go ahead and allocate the stack locally, for simplicity.
@@ -329,7 +322,6 @@ pub fn resolve_state_var(
                 state_var_idx,
                 dep_instruction,
                 essential_data,
-                should_initialize_essential_data,
             );
 
             // add these dependencies to the inverse graph:

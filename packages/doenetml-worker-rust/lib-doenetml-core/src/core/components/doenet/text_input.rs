@@ -504,12 +504,10 @@ impl StateVarInterface<String> for ImmediateValueStateVarInterface {
         let immediate_value =
             if !bind_value_to_used_default && *self.sync_immediate_value.get_fresh_value() {
                 self.bind_value_to.get_fresh_value().clone()
+            } else if self.essential_value.get_used_default() {
+                self.prefill.get_fresh_value().clone()
             } else {
-                if self.essential_value.get_used_default() {
-                    self.prefill.get_fresh_value().clone()
-                } else {
-                    self.essential_value.get_fresh_value().clone()
-                }
+                self.essential_value.get_fresh_value().clone()
             };
 
         let value_changed = if let Some(old_value) = state_var.try_get_last_value() {

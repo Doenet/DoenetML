@@ -77,11 +77,6 @@ pub struct DoenetMLCore {
     ///   as it doesn't need a *StateVarInterface*.)
     pub essential_data: Vec<HashMap<EssentialDataOrigin, EssentialStateVar>>,
 
-    /// if true, then we didn't read in initial essential_data
-    /// so must initialize essential data when creating dependencies
-    /// TODO: how does this work?
-    pub should_initialize_essential_data: bool,
-
     pub bookkeeping: CoreBookkeeping,
 
     pub warnings: Vec<DastWarning>,
@@ -264,9 +259,6 @@ impl DoenetMLCore {
 
         replace_macro_referents_of_children_evaluate_attributes(&mut components, 0);
 
-        // TODO: what does should_initialize_essential_data mean?
-        // We are currently ignoring this flag (but haven't yet set up all types of essential data)
-        let should_initialize_essential_data = existing_essential_data.is_none();
         let essential_data = existing_essential_data
             .unwrap_or_else(|| (0..components.len()).map(|_| HashMap::new()).collect());
 
@@ -298,7 +290,6 @@ impl DoenetMLCore {
                 dependent_on_essential,
             },
             essential_data,
-            should_initialize_essential_data,
             bookkeeping: CoreBookkeeping {
                 stale_renderers,
                 freshen_stack: Vec::new(),
@@ -320,7 +311,6 @@ impl DoenetMLCore {
             &self.components,
             &mut self.dependency_graph,
             &mut self.essential_data,
-            self.should_initialize_essential_data,
         )
     }
 
@@ -356,7 +346,6 @@ impl DoenetMLCore {
                 &mut self.dependency_graph,
                 &mut self.essential_data,
                 &mut self.bookkeeping.freshen_stack,
-                self.should_initialize_essential_data,
             )
         };
 
@@ -399,7 +388,6 @@ impl DoenetMLCore {
                         &self.components,
                         &mut self.dependency_graph,
                         &mut self.essential_data,
-                        self.should_initialize_essential_data,
                     );
                 }
 
