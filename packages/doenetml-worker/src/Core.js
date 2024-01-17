@@ -10997,7 +10997,7 @@ export default class Core {
 
         await this.processStateVariableTriggers();
 
-        if (!skipRendererUpdate) {
+        if (!skipRendererUpdate || recordItemSubmissions.length > 0) {
             await this.updateAllChangedRenderers(sourceInformation, actionId);
         }
 
@@ -11118,7 +11118,7 @@ export default class Core {
                 let pageCreditAchieved =
                     await this.document.stateValues.creditAchieved;
                 this.saveState(true);
-                this.saveSubmissions({ pageCreditAchieved, suppressToast });
+                this.saveSubmissions({ pageCreditAchieved });
                 alreadySaved = true;
             }
         }
@@ -12879,7 +12879,7 @@ export default class Core {
             });
             return;
         }
-        
+
         let resp;
 
         this.savingPageState = true;
