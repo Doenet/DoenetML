@@ -4,7 +4,7 @@ import init, {
     ActionResponse,
     ActionsEnum,
     PublicDoenetMLCore,
-    DastRoot as DastRootInCore
+    DastRoot as DastRootInCore,
 } from "lib-doenetml-worker-rust";
 export type * from "lib-doenetml-worker-rust";
 import type { DastRoot } from "@doenet/parser";
@@ -139,6 +139,13 @@ export class CoreWorker {
         this.flags_set = false;
 
         resolve();
+    }
+
+    /**
+     * XXX: Temporary function for testing javascript <-> wasm round trip
+     */
+    roundTripJs() {
+        return this.doenetCore!.round_trip_js();
     }
 }
 
