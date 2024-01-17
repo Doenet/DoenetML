@@ -6,7 +6,10 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     components::prelude::*,
-    state_var_interfaces::boolean_state_var_interfaces::GeneralBooleanStateVarInterface,
+    state_var_interfaces::{
+        boolean_state_var_interfaces::GeneralBooleanStateVarInterface,
+        text_state_var_interfaces::GeneralStringStateVarInterface,
+    },
 };
 
 #[derive(Debug, Default, ComponentNode)]
@@ -27,7 +30,7 @@ impl RenderedComponentNode for TextInput {
     fn to_flat_dast(&mut self, _: &Vec<Rc<RefCell<ComponentEnum>>>) -> FlatDastElement {
         let immediate_value = if self.get_is_rendered() {
             self.immediate_value_state_var_view
-            .get_fresh_value_record_viewed()
+                .get_fresh_value_record_viewed()
                 .to_string()
         } else {
             "".to_string()
@@ -58,7 +61,7 @@ impl RenderedComponentNode for TextInput {
         {
             let immediate_value = if self.get_is_rendered() {
                 self.immediate_value_state_var_view
-                .get_fresh_value_record_viewed()
+                    .get_fresh_value_record_viewed()
                     .to_string()
             } else {
                 "".to_string()
@@ -190,23 +193,29 @@ impl ComponentNodeStateVariables for TextInput {
             .state_variables
             .push(StateVar::Boolean(sync_immediate_value_state_variable));
 
-        // ///////////////////////////////
-        // // Bind value to state variable
-        // ///////////////////////////////
-        // let bind_value_to_state_variable = StateVarTyped::new(
-        //     Box::<BindValueToInterface>::default(),
-        //     StateVarParameters {
-        //         name: "bindValueTo",
-        //         ..Default::default()
-        //     },
-        // );
-        // self.state_variables
-        //     .push(StateVar::String(bind_value_to_state_variable));
+        ///////////////////////////////
+        // Bind value to state variable
+        ///////////////////////////////
+        let bind_value_to_state_variable: StateVarTyped<String> = StateVarTyped::new(
+            Box::<GeneralStringStateVarInterface>::default(),
+            StateVarParameters {
+                name: "bindValueTo",
+                dependency_instruction_hint: Some(DependencyInstruction::AttributeChild {
+                    attribute_name: "bindValueTo",
+                    match_profiles: vec![ComponentProfile::Text],
+                }),
+                ..Default::default()
+            },
+            Default::default(),
+        );
+        self.common
+            .state_variables
+            .push(StateVar::String(bind_value_to_state_variable));
 
         //////////////////////
         // Hide state variable
         //////////////////////
-        let hide_state_var = StateVarTyped::new(
+        let hide_state_variable = StateVarTyped::new(
             Box::<GeneralBooleanStateVarInterface>::default(),
             StateVarParameters {
                 name: "hide",
@@ -222,12 +231,12 @@ impl ComponentNodeStateVariables for TextInput {
 
         self.common
             .state_variables
-            .push(StateVar::Boolean(hide_state_var));
+            .push(StateVar::Boolean(hide_state_variable));
 
         //////////////////////////
         // Disabled state variable
         //////////////////////////
-        let disabled_state_var = StateVarTyped::new(
+        let disabled_state_variable = StateVarTyped::new(
             Box::<GeneralBooleanStateVarInterface>::default(),
             StateVarParameters {
                 name: "disabled",
@@ -243,7 +252,7 @@ impl ComponentNodeStateVariables for TextInput {
 
         self.common
             .state_variables
-            .push(StateVar::Boolean(disabled_state_var));
+            .push(StateVar::Boolean(disabled_state_variable));
     }
 }
 
@@ -252,7 +261,7 @@ struct ValueStateVarInterface {
     essential_value: StateVarReadOnlyViewTyped<String>,
     immediate_value: StateVarReadOnlyViewTyped<String>,
     sync_values: StateVarReadOnlyViewTyped<bool>,
-    // bind_value_to: StateVarReadOnlyViewTyped<String>,
+    bind_value_to: StateVarReadOnlyViewTyped<String>,
 }
 
 impl StateVarInterface<String> for ValueStateVarInterface {
@@ -273,9 +282,10 @@ impl StateVarInterface<String> for ValueStateVarInterface {
                 component_idx: None,
                 state_var_name: "syncImmediateValue",
             },
-            // DependencyInstruction::StateVar {
-            //     state_var_name: "bindValueTo",
-            // },
+            DependencyInstruction::StateVar {
+                component_idx: None,
+                state_var_name: "bindValueTo",
+            },
         ]
     }
 
@@ -298,26 +308,25 @@ impl StateVarInterface<String> for ValueStateVarInterface {
             panic!("Got a non-boolean sync values for value of text input.");
         }
 
-        // if let StateVarReadOnlyView::String(bind_value_to) = &dependencies[3][0].value {
-        //     self.bind_value_to = bind_value_to.create_new_read_only_view();
-        // } else {
-        //     panic!("Got a non-string bind_value_to for value of text input.");
-        // }
+        if let StateVarReadOnlyView::String(bind_value_to) = &dependencies[3][0].value {
+            self.bind_value_to = bind_value_to.create_new_read_only_view();
+        } else {
+            panic!("Got a non-string bind_value_to for value of text input.");
+        }
     }
 
     fn calculate_state_var_from_dependencies_and_mark_fresh(
         &self,
         state_var: &StateVarMutableViewTyped<String>,
     ) {
-        let bind_value_to_used_default = true; // = self.bind_value_to.get_used_default();
+        let bind_value_to_used_default = self.bind_value_to.get_used_default();
 
         let value = if *self.sync_values.get_fresh_value() {
             self.immediate_value.get_fresh_value().clone()
         } else if bind_value_to_used_default {
             self.essential_value.get_fresh_value().clone()
         } else {
-            unreachable!()
-            // self.bind_value_to.get_fresh_value().clone()
+            self.bind_value_to.get_fresh_value().clone()
         };
 
         let value_changed = if let Some(old_value) = state_var.try_get_last_value() {
@@ -339,7 +348,7 @@ impl StateVarInterface<String> for ValueStateVarInterface {
         _is_direct_change_from_renderer: bool,
     ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
         let desired_value = state_var.get_requested_value();
-        let bind_value_to_used_default = true; //self.bind_value_to.get_used_default();
+        let bind_value_to_used_default = self.bind_value_to.get_used_default();
 
         if bind_value_to_used_default {
             self.essential_value
@@ -363,21 +372,20 @@ impl StateVarInterface<String> for ValueStateVarInterface {
                 },
             ])
         } else {
-            unreachable!();
-            // self.bind_value_to
-            //     .request_change_value_to(desired_value.clone());
-            // self.sync_values.request_change_value_to(true);
+            self.bind_value_to
+                .request_change_value_to(desired_value.clone());
+            self.sync_values.request_change_value_to(true);
 
-            // Ok(vec![
-            //     DependencyValueUpdateRequest {
-            //         instruction_idx: 3,
-            //         dependency_idx: 0,
-            //     },
-            //     DependencyValueUpdateRequest {
-            //         instruction_idx: 2,
-            //         dependency_idx: 0,
-            //     },
-            // ])
+            Ok(vec![
+                DependencyValueUpdateRequest {
+                    instruction_idx: 3,
+                    dependency_idx: 0,
+                },
+                DependencyValueUpdateRequest {
+                    instruction_idx: 2,
+                    dependency_idx: 0,
+                },
+            ])
         }
     }
 }
@@ -386,7 +394,7 @@ impl StateVarInterface<String> for ValueStateVarInterface {
 struct ImmediateValueStateVarInterface {
     essential_value: StateVarReadOnlyViewTyped<String>,
     sync_values: StateVarReadOnlyViewTyped<bool>,
-    // bind_value_to: StateVarReadOnlyViewTyped<String>,
+    bind_value_to: StateVarReadOnlyViewTyped<String>,
 }
 
 impl StateVarInterface<String> for ImmediateValueStateVarInterface {
@@ -403,9 +411,10 @@ impl StateVarInterface<String> for ImmediateValueStateVarInterface {
                 component_idx: None,
                 state_var_name: "syncImmediateValue",
             },
-            // DependencyInstruction::StateVar {
-            //     state_var_name: "bindValueTo",
-            // },
+            DependencyInstruction::StateVar {
+                component_idx: None,
+                state_var_name: "bindValueTo",
+            },
         ]
     }
 
@@ -422,23 +431,22 @@ impl StateVarInterface<String> for ImmediateValueStateVarInterface {
             panic!("Got a non-boolean sync values for immediate value of text input.");
         }
 
-        // if let StateVarReadOnlyView::String(bind_value_to) = &dependencies[2][0].value {
-        //     self.bind_value_to = bind_value_to.create_new_read_only_view();
-        // } else {
-        //     panic!("Got a non-string bind_value_to for immediate value of text input.");
-        // }
+        if let StateVarReadOnlyView::String(bind_value_to) = &dependencies[2][0].value {
+            self.bind_value_to = bind_value_to.create_new_read_only_view();
+        } else {
+            panic!("Got a non-string bind_value_to for immediate value of text input.");
+        }
     }
 
     fn calculate_state_var_from_dependencies_and_mark_fresh(
         &self,
         state_var: &StateVarMutableViewTyped<String>,
     ) {
-        let bind_value_to_used_default = true; //self.bind_value_to.get_used_default();
+        let bind_value_to_used_default = self.bind_value_to.get_used_default();
 
         let immediate_value = if !bind_value_to_used_default && *self.sync_values.get_fresh_value()
         {
-            unreachable!()
-            // self.bind_value_to.get_fresh_value().clone()
+            self.bind_value_to.get_fresh_value().clone()
         } else {
             self.essential_value.get_fresh_value().clone()
         };
@@ -464,7 +472,7 @@ impl StateVarInterface<String> for ImmediateValueStateVarInterface {
         let desired_value = state_var.get_requested_value();
 
         let mut updates = Vec::with_capacity(2);
-        let bind_value_to_used_default = true; // self.bind_value_to.get_used_default();
+        let bind_value_to_used_default = self.bind_value_to.get_used_default();
 
         self.essential_value
             .request_change_value_to(desired_value.clone());
@@ -475,14 +483,13 @@ impl StateVarInterface<String> for ImmediateValueStateVarInterface {
         });
 
         if !is_direct_change_from_renderer && !bind_value_to_used_default {
-            unreachable!()
-            // self.bind_value_to
-            //     .request_change_value_to(desired_value.clone());
+            self.bind_value_to
+                .request_change_value_to(desired_value.clone());
 
-            // updates.push(DependencyValueUpdateRequest {
-            //     instruction_idx: 2,
-            //     dependency_idx: 0,
-            // });
+            updates.push(DependencyValueUpdateRequest {
+                instruction_idx: 2,
+                dependency_idx: 0,
+            });
         }
 
         Ok(updates)
