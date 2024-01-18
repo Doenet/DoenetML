@@ -27,16 +27,8 @@ use crate::dast::{get_flat_dast_update, to_flat_dast};
 #[allow(unused)]
 use crate::utils::{log, log_debug, log_json};
 
-/// Pointer to a component's state variable
-#[derive(Debug, Clone, Copy)]
-pub struct StateVarPointer {
-    pub component_idx: ComponentIdx,
-    pub state_var_idx: StateVarIdx,
-}
-
 #[cfg_attr(feature = "web", tsify::declare)]
 pub type ComponentIdx = usize;
-pub type StateVarIdx = usize;
 
 /// All the state of DoenetML document with methods to interact with it.
 #[derive(Debug)]
@@ -337,7 +329,7 @@ impl DoenetMLCore {
         // - take a state variable index,
         // - freshen the state variable, if needed, and
         // - return the state variable's value
-        let mut state_var_resolver = |state_var_idx: usize| {
+        let mut state_var_resolver = |state_var_idx: StateVarIdx| {
             get_state_var_value(
                 StateVarPointer {
                     component_idx,

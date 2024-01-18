@@ -6,6 +6,7 @@ use strum_macros::EnumVariantNames;
 
 use crate::{
     components::{actions::ActionBody, prelude::*, ActionsEnum, RenderedState},
+    state::{ComponentStateVariables, StateVarIdx},
     state_var_interfaces::{
         boolean_state_var_interfaces::GeneralBooleanStateVarInterface,
         text_state_var_interfaces::GeneralStringStateVarInterface,
@@ -37,6 +38,8 @@ pub struct TextInput {
     pub immediate_value_state_var_view: StateVarReadOnlyView<String>,
 
     pub disabled_state_var_view: StateVarReadOnlyView<bool>,
+
+    pub state: TextInputStateVariables,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -48,10 +51,117 @@ pub struct TextInputRenderedState {
     pub disabled: Option<bool>,
 }
 
+#[derive(Debug)]
 pub struct TextInputStateVariables {
     value: StateVar<String>,
     immediate_value: StateVar<String>,
     sync_immediate_value: StateVar<bool>,
+    bind_value_to: StateVar<String>,
+    prefill: StateVar<String>,
+    hidden: StateVar<bool>,
+    disabled: StateVar<bool>,
+}
+
+impl TextInputStateVariables {
+    fn new() -> Self {
+        TextInputStateVariables {
+            value: StateVar::new(
+                Box::<ValueStateVarInterface>::default(),
+                StateVarParameters {
+                    name: "value",
+                    is_public: true,
+                    ..Default::default()
+                },
+                Default::default(),
+            ),
+            immediate_value: StateVar::new(
+                Box::<ImmediateValueStateVarInterface>::default(),
+                StateVarParameters {
+                    name: "immediateValue",
+                    is_public: true,
+                    for_renderer: true,
+                    ..Default::default()
+                },
+                Default::default(),
+            ),
+            sync_immediate_value: StateVar::new(
+                Box::<SyncImmediateValueStateVarInterface>::default(),
+                StateVarParameters {
+                    name: "syncImmediateValue",
+                    ..Default::default()
+                },
+                true,
+            ),
+            bind_value_to: StateVar::new(
+                Box::<GeneralStringStateVarInterface>::default(),
+                StateVarParameters {
+                    name: "bindValueTo",
+                    dependency_instruction_hint: Some(DependencyInstruction::AttributeChild {
+                        attribute_name: "bindValueTo",
+                        match_profiles: vec![ComponentProfile::Text],
+                    }),
+                    ..Default::default()
+                },
+                Default::default(),
+            ),
+            prefill: StateVar::new(
+                Box::<GeneralStringStateVarInterface>::default(),
+                StateVarParameters {
+                    name: "prefill",
+                    dependency_instruction_hint: Some(DependencyInstruction::AttributeChild {
+                        attribute_name: "prefill",
+                        match_profiles: vec![ComponentProfile::Text],
+                    }),
+                    ..Default::default()
+                },
+                Default::default(),
+            ),
+            hidden: StateVar::new(
+                Box::<GeneralBooleanStateVarInterface>::default(),
+                StateVarParameters {
+                    name: "hidden",
+                    dependency_instruction_hint: Some(DependencyInstruction::AttributeChild {
+                        attribute_name: "hide",
+                        match_profiles: vec![ComponentProfile::Text, ComponentProfile::Boolean],
+                    }),
+                    is_public: true,
+                    ..Default::default()
+                },
+                false,
+            ),
+            disabled: StateVar::new(
+                Box::<GeneralBooleanStateVarInterface>::default(),
+                StateVarParameters {
+                    name: "disabled",
+                    dependency_instruction_hint: Some(DependencyInstruction::AttributeChild {
+                        attribute_name: "disabled",
+                        match_profiles: vec![ComponentProfile::Text, ComponentProfile::Boolean],
+                    }),
+                    is_public: true,
+                    for_renderer: true,
+                    ..Default::default()
+                },
+                false,
+            ),
+        }
+    }
+}
+
+impl Default for TextInputStateVariables {
+    fn default() -> Self {
+        TextInputStateVariables::new()
+    }
+}
+
+impl ComponentStateVariables for TextInputStateVariables {
+    fn get_num_state_variables(&self) -> StateVarIdx {
+        7
+    }
+    fn get_state_variable(&self, state_var_idx: StateVarIdx) -> &StateVarEnum {
+        match state_var_idx {
+            0 => self.value.try_into().unwrap(),
+        }
+    }
 }
 
 impl TextInputStateVariables {
@@ -157,150 +267,11 @@ impl RenderedComponentNode for TextInput {
 
 impl ComponentNodeStateVariables for TextInput {
     fn initialize_state_variables(&mut self) {
-        self.common.state_variables = Vec::new();
-
-        ///////////////////////
-        // Value state variable
-        ///////////////////////
-        let value_state_variable = StateVar::new(
-            Box::<ValueStateVarInterface>::default(),
-            StateVarParameters {
-                name: "value",
-                is_public: true,
-                ..Default::default()
-            },
-            Default::default(),
-        );
-
         // Use the value state variable for fulfilling the text component profile
         self.common.component_profile_state_variables = vec![ComponentProfileStateVariable::Text(
-            value_state_variable.create_new_read_only_view(),
+            self.state.value.create_new_read_only_view(),
             "value",
         )];
-        self.common
-            .state_variables
-            .push(StateVarEnum::String(value_state_variable));
-
-        /////////////////////////////////
-        // Immediate value state variable
-        /////////////////////////////////
-        let immediate_value_state_variable = StateVar::new(
-            Box::<ImmediateValueStateVarInterface>::default(),
-            StateVarParameters {
-                name: "immediateValue",
-                is_public: true,
-                for_renderer: true,
-                ..Default::default()
-            },
-            Default::default(),
-        );
-
-        // save a view to field for easy access when create flat dast
-        self.immediate_value_state_var_view =
-            immediate_value_state_variable.create_new_read_only_view();
-
-        self.common
-            .state_variables
-            .push(StateVarEnum::String(immediate_value_state_variable));
-
-        //////////////////////////////////////
-        // Sync immediate value state variable
-        //////////////////////////////////////
-        let sync_immediate_value_state_variable = StateVar::new(
-            Box::<SyncImmediateValueStateVarInterface>::default(),
-            StateVarParameters {
-                name: "syncImmediateValue",
-                ..Default::default()
-            },
-            true,
-        );
-        self.common
-            .state_variables
-            .push(StateVarEnum::Boolean(sync_immediate_value_state_variable));
-
-        ///////////////////////////////
-        // Bind value to state variable
-        ///////////////////////////////
-        let bind_value_to_state_variable: StateVar<String> = StateVar::new(
-            Box::<GeneralStringStateVarInterface>::default(),
-            StateVarParameters {
-                name: "bindValueTo",
-                dependency_instruction_hint: Some(DependencyInstruction::AttributeChild {
-                    attribute_name: "bindValueTo",
-                    match_profiles: vec![ComponentProfile::Text],
-                }),
-                ..Default::default()
-            },
-            Default::default(),
-        );
-        self.common
-            .state_variables
-            .push(StateVarEnum::String(bind_value_to_state_variable));
-
-        /////////////////////////
-        // Prefill state variable
-        /////////////////////////
-        let prefill_state_variable: StateVar<String> = StateVar::new(
-            Box::<GeneralStringStateVarInterface>::default(),
-            StateVarParameters {
-                name: "prefill",
-                dependency_instruction_hint: Some(DependencyInstruction::AttributeChild {
-                    attribute_name: "prefill",
-                    match_profiles: vec![ComponentProfile::Text],
-                }),
-                ..Default::default()
-            },
-            Default::default(),
-        );
-        self.common
-            .state_variables
-            .push(StateVarEnum::String(prefill_state_variable));
-
-        ////////////////////////
-        // Hidden state variable
-        ////////////////////////
-        let hidden_state_variable = StateVar::new(
-            Box::<GeneralBooleanStateVarInterface>::default(),
-            StateVarParameters {
-                name: "hidden",
-                dependency_instruction_hint: Some(DependencyInstruction::AttributeChild {
-                    attribute_name: "hide",
-                    match_profiles: vec![ComponentProfile::Text, ComponentProfile::Boolean],
-                }),
-                is_public: true,
-                ..Default::default()
-            },
-            false,
-        );
-
-        self.common
-            .state_variables
-            .push(StateVarEnum::Boolean(hidden_state_variable));
-
-        //////////////////////////
-        // Disabled state variable
-        //////////////////////////
-        let disabled_state_variable = StateVar::new(
-            Box::<GeneralBooleanStateVarInterface>::default(),
-            StateVarParameters {
-                name: "disabled",
-                dependency_instruction_hint: Some(DependencyInstruction::AttributeChild {
-                    attribute_name: "disabled",
-                    match_profiles: vec![ComponentProfile::Text, ComponentProfile::Boolean],
-                }),
-                is_public: true,
-                for_renderer: true,
-                ..Default::default()
-            },
-            false,
-        );
-
-        // save a view to field for easy access when create flat dast
-        self.disabled_state_var_view = disabled_state_variable.create_new_read_only_view();
-
-        self.common
-            .state_variables
-            .push(StateVarEnum::Boolean(disabled_state_variable));
     }
 }
 

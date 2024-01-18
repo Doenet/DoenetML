@@ -18,6 +18,11 @@ pub struct Text {
     pub no_rendered_children: Vec<ComponentPointerTextOrMacro>,
 }
 
+pub struct TextState {
+    value: StateVar<String>,
+    text: StateVar<String>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct TextRenderedState {
