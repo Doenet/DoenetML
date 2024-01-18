@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::dast::{DastAttribute, Position as DastPosition};
 use crate::state::{
-    StateVar, StateVarName, StateVarReadOnlyView, StateVarReadOnlyViewTyped, StateVarValue,
+    StateVarEnum, StateVarName, StateVarReadOnlyView, StateVarReadOnlyViewEnum, StateVarValueEnum,
 };
 use crate::{ComponentIdx, ComponentPointerTextOrMacro, ExtendSource};
 
@@ -78,7 +78,7 @@ pub struct ComponentCommonData {
 
     pub position: Option<DastPosition>,
 
-    pub state_variables: Vec<StateVar>,
+    pub state_variables: Vec<StateVarEnum>,
 
     pub rendered_state_variable_indices: Vec<usize>,
 
@@ -159,7 +159,7 @@ pub trait ComponentNode: ComponentNodeStateVariables {
     /// Return a vector of all the state variables for the component.
     ///
     /// The index of a state variable in this vector is state variable's index.
-    fn get_state_variables(&self) -> &Vec<StateVar>;
+    fn get_state_variables(&self) -> &Vec<StateVarEnum>;
 
     /// Return a mutable vector of all the state variables for the component.
     ///
@@ -167,11 +167,11 @@ pub trait ComponentNode: ComponentNodeStateVariables {
     ///
     /// Since the state variable value and most meta data are behind a RefCell,
     /// a mutable view is not needed even to set the value. A mutable view is needed
-    /// only to set values that are on the StateVar that aren't behind the RefCell.
+    /// only to set values that are on the StateVarEnum that aren't behind the RefCell.
     /// Currently, the methods needing mut are those involving dependencies:
     /// - `record_all_dependencies_viewed()`
     /// - `set_dependencies()`
-    fn get_state_variables_mut(&mut self) -> &mut Vec<StateVar>;
+    fn get_state_variables_mut(&mut self) -> &mut Vec<StateVarEnum>;
 
     /// Return a vector of the indices of each state variable that is sent to the renderer,
     /// i.e., that has the `for_renderer` parameter set to true.
@@ -268,8 +268,8 @@ pub trait RenderedComponentNode: ComponentNode {
     fn on_action(
         &self,
         action: ActionsEnum,
-        resolve_and_retrieve_state_var: &mut dyn FnMut(usize) -> StateVarValue,
-    ) -> Result<Vec<(usize, StateVarValue)>, String> {
+        resolve_and_retrieve_state_var: &mut dyn FnMut(usize) -> StateVarValueEnum,
+    ) -> Result<Vec<(usize, StateVarValueEnum)>, String> {
         Err(format!(
             "Unknown action '{:?}' called on {}",
             action,
@@ -318,11 +318,11 @@ pub enum ComponentProfile {
 /// of a dependency instruction will determine the dependency.
 #[derive(Debug, Clone)]
 pub enum ComponentProfileStateVariable {
-    Text(StateVarReadOnlyViewTyped<String>, StateVarName),
-    String(StateVarReadOnlyViewTyped<String>, StateVarName),
-    Number(StateVarReadOnlyViewTyped<f64>, StateVarName),
-    Integer(StateVarReadOnlyViewTyped<i64>, StateVarName),
-    Boolean(StateVarReadOnlyViewTyped<bool>, StateVarName),
+    Text(StateVarReadOnlyView<String>, StateVarName),
+    String(StateVarReadOnlyView<String>, StateVarName),
+    Number(StateVarReadOnlyView<f64>, StateVarName),
+    Integer(StateVarReadOnlyView<i64>, StateVarName),
+    Boolean(StateVarReadOnlyView<bool>, StateVarName),
 }
 
 // TODO: derive these with macro?
@@ -345,28 +345,28 @@ impl ComponentProfileStateVariable {
     ///
     /// In this way, the state variable depending on the children can calculate its value
     /// from the state variable value of the ComponentProfileStateVariable.
-    pub fn return_untyped_state_variable_view_and_name(
+    pub fn return_state_variable_view_enum_and_name(
         &self,
-    ) -> (StateVarReadOnlyView, StateVarName) {
+    ) -> (StateVarReadOnlyViewEnum, StateVarName) {
         match self {
             ComponentProfileStateVariable::Text(sv, name) => (
-                StateVarReadOnlyView::String(sv.create_new_read_only_view()),
+                StateVarReadOnlyViewEnum::String(sv.create_new_read_only_view()),
                 name,
             ),
             ComponentProfileStateVariable::String(sv, name) => (
-                StateVarReadOnlyView::String(sv.create_new_read_only_view()),
+                StateVarReadOnlyViewEnum::String(sv.create_new_read_only_view()),
                 name,
             ),
             ComponentProfileStateVariable::Number(sv, name) => (
-                StateVarReadOnlyView::Number(sv.create_new_read_only_view()),
+                StateVarReadOnlyViewEnum::Number(sv.create_new_read_only_view()),
                 name,
             ),
             ComponentProfileStateVariable::Integer(sv, name) => (
-                StateVarReadOnlyView::Integer(sv.create_new_read_only_view()),
+                StateVarReadOnlyViewEnum::Integer(sv.create_new_read_only_view()),
                 name,
             ),
             ComponentProfileStateVariable::Boolean(sv, name) => (
-                StateVarReadOnlyView::Boolean(sv.create_new_read_only_view()),
+                StateVarReadOnlyViewEnum::Boolean(sv.create_new_read_only_view()),
                 name,
             ),
         }

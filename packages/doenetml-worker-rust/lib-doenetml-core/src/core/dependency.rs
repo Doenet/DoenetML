@@ -6,7 +6,7 @@ use crate::{
     state::essential_state::{
         create_essential_data_for, EssentialDataOrigin, EssentialStateVar, InitialEssentialData,
     },
-    state::{StateVarName, StateVarReadOnlyView, StateVarValue},
+    state::{StateVarName, StateVarReadOnlyViewEnum, StateVarValueEnum},
     ComponentIdx, ComponentPointerTextOrMacro, ExtendSource, StateVarIdx, StateVarPointer,
 };
 
@@ -81,7 +81,7 @@ impl TryFrom<&DependencySource> for StateVarPointer {
 #[derive(Debug)]
 pub struct Dependency {
     pub source: DependencySource,
-    pub value: StateVarReadOnlyView,
+    pub value: StateVarReadOnlyViewEnum,
 }
 
 /// Information which update were requested so that we can recurse
@@ -251,7 +251,7 @@ pub fn create_dependencies_from_instruction_initialize_essential(
 
                         if let Some(profile_sv) = child_matches_with_profile {
                             let (state_var_view, sv_name) =
-                                profile_sv.return_untyped_state_variable_view_and_name();
+                                profile_sv.return_state_variable_view_enum_and_name();
 
                             let sv_idx = child
                                 .get_state_variable_index_from_name(sv_name)
@@ -318,7 +318,7 @@ pub fn create_dependencies_from_instruction_initialize_essential(
                         {
                             current_view.create_new_read_only_view()
                         } else {
-                            let value = StateVarValue::String(string_value.clone());
+                            let value = StateVarValueEnum::String(string_value.clone());
                             let new_view = create_essential_data_for(
                                 actual_parent_idx,
                                 essential_origin.clone(),
@@ -432,7 +432,7 @@ pub fn create_dependencies_from_instruction_initialize_essential(
 
                         if let Some(profile_sv) = child_matches_with_profile {
                             let (state_var_view, sv_name) =
-                                profile_sv.return_untyped_state_variable_view_and_name();
+                                profile_sv.return_state_variable_view_enum_and_name();
 
                             let sv_idx = child
                                 .get_state_variable_index_from_name(sv_name)
@@ -466,7 +466,7 @@ pub fn create_dependencies_from_instruction_initialize_essential(
                             {
                                 current_view.create_new_read_only_view()
                             } else {
-                                let value = StateVarValue::String(string_value.clone());
+                                let value = StateVarValueEnum::String(string_value.clone());
                                 let new_view = create_essential_data_for(
                                     parent_idx,
                                     essential_origin.clone(),

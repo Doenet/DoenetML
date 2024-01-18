@@ -11,7 +11,7 @@ use crate::state_var_interfaces::boolean_state_var_interfaces::{
 pub struct Boolean {
     pub common: ComponentCommonData,
 
-    pub value_state_var_view: StateVarReadOnlyViewTyped<bool>,
+    pub value_state_var_view: StateVarReadOnlyView<bool>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -53,7 +53,7 @@ impl ComponentNodeStateVariables for Boolean {
         // Value state variable
         ///////////////////////
 
-        let value_state_variable = StateVarTyped::new(
+        let value_state_variable = StateVar::new(
             Box::<GeneralBooleanStateVarInterface>::default(),
             StateVarParameters {
                 for_renderer: true,
@@ -80,12 +80,12 @@ impl ComponentNodeStateVariables for Boolean {
             )];
         self.common
             .state_variables
-            .push(StateVar::Boolean(value_state_variable));
+            .push(StateVarEnum::Boolean(value_state_variable));
 
         //////////////////////
         // Boolean state variable
         //////////////////////
-        let boolean_state_variable = StateVarTyped::new(
+        let boolean_state_variable = StateVar::new(
             Box::<SingleDependencyBooleanStateVarInterface>::default(),
             StateVarParameters {
                 name: "boolean",
@@ -100,6 +100,6 @@ impl ComponentNodeStateVariables for Boolean {
         );
         self.common
             .state_variables
-            .push(StateVar::Boolean(boolean_state_variable));
+            .push(StateVarEnum::Boolean(boolean_state_variable));
     }
 }

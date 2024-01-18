@@ -120,11 +120,11 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                             self.common.state_variables.len()
                         }
 
-                        fn get_state_variables(&self) -> &Vec<StateVar> {
+                        fn get_state_variables(&self) -> &Vec<StateVarEnum> {
                             &self.common.state_variables
                         }
 
-                        fn get_state_variables_mut(&mut self) -> &mut Vec<StateVar> {
+                        fn get_state_variables_mut(&mut self) -> &mut Vec<StateVarEnum> {
                             &mut self.common.state_variables
                         }
 

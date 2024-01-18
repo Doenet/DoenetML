@@ -1,8 +1,8 @@
 use crate::{
     components::prelude::{
         Dependency, DependencyInstruction, DependencyValueUpdateRequest,
-        RequestDependencyUpdateError, StateVarInterface, StateVarMutableViewTyped,
-        StateVarParameters, StateVarReadOnlyView, StateVarReadOnlyViewTyped,
+        RequestDependencyUpdateError, StateVarInterface, StateVarMutableView, StateVarParameters,
+        StateVarReadOnlyView, StateVarReadOnlyViewEnum,
     },
     dependency::DependencySource,
     ExtendSource,
@@ -11,8 +11,8 @@ use crate::{
 use super::common::create_dependency_instruction_from_extend_source;
 
 // use super::{
-//     StateVarInterface, StateVarMutableViewTyped, StateVarParameters, StateVarReadOnlyView,
-//     StateVarReadOnlyViewTyped,
+//     StateVarInterface, StateVarMutableView, StateVarParameters, StateVarReadOnlyViewEnum,
+//     StateVarReadOnlyView,
 // };
 
 /// A string state variable interface that concatenates all string dependencies.
@@ -24,7 +24,7 @@ use super::common::create_dependency_instruction_from_extend_source;
 /// then propagate the `used_default` attribute of the essential state variable.
 #[derive(Debug, Default)]
 pub struct GeneralStringStateVarInterface {
-    string_dependency_values: Vec<StateVarReadOnlyViewTyped<String>>,
+    string_dependency_values: Vec<StateVarReadOnlyView<String>>,
     from_single_essential: bool,
 }
 
@@ -61,7 +61,7 @@ impl StateVarInterface<String> for GeneralStringStateVarInterface {
                 value: dep_value, ..
             } in instruction.iter()
             {
-                if let StateVarReadOnlyView::String(dep_string_value) = dep_value {
+                if let StateVarReadOnlyViewEnum::String(dep_string_value) = dep_value {
                     string_vals.push(dep_string_value.create_new_read_only_view())
                 } else {
                     panic!("Got a non-string value for a dependency for a GeneralStringStateVarInterface");
@@ -80,7 +80,7 @@ impl StateVarInterface<String> for GeneralStringStateVarInterface {
 
     fn calculate_state_var_from_dependencies_and_mark_fresh(
         &self,
-        state_var: &StateVarMutableViewTyped<String>,
+        state_var: &StateVarMutableView<String>,
     ) {
         if self.from_single_essential {
             // if we are basing it on a single essential variable,
@@ -103,7 +103,7 @@ impl StateVarInterface<String> for GeneralStringStateVarInterface {
 
     fn request_dependencies_to_update_value(
         &self,
-        state_var: &StateVarReadOnlyViewTyped<String>,
+        state_var: &StateVarReadOnlyView<String>,
         _is_direct_change_from_renderer: bool,
     ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
         if self.string_dependency_values.len() != 1 {
@@ -132,7 +132,7 @@ impl StateVarInterface<String> for GeneralStringStateVarInterface {
 /// that doesn't result in at least one string dependency.
 #[derive(Debug, Default)]
 pub struct SingleDependencyStringStateVarInterface {
-    string_dependency_value: StateVarReadOnlyViewTyped<String>,
+    string_dependency_value: StateVarReadOnlyView<String>,
 }
 
 impl StateVarInterface<String> for SingleDependencyStringStateVarInterface {
@@ -165,7 +165,7 @@ impl StateVarInterface<String> for SingleDependencyStringStateVarInterface {
 
         let dep_val = &dependencies[0][0].value;
 
-        if let StateVarReadOnlyView::String(string_val) = dep_val {
+        if let StateVarReadOnlyViewEnum::String(string_val) = dep_val {
             self.string_dependency_value = string_val.create_new_read_only_view();
         } else {
             panic!("Got a non-string value for a dependency for a SingleDependencyStringStateVarInterface");
@@ -174,14 +174,14 @@ impl StateVarInterface<String> for SingleDependencyStringStateVarInterface {
 
     fn calculate_state_var_from_dependencies_and_mark_fresh(
         &self,
-        state_var: &StateVarMutableViewTyped<String>,
+        state_var: &StateVarMutableView<String>,
     ) {
         state_var.set_value(self.string_dependency_value.get_fresh_value().clone());
     }
 
     fn request_dependencies_to_update_value(
         &self,
-        state_var: &StateVarReadOnlyViewTyped<String>,
+        state_var: &StateVarReadOnlyView<String>,
         _is_direct_change_from_renderer: bool,
     ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
         let desired_value = state_var.get_requested_value();

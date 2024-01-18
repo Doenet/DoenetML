@@ -4,11 +4,11 @@ use serde::Serialize;
 
 use crate::{
     attribute::AttributeName,
-    state::{StateVarMutableView, StateVarValue},
+    state::{StateVarMutableViewEnum, StateVarValueEnum},
     ComponentIdx, StateVarIdx,
 };
 
-pub type EssentialStateVar = StateVarMutableView;
+pub type EssentialStateVar = StateVarMutableViewEnum;
 
 /// Description of essential data
 /// - component_idx: which component generated it
@@ -44,7 +44,7 @@ pub enum EssentialDataOrigin {
 // If not, remove enum.
 pub enum InitialEssentialData {
     Single {
-        value: StateVarValue,
+        value: StateVarValueEnum,
         used_default: bool,
     },
 }

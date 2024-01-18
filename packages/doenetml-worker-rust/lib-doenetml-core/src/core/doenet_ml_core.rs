@@ -72,9 +72,9 @@ pub struct DoenetMLCore {
     /// - The vector index is the *ComponentIdx* of the component,
     /// defined by the order in *components*.
     /// - The hash map key *EssentialDataOrigin* specifies how the component created the essential data.
-    /// - The hash map value *EssentialStateVariable* is a *StateVarMutableView*
+    /// - The hash map value *EssentialStateVariable* is a *StateVarMutableViewEnum*
     ///   that stores the value.
-    ///   (Note, unlike for state variables, *EssentialStateVariable* is not attached to any *StateVarTyped*,
+    ///   (Note, unlike for state variables, *EssentialStateVariable* is not attached to any *StateVar*,
     ///   as it doesn't need a *StateVarInterface*.)
     pub essential_data: Vec<HashMap<EssentialDataOrigin, EssentialStateVar>>,
 
@@ -230,7 +230,7 @@ pub struct StateVariableShadowingMatch {
     /// If None, then the "primary" state variable as determined by the component type
     /// should be the shadowing state variable.
     /// The type of the primary state variable should match the state variable type
-    /// for which `StateVarValue.get_default_component_type()`
+    /// for which `StateVarValueEnum.get_default_component_type()`
     /// yields the component type.
     pub shadowing_name: Option<StateVarName>,
 
@@ -324,8 +324,8 @@ impl DoenetMLCore {
     /// - `component_idx`: the index of the component originating the action
     /// - `action_name`: the name of the action
     /// - `args`: an object containing data that will be interpreted by the action implementation.
-    ///   The values of each field must be quantities that can be converted into `StateVarValue`
-    ///   or a vector of `StateVarValue`.
+    ///   The values of each field must be quantities that can be converted into `StateVarValueEnum`
+    ///   or a vector of `StateVarValueEnum`.
     pub fn dispatch_action(
         &mut self,
         action: Action,

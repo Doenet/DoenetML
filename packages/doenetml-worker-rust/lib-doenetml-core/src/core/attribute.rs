@@ -9,6 +9,6 @@ pub enum AttributeType {
 
 // #[derive(Debug)]
 // pub enum AttributeBasis {
-//     StateVar(StateVar),
+//     StateVar(StateVarEnum),
 //     Reference(DastMacro),
 // }

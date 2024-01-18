@@ -1,8 +1,8 @@
 use crate::{
     components::prelude::{
         Dependency, DependencyInstruction, DependencyValueUpdateRequest,
-        RequestDependencyUpdateError, StateVarInterface, StateVarMutableViewTyped,
-        StateVarParameters, StateVarReadOnlyView, StateVarReadOnlyViewTyped,
+        RequestDependencyUpdateError, StateVarInterface, StateVarMutableView, StateVarParameters,
+        StateVarReadOnlyView, StateVarReadOnlyViewEnum,
     },
     dependency::DependencySource,
     ExtendSource,
@@ -11,8 +11,8 @@ use crate::{
 use super::common::create_dependency_instruction_from_extend_source;
 
 // use super::{
-//     StateVarInterface, StateVarMutableViewTyped, StateVarParameters, StateVarReadOnlyView,
-//     StateVarReadOnlyViewTyped,
+//     StateVarInterface, StateVarMutableView, StateVarParameters, StateVarReadOnlyViewEnum,
+//     StateVarReadOnlyView,
 // };
 
 /// A boolean state variable interface that concatenates all string dependencies.
@@ -30,13 +30,13 @@ pub struct GeneralBooleanStateVarInterface {
 
 #[derive(Debug)]
 enum BooleanOrStrings {
-    Boolean(StateVarReadOnlyViewTyped<bool>),
-    Strings(Vec<StateVarReadOnlyViewTyped<String>>),
+    Boolean(StateVarReadOnlyView<bool>),
+    Strings(Vec<StateVarReadOnlyView<String>>),
 }
 
 impl Default for BooleanOrStrings {
     fn default() -> Self {
-        BooleanOrStrings::Boolean(StateVarReadOnlyViewTyped::default())
+        BooleanOrStrings::Boolean(StateVarReadOnlyView::default())
     }
 }
 
@@ -67,7 +67,7 @@ impl StateVarInterface<bool> for GeneralBooleanStateVarInterface {
         let num_dependencies = dependencies.iter().fold(0, |a, c| a + c.len());
 
         let mut string_vals = Vec::with_capacity(num_dependencies);
-        let mut boolean_val_option: Option<StateVarReadOnlyViewTyped<bool>> = None;
+        let mut boolean_val_option: Option<StateVarReadOnlyView<bool>> = None;
 
         for instruction in dependencies.iter() {
             for Dependency {
@@ -76,10 +76,10 @@ impl StateVarInterface<bool> for GeneralBooleanStateVarInterface {
             } in instruction.iter()
             {
                 match dep_value {
-                    StateVarReadOnlyView::String(dep_string_value) => {
+                    StateVarReadOnlyViewEnum::String(dep_string_value) => {
                         string_vals.push(dep_string_value.create_new_read_only_view())
                     }
-                    StateVarReadOnlyView::Boolean(dep_bool_value) => {
+                    StateVarReadOnlyViewEnum::Boolean(dep_bool_value) => {
                         if boolean_val_option.is_some() {
                             match dep_source {
                                 DependencySource::StateVar { .. } => {
@@ -119,7 +119,7 @@ impl StateVarInterface<bool> for GeneralBooleanStateVarInterface {
 
     fn calculate_state_var_from_dependencies_and_mark_fresh(
         &self,
-        state_var: &StateVarMutableViewTyped<bool>,
+        state_var: &StateVarMutableView<bool>,
     ) {
         match &self.boolean_or_strings_dependency_values {
             BooleanOrStrings::Boolean(boolean_value) => {
@@ -151,7 +151,7 @@ impl StateVarInterface<bool> for GeneralBooleanStateVarInterface {
 
     fn request_dependencies_to_update_value(
         &self,
-        state_var: &StateVarReadOnlyViewTyped<bool>,
+        state_var: &StateVarReadOnlyView<bool>,
         _is_direct_change_from_renderer: bool,
     ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
         match &self.boolean_or_strings_dependency_values {
@@ -191,7 +191,7 @@ impl StateVarInterface<bool> for GeneralBooleanStateVarInterface {
 /// that doesn't result in at least one string dependency.
 #[derive(Debug, Default)]
 pub struct SingleDependencyBooleanStateVarInterface {
-    boolean_dependency_value: StateVarReadOnlyViewTyped<bool>,
+    boolean_dependency_value: StateVarReadOnlyView<bool>,
 }
 
 impl StateVarInterface<bool> for SingleDependencyBooleanStateVarInterface {
@@ -224,7 +224,7 @@ impl StateVarInterface<bool> for SingleDependencyBooleanStateVarInterface {
 
         let dep_val = &dependencies[0][0].value;
 
-        if let StateVarReadOnlyView::Boolean(boolean_val) = dep_val {
+        if let StateVarReadOnlyViewEnum::Boolean(boolean_val) = dep_val {
             self.boolean_dependency_value = boolean_val.create_new_read_only_view();
         } else {
             panic!("Got a non-boolean value for a dependency for a SingleDependencyBooleanStateVarInterface");
@@ -233,14 +233,14 @@ impl StateVarInterface<bool> for SingleDependencyBooleanStateVarInterface {
 
     fn calculate_state_var_from_dependencies_and_mark_fresh(
         &self,
-        state_var: &StateVarMutableViewTyped<bool>,
+        state_var: &StateVarMutableView<bool>,
     ) {
         state_var.set_value(*self.boolean_dependency_value.get_fresh_value());
     }
 
     fn request_dependencies_to_update_value(
         &self,
-        state_var: &StateVarReadOnlyViewTyped<bool>,
+        state_var: &StateVarReadOnlyView<bool>,
         _is_direct_change_from_renderer: bool,
     ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
         self.boolean_dependency_value

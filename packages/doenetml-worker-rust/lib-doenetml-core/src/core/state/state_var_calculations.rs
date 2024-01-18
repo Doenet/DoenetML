@@ -7,7 +7,7 @@ use crate::{
         DependencySource,
     },
     state::essential_state::{EssentialDataOrigin, EssentialStateDescription, EssentialStateVar},
-    state::{Freshness, StateVarValue},
+    state::{Freshness, StateVarValueEnum},
     ComponentIdx, ComponentPointerTextOrMacro, CoreBookkeeping, DependencyGraph, ExtendSource,
     StateVarPointer,
 };
@@ -20,7 +20,7 @@ pub fn get_state_var_value(
     dependency_graph: &mut DependencyGraph,
     essential_data: &mut Vec<HashMap<EssentialDataOrigin, EssentialStateVar>>,
     freshen_stack: &mut Vec<StateVarPointer>,
-) -> StateVarValue {
+) -> StateVarValueEnum {
     freshen_state_var(
         original_state_var_ptr,
         components,

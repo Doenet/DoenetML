@@ -35,20 +35,20 @@ pub enum Freshness {
     Resolved,
 }
 
-/// StateVarTyped<T> is the base data structure for the value of a state variable.
+/// StateVar<T> is the base data structure for the value of a state variable.
 #[derive(Debug)]
-pub struct StateVarTyped<T: Default + Clone> {
+pub struct StateVar<T: Default + Clone> {
     /// The current value of the state variable
     /// in a structure that allows the value to be mutated
     /// and also holds meta data about the variable
-    value: StateVarMutableViewTyped<T>,
+    value: StateVarMutableView<T>,
 
     /// A reference to the same value of the state variable
     /// in a structure that does not allow the value to be mutated.
     /// It is just a cached copy of the result of calling
     /// `.create_new_read_only_view()` on `.value`, saved here for efficiency.
     /// Sent to functions to give them read only access to the variable.
-    immutable_view_of_value: StateVarReadOnlyViewTyped<T>,
+    immutable_view_of_value: StateVarReadOnlyView<T>,
 
     /// Trait object that exposes the interface to used to specify
     /// how the state variable is calculated from its dependencies
@@ -62,12 +62,12 @@ pub struct StateVarTyped<T: Default + Clone> {
     default_value: T,
 
     /// A vector that points to a copy of the values of all the dependencies
-    /// of this state variable, where the values are behind untyped enums in order to have a vector.
+    /// of this state variable, where the values are behind enums in order to have a vector.
     /// This vector will be used to determine if any dependencies have changed.
     /// It isn't actually used to calculate the state variable value,
     /// because, for efficiency, we will store values for calculations
     /// in a typed form (without enums) directly on the state variable structure.
-    all_dependency_values: Vec<StateVarReadOnlyView>,
+    all_dependency_values: Vec<StateVarReadOnlyViewEnum>,
 }
 
 #[derive(Debug, Error)]
@@ -104,7 +104,7 @@ pub trait StateVarInterface<T: Default + Clone>: std::fmt::Debug {
     /// Save the result in state_var argument that is passed in.
     fn calculate_state_var_from_dependencies_and_mark_fresh(
         &self,
-        state_var: &StateVarMutableViewTyped<T>,
+        state_var: &StateVarMutableView<T>,
     );
 
     /// Given the requested value stored in the meta data of the state_var argument,
@@ -124,7 +124,7 @@ pub trait StateVarInterface<T: Default + Clone>: std::fmt::Debug {
     #[allow(unused)]
     fn request_dependencies_to_update_value(
         &self,
-        state_var: &StateVarReadOnlyViewTyped<T>,
+        state_var: &StateVarReadOnlyView<T>,
         is_direct_change_from_renderer: bool,
     ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
         Err(RequestDependencyUpdateError::NotImplemented)
@@ -173,7 +173,7 @@ pub struct StateVarParameters {
 /// A mutable view of the value of the state variable.
 /// It includes methods that allow one to view and change the variable.
 #[derive(Debug)]
-pub struct StateVarMutableViewTyped<T: Default + Clone> {
+pub struct StateVarMutableView<T: Default + Clone> {
     /// Structure containing the value of the variable its meta data.
     /// Since inner is in an Rc<RefCell>, it is shared with other views and could be changed by them.
     inner: Rc<RefCell<StateVarInner<T>>>,
@@ -186,7 +186,7 @@ pub struct StateVarMutableViewTyped<T: Default + Clone> {
 /// A read-only view of the value of the state variable.
 /// It includes methods that allow one to view the variable.
 #[derive(Debug)]
-pub struct StateVarReadOnlyViewTyped<T: Default + Clone> {
+pub struct StateVarReadOnlyView<T: Default + Clone> {
     /// Structure containing the value of the variable its meta data.
     /// Since inner is in an Rc<RefCell>, it is shared with other views and could be changed by them.
     inner: Rc<RefCell<StateVarInner<T>>>,
@@ -198,9 +198,9 @@ pub struct StateVarReadOnlyViewTyped<T: Default + Clone> {
 
 /// The value of a state variable along with its meta data.
 ///
-/// Since StateVarInner (via StateVarMutableViewTyped and StateVarReadOnlyViewTyped)
+/// Since StateVarInner (via StateVarMutableView and StateVarReadOnlyView)
 /// is also used for essential data, we keep extra fields, like parameters,
-/// off this structure and put them only in StateVarTyped.
+/// off this structure and put them only in StateVar.
 #[derive(Debug)]
 struct StateVarInner<T: Default + Clone> {
     /// The value of the state variable.
@@ -330,16 +330,16 @@ impl<T: Default + Clone> StateVarInner<T> {
     }
 }
 
-impl<T: Default + Clone> Default for StateVarMutableViewTyped<T> {
+impl<T: Default + Clone> Default for StateVarMutableView<T> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<T: Default + Clone> StateVarMutableViewTyped<T> {
-    /// Create a new unresolved StateVarMutableViewTyped
+impl<T: Default + Clone> StateVarMutableView<T> {
+    /// Create a new unresolved StateVarMutableView
     pub fn new() -> Self {
-        StateVarMutableViewTyped {
+        StateVarMutableView {
             inner: Rc::new(RefCell::new(StateVarInner {
                 value: T::default(),
                 freshness: Freshness::Unresolved,
@@ -351,9 +351,9 @@ impl<T: Default + Clone> StateVarMutableViewTyped<T> {
         }
     }
 
-    /// Create a new fresh StateVarMutableViewTyped with supplied value
+    /// Create a new fresh StateVarMutableView with supplied value
     pub fn new_with_value(val: T, used_default: bool) -> Self {
-        StateVarMutableViewTyped {
+        StateVarMutableView {
             inner: Rc::new(RefCell::new(StateVarInner {
                 value: val,
                 freshness: Freshness::Fresh,
@@ -366,8 +366,8 @@ impl<T: Default + Clone> StateVarMutableViewTyped<T> {
     }
 
     /// Create a new read-only view to this state variable
-    pub fn create_new_read_only_view(&self) -> StateVarReadOnlyViewTyped<T> {
-        StateVarReadOnlyViewTyped {
+    pub fn create_new_read_only_view(&self) -> StateVarReadOnlyView<T> {
+        StateVarReadOnlyView {
             inner: self.inner.clone(),
             change_counter_when_last_viewed: 0,
         }
@@ -493,7 +493,7 @@ impl<T: Default + Clone> StateVarMutableViewTyped<T> {
     }
 }
 
-impl<T: Default + Clone> StateVarReadOnlyViewTyped<T> {
+impl<T: Default + Clone> StateVarReadOnlyView<T> {
     /// Determine if the state variable has changed
     /// since we last called `get_fresh_value_record_viewed`.
     ///
@@ -552,8 +552,8 @@ impl<T: Default + Clone> StateVarReadOnlyViewTyped<T> {
     }
 
     /// Create a new read-only view to this state variable
-    pub fn create_new_read_only_view(&self) -> StateVarReadOnlyViewTyped<T> {
-        StateVarReadOnlyViewTyped {
+    pub fn create_new_read_only_view(&self) -> StateVarReadOnlyView<T> {
+        StateVarReadOnlyView {
             inner: self.inner.clone(),
             change_counter_when_last_viewed: 0,
         }
@@ -572,9 +572,9 @@ impl<T: Default + Clone> StateVarReadOnlyViewTyped<T> {
     }
 }
 
-impl<T: Default + Clone> Default for StateVarReadOnlyViewTyped<T> {
+impl<T: Default + Clone> Default for StateVarReadOnlyView<T> {
     fn default() -> Self {
-        StateVarReadOnlyViewTyped {
+        StateVarReadOnlyView {
             inner: Rc::new(RefCell::new(StateVarInner {
                 value: T::default(),
                 freshness: Freshness::Unresolved,
@@ -587,21 +587,21 @@ impl<T: Default + Clone> Default for StateVarReadOnlyViewTyped<T> {
     }
 }
 
-impl<T: Default + Clone> Clone for StateVarReadOnlyViewTyped<T> {
+impl<T: Default + Clone> Clone for StateVarReadOnlyView<T> {
     fn clone(&self) -> Self {
         self.create_new_read_only_view()
     }
 }
 
-impl<T: Default + Clone> StateVarTyped<T> {
+impl<T: Default + Clone> StateVar<T> {
     /// Create a new state variable with the supplied interface and parameters
     pub fn new(
         interface: Box<dyn StateVarInterface<T>>,
         parameters: StateVarParameters,
         default_value: T,
     ) -> Self {
-        let value = StateVarMutableViewTyped::new();
-        StateVarTyped {
+        let value = StateVarMutableView::new();
+        StateVar {
             immutable_view_of_value: value.create_new_read_only_view(),
             value,
             interface,
@@ -612,8 +612,8 @@ impl<T: Default + Clone> StateVarTyped<T> {
     }
 
     /// Create a new read-only view to this state variable
-    pub fn create_new_read_only_view(&self) -> StateVarReadOnlyViewTyped<T> {
-        StateVarReadOnlyViewTyped {
+    pub fn create_new_read_only_view(&self) -> StateVarReadOnlyView<T> {
+        StateVarReadOnlyView {
             inner: self.value.inner.clone(),
             change_counter_when_last_viewed: 0,
         }
@@ -775,31 +775,31 @@ impl<T: Default + Clone> StateVarTyped<T> {
 /// Provides access to the `StateVarInterface` methods
 /// as well as methods to view and change the variable.
 #[derive(StateVarMethods)]
-pub enum StateVar {
-    Number(StateVarTyped<f64>),
-    Integer(StateVarTyped<i64>),
-    String(StateVarTyped<String>),
-    Boolean(StateVarTyped<bool>),
+pub enum StateVarEnum {
+    Number(StateVar<f64>),
+    Integer(StateVar<i64>),
+    String(StateVar<String>),
+    Boolean(StateVar<bool>),
 }
 
-/// An untyped, mutable view of the value of the state variable.
+/// An mutable enum view of the value of the state variable.
 /// It includes methods that allow one to view and change the variable.
 #[derive(StateVarMutableViewMethods)]
-pub enum StateVarMutableView {
-    Number(StateVarMutableViewTyped<f64>),
-    Integer(StateVarMutableViewTyped<i64>),
-    String(StateVarMutableViewTyped<String>),
-    Boolean(StateVarMutableViewTyped<bool>),
+pub enum StateVarMutableViewEnum {
+    Number(StateVarMutableView<f64>),
+    Integer(StateVarMutableView<i64>),
+    String(StateVarMutableView<String>),
+    Boolean(StateVarMutableView<bool>),
 }
 
-/// An untyped, read-only view of the value of the state variable.
+/// An read-only enum view of the value of the state variable.
 /// It includes methods that allow one to view the variable.
 #[derive(StateVarReadOnlyViewMethods)]
-pub enum StateVarReadOnlyView {
-    Number(StateVarReadOnlyViewTyped<f64>),
-    Integer(StateVarReadOnlyViewTyped<i64>),
-    String(StateVarReadOnlyViewTyped<String>),
-    Boolean(StateVarReadOnlyViewTyped<bool>),
+pub enum StateVarReadOnlyViewEnum {
+    Number(StateVarReadOnlyView<f64>),
+    Integer(StateVarReadOnlyView<i64>),
+    String(StateVarReadOnlyView<String>),
+    Boolean(StateVarReadOnlyView<bool>),
 }
 
 /// This can contain the value of a state variable of any type,
@@ -808,29 +808,29 @@ pub enum StateVarReadOnlyView {
 #[serde(untagged)]
 #[cfg_attr(feature = "web", derive(Tsify))]
 #[cfg_attr(feature = "web", tsify(from_wasm_abi))]
-pub enum StateVarValue {
+pub enum StateVarValueEnum {
     String(String),
     Number(f64),
     Integer(i64),
     Boolean(bool),
 }
 
-impl StateVar {
+impl StateVarEnum {
     /// If creating a component from a reference to this state variable
     /// then create a component of the given type.
     ///
     /// TODO: presumably, there should be a way to override this default.
     pub fn get_default_component_type(&self) -> &'static str {
         match self {
-            StateVar::Number(_) => "number",
-            StateVar::Integer(_) => "number",
-            StateVar::String(_) => "text",
-            StateVar::Boolean(_) => "boolean",
+            StateVarEnum::Number(_) => "number",
+            StateVarEnum::Integer(_) => "number",
+            StateVarEnum::String(_) => "text",
+            StateVarEnum::Boolean(_) => "boolean",
         }
     }
 }
 
-impl fmt::Debug for StateVar {
+impl fmt::Debug for StateVarEnum {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.get_freshness() {
             Freshness::Fresh => self.get_fresh_value().fmt(f),
@@ -841,7 +841,7 @@ impl fmt::Debug for StateVar {
     }
 }
 
-impl fmt::Debug for StateVarMutableView {
+impl fmt::Debug for StateVarMutableViewEnum {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.get_freshness() {
             Freshness::Fresh => self.get_fresh_value().fmt(f),
@@ -852,7 +852,7 @@ impl fmt::Debug for StateVarMutableView {
     }
 }
 
-impl fmt::Debug for StateVarReadOnlyView {
+impl fmt::Debug for StateVarReadOnlyViewEnum {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.get_freshness() {
             Freshness::Fresh => self.get_fresh_value().fmt(f),

@@ -2,16 +2,9 @@ use proc_macro::TokenStream;
 use quote::quote;
 use syn::{self, Fields, FieldsUnnamed};
 
-use crate::util::find_type_from_state_var_typed;
+use crate::util::find_type_from_state_var;
 
-// TODO: can we create these with macros?
-// StateVarMutableView
-// StateVarReadOnlyView
-// StateVarValue
-// For now, we have separate derive macros for StateVarMutableView and StateVarReadOnlyView,
-// and we have directly coded methods for StateVarValue
-
-/// Implement methods on the StateVar enum
+/// Implement methods on StateVarEnum
 pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
     let ast: syn::DeriveInput = syn::parse(input).unwrap();
     let name = &ast.ident;
@@ -44,13 +37,13 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
             let mut state_var_get_is_public_arms = Vec::new();
             let mut state_var_return_default_value_arms = Vec::new();
 
-            let mut impl_try_from_state_var_value_to_state_var_typed_variants = Vec::new();
+            let mut impl_try_from_state_var_value_enum_to_state_var_typed_variants = Vec::new();
 
             for variant in variants {
                 let variant_ident = &variant.ident;
 
                 if let Fields::Unnamed(FieldsUnnamed { unnamed, .. }) = &variant.fields {
-                    if let Some(state_var_type) = find_type_from_state_var_typed(&unnamed[0].ty) {
+                    if let Some(state_var_type) = find_type_from_state_var(&unnamed[0].ty) {
                         let mut try_from_variant_arms = Vec::new();
 
                         for variant2 in variants {
@@ -58,152 +51,154 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
 
                             if variant2_ident == variant_ident {
                                 try_from_variant_arms.push(quote! {
-                                    StateVarValue::#variant2_ident(x) => Ok(x.clone()),
+                                    StateVarValueEnum::#variant2_ident(x) => Ok(x.clone()),
                                 });
                             } else if variant2_ident == "Integer" && variant_ident == "Number" {
                                 try_from_variant_arms.push(quote! {
-                                    StateVarValue::#variant2_ident(x) => Ok(x as f64),
+                                    StateVarValueEnum::#variant2_ident(x) => Ok(x as f64),
                                 });
                             } else {
                                 let err_msg = &format!(
-                                    "Cannot convert StateVarValue::{} to {}",
+                                    "Cannot convert StateVarValueEnum::{} to {}",
                                     &variant2_ident.to_string(),
                                     &variant_ident.to_string()
                                 );
                                 try_from_variant_arms.push(quote! {
-                                    StateVarValue::#variant2_ident(_) => Err(#err_msg),
+                                    StateVarValueEnum::#variant2_ident(_) => Err(#err_msg),
                                 });
                             }
                         }
 
-                        impl_try_from_state_var_value_to_state_var_typed_variants.push(quote! {
-                            impl TryFrom<StateVarValue> for #state_var_type {
-                                type Error = &'static str;
-                                fn try_from(v: StateVarValue) -> Result<Self, Self::Error> {
-                                    match v {
-                                        #(#try_from_variant_arms)*
+                        impl_try_from_state_var_value_enum_to_state_var_typed_variants.push(
+                            quote! {
+                                impl TryFrom<StateVarValueEnum> for #state_var_type {
+                                    type Error = &'static str;
+                                    fn try_from(v: StateVarValueEnum) -> Result<Self, Self::Error> {
+                                        match v {
+                                            #(#try_from_variant_arms)*
+                                        }
                                     }
                                 }
-                            }
-                        });
+                            },
+                        );
                     }
                 }
 
-                // arms for StateVar
+                // arms for StateVarEnum
 
                 state_var_mark_stale_arms.push(quote! {
-                    #enum_ident::#variant_ident(sv_typed) => {
-                        sv_typed.mark_stale()
+                    #enum_ident::#variant_ident(sv) => {
+                        sv.mark_stale()
                     },
                 });
 
                 state_var_set_as_resolved_arms.push(quote! {
-                    #enum_ident::#variant_ident(sv_typed) => {
-                        sv_typed.set_as_resolved()
+                    #enum_ident::#variant_ident(sv) => {
+                        sv.set_as_resolved()
                     },
                 });
 
                 state_var_get_freshness_arms.push(quote! {
-                    #enum_ident::#variant_ident(sv_typed) => {
-                        sv_typed.get_freshness()
+                    #enum_ident::#variant_ident(sv) => {
+                        sv.get_freshness()
                     },
                 });
 
                 state_var_get_restore_previous_value_arms.push(quote! {
-                    #enum_ident::#variant_ident(sv_typed) => {
-                        sv_typed.restore_previous_value()
+                    #enum_ident::#variant_ident(sv) => {
+                        sv.restore_previous_value()
                     },
                 });
 
                 state_var_get_used_default_arms.push(quote! {
-                    #enum_ident::#variant_ident(sv_typed) => {
-                        sv_typed.get_used_default()
+                    #enum_ident::#variant_ident(sv) => {
+                        sv.get_used_default()
                     },
                 });
 
                 state_var_create_read_only_view_arms.push(quote! {
-                    #enum_ident::#variant_ident(sv_typed) => {
-                        StateVarReadOnlyView::#variant_ident(sv_typed.create_new_read_only_view())
+                    #enum_ident::#variant_ident(sv) => {
+                        StateVarReadOnlyViewEnum::#variant_ident(sv.create_new_read_only_view())
                     },
                 });
 
                 state_var_get_fresh_value_arms.push(quote! {
-                    #enum_ident::#variant_ident(sv_typed) => {
+                    #enum_ident::#variant_ident(sv) => {
                         // TODO: need .clone()?
-                        StateVarValue::#variant_ident(sv_typed.get_fresh_value().clone())
+                        StateVarValueEnum::#variant_ident(sv.get_fresh_value().clone())
                     },
                 });
 
                 state_var_request_change_value_to_arms.push(quote! {
-                    #enum_ident::#variant_ident(sv_typed) => {
-                        sv_typed.request_change_value_to(requested_val.try_into().unwrap())
+                    #enum_ident::#variant_ident(sv) => {
+                        sv.request_change_value_to(requested_val.try_into().unwrap())
                     },
                 });
 
                 state_var_check_if_any_dependency_changed_since_last_viewed_arms.push(quote! {
-                    #enum_ident::#variant_ident(sv_typed) => {
-                        sv_typed.check_if_any_dependency_changed_since_last_viewed()
+                    #enum_ident::#variant_ident(sv) => {
+                        sv.check_if_any_dependency_changed_since_last_viewed()
                     },
                 });
 
                 state_var_record_all_dependencies_viewed_arms.push(quote! {
-                    #enum_ident::#variant_ident(sv_typed) => {
-                        sv_typed.record_all_dependencies_viewed()
+                    #enum_ident::#variant_ident(sv) => {
+                        sv.record_all_dependencies_viewed()
                     },
                 });
 
                 state_var_return_dependency_instructions_arms.push(quote! {
-                    #enum_ident::#variant_ident(sv_typed) => {
-                        sv_typed.return_dependency_instructions(extend_source)
+                    #enum_ident::#variant_ident(sv) => {
+                        sv.return_dependency_instructions(extend_source)
                     },
                 });
 
                 state_var_set_dependencies_arms.push(quote! {
-                    #enum_ident::#variant_ident(sv_typed) => {
-                        sv_typed.set_dependencies(dependencies)
+                    #enum_ident::#variant_ident(sv) => {
+                        sv.set_dependencies(dependencies)
                     },
                 });
 
                 state_var_calculate_state_var_from_dependencies_and_mark_fresh_arms.push(quote! {
-                    #enum_ident::#variant_ident(sv_typed) => {
-                        sv_typed.calculate_state_var_from_dependencies_and_mark_fresh()
+                    #enum_ident::#variant_ident(sv) => {
+                        sv.calculate_state_var_from_dependencies_and_mark_fresh()
                     },
                 });
 
                 state_var_request_dependencies_to_update_value_arms.push(quote! {
-                    #enum_ident::#variant_ident(sv_typed) => {
-                        sv_typed.request_dependencies_to_update_value(is_direct_change_from_renderer)
+                    #enum_ident::#variant_ident(sv) => {
+                        sv.request_dependencies_to_update_value(is_direct_change_from_renderer)
                     },
                 });
 
                 state_var_get_name_arms.push(quote! {
-                    #enum_ident::#variant_ident(sv_typed) => {
-                        sv_typed.get_name()
+                    #enum_ident::#variant_ident(sv) => {
+                        sv.get_name()
                     },
                 });
 
                 state_var_get_for_renderer_arms.push(quote! {
-                    #enum_ident::#variant_ident(sv_typed) => {
-                        sv_typed.get_for_renderer()
+                    #enum_ident::#variant_ident(sv) => {
+                        sv.get_for_renderer()
                     },
                 });
 
                 state_var_get_is_public_arms.push(quote! {
-                    #enum_ident::#variant_ident(sv_typed) => {
-                        sv_typed.get_is_public()
+                    #enum_ident::#variant_ident(sv) => {
+                        sv.get_is_public()
                     },
                 });
 
                 state_var_return_default_value_arms.push(quote! {
-                    #enum_ident::#variant_ident(sv_typed) => {
-                        StateVarValue::#variant_ident(sv_typed.return_default_value())
+                    #enum_ident::#variant_ident(sv) => {
+                        StateVarValueEnum::#variant_ident(sv.return_default_value())
                     },
                 });
             }
 
             quote! {
 
-                #(#impl_try_from_state_var_value_to_state_var_typed_variants)*
+                #(#impl_try_from_state_var_value_enum_to_state_var_typed_variants)*
 
                 impl #enum_ident {
                     /// If the state variable is Fresh, set its freshness to Stale.
@@ -265,7 +260,7 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
                     /// Each view will access the same value (and freshness)
                     /// but each view separately tracks whether or not it has changed
                     /// since it was last viewed.
-                    pub fn create_new_read_only_view(&self) -> StateVarReadOnlyView {
+                    pub fn create_new_read_only_view(&self) -> StateVarReadOnlyViewEnum {
                         match self {
                             #(#state_var_create_read_only_view_arms)*
                         }
@@ -274,7 +269,7 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
                     /// Get the value of the state variable, assuming it is fresh
                     ///
                     /// Panics if the state variable is not fresh.
-                    pub fn get_fresh_value(&self) -> StateVarValue {
+                    pub fn get_fresh_value(&self) -> StateVarValueEnum {
                         match self {
                             #(#state_var_get_fresh_value_arms)*
                         }
@@ -284,8 +279,8 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
                     /// This requested value will be used in a future call to
                     /// `request_dependencies_to_update_value()`.
                     ///
-                    /// Panics if the type of requested_value does not match the type of this StateVar.
-                    pub fn request_change_value_to(&self, requested_val: StateVarValue) {
+                    /// Panics if the type of requested_value does not match the type of this StateVarEnum.
+                    pub fn request_change_value_to(&self, requested_val: StateVarValueEnum) {
                         match self {
                             #(#state_var_request_change_value_to_arms)*
                         }
@@ -410,7 +405,7 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
                     /// If no `default_value` parameter was specified,
                     /// this function will return the default value for the type of state variable,
                     /// which presumably will be meaningless.
-                    pub fn return_default_value(&self) -> StateVarValue {
+                    pub fn return_default_value(&self) -> StateVarValueEnum {
                         match self {
                             #(#state_var_return_default_value_arms)*
                         }
@@ -425,14 +420,14 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
     output.into()
 }
 
-/// Implement methods on the StateVarMutableView enum
+/// Implement methods on the StateVarMutableViewEnum enum
 pub fn state_var_mutable_view_methods_derive(input: TokenStream) -> TokenStream {
     let ast: syn::DeriveInput = syn::parse(input).unwrap();
     let data = &ast.data;
 
-    // Note: explicitly use StateVarMutableView rather than #enum_ident
+    // Note: explicitly use StateVarMutableViewEnum rather than #enum_ident
     // in hopes that can merge this with state_var_methods_derive
-    // (if can create StateVarMutableView itself with the macro)
+    // (if can create StateVarMutableViewEnum itself with the macro)
 
     let output = match data {
         syn::Data::Enum(v) => {
@@ -451,67 +446,67 @@ pub fn state_var_mutable_view_methods_derive(input: TokenStream) -> TokenStream 
                 let variant_ident = &variant.ident;
 
                 state_var_mutable_view_new_with_value_arms.push(quote! {
-                    StateVarValue::#variant_ident(val) => {
-                        StateVarMutableView::#variant_ident(
-                            StateVarMutableViewTyped::new_with_value(val, used_default),
+                    StateVarValueEnum::#variant_ident(val) => {
+                        StateVarMutableViewEnum::#variant_ident(
+                            StateVarMutableView::new_with_value(val, used_default),
                         )
                     },
                 });
 
                 state_var_mutable_view_mark_stale_arms.push(quote! {
-                    StateVarMutableView::#variant_ident(sv_typed) => {
-                        sv_typed.mark_stale()
+                    StateVarMutableViewEnum::#variant_ident(sv) => {
+                        sv.mark_stale()
                     },
                 });
 
                 state_var_mutable_view_set_as_resolved_arms.push(quote! {
-                    StateVarMutableView::#variant_ident(sv_typed) => {
-                        sv_typed.set_as_resolved()
+                    StateVarMutableViewEnum::#variant_ident(sv) => {
+                        sv.set_as_resolved()
                     },
                 });
 
                 state_var_mutable_view_get_freshness_arms.push(quote! {
-                    StateVarMutableView::#variant_ident(sv_typed) => {
-                        sv_typed.get_freshness()
+                    StateVarMutableViewEnum::#variant_ident(sv) => {
+                        sv.get_freshness()
                     },
                 });
 
                 state_var_mutable_view_get_used_default_arms.push(quote! {
-                    StateVarMutableView::#variant_ident(sv_typed) => {
-                        sv_typed.get_used_default()
+                    StateVarMutableViewEnum::#variant_ident(sv) => {
+                        sv.get_used_default()
                     },
                 });
 
                 state_var_mutable_view_create_read_only_view_arms.push(quote! {
-                    StateVarMutableView::#variant_ident(sv_typed) => {
-                        StateVarReadOnlyView::#variant_ident(sv_typed.create_new_read_only_view())
+                    StateVarMutableViewEnum::#variant_ident(sv) => {
+                        StateVarReadOnlyViewEnum::#variant_ident(sv.create_new_read_only_view())
                     },
                 });
 
                 state_var_mutable_view_get_fresh_value_arms.push(quote! {
-                    StateVarMutableView::#variant_ident(sv_typed) => {
+                    StateVarMutableViewEnum::#variant_ident(sv) => {
                         // TODO: need .clone()?
-                        StateVarValue::#variant_ident(sv_typed.get_fresh_value().clone())
+                        StateVarValueEnum::#variant_ident(sv.get_fresh_value().clone())
                     },
                 });
 
                 state_var_mutable_view_set_value_to_requested_value_arms.push(quote! {
-                    StateVarMutableView::#variant_ident(sv_typed) => {
-                        sv_typed.set_value_to_requested_value()
+                    StateVarMutableViewEnum::#variant_ident(sv) => {
+                        sv.set_value_to_requested_value()
                     },
                 });
             }
 
             quote! {
 
-                impl StateVarMutableView {
+                impl StateVarMutableViewEnum {
                     /// Creates a new mutable view of a state variable
                     ///
-                    /// Intended for creating essential data, as it creates a StateVarMutableView
-                    /// that is disconnected from any StateVar.
+                    /// Intended for creating essential data, as it creates a StateVarMutableViewEnum
+                    /// that is disconnected from any StateVarEnum.
                     ///
                     /// The type of state variable created is determined by the type of `sv_val`.
-                    pub fn new_with_value(sv_val: StateVarValue, used_default: bool) -> Self {
+                    pub fn new_with_value(sv_val: StateVarValueEnum, used_default: bool) -> Self {
                         match sv_val {
                             #(#state_var_mutable_view_new_with_value_arms)*
                         }
@@ -565,7 +560,7 @@ pub fn state_var_mutable_view_methods_derive(input: TokenStream) -> TokenStream 
                     /// Each view will access the same value (and freshness)
                     /// but each view separately tracks whether or not it has changed
                     /// since it was last viewed.
-                    pub fn create_new_read_only_view(&self) -> StateVarReadOnlyView {
+                    pub fn create_new_read_only_view(&self) -> StateVarReadOnlyViewEnum {
                         match self {
                             #(#state_var_mutable_view_create_read_only_view_arms)*
                         }
@@ -574,7 +569,7 @@ pub fn state_var_mutable_view_methods_derive(input: TokenStream) -> TokenStream 
                     /// Get the value of the state variable, assuming it is fresh
                     ///
                     /// Panics if the state variable is not fresh.
-                    pub fn get_fresh_value(&self) -> StateVarValue {
+                    pub fn get_fresh_value(&self) -> StateVarValueEnum {
                         match self {
                             #(#state_var_mutable_view_get_fresh_value_arms)*
                         }
@@ -600,14 +595,14 @@ pub fn state_var_mutable_view_methods_derive(input: TokenStream) -> TokenStream 
     output.into()
 }
 
-/// Implement methods on the StateVarReadOnlyView enum
+/// Implement methods on the StateVarReadOnlyViewEnum enum
 pub fn state_var_read_only_view_methods_derive(input: TokenStream) -> TokenStream {
     let ast: syn::DeriveInput = syn::parse(input).unwrap();
     let data = &ast.data;
 
-    // Note: explicitly use StateVarReadOnlyView rather than #enum_ident
+    // Note: explicitly use StateVarReadOnlyViewEnum rather than #enum_ident
     // in hopes that can merge this with state_var_methods_derive
-    // (if can create StateVarReadOnlyView itself with the macro)
+    // (if can create StateVarReadOnlyViewEnum itself with the macro)
 
     let output = match data {
         syn::Data::Enum(v) => {
@@ -624,46 +619,46 @@ pub fn state_var_read_only_view_methods_derive(input: TokenStream) -> TokenStrea
                 let variant_ident = &variant.ident;
 
                 state_var_read_only_view_get_freshness_arms.push(quote! {
-                    StateVarReadOnlyView::#variant_ident(sv_typed) => {
-                        sv_typed.get_freshness()
+                    StateVarReadOnlyViewEnum::#variant_ident(sv) => {
+                        sv.get_freshness()
                     },
                 });
 
                 state_var_read_only_view_get_used_default_arms.push(quote! {
-                    StateVarReadOnlyView::#variant_ident(sv_typed) => {
-                        sv_typed.get_used_default()
+                    StateVarReadOnlyViewEnum::#variant_ident(sv) => {
+                        sv.get_used_default()
                     },
                 });
 
                 state_var_read_only_view_get_fresh_value_arms.push(quote! {
-                    StateVarReadOnlyView::#variant_ident(sv_typed) => {
+                    StateVarReadOnlyViewEnum::#variant_ident(sv) => {
                         // TODO: need .clone()?
-                        StateVarValue::#variant_ident(sv_typed.get_fresh_value().clone())
+                        StateVarValueEnum::#variant_ident(sv.get_fresh_value().clone())
                     },
                 });
 
                 state_var_read_only_view_create_new_read_only_view_arms.push(quote! {
-                    StateVarReadOnlyView::#variant_ident(sv_typed) => {
-                        StateVarReadOnlyView::#variant_ident(sv_typed.create_new_read_only_view())
+                    StateVarReadOnlyViewEnum::#variant_ident(sv) => {
+                        StateVarReadOnlyViewEnum::#variant_ident(sv.create_new_read_only_view())
                     },
                 });
 
                 state_var_read_only_view_check_if_changed_since_last_viewed_arms.push(quote! {
-                    StateVarReadOnlyView::#variant_ident(sv_typed) => {
-                        sv_typed.check_if_changed_since_last_viewed()
+                    StateVarReadOnlyViewEnum::#variant_ident(sv) => {
+                        sv.check_if_changed_since_last_viewed()
                     },
                 });
 
                 state_var_read_only_view_record_viewed_arms.push(quote! {
-                    StateVarReadOnlyView::#variant_ident(sv_typed) => {
-                        sv_typed.record_viewed()
+                    StateVarReadOnlyViewEnum::#variant_ident(sv) => {
+                        sv.record_viewed()
                     },
                 });
             }
 
             quote! {
 
-                impl StateVarReadOnlyView {
+                impl StateVarReadOnlyViewEnum {
 
                     /// Return the current freshness of the variable
                     ///
@@ -689,7 +684,7 @@ pub fn state_var_read_only_view_methods_derive(input: TokenStream) -> TokenStrea
                     /// Get the value of the state variable, assuming it is fresh
                     ///
                     /// Panics if the state variable is not fresh.
-                    pub fn get_fresh_value(&self) -> StateVarValue {
+                    pub fn get_fresh_value(&self) -> StateVarValueEnum {
                         match self {
                             #(#state_var_read_only_view_get_fresh_value_arms)*
                         }
@@ -700,7 +695,7 @@ pub fn state_var_read_only_view_methods_derive(input: TokenStream) -> TokenStrea
                     /// Each view will access the same value (and freshness)
                     /// but each view separately tracks whether or not it has changed
                     /// since it was last viewed.
-                    pub fn create_new_read_only_view(&self) -> StateVarReadOnlyView {
+                    pub fn create_new_read_only_view(&self) -> StateVarReadOnlyViewEnum {
                         match self {
                             #(#state_var_read_only_view_create_new_read_only_view_arms)*
                         }

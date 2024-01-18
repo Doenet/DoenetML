@@ -11,7 +11,7 @@ use crate::state_var_interfaces::text_state_var_interfaces::{
 pub struct Text {
     pub common: ComponentCommonData,
 
-    pub value_state_var_view: StateVarReadOnlyViewTyped<String>,
+    pub value_state_var_view: StateVarReadOnlyView<String>,
 
     pub renderer_data: TextRenderedState,
 
@@ -64,7 +64,7 @@ impl ComponentNodeStateVariables for Text {
         // Value state variable
         ///////////////////////
 
-        let value_state_variable = StateVarTyped::new(
+        let value_state_variable = StateVar::new(
             Box::<GeneralStringStateVarInterface>::default(),
             StateVarParameters {
                 for_renderer: true,
@@ -90,12 +90,12 @@ impl ComponentNodeStateVariables for Text {
         )];
         self.common
             .state_variables
-            .push(StateVar::String(value_state_variable));
+            .push(StateVarEnum::String(value_state_variable));
 
         //////////////////////
         // Text state variable
         //////////////////////
-        let text_state_variable = StateVarTyped::new(
+        let text_state_variable = StateVar::new(
             Box::<SingleDependencyStringStateVarInterface>::default(),
             StateVarParameters {
                 name: "text",
@@ -110,6 +110,6 @@ impl ComponentNodeStateVariables for Text {
         );
         self.common
             .state_variables
-            .push(StateVar::String(text_state_variable));
+            .push(StateVarEnum::String(text_state_variable));
     }
 }

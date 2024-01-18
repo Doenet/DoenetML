@@ -6,7 +6,7 @@ pub use doenetml_derive::{ComponentNode, ComponentNodeStateVariables, RenderedCo
 pub use std::collections::HashMap;
 
 pub use crate::dast::Position as DastPosition;
-pub use crate::state::StateVar;
+pub use crate::state::StateVarEnum;
 
 pub use crate::utils::KeyValueIgnoreCase;
 pub use crate::{ComponentIdx, ComponentPointerTextOrMacro, ExtendSource};
@@ -26,6 +26,6 @@ pub use crate::dast::{
 };
 pub use crate::dependency::{Dependency, DependencyInstruction, DependencyValueUpdateRequest};
 pub use crate::state::{
-    RequestDependencyUpdateError, StateVarInterface, StateVarMutableViewTyped, StateVarParameters,
-    StateVarReadOnlyView, StateVarReadOnlyViewTyped, StateVarTyped, StateVarValue,
+    RequestDependencyUpdateError, StateVar, StateVarInterface, StateVarMutableView,
+    StateVarParameters, StateVarReadOnlyView, StateVarReadOnlyViewEnum, StateVarValueEnum,
 };
