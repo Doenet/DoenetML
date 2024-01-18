@@ -109,14 +109,6 @@ fn get_non_string_rendered_children_including_from_extend(
     component_idx: ComponentIdx,
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
 ) -> Vec<ComponentIdx> {
-    // TODO: the behavior of this function should mirror the .to_flat_dast method
-    // of the RenderedComponent trait.
-    // Is there a way to specify the behavior in one place so they cannot diverge and cause bugs?
-    // Perhaps, components cannot override the whole .to_flat_dast method, but just pieces
-    // such as determining the data sent.
-    // And, if they override the behavior is should be through methods called in both places,
-    // like the .get_rendered_children method.
-
     let component = components[component_idx].borrow();
 
     let mut children = if let Some(&ExtendSource::Component(source_idx)) = component.get_extend() {

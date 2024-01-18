@@ -6,12 +6,13 @@ import { renderingOnServerSelector } from "../../state/redux-slices/global";
 import "./text-input.css";
 import { coreActions } from "../../state/redux-slices/core";
 
-type TextInputData = { state: { immediateValue: string } };
+type TextInputData = { state: { immediateValue: string; disabled: boolean } };
 
 export const TextInput: BasicComponent<TextInputData> = ({ node }) => {
     const onServer = useAppSelector(renderingOnServerSelector);
     const id = node.data.id;
     const value = node.data.state.immediateValue;
+    const disabled = node.data.state.disabled;
     const dispatch = useAppDispatch();
 
     const updateValue = React.useCallback(() => {
@@ -27,12 +28,15 @@ export const TextInput: BasicComponent<TextInputData> = ({ node }) => {
         return <span className="text-input">{value}</span>;
     }
 
+    // TODO: change style to gray out when disabled
+
     return (
         <span className="text-input">
             <label>
                 <input
                     type="text"
                     value={value}
+                    disabled={disabled}
                     onChange={(e) => {
                         const action: Action = {
                             component: "textInput",

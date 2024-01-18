@@ -1,6 +1,4 @@
-use std::cell::RefCell;
 use std::collections::HashMap;
-use std::rc::Rc;
 
 use enum_dispatch::enum_dispatch;
 use strum_macros::EnumString;
@@ -8,10 +6,7 @@ use strum_macros::EnumString;
 use crate::attribute::{AttributeName, AttributeType};
 use serde::{Deserialize, Serialize};
 
-use crate::dast::{
-    DastAttribute, DastMacro, ElementData, FlatDastElement, FlatDastElementContent,
-    FlatDastElementUpdate, Position as DastPosition,
-};
+use crate::dast::{DastAttribute, Position as DastPosition};
 use crate::state::{
     StateVar, StateVarName, StateVarReadOnlyView, StateVarReadOnlyViewTyped, StateVarValue,
 };
@@ -19,11 +14,12 @@ use crate::{ComponentIdx, ComponentPointerTextOrMacro, ExtendSource};
 
 use super::_error::_Error;
 use super::_external::_External;
+use super::doenet::boolean::{Boolean, BooleanRenderedState};
 use super::doenet::document::Document;
 use super::doenet::p::P;
 use super::doenet::section::Section;
-use super::doenet::text::Text;
-use super::doenet::text_input::{TextInput, TextInputAction};
+use super::doenet::text::{Text, TextRenderedState};
+use super::doenet::text_input::{TextInput, TextInputAction, TextInputRenderedState};
 
 /// A enum that can contain a component of any possible component type.
 ///
@@ -31,13 +27,13 @@ use super::doenet::text_input::{TextInput, TextInputAction};
 /// to allow easy access to the methods.
 ///
 /// Each component type added to `ComponentEnum` must implement that component node traits.
-
 #[derive(Debug, EnumString)]
 #[enum_dispatch(ComponentNode, ComponentNodeStateVariables, RenderedComponentNode)]
 #[strum(ascii_case_insensitive)]
 pub enum ComponentEnum {
     Text(Text),
     TextInput(TextInput),
+    Boolean(Boolean),
     Section(Section),
     Document(Document),
     P(P),
@@ -54,6 +50,19 @@ pub enum ComponentEnum {
 #[cfg_attr(feature = "web", tsify(from_wasm_abi))]
 pub enum ActionsEnum {
     TextInput(TextInputAction),
+}
+
+/// A enum listing the renderer data for each component.
+///
+/// Used for sending initial state to the renderer
+///
+/// TODO: do we need both RenderedState and RenderedVariable?
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum RenderedState {
+    Text(TextRenderedState),
+    TextInput(TextInputRenderedState),
+    Boolean(BooleanRenderedState),
 }
 
 #[derive(Debug, Default)]
@@ -86,12 +95,6 @@ pub struct ComponentCommonData {
     pub unevaluated_attributes: HashMap<String, DastAttribute>,
 
     pub is_rendered: bool,
-}
-
-#[derive(Debug)]
-pub enum AttributeBasis {
-    StateVar(StateVar),
-    Reference(DastMacro),
 }
 
 /// The Component trait specifies methods that will, in general, be implemented by deriving them.
@@ -233,60 +236,12 @@ pub trait RenderedComponentNode: ComponentNode {
         self.get_children()
     }
 
-    /// Return the flat dast element sent to the renderer.
-    fn to_flat_dast(&mut self, components: &Vec<Rc<RefCell<ComponentEnum>>>) -> FlatDastElement {
-        // TODO: components should not be able to override the entire to_flat_dast method,
-        // but instead just methods like .get_rendered_children that can be called in all places
-        // where one is making calculations about what will be rendered.
-
-        // if extending a source that is a component,
-        // add children from that source first
-        let mut children = if let Some(ExtendSource::Component(source_idx)) = self.get_extend() {
-            let source_dast = components[*source_idx]
-                .borrow_mut()
-                .to_flat_dast(components);
-
-            source_dast.children
-        } else {
-            Vec::new()
-        };
-
-        // children from the component itself come after children the extend source
-        let mut children2: Vec<FlatDastElementContent> = self
-            .get_rendered_children()
-            .iter()
-            .filter_map(|child| match child {
-                ComponentPointerTextOrMacro::Component(comp_idx) => {
-                    Some(FlatDastElementContent::Element(*comp_idx))
-                }
-                ComponentPointerTextOrMacro::Text(s) => {
-                    Some(FlatDastElementContent::Text(s.to_string()))
-                }
-                ComponentPointerTextOrMacro::Macro(_the_macro) => None,
-                ComponentPointerTextOrMacro::FunctionMacro(_function_macro) => None,
-            })
-            .collect();
-
-        children.append(&mut children2);
-
-        // TODO: attributes
-
-        FlatDastElement {
-            name: self.get_component_type().to_string(),
-            attributes: HashMap::new(),
-            children,
-            data: ElementData {
-                id: self.get_idx(),
-                ..Default::default()
-            },
-            position: self.get_position().cloned(),
-        }
+    /// Return object will the values of all the rendered state variables
+    fn return_rendered_state(&mut self) -> Option<RenderedState> {
+        None
     }
 
-    /// Return a FlatDastElementUpdate that gives information about what elements of the rendered component
-    /// have changed since the component was last rendered,
-    /// i.e., since `to_flat_dast()` or `get_flat_dast_update()` have been called.`
-    fn get_flat_dast_update(&mut self) -> Option<FlatDastElementUpdate> {
+    fn return_rendered_state_update(&mut self) -> Option<RenderedState> {
         None
     }
 

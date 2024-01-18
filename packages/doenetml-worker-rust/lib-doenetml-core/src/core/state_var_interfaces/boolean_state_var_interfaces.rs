@@ -15,7 +15,7 @@ use super::common::create_dependency_instruction_from_extend_source;
 //     StateVarReadOnlyViewTyped,
 // };
 
-/// A string state variable interface that concatenates all string dependencies.
+/// A boolean state variable interface that concatenates all string dependencies.
 ///
 /// If `create_dependency_from_extend_source` is true and have an extend source extending this variable,
 /// then prepend the shadowed state variable.
@@ -71,7 +71,8 @@ impl StateVarInterface<bool> for GeneralBooleanStateVarInterface {
 
         for instruction in dependencies.iter() {
             for Dependency {
-                value: dep_value, ..
+                value: dep_value,
+                source: dep_source,
             } in instruction.iter()
             {
                 match dep_value {
@@ -80,10 +81,17 @@ impl StateVarInterface<bool> for GeneralBooleanStateVarInterface {
                     }
                     StateVarReadOnlyView::Boolean(dep_bool_value) => {
                         if boolean_val_option.is_some() {
-                            // TODO: emit warning rather than panic
-                            panic!("Got more than one boolean dependency for a GeneralBooleanStateVarInterface");
+                            match dep_source {
+                                DependencySource::StateVar { .. } => {
+                                    // TODO: emit warning rather than panic
+                                    panic!("Got more than one boolean dependency for a GeneralBooleanStateVarInterface");
+                                }
+                                // ignore essential, as it came from having no children
+                                DependencySource::Essential { .. } => (),
+                            }
+                        } else {
+                            boolean_val_option = Some(dep_bool_value.create_new_read_only_view())
                         }
-                        boolean_val_option = Some(dep_bool_value.create_new_read_only_view())
                     }
                     _ => {
                         panic!("Got a non-string or boolean value for a dependency for a GeneralBooleanStateVarInterface");

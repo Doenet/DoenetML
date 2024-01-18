@@ -23,6 +23,7 @@ use super::state::state_var_updates::process_state_variable_update_request;
 use super::state::{Freshness, StateVarName};
 
 use crate::components::actions::Action;
+use crate::dast::{get_flat_dast_update, to_flat_dast};
 #[allow(unused)]
 use crate::utils::{log, log_debug, log_json};
 
@@ -413,25 +414,24 @@ impl DoenetMLCore {
     /// Include warnings as a separate vector (errors are embedded in the tree as elements).
     pub fn to_flat_dast(&mut self) -> FlatDastRoot {
         log!("***Calling to flat dast on core****");
+
         // Since are outputting the whole dast, we ignore which components were freshened
         self.freshen_renderer_state();
 
-        let elements: Vec<FlatDastElement> = self
-            .components
-            .iter()
-            .map(|comp| comp.borrow_mut().to_flat_dast(&self.components))
+        let elements: Vec<FlatDastElement> = (0..self.components.len())
+            .map(|comp_idx| to_flat_dast(comp_idx, &self.components))
             .collect();
 
         self.root.to_flat_dast(elements, self.warnings.to_vec())
     }
 
+    /// Output updates for any elements with changed rendered state variables
     pub fn get_flat_dast_updates(&mut self) -> HashMap<ComponentIdx, FlatDastElementUpdate> {
         let components_changed = self.freshen_renderer_state();
 
         let mut flat_dast_updates: HashMap<ComponentIdx, FlatDastElementUpdate> = HashMap::new();
         for component_idx in components_changed {
-            let mut component = self.components[component_idx].borrow_mut();
-            if let Some(element_update) = component.get_flat_dast_update() {
+            if let Some(element_update) = get_flat_dast_update(component_idx, &self.components) {
                 flat_dast_updates.insert(component_idx, element_update);
             }
         }

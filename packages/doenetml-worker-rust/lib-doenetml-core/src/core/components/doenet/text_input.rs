@@ -1,13 +1,11 @@
-use std::cell::RefCell;
 use std::collections::HashMap;
-use std::rc::Rc;
 
 use serde::{Deserialize, Serialize};
 use strum::VariantNames;
 use strum_macros::EnumVariantNames;
 
 use crate::{
-    components::{actions::ActionBody, prelude::*, ActionsEnum},
+    components::{actions::ActionBody, prelude::*, ActionsEnum, RenderedState},
     state_var_interfaces::{
         boolean_state_var_interfaces::GeneralBooleanStateVarInterface,
         text_state_var_interfaces::GeneralStringStateVarInterface,
@@ -37,64 +35,75 @@ pub struct TextInput {
     pub common: ComponentCommonData,
 
     pub immediate_value_state_var_view: StateVarReadOnlyViewTyped<String>,
+
+    pub disabled_state_var_view: StateVarReadOnlyViewTyped<bool>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TextInputRenderData {
-    pub id: usize,
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct TextInputRenderedState {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub immediate_value: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub disabled: Option<bool>,
+}
 
-    pub immediate_value: String,
+pub struct TextInputStateVariables {
+    value: StateVarTyped<String>,
+    immediate_value: StateVarTyped<String>,
+    sync_immediate_value: StateVarTyped<bool>,
+}
+
+impl TextInputStateVariables {
+    fn value_dependency_instructions(&self) -> DependencyInstruction {
+        todo!("macro");
+    }
+    fn immediate_value_dependency_instructions(&self) -> DependencyInstruction {
+        todo!("macro");
+    }
+    fn sync_immediate_value_dependency_instructions(&self) -> DependencyInstruction {
+        todo!("macro");
+    }
 }
 
 impl RenderedComponentNode for TextInput {
-    fn to_flat_dast(&mut self, _: &Vec<Rc<RefCell<ComponentEnum>>>) -> FlatDastElement {
-        let immediate_value = if self.get_is_rendered() {
-            self.immediate_value_state_var_view
-                .get_fresh_value_record_viewed()
-                .to_string()
-        } else {
-            "".to_string()
-        };
-
-        FlatDastElement {
-            name: self.get_component_type().to_string(),
-            attributes: HashMap::new(),
-            children: vec![],
-
-            data: ElementData {
-                id: self.get_idx(),
-                action_names: Some(self.get_action_names()),
-                state: Some(HashMap::from([(
-                    "immediateValue".to_string(),
-                    StateVarValue::String(immediate_value),
-                )])),
-                ..Default::default()
-            },
-            position: self.get_position().cloned(),
-        }
-    }
-
-    fn get_flat_dast_update(&mut self) -> Option<FlatDastElementUpdate> {
-        if self
-            .immediate_value_state_var_view
-            .check_if_changed_since_last_viewed()
-        {
-            let immediate_value = if self.get_is_rendered() {
+    fn return_rendered_state(&mut self) -> Option<RenderedState> {
+        Some(RenderedState::TextInput(TextInputRenderedState {
+            immediate_value: Some(
                 self.immediate_value_state_var_view
                     .get_fresh_value_record_viewed()
-                    .to_string()
-            } else {
-                "".to_string()
-            };
+                    .clone(),
+            ),
+            disabled: Some(*self.disabled_state_var_view.get_fresh_value_record_viewed()),
+        }))
+    }
 
-            Some(FlatDastElementUpdate {
-                changed_attributes: None,
-                new_children: None,
-                changed_state: Some(HashMap::from([(
-                    "immediateValue".to_string(),
-                    StateVarValue::String(immediate_value),
-                )])),
-            })
+    fn return_rendered_state_update(&mut self) -> Option<RenderedState> {
+        let value_changed = self
+            .immediate_value_state_var_view
+            .check_if_changed_since_last_viewed();
+
+        let disabled_changed = self
+            .disabled_state_var_view
+            .check_if_changed_since_last_viewed();
+
+        if value_changed || disabled_changed {
+            let mut updated_variables = TextInputRenderedState::default();
+
+            if value_changed {
+                updated_variables.immediate_value = Some(
+                    self.immediate_value_state_var_view
+                        .get_fresh_value_record_viewed()
+                        .clone(),
+                );
+            }
+
+            if disabled_changed {
+                updated_variables.disabled =
+                    Some(*self.disabled_state_var_view.get_fresh_value_record_viewed());
+            }
+
+            Some(RenderedState::TextInput(updated_variables))
         } else {
             None
         }
@@ -163,7 +172,7 @@ impl ComponentNodeStateVariables for TextInput {
             Default::default(),
         );
 
-        // Use the value state variable for fulling the text component profile
+        // Use the value state variable for fulfilling the text component profile
         self.common.component_profile_state_variables = vec![ComponentProfileStateVariable::Text(
             value_state_variable.create_new_read_only_view(),
             "value",
@@ -247,18 +256,18 @@ impl ComponentNodeStateVariables for TextInput {
             .state_variables
             .push(StateVar::String(prefill_state_variable));
 
-        //////////////////////
-        // Hide state variable
-        //////////////////////
-        let hide_state_variable = StateVarTyped::new(
+        ////////////////////////
+        // Hidden state variable
+        ////////////////////////
+        let hidden_state_variable = StateVarTyped::new(
             Box::<GeneralBooleanStateVarInterface>::default(),
             StateVarParameters {
-                name: "hide",
+                name: "hidden",
                 dependency_instruction_hint: Some(DependencyInstruction::AttributeChild {
                     attribute_name: "hide",
                     match_profiles: vec![ComponentProfile::Text, ComponentProfile::Boolean],
                 }),
-                for_renderer: true,
+                is_public: true,
                 ..Default::default()
             },
             false,
@@ -266,7 +275,7 @@ impl ComponentNodeStateVariables for TextInput {
 
         self.common
             .state_variables
-            .push(StateVar::Boolean(hide_state_variable));
+            .push(StateVar::Boolean(hidden_state_variable));
 
         //////////////////////////
         // Disabled state variable
@@ -279,11 +288,15 @@ impl ComponentNodeStateVariables for TextInput {
                     attribute_name: "disabled",
                     match_profiles: vec![ComponentProfile::Text, ComponentProfile::Boolean],
                 }),
+                is_public: true,
                 for_renderer: true,
                 ..Default::default()
             },
             false,
         );
+
+        // save a view to field for easy access when create flat dast
+        self.disabled_state_var_view = disabled_state_variable.create_new_read_only_view();
 
         self.common
             .state_variables

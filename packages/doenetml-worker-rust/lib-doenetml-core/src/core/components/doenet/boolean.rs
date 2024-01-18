@@ -3,60 +3,49 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 
 use crate::components::{prelude::*, RenderedState};
-use crate::state_var_interfaces::text_state_var_interfaces::{
-    GeneralStringStateVarInterface, SingleDependencyStringStateVarInterface,
+use crate::state_var_interfaces::boolean_state_var_interfaces::{
+    GeneralBooleanStateVarInterface, SingleDependencyBooleanStateVarInterface,
 };
 
 #[derive(Debug, Default, ComponentNode)]
-pub struct Text {
+pub struct Boolean {
     pub common: ComponentCommonData,
 
-    pub value_state_var_view: StateVarReadOnlyViewTyped<String>,
-
-    pub renderer_data: TextRenderedState,
-
-    pub no_rendered_children: Vec<ComponentPointerTextOrMacro>,
+    pub value_state_var_view: StateVarReadOnlyViewTyped<bool>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
-pub struct TextRenderedState {
-    pub value: Option<String>,
+pub struct BooleanRenderedState {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub value: Option<bool>,
 }
 
-impl RenderedComponentNode for Text {
-    fn get_rendered_children(&self) -> &Vec<ComponentPointerTextOrMacro> {
-        &self.no_rendered_children
-    }
-
+impl RenderedComponentNode for Boolean {
     fn return_rendered_state(&mut self) -> Option<RenderedState> {
-        Some(RenderedState::Text(TextRenderedState {
-            value: Some(
-                self.value_state_var_view
-                    .get_fresh_value_record_viewed()
-                    .clone(),
-            ),
+        Some(RenderedState::Boolean(BooleanRenderedState {
+            value: Some(*self.value_state_var_view.get_fresh_value_record_viewed()),
         }))
     }
 
     fn return_rendered_state_update(&mut self) -> Option<RenderedState> {
-        let mut updated_variables = TextRenderedState::default();
-
-        if self
+        let value_changed = self
             .value_state_var_view
-            .check_if_changed_since_last_viewed()
-        {
-            updated_variables.value = Some(
-                self.value_state_var_view
-                    .get_fresh_value_record_viewed()
-                    .clone(),
-            )
+            .check_if_changed_since_last_viewed();
+
+        if value_changed {
+            let updated_variables = BooleanRenderedState {
+                value: Some(*self.value_state_var_view.get_fresh_value_record_viewed()),
+            };
+
+            Some(RenderedState::Boolean(updated_variables))
+        } else {
+            None
         }
-        Some(RenderedState::Text(updated_variables))
     }
 }
 
-impl ComponentNodeStateVariables for Text {
+impl ComponentNodeStateVariables for Boolean {
     fn initialize_state_variables(&mut self) {
         self.common.state_variables = Vec::new();
 
@@ -65,12 +54,12 @@ impl ComponentNodeStateVariables for Text {
         ///////////////////////
 
         let value_state_variable = StateVarTyped::new(
-            Box::<GeneralStringStateVarInterface>::default(),
+            Box::<GeneralBooleanStateVarInterface>::default(),
             StateVarParameters {
                 for_renderer: true,
                 name: "value",
                 dependency_instruction_hint: Some(DependencyInstruction::Child {
-                    match_profiles: vec![ComponentProfile::Text],
+                    match_profiles: vec![ComponentProfile::Text, ComponentProfile::Boolean],
                     exclude_if_prefer_profiles: vec![],
                 }),
                 create_dependency_from_extend_source: true,
@@ -83,22 +72,23 @@ impl ComponentNodeStateVariables for Text {
         // save a view to field for easy access when create flat dast
         self.value_state_var_view = value_state_variable.create_new_read_only_view();
 
-        // Use the value state variable for fulfilling the text component profile
-        self.common.component_profile_state_variables = vec![ComponentProfileStateVariable::Text(
-            value_state_variable.create_new_read_only_view(),
-            "value",
-        )];
+        // Use the value state variable for fulfilling the boolean component profile
+        self.common.component_profile_state_variables =
+            vec![ComponentProfileStateVariable::Boolean(
+                value_state_variable.create_new_read_only_view(),
+                "value",
+            )];
         self.common
             .state_variables
-            .push(StateVar::String(value_state_variable));
+            .push(StateVar::Boolean(value_state_variable));
 
         //////////////////////
-        // Text state variable
+        // Boolean state variable
         //////////////////////
-        let text_state_variable = StateVarTyped::new(
-            Box::<SingleDependencyStringStateVarInterface>::default(),
+        let boolean_state_variable = StateVarTyped::new(
+            Box::<SingleDependencyBooleanStateVarInterface>::default(),
             StateVarParameters {
-                name: "text",
+                name: "boolean",
                 dependency_instruction_hint: Some(DependencyInstruction::StateVar {
                     component_idx: None,
                     state_var_name: "value",
@@ -110,6 +100,6 @@ impl ComponentNodeStateVariables for Text {
         );
         self.common
             .state_variables
-            .push(StateVar::String(text_state_variable));
+            .push(StateVar::Boolean(boolean_state_variable));
     }
 }
