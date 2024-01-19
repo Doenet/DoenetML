@@ -5,8 +5,8 @@ use component_node::{
 };
 use proc_macro::TokenStream;
 use state_var_methods::{
-    state_var_methods_derive, state_var_mutable_view_methods_derive,
-    state_var_read_only_view_methods_derive,
+    into_state_var_enum_refs_derive, state_var_methods_derive, state_var_methods_mut_derive,
+    state_var_mutable_view_methods_derive, state_var_read_only_view_methods_derive,
 };
 
 mod component_node;
@@ -33,6 +33,11 @@ pub fn state_var_methods_derive_wrapper(input: TokenStream) -> TokenStream {
     state_var_methods_derive(input)
 }
 
+#[proc_macro_derive(StateVarMethodsMut)]
+pub fn state_var_methods_mut_derive_wrapper(input: TokenStream) -> TokenStream {
+    state_var_methods_mut_derive(input)
+}
+
 #[proc_macro_derive(StateVarMutableViewMethods)]
 pub fn state_var_mutable_view_methods_derive_wrapper(input: TokenStream) -> TokenStream {
     state_var_mutable_view_methods_derive(input)
@@ -41,4 +46,9 @@ pub fn state_var_mutable_view_methods_derive_wrapper(input: TokenStream) -> Toke
 #[proc_macro_derive(StateVarReadOnlyViewMethods)]
 pub fn state_var_read_only_view_methods_derive_wrapper(input: TokenStream) -> TokenStream {
     state_var_read_only_view_methods_derive(input)
+}
+
+#[proc_macro_derive(FromStateVarIntoStateVarValueEnumRefs)]
+pub fn into_state_var_enum_refs_derive_wrapper(input: TokenStream) -> TokenStream {
+    into_state_var_enum_refs_derive(input)
 }

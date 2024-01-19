@@ -4,11 +4,12 @@ use syn::{self, Fields, FieldsUnnamed};
 
 use crate::util::find_type_from_state_var;
 
-/// Implement methods on StateVarEnum
+/// Implement methods on StateVarEnum, StateVarEnumRef, and StateVarEnumRefMut that don't require mut
 pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
     let ast: syn::DeriveInput = syn::parse(input).unwrap();
     let name = &ast.ident;
     let data = &ast.data;
+    let generics = &ast.generics;
 
     // eprintln!("save var methods derive {:#?}", ast);
 
@@ -26,9 +27,7 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
             let mut state_var_get_fresh_value_arms = Vec::new();
             let mut state_var_request_change_value_to_arms = Vec::new();
             let mut state_var_check_if_any_dependency_changed_since_last_viewed_arms = Vec::new();
-            let mut state_var_record_all_dependencies_viewed_arms = Vec::new();
             let mut state_var_return_dependency_instructions_arms = Vec::new();
-            let mut state_var_set_dependencies_arms = Vec::new();
             let mut state_var_calculate_state_var_from_dependencies_and_mark_fresh_arms =
                 Vec::new();
             let mut state_var_request_dependencies_to_update_value_arms = Vec::new();
@@ -37,54 +36,9 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
             let mut state_var_get_is_public_arms = Vec::new();
             let mut state_var_return_default_value_arms = Vec::new();
 
-            let mut impl_try_from_state_var_value_enum_to_state_var_typed_variants = Vec::new();
 
             for variant in variants {
                 let variant_ident = &variant.ident;
-
-                if let Fields::Unnamed(FieldsUnnamed { unnamed, .. }) = &variant.fields {
-                    if let Some(state_var_type) = find_type_from_state_var(&unnamed[0].ty) {
-                        let mut try_from_variant_arms = Vec::new();
-
-                        for variant2 in variants {
-                            let variant2_ident = &variant2.ident;
-
-                            if variant2_ident == variant_ident {
-                                try_from_variant_arms.push(quote! {
-                                    StateVarValueEnum::#variant2_ident(x) => Ok(x.clone()),
-                                });
-                            } else if variant2_ident == "Integer" && variant_ident == "Number" {
-                                try_from_variant_arms.push(quote! {
-                                    StateVarValueEnum::#variant2_ident(x) => Ok(x as f64),
-                                });
-                            } else {
-                                let err_msg = &format!(
-                                    "Cannot convert StateVarValueEnum::{} to {}",
-                                    &variant2_ident.to_string(),
-                                    &variant_ident.to_string()
-                                );
-                                try_from_variant_arms.push(quote! {
-                                    StateVarValueEnum::#variant2_ident(_) => Err(#err_msg),
-                                });
-                            }
-                        }
-
-                        impl_try_from_state_var_value_enum_to_state_var_typed_variants.push(
-                            quote! {
-                                impl TryFrom<StateVarValueEnum> for #state_var_type {
-                                    type Error = &'static str;
-                                    fn try_from(v: StateVarValueEnum) -> Result<Self, Self::Error> {
-                                        match v {
-                                            #(#try_from_variant_arms)*
-                                        }
-                                    }
-                                }
-                            },
-                        );
-                    }
-                }
-
-                // arms for StateVarEnum
 
                 state_var_mark_stale_arms.push(quote! {
                     #enum_ident::#variant_ident(sv) => {
@@ -141,23 +95,12 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
                     },
                 });
 
-                state_var_record_all_dependencies_viewed_arms.push(quote! {
-                    #enum_ident::#variant_ident(sv) => {
-                        sv.record_all_dependencies_viewed()
-                    },
-                });
-
                 state_var_return_dependency_instructions_arms.push(quote! {
                     #enum_ident::#variant_ident(sv) => {
                         sv.return_dependency_instructions(extend_source)
                     },
                 });
 
-                state_var_set_dependencies_arms.push(quote! {
-                    #enum_ident::#variant_ident(sv) => {
-                        sv.set_dependencies(dependencies)
-                    },
-                });
 
                 state_var_calculate_state_var_from_dependencies_and_mark_fresh_arms.push(quote! {
                     #enum_ident::#variant_ident(sv) => {
@@ -198,9 +141,7 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
 
             quote! {
 
-                #(#impl_try_from_state_var_value_enum_to_state_var_typed_variants)*
-
-                impl #enum_ident {
+                impl #generics #enum_ident #generics {
                     /// If the state variable is Fresh, set its freshness to Stale.
                     ///
                     /// Panics: if the state variable is Unresolved or Resolved.
@@ -298,35 +239,11 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
                         }
                     }
 
-                    /// Record the fact that all dependencies for the state variable have been viewed.
-                    /// Future calls to `check_if_any_dependency_changed_since_last_viewed()`
-                    /// will then determine if a dependency has changed since that moment.
-                    pub fn record_all_dependencies_viewed(&mut self) {
-                        match self {
-                            #(#state_var_record_all_dependencies_viewed_arms)*
-                        }
-                    }
-
                     /// Return a vector dependency instructions, which will be used to
                     /// calculate dependencies from the document structure.
                     pub fn return_dependency_instructions(&self, extend_source: Option<&ExtendSource>) -> Vec<DependencyInstruction> {
                         match self {
                             #(#state_var_return_dependency_instructions_arms)*
-                        }
-                    }
-
-                    /// Set the dependencies for the state variable based on the `dependencies` argument.
-                    ///
-                    /// The dependencies passed into this function should be calculated from
-                    /// the dependency instructions returned by a previous call to
-                    /// `return_dependency_instructions()` as well as the document structure.
-                    ///
-                    /// The dependencies are saved to the state variable and will be used
-                    /// in calls to `calculate_state_var_from_dependencies_and_mark_fresh()`
-                    /// and `request_dependencies_to_update_value()`.
-                    pub fn set_dependencies(&mut self, dependencies: &Vec<Vec<Dependency>>) {
-                        match self {
-                            #(#state_var_set_dependencies_arms)*
                         }
                     }
 
@@ -408,6 +325,76 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
                     pub fn return_default_value(&self) -> StateVarValueEnum {
                         match self {
                             #(#state_var_return_default_value_arms)*
+                        }
+                    }
+
+                }
+
+            }
+        }
+        _ => panic!("only enums supported"),
+    };
+    output.into()
+}
+
+/// Implement methods on StateVarEnum and StateVarEnumRefMut that require mut
+pub fn state_var_methods_mut_derive(input: TokenStream) -> TokenStream {
+    let ast: syn::DeriveInput = syn::parse(input).unwrap();
+    let name = &ast.ident;
+    let data = &ast.data;
+    let generics = &ast.generics;
+
+    // eprintln!("save var methods derive {:#?}", ast);
+
+    let output = match data {
+        syn::Data::Enum(v) => {
+            let variants = &v.variants;
+            let enum_ident = name;
+
+            let mut state_var_record_all_dependencies_viewed_arms = Vec::new();
+            let mut state_var_set_dependencies_arms = Vec::new();
+
+            for variant in variants {
+                let variant_ident = &variant.ident;
+
+
+                state_var_record_all_dependencies_viewed_arms.push(quote! {
+                    #enum_ident::#variant_ident(sv) => {
+                        sv.record_all_dependencies_viewed()
+                    },
+                });
+
+                state_var_set_dependencies_arms.push(quote! {
+                    #enum_ident::#variant_ident(sv) => {
+                        sv.set_dependencies(dependencies)
+                    },
+                });
+            }
+
+            quote! {
+
+                impl #generics #enum_ident #generics {
+                    /// Record the fact that all dependencies for the state variable have been viewed.
+                    /// Future calls to `check_if_any_dependency_changed_since_last_viewed()`
+                    /// will then determine if a dependency has changed since that moment.
+                    pub fn record_all_dependencies_viewed(&mut self) {
+                        match self {
+                            #(#state_var_record_all_dependencies_viewed_arms)*
+                        }
+                    }
+
+                    /// Set the dependencies for the state variable based on the `dependencies` argument.
+                    ///
+                    /// The dependencies passed into this function should be calculated from
+                    /// the dependency instructions returned by a previous call to
+                    /// `return_dependency_instructions()` as well as the document structure.
+                    ///
+                    /// The dependencies are saved to the state variable and will be used
+                    /// in calls to `calculate_state_var_from_dependencies_and_mark_fresh()`
+                    /// and `request_dependencies_to_update_value()`.
+                    pub fn set_dependencies(&mut self, dependencies: &Vec<Vec<Dependency>>) {
+                        match self {
+                            #(#state_var_set_dependencies_arms)*
                         }
                     }
 
@@ -724,6 +711,51 @@ pub fn state_var_read_only_view_methods_derive(input: TokenStream) -> TokenStrea
 
                 }
 
+            }
+        }
+        _ => panic!("only enums supported"),
+    };
+    output.into()
+}
+
+/// Implement methods to create StateVarEnumRef and StateVarEnumRefMut from StateVar<T>
+pub fn into_state_var_enum_refs_derive(input: TokenStream) -> TokenStream {
+    let ast: syn::DeriveInput = syn::parse(input).unwrap();
+    let data = &ast.data;
+
+    let output = match data {
+        syn::Data::Enum(v) => {
+            let variants = &v.variants;
+
+            let mut impl_from_state_var_to_state_var_enum_refs_variants = Vec::new();
+
+            for variant in variants {
+                let variant_ident = &variant.ident;
+
+                if let Fields::Unnamed(FieldsUnnamed { unnamed, .. }) = &variant.fields {
+                    if let Some(state_var_type) = find_type_from_state_var(&unnamed[0].ty) {
+                        impl_from_state_var_to_state_var_enum_refs_variants.push(quote! {
+                            impl<'a> From<&'a StateVar<#state_var_type>> for StateVarEnumRef<'a> {
+                                fn from(sv_ref: &'a StateVar<#state_var_type>) -> Self {
+                                    StateVarEnumRef::#variant_ident(sv_ref)
+                                }
+                            }
+                            impl<'a> From<&'a mut StateVar<#state_var_type>> for StateVarEnumRefMut<'a> {
+                                fn from(sv_ref: &'a mut StateVar<#state_var_type>) -> Self {
+                                    StateVarEnumRefMut::#variant_ident(sv_ref)
+                                }
+                            }
+                            
+                        });
+
+    
+                    }
+                }
+
+            }
+
+            quote! {
+                #(#impl_from_state_var_to_state_var_enum_refs_variants)*
             }
         }
         _ => panic!("only enums supported"),

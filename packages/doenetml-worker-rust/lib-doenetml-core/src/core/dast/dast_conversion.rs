@@ -68,6 +68,7 @@ pub fn to_flat_dast(
     }
 }
 
+#[allow(clippy::ptr_arg)]
 pub fn get_flat_dast_update(
     component_idx: ComponentIdx,
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
@@ -76,10 +77,8 @@ pub fn get_flat_dast_update(
 
     component
         .return_rendered_state_update()
-        .and_then(|changed_variables| {
-            Some(FlatDastElementUpdate {
-                new_children: None,
-                changed_state: Some(changed_variables),
-            })
+        .map(|changed_variables| FlatDastElementUpdate {
+            new_children: None,
+            changed_state: Some(changed_variables),
         })
 }

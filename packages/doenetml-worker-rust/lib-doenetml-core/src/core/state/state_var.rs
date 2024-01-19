@@ -11,7 +11,10 @@ use wasm_bindgen::prelude::*;
 
 use thiserror::Error;
 
-use doenetml_derive::{StateVarMethods, StateVarMutableViewMethods, StateVarReadOnlyViewMethods};
+use doenetml_derive::{
+    FromStateVarIntoStateVarValueEnumRefs, StateVarMethods, StateVarMethodsMut,
+    StateVarMutableViewMethods, StateVarReadOnlyViewMethods,
+};
 
 use crate::{
     dependency::{Dependency, DependencyInstruction, DependencyValueUpdateRequest},
@@ -774,12 +777,28 @@ impl<T: Default + Clone> StateVar<T> {
 ///
 /// Provides access to the `StateVarInterface` methods
 /// as well as methods to view and change the variable.
-#[derive(StateVarMethods)]
+#[derive(StateVarMethods, StateVarMethodsMut)]
 pub enum StateVarEnum {
     Number(StateVar<f64>),
     Integer(StateVar<i64>),
     String(StateVar<String>),
     Boolean(StateVar<bool>),
+}
+
+#[derive(StateVarMethods)]
+pub enum StateVarEnumRef<'a> {
+    Number(&'a StateVar<f64>),
+    Integer(&'a StateVar<i64>),
+    String(&'a StateVar<String>),
+    Boolean(&'a StateVar<bool>),
+}
+
+#[derive(StateVarMethods, StateVarMethodsMut, FromStateVarIntoStateVarValueEnumRefs)]
+pub enum StateVarEnumRefMut<'a> {
+    Number(&'a mut StateVar<f64>),
+    Integer(&'a mut StateVar<i64>),
+    String(&'a mut StateVar<String>),
+    Boolean(&'a mut StateVar<bool>),
 }
 
 /// An mutable enum view of the value of the state variable.
@@ -804,7 +823,7 @@ pub enum StateVarReadOnlyViewEnum {
 
 /// This can contain the value of a state variable of any type,
 /// which is useful for function parameters.
-#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize, derive_more::TryInto)]
 #[serde(untagged)]
 #[cfg_attr(feature = "web", derive(Tsify))]
 #[cfg_attr(feature = "web", tsify(from_wasm_abi))]
