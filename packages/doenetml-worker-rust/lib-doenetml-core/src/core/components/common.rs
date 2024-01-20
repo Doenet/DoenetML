@@ -8,19 +8,19 @@ use serde::{Deserialize, Serialize};
 
 use crate::dast::{DastAttribute, Position as DastPosition};
 use crate::state::{
-    ComponentStateVariables, StateVarEnumRef, StateVarEnumRefMut, StateVarIdx,
-    StateVarReadOnlyView, StateVarReadOnlyViewEnum, StateVarValueEnum,
+    ComponentStateVariables, StateVarIdx, StateVarReadOnlyView, StateVarReadOnlyViewEnum,
+    StateVarValueEnum,
 };
 use crate::{ComponentIdx, ComponentPointerTextOrMacro, ExtendSource};
 
-use super::_error::_Error;
-use super::_external::_External;
-use super::doenet::boolean::{Boolean, BooleanRenderedState};
-use super::doenet::document::Document;
-use super::doenet::p::P;
-use super::doenet::section::Section;
-use super::doenet::text::{Text, TextRenderedState};
-use super::doenet::text_input::{TextInput, TextInputAction, TextInputRenderedState};
+use super::_error::{Rendered_ErrorStateVariables, _Error};
+use super::_external::{Rendered_ExternalStateVariables, _External};
+use super::doenet::boolean::{Boolean, RenderedBooleanStateVariables};
+use super::doenet::document::{Document, RenderedDocumentStateVariables};
+use super::doenet::p::{RenderedPStateVariables, P};
+use super::doenet::section::{RenderedSectionStateVariables, Section};
+use super::doenet::text::{RenderedTextStateVariables, Text};
+use super::doenet::text_input::{RenderedTextInputStateVariables, TextInput, TextInputAction};
 
 /// A enum that can contain a component of any possible component type.
 ///
@@ -55,15 +55,18 @@ pub enum ActionsEnum {
 
 /// A enum listing the renderer data for each component.
 ///
-/// Used for sending initial state to the renderer
-///
-/// TODO: do we need both RenderedState and RenderedVariable?
+/// Used for sending state to the renderer
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum RenderedState {
-    Text(TextRenderedState),
-    TextInput(TextInputRenderedState),
-    Boolean(BooleanRenderedState),
+    TextStateVariables(RenderedTextStateVariables),
+    TextInputStateVariables(RenderedTextInputStateVariables),
+    BooleanStateVariables(RenderedBooleanStateVariables),
+    DocumentStateVariables(RenderedDocumentStateVariables),
+    PStateVariables(RenderedPStateVariables),
+    SectionStateVariables(RenderedSectionStateVariables),
+    _ErrorStateVariables(Rendered_ErrorStateVariables),
+    _ExternalStateVariables(Rendered_ExternalStateVariables),
 }
 
 #[derive(Debug, Default)]

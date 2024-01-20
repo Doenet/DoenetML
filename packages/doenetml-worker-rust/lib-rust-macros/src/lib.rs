@@ -48,7 +48,10 @@ pub fn into_state_var_enum_refs_derive_wrapper(input: TokenStream) -> TokenStrea
     into_state_var_enum_refs_derive(input)
 }
 
-#[proc_macro_derive(ComponentStateVariables)]
+#[proc_macro_derive(
+    ComponentStateVariables,
+    attributes(for_renderer, is_public, component_profile_state_variables)
+)]
 pub fn component_state_variables_derive_wrapper(input: TokenStream) -> TokenStream {
     component_state_variables_derive(input)
 }

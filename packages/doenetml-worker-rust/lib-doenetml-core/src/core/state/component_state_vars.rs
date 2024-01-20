@@ -24,6 +24,8 @@ pub trait ComponentStateVariables {
 
     fn get_state_variable_mut(&mut self, state_var_idx: StateVarIdx) -> Option<StateVarEnumRefMut>;
 
+    // TODO: do we need get_state_variable_index_from_name and get_state_variable_index_from_name_case_insensitive?
+    // We might only need get_public_state_variable_index_from_name_case_insensitive
     fn get_state_variable_index_from_name(&self, name: &str) -> Option<StateVarIdx>;
 
     fn get_state_variable_index_from_name_case_insensitive(

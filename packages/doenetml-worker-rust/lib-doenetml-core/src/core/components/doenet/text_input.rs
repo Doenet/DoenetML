@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use serde::{Deserialize, Serialize};
 use strum::VariantNames;
 use strum_macros::EnumVariantNames;
@@ -37,23 +35,28 @@ pub struct TextInput {
     pub state: TextInputStateVariables,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-#[serde(rename_all = "camelCase")]
-pub struct TextInputRenderedState {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub immediate_value: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub disabled: Option<bool>,
-}
-
-#[derive(Debug)]
+#[derive(Debug, ComponentStateVariables)]
 pub struct TextInputStateVariables {
+    #[is_public]
+    #[component_profile_state_variables(Text)]
     value: StateVar<String>,
+
+    #[for_renderer]
+    #[is_public]
     immediate_value: StateVar<String>,
+
     sync_immediate_value: StateVar<bool>,
+
     bind_value_to: StateVar<String>,
+
+    #[is_public]
     prefill: StateVar<String>,
+
+    #[is_public]
     hidden: StateVar<bool>,
+
+    #[for_renderer]
+    #[is_public]
     disabled: StateVar<bool>,
 }
 
@@ -132,186 +135,6 @@ impl TextInputStateVariables {
 impl Default for TextInputStateVariables {
     fn default() -> Self {
         TextInputStateVariables::new()
-    }
-}
-
-// TODO: derive via macros
-impl ComponentStateVariables for TextInputStateVariables {
-    fn get_num_state_variables(&self) -> StateVarIdx {
-        7
-    }
-    fn get_state_variable(&self, state_var_idx: StateVarIdx) -> Option<StateVarEnumRef> {
-        match state_var_idx {
-            0 => Some((&self.value).into()),
-            1 => Some((&self.immediate_value).into()),
-            2 => Some((&self.sync_immediate_value).into()),
-            3 => Some((&self.bind_value_to).into()),
-            4 => Some((&self.prefill).into()),
-            5 => Some((&self.hidden).into()),
-            6 => Some((&self.disabled).into()),
-            _ => None,
-        }
-    }
-
-    fn get_state_variable_mut(&mut self, state_var_idx: StateVarIdx) -> Option<StateVarEnumRefMut> {
-        match state_var_idx {
-            0 => Some((&mut self.value).into()),
-            1 => Some((&mut self.immediate_value).into()),
-            2 => Some((&mut self.sync_immediate_value).into()),
-            3 => Some((&mut self.bind_value_to).into()),
-            4 => Some((&mut self.prefill).into()),
-            5 => Some((&mut self.hidden).into()),
-            6 => Some((&mut self.disabled).into()),
-            _ => None,
-        }
-    }
-
-    fn get_state_variable_index_from_name(&self, name: &str) -> Option<StateVarIdx> {
-        match name {
-            "value" => Some(0),
-            "immediateValue" => Some(1),
-            "syncImmediateValue" => Some(2),
-            "bindValueTo" => Some(3),
-            "prefill" => Some(4),
-            "hidden" => Some(5),
-            "disabled" => Some(6),
-            _ => None,
-        }
-    }
-
-    fn get_state_variable_index_from_name_case_insensitive(
-        &self,
-        name: &str,
-    ) -> Option<StateVarIdx> {
-        match name {
-            x if x.eq_ignore_ascii_case("value") => Some(0),
-            x if x.eq_ignore_ascii_case("immediateValue") => Some(1),
-            x if x.eq_ignore_ascii_case("syncImmediateValue") => Some(2),
-            x if x.eq_ignore_ascii_case("bindValueTo") => Some(3),
-            x if x.eq_ignore_ascii_case("prefill") => Some(4),
-            x if x.eq_ignore_ascii_case("hidden") => Some(5),
-            x if x.eq_ignore_ascii_case("disabled") => Some(6),
-            _ => None,
-        }
-    }
-
-    fn get_component_profile_state_variables(&self) -> Vec<ComponentProfileStateVariable> {
-        vec![ComponentProfileStateVariable::Text(
-            self.value.create_new_read_only_view(),
-            0,
-        )]
-    }
-
-    fn get_public_state_variable_index_from_name_case_insensitive(
-        &self,
-        name: &str,
-    ) -> Option<StateVarIdx> {
-        match name {
-            x if x.eq_ignore_ascii_case("value") => Some(0),
-            x if x.eq_ignore_ascii_case("immediateValue") => Some(1),
-            x if x.eq_ignore_ascii_case("prefill") => Some(4),
-            x if x.eq_ignore_ascii_case("hidden") => Some(5),
-            x if x.eq_ignore_ascii_case("disabled") => Some(6),
-            _ => None,
-        }
-    }
-
-    fn get_for_renderer_state_variable_indices(&self) -> Vec<StateVarIdx> {
-        vec![1, 6]
-    }
-
-    fn check_if_state_variable_is_for_renderer(&self, state_var_idx: StateVarIdx) -> bool {
-        match state_var_idx {
-            1 => true,
-            6 => true,
-            _ => false,
-        }
-    }
-
-    fn return_rendered_state(&mut self) -> Option<RenderedState> {
-        Some(RenderedState::TextInput(TextInputRenderedState {
-            immediate_value: Some(self.immediate_value.get_fresh_value_record_viewed().clone()),
-            disabled: Some(*self.disabled.get_fresh_value_record_viewed()),
-        }))
-    }
-
-    fn return_rendered_state_update(&mut self) -> Option<RenderedState> {
-        let value_changed = self.immediate_value.check_if_changed_since_last_viewed();
-
-        let disabled_changed = self.disabled.check_if_changed_since_last_viewed();
-
-        if value_changed || disabled_changed {
-            let mut updated_variables = TextInputRenderedState::default();
-
-            if value_changed {
-                updated_variables.immediate_value =
-                    Some(self.immediate_value.get_fresh_value_record_viewed().clone());
-            }
-
-            if disabled_changed {
-                updated_variables.disabled = Some(*self.disabled.get_fresh_value_record_viewed());
-            }
-
-            Some(RenderedState::TextInput(updated_variables))
-        } else {
-            None
-        }
-    }
-}
-
-// TODO via macro
-impl TextInputStateVariables {
-    fn get_value_state_variable_index() -> StateVarIdx {
-        0
-    }
-    fn get_immediate_value_state_variable_index() -> StateVarIdx {
-        1
-    }
-    fn get_sync_immediate_value_state_variable_index() -> StateVarIdx {
-        2
-    }
-    fn get_bind_value_to_state_variable_index() -> StateVarIdx {
-        3
-    }
-    fn get_prefill_state_variable_index() -> StateVarIdx {
-        4
-    }
-    fn get_hidden_state_variable_index() -> StateVarIdx {
-        5
-    }
-    fn get_disabled_state_variable_index() -> StateVarIdx {
-        6
-    }
-
-    fn get_value_dependency_instructions() -> DependencyInstruction {
-        DependencyInstruction::StateVar {
-            component_idx: None,
-            state_var_idx: 0,
-        }
-    }
-    fn get_immediate_value_dependency_instructions() -> DependencyInstruction {
-        DependencyInstruction::StateVar {
-            component_idx: None,
-            state_var_idx: 1,
-        }
-    }
-    fn get_sync_immediate_value_dependency_instructions() -> DependencyInstruction {
-        DependencyInstruction::StateVar {
-            component_idx: None,
-            state_var_idx: 2,
-        }
-    }
-    fn get_bind_value_to_dependency_instructions() -> DependencyInstruction {
-        DependencyInstruction::StateVar {
-            component_idx: None,
-            state_var_idx: 3,
-        }
-    }
-    fn get_prefill_dependency_instructions() -> DependencyInstruction {
-        DependencyInstruction::StateVar {
-            component_idx: None,
-            state_var_idx: 4,
-        }
     }
 }
 
