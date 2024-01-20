@@ -719,6 +719,10 @@ pub fn state_var_read_only_view_methods_derive(input: TokenStream) -> TokenStrea
 }
 
 /// Implement methods to create StateVarEnumRef and StateVarEnumRefMut from StateVar<T>
+/// 
+/// For simplicity, created this macro so that it needs to be derived
+/// from an enum where each variant is just state variable type,
+/// so we derive it off `StateVarValueEnum`.
 pub fn into_state_var_enum_refs_derive(input: TokenStream) -> TokenStream {
     let ast: syn::DeriveInput = syn::parse(input).unwrap();
     let data = &ast.data;
@@ -736,6 +740,7 @@ pub fn into_state_var_enum_refs_derive(input: TokenStream) -> TokenStream {
                 let variant_ident = &variant.ident;
 
                 if let Fields::Unnamed(FieldsUnnamed { unnamed, .. }) = &variant.fields {
+
                     if let Some(state_var_type) = find_type_from_state_var(&unnamed[0].ty) {
                         impl_from_state_var_to_state_var_enum_refs_variants.push(quote! {
                             impl<'a> From<&'a StateVar<#state_var_type>> for StateVarEnumRef<'a> {

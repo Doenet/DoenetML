@@ -792,18 +792,6 @@ impl<T: Default + Clone> StateVar<T> {
 // Particularly useful for having vectors of mixed type
 ///////////////////////////////////////////////////////////////////////
 
-/// The base structure for a state variable.
-///
-/// Provides access to the `StateVarInterface` methods
-/// as well as methods to view and change the variable.
-#[derive(StateVarMethods, StateVarMethodsMut, FromStateVarIntoStateVarValueEnumRefs)]
-pub enum StateVarEnum {
-    Number(StateVar<f64>),
-    Integer(StateVar<i64>),
-    String(StateVar<String>),
-    Boolean(StateVar<bool>),
-}
-
 #[derive(StateVarMethods)]
 pub enum StateVarEnumRef<'a> {
     Number(&'a StateVar<f64>),
@@ -842,7 +830,15 @@ pub enum StateVarReadOnlyViewEnum {
 
 /// This can contain the value of a state variable of any type,
 /// which is useful for function parameters.
-#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize, derive_more::TryInto)]
+#[derive(
+    Debug,
+    Clone,
+    PartialEq,
+    serde::Serialize,
+    serde::Deserialize,
+    derive_more::TryInto,
+    FromStateVarIntoStateVarValueEnumRefs,
+)]
 #[serde(untagged)]
 #[cfg_attr(feature = "web", derive(Tsify))]
 #[cfg_attr(feature = "web", tsify(from_wasm_abi))]
@@ -864,17 +860,6 @@ impl<'a> StateVarEnumRef<'a> {
             StateVarEnumRef::Integer(_) => "number",
             StateVarEnumRef::String(_) => "text",
             StateVarEnumRef::Boolean(_) => "boolean",
-        }
-    }
-}
-
-impl fmt::Debug for StateVarEnum {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self.get_freshness() {
-            Freshness::Fresh => self.get_fresh_value().fmt(f),
-            Freshness::Stale => f.write_str("Stale"),
-            Freshness::Unresolved => f.write_str("Unresolved"),
-            Freshness::Resolved => f.write_str("Resolved"),
         }
     }
 }

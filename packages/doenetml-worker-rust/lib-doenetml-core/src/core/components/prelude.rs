@@ -6,7 +6,7 @@ pub use doenetml_derive::{ComponentNode, ComponentStateVariables, RenderedCompon
 pub use std::collections::HashMap;
 
 pub use crate::dast::Position as DastPosition;
-pub use crate::state::{ComponentStateVariables, StateVarEnum};
+pub use crate::state::ComponentStateVariables;
 
 pub use crate::utils::KeyValueIgnoreCase;
 pub use crate::{ComponentIdx, ComponentPointerTextOrMacro, ExtendSource};

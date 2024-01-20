@@ -89,8 +89,8 @@ pub struct ComponentCommonData {
 }
 
 /// The Component trait specifies methods that will, in general, be implemented by deriving them.
-/// It depends on the ComponentNodeStateVariables trait, which will be implemented
-/// individually for each component type.
+/// It depends on the ComponentStateVariables trait, which will be derived
+/// for each component type based on its state variable structure.
 #[enum_dispatch]
 pub trait ComponentNode: ComponentStateVariables {
     /// Get the index of the component, which is its index in the `components` vector of `DoenetMLCore`.
@@ -107,14 +107,10 @@ pub trait ComponentNode: ComponentStateVariables {
         new_children: Vec<ComponentPointerTextOrMacro>,
     ) -> Vec<ComponentPointerTextOrMacro>;
 
-    /// Perform the following steps to initialize a component
-    /// 1. Set its index, parent, extend source, and position in the original DoenetML string.
-    /// 2. Initialize the state variables by calling `initialize_state_variables()`
-    ///    from the `ComponentNodeStateVariables` trait.
-    /// 3. Calculate the data structures underlying
-    ///    - `get_rendered_state_variable_indices()`
-    ///    - `get_public_state_variable_indices()`
-    ///    - `get_state_variable_index_from_name()`
+    /// Set component's index, parent, extend source, and position in the original DoenetML string.
+    ///
+    /// This is a separate step from creation because we create it using EnumString's from_str,
+    /// which assigns values based on the Default trait
     fn initialize(
         &mut self,
         idx: ComponentIdx,
@@ -219,62 +215,6 @@ pub trait RenderedComponentNode: ComponentNode {
             action,
             self.get_component_type()
         ))
-    }
-}
-
-/// The ComponentNodeStateVariables should be implemented individually for each
-/// component type, as it will depend on its specific state variables.
-#[enum_dispatch]
-pub trait ComponentNodeStateVariables {
-    /// Create the state variables for the component and save them to the component structure,
-    /// along with any other state variable views for internal use by the component.
-    ///
-    /// Also create any component profile state variables.
-    ///
-    /// Assuming that the `ComponentNode` trait will be derived for the component, then
-    /// - the vector of state variables should be saved to a field named `state_variables`,
-    /// - the vector of component profile state variables should be saved to a field named
-    ///   `component_profile_state_variables`.
-    fn initialize_state_variables(&mut self) {}
-
-    /// Return the number of state variables for the component.
-    fn get_num_state_variables(&self) -> StateVarIdx {
-        0
-    }
-
-    /// Return the state variable given by `state_var_idx` for this component
-    #[allow(unused)]
-    fn get_state_variable(&self, state_var_idx: StateVarIdx) -> Option<StateVarEnumRef> {
-        None
-    }
-
-    /// Return a mutable view to the state variable given by `state_var_idx` for this component
-    ///
-    /// Since the state variable value and most meta data are behind a RefCell,
-    /// a mutable view is not needed even to set the value. A mutable view is needed
-    /// only to set values that are on the StateVarEnum that aren't behind the RefCell.
-    /// Currently, the methods needing mut are those involving dependencies:
-    /// - `record_all_dependencies_viewed()`
-    /// - `set_dependencies()`
-    #[allow(unused)]
-    fn get_state_variable_mut(&mut self, state_var_idx: StateVarIdx) -> Option<StateVarEnumRefMut> {
-        None
-    }
-
-    /// Attempt to match `name` to the name of a state variable and return its index if found.
-    #[allow(unused)]
-    fn get_state_variable_index_from_name(&self, name: &str) -> Option<StateVarIdx> {
-        None
-    }
-
-    /// Attempt to match `name` to the name of a state variable using a case-insensitive match
-    /// and return its index if found.
-    #[allow(unused)]
-    fn get_state_variable_index_from_name_case_insensitive(
-        &self,
-        name: &str,
-    ) -> Option<StateVarIdx> {
-        None
     }
 }
 
