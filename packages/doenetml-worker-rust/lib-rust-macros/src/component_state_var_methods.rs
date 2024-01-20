@@ -1,4 +1,3 @@
-use convert_case::{Case, Casing};
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{self, FieldsNamed};
@@ -60,6 +59,26 @@ pub fn component_state_variables_derive(input: TokenStream) -> TokenStream {
                             fn get_component_profile_state_variables(&self) -> Vec<ComponentProfileStateVariable> {
                                 self.state.get_component_profile_state_variables()
 
+
+                            }
+                            fn get_public_state_variable_index_from_name_case_insensitive(
+                                &self,
+                                name: &str,
+                            ) -> Option<StateVarIdx> {
+                                self.state.get_public_state_variable_index_from_name_case_insensitive(name)
+                            }
+
+                            fn get_rendered_state_variable_indices(&self) -> Vec<StateVarIdx> {
+                                self.state.get_rendered_state_variable_indices()
+                            }
+
+                            /// Return object will the values of all the rendered state variables
+                            fn return_rendered_state(&mut self) -> Option<RenderedState> {
+                                self.state.return_rendered_state()
+                            }
+
+                            fn return_rendered_state_update(&mut self) -> Option<RenderedState> {
+                                self.state.return_rendered_state_update()
                             }
                         }
                     }

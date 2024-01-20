@@ -8,7 +8,7 @@ use crate::state_var_interfaces::boolean_state_var_interfaces::{
     GeneralBooleanStateVarInterface, SingleDependencyBooleanStateVarInterface,
 };
 
-#[derive(Debug, Default, ComponentNode, ComponentStateVariables)]
+#[derive(Debug, Default, ComponentNode, ComponentStateVariables, RenderedComponentNode)]
 pub struct Boolean {
     pub common: ComponentCommonData,
 
@@ -116,6 +116,37 @@ impl ComponentStateVariables for BooleanStateVariables {
             0,
         )]
     }
+
+    fn get_public_state_variable_index_from_name_case_insensitive(
+        &self,
+        name: &str,
+    ) -> Option<StateVarIdx> {
+        match name {
+            x if x.eq_ignore_ascii_case("value") => Some(0),
+            x if x.eq_ignore_ascii_case("boolean") => Some(1),
+            _ => None,
+        }
+    }
+
+    fn get_rendered_state_variable_indices(&self) -> Vec<StateVarIdx> {
+        vec![0]
+    }
+
+    fn return_rendered_state(&mut self) -> Option<RenderedState> {
+        Some(RenderedState::Boolean(BooleanRenderedState {
+            value: Some(self.value.get_fresh_value_record_viewed().clone()),
+        }))
+    }
+
+    fn return_rendered_state_update(&mut self) -> Option<RenderedState> {
+        if self.value.check_if_changed_since_last_viewed() {
+            let mut updated_variables = BooleanRenderedState::default();
+            updated_variables.value = Some(self.value.get_fresh_value_record_viewed().clone());
+            Some(RenderedState::Boolean(updated_variables))
+        } else {
+            None
+        }
+    }
 }
 
 // TODO via macro
@@ -129,37 +160,13 @@ impl BooleanStateVariables {
     fn get_value_dependency_instructions() -> DependencyInstruction {
         DependencyInstruction::StateVar {
             component_idx: None,
-            state_var_name: "value",
+            state_var_idx: 0,
         }
     }
     fn get_boolean_dependency_instructions() -> DependencyInstruction {
         DependencyInstruction::StateVar {
             component_idx: None,
-            state_var_name: "boolean",
-        }
-    }
-}
-
-impl RenderedComponentNode for Boolean {
-    fn return_rendered_state(&mut self) -> Option<RenderedState> {
-        Some(RenderedState::Boolean(BooleanRenderedState {
-            value: Some(*self.value_state_var_view.get_fresh_value_record_viewed()),
-        }))
-    }
-
-    fn return_rendered_state_update(&mut self) -> Option<RenderedState> {
-        let value_changed = self
-            .value_state_var_view
-            .check_if_changed_since_last_viewed();
-
-        if value_changed {
-            let updated_variables = BooleanRenderedState {
-                value: Some(*self.value_state_var_view.get_fresh_value_record_viewed()),
-            };
-
-            Some(RenderedState::Boolean(updated_variables))
-        } else {
-            None
+            state_var_idx: 1,
         }
     }
 }

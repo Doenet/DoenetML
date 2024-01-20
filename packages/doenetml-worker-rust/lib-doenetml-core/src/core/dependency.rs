@@ -33,8 +33,8 @@ pub enum DependencyInstruction {
         /// If None, state variable is from the component giving the instruction.
         component_idx: Option<ComponentIdx>,
 
-        /// Must match the name of a state variable
-        state_var_name: StateVarName,
+        /// The state variable from component_idx or component given the instruction
+        state_var_idx: StateVarIdx,
     },
     Parent {
         state_var_name: StateVarName,
@@ -160,7 +160,7 @@ pub fn create_dependencies_from_instruction_initialize_essential(
 
         DependencyInstruction::StateVar {
             component_idx: comp_idx,
-            state_var_name,
+            state_var_idx: sv_idx,
         } => {
             // Create a dependency that references the value of state_var_name
 
@@ -168,17 +168,13 @@ pub fn create_dependencies_from_instruction_initialize_essential(
 
             let comp = components[comp_idx].borrow();
 
-            let sv_idx = comp
-                .get_state_variable_index_from_name(state_var_name)
-                .unwrap_or_else(|| panic!("Invalid state variable 1: {}", state_var_name));
-
             vec![Dependency {
                 source: DependencySource::StateVar {
                     component_idx: comp_idx,
-                    state_var_idx: sv_idx,
+                    state_var_idx: *sv_idx,
                 },
                 value: comp
-                    .get_state_variable(sv_idx)
+                    .get_state_variable(*sv_idx)
                     .unwrap()
                     .create_new_read_only_view(),
             }]

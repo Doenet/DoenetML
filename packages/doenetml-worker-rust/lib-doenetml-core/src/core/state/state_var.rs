@@ -21,6 +21,8 @@ use crate::{
     ExtendSource,
 };
 
+use super::StateVarIdx;
+
 /// The name (snake_case) of a state variable    
 pub type StateVarName = &'static str;
 
@@ -92,6 +94,7 @@ pub trait StateVarInterface<T: Default + Clone>: std::fmt::Debug {
         &self,
         extend_source: Option<&ExtendSource>,
         parameters: &StateVarParameters,
+        state_var_idx: StateVarIdx,
     ) -> Vec<DependencyInstruction>;
 
     /// Given the structure of the document and the dependency instructions,
@@ -666,7 +669,7 @@ impl<T: Default + Clone> StateVar<T> {
     ///
     /// Panics: if the state variable is Unresolved.
     pub fn restore_previous_value(&self) {
-        self.restore_previous_value()
+        self.value.restore_previous_value()
     }
 
     /// Return if the `used_default` field was set
@@ -703,9 +706,13 @@ impl<T: Default + Clone> StateVar<T> {
     pub fn return_dependency_instructions(
         &self,
         extend_source: Option<&ExtendSource>,
+        state_var_idx: StateVarIdx,
     ) -> Vec<DependencyInstruction> {
-        self.interface
-            .return_dependency_instructions(extend_source, &self.parameters)
+        self.interface.return_dependency_instructions(
+            extend_source,
+            &self.parameters,
+            state_var_idx,
+        )
     }
 
     /// Call `save_dependencies_for_value_calculation` on interface

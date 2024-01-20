@@ -306,7 +306,7 @@ pub fn resolve_state_var(
             }
 
             dependency_instructions =
-                state_var.return_dependency_instructions(component.get_extend());
+                state_var.return_dependency_instructions(component.get_extend(), state_var_idx);
         }
 
         let mut dependencies_for_state_var = Vec::with_capacity(dependency_instructions.len());

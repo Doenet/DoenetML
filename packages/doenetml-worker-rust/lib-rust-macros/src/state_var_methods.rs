@@ -97,7 +97,7 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
 
                 state_var_return_dependency_instructions_arms.push(quote! {
                     #enum_ident::#variant_ident(sv) => {
-                        sv.return_dependency_instructions(extend_source)
+                        sv.return_dependency_instructions(extend_source, state_var_idx)
                     },
                 });
 
@@ -241,7 +241,7 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
 
                     /// Return a vector dependency instructions, which will be used to
                     /// calculate dependencies from the document structure.
-                    pub fn return_dependency_instructions(&self, extend_source: Option<&ExtendSource>) -> Vec<DependencyInstruction> {
+                    pub fn return_dependency_instructions(&self, extend_source: Option<&ExtendSource>, state_var_idx: StateVarIdx) -> Vec<DependencyInstruction> {
                         match self {
                             #(#state_var_return_dependency_instructions_arms)*
                         }

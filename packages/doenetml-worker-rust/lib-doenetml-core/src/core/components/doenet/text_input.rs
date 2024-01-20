@@ -214,6 +214,54 @@ impl ComponentStateVariables for TextInputStateVariables {
             0,
         )]
     }
+
+    fn get_public_state_variable_index_from_name_case_insensitive(
+        &self,
+        name: &str,
+    ) -> Option<StateVarIdx> {
+        match name {
+            x if x.eq_ignore_ascii_case("value") => Some(0),
+            x if x.eq_ignore_ascii_case("immediateValue") => Some(1),
+            x if x.eq_ignore_ascii_case("prefill") => Some(4),
+            x if x.eq_ignore_ascii_case("hidden") => Some(5),
+            x if x.eq_ignore_ascii_case("disabled") => Some(6),
+            _ => None,
+        }
+    }
+
+    fn get_rendered_state_variable_indices(&self) -> Vec<StateVarIdx> {
+        vec![1, 6]
+    }
+
+    fn return_rendered_state(&mut self) -> Option<RenderedState> {
+        Some(RenderedState::TextInput(TextInputRenderedState {
+            immediate_value: Some(self.immediate_value.get_fresh_value_record_viewed().clone()),
+            disabled: Some(*self.disabled.get_fresh_value_record_viewed()),
+        }))
+    }
+
+    fn return_rendered_state_update(&mut self) -> Option<RenderedState> {
+        let value_changed = self.immediate_value.check_if_changed_since_last_viewed();
+
+        let disabled_changed = self.disabled.check_if_changed_since_last_viewed();
+
+        if value_changed || disabled_changed {
+            let mut updated_variables = TextInputRenderedState::default();
+
+            if value_changed {
+                updated_variables.immediate_value =
+                    Some(self.immediate_value.get_fresh_value_record_viewed().clone());
+            }
+
+            if disabled_changed {
+                updated_variables.disabled = Some(*self.disabled.get_fresh_value_record_viewed());
+            }
+
+            Some(RenderedState::TextInput(updated_variables))
+        } else {
+            None
+        }
+    }
 }
 
 // TODO via macro
@@ -243,79 +291,36 @@ impl TextInputStateVariables {
     fn get_value_dependency_instructions() -> DependencyInstruction {
         DependencyInstruction::StateVar {
             component_idx: None,
-            state_var_name: "value",
+            state_var_idx: 0,
         }
     }
     fn get_immediate_value_dependency_instructions() -> DependencyInstruction {
         DependencyInstruction::StateVar {
             component_idx: None,
-            state_var_name: "immediateValue",
+            state_var_idx: 1,
         }
     }
     fn get_sync_immediate_value_dependency_instructions() -> DependencyInstruction {
         DependencyInstruction::StateVar {
             component_idx: None,
-            state_var_name: "syncImmediateValue",
+            state_var_idx: 2,
         }
     }
     fn get_bind_value_to_dependency_instructions() -> DependencyInstruction {
         DependencyInstruction::StateVar {
             component_idx: None,
-            state_var_name: "bindValueTo",
+            state_var_idx: 3,
         }
     }
     fn get_prefill_dependency_instructions() -> DependencyInstruction {
         DependencyInstruction::StateVar {
             component_idx: None,
-            state_var_name: "prefill",
+            state_var_idx: 4,
         }
     }
 }
 
 impl RenderedComponentNode for TextInput {
-    fn return_rendered_state(&mut self) -> Option<RenderedState> {
-        Some(RenderedState::TextInput(TextInputRenderedState {
-            immediate_value: Some(
-                self.state
-                    .immediate_value
-                    .get_fresh_value_record_viewed()
-                    .clone(),
-            ),
-            disabled: Some(*self.state.disabled.get_fresh_value_record_viewed()),
-        }))
-    }
-
-    fn return_rendered_state_update(&mut self) -> Option<RenderedState> {
-        let value_changed = self
-            .state
-            .immediate_value
-            .check_if_changed_since_last_viewed();
-
-        let disabled_changed = self.state.disabled.check_if_changed_since_last_viewed();
-
-        if value_changed || disabled_changed {
-            let mut updated_variables = TextInputRenderedState::default();
-
-            if value_changed {
-                updated_variables.immediate_value = Some(
-                    self.state
-                        .immediate_value
-                        .get_fresh_value_record_viewed()
-                        .clone(),
-                );
-            }
-
-            if disabled_changed {
-                updated_variables.disabled =
-                    Some(*self.state.disabled.get_fresh_value_record_viewed());
-            }
-
-            Some(RenderedState::TextInput(updated_variables))
-        } else {
-            None
-        }
-    }
-
     fn get_attribute_names(&self) -> Vec<AttributeName> {
         vec!["bindValueTo", "hide", "disabled", "prefill"]
     }
@@ -339,7 +344,7 @@ impl RenderedComponentNode for TextInput {
         match action {
             TextInputAction::UpdateImmediateValue(ActionBody { args }) => Ok(vec![
                 (
-                    TextInputStateVariables::get_value_state_variable_index(),
+                    TextInputStateVariables::get_immediate_value_state_variable_index(),
                     StateVarValueEnum::String(args.text),
                 ),
                 (
@@ -376,6 +381,7 @@ impl StateVarInterface<String> for ValueStateVarInterface {
         &self,
         _extend_source: Option<&ExtendSource>,
         _parameters: &StateVarParameters,
+        _state_var_idx: StateVarIdx,
     ) -> Vec<DependencyInstruction> {
         vec![
             DependencyInstruction::Essential,
@@ -486,6 +492,7 @@ impl StateVarInterface<String> for ImmediateValueStateVarInterface {
         &self,
         _extend_source: Option<&ExtendSource>,
         _parameters: &StateVarParameters,
+        _state_var_idx: StateVarIdx,
     ) -> Vec<DependencyInstruction> {
         vec![
             DependencyInstruction::Essential,
@@ -572,6 +579,7 @@ impl StateVarInterface<bool> for SyncImmediateValueStateVarInterface {
         &self,
         _extend_source: Option<&ExtendSource>,
         _parameters: &StateVarParameters,
+        _state_var_idx: StateVarIdx,
     ) -> Vec<DependencyInstruction> {
         vec![DependencyInstruction::Essential]
     }

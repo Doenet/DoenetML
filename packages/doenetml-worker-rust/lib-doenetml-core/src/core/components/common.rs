@@ -8,8 +8,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::dast::{DastAttribute, Position as DastPosition};
 use crate::state::{
-    ComponentStateVariables, StateVarEnum, StateVarEnumRef, StateVarEnumRefMut, StateVarIdx,
-    StateVarName, StateVarReadOnlyView, StateVarReadOnlyViewEnum, StateVarValueEnum,
+    ComponentStateVariables, StateVarEnumRef, StateVarEnumRefMut, StateVarIdx,
+    StateVarReadOnlyView, StateVarReadOnlyViewEnum, StateVarValueEnum,
 };
 use crate::{ComponentIdx, ComponentPointerTextOrMacro, ExtendSource};
 
@@ -79,12 +79,6 @@ pub struct ComponentCommonData {
 
     pub position: Option<DastPosition>,
 
-    pub rendered_state_variable_indices: Vec<StateVarIdx>,
-
-    pub public_state_variable_indices: Vec<StateVarIdx>,
-
-    pub component_profile_state_variables: Vec<ComponentProfileStateVariable>,
-
     pub attribute_types: HashMap<AttributeName, AttributeType>,
 
     pub attribute_children: HashMap<AttributeName, Vec<ComponentPointerTextOrMacro>>,
@@ -150,14 +144,6 @@ pub trait ComponentNode: ComponentStateVariables {
     /// Set the position, which should be the position of this component in the original DoenetML string
     fn set_position(&mut self, position: Option<DastPosition>);
 
-    /// Return a vector of the indices of each state variable that is sent to the renderer,
-    /// i.e., that has the `for_renderer` parameter set to true.
-    fn get_rendered_state_variable_indices(&self) -> &Vec<StateVarIdx>;
-
-    /// Return a vector of the indices of each state variable that is public,
-    /// i.e., that can be referenced with a macro.
-    fn get_public_state_variable_indices(&self) -> &Vec<StateVarIdx>;
-
     /// Set the hash map containing for each attribute the vector of
     /// indices of all child component nodes and the literal string children.
     fn set_attribute_children(
@@ -201,15 +187,6 @@ pub trait RenderedComponentNode: ComponentNode {
     /// Return the children that will be used in the flat dast sent to the renderer.
     fn get_rendered_children(&self) -> &Vec<ComponentPointerTextOrMacro> {
         self.get_children()
-    }
-
-    /// Return object will the values of all the rendered state variables
-    fn return_rendered_state(&mut self) -> Option<RenderedState> {
-        None
-    }
-
-    fn return_rendered_state_update(&mut self) -> Option<RenderedState> {
-        None
     }
 
     /// Return a list of the attribute names that the component will accept
@@ -266,6 +243,7 @@ pub trait ComponentNodeStateVariables {
     }
 
     /// Return the state variable given by `state_var_idx` for this component
+    #[allow(unused)]
     fn get_state_variable(&self, state_var_idx: StateVarIdx) -> Option<StateVarEnumRef> {
         None
     }
@@ -278,17 +256,20 @@ pub trait ComponentNodeStateVariables {
     /// Currently, the methods needing mut are those involving dependencies:
     /// - `record_all_dependencies_viewed()`
     /// - `set_dependencies()`
+    #[allow(unused)]
     fn get_state_variable_mut(&mut self, state_var_idx: StateVarIdx) -> Option<StateVarEnumRefMut> {
         None
     }
 
     /// Attempt to match `name` to the name of a state variable and return its index if found.
+    #[allow(unused)]
     fn get_state_variable_index_from_name(&self, name: &str) -> Option<StateVarIdx> {
         None
     }
 
     /// Attempt to match `name` to the name of a state variable using a case-insensitive match
     /// and return its index if found.
+    #[allow(unused)]
     fn get_state_variable_index_from_name_case_insensitive(
         &self,
         name: &str,

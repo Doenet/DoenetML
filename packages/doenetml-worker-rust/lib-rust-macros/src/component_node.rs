@@ -65,21 +65,6 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                             self.common.extend = extend_source;
                             self.common.position = position;
                             self.common.unevaluated_attributes = attributes;
-
-                            // self.common.rendered_state_variable_indices = self
-                            //     .get_state_variables()
-                            //     .iter()
-                            //     .enumerate()
-                            //     .filter_map(|(ind, state_var)| state_var.get_for_renderer().then_some(ind))
-                            //     .collect();
-
-                            // self.common.public_state_variable_indices = self
-                            //     .get_state_variables()
-                            //     .iter()
-                            //     .enumerate()
-                            //     .filter_map(|(ind, state_var)| state_var.get_is_public().then_some(ind))
-                            //     .collect();
-
                         }
 
                         fn get_extend(&self) -> Option<&ExtendSource> {
@@ -102,14 +87,6 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
 
                         fn set_position(&mut self, position: Option<DastPosition>) {
                             self.common.position = position;
-                        }
-
-                        fn get_rendered_state_variable_indices(&self) -> &Vec<StateVarIdx> {
-                            &self.common.rendered_state_variable_indices
-                        }
-
-                        fn get_public_state_variable_indices(&self) -> &Vec<StateVarIdx> {
-                            &self.common.public_state_variable_indices
                         }
 
                         fn set_attribute_children(

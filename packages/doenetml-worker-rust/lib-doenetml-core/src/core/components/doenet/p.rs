@@ -39,4 +39,23 @@ impl ComponentStateVariables for PStateVariables {
     fn get_component_profile_state_variables(&self) -> Vec<ComponentProfileStateVariable> {
         vec![]
     }
+
+    fn get_public_state_variable_index_from_name_case_insensitive(
+        &self,
+        name: &str,
+    ) -> Option<StateVarIdx> {
+        None
+    }
+
+    fn get_rendered_state_variable_indices(&self) -> Vec<StateVarIdx> {
+        vec![]
+    }
+
+    fn return_rendered_state(&mut self) -> Option<RenderedState> {
+        None
+    }
+
+    fn return_rendered_state_update(&mut self) -> Option<RenderedState> {
+        None
+    }
 }

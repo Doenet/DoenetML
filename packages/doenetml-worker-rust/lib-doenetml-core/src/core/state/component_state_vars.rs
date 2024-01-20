@@ -1,11 +1,11 @@
 use enum_dispatch::enum_dispatch;
 
 use crate::{
-    components::{ComponentEnum, ComponentProfileStateVariable},
+    components::{ComponentEnum, ComponentProfileStateVariable, RenderedState},
     ComponentIdx,
 };
 
-use super::{StateVarEnum, StateVarEnumRef, StateVarEnumRefMut};
+use super::{StateVarEnumRef, StateVarEnumRefMut};
 
 pub type StateVarIdx = usize;
 
@@ -33,4 +33,20 @@ pub trait ComponentStateVariables {
 
     /// Return a vector of all component profile state variables of this component.
     fn get_component_profile_state_variables(&self) -> Vec<ComponentProfileStateVariable>;
+
+    fn get_public_state_variable_index_from_name_case_insensitive(
+        &self,
+        name: &str,
+    ) -> Option<StateVarIdx>;
+
+    fn get_rendered_state_variable_indices(&self) -> Vec<StateVarIdx>;
+
+    /// Return object will the values of all the rendered state variables
+    fn return_rendered_state(&mut self) -> Option<RenderedState> {
+        None
+    }
+
+    fn return_rendered_state_update(&mut self) -> Option<RenderedState> {
+        None
+    }
 }

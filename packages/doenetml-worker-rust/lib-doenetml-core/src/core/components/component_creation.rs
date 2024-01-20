@@ -3,7 +3,7 @@ use std::{cell::RefCell, collections::HashMap, rc::Rc, str::FromStr};
 use crate::{
     components::{ComponentEnum, ComponentNode, _error::_Error, _external::_External},
     dast::{DastElement, DastElementContent, DastTextMacroContent, PathPart},
-    state::ComponentStateVariables,
+    state::{ComponentStateVariables, StateVarIdx},
     utils::KeyValueIgnoreCase,
     ComponentIdx, ComponentPointerTextOrMacro, ExtendSource, ExtendStateVariableDescription,
     StateVariableShadowingMatch,
@@ -399,30 +399,20 @@ fn match_public_state_variable(
     // TODO: handle multiple parts of path. Currently ignoring all parts after the first.
 
     let new_idx = components.len();
-    let matched_state_var_name: &str;
+    let matched_state_var_idx: StateVarIdx;
     let component_type;
 
     {
         let matched_component = components[matched_component_idx].borrow();
 
-        let matched_state_var_idx =
-            matched_component.get_state_variable_index_from_name_case_insensitive(&path[0].name)?;
-
-        if !matched_component
-            .get_public_state_variable_indices()
-            .contains(&matched_state_var_idx)
-        {
-            // don't match if not a public state variable
-            return None;
-        }
+        matched_state_var_idx = matched_component
+            .get_public_state_variable_index_from_name_case_insensitive(&path[0].name)?;
 
         // We found a public state variable that matched the first part of the path.
         // Since we are ignoring the rest of the path and the index for now, this is the match.
         let state_var = &matched_component
             .get_state_variable(matched_state_var_idx)
             .unwrap();
-
-        matched_state_var_name = state_var.get_name();
 
         component_type = state_var.get_default_component_type();
     }
@@ -435,8 +425,8 @@ fn match_public_state_variable(
     let extend_source = ExtendSource::StateVar(ExtendStateVariableDescription {
         component_idx: matched_component_idx,
         state_variable_matching: vec![StateVariableShadowingMatch {
-            shadowing_name: None, // use the primary state variable (as determined by component type)
-            shadowed_name: matched_state_var_name,
+            shadowing_idx: None, // use the primary state variable (as determined by component type)
+            shadowed_idx: matched_state_var_idx,
         }],
     });
 

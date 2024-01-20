@@ -1,14 +1,14 @@
 use crate::{
     components::prelude::{
         Dependency, DependencyInstruction, DependencyValueUpdateRequest,
-        RequestDependencyUpdateError, StateVarInterface, StateVarMutableView, StateVarParameters,
-        StateVarReadOnlyView, StateVarReadOnlyViewEnum,
+        RequestDependencyUpdateError, StateVarIdx, StateVarInterface, StateVarMutableView,
+        StateVarParameters, StateVarReadOnlyView, StateVarReadOnlyViewEnum,
     },
     dependency::DependencySource,
     ExtendSource,
 };
 
-use super::common::create_dependency_instruction_from_extend_source;
+use super::util::create_dependency_instruction_from_extend_source;
 
 // use super::{
 //     StateVarInterface, StateVarMutableView, StateVarParameters, StateVarReadOnlyViewEnum,
@@ -45,13 +45,16 @@ impl StateVarInterface<bool> for GeneralBooleanStateVarInterface {
         &self,
         extend_source: Option<&ExtendSource>,
         parameters: &StateVarParameters,
+        state_var_idx: StateVarIdx,
     ) -> Vec<DependencyInstruction> {
         let mut dep_instructs: Vec<DependencyInstruction> = Vec::with_capacity(2);
 
         if parameters.create_dependency_from_extend_source {
-            if let Some(dep_inst) =
-                create_dependency_instruction_from_extend_source(extend_source, parameters)
-            {
+            if let Some(dep_inst) = create_dependency_instruction_from_extend_source(
+                extend_source,
+                parameters,
+                state_var_idx,
+            ) {
                 dep_instructs.push(dep_inst)
             }
         }
@@ -199,6 +202,7 @@ impl StateVarInterface<bool> for SingleDependencyBooleanStateVarInterface {
         &self,
         _extend_source: Option<&ExtendSource>,
         parameters: &StateVarParameters,
+        _state_var_idx: StateVarIdx,
     ) -> Vec<DependencyInstruction> {
         if parameters.create_dependency_from_extend_source {
             panic!("Cannot create dependency from extend source for SingleDependencyBooleanStateVarInterface");

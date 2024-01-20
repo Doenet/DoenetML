@@ -7,7 +7,7 @@ use super::components::component_creation::{
     create_component_children, replace_macro_referents_of_children_evaluate_attributes,
 };
 
-use super::components::{ComponentEnum, ComponentNode, RenderedComponentNode};
+use super::components::{ComponentEnum, RenderedComponentNode};
 use super::dast::{
     DastFunctionMacro, DastMacro, DastRoot, DastWarning, FlatDastElement, FlatDastElementContent,
     FlatDastElementUpdate, FlatDastRoot, Position as DastPosition,
@@ -20,7 +20,7 @@ use super::state::state_var_calculations::{
     StateVariableUpdateRequest,
 };
 use super::state::state_var_updates::process_state_variable_update_request;
-use super::state::{Freshness, StateVarName};
+use super::state::Freshness;
 
 use crate::components::actions::Action;
 use crate::components::prelude::{ComponentStateVariables, StateVarIdx};
@@ -217,7 +217,7 @@ pub struct ExtendStateVariableDescription {
 /// another state variable when extending a component
 #[derive(Debug)]
 pub struct StateVariableShadowingMatch {
-    /// The state variable name in the extending component
+    /// The state variable index in the extending component
     /// whose value will match (shadow) the state variable
     /// from the component being extended
     ///
@@ -226,10 +226,10 @@ pub struct StateVariableShadowingMatch {
     /// The type of the primary state variable should match the state variable type
     /// for which `StateVarValueEnumRef.get_default_component_type()`
     /// yields the component type.
-    pub shadowing_name: Option<StateVarName>,
+    pub shadowing_idx: Option<StateVarIdx>,
 
-    /// The state variable name in the component being extended
-    pub shadowed_name: StateVarName,
+    /// The state variable index in the component being extended
+    pub shadowed_idx: StateVarIdx,
 }
 
 impl DoenetMLCore {

@@ -38,6 +38,25 @@ impl ComponentStateVariables for _ExternalStateVariables {
     fn get_component_profile_state_variables(&self) -> Vec<ComponentProfileStateVariable> {
         vec![]
     }
+
+    fn get_public_state_variable_index_from_name_case_insensitive(
+        &self,
+        name: &str,
+    ) -> Option<StateVarIdx> {
+        None
+    }
+
+    fn get_rendered_state_variable_indices(&self) -> Vec<StateVarIdx> {
+        vec![]
+    }
+
+    fn return_rendered_state(&mut self) -> Option<RenderedState> {
+        None
+    }
+
+    fn return_rendered_state_update(&mut self) -> Option<RenderedState> {
+        None
+    }
 }
 
 impl ComponentNode for _External {
@@ -72,20 +91,6 @@ impl ComponentNode for _External {
         self.common.parent = parent;
         self.common.position = position;
         self.common.unevaluated_attributes = attributes;
-
-        // self.common.rendered_state_variable_indices = self
-        //     .get_state_variables()
-        //     .iter()
-        //     .enumerate()
-        //     .filter_map(|(ind, state_var)| state_var.get_for_renderer().then_some(ind))
-        //     .collect();
-
-        // self.common.public_state_variable_indices = self
-        //     .get_state_variables()
-        //     .iter()
-        //     .enumerate()
-        //     .filter_map(|(ind, state_var)| state_var.get_is_public().then_some(ind))
-        //     .collect();
     }
 
     fn get_extend(&self) -> Option<&ExtendSource> {
@@ -110,14 +115,6 @@ impl ComponentNode for _External {
 
     fn set_position(&mut self, position: Option<DastPosition>) {
         self.common.position = position;
-    }
-
-    fn get_rendered_state_variable_indices(&self) -> &Vec<StateVarIdx> {
-        &self.common.rendered_state_variable_indices
-    }
-
-    fn get_public_state_variable_indices(&self) -> &Vec<StateVarIdx> {
-        &self.common.public_state_variable_indices
     }
 
     fn set_attribute_children(
