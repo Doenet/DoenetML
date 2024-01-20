@@ -63,8 +63,6 @@ impl TextInputStateVariables {
             value: StateVar::new(
                 Box::<ValueStateVarInterface>::default(),
                 StateVarParameters {
-                    name: "value",
-                    is_public: true,
                     ..Default::default()
                 },
                 Default::default(),
@@ -72,9 +70,6 @@ impl TextInputStateVariables {
             immediate_value: StateVar::new(
                 Box::<ImmediateValueStateVarInterface>::default(),
                 StateVarParameters {
-                    name: "immediateValue",
-                    is_public: true,
-                    for_renderer: true,
                     ..Default::default()
                 },
                 Default::default(),
@@ -82,7 +77,6 @@ impl TextInputStateVariables {
             sync_immediate_value: StateVar::new(
                 Box::<SyncImmediateValueStateVarInterface>::default(),
                 StateVarParameters {
-                    name: "syncImmediateValue",
                     ..Default::default()
                 },
                 true,
@@ -90,7 +84,6 @@ impl TextInputStateVariables {
             bind_value_to: StateVar::new(
                 Box::<GeneralStringStateVarInterface>::default(),
                 StateVarParameters {
-                    name: "bindValueTo",
                     dependency_instruction_hint: Some(DependencyInstruction::AttributeChild {
                         attribute_name: "bindValueTo",
                         match_profiles: vec![ComponentProfile::Text],
@@ -102,7 +95,6 @@ impl TextInputStateVariables {
             prefill: StateVar::new(
                 Box::<GeneralStringStateVarInterface>::default(),
                 StateVarParameters {
-                    name: "prefill",
                     dependency_instruction_hint: Some(DependencyInstruction::AttributeChild {
                         attribute_name: "prefill",
                         match_profiles: vec![ComponentProfile::Text],
@@ -114,12 +106,10 @@ impl TextInputStateVariables {
             hidden: StateVar::new(
                 Box::<GeneralBooleanStateVarInterface>::default(),
                 StateVarParameters {
-                    name: "hidden",
                     dependency_instruction_hint: Some(DependencyInstruction::AttributeChild {
                         attribute_name: "hide",
                         match_profiles: vec![ComponentProfile::Text, ComponentProfile::Boolean],
                     }),
-                    is_public: true,
                     ..Default::default()
                 },
                 false,
@@ -127,13 +117,10 @@ impl TextInputStateVariables {
             disabled: StateVar::new(
                 Box::<GeneralBooleanStateVarInterface>::default(),
                 StateVarParameters {
-                    name: "disabled",
                     dependency_instruction_hint: Some(DependencyInstruction::AttributeChild {
                         attribute_name: "disabled",
                         match_profiles: vec![ComponentProfile::Text, ComponentProfile::Boolean],
                     }),
-                    is_public: true,
-                    for_renderer: true,
                     ..Default::default()
                 },
                 false,
@@ -229,8 +216,16 @@ impl ComponentStateVariables for TextInputStateVariables {
         }
     }
 
-    fn get_rendered_state_variable_indices(&self) -> Vec<StateVarIdx> {
+    fn get_for_renderer_state_variable_indices(&self) -> Vec<StateVarIdx> {
         vec![1, 6]
+    }
+
+    fn check_if_state_variable_is_for_renderer(&self, state_var_idx: StateVarIdx) -> bool {
+        match state_var_idx {
+            1 => true,
+            6 => true,
+            _ => false,
+        }
     }
 
     fn return_rendered_state(&mut self) -> Option<RenderedState> {

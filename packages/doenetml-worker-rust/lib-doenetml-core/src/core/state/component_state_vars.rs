@@ -39,14 +39,12 @@ pub trait ComponentStateVariables {
         name: &str,
     ) -> Option<StateVarIdx>;
 
-    fn get_rendered_state_variable_indices(&self) -> Vec<StateVarIdx>;
+    fn get_for_renderer_state_variable_indices(&self) -> Vec<StateVarIdx>;
+
+    fn check_if_state_variable_is_for_renderer(&self, state_var_idx: StateVarIdx) -> bool;
 
     /// Return object will the values of all the rendered state variables
-    fn return_rendered_state(&mut self) -> Option<RenderedState> {
-        None
-    }
+    fn return_rendered_state(&mut self) -> Option<RenderedState>;
 
-    fn return_rendered_state_update(&mut self) -> Option<RenderedState> {
-        None
-    }
+    fn return_rendered_state_update(&mut self) -> Option<RenderedState>;
 }

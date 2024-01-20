@@ -80,8 +80,7 @@ pub fn freshen_all_stale_renderer_states(
 
         let rendered_state_var_indices = components[*component_idx]
             .borrow()
-            .get_rendered_state_variable_indices()
-            .clone();
+            .get_for_renderer_state_variable_indices();
 
         for state_var_idx in rendered_state_var_indices {
             let state_var_ptr = StateVarPointer {

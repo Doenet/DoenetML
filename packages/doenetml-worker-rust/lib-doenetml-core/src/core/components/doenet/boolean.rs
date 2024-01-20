@@ -36,26 +36,21 @@ impl BooleanStateVariables {
             value: StateVar::new(
                 Box::<GeneralBooleanStateVarInterface>::default(),
                 StateVarParameters {
-                    for_renderer: true,
-                    name: "value",
                     dependency_instruction_hint: Some(DependencyInstruction::Child {
                         match_profiles: vec![ComponentProfile::Text, ComponentProfile::Boolean],
                         exclude_if_prefer_profiles: vec![],
                     }),
                     create_dependency_from_extend_source: true,
                     is_primary_state_variable_for_shadowing_extend_source: true,
-                    is_public: true,
                 },
                 Default::default(),
             ),
             boolean: StateVar::new(
                 Box::<SingleDependencyBooleanStateVarInterface>::default(),
                 StateVarParameters {
-                    name: "boolean",
                     dependency_instruction_hint: Some(
                         BooleanStateVariables::get_value_dependency_instructions(),
                     ),
-                    is_public: true,
                     ..Default::default()
                 },
                 Default::default(),
@@ -128,8 +123,15 @@ impl ComponentStateVariables for BooleanStateVariables {
         }
     }
 
-    fn get_rendered_state_variable_indices(&self) -> Vec<StateVarIdx> {
+    fn get_for_renderer_state_variable_indices(&self) -> Vec<StateVarIdx> {
         vec![0]
+    }
+
+    fn check_if_state_variable_is_for_renderer(&self, state_var_idx: StateVarIdx) -> bool {
+        match state_var_idx {
+            0 => true,
+            _ => false,
+        }
     }
 
     fn return_rendered_state(&mut self) -> Option<RenderedState> {

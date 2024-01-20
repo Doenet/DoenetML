@@ -138,25 +138,8 @@ pub trait StateVarInterface<T: Default + Clone>: std::fmt::Debug {
 }
 
 /// Parameters that influence the behavior of the state variable
-/// - for_renderer: if true, the value of the state variable will always be calculated
-///   and sent to the renderer
-/// - name: the name of the state variable
-/// - is_public: if true, the state variable can be referenced by a macro.
-///   A state variable should be public only if its type has a default component type associated with it,
-///   which informs which type of component to create when it is referenced,
-///   should a component need to be created.
 #[derive(Debug, Default)]
 pub struct StateVarParameters {
-    /// If true, the value of the state variable will always be calculated
-    /// and sent to the renderer.
-    pub for_renderer: bool,
-
-    /// the name of the state variable
-    pub name: &'static str,
-
-    /// If true, the state variable can be referenced by a macro.
-    pub is_public: bool,
-
     /// Hint for a dependency instruction that can be used by `return_dependency_instructions()`
     /// of a state variable interface.
     ///
@@ -741,21 +724,6 @@ impl<T: Default + Clone> StateVar<T> {
             &self.immutable_view_of_value,
             is_direct_change_from_renderer,
         )
-    }
-
-    /// Get name of the state variable
-    pub fn get_name(&self) -> &'static str {
-        self.parameters.name
-    }
-
-    /// Return whether or not a macro can reference the state variable
-    pub fn get_is_public(&self) -> bool {
-        self.parameters.is_public
-    }
-
-    /// Return whether or not this state variable value should be sent to the renderer
-    pub fn get_for_renderer(&self) -> bool {
-        self.parameters.for_renderer
     }
 
     /// Return the default value of this state variable

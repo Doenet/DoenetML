@@ -38,26 +38,21 @@ impl TextStateVariables {
             value: StateVar::new(
                 Box::<GeneralStringStateVarInterface>::default(),
                 StateVarParameters {
-                    for_renderer: true,
-                    name: "value",
                     dependency_instruction_hint: Some(DependencyInstruction::Child {
                         match_profiles: vec![ComponentProfile::Text],
                         exclude_if_prefer_profiles: vec![],
                     }),
                     create_dependency_from_extend_source: true,
                     is_primary_state_variable_for_shadowing_extend_source: true,
-                    is_public: true,
                 },
                 Default::default(),
             ),
             text: StateVar::new(
                 Box::<SingleDependencyStringStateVarInterface>::default(),
                 StateVarParameters {
-                    name: "text",
                     dependency_instruction_hint: Some(
                         TextStateVariables::get_value_dependency_instructions(),
                     ),
-                    is_public: true,
                     ..Default::default()
                 },
                 Default::default(),
@@ -130,8 +125,15 @@ impl ComponentStateVariables for TextStateVariables {
         }
     }
 
-    fn get_rendered_state_variable_indices(&self) -> Vec<StateVarIdx> {
+    fn get_for_renderer_state_variable_indices(&self) -> Vec<StateVarIdx> {
         vec![0]
+    }
+
+    fn check_if_state_variable_is_for_renderer(&self, state_var_idx: StateVarIdx) -> bool {
+        match state_var_idx {
+            0 => true,
+            _ => false,
+        }
     }
 
     fn return_rendered_state(&mut self) -> Option<RenderedState> {

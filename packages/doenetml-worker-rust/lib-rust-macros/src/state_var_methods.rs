@@ -31,9 +31,6 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
             let mut state_var_calculate_state_var_from_dependencies_and_mark_fresh_arms =
                 Vec::new();
             let mut state_var_request_dependencies_to_update_value_arms = Vec::new();
-            let mut state_var_get_name_arms = Vec::new();
-            let mut state_var_get_for_renderer_arms = Vec::new();
-            let mut state_var_get_is_public_arms = Vec::new();
             let mut state_var_return_default_value_arms = Vec::new();
 
 
@@ -111,24 +108,6 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
                 state_var_request_dependencies_to_update_value_arms.push(quote! {
                     #enum_ident::#variant_ident(sv) => {
                         sv.request_dependencies_to_update_value(is_direct_change_from_renderer)
-                    },
-                });
-
-                state_var_get_name_arms.push(quote! {
-                    #enum_ident::#variant_ident(sv) => {
-                        sv.get_name()
-                    },
-                });
-
-                state_var_get_for_renderer_arms.push(quote! {
-                    #enum_ident::#variant_ident(sv) => {
-                        sv.get_for_renderer()
-                    },
-                });
-
-                state_var_get_is_public_arms.push(quote! {
-                    #enum_ident::#variant_ident(sv) => {
-                        sv.get_is_public()
                     },
                 });
 
@@ -283,36 +262,6 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
                     ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
                         match self {
                             #(#state_var_request_dependencies_to_update_value_arms)*
-                        }
-                    }
-
-                    /// Returns the value of the `name` parameters that was specified
-                    /// when this state variable was defined.
-                    pub fn get_name(&self) -> &'static str {
-                        match self {
-                            #(#state_var_get_name_arms)*
-                        }
-                    }
-
-                    /// Returns whether or not the `for_renderer` parameter
-                    /// was specified to be true when the state variable was defined.
-                    ///
-                    /// The `for_renderer` parameters determine if this state variable value
-                    /// should be sent to the renderer.
-                    pub fn get_for_renderer(&self) -> bool {
-                        match self {
-                            #(#state_var_get_for_renderer_arms)*
-                        }
-                    }
-
-                    /// Returns whether or not the `is_public` parameter
-                    /// was specified to be true when the state variable was defined.
-                    ///
-                    /// The `is_public` parameters determine if this state variable value
-                    /// can be referenced by a macro.
-                    pub fn get_is_public(&self) -> bool {
-                        match self {
-                            #(#state_var_get_is_public_arms)*
                         }
                     }
 

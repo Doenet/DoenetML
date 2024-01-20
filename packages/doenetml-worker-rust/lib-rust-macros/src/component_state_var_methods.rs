@@ -68,8 +68,12 @@ pub fn component_state_variables_derive(input: TokenStream) -> TokenStream {
                                 self.state.get_public_state_variable_index_from_name_case_insensitive(name)
                             }
 
-                            fn get_rendered_state_variable_indices(&self) -> Vec<StateVarIdx> {
-                                self.state.get_rendered_state_variable_indices()
+                            fn get_for_renderer_state_variable_indices(&self) -> Vec<StateVarIdx> {
+                                self.state.get_for_renderer_state_variable_indices()
+                            }
+
+                            fn check_if_state_variable_is_for_renderer(&self, state_var_idx: StateVarIdx) -> bool {
+                                self.state.check_if_state_variable_is_for_renderer(state_var_idx)
                             }
 
                             /// Return object will the values of all the rendered state variables

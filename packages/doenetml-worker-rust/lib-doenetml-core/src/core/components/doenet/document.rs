@@ -45,8 +45,12 @@ impl ComponentStateVariables for DocumentStateVariables {
         None
     }
 
-    fn get_rendered_state_variable_indices(&self) -> Vec<StateVarIdx> {
+    fn get_for_renderer_state_variable_indices(&self) -> Vec<StateVarIdx> {
         vec![]
+    }
+
+    fn check_if_state_variable_is_for_renderer(&self, state_var_idx: StateVarIdx) -> bool {
+        false
     }
 
     fn return_rendered_state(&mut self) -> Option<RenderedState> {
