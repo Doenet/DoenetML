@@ -2,12 +2,18 @@ use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use crate::{
     attribute::AttributeName,
-    components::{ComponentEnum, ComponentNode, ComponentProfile},
-    state::essential_state::{
-        create_essential_data_for, EssentialDataOrigin, EssentialStateVar, InitialEssentialData,
+    components::{
+        prelude::{ComponentStateVariables, StateVarIdx},
+        ComponentEnum, ComponentNode, ComponentProfile,
+    },
+    state::{
+        essential_state::{
+            create_essential_data_for, EssentialDataOrigin, EssentialStateVar, InitialEssentialData,
+        },
+        StateVarPointer,
     },
     state::{StateVarName, StateVarReadOnlyViewEnum, StateVarValueEnum},
-    ComponentIdx, ComponentPointerTextOrMacro, ExtendSource, StateVarIdx, StateVarPointer,
+    ComponentIdx, ComponentPointerTextOrMacro, ExtendSource,
 };
 
 /// A DependencyInstruction is used to make a Dependency based on the input document structure
@@ -102,7 +108,7 @@ pub struct DependencyValueUpdateRequest {
 pub fn create_dependencies_from_instruction_initialize_essential(
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
     component_idx: ComponentIdx,
-    state_var_idx: usize,
+    state_var_idx: StateVarIdx,
     instruction: &DependencyInstruction,
     essential_data: &mut Vec<HashMap<EssentialDataOrigin, EssentialStateVar>>,
 ) -> Vec<Dependency> {
@@ -122,8 +128,10 @@ pub fn create_dependencies_from_instruction_initialize_essential(
                     current_view.create_new_read_only_view()
                 } else {
                     // Use the default value for the state variable and set used_default to true
-                    let initial_data = components[component_idx].borrow().get_state_variables()
-                        [state_var_idx]
+                    let initial_data = components[component_idx]
+                        .borrow()
+                        .get_state_variable(state_var_idx)
+                        .unwrap()
                         .return_default_value();
 
                     let initial_data = InitialEssentialData::Single {
@@ -169,7 +177,10 @@ pub fn create_dependencies_from_instruction_initialize_essential(
                     component_idx: comp_idx,
                     state_var_idx: sv_idx,
                 },
-                value: comp.get_state_variables()[sv_idx].create_new_read_only_view(),
+                value: comp
+                    .get_state_variable(sv_idx)
+                    .unwrap()
+                    .create_new_read_only_view(),
             }]
         }
 
@@ -193,7 +204,10 @@ pub fn create_dependencies_from_instruction_initialize_essential(
                     component_idx: parent_idx,
                     state_var_idx: sv_idx,
                 },
-                value: parent.get_state_variables()[sv_idx].create_new_read_only_view(),
+                value: parent
+                    .get_state_variable(sv_idx)
+                    .unwrap()
+                    .create_new_read_only_view(),
             }]
         }
 
@@ -236,8 +250,7 @@ pub fn create_dependencies_from_instruction_initialize_essential(
                         let child = components[*child_idx].borrow();
 
                         let mut child_matches_with_profile = None;
-                        for child_profile_state_var in
-                            child.get_component_profile_state_variables().iter()
+                        for child_profile_state_var in child.get_component_profile_state_variables()
                         {
                             let child_profile = child_profile_state_var.get_matching_profile();
 
@@ -250,12 +263,8 @@ pub fn create_dependencies_from_instruction_initialize_essential(
                         }
 
                         if let Some(profile_sv) = child_matches_with_profile {
-                            let (state_var_view, sv_name) =
-                                profile_sv.return_state_variable_view_enum_and_name();
-
-                            let sv_idx = child
-                                .get_state_variable_index_from_name(sv_name)
-                                .unwrap_or_else(|| panic!("Invalid state variable 3: {}", sv_name));
+                            let (state_var_view, sv_idx) =
+                                profile_sv.into_state_variable_view_enum_and_idx();
 
                             let state_var_dep = Dependency {
                                 source: DependencySource::StateVar {
@@ -361,8 +370,10 @@ pub fn create_dependencies_from_instruction_initialize_essential(
                     if let Some(current_view) = essential_data[source_idx].get(&essential_origin) {
                         current_view.create_new_read_only_view()
                     } else {
-                        let initial_data = components[source_idx].borrow().get_state_variables()
-                            [state_var_idx]
+                        let initial_data = components[source_idx]
+                            .borrow()
+                            .get_state_variable(state_var_idx)
+                            .unwrap()
                             .return_default_value();
 
                         let new_view = create_essential_data_for(
@@ -419,8 +430,7 @@ pub fn create_dependencies_from_instruction_initialize_essential(
                         let child = components[*child_idx].borrow();
 
                         let mut child_matches_with_profile = None;
-                        for child_profile_state_var in
-                            child.get_component_profile_state_variables().iter()
+                        for child_profile_state_var in child.get_component_profile_state_variables()
                         {
                             let child_profile = child_profile_state_var.get_matching_profile();
 
@@ -431,12 +441,8 @@ pub fn create_dependencies_from_instruction_initialize_essential(
                         }
 
                         if let Some(profile_sv) = child_matches_with_profile {
-                            let (state_var_view, sv_name) =
-                                profile_sv.return_state_variable_view_enum_and_name();
-
-                            let sv_idx = child
-                                .get_state_variable_index_from_name(sv_name)
-                                .unwrap_or_else(|| panic!("Invalid state variable 3: {}", sv_name));
+                            let (state_var_view, sv_idx) =
+                                profile_sv.into_state_variable_view_enum_and_idx();
 
                             let state_var_dep = Dependency {
                                 source: DependencySource::StateVar {
@@ -512,8 +518,10 @@ pub fn create_dependencies_from_instruction_initialize_essential(
                     if let Some(current_view) = essential_data[source_idx].get(&essential_origin) {
                         current_view.create_new_read_only_view()
                     } else {
-                        let initial_data = components[source_idx].borrow().get_state_variables()
-                            [state_var_idx]
+                        let initial_data = components[source_idx]
+                            .borrow()
+                            .get_state_variable(state_var_idx)
+                            .unwrap()
                             .return_default_value();
 
                         let new_view = create_essential_data_for(

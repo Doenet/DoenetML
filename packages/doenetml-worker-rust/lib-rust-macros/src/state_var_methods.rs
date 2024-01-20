@@ -729,6 +729,9 @@ pub fn into_state_var_enum_refs_derive(input: TokenStream) -> TokenStream {
 
             let mut impl_from_state_var_to_state_var_enum_refs_variants = Vec::new();
 
+            let mut impl_try_from_read_only_enum_to_ready_only_view_variants = Vec::new();
+
+
             for variant in variants {
                 let variant_ident = &variant.ident;
 
@@ -748,6 +751,22 @@ pub fn into_state_var_enum_refs_derive(input: TokenStream) -> TokenStream {
                             
                         });
 
+                        impl_try_from_read_only_enum_to_ready_only_view_variants.push(quote! {
+
+                            impl TryFrom<&StateVarReadOnlyViewEnum> for StateVarReadOnlyView<#state_var_type> {
+                                type Error = &'static str;
+                                fn try_from(value: &StateVarReadOnlyViewEnum) -> Result<Self, Self::Error> {
+                                    match value {
+                                        StateVarReadOnlyViewEnum::#variant_ident(ref sv_ref) => {
+                                            Result::Ok(sv_ref.create_new_read_only_view())
+                                        }
+                                        _ => Result::Err(
+                                            "Only #variant_ident can be converted to StateVarReadOnlyView<#state_var_type>",
+                                        ),
+                                    }
+                                }
+                            }
+                        });
     
                     }
                 }
@@ -756,6 +775,7 @@ pub fn into_state_var_enum_refs_derive(input: TokenStream) -> TokenStream {
 
             quote! {
                 #(#impl_from_state_var_to_state_var_enum_refs_variants)*
+                #(#impl_try_from_read_only_enum_to_ready_only_view_variants)*
             }
         }
         _ => panic!("only enums supported"),

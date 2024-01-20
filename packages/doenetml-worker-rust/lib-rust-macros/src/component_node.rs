@@ -66,31 +66,19 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                             self.common.position = position;
                             self.common.unevaluated_attributes = attributes;
 
-                            self.initialize_state_variables();
+                            // self.common.rendered_state_variable_indices = self
+                            //     .get_state_variables()
+                            //     .iter()
+                            //     .enumerate()
+                            //     .filter_map(|(ind, state_var)| state_var.get_for_renderer().then_some(ind))
+                            //     .collect();
 
-                            self.common.rendered_state_variable_indices = self
-                                .get_state_variables()
-                                .iter()
-                                .enumerate()
-                                .filter_map(|(ind, state_var)| state_var.get_for_renderer().then_some(ind))
-                                .collect();
-
-                            self.common.public_state_variable_indices = self
-                                .get_state_variables()
-                                .iter()
-                                .enumerate()
-                                .filter_map(|(ind, state_var)| state_var.get_is_public().then_some(ind))
-                                .collect();
-
-                            let name_to_index_pairs: Vec<_> = self
-                                .get_state_variables()
-                                .iter()
-                                .enumerate()
-                                .map(|(sv_idx, state_var)| (state_var.get_name().to_string(), sv_idx))
-                                .collect();
-
-                            self.common.state_variable_name_to_index
-                                .extend(name_to_index_pairs);
+                            // self.common.public_state_variable_indices = self
+                            //     .get_state_variables()
+                            //     .iter()
+                            //     .enumerate()
+                            //     .filter_map(|(ind, state_var)| state_var.get_is_public().then_some(ind))
+                            //     .collect();
 
                         }
 
@@ -116,39 +104,12 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                             self.common.position = position;
                         }
 
-                        fn get_num_state_variables(&self) -> usize {
-                            self.common.state_variables.len()
-                        }
-
-                        fn get_state_variables(&self) -> &Vec<StateVarEnum> {
-                            &self.common.state_variables
-                        }
-
-                        fn get_state_variables_mut(&mut self) -> &mut Vec<StateVarEnum> {
-                            &mut self.common.state_variables
-                        }
-
-                        fn get_rendered_state_variable_indices(&self) -> &Vec<usize> {
+                        fn get_rendered_state_variable_indices(&self) -> &Vec<StateVarIdx> {
                             &self.common.rendered_state_variable_indices
                         }
 
-
-                        fn get_public_state_variable_indices(&self) -> &Vec<usize> {
+                        fn get_public_state_variable_indices(&self) -> &Vec<StateVarIdx> {
                             &self.common.public_state_variable_indices
-                        }
-
-                        fn get_state_variable_index_from_name(&self, name: &str) -> Option<usize> {
-                            self.common.state_variable_name_to_index.get(name).copied()
-                        }
-
-                        fn get_state_variable_index_from_name_case_insensitive(&self, name: &str) -> Option<usize> {
-                            self.common.state_variable_name_to_index
-                                .get_key_value_ignore_case(name)
-                                .map(|(k, v)| *v)
-                        }
-
-                        fn get_component_profile_state_variables(&self)  -> &Vec<ComponentProfileStateVariable> {
-                            &self.common.component_profile_state_variables
                         }
 
                         fn set_attribute_children(
@@ -208,27 +169,6 @@ pub fn rendered_component_node_derive(input: TokenStream) -> TokenStream {
             _ => panic!("only named fields supported"),
         },
         _ => panic!("only enums supported"),
-    };
-    output.into()
-}
-
-pub fn component_node_state_variables_derive(input: TokenStream) -> TokenStream {
-    let ast: syn::DeriveInput = syn::parse(input).unwrap();
-    let name = &ast.ident;
-    let data = &ast.data;
-
-    let output = match data {
-        syn::Data::Struct(s) => match &s.fields {
-            syn::Fields::Named(FieldsNamed { .. }) => {
-                quote! {
-                    impl ComponentNodeStateVariables for #name {
-                        // using default implementations for all traits so no code necessary here
-                    }
-                }
-            }
-            _ => panic!("only named fields supported"),
-        },
-        _ => panic!("only structs and enums supported"),
     };
     output.into()
 }

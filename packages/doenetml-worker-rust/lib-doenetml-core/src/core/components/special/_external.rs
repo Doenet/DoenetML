@@ -1,10 +1,43 @@
 use crate::components::prelude::*;
 
-#[derive(Debug, Default, RenderedComponentNode, ComponentNodeStateVariables)]
+#[derive(Debug, Default, RenderedComponentNode, ComponentStateVariables)]
 pub struct _External {
     pub common: ComponentCommonData,
 
     pub name: String,
+    pub state: _ExternalStateVariables,
+}
+
+#[derive(Debug, Default)]
+pub struct _ExternalStateVariables {}
+
+// TODO: derive via macros
+impl ComponentStateVariables for _ExternalStateVariables {
+    fn get_num_state_variables(&self) -> StateVarIdx {
+        0
+    }
+    fn get_state_variable(&self, state_var_idx: StateVarIdx) -> Option<StateVarEnumRef> {
+        None
+    }
+
+    fn get_state_variable_mut(&mut self, state_var_idx: StateVarIdx) -> Option<StateVarEnumRefMut> {
+        None
+    }
+
+    fn get_state_variable_index_from_name(&self, name: &str) -> Option<StateVarIdx> {
+        None
+    }
+
+    fn get_state_variable_index_from_name_case_insensitive(
+        &self,
+        name: &str,
+    ) -> Option<StateVarIdx> {
+        None
+    }
+
+    fn get_component_profile_state_variables(&self) -> Vec<ComponentProfileStateVariable> {
+        vec![]
+    }
 }
 
 impl ComponentNode for _External {
@@ -40,34 +73,19 @@ impl ComponentNode for _External {
         self.common.position = position;
         self.common.unevaluated_attributes = attributes;
 
-        self.initialize_state_variables();
+        // self.common.rendered_state_variable_indices = self
+        //     .get_state_variables()
+        //     .iter()
+        //     .enumerate()
+        //     .filter_map(|(ind, state_var)| state_var.get_for_renderer().then_some(ind))
+        //     .collect();
 
-        self.common.rendered_state_variable_indices = self
-            .get_state_variables()
-            .iter()
-            .enumerate()
-            .filter_map(|(ind, state_var)| state_var.get_for_renderer().then_some(ind))
-            .collect();
-
-        self.common.public_state_variable_indices = self
-            .get_state_variables()
-            .iter()
-            .enumerate()
-            .filter_map(|(ind, state_var)| state_var.get_is_public().then_some(ind))
-            .collect();
-
-        self.common.state_variable_name_to_index = HashMap::new();
-
-        let name_to_index_pairs: Vec<_> = self
-            .get_state_variables()
-            .iter()
-            .enumerate()
-            .map(|(sv_idx, state_var)| (state_var.get_name().to_string(), sv_idx))
-            .collect();
-
-        self.common
-            .state_variable_name_to_index
-            .extend(name_to_index_pairs);
+        // self.common.public_state_variable_indices = self
+        //     .get_state_variables()
+        //     .iter()
+        //     .enumerate()
+        //     .filter_map(|(ind, state_var)| state_var.get_is_public().then_some(ind))
+        //     .collect();
     }
 
     fn get_extend(&self) -> Option<&ExtendSource> {
@@ -94,39 +112,12 @@ impl ComponentNode for _External {
         self.common.position = position;
     }
 
-    fn get_num_state_variables(&self) -> usize {
-        self.common.state_variables.len()
-    }
-
-    fn get_state_variables(&self) -> &Vec<StateVarEnum> {
-        &self.common.state_variables
-    }
-
-    fn get_state_variables_mut(&mut self) -> &mut Vec<StateVarEnum> {
-        &mut self.common.state_variables
-    }
-
-    fn get_rendered_state_variable_indices(&self) -> &Vec<usize> {
+    fn get_rendered_state_variable_indices(&self) -> &Vec<StateVarIdx> {
         &self.common.rendered_state_variable_indices
     }
 
-    fn get_public_state_variable_indices(&self) -> &Vec<usize> {
+    fn get_public_state_variable_indices(&self) -> &Vec<StateVarIdx> {
         &self.common.public_state_variable_indices
-    }
-
-    fn get_state_variable_index_from_name(&self, name: &str) -> Option<usize> {
-        self.common.state_variable_name_to_index.get(name).copied()
-    }
-
-    fn get_state_variable_index_from_name_case_insensitive(&self, name: &str) -> Option<usize> {
-        self.common
-            .state_variable_name_to_index
-            .get_key_value_ignore_case(name)
-            .map(|(_k, v)| *v)
-    }
-
-    fn get_component_profile_state_variables(&self) -> &Vec<ComponentProfileStateVariable> {
-        &self.common.component_profile_state_variables
     }
 
     fn set_attribute_children(

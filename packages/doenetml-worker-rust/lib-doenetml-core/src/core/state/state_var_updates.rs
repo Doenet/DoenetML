@@ -6,8 +6,10 @@ use crate::{
     state::essential_state::{EssentialDataOrigin, EssentialStateDescription, EssentialStateVar},
     state::state_var_calculations::StateVariableUpdateRequest,
     state::Freshness,
-    ComponentIdx, CoreBookkeeping, DependencyGraph, StateVarPointer,
+    ComponentIdx, CoreBookkeeping, DependencyGraph,
 };
+
+use super::{ComponentStateVariables, StateVarPointer};
 
 /// Recurse in the inverse direction along the dependency graph to attempt to satisfy
 /// the requested update of the state variable described in initial_update_request.
@@ -109,7 +111,7 @@ fn mark_stale_state_var_and_dependencies(
     }) = mark_stale_stack.pop()
     {
         let component = components[component_idx].borrow();
-        let state_var = &component.get_state_variables()[state_var_idx];
+        let state_var = &component.get_state_variable(state_var_idx).unwrap();
 
         if state_var.get_freshness() == Freshness::Fresh {
             state_var.mark_stale();
@@ -180,7 +182,7 @@ fn request_dependencies_to_update_value_including_shadow(
     let component_idx = state_var_ptr.component_idx;
     let state_var_idx = state_var_ptr.state_var_idx;
     let component = components[component_idx].borrow();
-    let state_variable = &component.get_state_variables()[state_var_idx];
+    let state_variable = &component.get_state_variable(state_var_idx).unwrap();
 
     let requests =
         state_variable.request_dependencies_to_update_value(is_direct_change_from_renderer);

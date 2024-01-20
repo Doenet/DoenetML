@@ -3,6 +3,7 @@ use std::{cell::RefCell, collections::HashMap, rc::Rc, str::FromStr};
 use crate::{
     components::{ComponentEnum, ComponentNode, _error::_Error, _external::_External},
     dast::{DastElement, DastElementContent, DastTextMacroContent, PathPart},
+    state::ComponentStateVariables,
     utils::KeyValueIgnoreCase,
     ComponentIdx, ComponentPointerTextOrMacro, ExtendSource, ExtendStateVariableDescription,
     StateVariableShadowingMatch,
@@ -417,7 +418,9 @@ fn match_public_state_variable(
 
         // We found a public state variable that matched the first part of the path.
         // Since we are ignoring the rest of the path and the index for now, this is the match.
-        let state_var = &matched_component.get_state_variables()[matched_state_var_idx];
+        let state_var = &matched_component
+            .get_state_variable(matched_state_var_idx)
+            .unwrap();
 
         matched_state_var_name = state_var.get_name();
 

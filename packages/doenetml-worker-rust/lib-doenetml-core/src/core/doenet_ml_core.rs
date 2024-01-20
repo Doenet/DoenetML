@@ -23,7 +23,9 @@ use super::state::state_var_updates::process_state_variable_update_request;
 use super::state::{Freshness, StateVarName};
 
 use crate::components::actions::Action;
+use crate::components::prelude::{ComponentStateVariables, StateVarIdx};
 use crate::dast::{get_flat_dast_update, to_flat_dast};
+use crate::state::StateVarPointer;
 #[allow(unused)]
 use crate::utils::{log, log_debug, log_json};
 
@@ -222,7 +224,7 @@ pub struct StateVariableShadowingMatch {
     /// If None, then the "primary" state variable as determined by the component type
     /// should be the shadowing state variable.
     /// The type of the primary state variable should match the state variable type
-    /// for which `StateVarValueEnum.get_default_component_type()`
+    /// for which `StateVarValueEnumRef.get_default_component_type()`
     /// yields the component type.
     pub shadowing_name: Option<StateVarName>,
 
@@ -354,7 +356,7 @@ impl DoenetMLCore {
 
                 {
                     let component = self.components[component_idx].borrow();
-                    let state_variable = &component.get_state_variables()[state_var_idx];
+                    let state_variable = &component.get_state_variable(state_var_idx).unwrap();
 
                     // Record the requested value directly on the state variable.
                     // Later calls from within process_state_variable_update_request

@@ -9,8 +9,9 @@ use crate::{
     state::essential_state::{EssentialDataOrigin, EssentialStateDescription, EssentialStateVar},
     state::{Freshness, StateVarValueEnum},
     ComponentIdx, ComponentPointerTextOrMacro, CoreBookkeeping, DependencyGraph, ExtendSource,
-    StateVarPointer,
 };
+
+use super::{ComponentStateVariables, StateVarPointer};
 
 /// Freshen the state variable specified by original_state_var_ptr,
 /// then get its fresh value
@@ -31,7 +32,8 @@ pub fn get_state_var_value(
 
     components[original_state_var_ptr.component_idx]
         .borrow()
-        .get_state_variables()[original_state_var_ptr.state_var_idx]
+        .get_state_variable(original_state_var_ptr.state_var_idx)
+        .unwrap()
         .get_fresh_value()
 }
 
@@ -152,7 +154,8 @@ pub fn freshen_state_var(
 
     let original_freshness = components[original_state_var_ptr.component_idx]
         .borrow()
-        .get_state_variables()[original_state_var_ptr.state_var_idx]
+        .get_state_variable(original_state_var_ptr.state_var_idx)
+        .unwrap()
         .get_freshness();
 
     // If the current state variable is fresh, there's nothing to do.
@@ -177,7 +180,8 @@ pub fn freshen_state_var(
     while let Some(state_var_ptr) = freshen_stack.pop() {
         let current_freshness = components[state_var_ptr.component_idx]
             .borrow()
-            .get_state_variables()[state_var_ptr.state_var_idx]
+            .get_state_variable(state_var_ptr.state_var_idx)
+            .unwrap()
             .get_freshness();
 
         // If we have cycles in the graph, it's possible that this
@@ -259,7 +263,7 @@ pub fn freshen_state_var(
             let state_var_idx = state_var_ptr.state_var_idx;
 
             let mut comp = components[component_idx].borrow_mut();
-            let state_var = &mut comp.get_state_variables_mut()[state_var_idx];
+            let state_var = &mut comp.get_state_variable_mut(state_var_idx).unwrap();
 
             // Check if any dependency has changed since we last called record_all_dependencies_viewed.
             if state_var.check_if_any_dependency_changed_since_last_viewed() {
@@ -292,7 +296,7 @@ pub fn resolve_state_var(
 
         {
             let component = components[component_idx].borrow();
-            let state_var = &component.get_state_variables()[state_var_idx];
+            let state_var = &component.get_state_variable(state_var_idx).unwrap();
 
             let current_freshness = state_var.get_freshness();
 
@@ -370,7 +374,7 @@ pub fn resolve_state_var(
 
         {
             let mut component = components[component_idx].borrow_mut();
-            let state_var = &mut component.get_state_variables_mut()[state_var_idx];
+            let state_var = &mut component.get_state_variable_mut(state_var_idx).unwrap();
 
             state_var.set_dependencies(&dependencies_for_state_var);
 
@@ -380,7 +384,10 @@ pub fn resolve_state_var(
         }
 
         {
-            components[component_idx].borrow().get_state_variables()[state_var_idx]
+            components[component_idx]
+                .borrow()
+                .get_state_variable(state_var_idx)
+                .unwrap()
                 .set_as_resolved();
         }
     }

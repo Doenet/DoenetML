@@ -5,8 +5,10 @@ use serde::Serialize;
 use crate::{
     attribute::AttributeName,
     state::{StateVarMutableViewEnum, StateVarValueEnum},
-    ComponentIdx, StateVarIdx,
+    ComponentIdx,
 };
+
+use super::StateVarIdx;
 
 pub type EssentialStateVar = StateVarMutableViewEnum;
 

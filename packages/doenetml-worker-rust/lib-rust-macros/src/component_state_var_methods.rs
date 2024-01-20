@@ -16,31 +16,80 @@ pub fn component_state_variables_derive(input: TokenStream) -> TokenStream {
                     .map(|f| f.ident.as_ref().unwrap().clone())
                     .collect::<Vec<_>>();
 
-                let num_state_var = field_identities.len();
+                // Determine if struct represents a component or represents state variables.
+                // If a component, then we implement the trait by calling each function on the state.
+                // If state variables, then determine the trait functions from the fields.
+                //
+                // TODO: better condition to determine if is component struct.
+                // For now, we just check if there are fields named "common" and "state".
+                // Could check the type of common to make sure it is CommonData
+                // or check if each field is a state variable.
+                let is_component_struct = field_identities
+                    .iter()
+                    .any(|ident| ident.to_string() == "common")
+                    && field_identities
+                        .iter()
+                        .any(|ident| ident.to_string() == "state");
 
-                for f in named.iter() {}
+                if is_component_struct {
+                    quote! {
+                        impl ComponentStateVariables for #name {
+                            fn get_num_state_variables(&self) -> StateVarIdx {
+                                self.state.get_num_state_variables()
+                            }
 
-                let mut get_state_variable_arms = Vec::new();
+                            fn get_state_variable(&self, state_var_idx: StateVarIdx) -> Option<StateVarEnumRef> {
+                                self.state.get_state_variable(state_var_idx)
+                            }
 
-                for (sv_ind, field_identity) in named.iter().enumerate() {
-                    get_state_variable_arms.push(quote! {
-                        #sv_ind => self.#field_identity.try_into().unwrap()
-                    })
-                }
+                            fn get_state_variable_mut(&mut self, state_var_idx: StateVarIdx) -> Option<StateVarEnumRefMut> {
+                                self.state.get_state_variable_mut(state_var_idx)
+                            }
 
-                quote! {
-                    impl ComponentStateVariables for #name {
+                            fn get_state_variable_index_from_name(&self, name: &str) -> Option<StateVarIdx> {
+                                self.state.get_state_variable_index_from_name(name)
+                            }
 
-                        fn get_num_state_variables(&self) -> StateVarIdx {
-                            #num_state_var
-                        }
+                            fn get_state_variable_index_from_name_case_insensitive(
+                                &self,
+                                name: &str,
+                            ) -> Option<StateVarIdx> {
+                                self.state.get_state_variable_index_from_name_case_insensitive(name)
+                            }
 
-                        fn get_state_variable(&self, state_var_idx: StateVarIdx) -> &StateVarEnumRef {
-                            match state_var_idx {
-                                #(#get_state_variable_arms)*
+                            fn get_component_profile_state_variables(&self) -> Vec<ComponentProfileStateVariable> {
+                                self.state.get_component_profile_state_variables()
+
                             }
                         }
+                    }
+                } else {
+                    let num_state_var = field_identities.len();
 
+                    for f in named.iter() {}
+
+                    let mut get_state_variable_arms = Vec::new();
+
+                    for (sv_ind, field_identity) in named.iter().enumerate() {
+                        get_state_variable_arms.push(quote! {
+                            #sv_ind => self.#field_identity.try_into().unwrap()
+                        })
+                    }
+
+                    quote! {
+                        impl ComponentStateVariables for #name {
+
+                            fn get_num_state_variables(&self) -> StateVarIdx {
+                                #num_state_var
+                            }
+
+                            fn get_state_variable(&self, state_var_idx: StateVarIdx) -> &StateVarEnumRef {
+                                match state_var_idx {
+                                    #(#get_state_variable_arms)*
+                                }
+                            }
+
+                        }
                     }
                 }
             }

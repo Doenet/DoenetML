@@ -5,8 +5,7 @@ use strum::VariantNames;
 use strum_macros::EnumVariantNames;
 
 use crate::{
-    components::{actions::ActionBody, prelude::*, ActionsEnum, RenderedState},
-    state::{ComponentStateVariables, StateVarIdx},
+    components::{actions::ActionBody, prelude::*, ActionsEnum},
     state_var_interfaces::{
         boolean_state_var_interfaces::GeneralBooleanStateVarInterface,
         text_state_var_interfaces::GeneralStringStateVarInterface,
@@ -31,13 +30,9 @@ pub enum TextInputAction {
     UpdateValue,
 }
 
-#[derive(Debug, Default, ComponentNode)]
+#[derive(Debug, Default, ComponentNode, ComponentStateVariables)]
 pub struct TextInput {
     pub common: ComponentCommonData,
-
-    pub immediate_value_state_var_view: StateVarReadOnlyView<String>,
-
-    pub disabled_state_var_view: StateVarReadOnlyView<bool>,
 
     pub state: TextInputStateVariables,
 }
@@ -153,26 +148,127 @@ impl Default for TextInputStateVariables {
     }
 }
 
+// TODO: derive via macros
 impl ComponentStateVariables for TextInputStateVariables {
     fn get_num_state_variables(&self) -> StateVarIdx {
         7
     }
-    fn get_state_variable(&self, state_var_idx: StateVarIdx) -> &StateVarEnum {
+    fn get_state_variable(&self, state_var_idx: StateVarIdx) -> Option<StateVarEnumRef> {
         match state_var_idx {
-            0 => self.value.try_into().unwrap(),
+            0 => Some((&self.value).into()),
+            1 => Some((&self.immediate_value).into()),
+            2 => Some((&self.sync_immediate_value).into()),
+            3 => Some((&self.bind_value_to).into()),
+            4 => Some((&self.prefill).into()),
+            5 => Some((&self.hidden).into()),
+            6 => Some((&self.disabled).into()),
+            _ => None,
         }
+    }
+
+    fn get_state_variable_mut(&mut self, state_var_idx: StateVarIdx) -> Option<StateVarEnumRefMut> {
+        match state_var_idx {
+            0 => Some((&mut self.value).into()),
+            1 => Some((&mut self.immediate_value).into()),
+            2 => Some((&mut self.sync_immediate_value).into()),
+            3 => Some((&mut self.bind_value_to).into()),
+            4 => Some((&mut self.prefill).into()),
+            5 => Some((&mut self.hidden).into()),
+            6 => Some((&mut self.disabled).into()),
+            _ => None,
+        }
+    }
+
+    fn get_state_variable_index_from_name(&self, name: &str) -> Option<StateVarIdx> {
+        match name {
+            "value" => Some(0),
+            "immediateValue" => Some(1),
+            "syncImmediateValue" => Some(2),
+            "bindValueTo" => Some(3),
+            "prefill" => Some(4),
+            "hidden" => Some(5),
+            "disabled" => Some(6),
+            _ => None,
+        }
+    }
+
+    fn get_state_variable_index_from_name_case_insensitive(
+        &self,
+        name: &str,
+    ) -> Option<StateVarIdx> {
+        match name {
+            x if x.eq_ignore_ascii_case("value") => Some(0),
+            x if x.eq_ignore_ascii_case("immediateValue") => Some(1),
+            x if x.eq_ignore_ascii_case("syncImmediateValue") => Some(2),
+            x if x.eq_ignore_ascii_case("bindValueTo") => Some(3),
+            x if x.eq_ignore_ascii_case("prefill") => Some(4),
+            x if x.eq_ignore_ascii_case("hidden") => Some(5),
+            x if x.eq_ignore_ascii_case("disabled") => Some(6),
+            _ => None,
+        }
+    }
+
+    fn get_component_profile_state_variables(&self) -> Vec<ComponentProfileStateVariable> {
+        vec![ComponentProfileStateVariable::Text(
+            self.value.create_new_read_only_view(),
+            0,
+        )]
     }
 }
 
+// TODO via macro
 impl TextInputStateVariables {
-    fn value_dependency_instructions(&self) -> DependencyInstruction {
-        todo!("macro");
+    fn get_value_state_variable_index() -> StateVarIdx {
+        0
     }
-    fn immediate_value_dependency_instructions(&self) -> DependencyInstruction {
-        todo!("macro");
+    fn get_immediate_value_state_variable_index() -> StateVarIdx {
+        1
     }
-    fn sync_immediate_value_dependency_instructions(&self) -> DependencyInstruction {
-        todo!("macro");
+    fn get_sync_immediate_value_state_variable_index() -> StateVarIdx {
+        2
+    }
+    fn get_bind_value_to_state_variable_index() -> StateVarIdx {
+        3
+    }
+    fn get_prefill_state_variable_index() -> StateVarIdx {
+        4
+    }
+    fn get_hidden_state_variable_index() -> StateVarIdx {
+        5
+    }
+    fn get_disabled_state_variable_index() -> StateVarIdx {
+        6
+    }
+
+    fn get_value_dependency_instructions() -> DependencyInstruction {
+        DependencyInstruction::StateVar {
+            component_idx: None,
+            state_var_name: "value",
+        }
+    }
+    fn get_immediate_value_dependency_instructions() -> DependencyInstruction {
+        DependencyInstruction::StateVar {
+            component_idx: None,
+            state_var_name: "immediateValue",
+        }
+    }
+    fn get_sync_immediate_value_dependency_instructions() -> DependencyInstruction {
+        DependencyInstruction::StateVar {
+            component_idx: None,
+            state_var_name: "syncImmediateValue",
+        }
+    }
+    fn get_bind_value_to_dependency_instructions() -> DependencyInstruction {
+        DependencyInstruction::StateVar {
+            component_idx: None,
+            state_var_name: "bindValueTo",
+        }
+    }
+    fn get_prefill_dependency_instructions() -> DependencyInstruction {
+        DependencyInstruction::StateVar {
+            component_idx: None,
+            state_var_name: "prefill",
+        }
     }
 }
 
@@ -180,29 +276,30 @@ impl RenderedComponentNode for TextInput {
     fn return_rendered_state(&mut self) -> Option<RenderedState> {
         Some(RenderedState::TextInput(TextInputRenderedState {
             immediate_value: Some(
-                self.immediate_value_state_var_view
+                self.state
+                    .immediate_value
                     .get_fresh_value_record_viewed()
                     .clone(),
             ),
-            disabled: Some(*self.disabled_state_var_view.get_fresh_value_record_viewed()),
+            disabled: Some(*self.state.disabled.get_fresh_value_record_viewed()),
         }))
     }
 
     fn return_rendered_state_update(&mut self) -> Option<RenderedState> {
         let value_changed = self
-            .immediate_value_state_var_view
+            .state
+            .immediate_value
             .check_if_changed_since_last_viewed();
 
-        let disabled_changed = self
-            .disabled_state_var_view
-            .check_if_changed_since_last_viewed();
+        let disabled_changed = self.state.disabled.check_if_changed_since_last_viewed();
 
         if value_changed || disabled_changed {
             let mut updated_variables = TextInputRenderedState::default();
 
             if value_changed {
                 updated_variables.immediate_value = Some(
-                    self.immediate_value_state_var_view
+                    self.state
+                        .immediate_value
                         .get_fresh_value_record_viewed()
                         .clone(),
                 );
@@ -210,7 +307,7 @@ impl RenderedComponentNode for TextInput {
 
             if disabled_changed {
                 updated_variables.disabled =
-                    Some(*self.disabled_state_var_view.get_fresh_value_record_viewed());
+                    Some(*self.state.disabled.get_fresh_value_record_viewed());
             }
 
             Some(RenderedState::TextInput(updated_variables))
@@ -233,8 +330,8 @@ impl RenderedComponentNode for TextInput {
     fn on_action(
         &self,
         action: ActionsEnum,
-        resolve_and_retrieve_state_var: &mut dyn FnMut(usize) -> StateVarValueEnum,
-    ) -> Result<Vec<(usize, StateVarValueEnum)>, String> {
+        resolve_and_retrieve_state_var: &mut dyn FnMut(StateVarIdx) -> StateVarValueEnum,
+    ) -> Result<Vec<(StateVarIdx, StateVarValueEnum)>, String> {
         // The type of `action` should have already been verified, so an
         // error here is a programming logic error, not an API error.
         let action: TextInputAction = action.try_into()?;
@@ -242,36 +339,26 @@ impl RenderedComponentNode for TextInput {
         match action {
             TextInputAction::UpdateImmediateValue(ActionBody { args }) => Ok(vec![
                 (
-                    self.common.state_variable_name_to_index["immediateValue"],
+                    TextInputStateVariables::get_value_state_variable_index(),
                     StateVarValueEnum::String(args.text),
                 ),
                 (
-                    self.common.state_variable_name_to_index["syncImmediateValue"],
+                    TextInputStateVariables::get_sync_immediate_value_state_variable_index(),
                     StateVarValueEnum::Boolean(false),
                 ),
             ]),
 
             TextInputAction::UpdateValue => {
                 let new_val = resolve_and_retrieve_state_var(
-                    self.common.state_variable_name_to_index["immediateValue"],
+                    TextInputStateVariables::get_immediate_value_state_variable_index(),
                 );
 
                 Ok(vec![(
-                    self.common.state_variable_name_to_index["value"],
+                    TextInputStateVariables::get_value_state_variable_index(),
                     new_val,
                 )])
             }
         }
-    }
-}
-
-impl ComponentNodeStateVariables for TextInput {
-    fn initialize_state_variables(&mut self) {
-        // Use the value state variable for fulfilling the text component profile
-        self.common.component_profile_state_variables = vec![ComponentProfileStateVariable::Text(
-            self.state.value.create_new_read_only_view(),
-            "value",
-        )];
     }
 }
 
@@ -292,55 +379,19 @@ impl StateVarInterface<String> for ValueStateVarInterface {
     ) -> Vec<DependencyInstruction> {
         vec![
             DependencyInstruction::Essential,
-            DependencyInstruction::StateVar {
-                component_idx: None,
-                state_var_name: "immediateValue",
-            },
-            DependencyInstruction::StateVar {
-                component_idx: None,
-                state_var_name: "syncImmediateValue",
-            },
-            DependencyInstruction::StateVar {
-                component_idx: None,
-                state_var_name: "bindValueTo",
-            },
-            DependencyInstruction::StateVar {
-                component_idx: None,
-                state_var_name: "prefill",
-            },
+            TextInputStateVariables::get_immediate_value_dependency_instructions(),
+            TextInputStateVariables::get_sync_immediate_value_dependency_instructions(),
+            TextInputStateVariables::get_bind_value_to_dependency_instructions(),
+            TextInputStateVariables::get_prefill_dependency_instructions(),
         ]
     }
 
     fn save_dependencies_for_value_calculation(&mut self, dependencies: &Vec<Vec<Dependency>>) {
-        if let StateVarReadOnlyViewEnum::String(essential_value) = &dependencies[0][0].value {
-            self.essential_value = essential_value.create_new_read_only_view();
-        } else {
-            panic!("Got a non-string essential value for value of text input.");
-        }
-
-        if let StateVarReadOnlyViewEnum::String(immediate_value) = &dependencies[1][0].value {
-            self.immediate_value = immediate_value.create_new_read_only_view();
-        } else {
-            panic!("Got a non-string immediate value for value of text input.");
-        }
-
-        if let StateVarReadOnlyViewEnum::Boolean(sync_immediate_value) = &dependencies[2][0].value {
-            self.sync_immediate_value = sync_immediate_value.create_new_read_only_view();
-        } else {
-            panic!("Got a non-boolean sync immediate value for value of text input.");
-        }
-
-        if let StateVarReadOnlyViewEnum::String(bind_value_to) = &dependencies[3][0].value {
-            self.bind_value_to = bind_value_to.create_new_read_only_view();
-        } else {
-            panic!("Got a non-string bind_value_to for value of text input.");
-        }
-
-        if let StateVarReadOnlyViewEnum::String(prefill) = &dependencies[4][0].value {
-            self.prefill = prefill.create_new_read_only_view();
-        } else {
-            panic!("Got a non-string prefill for value of text input.");
-        }
+        self.essential_value = (&dependencies[0][0].value).try_into().unwrap();
+        self.immediate_value = (&dependencies[1][0].value).try_into().unwrap();
+        self.sync_immediate_value = (&dependencies[2][0].value).try_into().unwrap();
+        self.bind_value_to = (&dependencies[3][0].value).try_into().unwrap();
+        self.prefill = (&dependencies[4][0].value).try_into().unwrap();
     }
 
     fn calculate_state_var_from_dependencies_and_mark_fresh(
@@ -438,45 +489,17 @@ impl StateVarInterface<String> for ImmediateValueStateVarInterface {
     ) -> Vec<DependencyInstruction> {
         vec![
             DependencyInstruction::Essential,
-            DependencyInstruction::StateVar {
-                component_idx: None,
-                state_var_name: "syncImmediateValue",
-            },
-            DependencyInstruction::StateVar {
-                component_idx: None,
-                state_var_name: "bindValueTo",
-            },
-            DependencyInstruction::StateVar {
-                component_idx: None,
-                state_var_name: "prefill",
-            },
+            TextInputStateVariables::get_sync_immediate_value_dependency_instructions(),
+            TextInputStateVariables::get_bind_value_to_dependency_instructions(),
+            TextInputStateVariables::get_prefill_dependency_instructions(),
         ]
     }
 
     fn save_dependencies_for_value_calculation(&mut self, dependencies: &Vec<Vec<Dependency>>) {
-        if let StateVarReadOnlyViewEnum::String(essential_value) = &dependencies[0][0].value {
-            self.essential_value = essential_value.create_new_read_only_view();
-        } else {
-            panic!("Got a non-string essential value for immediate value of text input.");
-        }
-
-        if let StateVarReadOnlyViewEnum::Boolean(sync_immediate_value) = &dependencies[1][0].value {
-            self.sync_immediate_value = sync_immediate_value.create_new_read_only_view();
-        } else {
-            panic!("Got a non-boolean sync immediate value for immediate value of text input.");
-        }
-
-        if let StateVarReadOnlyViewEnum::String(bind_value_to) = &dependencies[2][0].value {
-            self.bind_value_to = bind_value_to.create_new_read_only_view();
-        } else {
-            panic!("Got a non-string bind_value_to for immediate value of text input.");
-        }
-
-        if let StateVarReadOnlyViewEnum::String(prefill) = &dependencies[3][0].value {
-            self.prefill = prefill.create_new_read_only_view();
-        } else {
-            panic!("Got a non-string prefill for immediate value of text input.");
-        }
+        self.essential_value = (&dependencies[0][0].value).try_into().unwrap();
+        self.sync_immediate_value = (&dependencies[1][0].value).try_into().unwrap();
+        self.bind_value_to = (&dependencies[2][0].value).try_into().unwrap();
+        self.prefill = (&dependencies[3][0].value).try_into().unwrap();
     }
 
     fn calculate_state_var_from_dependencies_and_mark_fresh(
@@ -554,11 +577,7 @@ impl StateVarInterface<bool> for SyncImmediateValueStateVarInterface {
     }
 
     fn save_dependencies_for_value_calculation(&mut self, dependencies: &Vec<Vec<Dependency>>) {
-        if let StateVarReadOnlyViewEnum::Boolean(essential_value) = &dependencies[0][0].value {
-            self.essential_value = essential_value.create_new_read_only_view();
-        } else {
-            panic!("Got a non-boolean essential value for syncImmediate of text input.");
-        }
+        self.essential_value = (&dependencies[0][0].value).try_into().unwrap();
     }
 
     fn calculate_state_var_from_dependencies_and_mark_fresh(
