@@ -28,7 +28,7 @@ impl BooleanStateVariables {
                         match_profiles: vec![ComponentProfile::Text, ComponentProfile::Boolean],
                         exclude_if_prefer_profiles: vec![],
                     }),
-                    create_dependency_from_extend_source: true,
+                    should_create_dependency_from_extend_source: true,
                     is_primary_state_variable_for_shadowing_extend_source: true,
                 },
                 Default::default(),

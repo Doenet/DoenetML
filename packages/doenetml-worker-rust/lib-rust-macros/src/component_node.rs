@@ -10,7 +10,7 @@ use syn::{self, FieldsNamed};
 /// - pub idx: ComponentIdx,
 /// - pub parent: Option<ComponentIdx>,
 /// - pub children: Vec<ComponentPointerTextOrMacro>,
-/// - pub extend: Option<ExtendSource>,
+/// - pub extending: Option<ExtendSource>,
 /// - pub descendant_names: HashMap<String, Vec<ComponentIdx>>,
 /// - pub position: Option<DastPosition>,
 /// - pub component_profile_state_variables: Vec<ComponentProfileStateVariable>,
@@ -27,12 +27,10 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
         syn::Data::Struct(s) => match &s.fields {
             syn::Fields::Named(FieldsNamed { .. }) => {
                 // Convert struct name to camel case, preserving any initial '_'
-                let mut component_string = name.to_string();
-                if component_string.starts_with('_') {
-                    component_string = format!("_{}", component_string.to_case(Case::Camel));
-                } else {
-                    component_string = component_string.to_case(Case::Camel);
-                }
+                let component_string = match name.to_string() {
+                    n if n.starts_with('_') => format!("_{}", n.to_case(Case::Camel)),
+                    n => n.to_case(Case::Camel),
+                };
 
                 quote! {
                     impl ComponentNode for #name {
@@ -56,19 +54,19 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                             &mut self,
                             idx: ComponentIdx,
                             parent: Option<ComponentIdx>,
-                            extend_source: Option<ExtendSource>,
+                            extending: Option<ExtendSource>,
                             attributes: HashMap<String, DastAttribute>,
                             position: Option<DastPosition>,
                         ) {
                             self.common.idx = idx;
                             self.common.parent = parent;
-                            self.common.extend = extend_source;
+                            self.common.extending = extending;
                             self.common.position = position;
                             self.common.unevaluated_attributes = attributes;
                         }
 
-                        fn get_extend(&self) -> Option<&ExtendSource> {
-                            self.common.extend.as_ref()
+                        fn get_extending(&self) -> Option<&ExtendSource> {
+                            self.common.extending.as_ref()
                         }
 
                         fn get_component_type(&self) -> &str {
@@ -111,12 +109,12 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                             &mut self.common.unevaluated_attributes
                         }
 
-                        fn get_is_rendered(&self) -> bool {
-                            self.common.is_rendered
+                        fn get_is_in_render_tree(&self) -> bool {
+                            self.common.is_in_render_tree
                         }
 
-                        fn set_is_rendered(&mut self, is_rendered: bool) {
-                            self.common.is_rendered = is_rendered;
+                        fn set_is_in_render_tree(&mut self, is_in_render_tree: bool) {
+                            self.common.is_in_render_tree = is_in_render_tree;
                         }
 
                     }

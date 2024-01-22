@@ -35,7 +35,7 @@ impl ComponentNode for _External {
         &mut self,
         idx: ComponentIdx,
         parent: Option<ComponentIdx>,
-        _extend_source: Option<ExtendSource>,
+        _extending: Option<ExtendSource>,
         attributes: HashMap<String, DastAttribute>,
         position: Option<DastPosition>,
     ) {
@@ -45,7 +45,7 @@ impl ComponentNode for _External {
         self.common.unevaluated_attributes = attributes;
     }
 
-    fn get_extend(&self) -> Option<&ExtendSource> {
+    fn get_extending(&self) -> Option<&ExtendSource> {
         None
     }
 
@@ -91,11 +91,11 @@ impl ComponentNode for _External {
         &mut self.common.unevaluated_attributes
     }
 
-    fn get_is_rendered(&self) -> bool {
-        self.common.is_rendered
+    fn get_is_in_render_tree(&self) -> bool {
+        self.common.is_in_render_tree
     }
 
-    fn set_is_rendered(&mut self, is_rendered: bool) {
-        self.common.is_rendered = is_rendered;
+    fn set_is_in_render_tree(&mut self, is_in_render_tree: bool) {
+        self.common.is_in_render_tree = is_in_render_tree;
     }
 }

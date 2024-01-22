@@ -36,7 +36,7 @@ impl TextStateVariables {
                         match_profiles: vec![ComponentProfile::Text],
                         exclude_if_prefer_profiles: vec![],
                     }),
-                    create_dependency_from_extend_source: true,
+                    should_create_dependency_from_extend_source: true,
                     is_primary_state_variable_for_shadowing_extend_source: true,
                 },
                 Default::default(),

@@ -75,7 +75,7 @@ pub struct ComponentCommonData {
     pub parent: Option<ComponentIdx>,
     pub children: Vec<ComponentPointerTextOrMacro>,
 
-    pub extend: Option<ExtendSource>,
+    pub extending: Option<ExtendSource>,
 
     // map of descendant names to their indices
     pub descendant_names: HashMap<String, Vec<ComponentIdx>>,
@@ -88,7 +88,7 @@ pub struct ComponentCommonData {
 
     pub unevaluated_attributes: HashMap<String, DastAttribute>,
 
-    pub is_rendered: bool,
+    pub is_in_render_tree: bool,
 }
 
 /// The Component trait specifies methods that will, in general, be implemented by deriving them.
@@ -110,7 +110,7 @@ pub trait ComponentNode: ComponentStateVariables {
         new_children: Vec<ComponentPointerTextOrMacro>,
     ) -> Vec<ComponentPointerTextOrMacro>;
 
-    /// Set component's index, parent, extend source, and position in the original DoenetML string.
+    /// Set component's index, parent, extending, and position in the original DoenetML string.
     ///
     /// This is a separate step from creation because we create it using EnumString's from_str,
     /// which assigns values based on the Default trait
@@ -118,14 +118,14 @@ pub trait ComponentNode: ComponentStateVariables {
         &mut self,
         idx: ComponentIdx,
         parent: Option<ComponentIdx>,
-        extend_source: Option<ExtendSource>,
+        extending: Option<ExtendSource>,
         attributes: HashMap<String, DastAttribute>,
         position: Option<DastPosition>,
     );
 
     /// Get the extend source of this component,
     /// indicating any component or state variable that this component extends.
-    fn get_extend(&self) -> Option<&ExtendSource>;
+    fn get_extending(&self) -> Option<&ExtendSource>;
 
     /// Get the component type, which is the name of the component's struct
     /// converted to camel case.
@@ -170,12 +170,12 @@ pub trait ComponentNode: ComponentStateVariables {
     /// Get whether or not this component is to be rendered.
     ///
     /// Used to determine if its rendered state variables need to be freshened and set to the renderer.
-    fn get_is_rendered(&self) -> bool;
+    fn get_is_in_render_tree(&self) -> bool;
 
     /// Set whether or not this component is to be rendered.
     ///
     /// Used to determine if its rendered state variables need to be freshened and set to the renderer.
-    fn set_is_rendered(&mut self, is_rendered: bool);
+    fn set_is_in_render_tree(&mut self, is_in_render_tree: bool);
 }
 
 /// The RenderedComponentNode trait can be derived for a component, giving it the default implementations.

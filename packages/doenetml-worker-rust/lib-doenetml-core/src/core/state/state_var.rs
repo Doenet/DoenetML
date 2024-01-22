@@ -77,7 +77,7 @@ pub struct StateVar<T: Default + Clone> {
 
 #[derive(Debug, Error)]
 pub enum RequestDependencyUpdateError {
-    #[error("request_dependencies_to_update_value is not implemented")]
+    #[error("request_updated_dependency_values is not implemented")]
     NotImplemented,
     #[error("could not update")]
     CouldNotUpdate,
@@ -92,21 +92,21 @@ pub trait StateVarInterface<T: Default + Clone>: std::fmt::Debug {
     /// of the component of this state variable
     fn return_dependency_instructions(
         &self,
-        extend_source: Option<&ExtendSource>,
+        extending: Option<&ExtendSource>,
         parameters: &StateVarParameters,
         state_var_idx: StateVarIdx,
     ) -> Vec<DependencyInstruction>;
 
     /// Given the structure of the document and the dependency instructions,
-    /// the actual dependencies will be determined and passed to `save_dependencies_for_value_calculation`.
-    /// The function `save_dependencies_for_value_calculation` should store
+    /// the actual dependencies will be determined and passed to `save_dependencies`.
+    /// The function `save_dependencies` should store
     /// the dependencies directly on the the structure (`self`)
     /// in a form (presumably typed not with enums) for efficient calculation.
     #[allow(clippy::ptr_arg)]
-    fn save_dependencies_for_value_calculation(&mut self, dependencies: &Vec<Vec<Dependency>>);
+    fn save_dependencies(&mut self, dependencies: &Vec<Vec<Dependency>>);
 
     /// Calculate the value of the state variable from the current values of the dependencies
-    /// that were stored in `save_dependencies_for_value_calculation`.
+    /// that were stored in `save_dependencies`.
     /// Save the result in state_var argument that is passed in.
     fn calculate_state_var_from_dependencies_and_mark_fresh(
         &self,
@@ -118,7 +118,7 @@ pub trait StateVarInterface<T: Default + Clone>: std::fmt::Debug {
     /// that will lead to that requested value being calculated from those dependencies.
     ///
     /// Store the requested values of the dependencies in the dependency objects
-    /// that were saved on the structure (`self`) in `save_dependencies_for_value_calculation()`.
+    /// that were saved on the structure (`self`) in `save_dependencies()`.
     ///
     /// Report these requested updates in the returned Result.
     ///
@@ -128,7 +128,7 @@ pub trait StateVarInterface<T: Default + Clone>: std::fmt::Debug {
     /// came directly from an action of the renderer
     /// (as opposed to coming from another state variable that depends on this variable)
     #[allow(unused)]
-    fn request_dependencies_to_update_value(
+    fn request_updated_dependency_values(
         &self,
         state_var: &StateVarReadOnlyView<T>,
         is_direct_change_from_renderer: bool,
@@ -147,13 +147,13 @@ pub struct StateVarParameters {
     /// returns an incompatible type.
     pub dependency_instruction_hint: Option<DependencyInstruction>,
 
-    /// Hint telling `return_dependency_instructions()` whether or not to use `extend_source`.
+    /// Hint telling `return_dependency_instructions()` whether or not to use `extending`.
     ///
     /// If true and the extend source is a state variable where the shadowing name matches
     /// the name of this state variable, then create a dependency from the shadowed state variable
-    pub create_dependency_from_extend_source: bool,
+    pub should_create_dependency_from_extend_source: bool,
 
-    /// If true and `create_dependency_from_extend_source` is true,
+    /// If true and `should_create_dependency_from_extend_source` is true,
     /// then if the extend source is a state variable where the shadowing name is None,
     /// create a dependency from the shadowed state variable.
     pub is_primary_state_variable_for_shadowing_extend_source: bool,
@@ -688,21 +688,17 @@ impl<T: Default + Clone> StateVar<T> {
     /// Convenience function to call `return_dependency_instructions` on interface
     pub fn return_dependency_instructions(
         &self,
-        extend_source: Option<&ExtendSource>,
+        extending: Option<&ExtendSource>,
         state_var_idx: StateVarIdx,
     ) -> Vec<DependencyInstruction> {
-        self.interface.return_dependency_instructions(
-            extend_source,
-            &self.parameters,
-            state_var_idx,
-        )
+        self.interface
+            .return_dependency_instructions(extending, &self.parameters, state_var_idx)
     }
 
-    /// Call `save_dependencies_for_value_calculation` on interface
+    /// Call `save_dependencies` on interface
     /// and save dependencies to `all_dependency_values` field
-    pub fn set_dependencies(&mut self, dependencies: &Vec<Vec<Dependency>>) {
-        self.interface
-            .save_dependencies_for_value_calculation(dependencies);
+    pub fn save_dependencies(&mut self, dependencies: &Vec<Vec<Dependency>>) {
+        self.interface.save_dependencies(dependencies);
         self.all_dependency_values = dependencies
             .iter()
             .flat_map(|vec| vec.iter().map(|elt| elt.value.create_new_read_only_view()))
@@ -715,12 +711,12 @@ impl<T: Default + Clone> StateVar<T> {
             .calculate_state_var_from_dependencies_and_mark_fresh(&self.value)
     }
 
-    /// Convenience function to call `request_dependencies_to_update_value` on interface
-    pub fn request_dependencies_to_update_value(
+    /// Convenience function to call `request_updated_dependency_values` on interface
+    pub fn request_updated_dependency_values(
         &self,
         is_direct_change_from_renderer: bool,
     ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
-        self.interface.request_dependencies_to_update_value(
+        self.interface.request_updated_dependency_values(
             &self.immutable_view_of_value,
             is_direct_change_from_renderer,
         )

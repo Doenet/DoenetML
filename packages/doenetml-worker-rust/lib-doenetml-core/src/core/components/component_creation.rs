@@ -422,7 +422,7 @@ fn match_public_state_variable(
     // Create extend source assuming that the shadowing index of the component
     // is its first state variable.
     // The component's initialize function can change the shadowing_idx if needed.
-    let extend_source = ExtendSource::StateVar(ExtendStateVariableDescription {
+    let extending = ExtendSource::StateVar(ExtendStateVariableDescription {
         component_idx: matched_component_idx,
         state_variable_matching: vec![StateVariableShadowingMatch {
             shadowing_idx: None, // use the primary state variable (as determined by component type)
@@ -433,7 +433,7 @@ fn match_public_state_variable(
     new_comp_enum.initialize(
         new_idx,
         Some(parent_idx),
-        Some(extend_source),
+        Some(extending),
         HashMap::new(),
         None,
     );

@@ -125,10 +125,10 @@ pub struct DependencyGraph {
     /// that are dependent on this piece of essential data.
     pub dependent_on_essential: Vec<HashMap<EssentialDataOrigin, Vec<StateVarPointer>>>,
 }
+
 #[derive(Debug)]
 pub struct CoreBookkeeping {
     /// List of the rendered components that have stale `for_renderer` state variables.
-    /// TODO: currently is not restricted to rendered components.
     pub stale_renderers: Vec<ComponentIdx>,
 
     // To prevent unnecessary reallocations of temporary vectors, like stacks,
@@ -360,7 +360,7 @@ impl DoenetMLCore {
 
                     // Record the requested value directly on the state variable.
                     // Later calls from within process_state_variable_update_request
-                    // will call request_dependencies_to_update_value on the state variable
+                    // will call request_updated_dependency_values on the state variable
                     // which will look up this requested value.
                     state_variable.request_change_value_to(requested_value);
 

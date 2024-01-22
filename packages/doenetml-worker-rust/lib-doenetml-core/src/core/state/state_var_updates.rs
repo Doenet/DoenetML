@@ -68,7 +68,7 @@ pub fn process_state_variable_update_request(
 
                 // The vector dep_update_requests will contain just the identities
                 // of the state variables or essential data that we need to recurse to.
-                let mut dep_update_requests = request_dependencies_to_update_value_including_shadow(
+                let mut dep_update_requests = request_updated_dependency_values_including_shadow(
                     state_var_ptr,
                     components,
                     &dependency_graph.dependencies,
@@ -117,7 +117,7 @@ fn mark_stale_state_var_and_dependencies(
             state_var.mark_stale();
 
             if component.check_if_state_variable_is_for_renderer(state_var_idx)
-                && component.get_is_rendered()
+                && component.get_is_in_render_tree()
             {
                 stale_renderers.push(component_idx);
             }
@@ -175,7 +175,7 @@ fn mark_stale_essential_datum_dependencies(
 ///
 /// Returns a vector specifying which state variables or essential data have been requested to change.
 /// The actual requested values will be added directly to the state variables or essential data.
-fn request_dependencies_to_update_value_including_shadow(
+fn request_updated_dependency_values_including_shadow(
     state_var_ptr: StateVarPointer,
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
     dependencies: &Vec<Vec<Vec<Vec<Dependency>>>>,
@@ -186,8 +186,7 @@ fn request_dependencies_to_update_value_including_shadow(
     let component = components[component_idx].borrow();
     let state_variable = &component.get_state_variable(state_var_idx).unwrap();
 
-    let requests =
-        state_variable.request_dependencies_to_update_value(is_direct_change_from_renderer);
+    let requests = state_variable.request_updated_dependency_values(is_direct_change_from_renderer);
 
     requests
         .map(|req| {
@@ -201,7 +200,7 @@ fn request_dependencies_to_update_value_including_shadow(
         .unwrap_or_default()
 }
 
-/// Convert the dependency update results of `request_dependencies_to_update_value()`
+/// Convert the dependency update results of `request_updated_dependency_values()`
 /// into state variable update requests by determining the state variables
 /// referenced by the dependencies.
 #[allow(clippy::ptr_arg)]

@@ -76,7 +76,7 @@ pub fn freshen_all_stale_renderer_states(
     for component_idx in stale_renderers.iter() {
         components[*component_idx]
             .borrow_mut()
-            .set_is_rendered(true);
+            .set_is_in_render_tree(true);
 
         let rendered_state_var_indices = components[*component_idx]
             .borrow()
@@ -112,7 +112,8 @@ fn get_non_string_rendered_children_including_from_extend(
 ) -> Vec<ComponentIdx> {
     let component = components[component_idx].borrow();
 
-    let mut children = if let Some(&ExtendSource::Component(source_idx)) = component.get_extend() {
+    let mut children = if let Some(&ExtendSource::Component(source_idx)) = component.get_extending()
+    {
         get_non_string_rendered_children_including_from_extend(source_idx, components)
     } else {
         Vec::new()
@@ -305,7 +306,7 @@ pub fn resolve_state_var(
             }
 
             dependency_instructions =
-                state_var.return_dependency_instructions(component.get_extend(), state_var_idx);
+                state_var.return_dependency_instructions(component.get_extending(), state_var_idx);
         }
 
         let mut dependencies_for_state_var = Vec::with_capacity(dependency_instructions.len());
@@ -375,7 +376,7 @@ pub fn resolve_state_var(
             let mut component = components[component_idx].borrow_mut();
             let state_var = &mut component.get_state_variable_mut(state_var_idx).unwrap();
 
-            state_var.set_dependencies(&dependencies_for_state_var);
+            state_var.save_dependencies(&dependencies_for_state_var);
 
             let dependencies_for_component = &mut dependency_graph.dependencies[component_idx];
 

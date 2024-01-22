@@ -91,7 +91,7 @@ pub struct Dependency {
 }
 
 /// Information which update were requested so that we can recurse
-/// and call *request_dependencies_to_update_value*
+/// and call *request_updated_dependency_values*
 /// on the state variables of those dependencies.
 ///
 /// The actual requested values for those dependencies were stored
@@ -414,87 +414,87 @@ pub fn create_dependencies_from_instruction_initialize_essential(
                     );
                 });
 
-            let mut dependencies = Vec::new();
-
             // Stores how many string children added.
             // Use it to generate the index for the EssentialDataOrigin so it points to the right string child
             let mut essential_data_index = 0;
 
-            for child in attribute_children.iter() {
-                match child {
-                    ComponentPointerTextOrMacro::Component(child_idx) => {
-                        let child = components[*child_idx].borrow();
+            let mut dependencies: Vec<_> = attribute_children
+                .iter()
+                .filter_map(|child| {
+                    match child {
+                        ComponentPointerTextOrMacro::Component(child_idx) => components[*child_idx]
+                            .borrow()
+                            .get_component_profile_state_variables()
+                            .into_iter()
+                            .find_map(|child_profile_state_var| {
+                                let child_profile = child_profile_state_var.get_matching_profile();
 
-                        let mut child_matches_with_profile = None;
-                        for child_profile_state_var in child.get_component_profile_state_variables()
-                        {
-                            let child_profile = child_profile_state_var.get_matching_profile();
+                                if match_profiles.contains(&child_profile) {
+                                    return Some(child_profile_state_var);
+                                } else {
+                                    None
+                                }
+                            })
+                            .and_then(|profile_sv| {
+                                let (state_var_view, sv_idx) =
+                                    profile_sv.into_state_variable_view_enum_and_idx();
 
-                            if match_profiles.contains(&child_profile) {
-                                child_matches_with_profile = Some(child_profile_state_var);
-                                break;
+                                let state_var_dep = Dependency {
+                                    source: DependencySource::StateVar {
+                                        component_idx: *child_idx,
+                                        state_var_idx: sv_idx,
+                                    },
+                                    value: state_var_view,
+                                };
+
+                                Some(state_var_dep)
+                            }),
+                        ComponentPointerTextOrMacro::Text(string_value) => {
+                            // Text children are just strings, and they just match the String or Text profiles
+                            if match_profiles.contains(&ComponentProfile::String)
+                                || match_profiles.contains(&ComponentProfile::Text)
+                            {
+                                let essential_origin = EssentialDataOrigin::AttributeChild(
+                                    attribute_name,
+                                    essential_data_index,
+                                );
+                                essential_data_index += 1;
+
+                                // Essential data is from parent_idx, so it will be shared with the extend_source
+                                // if the children came from an extend_source
+                                let essential_data_view = if let Some(current_view) =
+                                    essential_data[parent_idx].get(&essential_origin)
+                                {
+                                    current_view.create_new_read_only_view()
+                                } else {
+                                    let value = StateVarValueEnum::String(string_value.clone());
+                                    let new_view = create_essential_data_for(
+                                        parent_idx,
+                                        essential_origin.clone(),
+                                        InitialEssentialData::Single {
+                                            value,
+                                            used_default: false,
+                                        },
+                                        essential_data,
+                                    );
+                                    new_view.create_new_read_only_view()
+                                };
+
+                                Some(Dependency {
+                                    source: DependencySource::Essential {
+                                        component_idx: parent_idx,
+                                        origin: essential_origin,
+                                    },
+                                    value: essential_data_view,
+                                })
+                            } else {
+                                None
                             }
                         }
-
-                        if let Some(profile_sv) = child_matches_with_profile {
-                            let (state_var_view, sv_idx) =
-                                profile_sv.into_state_variable_view_enum_and_idx();
-
-                            let state_var_dep = Dependency {
-                                source: DependencySource::StateVar {
-                                    component_idx: *child_idx,
-                                    state_var_idx: sv_idx,
-                                },
-                                value: state_var_view,
-                            };
-
-                            dependencies.push(state_var_dep);
-                        }
+                        _ => None,
                     }
-                    ComponentPointerTextOrMacro::Text(string_value) => {
-                        // Text children are just strings, and they just match the String or Text profiles
-                        if match_profiles.contains(&ComponentProfile::String)
-                            || match_profiles.contains(&ComponentProfile::Text)
-                        {
-                            let essential_origin = EssentialDataOrigin::AttributeChild(
-                                attribute_name,
-                                essential_data_index,
-                            );
-
-                            // Essential data is from parent_idx, so it will be shared with the extend_source
-                            // if the children came from an extend_source
-                            let essential_data_view = if let Some(current_view) =
-                                essential_data[parent_idx].get(&essential_origin)
-                            {
-                                current_view.create_new_read_only_view()
-                            } else {
-                                let value = StateVarValueEnum::String(string_value.clone());
-                                let new_view = create_essential_data_for(
-                                    parent_idx,
-                                    essential_origin.clone(),
-                                    InitialEssentialData::Single {
-                                        value,
-                                        used_default: false,
-                                    },
-                                    essential_data,
-                                );
-                                new_view.create_new_read_only_view()
-                            };
-
-                            dependencies.push(Dependency {
-                                source: DependencySource::Essential {
-                                    component_idx: parent_idx,
-                                    origin: essential_origin,
-                                },
-                                value: essential_data_view,
-                            });
-
-                            essential_data_index += 1;
-                        }
-                    }
-                    _ => (),
-                }
-            }
+                })
+                .collect();
 
             if dependencies.is_empty() {
                 // Found no matching attribute children.
@@ -554,7 +554,7 @@ fn get_recursive_extend_source_component_when_exists(
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
     component_idx: ComponentIdx,
 ) -> ComponentIdx {
-    match &components[component_idx].borrow().get_extend() {
+    match &components[component_idx].borrow().get_extending() {
         Some(&ExtendSource::Component(source_idx)) => {
             get_recursive_extend_source_component_when_exists(components, source_idx)
         }
@@ -574,7 +574,7 @@ fn get_children_with_parent_including_from_extend_source(
     let component = components[component_idx].borrow();
 
     let mut children_vec =
-        if let Some(&ExtendSource::Component(source_idx)) = component.get_extend() {
+        if let Some(&ExtendSource::Component(source_idx)) = component.get_extending() {
             get_children_with_parent_including_from_extend_source(components, source_idx)
         } else {
             Vec::new()
@@ -603,21 +603,16 @@ fn get_attribute_children_with_parent_falling_back_to_extend_source(
 ) -> Option<(Vec<ComponentPointerTextOrMacro>, ComponentIdx)> {
     let component = components[component_idx].borrow();
 
-    let attribute_children_option = component.get_attribute_children_for_attribute(attribute);
-
-    match attribute_children_option {
-        Some(attribute_children) => {
-            // if we found the attribute but there are no children, then recurse to extend source, if it exists
+    component
+        .get_attribute_children_for_attribute(attribute)
+        .and_then(|attribute_children| {
             if attribute_children.is_empty() {
-                if let Some(&ExtendSource::Component(source_idx)) = component.get_extend() {
+                if let Some(&ExtendSource::Component(source_idx)) = component.get_extending() {
                     return get_attribute_children_with_parent_falling_back_to_extend_source(
                         components, source_idx, attribute,
                     );
                 }
             }
-
             Some((attribute_children.clone(), component_idx))
-        }
-        None => None,
-    }
+        })
 }

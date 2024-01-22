@@ -30,7 +30,7 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
             let mut state_var_return_dependency_instructions_arms = Vec::new();
             let mut state_var_calculate_state_var_from_dependencies_and_mark_fresh_arms =
                 Vec::new();
-            let mut state_var_request_dependencies_to_update_value_arms = Vec::new();
+            let mut state_var_request_updated_dependency_values_arms = Vec::new();
             let mut state_var_return_default_value_arms = Vec::new();
 
 
@@ -94,7 +94,7 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
 
                 state_var_return_dependency_instructions_arms.push(quote! {
                     #enum_ident::#variant_ident(sv) => {
-                        sv.return_dependency_instructions(extend_source, state_var_idx)
+                        sv.return_dependency_instructions(extending, state_var_idx)
                     },
                 });
 
@@ -105,9 +105,9 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
                     },
                 });
 
-                state_var_request_dependencies_to_update_value_arms.push(quote! {
+                state_var_request_updated_dependency_values_arms.push(quote! {
                     #enum_ident::#variant_ident(sv) => {
-                        sv.request_dependencies_to_update_value(is_direct_change_from_renderer)
+                        sv.request_updated_dependency_values(is_direct_change_from_renderer)
                     },
                 });
 
@@ -197,7 +197,7 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
 
                     /// Records on the state variable the requested value of the state variable.
                     /// This requested value will be used in a future call to
-                    /// `request_dependencies_to_update_value()`.
+                    /// `request_updated_dependency_values()`.
                     ///
                     /// Panics if the type of requested_value does not match the type of this StateVarEnum.
                     pub fn request_change_value_to(&self, requested_val: StateVarValueEnum) {
@@ -220,7 +220,7 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
 
                     /// Return a vector dependency instructions, which will be used to
                     /// calculate dependencies from the document structure.
-                    pub fn return_dependency_instructions(&self, extend_source: Option<&ExtendSource>, state_var_idx: StateVarIdx) -> Vec<DependencyInstruction> {
+                    pub fn return_dependency_instructions(&self, extending: Option<&ExtendSource>, state_var_idx: StateVarIdx) -> Vec<DependencyInstruction> {
                         match self {
                             #(#state_var_return_dependency_instructions_arms)*
                         }
@@ -232,7 +232,7 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
                     /// Panics if any of the state variables of the dependencies are not fresh.
                     ///
                     /// Uses the dependencies that were saved to the state variable
-                    /// with a call to `set_dependencies()`.
+                    /// with a call to `save_dependencies()`.
                     ///
                     /// The value is stored in the state variable and can be retrieved by calling
                     /// `get_fresh_value()`.
@@ -256,12 +256,12 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
                     /// The `is_direct_change_from_renderer` argument is true if the requested value
                     /// came directly from an action of the renderer
                     /// (as opposed to coming from another state variable that depends on this variable).
-                    pub fn request_dependencies_to_update_value(
+                    pub fn request_updated_dependency_values(
                         &self,
                         is_direct_change_from_renderer: bool,
                     ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
                         match self {
-                            #(#state_var_request_dependencies_to_update_value_arms)*
+                            #(#state_var_request_updated_dependency_values_arms)*
                         }
                     }
 
@@ -301,7 +301,7 @@ pub fn state_var_methods_mut_derive(input: TokenStream) -> TokenStream {
             let enum_ident = name;
 
             let mut state_var_record_all_dependencies_viewed_arms = Vec::new();
-            let mut state_var_set_dependencies_arms = Vec::new();
+            let mut state_var_save_dependencies_arms = Vec::new();
 
             for variant in variants {
                 let variant_ident = &variant.ident;
@@ -313,9 +313,9 @@ pub fn state_var_methods_mut_derive(input: TokenStream) -> TokenStream {
                     },
                 });
 
-                state_var_set_dependencies_arms.push(quote! {
+                state_var_save_dependencies_arms.push(quote! {
                     #enum_ident::#variant_ident(sv) => {
-                        sv.set_dependencies(dependencies)
+                        sv.save_dependencies(dependencies)
                     },
                 });
             }
@@ -340,10 +340,10 @@ pub fn state_var_methods_mut_derive(input: TokenStream) -> TokenStream {
                     ///
                     /// The dependencies are saved to the state variable and will be used
                     /// in calls to `calculate_state_var_from_dependencies_and_mark_fresh()`
-                    /// and `request_dependencies_to_update_value()`.
-                    pub fn set_dependencies(&mut self, dependencies: &Vec<Vec<Dependency>>) {
+                    /// and `request_updated_dependency_values()`.
+                    pub fn save_dependencies(&mut self, dependencies: &Vec<Vec<Dependency>>) {
                         match self {
-                            #(#state_var_set_dependencies_arms)*
+                            #(#state_var_save_dependencies_arms)*
                         }
                     }
 

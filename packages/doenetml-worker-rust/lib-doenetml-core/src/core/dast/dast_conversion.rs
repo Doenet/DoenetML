@@ -20,7 +20,7 @@ pub fn to_flat_dast(
 
         // if extending a source that is a component,
         // add children from that source first
-        children = if let Some(ExtendSource::Component(source_idx)) = component.get_extend() {
+        children = if let Some(ExtendSource::Component(source_idx)) = component.get_extending() {
             let source_dast = to_flat_dast(*source_idx, components);
 
             source_dast.children
@@ -50,7 +50,7 @@ pub fn to_flat_dast(
 
     let attributes = component.get_unevaluated_attributes().clone();
 
-    let rendered_state = if component.get_is_rendered() {
+    let rendered_state = if component.get_is_in_render_tree() {
         component.return_rendered_state()
     } else {
         None

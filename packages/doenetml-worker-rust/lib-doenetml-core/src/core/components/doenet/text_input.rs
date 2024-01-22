@@ -197,7 +197,7 @@ struct ValueStateVarInterface {
 impl StateVarInterface<String> for ValueStateVarInterface {
     fn return_dependency_instructions(
         &self,
-        _extend_source: Option<&ExtendSource>,
+        _extending: Option<&ExtendSource>,
         _parameters: &StateVarParameters,
         _state_var_idx: StateVarIdx,
     ) -> Vec<DependencyInstruction> {
@@ -210,7 +210,7 @@ impl StateVarInterface<String> for ValueStateVarInterface {
         ]
     }
 
-    fn save_dependencies_for_value_calculation(&mut self, dependencies: &Vec<Vec<Dependency>>) {
+    fn save_dependencies(&mut self, dependencies: &Vec<Vec<Dependency>>) {
         self.essential_value = (&dependencies[0][0].value).try_into().unwrap();
         self.immediate_value = (&dependencies[1][0].value).try_into().unwrap();
         self.sync_immediate_value = (&dependencies[2][0].value).try_into().unwrap();
@@ -249,19 +249,19 @@ impl StateVarInterface<String> for ValueStateVarInterface {
         }
     }
 
-    fn request_dependencies_to_update_value(
+    fn request_updated_dependency_values(
         &self,
         state_var: &StateVarReadOnlyView<String>,
         _is_direct_change_from_renderer: bool,
     ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
-        let desired_value = state_var.get_requested_value();
+        let requested_value = state_var.get_requested_value();
         let bind_value_to_used_default = self.bind_value_to.get_used_default();
 
         if bind_value_to_used_default {
             self.essential_value
-                .request_change_value_to(desired_value.clone());
+                .request_change_value_to(requested_value.clone());
             self.immediate_value
-                .request_change_value_to(desired_value.clone());
+                .request_change_value_to(requested_value.clone());
             self.sync_immediate_value.request_change_value_to(true);
 
             Ok(vec![
@@ -280,7 +280,7 @@ impl StateVarInterface<String> for ValueStateVarInterface {
             ])
         } else {
             self.bind_value_to
-                .request_change_value_to(desired_value.clone());
+                .request_change_value_to(requested_value.clone());
             self.sync_immediate_value.request_change_value_to(true);
 
             Ok(vec![
@@ -308,7 +308,7 @@ struct ImmediateValueStateVarInterface {
 impl StateVarInterface<String> for ImmediateValueStateVarInterface {
     fn return_dependency_instructions(
         &self,
-        _extend_source: Option<&ExtendSource>,
+        _extending: Option<&ExtendSource>,
         _parameters: &StateVarParameters,
         _state_var_idx: StateVarIdx,
     ) -> Vec<DependencyInstruction> {
@@ -320,7 +320,7 @@ impl StateVarInterface<String> for ImmediateValueStateVarInterface {
         ]
     }
 
-    fn save_dependencies_for_value_calculation(&mut self, dependencies: &Vec<Vec<Dependency>>) {
+    fn save_dependencies(&mut self, dependencies: &Vec<Vec<Dependency>>) {
         self.essential_value = (&dependencies[0][0].value).try_into().unwrap();
         self.sync_immediate_value = (&dependencies[1][0].value).try_into().unwrap();
         self.bind_value_to = (&dependencies[2][0].value).try_into().unwrap();
@@ -355,18 +355,18 @@ impl StateVarInterface<String> for ImmediateValueStateVarInterface {
         }
     }
 
-    fn request_dependencies_to_update_value(
+    fn request_updated_dependency_values(
         &self,
         state_var: &StateVarReadOnlyView<String>,
         is_direct_change_from_renderer: bool,
     ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
-        let desired_value = state_var.get_requested_value();
+        let requested_value = state_var.get_requested_value();
 
         let mut updates = Vec::with_capacity(2);
         let bind_value_to_used_default = self.bind_value_to.get_used_default();
 
         self.essential_value
-            .request_change_value_to(desired_value.clone());
+            .request_change_value_to(requested_value.clone());
 
         updates.push(DependencyValueUpdateRequest {
             instruction_idx: 0,
@@ -375,7 +375,7 @@ impl StateVarInterface<String> for ImmediateValueStateVarInterface {
 
         if !is_direct_change_from_renderer && !bind_value_to_used_default {
             self.bind_value_to
-                .request_change_value_to(desired_value.clone());
+                .request_change_value_to(requested_value.clone());
 
             updates.push(DependencyValueUpdateRequest {
                 instruction_idx: 2,
@@ -395,14 +395,14 @@ struct SyncImmediateValueStateVarInterface {
 impl StateVarInterface<bool> for SyncImmediateValueStateVarInterface {
     fn return_dependency_instructions(
         &self,
-        _extend_source: Option<&ExtendSource>,
+        _extending: Option<&ExtendSource>,
         _parameters: &StateVarParameters,
         _state_var_idx: StateVarIdx,
     ) -> Vec<DependencyInstruction> {
         vec![DependencyInstruction::Essential]
     }
 
-    fn save_dependencies_for_value_calculation(&mut self, dependencies: &Vec<Vec<Dependency>>) {
+    fn save_dependencies(&mut self, dependencies: &Vec<Vec<Dependency>>) {
         self.essential_value = (&dependencies[0][0].value).try_into().unwrap();
     }
 
@@ -413,14 +413,15 @@ impl StateVarInterface<bool> for SyncImmediateValueStateVarInterface {
         state_var.set_value(*self.essential_value.get_fresh_value());
     }
 
-    fn request_dependencies_to_update_value(
+    fn request_updated_dependency_values(
         &self,
         state_var: &StateVarReadOnlyView<bool>,
         _is_direct_change_from_renderer: bool,
     ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
-        let desired_value = state_var.get_requested_value();
+        let requested_value = state_var.get_requested_value();
 
-        self.essential_value.request_change_value_to(*desired_value);
+        self.essential_value
+            .request_change_value_to(*requested_value);
 
         Ok(vec![DependencyValueUpdateRequest {
             instruction_idx: 0,
