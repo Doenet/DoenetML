@@ -1,5 +1,6 @@
 use convert_case::{Case, Casing};
 use proc_macro::TokenStream;
+use proc_macro2::{Ident, Span};
 use quote::quote;
 use syn::{self, FieldsNamed};
 
@@ -143,6 +144,46 @@ pub fn rendered_component_node_derive(input: TokenStream) -> TokenStream {
             }
             _ => panic!("only named fields supported"),
         },
+        _ => panic!("only structs supported"),
+    };
+    output.into()
+}
+
+pub fn rendered_state_derive(input: TokenStream) -> TokenStream {
+    let ast: syn::DeriveInput = syn::parse(input).unwrap();
+    let data = &ast.data;
+
+    let output = match data {
+        syn::Data::Enum(v) => {
+            let variants = &v.variants;
+
+            let mut rendered_state_arms = Vec::new();
+
+            for variant in variants {
+                let variant_ident = &variant.ident;
+                let state_variables_name = format!("{}StateVariables", variant_ident.to_string());
+                let rendered_state_variables_name = format!("Rendered{}", state_variables_name);
+                let state_variables_identity = Ident::new(&state_variables_name, Span::call_site());
+                let rendered_state_variables_identity =
+                    Ident::new(&rendered_state_variables_name, Span::call_site());
+
+                rendered_state_arms.push(quote! {
+                    #state_variables_identity(#rendered_state_variables_identity),
+                })
+            }
+
+            quote! {
+                /// A enum listing the renderer data for each component.
+                ///
+                /// Used for sending state to the renderer
+                #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+                #[serde(untagged)]
+                pub enum RenderedState {
+                    #(#rendered_state_arms)*
+                }
+
+            }
+        }
         _ => panic!("only enums supported"),
     };
     output.into()

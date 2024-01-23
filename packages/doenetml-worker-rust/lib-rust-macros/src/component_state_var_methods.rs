@@ -191,6 +191,8 @@ pub fn component_state_variables_derive(input: TokenStream) -> TokenStream {
                             Ident::new(&get_index_function_name, Span::call_site());
 
                         get_state_variable_index_functions.push(quote! {
+                            /// Get a state variable index
+                            /// of the specified state variable
                             fn #get_index_function_identity() -> StateVarIdx {
                                 #sv_idx
                             }
@@ -202,6 +204,8 @@ pub fn component_state_variables_derive(input: TokenStream) -> TokenStream {
                             Ident::new(&get_instructions_function_name, Span::call_site());
 
                         get_value_dependency_instructions_functions.push(quote! {
+                            /// Get a `DependencyInstruction` that requests the value
+                            /// of the specified state variable
                             fn #get_instruction_function_identity() -> DependencyInstruction {
                                 DependencyInstruction::StateVar {
                                     component_idx: None,
@@ -295,6 +299,11 @@ pub fn component_state_variables_derive(input: TokenStream) -> TokenStream {
 
                         }
 
+                        /// Structure containing the values of a component's state variables
+                        /// that were designated `for_renderer`.
+                        ///
+                        /// Each field is an Option so that partial data can be sent
+                        /// when the values of just some variables were updated.
                         #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Default)]
                         #[serde(rename_all = "camelCase")]
                         pub struct #rendered_state_variables_identity {

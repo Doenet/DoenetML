@@ -1,6 +1,8 @@
 extern crate proc_macro2;
 
-use component_node::{component_node_derive, rendered_component_node_derive};
+use component_node::{
+    component_node_derive, rendered_component_node_derive, rendered_state_derive,
+};
 use component_state_var_methods::component_state_variables_derive;
 use proc_macro::TokenStream;
 use state_var_methods::{
@@ -54,4 +56,27 @@ pub fn into_state_var_enum_refs_derive_wrapper(input: TokenStream) -> TokenStrea
 )]
 pub fn component_state_variables_derive_wrapper(input: TokenStream) -> TokenStream {
     component_state_variables_derive(input)
+}
+
+/// Derives the RenderedState enum
+///
+/// This derive macro is designed to be applied to the `ComponentEnum` listing all component types.
+///
+/// It creates a parallel `RenderedState` enum whose variant names and field types
+/// are based on the variant names from the `ComponentEnum`.
+///
+/// The variant names append `StateVariables` to the variant from `ComponentEnum`.
+///
+/// The field types prepend `Rendered` to the variant names. These structures
+/// are created by the `ComponentStateVariables` macro applied
+/// to the components state variable struct.
+///
+/// For example, the component type `Text` has a `TextStateVariables` struct,
+/// and the `ComponentStateVariables` macro creates the `RenderedTextStateVariables` struct.
+/// Since the `ComponentEnum` has a `Text` variant, the `RenderedState` macros
+/// adds the variant `TextStateVariables(RenderedTextStateVariables)`
+/// to the `RenderedState` enum.
+#[proc_macro_derive(RenderedState)]
+pub fn rendered_state_derive_wrapper(input: TokenStream) -> TokenStream {
+    rendered_state_derive(input)
 }

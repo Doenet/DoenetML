@@ -13,14 +13,16 @@ use crate::state::{
 };
 use crate::{ComponentIdx, ComponentPointerTextOrMacro, ExtendSource};
 
-use super::_error::{Rendered_ErrorStateVariables, _Error};
-use super::_external::{Rendered_ExternalStateVariables, _External};
-use super::doenet::boolean::{Boolean, RenderedBooleanStateVariables};
-use super::doenet::document::{Document, RenderedDocumentStateVariables};
-use super::doenet::p::{RenderedPStateVariables, P};
-use super::doenet::section::{RenderedSectionStateVariables, Section};
-use super::doenet::text::{RenderedTextStateVariables, Text};
-use super::doenet::text_input::{RenderedTextInputStateVariables, TextInput, TextInputAction};
+use doenetml_derive::RenderedState;
+
+use super::_error::*;
+use super::_external::*;
+use super::doenet::boolean::*;
+use super::doenet::document::*;
+use super::doenet::p::*;
+use super::doenet::section::*;
+use super::doenet::text::*;
+use super::doenet::text_input::*;
 
 /// A enum that can contain a component of any possible component type.
 ///
@@ -28,7 +30,7 @@ use super::doenet::text_input::{RenderedTextInputStateVariables, TextInput, Text
 /// to allow easy access to the methods.
 ///
 /// Each component type added to `ComponentEnum` must implement that component node traits.
-#[derive(Debug, EnumString)]
+#[derive(Debug, EnumString, RenderedState)]
 #[enum_dispatch(ComponentNode, ComponentStateVariables, RenderedComponentNode)]
 #[strum(ascii_case_insensitive)]
 pub enum ComponentEnum {
@@ -51,22 +53,6 @@ pub enum ComponentEnum {
 #[cfg_attr(feature = "web", tsify(from_wasm_abi))]
 pub enum ActionsEnum {
     TextInput(TextInputAction),
-}
-
-/// A enum listing the renderer data for each component.
-///
-/// Used for sending state to the renderer
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(untagged)]
-pub enum RenderedState {
-    TextStateVariables(RenderedTextStateVariables),
-    TextInputStateVariables(RenderedTextInputStateVariables),
-    BooleanStateVariables(RenderedBooleanStateVariables),
-    DocumentStateVariables(RenderedDocumentStateVariables),
-    PStateVariables(RenderedPStateVariables),
-    SectionStateVariables(RenderedSectionStateVariables),
-    _ErrorStateVariables(Rendered_ErrorStateVariables),
-    _ExternalStateVariables(Rendered_ExternalStateVariables),
 }
 
 #[derive(Debug, Default)]
