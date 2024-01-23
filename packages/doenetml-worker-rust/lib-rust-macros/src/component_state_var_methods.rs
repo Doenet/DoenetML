@@ -58,12 +58,12 @@ pub fn component_state_variables_derive(input: TokenStream) -> TokenStream {
                                 self.state.get_state_variable_index_from_name(name)
                             }
 
-                            fn get_state_variable_index_from_name_case_insensitive(
-                                &self,
-                                name: &str,
-                            ) -> Option<StateVarIdx> {
-                                self.state.get_state_variable_index_from_name_case_insensitive(name)
-                            }
+                            // fn get_state_variable_index_from_name_case_insensitive(
+                            //     &self,
+                            //     name: &str,
+                            // ) -> Option<StateVarIdx> {
+                            //     self.state.get_state_variable_index_from_name_case_insensitive(name)
+                            // }
 
                             fn get_component_profile_state_variables(&self) -> Vec<ComponentProfileStateVariable> {
                                 self.state.get_component_profile_state_variables()
@@ -101,7 +101,7 @@ pub fn component_state_variables_derive(input: TokenStream) -> TokenStream {
                     let mut get_state_variable_arms = Vec::new();
                     let mut get_state_variable_mut_arms = Vec::new();
                     let mut get_state_variable_index_from_name_arms = Vec::new();
-                    let mut get_state_variable_index_from_name_case_insensitive_arms = Vec::new();
+                    // let mut get_state_variable_index_from_name_case_insensitive_arms = Vec::new();
                     let mut get_public_state_variable_index_from_name_case_insensitive_arms =
                         Vec::new();
                     let mut get_component_profile_state_variables_items = Vec::new();
@@ -132,9 +132,9 @@ pub fn component_state_variables_derive(input: TokenStream) -> TokenStream {
                             #field_camel_case => Some(#sv_idx),
                         });
 
-                        get_state_variable_index_from_name_case_insensitive_arms.push(quote! {
-                            x if x.eq_ignore_ascii_case(#field_camel_case) => Some(#sv_idx),
-                        });
+                        // get_state_variable_index_from_name_case_insensitive_arms.push(quote! {
+                        //     x if x.eq_ignore_ascii_case(#field_camel_case) => Some(#sv_idx),
+                        // });
 
                         if check_if_field_has_attribute(&named[sv_idx], "is_public") {
                             get_public_state_variable_index_from_name_case_insensitive_arms.push(
@@ -244,15 +244,15 @@ pub fn component_state_variables_derive(input: TokenStream) -> TokenStream {
                                 }
                             }
 
-                            fn get_state_variable_index_from_name_case_insensitive(
-                                &self,
-                                name: &str,
-                            ) -> Option<StateVarIdx> {
-                                match name {
-                                    #(#get_state_variable_index_from_name_case_insensitive_arms)*
-                                    _ => None,
-                                }
-                            }
+                            // fn get_state_variable_index_from_name_case_insensitive(
+                            //     &self,
+                            //     name: &str,
+                            // ) -> Option<StateVarIdx> {
+                            //     match name {
+                            //         #(#get_state_variable_index_from_name_case_insensitive_arms)*
+                            //         _ => None,
+                            //     }
+                            // }
 
                             fn get_public_state_variable_index_from_name_case_insensitive(
                                 &self,

@@ -57,23 +57,47 @@ pub enum ActionsEnum {
 
 #[derive(Debug, Default)]
 pub struct ComponentCommonData {
+    /// The index of this component, which is its index
+    /// in the `components` vector on core.
     pub idx: ComponentIdx,
+
+    /// The index of this component's parent
     pub parent: Option<ComponentIdx>,
+
+    /// The vector of this component's children,
+    /// where components are specified by their index and strings contain their literal values.
+    ///
+    /// Macros remain in this vector only if they couldn't be expanded.
+    /// TODO: implement function macros so they don't stay in this vector
     pub children: Vec<ComponentPointerTextOrMacro>,
 
+    /// If this component is extending another component or state variable,
+    /// then the `extending` field gives the source that it is extending.
     pub extending: Option<ExtendSource>,
 
-    // map of descendant names to their indices
+    /// A map of descendant names to their indices.
+    ///
+    /// In particular, if a name appears exactly once (i.e., the vector is length 1),
+    /// then a macro referencing that name can be expanded into a component the extends
+    /// that descendant
     pub descendant_names: HashMap<String, Vec<ComponentIdx>>,
 
+    /// The position of the component in the original DoenetML string
     pub position: Option<DastPosition>,
 
     pub attribute_types: HashMap<AttributeName, AttributeType>,
 
+    /// The vector of all the attribute children that have been created for this attribute.
     pub attribute_children: HashMap<AttributeName, Vec<ComponentPointerTextOrMacro>>,
 
+    /// Any remaining attributes that appeared in the DoenetML
+    /// but where not defined in the component
     pub unevaluated_attributes: HashMap<String, DastAttribute>,
 
+    /// Whether or not this component is to be rendered, i.e.,
+    /// whether or not it is in the tree of rendered components.
+    ///
+    /// Used to determine if its rendered state variables need to be freshened and set to the renderer.
     pub is_in_render_tree: bool,
 }
 
@@ -136,6 +160,7 @@ pub trait ComponentNode: ComponentStateVariables {
         attribute_children: HashMap<AttributeName, Vec<ComponentPointerTextOrMacro>>,
     );
 
+    /// Get the vector of all the attribute children that have been created for this attribute.
     fn get_attribute_children_for_attribute(
         &self,
         attribute: AttributeName,
@@ -153,12 +178,14 @@ pub trait ComponentNode: ComponentStateVariables {
     /// but then attributes that are defined for the component are removed.
     fn get_unevaluated_attributes_mut(&mut self) -> &mut HashMap<String, DastAttribute>;
 
-    /// Get whether or not this component is to be rendered.
+    /// Get whether or not this component is to be rendered, i.e.,
+    /// whether or not it is in the tree of rendered components.
     ///
     /// Used to determine if its rendered state variables need to be freshened and set to the renderer.
     fn get_is_in_render_tree(&self) -> bool;
 
-    /// Set whether or not this component is to be rendered.
+    /// Set whether or not this component is to be rendered, i.e.,
+    /// whether or not it is in the tree of rendered components.
     ///
     /// Used to determine if its rendered state variables need to be freshened and set to the renderer.
     fn set_is_in_render_tree(&mut self, is_in_render_tree: bool);
