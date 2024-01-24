@@ -194,7 +194,13 @@ impl StateVarInterface<bool> for GeneralBooleanStateVarInterface {
 /// that doesn't result in at least one string dependency.
 #[derive(Debug, Default)]
 pub struct SingleDependencyBooleanStateVarInterface {
-    boolean_dependency_value: StateVarReadOnlyView<bool>,
+    dependency_instructions: SingleDependencyBooleanDependencyInstructions,
+    dependency_values: SingleDependencyBooleanDependencies,
+}
+
+#[derive(Debug, Default, StateVariableDependencies, StateVariableDependencyInstructions)]
+struct SingleDependencyBooleanDependencies {
+    boolean: StateVarReadOnlyView<bool>,
 }
 
 impl StateVarInterface<bool> for SingleDependencyBooleanStateVarInterface {
@@ -209,7 +215,10 @@ impl StateVarInterface<bool> for SingleDependencyBooleanStateVarInterface {
         }
 
         if let Some(dependency_instruction) = &parameters.dependency_instruction_hint {
-            vec![dependency_instruction.clone()]
+            self.dependency_instructions = SingleDependencyBooleanDependencyInstructions {
+                boolean: Some(dependency_instruction.clone()),
+            };
+            self.dependency_instructions.instructions_as_vec()
         } else {
             panic!(
                 "SingleDependencyBooleanStateVarInterface requires a dependency_instruction_hint"
@@ -225,14 +234,14 @@ impl StateVarInterface<bool> for SingleDependencyBooleanStateVarInterface {
         let dep_val = &dependencies[0][0].value;
 
         if let StateVarReadOnlyViewEnum::Boolean(boolean_val) = dep_val {
-            self.boolean_dependency_value = boolean_val.create_new_read_only_view();
+            self.dependency_values.boolean = boolean_val.create_new_read_only_view();
         } else {
             panic!("Got a non-boolean value for a dependency for a SingleDependencyBooleanStateVarInterface");
         }
     }
 
     fn calculate_state_var_from_dependencies(&self, state_var: &StateVarMutableView<bool>) {
-        state_var.set_value(*self.boolean_dependency_value.get());
+        state_var.set_value(*self.dependency_values.boolean.get());
     }
 
     fn request_updated_dependency_values(
@@ -240,7 +249,8 @@ impl StateVarInterface<bool> for SingleDependencyBooleanStateVarInterface {
         state_var: &StateVarReadOnlyView<bool>,
         _is_direct_change_from_renderer: bool,
     ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
-        self.boolean_dependency_value
+        self.dependency_values
+            .boolean
             .request_change_value_to(*state_var.get_requested_value());
 
         Ok(vec![DependencyValueUpdateRequest {

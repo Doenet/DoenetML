@@ -8,7 +8,7 @@ use crate::{
     state::essential_state::{EssentialDataOrigin, EssentialStateDescription, EssentialStateVar},
     state::state_var_calculations::StateVariableUpdateRequest,
     state::Freshness,
-    ComponentIdx, CoreBookkeeping, DependencyGraph,
+    ComponentIdx, CoreProcessingState, DependencyGraph,
 };
 
 use super::{ComponentStateVariables, StateVarPointer};
@@ -25,13 +25,13 @@ pub fn process_state_variable_update_request(
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
     dependency_graph: &mut DependencyGraph,
     essential_data: &mut Vec<HashMap<EssentialDataOrigin, EssentialStateVar>>,
-    bookkeeping: &mut CoreBookkeeping,
+    processing_state: &mut CoreProcessingState,
 ) {
     // This function currently implements recursion through an iterative method,
     // using a stack on the heap.
     // See comment in freshen_state_var for the motivation.
 
-    let update_stack = &mut bookkeeping.update_stack;
+    let update_stack = &mut processing_state.update_stack;
     update_stack.push(initial_update_request);
 
     let mut is_direct_change_from_renderer = true;
@@ -57,8 +57,8 @@ pub fn process_state_variable_update_request(
                     &essential_state,
                     components,
                     dependency_graph,
-                    &mut bookkeeping.stale_renderers,
-                    &mut bookkeeping.mark_stale_stack,
+                    &mut processing_state.stale_renderers,
+                    &mut processing_state.mark_stale_stack,
                 );
             }
 

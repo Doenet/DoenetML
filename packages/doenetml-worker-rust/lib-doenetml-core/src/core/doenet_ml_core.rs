@@ -74,7 +74,7 @@ pub struct DoenetMLCore {
     ///   as it doesn't need a *StateVarInterface*.)
     pub essential_data: Vec<HashMap<EssentialDataOrigin, EssentialStateVar>>,
 
-    pub bookkeeping: CoreBookkeeping,
+    pub processing_state: CoreProcessingState,
 
     pub warnings: Vec<DastWarning>,
 
@@ -130,7 +130,7 @@ pub struct DependencyGraph {
 }
 
 #[derive(Debug)]
-pub struct CoreBookkeeping {
+pub struct CoreProcessingState {
     /// List of the rendered components that have stale `for_renderer` state variables.
     pub stale_renderers: Vec<ComponentIdx>,
 
@@ -288,7 +288,7 @@ impl DoenetMLCore {
                 dependent_on_essential,
             },
             essential_data,
-            bookkeeping: CoreBookkeeping {
+            processing_state: CoreProcessingState {
                 stale_renderers,
                 freshen_stack: Vec::new(),
                 mark_stale_stack: Vec::new(),
@@ -305,7 +305,7 @@ impl DoenetMLCore {
     /// Returns a vector of the indices of the components reached.
     pub fn freshen_renderer_state(&mut self) -> Vec<ComponentIdx> {
         freshen_all_stale_renderer_states(
-            &mut self.bookkeeping,
+            &mut self.processing_state,
             &self.components,
             &mut self.dependency_graph,
             &mut self.essential_data,
@@ -343,7 +343,7 @@ impl DoenetMLCore {
                 &self.components,
                 &mut self.dependency_graph,
                 &mut self.essential_data,
-                &mut self.bookkeeping.freshen_stack,
+                &mut self.processing_state.freshen_stack,
             )
         };
 
@@ -397,7 +397,7 @@ impl DoenetMLCore {
                     &self.components,
                     &mut self.dependency_graph,
                     &mut self.essential_data,
-                    &mut self.bookkeeping,
+                    &mut self.processing_state,
                 );
             }
         }

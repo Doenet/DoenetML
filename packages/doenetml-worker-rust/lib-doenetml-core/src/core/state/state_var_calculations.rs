@@ -8,7 +8,7 @@ use crate::{
     },
     state::essential_state::{EssentialDataOrigin, EssentialStateDescription, EssentialStateVar},
     state::{Freshness, StateVarValueEnum},
-    ComponentIdx, ComponentPointerTextOrMacro, CoreBookkeeping, DependencyGraph, ExtendSource,
+    ComponentIdx, ComponentPointerTextOrMacro, CoreProcessingState, DependencyGraph, ExtendSource,
 };
 
 use super::{ComponentStateVariables, StateVarPointer};
@@ -49,12 +49,12 @@ pub enum StateVariableUpdateRequest {
 ///
 /// Returns a vector of the indices of the components reached.
 pub fn freshen_all_stale_renderer_states(
-    bookkeeping: &mut CoreBookkeeping,
+    processing_state: &mut CoreProcessingState,
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
     dependency_graph: &mut DependencyGraph,
     essential_data: &mut Vec<HashMap<EssentialDataOrigin, EssentialStateVar>>,
 ) -> Vec<usize> {
-    let stale_renderers = &mut bookkeeping.stale_renderers;
+    let stale_renderers = &mut processing_state.stale_renderers;
 
     // recursively get a list of all rendered descendants of the components in stale_renderers
     let mut stale_renderer_idx = 0;
@@ -92,7 +92,7 @@ pub fn freshen_all_stale_renderer_states(
                 components,
                 dependency_graph,
                 essential_data,
-                &mut bookkeeping.freshen_stack,
+                &mut processing_state.freshen_stack,
             );
         }
     }

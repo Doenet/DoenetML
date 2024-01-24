@@ -128,8 +128,7 @@ pub fn create_dependencies_from_instruction_initialize_essential(
         DependencyInstruction::Essential => {
             // We recurse to extend source components so that this essential data
             // is shared with the extend source any any other components that extend from it.
-            let source_idx =
-                get_recursive_extend_source_component_when_exists(components, component_idx);
+            let source_idx = get_extend_source_origin(components, component_idx);
 
             let essential_origin = EssentialDataOrigin::StateVar(state_var_idx);
 
@@ -367,8 +366,7 @@ pub fn create_dependencies_from_instruction_initialize_essential(
                 // of the component, except recursing to extend source components
                 // in order to share the essential data with the extend source.
 
-                let source_idx =
-                    get_recursive_extend_source_component_when_exists(components, component_idx);
+                let source_idx = get_extend_source_origin(components, component_idx);
 
                 let essential_origin = EssentialDataOrigin::StringChild(0);
 
@@ -515,8 +513,7 @@ pub fn create_dependencies_from_instruction_initialize_essential(
                 // of the component, except recursing to extend source components
                 // in order to share the essential data with the extend source.
 
-                let source_idx =
-                    get_recursive_extend_source_component_when_exists(components, component_idx);
+                let source_idx = get_extend_source_origin(components, component_idx);
 
                 let essential_origin = EssentialDataOrigin::AttributeChild(attribute_name, 0);
 
@@ -560,13 +557,13 @@ pub fn create_dependencies_from_instruction_initialize_essential(
 ///
 /// When we store essential data, we store it with this original source name,
 /// allowing copies to share the same essential data as the source.
-fn get_recursive_extend_source_component_when_exists(
+fn get_extend_source_origin(
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
     component_idx: ComponentIdx,
 ) -> ComponentIdx {
     match &components[component_idx].borrow().get_extending() {
         Some(&ExtendSource::Component(source_idx)) => {
-            get_recursive_extend_source_component_when_exists(components, source_idx)
+            get_extend_source_origin(components, source_idx)
         }
         _ => component_idx,
     }
