@@ -49,8 +49,5 @@ jobs:
                   components: rustfmt, clippy
 
             - name: Cargo fmt
-              uses: actions-rs/cargo@v1
-              with:
-                  working-directory: ./packages/doenetml-worker-rust
-                  command: fmt
-                  args: --all -- --check
+              working-directory: ./packages/doenetml-worker-rust
+              run: cargo fmt --all -- --check
