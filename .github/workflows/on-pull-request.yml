@@ -55,3 +55,24 @@ jobs:
             - name: Cargo clippy
               working-directory: ./packages/doenetml-worker-rust
               run: cargo clippy -- -D warnings
+
+    lint-ts:
+        name: Lint Typescript Code
+        runs-on: ubuntu-latest
+
+        strategy:
+            matrix:
+                node-version: [18.x]
+
+        steps:
+            - name: Checkout sources
+              uses: actions/checkout@v3
+            - name: Use Node.js ${{ matrix.node-version }}
+              uses: actions/setup-node@v3
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "npm"
+            - run: npm ci
+
+            - name: Prettier Check
+              run: npx prettier . --check
