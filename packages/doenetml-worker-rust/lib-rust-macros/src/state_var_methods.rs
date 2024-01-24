@@ -697,7 +697,6 @@ pub fn into_state_var_enum_refs_derive(input: TokenStream) -> TokenStream {
                                     StateVarEnumRefMut::#variant_ident(sv_ref)
                                 }
                             }
-                            
                         });
 
                         impl_try_from_read_only_enum_to_ready_only_view_variants.push(quote! {
