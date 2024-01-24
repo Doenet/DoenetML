@@ -179,7 +179,7 @@ impl StateVarInterface<bool> for GeneralBooleanStateVarInterface {
                 }
             }
         } else {
-            return Err(RequestDependencyUpdateError::CouldNotUpdate);
+            Err(RequestDependencyUpdateError::CouldNotUpdate)
         }
     }
 }
