@@ -105,10 +105,7 @@ impl StateVarInterface<bool> for GeneralBooleanStateVarInterface {
             .dependency_values
             .booleans_or_strings
             .iter()
-            .any(|dep_value| match dep_value {
-                BooleanOrString::Boolean(_) => true,
-                _ => false,
-            })
+            .any(|dep_value| matches!(dep_value, BooleanOrString::Boolean(_)))
         {
             // have more than one dependency and at least one boolean dependency
             self.have_invalid_combination = true;

@@ -447,15 +447,13 @@ pub fn create_dependencies_from_instruction_initialize_essential(
                                 let (state_var_view, sv_idx) =
                                     profile_sv.into_state_variable_view_enum_and_idx();
 
-                                let state_var_dep = Dependency {
+                                Dependency {
                                     source: DependencySource::StateVar {
                                         component_idx: *child_idx,
                                         state_var_idx: sv_idx,
                                     },
                                     value: state_var_view,
-                                };
-
-                                state_var_dep
+                                }
                             }),
                         ComponentPointerTextOrMacro::Text(string_value) => {
                             // Text children are just strings, and they just match the String or Text profiles

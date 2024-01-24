@@ -34,10 +34,10 @@ pub fn component_state_variables_derive(input: TokenStream) -> TokenStream {
                 // or check if each field is a state variable.
                 let is_component_struct = field_identities
                     .iter()
-                    .any(|ident| ident.to_string() == "common")
+                    .any(|ident| *ident == "common")
                     && field_identities
                         .iter()
-                        .any(|ident| ident.to_string() == "state");
+                        .any(|ident| *ident == "state");
 
                 if is_component_struct {
                     quote! {
@@ -115,7 +115,7 @@ pub fn component_state_variables_derive(input: TokenStream) -> TokenStream {
                     let mut get_value_dependency_instructions_functions = Vec::new();
 
                     let renderer_state_variables_name =
-                        format!("Rendered{}", structure_identity.to_string());
+                        format!("Rendered{}", structure_identity);
                     let rendered_state_variables_identity =
                         Ident::new(&renderer_state_variables_name, Span::call_site());
 

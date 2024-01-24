@@ -161,7 +161,7 @@ pub fn rendered_state_derive(input: TokenStream) -> TokenStream {
 
             for variant in variants {
                 let variant_ident = &variant.ident;
-                let state_variables_name = format!("{}StateVariables", variant_ident.to_string());
+                let state_variables_name = format!("{}StateVariables", variant_ident);
                 let rendered_state_variables_name = format!("Rendered{}", state_variables_name);
                 let state_variables_identity = Ident::new(&state_variables_name, Span::call_site());
                 let rendered_state_variables_identity =
