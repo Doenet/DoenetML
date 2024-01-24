@@ -51,3 +51,7 @@ jobs:
             - name: Cargo fmt
               working-directory: ./packages/doenetml-worker-rust
               run: cargo fmt --all -- --check
+
+            - name: Cargo clippy
+              working-directory: ./packages/doenetml-worker-rust
+              run: cargo fmt --all -- --check
