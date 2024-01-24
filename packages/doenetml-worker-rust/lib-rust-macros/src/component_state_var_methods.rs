@@ -32,12 +32,8 @@ pub fn component_state_variables_derive(input: TokenStream) -> TokenStream {
                 // For now, we just check if there are fields named "common" and "state".
                 // Could check the type of common to make sure it is CommonData
                 // or check if each field is a state variable.
-                let is_component_struct = field_identities
-                    .iter()
-                    .any(|ident| *ident == "common")
-                    && field_identities
-                        .iter()
-                        .any(|ident| *ident == "state");
+                let is_component_struct = field_identities.iter().any(|ident| *ident == "common")
+                    && field_identities.iter().any(|ident| *ident == "state");
 
                 if is_component_struct {
                     quote! {
@@ -114,8 +110,7 @@ pub fn component_state_variables_derive(input: TokenStream) -> TokenStream {
                     let mut get_state_variable_index_functions = Vec::new();
                     let mut get_value_dependency_instructions_functions = Vec::new();
 
-                    let renderer_state_variables_name =
-                        format!("Rendered{}", structure_identity);
+                    let renderer_state_variables_name = format!("Rendered{}", structure_identity);
                     let rendered_state_variables_identity =
                         Ident::new(&renderer_state_variables_name, Span::call_site());
 

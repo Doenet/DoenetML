@@ -20,7 +20,8 @@ where
     /// If found, remove the original value from the HashMap.
     fn remove_ignore_case(&mut self, key: &str) -> Option<V> {
         self.keys()
-            .find(|k| k.to_string().eq_ignore_ascii_case(key)).cloned()
+            .find(|k| k.to_string().eq_ignore_ascii_case(key))
+            .cloned()
             .and_then(|k| self.remove(&k))
     }
 }
