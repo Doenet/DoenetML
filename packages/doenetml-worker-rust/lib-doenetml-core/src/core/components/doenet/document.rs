@@ -1,12 +1,10 @@
-use std::collections::HashMap;
-
 use crate::components::prelude::*;
 
-#[derive(Debug, Default, ComponentNode, RenderedComponentNode)]
+#[derive(Debug, Default, ComponentNode, RenderedComponentNode, ComponentStateVariables)]
 pub struct Document {
     pub common: ComponentCommonData,
+    pub state: DocumentStateVariables,
 }
 
-impl ComponentNodeStateVariables for Document {
-    fn initialize_state_variables(&mut self) {}
-}
+#[derive(Debug, Default, ComponentStateVariables)]
+pub struct DocumentStateVariables {}

@@ -1,6 +1,8 @@
 import React from "react";
-import { BasicComponentWithPassthroughChildren } from "../types";
+import { BasicComponent } from "../types";
 
-export const Text: BasicComponentWithPassthroughChildren = ({ children }) => {
-    return <span>{children}</span>;
+type TextData = { state: { value: string } };
+
+export const Text: BasicComponent<TextData> = ({ node }) => {
+    return <span>{node.data.state.value}</span>;
 };

@@ -21,9 +21,9 @@ ndarray = { workspace = true }
 instant = { workspace = true }
 strum = { workspace = true }
 strum_macros = { workspace = true }
-tailcall = { workspace = true }
 enum_dispatch = { workspace = true }
 anyhow = { workspace = true }
+thiserror = { workspace = true }
 tsify = { workspace = true }
 # The `console_error_panic_hook` crate provides better debugging of panics by
 # logging them with `console.error`. This is great for development, but requires

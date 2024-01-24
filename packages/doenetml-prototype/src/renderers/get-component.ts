@@ -11,6 +11,7 @@ import {
     Section,
     Text,
     TextInput,
+    Boolean,
 } from "./components";
 import type { FlatDastElement } from "@doenet/doenetml-worker-rust";
 import { ChoiceInput } from "./components/choice-input";
@@ -54,7 +55,8 @@ const TEXT_MODE_COMPONENTS: Record<
         monitorVisibility: true,
     },
     textInput: { component: TextInput },
-    text: { component: Text, passthroughChildren: true },
+    text: { component: Text },
+    boolean: { component: Boolean },
 };
 
 const GRAPH_MODE_COMPONENTS: Record<

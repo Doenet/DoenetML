@@ -1,45 +1,40 @@
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
-use tailcall::tailcall;
-
 use crate::{
     components::{ComponentEnum, ComponentNode, RenderedComponentNode},
     dependency::{
-        create_dependencies_from_instruction_initialize_essential, Dependency,
-        DependencyInstruction, DependencySource,
+        create_dependencies_from_instruction_initialize_essential, DependencyInstruction,
+        DependencySource,
     },
     state::essential_state::{EssentialDataOrigin, EssentialStateDescription, EssentialStateVar},
-    state::{Freshness, StateVarValue},
-    ComponentChild, ComponentIdx, ExtendSource, StateVarPointer,
+    state::{Freshness, StateVarValueEnum},
+    ComponentIdx, ComponentPointerTextOrMacro, CoreProcessingState, DependencyGraph, ExtendSource,
 };
+
+use super::{ComponentStateVariables, StateVarPointer};
 
 /// Freshen the state variable specified by original_state_var_ptr,
 /// then get its fresh value
 pub fn get_state_var_value(
     original_state_var_ptr: StateVarPointer,
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
-    dependencies: &mut Vec<Vec<Vec<Vec<Dependency>>>>,
-    dependent_on_state_var: &mut Vec<Vec<Vec<StateVarPointer>>>,
-    dependent_on_essential: &mut Vec<HashMap<EssentialDataOrigin, Vec<StateVarPointer>>>,
+    dependency_graph: &mut DependencyGraph,
     essential_data: &mut Vec<HashMap<EssentialDataOrigin, EssentialStateVar>>,
     freshen_stack: &mut Vec<StateVarPointer>,
-    should_initialize_essential_data: bool,
-) -> StateVarValue {
+) -> StateVarValueEnum {
     freshen_state_var(
         original_state_var_ptr,
         components,
-        dependencies,
-        dependent_on_state_var,
-        dependent_on_essential,
+        dependency_graph,
         essential_data,
         freshen_stack,
-        should_initialize_essential_data,
     );
 
     components[original_state_var_ptr.component_idx]
         .borrow()
-        .get_state_variables()[original_state_var_ptr.state_var_idx]
-        .get_fresh_value()
+        .get_state_variable(original_state_var_ptr.state_var_idx)
+        .unwrap()
+        .get()
 }
 
 /// Internal structure used to track changes
@@ -54,15 +49,13 @@ pub enum StateVariableUpdateRequest {
 ///
 /// Returns a vector of the indices of the components reached.
 pub fn freshen_all_stale_renderer_states(
-    stale_renderers: &mut Vec<ComponentIdx>,
+    processing_state: &mut CoreProcessingState,
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
-    dependencies: &mut Vec<Vec<Vec<Vec<Dependency>>>>,
-    dependent_on_state_var: &mut Vec<Vec<Vec<StateVarPointer>>>,
-    dependent_on_essential: &mut Vec<HashMap<EssentialDataOrigin, Vec<StateVarPointer>>>,
+    dependency_graph: &mut DependencyGraph,
     essential_data: &mut Vec<HashMap<EssentialDataOrigin, EssentialStateVar>>,
-    freshen_stack: &mut Vec<StateVarPointer>,
-    should_initialize_essential_data: bool,
 ) -> Vec<usize> {
+    let stale_renderers = &mut processing_state.stale_renderers;
+
     // recursively get a list of all rendered descendants of the components in stale_renderers
     let mut stale_renderer_idx = 0;
     while stale_renderer_idx < stale_renderers.len() {
@@ -81,10 +74,13 @@ pub fn freshen_all_stale_renderer_states(
     stale_renderers.dedup();
 
     for component_idx in stale_renderers.iter() {
+        components[*component_idx]
+            .borrow_mut()
+            .set_is_in_render_tree(true);
+
         let rendered_state_var_indices = components[*component_idx]
             .borrow()
-            .get_rendered_state_variable_indices()
-            .clone();
+            .get_for_renderer_state_variable_indices();
 
         for state_var_idx in rendered_state_var_indices {
             let state_var_ptr = StateVarPointer {
@@ -94,12 +90,9 @@ pub fn freshen_all_stale_renderer_states(
             freshen_state_var(
                 state_var_ptr,
                 components,
-                dependencies,
-                dependent_on_state_var,
-                dependent_on_essential,
+                dependency_graph,
                 essential_data,
-                freshen_stack,
-                should_initialize_essential_data,
+                &mut processing_state.freshen_stack,
             );
         }
     }
@@ -117,17 +110,10 @@ fn get_non_string_rendered_children_including_from_extend(
     component_idx: ComponentIdx,
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
 ) -> Vec<ComponentIdx> {
-    // TODO: the behavior of this function should mirror the .to_flat_dast method
-    // of the RenderedComponent trait.
-    // Is there a way to specify the behavior in one place so they cannot diverge and cause bugs?
-    // Perhaps, components cannot override the whole .to_flat_dast method, but just pieces
-    // such as determining the data sent.
-    // And, if they override the behavior is should be through methods called in both places,
-    // like the .get_rendered_children method.
-
     let component = components[component_idx].borrow();
 
-    let mut children = if let Some(&ExtendSource::Component(source_idx)) = component.get_extend() {
+    let mut children = if let Some(&ExtendSource::Component(source_idx)) = component.get_extending()
+    {
         get_non_string_rendered_children_including_from_extend(source_idx, components)
     } else {
         Vec::new()
@@ -138,7 +124,7 @@ fn get_non_string_rendered_children_including_from_extend(
             .get_rendered_children()
             .iter()
             .filter_map(|child| match child {
-                &ComponentChild::Component(comp_idx) => Some(comp_idx),
+                &ComponentPointerTextOrMacro::Component(comp_idx) => Some(comp_idx),
                 _ => None,
             }),
     );
@@ -153,13 +139,10 @@ fn get_non_string_rendered_children_including_from_extend(
 pub fn freshen_state_var(
     original_state_var_ptr: StateVarPointer,
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
-    dependencies: &mut Vec<Vec<Vec<Vec<Dependency>>>>,
-    dependent_on_state_var: &mut Vec<Vec<Vec<StateVarPointer>>>,
-    dependent_on_essential: &mut Vec<HashMap<EssentialDataOrigin, Vec<StateVarPointer>>>,
+    dependency_graph: &mut DependencyGraph,
     essential_data: &mut Vec<HashMap<EssentialDataOrigin, EssentialStateVar>>,
     freshen_stack: &mut Vec<StateVarPointer>,
-    should_initialize_essential_data: bool,
-) -> () {
+) {
     // This function currently implements recursion through an iterative method,
     // using a stack on the heap.
     // This approach was chosen because the function recursion implementation would overflow
@@ -171,22 +154,20 @@ pub fn freshen_state_var(
 
     let original_freshness = components[original_state_var_ptr.component_idx]
         .borrow()
-        .get_state_variables()[original_state_var_ptr.state_var_idx]
+        .get_state_variable(original_state_var_ptr.state_var_idx)
+        .unwrap()
         .get_freshness();
 
     // If the current state variable is fresh, there's nothing to do.
     // If it is unresolved, resolve it
     match original_freshness {
-        Freshness::Fresh => return (),
+        Freshness::Fresh => return,
         Freshness::Unresolved => {
             resolve_state_var(
                 original_state_var_ptr,
                 components,
-                dependencies,
-                dependent_on_state_var,
-                dependent_on_essential,
+                dependency_graph,
                 essential_data,
-                should_initialize_essential_data,
             );
         }
         Freshness::Stale | Freshness::Resolved => (),
@@ -199,7 +180,8 @@ pub fn freshen_state_var(
     while let Some(state_var_ptr) = freshen_stack.pop() {
         let current_freshness = components[state_var_ptr.component_idx]
             .borrow()
-            .get_state_variables()[state_var_ptr.state_var_idx]
+            .get_state_variable(state_var_ptr.state_var_idx)
+            .unwrap()
             .get_freshness();
 
         // If we have cycles in the graph, it's possible that this
@@ -213,8 +195,8 @@ pub fn freshen_state_var(
             Freshness::Stale | Freshness::Resolved => (),
         };
 
-        let dependencies_for_state_var =
-            &dependencies[state_var_ptr.component_idx][state_var_ptr.state_var_idx];
+        let dependencies_for_state_var = &dependency_graph.dependencies
+            [state_var_ptr.component_idx][state_var_ptr.state_var_idx];
 
         // If we find a stale or resolved dependency
         // (i.e., not fresh, as we shouldn't have unresolved)
@@ -281,137 +263,135 @@ pub fn freshen_state_var(
             let state_var_idx = state_var_ptr.state_var_idx;
 
             let mut comp = components[component_idx].borrow_mut();
-            let state_var = &mut comp.get_state_variables_mut()[state_var_idx];
+            let state_var = &mut comp.get_state_variable_mut(state_var_idx).unwrap();
 
             // Check if any dependency has changed since we last called record_all_dependencies_viewed.
             if state_var.check_if_any_dependency_changed_since_last_viewed() {
                 state_var.calculate_state_var_from_dependencies_and_mark_fresh();
                 state_var.record_all_dependencies_viewed();
             } else {
-                state_var.restore_previous_value();
+                state_var.mark_fresh();
             }
         }
     }
 }
 
-#[tailcall]
+#[allow(clippy::ptr_arg)]
 pub fn resolve_state_var(
-    state_var_ptr: StateVarPointer,
+    original_state_var_ptr: StateVarPointer,
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
-    dependencies: &mut Vec<Vec<Vec<Vec<Dependency>>>>,
-    dependent_on_state_var: &mut Vec<Vec<Vec<StateVarPointer>>>,
-    dependent_on_essential: &mut Vec<HashMap<EssentialDataOrigin, Vec<StateVarPointer>>>,
+    dependency_graph: &mut DependencyGraph,
     essential_data: &mut Vec<HashMap<EssentialDataOrigin, EssentialStateVar>>,
-    // freshen_stack: &mut Vec<StateVarCalculationState>,
-    should_initialize_essential_data: bool,
 ) {
-    let component_idx = state_var_ptr.component_idx;
-    let state_var_idx = state_var_ptr.state_var_idx;
+    // Since resolving state variables won't recurse with repeated actions,
+    // will go ahead and allocate the stack locally, for simplicity.
+    let mut resolve_stack = Vec::new();
+    resolve_stack.push(original_state_var_ptr);
 
-    let dependency_instructions: Vec<DependencyInstruction>;
+    while let Some(state_var_ptr) = resolve_stack.pop() {
+        let component_idx = state_var_ptr.component_idx;
+        let state_var_idx = state_var_ptr.state_var_idx;
 
-    {
-        let component = components[component_idx].borrow();
-        let state_var = &component.get_state_variables()[state_var_idx];
+        let dependency_instructions: Vec<DependencyInstruction>;
 
-        let current_freshness = state_var.get_freshness();
+        {
+            let extending: Option<ExtendSource> =
+                components[component_idx].borrow().get_extending().cloned();
 
-        if current_freshness != Freshness::Unresolved {
-            return ();
+            let mut component = components[component_idx].borrow_mut();
+            let state_var = &mut component.get_state_variable_mut(state_var_idx).unwrap();
+
+            let current_freshness = state_var.get_freshness();
+
+            if current_freshness != Freshness::Unresolved {
+                // nothing to do if the state variable is already resolved
+                continue;
+            }
+
+            dependency_instructions =
+                state_var.return_dependency_instructions(extending, state_var_idx);
         }
 
-        dependency_instructions = state_var.return_dependency_instructions(component.get_extend());
-    }
+        let mut dependencies_for_state_var = Vec::with_capacity(dependency_instructions.len());
 
-    let mut dependencies_for_state_var = Vec::with_capacity(dependency_instructions.len());
+        for dep_instruction in dependency_instructions.iter() {
+            let instruct_dependencies = create_dependencies_from_instruction_initialize_essential(
+                components,
+                component_idx,
+                state_var_idx,
+                dep_instruction,
+                essential_data,
+            );
 
-    let mut unresolved_state_variable_dependencies: Vec<StateVarPointer> = Vec::new();
-
-    for dep_instruction in dependency_instructions.iter() {
-        let instruct_dependencies = create_dependencies_from_instruction_initialize_essential(
-            components,
-            component_idx,
-            state_var_idx,
-            dep_instruction,
-            essential_data,
-            should_initialize_essential_data,
-        );
-
-        // add these dependencies to the inverse graph:
-        // dependent_on_state_var or dependent_on_essential.
-        for dep in instruct_dependencies.iter() {
-            match &dep.source {
-                DependencySource::StateVar {
-                    component_idx: inner_comp_idx,
-                    state_var_idx: inner_sv_idx,
-                } => {
-                    let vec_dep = &mut dependent_on_state_var[*inner_comp_idx];
-                    vec_dep[*inner_sv_idx].push(StateVarPointer {
-                        component_idx,
-                        state_var_idx,
-                    });
-                }
-                DependencySource::Essential {
-                    component_idx: inner_comp_idx,
-                    origin,
-                } => {
-                    let vec_dep = dependent_on_essential[*inner_comp_idx]
-                        .entry(origin.clone())
-                        .or_insert(Vec::new());
-                    vec_dep.push(StateVarPointer {
-                        component_idx,
-                        state_var_idx,
-                    });
+            // add these dependencies to the inverse graph:
+            // dependent_on_state_var or dependent_on_essential.
+            for dep in instruct_dependencies.iter() {
+                match &dep.source {
+                    DependencySource::StateVar {
+                        component_idx: inner_comp_idx,
+                        state_var_idx: inner_sv_idx,
+                    } => {
+                        let vec_dep = &mut dependency_graph.dependent_on_state_var[*inner_comp_idx];
+                        vec_dep[*inner_sv_idx].push(StateVarPointer {
+                            component_idx,
+                            state_var_idx,
+                        });
+                    }
+                    DependencySource::Essential {
+                        component_idx: inner_comp_idx,
+                        origin,
+                    } => {
+                        let vec_dep = dependency_graph.dependent_on_essential[*inner_comp_idx]
+                            .entry(origin.clone())
+                            .or_default();
+                        vec_dep.push(StateVarPointer {
+                            component_idx,
+                            state_var_idx,
+                        });
+                    }
                 }
             }
-        }
 
-        for dep in instruct_dependencies.iter() {
-            if let DependencySource::StateVar {
-                component_idx: comp_idx_inner,
-                state_var_idx: sv_idx_inner,
-            } = &dep.source
-            {
-                let new_state_var_ptr = StateVarPointer {
-                    component_idx: *comp_idx_inner,
-                    state_var_idx: *sv_idx_inner,
-                };
+            for dep in instruct_dependencies.iter() {
+                if let DependencySource::StateVar {
+                    component_idx: comp_idx_inner,
+                    state_var_idx: sv_idx_inner,
+                } = &dep.source
+                {
+                    let new_state_var_ptr = StateVarPointer {
+                        component_idx: *comp_idx_inner,
+                        state_var_idx: *sv_idx_inner,
+                    };
 
-                let new_current_freshness = dep.value.get_freshness();
+                    let new_current_freshness = dep.value.get_freshness();
 
-                if new_current_freshness == Freshness::Unresolved {
-                    unresolved_state_variable_dependencies.push(new_state_var_ptr);
+                    if new_current_freshness == Freshness::Unresolved {
+                        // recurse to any unresolved dependencies
+                        resolve_stack.push(new_state_var_ptr);
+                    }
                 }
             }
+
+            dependencies_for_state_var.push(instruct_dependencies);
         }
 
-        dependencies_for_state_var.push(instruct_dependencies);
-    }
+        {
+            let mut component = components[component_idx].borrow_mut();
+            let state_var = &mut component.get_state_variable_mut(state_var_idx).unwrap();
 
-    {
-        let mut component = components[component_idx].borrow_mut();
-        let state_var = &mut component.get_state_variables_mut()[state_var_idx];
+            state_var.save_dependencies(&dependencies_for_state_var);
 
-        state_var.set_dependencies(&dependencies_for_state_var);
+            let dependencies_for_component = &mut dependency_graph.dependencies[component_idx];
 
-        let dependencies_for_component = &mut dependencies[component_idx];
+            dependencies_for_component[state_var_idx] = dependencies_for_state_var;
+        }
 
-        dependencies_for_component[state_var_idx] = dependencies_for_state_var;
-    }
-
-    {
-        components[component_idx].borrow().get_state_variables()[state_var_idx].set_as_resolved();
-    }
-
-    for new_state_var_ptr in unresolved_state_variable_dependencies {
-        resolve_state_var(
-            new_state_var_ptr,
-            components,
-            dependencies,
-            dependent_on_state_var,
-            dependent_on_essential,
-            essential_data,
-            should_initialize_essential_data,
-        )
+        {
+            components[component_idx]
+                .borrow()
+                .get_state_variable(state_var_idx)
+                .unwrap()
+                .set_as_resolved();
+        }
     }
 }

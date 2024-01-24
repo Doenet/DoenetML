@@ -1,5 +1,6 @@
 use convert_case::{Case, Casing};
 use proc_macro::TokenStream;
+use proc_macro2::{Ident, Span};
 use quote::quote;
 use syn::{self, FieldsNamed};
 
@@ -9,8 +10,8 @@ use syn::{self, FieldsNamed};
 /// For structs, assume these fields:
 /// - pub idx: ComponentIdx,
 /// - pub parent: Option<ComponentIdx>,
-/// - pub children: Vec<ComponentChild>,
-/// - pub extend: Option<ExtendSource>,
+/// - pub children: Vec<ComponentPointerTextOrMacro>,
+/// - pub extending: Option<ExtendSource>,
 /// - pub descendant_names: HashMap<String, Vec<ComponentIdx>>,
 /// - pub position: Option<DastPosition>,
 /// - pub component_profile_state_variables: Vec<ComponentProfileStateVariable>,
@@ -27,12 +28,10 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
         syn::Data::Struct(s) => match &s.fields {
             syn::Fields::Named(FieldsNamed { .. }) => {
                 // Convert struct name to camel case, preserving any initial '_'
-                let mut component_string = name.to_string();
-                if component_string.starts_with("_") {
-                    component_string = format!("_{}", component_string.to_case(Case::Camel));
-                } else {
-                    component_string = component_string.to_case(Case::Camel);
-                }
+                let component_string = match name.to_string() {
+                    n if n.starts_with('_') => format!("_{}", n.to_case(Case::Camel)),
+                    n => n.to_case(Case::Camel),
+                };
 
                 quote! {
                     impl ComponentNode for #name {
@@ -42,13 +41,13 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                         fn get_parent(&self) -> Option<ComponentIdx> {
                             self.common.parent
                         }
-                        fn get_children(&self) -> &Vec<ComponentChild> {
+                        fn get_children(&self) -> &Vec<ComponentPointerTextOrMacro> {
                             &self.common.children
                         }
-                        fn set_children(&mut self, children: Vec<ComponentChild>) {
+                        fn set_children(&mut self, children: Vec<ComponentPointerTextOrMacro>) {
                             self.common.children = children;
                         }
-                        fn replace_children(&mut self, new_children: Vec<ComponentChild>) -> Vec<ComponentChild> {
+                        fn replace_children(&mut self, new_children: Vec<ComponentPointerTextOrMacro>) -> Vec<ComponentPointerTextOrMacro> {
                             std::mem::replace(&mut self.common.children, new_children)
                         }
 
@@ -56,44 +55,19 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                             &mut self,
                             idx: ComponentIdx,
                             parent: Option<ComponentIdx>,
-                            extend_source: Option<ExtendSource>,
+                            extending: Option<ExtendSource>,
+                            attributes: HashMap<String, DastAttribute>,
                             position: Option<DastPosition>,
                         ) {
                             self.common.idx = idx;
                             self.common.parent = parent;
-                            self.common.extend = extend_source;
+                            self.common.extending = extending;
                             self.common.position = position;
-
-                            self.initialize_state_variables();
-
-                            self.common.rendered_state_variable_indices = self
-                                .get_state_variables()
-                                .iter()
-                                .enumerate()
-                                .filter_map(|(ind, state_var)| state_var.get_for_renderer().then(|| ind))
-                                .collect();
-
-                            self.common.public_state_variable_indices = self
-                                .get_state_variables()
-                                .iter()
-                                .enumerate()
-                                .filter_map(|(ind, state_var)| state_var.get_is_public().then(|| ind))
-                                .collect();
-
-                            let name_to_index_pairs: Vec<_> = self
-                                .get_state_variables()
-                                .iter()
-                                .enumerate()
-                                .map(|(sv_idx, state_var)| (state_var.get_name().to_string(), sv_idx))
-                                .collect();
-
-                            self.common.state_variable_name_to_index
-                                .extend(name_to_index_pairs);
-
+                            self.common.unevaluated_attributes = attributes;
                         }
 
-                        fn get_extend(&self) -> Option<&ExtendSource> {
-                            self.common.extend.as_ref()
+                        fn get_extending(&self) -> Option<&ExtendSource> {
+                            self.common.extending.as_ref()
                         }
 
                         fn get_component_type(&self) -> &str {
@@ -114,44 +88,35 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                             self.common.position = position;
                         }
 
-                        fn get_num_state_variables(&self) -> usize {
-                            self.common.state_variables.len()
+                        fn set_attribute_children(
+                            &mut self,
+                            attribute_children: HashMap<AttributeName, Vec<ComponentPointerTextOrMacro>>,
+                        ) {
+                            self.common.attribute_children = attribute_children;
                         }
 
-                        fn get_state_variables(&self) -> &Vec<StateVar> {
-                            &self.common.state_variables
+                        fn get_attribute_children_for_attribute(
+                            &self,
+                            attribute: AttributeName,
+                        ) -> Option<&Vec<ComponentPointerTextOrMacro>> {
+                            self.common.attribute_children.get(attribute)
                         }
 
-                        fn get_state_variables_mut(&mut self) -> &mut Vec<StateVar> {
-                            &mut self.common.state_variables
+                        fn get_unevaluated_attributes(&self) -> &HashMap<String, DastAttribute> {
+                            &self.common.unevaluated_attributes
                         }
 
-                        fn get_rendered_state_variable_indices(&self) -> &Vec<usize> {
-                            &self.common.rendered_state_variable_indices
+                        fn get_unevaluated_attributes_mut(&mut self) -> &mut HashMap<String, DastAttribute> {
+                            &mut self.common.unevaluated_attributes
                         }
 
-
-                        fn get_public_state_variable_indices(&self) -> &Vec<usize> {
-                            &self.common.public_state_variable_indices
+                        fn get_is_in_render_tree(&self) -> bool {
+                            self.common.is_in_render_tree
                         }
 
-                        fn get_state_variable_index_from_name(&self, name: &String) -> Option<usize> {
-                            self.common.state_variable_name_to_index.get(name).copied()
+                        fn set_is_in_render_tree(&mut self, is_in_render_tree: bool) {
+                            self.common.is_in_render_tree = is_in_render_tree;
                         }
-
-                        fn get_state_variable_index_from_name_case_insensitive(&self, name: &String) -> Option<usize> {
-                            self.common.state_variable_name_to_index
-                                .get_key_value_ignore_case(name)
-                                .map(|(k, v)| *v)
-                        }
-
-                        fn get_component_profile_state_variables(&self)  -> &Vec<ComponentProfileStateVariable> {
-                            &self.common.component_profile_state_variables
-                        }
-
-                        // fn get_essential_state_vars(&self) -> &HashMap<StateVarName, EssentialStateVar> {
-                        //     &self.essential_state_vars
-                        // }
 
                     }
                 }
@@ -179,28 +144,47 @@ pub fn rendered_component_node_derive(input: TokenStream) -> TokenStream {
             }
             _ => panic!("only named fields supported"),
         },
-        _ => panic!("only enums supported"),
+        _ => panic!("only structs supported"),
     };
     output.into()
 }
 
-pub fn component_node_state_variables_derive(input: TokenStream) -> TokenStream {
+pub fn rendered_state_derive(input: TokenStream) -> TokenStream {
     let ast: syn::DeriveInput = syn::parse(input).unwrap();
-    let name = &ast.ident;
     let data = &ast.data;
 
     let output = match data {
-        syn::Data::Struct(s) => match &s.fields {
-            syn::Fields::Named(FieldsNamed { .. }) => {
-                quote! {
-                    impl ComponentNodeStateVariables for #name {
-                        // using default implementations for all traits so no code necessary here
-                    }
-                }
+        syn::Data::Enum(v) => {
+            let variants = &v.variants;
+
+            let mut rendered_state_arms = Vec::new();
+
+            for variant in variants {
+                let variant_ident = &variant.ident;
+                let state_variables_name = format!("{}StateVariables", variant_ident.to_string());
+                let rendered_state_variables_name = format!("Rendered{}", state_variables_name);
+                let state_variables_identity = Ident::new(&state_variables_name, Span::call_site());
+                let rendered_state_variables_identity =
+                    Ident::new(&rendered_state_variables_name, Span::call_site());
+
+                rendered_state_arms.push(quote! {
+                    #state_variables_identity(#rendered_state_variables_identity),
+                })
             }
-            _ => panic!("only named fields supported"),
-        },
-        _ => panic!("only structs and enums supported"),
+
+            quote! {
+                /// A enum listing the renderer data for each component.
+                ///
+                /// Used for sending state to the renderer
+                #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+                #[serde(untagged)]
+                pub enum RenderedState {
+                    #(#rendered_state_arms)*
+                }
+
+            }
+        }
+        _ => panic!("only enums supported"),
     };
     output.into()
 }

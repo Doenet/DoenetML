@@ -2,12 +2,16 @@ use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use crate::{
     components::{ComponentEnum, ComponentNode},
-    dependency::{Dependency, DependencySource, DependencyValueUpdateRequest},
+    dependency::{
+        DependenciesCreatedForInstruction, DependencySource, DependencyValueUpdateRequest,
+    },
     state::essential_state::{EssentialDataOrigin, EssentialStateDescription, EssentialStateVar},
     state::state_var_calculations::StateVariableUpdateRequest,
     state::Freshness,
-    ComponentIdx, StateVarPointer,
+    ComponentIdx, CoreProcessingState, DependencyGraph,
 };
+
+use super::{ComponentStateVariables, StateVarPointer};
 
 /// Recurse in the inverse direction along the dependency graph to attempt to satisfy
 /// the requested update of the state variable described in initial_update_request.
@@ -15,21 +19,19 @@ use crate::{
 ///
 /// When we reach the leaves (essential state variables), set them to their requested values
 /// and then mark all their dependencies as stale
+#[allow(clippy::ptr_arg)]
 pub fn process_state_variable_update_request(
     initial_update_request: StateVariableUpdateRequest,
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
-    dependencies: &mut Vec<Vec<Vec<Vec<Dependency>>>>,
-    dependent_on_state_var: &mut Vec<Vec<Vec<StateVarPointer>>>,
-    dependent_on_essential: &mut Vec<HashMap<EssentialDataOrigin, Vec<StateVarPointer>>>,
+    dependency_graph: &mut DependencyGraph,
     essential_data: &mut Vec<HashMap<EssentialDataOrigin, EssentialStateVar>>,
-    stale_renderers: &mut Vec<ComponentIdx>,
-    mark_stale_stack: &mut Vec<StateVarPointer>,
-    update_stack: &mut Vec<StateVariableUpdateRequest>,
+    processing_state: &mut CoreProcessingState,
 ) {
     // This function currently implements recursion through an iterative method,
     // using a stack on the heap.
     // See comment in freshen_state_var for the motivation.
 
+    let update_stack = &mut processing_state.update_stack;
     update_stack.push(initial_update_request);
 
     let mut is_direct_change_from_renderer = true;
@@ -54,10 +56,9 @@ pub fn process_state_variable_update_request(
                 mark_stale_essential_datum_dependencies(
                     &essential_state,
                     components,
-                    dependent_on_state_var,
-                    dependent_on_essential,
-                    stale_renderers,
-                    mark_stale_stack,
+                    dependency_graph,
+                    &mut processing_state.stale_renderers,
+                    &mut processing_state.mark_stale_stack,
                 );
             }
 
@@ -69,10 +70,10 @@ pub fn process_state_variable_update_request(
 
                 // The vector dep_update_requests will contain just the identities
                 // of the state variables or essential data that we need to recurse to.
-                let mut dep_update_requests = request_dependencies_to_update_value_including_shadow(
+                let mut dep_update_requests = request_updated_dependency_values_including_shadow(
                     state_var_ptr,
                     components,
-                    dependencies,
+                    &dependency_graph.dependencies,
                     is_direct_change_from_renderer,
                 );
 
@@ -92,6 +93,7 @@ pub fn process_state_variable_update_request(
 ///
 /// Also, if a state variable has the for_renderer parameter set,
 /// then record the component in stale_renderers.
+#[allow(clippy::ptr_arg)]
 fn mark_stale_state_var_and_dependencies(
     original_state_var_ptr: StateVarPointer,
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
@@ -111,12 +113,14 @@ fn mark_stale_state_var_and_dependencies(
     }) = mark_stale_stack.pop()
     {
         let component = components[component_idx].borrow();
-        let state_var = &component.get_state_variables()[state_var_idx];
+        let state_var = &component.get_state_variable(state_var_idx).unwrap();
 
         if state_var.get_freshness() == Freshness::Fresh {
             state_var.mark_stale();
 
-            if state_var.get_for_renderer() {
+            if component.check_if_state_variable_is_for_renderer(state_var_idx)
+                && component.get_is_in_render_tree()
+            {
                 stale_renderers.push(component_idx);
             }
 
@@ -138,11 +142,11 @@ fn mark_stale_state_var_and_dependencies(
 }
 
 /// Mark stale all the state variables that depend on essential_state.
+#[allow(clippy::ptr_arg)]
 fn mark_stale_essential_datum_dependencies(
     essential_state: &EssentialStateDescription,
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
-    dependent_on_state_var: &mut Vec<Vec<Vec<StateVarPointer>>>,
-    dependent_on_essential: &mut Vec<HashMap<EssentialDataOrigin, Vec<StateVarPointer>>>,
+    dependency_graph: &mut DependencyGraph,
     stale_renderers: &mut Vec<ComponentIdx>,
     mark_stale_stack: &mut Vec<StateVarPointer>,
 ) {
@@ -150,12 +154,14 @@ fn mark_stale_essential_datum_dependencies(
 
     // log!("Marking stale essential {}:{:?}", component_name, origin);
 
-    if let Some(vec_deps) = dependent_on_essential[component_idx].get(&essential_state.origin) {
+    if let Some(vec_deps) =
+        dependency_graph.dependent_on_essential[component_idx].get(&essential_state.origin)
+    {
         vec_deps.iter().for_each(|state_var_ptr| {
             mark_stale_state_var_and_dependencies(
                 *state_var_ptr,
                 components,
-                dependent_on_state_var,
+                &mut dependency_graph.dependent_on_state_var,
                 stale_renderers,
                 mark_stale_stack,
             );
@@ -171,21 +177,20 @@ fn mark_stale_essential_datum_dependencies(
 ///
 /// Returns a vector specifying which state variables or essential data have been requested to change.
 /// The actual requested values will be added directly to the state variables or essential data.
-fn request_dependencies_to_update_value_including_shadow(
+fn request_updated_dependency_values_including_shadow(
     state_var_ptr: StateVarPointer,
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
-    dependencies: &Vec<Vec<Vec<Vec<Dependency>>>>,
+    dependencies: &Vec<Vec<Vec<DependenciesCreatedForInstruction>>>,
     is_direct_change_from_renderer: bool,
 ) -> Vec<StateVariableUpdateRequest> {
     let component_idx = state_var_ptr.component_idx;
     let state_var_idx = state_var_ptr.state_var_idx;
     let component = components[component_idx].borrow();
-    let state_variable = &component.get_state_variables()[state_var_idx];
+    let state_variable = &component.get_state_variable(state_var_idx).unwrap();
 
-    let requests =
-        state_variable.request_dependencies_to_update_value(is_direct_change_from_renderer);
+    let requests = state_variable.request_updated_dependency_values(is_direct_change_from_renderer);
 
-    let update_requests = requests
+    requests
         .map(|req| {
             convert_dependency_updates_requested_to_state_variable_update_requests(
                 state_var_ptr,
@@ -194,19 +199,18 @@ fn request_dependencies_to_update_value_including_shadow(
                 dependencies,
             )
         })
-        .unwrap_or(vec![]);
-
-    update_requests
+        .unwrap_or_default()
 }
 
-/// Convert the dependency update results of `request_dependencies_to_update_value()`
+/// Convert the dependency update results of `request_updated_dependency_values()`
 /// into state variable update requests by determining the state variables
 /// referenced by the dependencies.
+#[allow(clippy::ptr_arg)]
 fn convert_dependency_updates_requested_to_state_variable_update_requests(
     state_var_ptr: StateVarPointer,
     requests: Vec<DependencyValueUpdateRequest>,
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
-    dependencies: &Vec<Vec<Vec<Vec<Dependency>>>>,
+    dependencies: &Vec<Vec<Vec<DependenciesCreatedForInstruction>>>,
 ) -> Vec<StateVariableUpdateRequest> {
     let component_idx = state_var_ptr.component_idx;
     let state_var_idx = state_var_ptr.state_var_idx;

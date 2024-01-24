@@ -1,3 +1,4 @@
+pub mod boolean;
 pub mod document;
 pub mod p;
 pub mod section;

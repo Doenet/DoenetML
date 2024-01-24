@@ -9,12 +9,21 @@ use tsify::Tsify;
 #[cfg(feature = "web")]
 use wasm_bindgen::prelude::*;
 
-use doenetml_derive::{StateVarMethods, StateVarMutableViewMethods, StateVarReadOnlyViewMethods};
+use thiserror::Error;
+
+use doenetml_derive::{
+    FromStateVarIntoStateVarValueEnumRefs, StateVarMethods, StateVarMethodsMut,
+    StateVarMutableViewMethods, StateVarReadOnlyViewMethods,
+};
 
 use crate::{
-    dependency::{Dependency, DependencyInstruction, DependencyValueUpdateRequest},
+    dependency::{
+        DependenciesCreatedForInstruction, DependencyInstruction, DependencyValueUpdateRequest,
+    },
     ExtendSource,
 };
+
+use super::StateVarIdx;
 
 /// The name (snake_case) of a state variable    
 pub type StateVarName = &'static str;
@@ -33,18 +42,20 @@ pub enum Freshness {
     Resolved,
 }
 
-/// StateVarTyped<T> is the base data structure for the value of a state variable.
+/// StateVar<T> is the base data structure for the value of a state variable.
 #[derive(Debug)]
-pub struct StateVarTyped<T: Default + Clone> {
+pub struct StateVar<T: Default + Clone> {
     /// The current value of the state variable
     /// in a structure that allows the value to be mutated
     /// and also holds meta data about the variable
-    value: StateVarMutableViewTyped<T>,
+    value: StateVarMutableView<T>,
 
     /// A reference to the same value of the state variable
     /// in a structure that does not allow the value to be mutated.
+    /// It is just a cached copy of the result of calling
+    /// `.create_new_read_only_view()` on `.value`, saved here for efficiency.
     /// Sent to functions to give them read only access to the variable.
-    immutable_view_of_value: StateVarReadOnlyViewTyped<T>,
+    immutable_view_of_value: StateVarReadOnlyView<T>,
 
     /// Trait object that exposes the interface to used to specify
     /// how the state variable is calculated from its dependencies
@@ -52,15 +63,26 @@ pub struct StateVarTyped<T: Default + Clone> {
     interface: Box<dyn StateVarInterface<T>>,
 
     /// Additional parameters determining the behavior of the state variable
-    parameters: StateVarParameters<T>,
+    parameters: StateVarParameters,
+
+    /// Value if don't have dependencies that determine the value
+    default_value: T,
 
     /// A vector that points to a copy of the values of all the dependencies
-    /// of this state variable, where the values are behind untyped enums in order to have a vector.
+    /// of this state variable, where the values are behind enums in order to have a vector.
     /// This vector will be used to determine if any dependencies have changed.
     /// It isn't actually used to calculate the state variable value,
     /// because, for efficiency, we will store values for calculations
     /// in a typed form (without enums) directly on the state variable structure.
-    all_dependency_values: Vec<StateVarReadOnlyView>,
+    all_dependency_values: Vec<StateVarReadOnlyViewEnum>,
+}
+
+#[derive(Debug, Error)]
+pub enum RequestDependencyUpdateError {
+    #[error("request_updated_dependency_values is not implemented")]
+    NotImplemented,
+    #[error("could not update")]
+    CouldNotUpdate,
 }
 
 /// StateVarInterface defines the relationship between the state variable
@@ -71,34 +93,31 @@ pub trait StateVarInterface<T: Default + Clone>: std::fmt::Debug {
     /// e.g., the children, attributes, or other state variables
     /// of the component of this state variable
     fn return_dependency_instructions(
-        &self,
-        extend_source: Option<&ExtendSource>,
+        &mut self,
+        extending: Option<ExtendSource>,
+        parameters: &StateVarParameters,
+        state_var_idx: StateVarIdx,
     ) -> Vec<DependencyInstruction>;
 
     /// Given the structure of the document and the dependency instructions,
-    /// the actual dependencies will be determined and passed to `save_dependencies_for_value_calculation`.
-    /// The function `save_dependencies_for_value_calculation` should store
+    /// the actual dependencies will be determined and passed to `save_dependencies`.
+    /// The function `save_dependencies` should store
     /// the dependencies directly on the the structure (`self`)
     /// in a form (presumably typed not with enums) for efficient calculation.
-    fn save_dependencies_for_value_calculation(
-        &mut self,
-        dependencies: &Vec<Vec<Dependency>>,
-    ) -> ();
+    #[allow(clippy::ptr_arg)]
+    fn save_dependencies(&mut self, dependencies: &Vec<DependenciesCreatedForInstruction>);
 
     /// Calculate the value of the state variable from the current values of the dependencies
-    /// that were stored in `save_dependencies_for_value_calculation`.
+    /// that were stored in `save_dependencies`.
     /// Save the result in state_var argument that is passed in.
-    fn calculate_state_var_from_dependencies_and_mark_fresh(
-        &self,
-        state_var: &StateVarMutableViewTyped<T>,
-    ) -> ();
+    fn calculate_state_var_from_dependencies(&self, state_var: &StateVarMutableView<T>);
 
     /// Given the requested value stored in the meta data of the state_var argument,
     /// calculate the desired values of the dependencies
     /// that will lead to that requested value being calculated from those dependencies.
     ///
     /// Store the requested values of the dependencies in the dependency objects
-    /// that were saved on the structure (`self`) in `save_dependencies_for_value_calculation()`.
+    /// that were saved on the structure (`self`) in `save_dependencies()`.
     ///
     /// Report these requested updates in the returned Result.
     ///
@@ -108,38 +127,41 @@ pub trait StateVarInterface<T: Default + Clone>: std::fmt::Debug {
     /// came directly from an action of the renderer
     /// (as opposed to coming from another state variable that depends on this variable)
     #[allow(unused)]
-    fn request_dependencies_to_update_value(
+    fn request_updated_dependency_values(
         &self,
-        state_var: &StateVarReadOnlyViewTyped<T>,
+        state_var: &StateVarReadOnlyView<T>,
         is_direct_change_from_renderer: bool,
-    ) -> Result<Vec<DependencyValueUpdateRequest>, ()> {
-        // The default implementation returns an Err indicating the the state variable
-        // cannot be changed by requesting it be set to a value
-        Err(())
+    ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
+        Err(RequestDependencyUpdateError::NotImplemented)
     }
 }
 
 /// Parameters that influence the behavior of the state variable
-/// - for_renderer: if true, the value of the state variable will always be calculated
-///   and sent to the renderer
-/// - initial_essential_value: TODO, but presumably the initial value of its essential value
-/// - name: the name of the state variable
-/// - is_public: if true, the state variable can be referenced by a macro.
-///   A state variable should be public only if its type has a default component type associated with it,
-///   which informs which type of component to create when it is referenced,
-///   should a component need to be created.
 #[derive(Debug, Default)]
-pub struct StateVarParameters<T> {
-    pub for_renderer: bool,
-    pub initial_essential_value: T,
-    pub name: &'static str,
-    pub is_public: bool,
+pub struct StateVarParameters {
+    /// Hint for a dependency instruction that can be used by `return_dependency_instructions()`
+    /// of a state variable interface.
+    ///
+    /// May cause a subsequent `return_dependencies()` to panic if the resulting dependency
+    /// returns an incompatible type.
+    pub dependency_instruction_hint: Option<DependencyInstruction>,
+
+    /// Hint telling `return_dependency_instructions()` whether or not to use `extending`.
+    ///
+    /// If true and the extend source is a state variable where the shadowing name matches
+    /// the name of this state variable, then create a dependency from the shadowed state variable
+    pub should_create_dependency_from_extend_source: bool,
+
+    /// If true and `should_create_dependency_from_extend_source` is true,
+    /// then if the extend source is a state variable where the shadowing name is None,
+    /// create a dependency from the shadowed state variable.
+    pub is_primary_state_variable_for_shadowing_extend_source: bool,
 }
 
 /// A mutable view of the value of the state variable.
 /// It includes methods that allow one to view and change the variable.
 #[derive(Debug)]
-pub struct StateVarMutableViewTyped<T: Default + Clone> {
+pub struct StateVarMutableView<T: Default + Clone> {
     /// Structure containing the value of the variable its meta data.
     /// Since inner is in an Rc<RefCell>, it is shared with other views and could be changed by them.
     inner: Rc<RefCell<StateVarInner<T>>>,
@@ -152,7 +174,7 @@ pub struct StateVarMutableViewTyped<T: Default + Clone> {
 /// A read-only view of the value of the state variable.
 /// It includes methods that allow one to view the variable.
 #[derive(Debug)]
-pub struct StateVarReadOnlyViewTyped<T: Default + Clone> {
+pub struct StateVarReadOnlyView<T: Default + Clone> {
     /// Structure containing the value of the variable its meta data.
     /// Since inner is in an Rc<RefCell>, it is shared with other views and could be changed by them.
     inner: Rc<RefCell<StateVarInner<T>>>,
@@ -162,7 +184,11 @@ pub struct StateVarReadOnlyViewTyped<T: Default + Clone> {
     change_counter_when_last_viewed: u32,
 }
 
-/// The value of a state variable along with its meta data
+/// The value of a state variable along with its meta data.
+///
+/// Since StateVarInner (via StateVarMutableView and StateVarReadOnlyView)
+/// is also used for essential data, we keep extra fields, like parameters,
+/// off this structure and put them only in StateVar.
 #[derive(Debug)]
 struct StateVarInner<T: Default + Clone> {
     /// The value of the state variable.
@@ -195,7 +221,7 @@ impl<T: Default + Clone> StateVarInner<T> {
     /// Retrieves a reference to the value of the state variable if the variable is fresh.
     ///
     /// Panics: if the state variable is not fresh.
-    pub fn get_fresh_value<'a>(&'a self) -> &'a T {
+    pub fn get(&self) -> &T {
         if self.freshness != Freshness::Fresh {
             panic!("State variable is not fresh, cannot get its fresh value");
         }
@@ -204,7 +230,7 @@ impl<T: Default + Clone> StateVarInner<T> {
 
     /// Attempts to retrieve a reference to the last value (fresh or not) of the state variable.
     /// If the state variable is unresolved or merely resolved, returns None.
-    pub fn try_get_last_value<'a>(&'a self) -> Option<&'a T> {
+    pub fn try_get_last_value(&self) -> Option<&T> {
         match self.freshness {
             Freshness::Unresolved | Freshness::Resolved => None,
             Freshness::Fresh | Freshness::Stale => Some(&self.value),
@@ -237,16 +263,18 @@ impl<T: Default + Clone> StateVarInner<T> {
         }
     }
 
-    /// Set the value of the state variable to `new_val`, mark it as Fresh, and increment the change counter.
+    /// Set the value of the state variable to `new_val`, mark it as Fresh,
+    /// set 'used_default` to false, and increment the change counter.
     pub fn set_value(&mut self, new_val: T) {
         self.value = new_val;
         self.freshness = Freshness::Fresh;
+        self.used_default = false;
         self.change_counter += 1;
     }
 
     /// Set the value of the state variable to `new_val`,
     /// mark it as Fresh, set `used_default`, and increment the change counter.
-    pub fn set_value_and_used_default(&mut self, new_val: T, used_default: bool) {
+    pub fn set_value_and_set_used_default(&mut self, new_val: T, used_default: bool) {
         self.value = new_val;
         self.freshness = Freshness::Fresh;
         self.used_default = used_default;
@@ -258,7 +286,7 @@ impl<T: Default + Clone> StateVarInner<T> {
     /// will be its fresh value again.
     ///
     /// Panics: if the state variable is Unresolved.
-    pub fn restore_previous_value(&mut self) {
+    pub fn mark_fresh(&mut self) {
         match self.freshness {
             Freshness::Stale => {
                 self.freshness = Freshness::Fresh;
@@ -280,7 +308,7 @@ impl<T: Default + Clone> StateVarInner<T> {
         self.requested_value = requested_val;
     }
     /// Get a reference to the current `requested_value` field
-    pub fn get_requested_value<'a>(&'a self) -> &'a T {
+    pub fn get_requested_value(&self) -> &T {
         &self.requested_value
     }
 
@@ -290,10 +318,16 @@ impl<T: Default + Clone> StateVarInner<T> {
     }
 }
 
-impl<T: Default + Clone> StateVarMutableViewTyped<T> {
-    /// Create a new unresolved StateVarMutableViewTyped
+impl<T: Default + Clone> Default for StateVarMutableView<T> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl<T: Default + Clone> StateVarMutableView<T> {
+    /// Create a new unresolved StateVarMutableView
     pub fn new() -> Self {
-        StateVarMutableViewTyped {
+        StateVarMutableView {
             inner: Rc::new(RefCell::new(StateVarInner {
                 value: T::default(),
                 freshness: Freshness::Unresolved,
@@ -305,9 +339,9 @@ impl<T: Default + Clone> StateVarMutableViewTyped<T> {
         }
     }
 
-    /// Create a new fresh StateVarMutableViewTyped with supplied value
+    /// Create a new fresh StateVarMutableView with supplied value
     pub fn new_with_value(val: T, used_default: bool) -> Self {
-        StateVarMutableViewTyped {
+        StateVarMutableView {
             inner: Rc::new(RefCell::new(StateVarInner {
                 value: val,
                 freshness: Freshness::Fresh,
@@ -320,17 +354,17 @@ impl<T: Default + Clone> StateVarMutableViewTyped<T> {
     }
 
     /// Create a new read-only view to this state variable
-    pub fn create_new_read_only_view(&self) -> StateVarReadOnlyViewTyped<T> {
-        StateVarReadOnlyViewTyped {
+    pub fn create_new_read_only_view(&self) -> StateVarReadOnlyView<T> {
+        StateVarReadOnlyView {
             inner: self.inner.clone(),
             change_counter_when_last_viewed: 0,
         }
     }
 
     /// Determine if the state variable has changed
-    /// since we last called `get_fresh_value_record_viewed`.
+    /// since we last called `get_value_record_viewed`.
     ///
-    /// Note: calls to `get_fresh_value` are ignored when determining when last viewed.
+    /// Note: calls to `get` are ignored when determining when last viewed.
     pub fn check_if_changed_since_last_viewed(&self) -> bool {
         self.inner.borrow().get_change_counter() != self.change_counter_when_last_viewed
     }
@@ -339,21 +373,21 @@ impl<T: Default + Clone> StateVarMutableViewTyped<T> {
     /// and record the fact that we viewed the value.
     ///
     /// Panics: if the state variable is not fresh.
-    pub fn get_fresh_value_record_viewed<'a>(&'a mut self) -> impl Deref<Target = T> + 'a {
+    pub fn get_value_record_viewed(&mut self) -> impl Deref<Target = T> + '_ {
         let inner: Ref<'_, StateVarInner<T>> = self.inner.borrow();
 
         // We record the fact that the state variable was viewed
         // by recording the current value of the state variable's counter
         self.change_counter_when_last_viewed = inner.get_change_counter();
 
-        Ref::map(inner, |v| v.get_fresh_value())
+        Ref::map(inner, |v| v.get())
     }
 
     /// If the variable is fresh, get a reference to its current value.
     ///
     /// Panics: if the state variable is not fresh.
-    pub fn get_fresh_value<'a>(&'a self) -> impl Deref<Target = T> + 'a {
-        Ref::map(self.inner.borrow(), |v| v.get_fresh_value())
+    pub fn get(&self) -> impl Deref<Target = T> + '_ {
+        Ref::map(self.inner.borrow(), |v| v.get())
     }
 
     /// Record the fact that we viewed the value.
@@ -367,7 +401,7 @@ impl<T: Default + Clone> StateVarMutableViewTyped<T> {
 
     /// Attempts to retrieve a reference to the last value (fresh or not) of the state variable.
     /// If the state variable is unresolved, returns None.
-    pub fn try_get_last_value<'a>(&'a self) -> Option<impl Deref<Target = T> + 'a> {
+    pub fn try_get_last_value(&self) -> Option<impl Deref<Target = T> + '_> {
         // Note: slower than it seems necessary due to two borrows.
         // Another option is to use the ref_filter_map crate or see if there will eventually be a way
         // to convert Ref<Option<T>> to Option<Ref<T>>.
@@ -381,18 +415,18 @@ impl<T: Default + Clone> StateVarMutableViewTyped<T> {
         }
     }
 
-    /// Set the value of the state variable to the supplied value
-    /// and mark it fresh
+    /// Set the value of the state variable to the supplied value,
+    /// set 'used_default` to false, and mark it fresh
     pub fn set_value(&self, new_val: T) {
         self.inner.borrow_mut().set_value(new_val);
     }
 
     /// Set the value of the state variable to `new_val`,
     /// mark it as Fresh, and set `used_default`.
-    pub fn set_value_and_used_default(&self, new_val: T, used_default: bool) {
+    pub fn set_value_and_set_used_default(&self, new_val: T, used_default: bool) {
         self.inner
             .borrow_mut()
-            .set_value_and_used_default(new_val, used_default);
+            .set_value_and_set_used_default(new_val, used_default);
     }
 
     /// If the state variable is Stale, mark it as Fresh
@@ -400,8 +434,8 @@ impl<T: Default + Clone> StateVarMutableViewTyped<T> {
     /// will be its fresh value again.
     ///
     /// Panics: if the state variable is Unresolved.
-    pub fn restore_previous_value(&self) {
-        self.inner.borrow_mut().restore_previous_value();
+    pub fn mark_fresh(&self) {
+        self.inner.borrow_mut().mark_fresh();
     }
 
     /// Return if the `used_default` field was set
@@ -432,7 +466,7 @@ impl<T: Default + Clone> StateVarMutableViewTyped<T> {
     }
 
     /// Get a reference to the current `requested_value` field
-    pub fn get_requested_value<'a>(&'a self) -> impl Deref<Target = T> + 'a {
+    pub fn get_requested_value(&self) -> impl Deref<Target = T> + '_ {
         Ref::map(self.inner.borrow(), |v| v.get_requested_value())
     }
 
@@ -447,11 +481,11 @@ impl<T: Default + Clone> StateVarMutableViewTyped<T> {
     }
 }
 
-impl<T: Default + Clone> StateVarReadOnlyViewTyped<T> {
+impl<T: Default + Clone> StateVarReadOnlyView<T> {
     /// Determine if the state variable has changed
-    /// since we last called `get_fresh_value_record_viewed`.
+    /// since we last called `get_value_record_viewed`.
     ///
-    /// Note: calls to `get_fresh_value` are ignored when determining when last viewed.
+    /// Note: calls to `get` are ignored when determining when last viewed.
     pub fn check_if_changed_since_last_viewed(&self) -> bool {
         self.inner.borrow().get_change_counter() != self.change_counter_when_last_viewed
     }
@@ -460,17 +494,17 @@ impl<T: Default + Clone> StateVarReadOnlyViewTyped<T> {
     /// and record the fact that we viewed the value.
     ///
     /// Panics: if the state variable is not fresh.
-    pub fn get_fresh_value_record_viewed<'a>(&'a mut self) -> impl Deref<Target = T> + 'a {
+    pub fn get_value_record_viewed(&mut self) -> impl Deref<Target = T> + '_ {
         let inner = self.inner.borrow();
         self.change_counter_when_last_viewed = inner.get_change_counter();
-        Ref::map(inner, |v| v.get_fresh_value())
+        Ref::map(inner, |v| v.get())
     }
 
     /// If the variable is fresh, get a reference to its current value.
     ///
     /// Panics: if the state variable is not fresh.
-    pub fn get_fresh_value<'a>(&'a self) -> impl Deref<Target = T> + 'a {
-        Ref::map(self.inner.borrow(), |v| v.get_fresh_value())
+    pub fn get(&self) -> impl Deref<Target = T> + '_ {
+        Ref::map(self.inner.borrow(), |v| v.get())
     }
 
     /// Record the fact that we viewed the value.
@@ -481,7 +515,7 @@ impl<T: Default + Clone> StateVarReadOnlyViewTyped<T> {
 
     /// Attempts to retrieve a reference to the last value (fresh or not) of the state variable.
     /// If the state variable is unresolved, returns None.
-    pub fn try_get_last_value<'a>(&'a self) -> Option<impl Deref<Target = T> + 'a> {
+    pub fn try_get_last_value(&self) -> Option<impl Deref<Target = T> + '_> {
         // Note: slower than it seems necessary due to two borrows.
         // Another option is to use the ref_filter_map crate or see if there will eventually be a way
         // to convert Ref<Option<T>> to Option<Ref<T>>.
@@ -506,8 +540,8 @@ impl<T: Default + Clone> StateVarReadOnlyViewTyped<T> {
     }
 
     /// Create a new read-only view to this state variable
-    pub fn create_new_read_only_view(&self) -> StateVarReadOnlyViewTyped<T> {
-        StateVarReadOnlyViewTyped {
+    pub fn create_new_read_only_view(&self) -> StateVarReadOnlyView<T> {
+        StateVarReadOnlyView {
             inner: self.inner.clone(),
             change_counter_when_last_viewed: 0,
         }
@@ -521,14 +555,14 @@ impl<T: Default + Clone> StateVarReadOnlyViewTyped<T> {
     }
 
     /// Get a reference to the current `requested_value` field
-    pub fn get_requested_value<'a>(&'a self) -> impl Deref<Target = T> + 'a {
+    pub fn get_requested_value(&self) -> impl Deref<Target = T> + '_ {
         Ref::map(self.inner.borrow(), |v| v.get_requested_value())
     }
 }
 
-impl<T: Default + Clone> Default for StateVarReadOnlyViewTyped<T> {
+impl<T: Default + Clone> Default for StateVarReadOnlyView<T> {
     fn default() -> Self {
-        StateVarReadOnlyViewTyped {
+        StateVarReadOnlyView {
             inner: Rc::new(RefCell::new(StateVarInner {
                 value: T::default(),
                 freshness: Freshness::Unresolved,
@@ -541,51 +575,75 @@ impl<T: Default + Clone> Default for StateVarReadOnlyViewTyped<T> {
     }
 }
 
-impl<T: Default + Clone> StateVarTyped<T> {
+impl<T: Default + Clone> Clone for StateVarReadOnlyView<T> {
+    fn clone(&self) -> Self {
+        self.create_new_read_only_view()
+    }
+}
+
+impl<T: Default + Clone> StateVar<T> {
     /// Create a new state variable with the supplied interface and parameters
     pub fn new(
         interface: Box<dyn StateVarInterface<T>>,
-        parameters: StateVarParameters<T>,
+        parameters: StateVarParameters,
+        default_value: T,
     ) -> Self {
-        let value = StateVarMutableViewTyped::new();
-        StateVarTyped {
+        let value = StateVarMutableView::new();
+        StateVar {
             immutable_view_of_value: value.create_new_read_only_view(),
             value,
             interface,
             parameters,
+            default_value,
             all_dependency_values: vec![],
         }
     }
 
     /// Create a new read-only view to this state variable
-    pub fn create_new_read_only_view(&self) -> StateVarReadOnlyViewTyped<T> {
-        StateVarReadOnlyViewTyped {
-            inner: self.value.inner.clone(),
-            change_counter_when_last_viewed: 0,
-        }
+    pub fn create_new_read_only_view(&self) -> StateVarReadOnlyView<T> {
+        self.value.create_new_read_only_view()
+    }
+
+    /// Determine if the state variable has changed
+    /// since we last called `get_value_record_viewed`.
+    ///
+    /// Note: calls to `get` are ignored when determining when last viewed.
+    pub fn check_if_changed_since_last_viewed(&self) -> bool {
+        self.value.check_if_changed_since_last_viewed()
     }
 
     /// If the variable is fresh, get a reference to its current value
     /// and record the fact that we viewed the value.
     ///
     /// Panics: if the state variable is not fresh.
-    pub fn get_fresh_value<'a>(&'a self) -> impl Deref<Target = T> + 'a {
-        Ref::map(self.value.inner.borrow(), |v| v.get_fresh_value())
+    pub fn get_value_record_viewed(&mut self) -> impl Deref<Target = T> + '_ {
+        self.value.get_value_record_viewed()
     }
 
-    /// Set the value of the state variable to the supplied value
-    /// and mark it fresh
+    /// If the variable is fresh, get a reference to its current value
+    /// and record the fact that we viewed the value.
+    ///
+    /// Panics: if the state variable is not fresh.
+    pub fn get(&self) -> impl Deref<Target = T> + '_ {
+        self.value.get()
+    }
+
+    /// Record the fact that we viewed the value.
+    pub fn record_viewed(&mut self) {
+        self.value.record_viewed()
+    }
+
+    /// Set the value of the state variable to the supplied value,
+    /// set 'used_default` to false, and mark it fresh
     pub fn set_value(&self, new_val: T) {
-        self.value.inner.borrow_mut().set_value(new_val);
+        self.value.set_value(new_val)
     }
 
     /// Set the value of the state variable to `new_val`,
     /// mark it as Fresh, and set `used_default`.
-    pub fn set_value_and_used_default(&self, new_val: T, used_default: bool) {
+    pub fn set_value_and_set_used_default(&self, new_val: T, used_default: bool) {
         self.value
-            .inner
-            .borrow_mut()
-            .set_value_and_used_default(new_val, used_default);
+            .set_value_and_set_used_default(new_val, used_default)
     }
 
     /// If the state variable is Stale, mark it as Fresh
@@ -593,99 +651,82 @@ impl<T: Default + Clone> StateVarTyped<T> {
     /// will be its fresh value again.
     ///
     /// Panics: if the state variable is Unresolved.
-    pub fn restore_previous_value(&self) {
-        self.value.inner.borrow_mut().restore_previous_value();
+    pub fn mark_fresh(&self) {
+        self.value.mark_fresh()
     }
 
     /// Return if the `used_default` field was set
     pub fn get_used_default(&self) -> bool {
-        self.value.inner.borrow().get_used_default()
+        self.value.get_used_default()
     }
 
     /// Set the freshness of the variable to Stale
     pub fn mark_stale(&self) {
-        self.value.inner.borrow_mut().mark_stale()
+        self.value.mark_stale()
     }
 
     /// Set the freshness of the variable to Resolved
     pub fn set_as_resolved(&self) {
-        self.value.inner.borrow_mut().set_as_resolved()
+        self.value.set_as_resolved()
     }
 
     /// Return the current freshness of the variable
     pub fn get_freshness(&self) -> Freshness {
-        self.value.inner.borrow().freshness
+        self.value.get_freshness()
     }
 
     /// Set the `requested_value` field to the supplied value
     pub fn request_change_value_to(&self, requested_val: T) {
-        self.value
-            .inner
-            .borrow_mut()
-            .request_change_value_to(requested_val);
+        self.value.request_change_value_to(requested_val)
     }
 
     /// Get a reference to the current `requested_value` field
-    pub fn get_requested_value<'a>(&'a self) -> impl Deref<Target = T> + 'a {
-        Ref::map(self.value.inner.borrow(), |v| v.get_requested_value())
+    pub fn get_requested_value(&self) -> impl Deref<Target = T> + '_ {
+        self.value.get_requested_value()
     }
 
     /// Convenience function to call `return_dependency_instructions` on interface
     pub fn return_dependency_instructions(
-        &self,
-        extend_source: Option<&ExtendSource>,
+        &mut self,
+        extending: Option<ExtendSource>,
+        state_var_idx: StateVarIdx,
     ) -> Vec<DependencyInstruction> {
-        self.interface.return_dependency_instructions(extend_source)
+        self.interface
+            .return_dependency_instructions(extending, &self.parameters, state_var_idx)
     }
 
-    /// Call `save_dependencies_for_value_calculation` on interface
+    /// Call `save_dependencies` on interface
     /// and save dependencies to `all_dependency_values` field
-    pub fn set_dependencies(&mut self, dependencies: &Vec<Vec<Dependency>>) -> () {
-        self.interface
-            .save_dependencies_for_value_calculation(dependencies);
+    pub fn save_dependencies(&mut self, dependencies: &Vec<DependenciesCreatedForInstruction>) {
+        self.interface.save_dependencies(dependencies);
         self.all_dependency_values = dependencies
             .iter()
             .flat_map(|vec| vec.iter().map(|elt| elt.value.create_new_read_only_view()))
             .collect();
     }
 
-    /// Convenience function to call `calculate_state_var_from_dependencies_and_mark_fresh` on interface
-    pub fn calculate_state_var_from_dependencies_and_mark_fresh(&self) -> () {
+    /// Convenience function to call `calculate_state_var_from_dependencies` on interface
+    /// and then call mark_fresh
+    pub fn calculate_state_var_from_dependencies_and_mark_fresh(&self) {
         self.interface
-            .calculate_state_var_from_dependencies_and_mark_fresh(&self.value)
+            .calculate_state_var_from_dependencies(&self.value);
+        self.mark_fresh();
     }
 
-    /// Convenience function to call `request_dependencies_to_update_value` on interface
-    pub fn request_dependencies_to_update_value(
+    /// Convenience function to call `request_updated_dependency_values` on interface
+    pub fn request_updated_dependency_values(
         &self,
         is_direct_change_from_renderer: bool,
-    ) -> Result<Vec<DependencyValueUpdateRequest>, ()> {
-        self.interface.request_dependencies_to_update_value(
+    ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
+        self.interface.request_updated_dependency_values(
             &self.immutable_view_of_value,
             is_direct_change_from_renderer,
         )
     }
 
-    /// Get name of the state variable
-    pub fn get_name(&self) -> &'static str {
-        self.parameters.name
-    }
-
-    /// Return whether or not a macro can reference the state variable
-    pub fn get_is_public(&self) -> bool {
-        self.parameters.is_public
-    }
-
-    /// Return whether or not this state variable value should be sent to the renderer
-    pub fn get_for_renderer(&self) -> bool {
-        self.parameters.for_renderer
-    }
-
-    /// Return the initial essential value of this state variable
-    ///
-    /// TODO: determine how this is used
-    pub fn return_initial_essential_value(&self) -> T {
-        self.parameters.initial_essential_value.clone()
+    /// Return the default value of this state variable
+    pub fn return_default_value(&self) -> T {
+        self.default_value.clone()
     }
 
     /// Record that the fact each of the dependencies in `all_dependency_values` were viewed.
@@ -698,9 +739,16 @@ impl<T: Default + Clone> StateVarTyped<T> {
 
     /// Check if a dependency has changed since we last called `record_all_dependencies_viewed`.
     pub fn check_if_any_dependency_changed_since_last_viewed(&self) -> bool {
-        self.all_dependency_values
-            .iter()
-            .any(|state_var| state_var.check_if_changed_since_last_viewed())
+        if self.all_dependency_values.is_empty() {
+            // if there are no dependencies, then report true if state variable is Unresolved or Resolved,
+            // as in that case, we still need to calculate the state variable
+            let this_freshness = self.get_freshness();
+            this_freshness == Freshness::Resolved || this_freshness == Freshness::Unresolved
+        } else {
+            self.all_dependency_values
+                .iter()
+                .any(|state_var| state_var.check_if_changed_since_last_viewed())
+        }
     }
 }
 
@@ -710,70 +758,82 @@ impl<T: Default + Clone> StateVarTyped<T> {
 // Particularly useful for having vectors of mixed type
 ///////////////////////////////////////////////////////////////////////
 
-/// The base structure for a state variable.
-///
-/// Provides access to the `StateVarInterface` methods
-/// as well as methods to view and change the variable.
 #[derive(StateVarMethods)]
-pub enum StateVar {
-    Number(StateVarTyped<f64>),
-    Integer(StateVarTyped<i64>),
-    String(StateVarTyped<String>),
-    Boolean(StateVarTyped<bool>),
+pub enum StateVarEnumRef<'a> {
+    Number(&'a StateVar<f64>),
+    Integer(&'a StateVar<i64>),
+    String(&'a StateVar<String>),
+    Boolean(&'a StateVar<bool>),
 }
 
-/// An untyped, mutable view of the value of the state variable.
+#[derive(StateVarMethods, StateVarMethodsMut)]
+pub enum StateVarEnumRefMut<'a> {
+    Number(&'a mut StateVar<f64>),
+    Integer(&'a mut StateVar<i64>),
+    String(&'a mut StateVar<String>),
+    Boolean(&'a mut StateVar<bool>),
+}
+
+/// An mutable enum view of the value of the state variable.
 /// It includes methods that allow one to view and change the variable.
 #[derive(StateVarMutableViewMethods)]
-pub enum StateVarMutableView {
-    Number(StateVarMutableViewTyped<f64>),
-    Integer(StateVarMutableViewTyped<i64>),
-    String(StateVarMutableViewTyped<String>),
-    Boolean(StateVarMutableViewTyped<bool>),
+pub enum StateVarMutableViewEnum {
+    Number(StateVarMutableView<f64>),
+    Integer(StateVarMutableView<i64>),
+    String(StateVarMutableView<String>),
+    Boolean(StateVarMutableView<bool>),
 }
 
-/// An untyped, read-only view of the value of the state variable.
+/// An read-only enum view of the value of the state variable.
 /// It includes methods that allow one to view the variable.
 #[derive(StateVarReadOnlyViewMethods)]
-pub enum StateVarReadOnlyView {
-    Number(StateVarReadOnlyViewTyped<f64>),
-    Integer(StateVarReadOnlyViewTyped<i64>),
-    String(StateVarReadOnlyViewTyped<String>),
-    Boolean(StateVarReadOnlyViewTyped<bool>),
+pub enum StateVarReadOnlyViewEnum {
+    Number(StateVarReadOnlyView<f64>),
+    Integer(StateVarReadOnlyView<i64>),
+    String(StateVarReadOnlyView<String>),
+    Boolean(StateVarReadOnlyView<bool>),
 }
 
 /// This can contain the value of a state variable of any type,
 /// which is useful for function parameters.
-#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
+#[derive(
+    Debug,
+    Clone,
+    PartialEq,
+    serde::Serialize,
+    serde::Deserialize,
+    derive_more::TryInto,
+    FromStateVarIntoStateVarValueEnumRefs,
+)]
 #[serde(untagged)]
 #[cfg_attr(feature = "web", derive(Tsify))]
 #[cfg_attr(feature = "web", tsify(from_wasm_abi))]
-pub enum StateVarValue {
+pub enum StateVarValueEnum {
     String(String),
     Number(f64),
     Integer(i64),
     Boolean(bool),
 }
 
-impl StateVar {
+impl<'a> StateVarEnumRef<'a> {
     /// If creating a component from a reference to this state variable
     /// then create a component of the given type.
     ///
     /// TODO: presumably, there should be a way to override this default.
     pub fn get_default_component_type(&self) -> &'static str {
         match self {
-            StateVar::Number(_) => "number",
-            StateVar::Integer(_) => "number",
-            StateVar::String(_) => "text",
-            StateVar::Boolean(_) => "boolean",
+            StateVarEnumRef::Number(_) => "number",
+            StateVarEnumRef::Integer(_) => "number",
+            StateVarEnumRef::String(_) => "text",
+            StateVarEnumRef::Boolean(_) => "boolean",
         }
     }
 }
 
-impl fmt::Debug for StateVar {
+impl fmt::Debug for StateVarMutableViewEnum {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.get_freshness() {
-            Freshness::Fresh => self.get_fresh_value().fmt(f),
+            Freshness::Fresh => self.get().fmt(f),
             Freshness::Stale => f.write_str("Stale"),
             Freshness::Unresolved => f.write_str("Unresolved"),
             Freshness::Resolved => f.write_str("Resolved"),
@@ -781,21 +841,10 @@ impl fmt::Debug for StateVar {
     }
 }
 
-impl fmt::Debug for StateVarMutableView {
+impl fmt::Debug for StateVarReadOnlyViewEnum {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.get_freshness() {
-            Freshness::Fresh => self.get_fresh_value().fmt(f),
-            Freshness::Stale => f.write_str("Stale"),
-            Freshness::Unresolved => f.write_str("Unresolved"),
-            Freshness::Resolved => f.write_str("Resolved"),
-        }
-    }
-}
-
-impl fmt::Debug for StateVarReadOnlyView {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self.get_freshness() {
-            Freshness::Fresh => self.get_fresh_value().fmt(f),
+            Freshness::Fresh => self.get().fmt(f),
             Freshness::Stale => f.write_str("Stale"),
             Freshness::Unresolved => f.write_str("Unresolved"),
             Freshness::Resolved => f.write_str("Resolved"),

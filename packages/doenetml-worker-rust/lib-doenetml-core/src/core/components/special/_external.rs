@@ -1,11 +1,15 @@
 use crate::components::prelude::*;
 
-#[derive(Debug, Default, RenderedComponentNode, ComponentNodeStateVariables)]
+#[derive(Debug, Default, RenderedComponentNode, ComponentStateVariables)]
 pub struct _External {
     pub common: ComponentCommonData,
 
     pub name: String,
+    pub state: _ExternalStateVariables,
 }
+
+#[derive(Debug, Default, ComponentStateVariables)]
+pub struct _ExternalStateVariables {}
 
 impl ComponentNode for _External {
     fn get_idx(&self) -> ComponentIdx {
@@ -14,13 +18,16 @@ impl ComponentNode for _External {
     fn get_parent(&self) -> Option<ComponentIdx> {
         self.common.parent
     }
-    fn get_children(&self) -> &Vec<ComponentChild> {
+    fn get_children(&self) -> &Vec<ComponentPointerTextOrMacro> {
         &self.common.children
     }
-    fn set_children(&mut self, children: Vec<ComponentChild>) {
+    fn set_children(&mut self, children: Vec<ComponentPointerTextOrMacro>) {
         self.common.children = children;
     }
-    fn replace_children(&mut self, new_children: Vec<ComponentChild>) -> Vec<ComponentChild> {
+    fn replace_children(
+        &mut self,
+        new_children: Vec<ComponentPointerTextOrMacro>,
+    ) -> Vec<ComponentPointerTextOrMacro> {
         std::mem::replace(&mut self.common.children, new_children)
     }
 
@@ -28,44 +35,17 @@ impl ComponentNode for _External {
         &mut self,
         idx: ComponentIdx,
         parent: Option<ComponentIdx>,
-        _extend_source: Option<ExtendSource>,
+        _extending: Option<ExtendSource>,
+        attributes: HashMap<String, DastAttribute>,
         position: Option<DastPosition>,
     ) {
         self.common.idx = idx;
         self.common.parent = parent;
         self.common.position = position;
-
-        self.initialize_state_variables();
-
-        self.common.rendered_state_variable_indices = self
-            .get_state_variables()
-            .iter()
-            .enumerate()
-            .filter_map(|(ind, state_var)| state_var.get_for_renderer().then(|| ind))
-            .collect();
-
-        self.common.public_state_variable_indices = self
-            .get_state_variables()
-            .iter()
-            .enumerate()
-            .filter_map(|(ind, state_var)| state_var.get_is_public().then(|| ind))
-            .collect();
-
-        self.common.state_variable_name_to_index = HashMap::new();
-
-        let name_to_index_pairs: Vec<_> = self
-            .get_state_variables()
-            .iter()
-            .enumerate()
-            .map(|(sv_idx, state_var)| (state_var.get_name().to_string(), sv_idx))
-            .collect();
-
-        self.common
-            .state_variable_name_to_index
-            .extend(name_to_index_pairs);
+        self.common.unevaluated_attributes = attributes;
     }
 
-    fn get_extend(&self) -> Option<&ExtendSource> {
+    fn get_extending(&self) -> Option<&ExtendSource> {
         None
     }
 
@@ -89,38 +69,33 @@ impl ComponentNode for _External {
         self.common.position = position;
     }
 
-    fn get_num_state_variables(&self) -> usize {
-        self.common.state_variables.len()
+    fn set_attribute_children(
+        &mut self,
+        attribute_children: HashMap<AttributeName, Vec<ComponentPointerTextOrMacro>>,
+    ) {
+        self.common.attribute_children = attribute_children;
     }
 
-    fn get_state_variables(&self) -> &Vec<StateVar> {
-        &self.common.state_variables
+    fn get_attribute_children_for_attribute(
+        &self,
+        attribute: AttributeName,
+    ) -> Option<&Vec<ComponentPointerTextOrMacro>> {
+        self.common.attribute_children.get(attribute)
     }
 
-    fn get_state_variables_mut(&mut self) -> &mut Vec<StateVar> {
-        &mut self.common.state_variables
+    fn get_unevaluated_attributes(&self) -> &HashMap<String, DastAttribute> {
+        &self.common.unevaluated_attributes
     }
 
-    fn get_rendered_state_variable_indices(&self) -> &Vec<usize> {
-        &self.common.rendered_state_variable_indices
+    fn get_unevaluated_attributes_mut(&mut self) -> &mut HashMap<String, DastAttribute> {
+        &mut self.common.unevaluated_attributes
     }
 
-    fn get_public_state_variable_indices(&self) -> &Vec<usize> {
-        &self.common.public_state_variable_indices
+    fn get_is_in_render_tree(&self) -> bool {
+        self.common.is_in_render_tree
     }
 
-    fn get_state_variable_index_from_name(&self, name: &String) -> Option<usize> {
-        self.common.state_variable_name_to_index.get(name).copied()
-    }
-
-    fn get_state_variable_index_from_name_case_insensitive(&self, name: &String) -> Option<usize> {
-        self.common
-            .state_variable_name_to_index
-            .get_key_value_ignore_case(name)
-            .map(|(_k, v)| *v)
-    }
-
-    fn get_component_profile_state_variables(&self) -> &Vec<ComponentProfileStateVariable> {
-        &self.common.component_profile_state_variables
+    fn set_is_in_render_tree(&mut self, is_in_render_tree: bool) {
+        self.common.is_in_render_tree = is_in_render_tree;
     }
 }

@@ -1,39 +1,31 @@
-use std::collections::HashMap;
-
 use crate::components::prelude::*;
-use crate::state_var_interfaces::text_state_var_interfaces::{
-    GeneralStringStateVarInterface, SingleDependencyStringStateVarInterface,
+use crate::state_var_interfaces::boolean_state_var_interfaces::{
+    GeneralBooleanStateVarInterface, SingleDependencyBooleanStateVarInterface,
 };
 
 #[derive(Debug, Default, ComponentNode, ComponentStateVariables)]
-pub struct Text {
+pub struct Boolean {
     pub common: ComponentCommonData,
 
-    pub no_rendered_children: Vec<ComponentPointerTextOrMacro>,
+    pub state: BooleanStateVariables,
 
-    pub state: TextStateVariables,
+    pub no_rendered_children: Vec<ComponentPointerTextOrMacro>,
 }
 
 #[derive(Debug, ComponentStateVariables)]
-pub struct TextStateVariables {
-    #[is_public]
-    #[for_renderer]
-    #[component_profile_state_variables(Text)]
-    value: StateVar<String>,
-
-    #[is_public]
-    #[for_renderer]
-    text: StateVar<String>,
+pub struct BooleanStateVariables {
+    value: StateVar<bool>,
+    boolean: StateVar<bool>,
 }
 
-impl TextStateVariables {
+impl BooleanStateVariables {
     fn new() -> Self {
-        TextStateVariables {
+        BooleanStateVariables {
             value: StateVar::new(
-                Box::<GeneralStringStateVarInterface>::default(),
+                Box::<GeneralBooleanStateVarInterface>::default(),
                 StateVarParameters {
                     dependency_instruction_hint: Some(DependencyInstruction::Child {
-                        match_profiles: vec![ComponentProfile::Text],
+                        match_profiles: vec![ComponentProfile::Text, ComponentProfile::Boolean],
                         exclude_if_prefer_profiles: vec![],
                     }),
                     should_create_dependency_from_extend_source: true,
@@ -41,11 +33,11 @@ impl TextStateVariables {
                 },
                 Default::default(),
             ),
-            text: StateVar::new(
-                Box::<SingleDependencyStringStateVarInterface>::default(),
+            boolean: StateVar::new(
+                Box::<SingleDependencyBooleanStateVarInterface>::default(),
                 StateVarParameters {
                     dependency_instruction_hint: Some(
-                        TextStateVariables::get_value_dependency_instructions(),
+                        BooleanStateVariables::get_value_dependency_instructions(),
                     ),
                     ..Default::default()
                 },
@@ -55,13 +47,13 @@ impl TextStateVariables {
     }
 }
 
-impl Default for TextStateVariables {
+impl Default for BooleanStateVariables {
     fn default() -> Self {
-        TextStateVariables::new()
+        BooleanStateVariables::new()
     }
 }
 
-impl RenderedComponentNode for Text {
+impl RenderedComponentNode for Boolean {
     fn get_rendered_children(&self) -> &Vec<ComponentPointerTextOrMacro> {
         &self.no_rendered_children
     }

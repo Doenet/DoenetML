@@ -23,7 +23,6 @@ ndarray = { version = "0.15.6", features = ["serde"] }
 instant = { version = "0.1", features = ["wasm-bindgen"] }
 strum = "0.25"
 strum_macros = "0.25"
-tailcall = "0.1.6"
 enum_dispatch = "0.3.12"
 evalexpr = { version = "8.1.0", features = ["serde_support"] }
 # The `console_error_panic_hook` crate provides better debugging of panics by
@@ -42,5 +41,6 @@ proc-macro2 = "1.0"
 syn = "2.0"
 convert_case = "0.5.0"
 anyhow = "1.0.79"
+thiserror = "1.0.56"
 tsify = { git = "https://github.com/siefkenj/tsify.git", branch = "next" }
 derive_more = "0.99.17"

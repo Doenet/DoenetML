@@ -2,27 +2,33 @@
 //! macros properly. Rather than repeat them each time, collect them and re-export them here.
 
 // These imports are required for the derive macros to work correctly
-pub use doenetml_derive::{ComponentNode, ComponentNodeStateVariables, RenderedComponentNode};
+pub use doenetml_derive::{
+    ComponentNode, ComponentStateVariables, RenderedComponentNode, StateVariableDependencies,
+    StateVariableDependencyInstructions,
+};
 pub use std::collections::HashMap;
 
 pub use crate::dast::Position as DastPosition;
-pub use crate::state::StateVar;
+pub use crate::dependency::{DependenciesCreatedForInstruction, TryIntoStateVar};
+pub use crate::state::ComponentStateVariables;
 
 pub use crate::utils::KeyValueIgnoreCase;
-pub use crate::{ComponentChild, ComponentIdx, ExtendSource};
+pub use crate::{ComponentIdx, ComponentPointerTextOrMacro, ExtendSource};
 
 pub use crate::components::{
-    ComponentCommonData, ComponentNode, ComponentNodeStateVariables, ComponentProfileStateVariable,
-    RenderedComponentNode,
+    ComponentCommonData, ComponentNode, ComponentProfileStateVariable, RenderedComponentNode,
 };
 
 // These imports are commonly used in components
 
-pub use crate::components::ComponentEnum;
-pub use crate::components::ComponentProfile;
-pub use crate::dast::{ElementData, FlatDastElement, FlatDastElementUpdate, FlatDastElementContent};
+pub use crate::attribute::AttributeName;
+pub use crate::components::{ComponentEnum, ComponentProfile, RenderedState};
+pub use crate::dast::{
+    DastAttribute, ElementData, FlatDastElement, FlatDastElementContent, FlatDastElementUpdate,
+};
 pub use crate::dependency::{Dependency, DependencyInstruction, DependencyValueUpdateRequest};
 pub use crate::state::{
-    StateVarInterface, StateVarMutableViewTyped, StateVarParameters, StateVarReadOnlyView,
-    StateVarReadOnlyViewTyped, StateVarTyped, StateVarValue,
+    RequestDependencyUpdateError, StateVar, StateVarEnumRef, StateVarEnumRefMut, StateVarIdx,
+    StateVarInterface, StateVarMutableView, StateVarParameters, StateVarReadOnlyView,
+    StateVarReadOnlyViewEnum, StateVarValueEnum,
 };
