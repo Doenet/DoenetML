@@ -31,3 +31,26 @@ jobs:
 
             - name: Test
               run: npm test
+
+    lint:
+        name: Lint Rust Code
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout sources
+              uses: actions/checkout@v3
+
+            - name: Install toolchain
+              uses: actions-rs/toolchain@v1
+              with:
+                  profile: minimal
+                  toolchain: stable
+                  override: true
+                  components: rustfmt, clippy
+
+            - name: Cargo fmt
+              uses: actions-rs/cargo@v1
+              with:
+                  working-directory: ./packages/doenetml-worker-rust
+                  command: fmt
+                  args: --all -- --check
