@@ -32,7 +32,6 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
             let mut state_var_request_updated_dependency_values_arms = Vec::new();
             let mut state_var_return_default_value_arms = Vec::new();
 
-
             for variant in variants {
                 let variant_ident = &variant.ident;
 
@@ -290,7 +289,6 @@ pub fn state_var_methods_mut_derive(input: TokenStream) -> TokenStream {
 
             for variant in variants {
                 let variant_ident = &variant.ident;
-
 
                 state_var_record_all_dependencies_viewed_arms.push(quote! {
                     #enum_ident::#variant_ident(sv) => {
@@ -667,7 +665,7 @@ pub fn state_var_read_only_view_methods_derive(input: TokenStream) -> TokenStrea
 }
 
 /// Implement methods to create StateVarEnumRef and StateVarEnumRefMut from StateVar<T>
-/// 
+///
 /// For simplicity, created this macro so that it needs to be derived
 /// from an enum where each variant is just state variable type,
 /// so we derive it off `StateVarValueEnum`.
@@ -683,12 +681,10 @@ pub fn into_state_var_enum_refs_derive(input: TokenStream) -> TokenStream {
 
             let mut impl_try_from_read_only_enum_to_ready_only_view_variants = Vec::new();
 
-
             for variant in variants {
                 let variant_ident = &variant.ident;
 
                 if let Fields::Unnamed(FieldsUnnamed { unnamed, .. }) = &variant.fields {
-
                     if let Some(state_var_type) = find_type_from_state_var(&unnamed[0].ty) {
                         impl_from_state_var_to_state_var_enum_refs_variants.push(quote! {
                             impl<'a> From<&'a StateVar<#state_var_type>> for StateVarEnumRef<'a> {
@@ -720,10 +716,8 @@ pub fn into_state_var_enum_refs_derive(input: TokenStream) -> TokenStream {
                                 }
                             }
                         });
-    
                     }
                 }
-
             }
 
             quote! {
