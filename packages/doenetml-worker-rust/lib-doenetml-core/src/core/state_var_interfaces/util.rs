@@ -4,7 +4,7 @@ use crate::{
 };
 
 pub fn create_dependency_instruction_from_extend_source(
-    extending: Option<&ExtendSource>,
+    extending: Option<ExtendSource>,
     parameters: &StateVarParameters,
     state_var_idx: StateVarIdx,
 ) -> Option<DependencyInstruction> {

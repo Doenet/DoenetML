@@ -17,7 +17,9 @@ use doenetml_derive::{
 };
 
 use crate::{
-    dependency::{Dependency, DependencyInstruction, DependencyValueUpdateRequest},
+    dependency::{
+        DependenciesCreatedForInstruction, DependencyInstruction, DependencyValueUpdateRequest,
+    },
     ExtendSource,
 };
 
@@ -91,8 +93,8 @@ pub trait StateVarInterface<T: Default + Clone>: std::fmt::Debug {
     /// e.g., the children, attributes, or other state variables
     /// of the component of this state variable
     fn return_dependency_instructions(
-        &self,
-        extending: Option<&ExtendSource>,
+        &mut self,
+        extending: Option<ExtendSource>,
         parameters: &StateVarParameters,
         state_var_idx: StateVarIdx,
     ) -> Vec<DependencyInstruction>;
@@ -103,15 +105,12 @@ pub trait StateVarInterface<T: Default + Clone>: std::fmt::Debug {
     /// the dependencies directly on the the structure (`self`)
     /// in a form (presumably typed not with enums) for efficient calculation.
     #[allow(clippy::ptr_arg)]
-    fn save_dependencies(&mut self, dependencies: &Vec<Vec<Dependency>>);
+    fn save_dependencies(&mut self, dependencies: &Vec<DependenciesCreatedForInstruction>);
 
     /// Calculate the value of the state variable from the current values of the dependencies
     /// that were stored in `save_dependencies`.
     /// Save the result in state_var argument that is passed in.
-    fn calculate_state_var_from_dependencies_and_mark_fresh(
-        &self,
-        state_var: &StateVarMutableView<T>,
-    );
+    fn calculate_state_var_from_dependencies(&self, state_var: &StateVarMutableView<T>);
 
     /// Given the requested value stored in the meta data of the state_var argument,
     /// calculate the desired values of the dependencies
@@ -222,7 +221,7 @@ impl<T: Default + Clone> StateVarInner<T> {
     /// Retrieves a reference to the value of the state variable if the variable is fresh.
     ///
     /// Panics: if the state variable is not fresh.
-    pub fn get_fresh_value(&self) -> &T {
+    pub fn get(&self) -> &T {
         if self.freshness != Freshness::Fresh {
             panic!("State variable is not fresh, cannot get its fresh value");
         }
@@ -275,7 +274,7 @@ impl<T: Default + Clone> StateVarInner<T> {
 
     /// Set the value of the state variable to `new_val`,
     /// mark it as Fresh, set `used_default`, and increment the change counter.
-    pub fn set_value_and_used_default(&mut self, new_val: T, used_default: bool) {
+    pub fn set_value_and_set_used_default(&mut self, new_val: T, used_default: bool) {
         self.value = new_val;
         self.freshness = Freshness::Fresh;
         self.used_default = used_default;
@@ -287,7 +286,7 @@ impl<T: Default + Clone> StateVarInner<T> {
     /// will be its fresh value again.
     ///
     /// Panics: if the state variable is Unresolved.
-    pub fn restore_previous_value(&mut self) {
+    pub fn mark_fresh(&mut self) {
         match self.freshness {
             Freshness::Stale => {
                 self.freshness = Freshness::Fresh;
@@ -363,9 +362,9 @@ impl<T: Default + Clone> StateVarMutableView<T> {
     }
 
     /// Determine if the state variable has changed
-    /// since we last called `get_fresh_value_record_viewed`.
+    /// since we last called `get_value_record_viewed`.
     ///
-    /// Note: calls to `get_fresh_value` are ignored when determining when last viewed.
+    /// Note: calls to `get` are ignored when determining when last viewed.
     pub fn check_if_changed_since_last_viewed(&self) -> bool {
         self.inner.borrow().get_change_counter() != self.change_counter_when_last_viewed
     }
@@ -374,21 +373,21 @@ impl<T: Default + Clone> StateVarMutableView<T> {
     /// and record the fact that we viewed the value.
     ///
     /// Panics: if the state variable is not fresh.
-    pub fn get_fresh_value_record_viewed(&mut self) -> impl Deref<Target = T> + '_ {
+    pub fn get_value_record_viewed(&mut self) -> impl Deref<Target = T> + '_ {
         let inner: Ref<'_, StateVarInner<T>> = self.inner.borrow();
 
         // We record the fact that the state variable was viewed
         // by recording the current value of the state variable's counter
         self.change_counter_when_last_viewed = inner.get_change_counter();
 
-        Ref::map(inner, |v| v.get_fresh_value())
+        Ref::map(inner, |v| v.get())
     }
 
     /// If the variable is fresh, get a reference to its current value.
     ///
     /// Panics: if the state variable is not fresh.
-    pub fn get_fresh_value(&self) -> impl Deref<Target = T> + '_ {
-        Ref::map(self.inner.borrow(), |v| v.get_fresh_value())
+    pub fn get(&self) -> impl Deref<Target = T> + '_ {
+        Ref::map(self.inner.borrow(), |v| v.get())
     }
 
     /// Record the fact that we viewed the value.
@@ -424,10 +423,10 @@ impl<T: Default + Clone> StateVarMutableView<T> {
 
     /// Set the value of the state variable to `new_val`,
     /// mark it as Fresh, and set `used_default`.
-    pub fn set_value_and_used_default(&self, new_val: T, used_default: bool) {
+    pub fn set_value_and_set_used_default(&self, new_val: T, used_default: bool) {
         self.inner
             .borrow_mut()
-            .set_value_and_used_default(new_val, used_default);
+            .set_value_and_set_used_default(new_val, used_default);
     }
 
     /// If the state variable is Stale, mark it as Fresh
@@ -435,8 +434,8 @@ impl<T: Default + Clone> StateVarMutableView<T> {
     /// will be its fresh value again.
     ///
     /// Panics: if the state variable is Unresolved.
-    pub fn restore_previous_value(&self) {
-        self.inner.borrow_mut().restore_previous_value();
+    pub fn mark_fresh(&self) {
+        self.inner.borrow_mut().mark_fresh();
     }
 
     /// Return if the `used_default` field was set
@@ -484,9 +483,9 @@ impl<T: Default + Clone> StateVarMutableView<T> {
 
 impl<T: Default + Clone> StateVarReadOnlyView<T> {
     /// Determine if the state variable has changed
-    /// since we last called `get_fresh_value_record_viewed`.
+    /// since we last called `get_value_record_viewed`.
     ///
-    /// Note: calls to `get_fresh_value` are ignored when determining when last viewed.
+    /// Note: calls to `get` are ignored when determining when last viewed.
     pub fn check_if_changed_since_last_viewed(&self) -> bool {
         self.inner.borrow().get_change_counter() != self.change_counter_when_last_viewed
     }
@@ -495,17 +494,17 @@ impl<T: Default + Clone> StateVarReadOnlyView<T> {
     /// and record the fact that we viewed the value.
     ///
     /// Panics: if the state variable is not fresh.
-    pub fn get_fresh_value_record_viewed(&mut self) -> impl Deref<Target = T> + '_ {
+    pub fn get_value_record_viewed(&mut self) -> impl Deref<Target = T> + '_ {
         let inner = self.inner.borrow();
         self.change_counter_when_last_viewed = inner.get_change_counter();
-        Ref::map(inner, |v| v.get_fresh_value())
+        Ref::map(inner, |v| v.get())
     }
 
     /// If the variable is fresh, get a reference to its current value.
     ///
     /// Panics: if the state variable is not fresh.
-    pub fn get_fresh_value(&self) -> impl Deref<Target = T> + '_ {
-        Ref::map(self.inner.borrow(), |v| v.get_fresh_value())
+    pub fn get(&self) -> impl Deref<Target = T> + '_ {
+        Ref::map(self.inner.borrow(), |v| v.get())
     }
 
     /// Record the fact that we viewed the value.
@@ -606,9 +605,9 @@ impl<T: Default + Clone> StateVar<T> {
     }
 
     /// Determine if the state variable has changed
-    /// since we last called `get_fresh_value_record_viewed`.
+    /// since we last called `get_value_record_viewed`.
     ///
-    /// Note: calls to `get_fresh_value` are ignored when determining when last viewed.
+    /// Note: calls to `get` are ignored when determining when last viewed.
     pub fn check_if_changed_since_last_viewed(&self) -> bool {
         self.value.check_if_changed_since_last_viewed()
     }
@@ -617,16 +616,16 @@ impl<T: Default + Clone> StateVar<T> {
     /// and record the fact that we viewed the value.
     ///
     /// Panics: if the state variable is not fresh.
-    pub fn get_fresh_value_record_viewed(&mut self) -> impl Deref<Target = T> + '_ {
-        self.value.get_fresh_value_record_viewed()
+    pub fn get_value_record_viewed(&mut self) -> impl Deref<Target = T> + '_ {
+        self.value.get_value_record_viewed()
     }
 
     /// If the variable is fresh, get a reference to its current value
     /// and record the fact that we viewed the value.
     ///
     /// Panics: if the state variable is not fresh.
-    pub fn get_fresh_value(&self) -> impl Deref<Target = T> + '_ {
-        self.value.get_fresh_value()
+    pub fn get(&self) -> impl Deref<Target = T> + '_ {
+        self.value.get()
     }
 
     /// Record the fact that we viewed the value.
@@ -642,8 +641,9 @@ impl<T: Default + Clone> StateVar<T> {
 
     /// Set the value of the state variable to `new_val`,
     /// mark it as Fresh, and set `used_default`.
-    pub fn set_value_and_used_default(&self, new_val: T, used_default: bool) {
-        self.value.set_value_and_used_default(new_val, used_default)
+    pub fn set_value_and_set_used_default(&self, new_val: T, used_default: bool) {
+        self.value
+            .set_value_and_set_used_default(new_val, used_default)
     }
 
     /// If the state variable is Stale, mark it as Fresh
@@ -651,8 +651,8 @@ impl<T: Default + Clone> StateVar<T> {
     /// will be its fresh value again.
     ///
     /// Panics: if the state variable is Unresolved.
-    pub fn restore_previous_value(&self) {
-        self.value.restore_previous_value()
+    pub fn mark_fresh(&self) {
+        self.value.mark_fresh()
     }
 
     /// Return if the `used_default` field was set
@@ -687,8 +687,8 @@ impl<T: Default + Clone> StateVar<T> {
 
     /// Convenience function to call `return_dependency_instructions` on interface
     pub fn return_dependency_instructions(
-        &self,
-        extending: Option<&ExtendSource>,
+        &mut self,
+        extending: Option<ExtendSource>,
         state_var_idx: StateVarIdx,
     ) -> Vec<DependencyInstruction> {
         self.interface
@@ -697,7 +697,7 @@ impl<T: Default + Clone> StateVar<T> {
 
     /// Call `save_dependencies` on interface
     /// and save dependencies to `all_dependency_values` field
-    pub fn save_dependencies(&mut self, dependencies: &Vec<Vec<Dependency>>) {
+    pub fn save_dependencies(&mut self, dependencies: &Vec<DependenciesCreatedForInstruction>) {
         self.interface.save_dependencies(dependencies);
         self.all_dependency_values = dependencies
             .iter()
@@ -705,10 +705,12 @@ impl<T: Default + Clone> StateVar<T> {
             .collect();
     }
 
-    /// Convenience function to call `calculate_state_var_from_dependencies_and_mark_fresh` on interface
+    /// Convenience function to call `calculate_state_var_from_dependencies` on interface
+    /// and then call mark_fresh
     pub fn calculate_state_var_from_dependencies_and_mark_fresh(&self) {
         self.interface
-            .calculate_state_var_from_dependencies_and_mark_fresh(&self.value)
+            .calculate_state_var_from_dependencies(&self.value);
+        self.mark_fresh();
     }
 
     /// Convenience function to call `request_updated_dependency_values` on interface
@@ -831,7 +833,7 @@ impl<'a> StateVarEnumRef<'a> {
 impl fmt::Debug for StateVarMutableViewEnum {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.get_freshness() {
-            Freshness::Fresh => self.get_fresh_value().fmt(f),
+            Freshness::Fresh => self.get().fmt(f),
             Freshness::Stale => f.write_str("Stale"),
             Freshness::Unresolved => f.write_str("Unresolved"),
             Freshness::Resolved => f.write_str("Resolved"),
@@ -842,7 +844,7 @@ impl fmt::Debug for StateVarMutableViewEnum {
 impl fmt::Debug for StateVarReadOnlyViewEnum {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.get_freshness() {
-            Freshness::Fresh => self.get_fresh_value().fmt(f),
+            Freshness::Fresh => self.get().fmt(f),
             Freshness::Stale => f.write_str("Stale"),
             Freshness::Unresolved => f.write_str("Unresolved"),
             Freshness::Resolved => f.write_str("Resolved"),

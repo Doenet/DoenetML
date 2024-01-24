@@ -23,7 +23,9 @@ use super::state::state_var_updates::process_state_variable_update_request;
 use super::state::Freshness;
 
 use crate::components::actions::Action;
-use crate::components::prelude::{ComponentStateVariables, StateVarIdx};
+use crate::components::prelude::{
+    ComponentStateVariables, DependenciesCreatedForInstruction, StateVarIdx,
+};
 use crate::dast::{get_flat_dast_update, to_flat_dast};
 use crate::state::StateVarPointer;
 #[allow(unused)]
@@ -99,8 +101,9 @@ pub struct DependencyGraph {
     /// - The second index is the *StateVarIdx*,
     /// defined by the order in which state variables are defined for the component.
     /// - The third index is the index of the *DependencyInstruction* for the state variable.
-    /// - The inner vector is the dependencies that matched that DependencyInstruction.
-    pub dependencies: Vec<Vec<Vec<Vec<Dependency>>>>,
+    /// - The inner DependenciesCreatedForInstruction is the vector of dependencies
+    ///   that matched that DependencyInstruction.
+    pub dependencies: Vec<Vec<Vec<DependenciesCreatedForInstruction>>>,
 
     /// The inverse of the dependency graph *dependencies* (along with *dependent_on_essential*).
     /// It specifies the state variables that are dependent on each state variable.
@@ -193,7 +196,7 @@ pub enum ComponentPointerTextOrMacro {
 
 /// Information of the source that a component is extending, which is currently
 /// either another component or a state variable.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum ExtendSource {
     /// The component is extending another entire component, given by the component index
     Component(ComponentIdx),
@@ -204,7 +207,7 @@ pub enum ExtendSource {
 
 /// Description of the shadowing of state variables
 /// when a component extends the state variable of another component
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ExtendStateVariableDescription {
     /// the component being extended
     pub component_idx: ComponentIdx,
@@ -215,7 +218,7 @@ pub struct ExtendStateVariableDescription {
 
 /// Description of which state variable is shadowing
 /// another state variable when extending a component
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct StateVariableShadowingMatch {
     /// The state variable index in the extending component
     /// whose value will match (shadow) the state variable

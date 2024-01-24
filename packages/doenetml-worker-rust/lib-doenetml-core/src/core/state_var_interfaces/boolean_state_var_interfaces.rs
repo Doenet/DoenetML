@@ -1,8 +1,10 @@
+use doenetml_derive::{StateVariableDependencies, StateVariableDependencyInstructions};
+
 use crate::{
     components::prelude::{
-        Dependency, DependencyInstruction, DependencyValueUpdateRequest,
+        DependenciesCreatedForInstruction, DependencyInstruction, DependencyValueUpdateRequest,
         RequestDependencyUpdateError, StateVarIdx, StateVarInterface, StateVarMutableView,
-        StateVarParameters, StateVarReadOnlyView, StateVarReadOnlyViewEnum,
+        StateVarParameters, StateVarReadOnlyView, StateVarReadOnlyViewEnum, TryIntoStateVar,
     },
     dependency::DependencySource,
     ExtendSource,
@@ -19,123 +21,135 @@ use super::util::{create_dependency_instruction_from_extend_source, string_to_bo
 /// then propagate the `used_default` attribute of the essential state variable.
 #[derive(Debug, Default)]
 pub struct GeneralBooleanStateVarInterface {
-    boolean_or_strings_dependency_values: BooleanOrStrings,
+    dependency_instructions: GeneralBooleanStateVarDependencyInstructions,
+    dependency_values: GeneralBooleanStateVarDependencies,
+    // boolean_or_strings_dependency_values: BooleanOrStrings,
     from_single_essential: bool,
+    have_invalid_combination: bool,
+}
+
+#[derive(Debug, Default, StateVariableDependencies)]
+struct GeneralBooleanStateVarDependencies {
+    #[consume_remaining_instructions]
+    booleans_or_strings: Vec<BooleanOrString>,
+}
+
+#[derive(Debug, Default, StateVariableDependencyInstructions)]
+struct GeneralBooleanStateVarDependencyInstructions {
+    essential: Option<DependencyInstruction>,
+    other: Option<DependencyInstruction>,
 }
 
 #[derive(Debug)]
-enum BooleanOrStrings {
+enum BooleanOrString {
     Boolean(StateVarReadOnlyView<bool>),
-    Strings(Vec<StateVarReadOnlyView<String>>),
+    String(StateVarReadOnlyView<String>),
 }
 
-impl Default for BooleanOrStrings {
-    fn default() -> Self {
-        BooleanOrStrings::Boolean(StateVarReadOnlyView::default())
+impl TryFrom<&StateVarReadOnlyViewEnum> for BooleanOrString {
+    type Error = &'static str;
+
+    fn try_from(value: &StateVarReadOnlyViewEnum) -> Result<Self, Self::Error> {
+        match value {
+            StateVarReadOnlyViewEnum::Boolean(boolean_sv) => Ok(BooleanOrString::Boolean(
+                boolean_sv.create_new_read_only_view(),
+            )),
+            StateVarReadOnlyViewEnum::String(string_sv) => Ok(BooleanOrString::String(
+                string_sv.create_new_read_only_view(),
+            )),
+            _ => Err("BooleanOrString can only be a boolean or string state variable"),
+        }
     }
 }
+
+// impl Default for BooleanOrStrings {
+//     fn default() -> Self {
+//         BooleanOrStrings::Boolean(StateVarReadOnlyView::default())
+//     }
+// }
 
 impl StateVarInterface<bool> for GeneralBooleanStateVarInterface {
     fn return_dependency_instructions(
-        &self,
-        extending: Option<&ExtendSource>,
+        &mut self,
+        extending: Option<ExtendSource>,
         parameters: &StateVarParameters,
         state_var_idx: StateVarIdx,
     ) -> Vec<DependencyInstruction> {
-        let mut dep_instructs: Vec<DependencyInstruction> = Vec::with_capacity(2);
+        self.dependency_instructions = GeneralBooleanStateVarDependencyInstructions {
+            essential: if parameters.should_create_dependency_from_extend_source {
+                create_dependency_instruction_from_extend_source(
+                    extending,
+                    parameters,
+                    state_var_idx,
+                )
+            } else {
+                None
+            },
+            other: parameters.dependency_instruction_hint.clone(),
+        };
 
-        if parameters.should_create_dependency_from_extend_source {
-            if let Some(dep_inst) = create_dependency_instruction_from_extend_source(
-                extending,
-                parameters,
-                state_var_idx,
-            ) {
-                dep_instructs.push(dep_inst)
-            }
-        }
-
-        if let Some(dependency_instruction) = &parameters.dependency_instruction_hint {
-            dep_instructs.push(dependency_instruction.clone());
-        }
-
-        dep_instructs
+        self.dependency_instructions.instructions_as_vec()
     }
 
-    fn save_dependencies(&mut self, dependencies: &Vec<Vec<Dependency>>) {
-        let num_dependencies = dependencies.iter().fold(0, |a, c| a + c.len());
+    fn save_dependencies(&mut self, dependencies: &Vec<DependenciesCreatedForInstruction>) {
+        self.dependency_values = dependencies.try_into().unwrap();
 
-        let mut string_vals = Vec::with_capacity(num_dependencies);
-        let mut boolean_val_option: Option<StateVarReadOnlyView<bool>> = None;
+        if self.dependency_values.booleans_or_strings.len() == 1 {
+            match dependencies[0][0].source {
+                DependencySource::Essential { .. } => {
+                    self.from_single_essential = true;
+                }
+                _ => {}
+            }
+        } else if self
+            .dependency_values
+            .booleans_or_strings
+            .iter()
+            .any(|dep_value| match dep_value {
+                BooleanOrString::Boolean(_) => true,
+                _ => false,
+            })
+        {
+            // have more than one dependency and at least one boolean dependency
+            self.have_invalid_combination = true;
+        }
+    }
 
-        for instruction in dependencies.iter() {
-            for Dependency {
-                value: dep_value,
-                source: dep_source,
-            } in instruction.iter()
-            {
-                let _ = dep_value.try_into().and_then(|str_val| {string_vals.push(str_val); Ok(())}).or_else(|_| {
-                    let bool_val: StateVarReadOnlyView<bool> = dep_value.try_into().unwrap();
-                    if boolean_val_option.is_some() {
-                        match dep_source {
-                            DependencySource::StateVar { .. } => {
-                                // TODO: emit warning rather than panic
-                                panic!("Got more than one boolean dependency for a GeneralBooleanStateVarInterface");
-                            }
-                            // ignore essential, as it came from having no children
-                            DependencySource::Essential { .. } => (),
-                        }
+    fn calculate_state_var_from_dependencies(&self, state_var: &StateVarMutableView<bool>) {
+        if self.have_invalid_combination {
+            state_var.set_value(false);
+        } else if self.dependency_values.booleans_or_strings.len() == 1 {
+            match &self.dependency_values.booleans_or_strings[0] {
+                BooleanOrString::Boolean(boolean_value) => {
+                    if self.from_single_essential {
+                        // if we are basing it on a single essential variable,
+                        // then we propagate used_default as well as the value.
+                        state_var.set_value_and_set_used_default(
+                            *boolean_value.get(),
+                            boolean_value.get_used_default(),
+                        );
                     } else {
-                        boolean_val_option = Some(bool_val);
+                        state_var.set_value(*boolean_value.get());
                     }
-                    Ok::<(),()>(())
-                });
-            }
-        }
-
-        if let Some(bool_val) = boolean_val_option {
-            if !string_vals.is_empty() {
-                // TODO: emit warning rather than panic
-                // Eventually want to handle this case
-                panic!("Got a boolean and string dependency for a GeneralBooleanStateVarInterface");
-            }
-
-            self.boolean_or_strings_dependency_values = BooleanOrStrings::Boolean(bool_val);
-
-            if let DependencySource::Essential { .. } = dependencies[0][0].source {
-                self.from_single_essential = true;
-            }
-        } else {
-            self.boolean_or_strings_dependency_values = BooleanOrStrings::Strings(string_vals);
-        }
-    }
-
-    fn calculate_state_var_from_dependencies_and_mark_fresh(
-        &self,
-        state_var: &StateVarMutableView<bool>,
-    ) {
-        match &self.boolean_or_strings_dependency_values {
-            BooleanOrStrings::Boolean(boolean_value) => {
-                if self.from_single_essential {
-                    // if we are basing it on a single essential variable,
-                    // then we propagate used_default as well as the value.
-                    state_var.set_value_and_used_default(
-                        *boolean_value.get_fresh_value(),
-                        boolean_value.get_used_default(),
-                    );
-                } else {
-                    state_var.set_value(*boolean_value.get_fresh_value());
+                }
+                BooleanOrString::String(string_value) => {
+                    state_var.set_value(string_to_boolean(&string_value.get()))
                 }
             }
-            BooleanOrStrings::Strings(string_values) => {
-                // concatenate the string values into a single string
-                // TODO: can we do this without cloning
-                let value: String = string_values
-                    .iter()
-                    .map(|v| v.get_fresh_value().clone())
-                    .collect();
+        } else {
+            // concatenate the string values into a single string
+            // TODO: can we do this without cloning
+            let value: String = self
+                .dependency_values
+                .booleans_or_strings
+                .iter()
+                .map(|v| match v {
+                    BooleanOrString::Boolean(boolean_val) => boolean_val.get().to_string(),
+                    BooleanOrString::String(string_value) => string_value.get().to_string(),
+                })
+                .collect();
 
-                state_var.set_value(string_to_boolean(&value));
-            }
+            state_var.set_value(string_to_boolean(&value));
         }
     }
 
@@ -144,22 +158,19 @@ impl StateVarInterface<bool> for GeneralBooleanStateVarInterface {
         state_var: &StateVarReadOnlyView<bool>,
         _is_direct_change_from_renderer: bool,
     ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
-        match &self.boolean_or_strings_dependency_values {
-            BooleanOrStrings::Boolean(boolean_value) => {
-                boolean_value.request_change_value_to(*state_var.get_requested_value());
-                Ok(vec![DependencyValueUpdateRequest {
-                    instruction_idx: 0,
-                    dependency_idx: 0,
-                }])
-            }
-            BooleanOrStrings::Strings(string_values) => {
-                if string_values.len() != 1 {
-                    // TODO: implement for no dependencies where saves to essential value?
-                    Err(RequestDependencyUpdateError::CouldNotUpdate)
-                } else {
+        if self.dependency_values.booleans_or_strings.len() == 1 {
+            match &self.dependency_values.booleans_or_strings[0] {
+                BooleanOrString::Boolean(boolean_value) => {
+                    boolean_value.request_change_value_to(*state_var.get_requested_value());
+                    Ok(vec![DependencyValueUpdateRequest {
+                        instruction_idx: 0,
+                        dependency_idx: 0,
+                    }])
+                }
+                BooleanOrString::String(string_value) => {
                     let requested_value = state_var.get_requested_value();
 
-                    string_values[0].request_change_value_to(requested_value.to_string());
+                    string_value.request_change_value_to(requested_value.to_string());
 
                     Ok(vec![DependencyValueUpdateRequest {
                         instruction_idx: 0,
@@ -167,6 +178,8 @@ impl StateVarInterface<bool> for GeneralBooleanStateVarInterface {
                     }])
                 }
             }
+        } else {
+            return Err(RequestDependencyUpdateError::CouldNotUpdate);
         }
     }
 }
@@ -186,8 +199,8 @@ pub struct SingleDependencyBooleanStateVarInterface {
 
 impl StateVarInterface<bool> for SingleDependencyBooleanStateVarInterface {
     fn return_dependency_instructions(
-        &self,
-        _extending: Option<&ExtendSource>,
+        &mut self,
+        _extending: Option<ExtendSource>,
         parameters: &StateVarParameters,
         _state_var_idx: StateVarIdx,
     ) -> Vec<DependencyInstruction> {
@@ -204,7 +217,7 @@ impl StateVarInterface<bool> for SingleDependencyBooleanStateVarInterface {
         }
     }
 
-    fn save_dependencies(&mut self, dependencies: &Vec<Vec<Dependency>>) {
+    fn save_dependencies(&mut self, dependencies: &Vec<DependenciesCreatedForInstruction>) {
         if dependencies.is_empty() {
             panic!("SingleDependencyBooleanStateVarInterface requires a dependency");
         }
@@ -218,11 +231,8 @@ impl StateVarInterface<bool> for SingleDependencyBooleanStateVarInterface {
         }
     }
 
-    fn calculate_state_var_from_dependencies_and_mark_fresh(
-        &self,
-        state_var: &StateVarMutableView<bool>,
-    ) {
-        state_var.set_value(*self.boolean_dependency_value.get_fresh_value());
+    fn calculate_state_var_from_dependencies(&self, state_var: &StateVarMutableView<bool>) {
+        state_var.set_value(*self.boolean_dependency_value.get());
     }
 
     fn request_updated_dependency_values(

@@ -34,7 +34,7 @@ pub fn get_state_var_value(
         .borrow()
         .get_state_variable(original_state_var_ptr.state_var_idx)
         .unwrap()
-        .get_fresh_value()
+        .get()
 }
 
 /// Internal structure used to track changes
@@ -270,7 +270,7 @@ pub fn freshen_state_var(
                 state_var.calculate_state_var_from_dependencies_and_mark_fresh();
                 state_var.record_all_dependencies_viewed();
             } else {
-                state_var.restore_previous_value();
+                state_var.mark_fresh();
             }
         }
     }
@@ -295,8 +295,11 @@ pub fn resolve_state_var(
         let dependency_instructions: Vec<DependencyInstruction>;
 
         {
-            let component = components[component_idx].borrow();
-            let state_var = &component.get_state_variable(state_var_idx).unwrap();
+            let extending: Option<ExtendSource> =
+                components[component_idx].borrow().get_extending().cloned();
+
+            let mut component = components[component_idx].borrow_mut();
+            let state_var = &mut component.get_state_variable_mut(state_var_idx).unwrap();
 
             let current_freshness = state_var.get_freshness();
 
@@ -306,7 +309,7 @@ pub fn resolve_state_var(
             }
 
             dependency_instructions =
-                state_var.return_dependency_instructions(component.get_extending(), state_var_idx);
+                state_var.return_dependency_instructions(extending, state_var_idx);
         }
 
         let mut dependencies_for_state_var = Vec::with_capacity(dependency_instructions.len());

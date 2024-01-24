@@ -2,7 +2,9 @@ use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use crate::{
     components::{ComponentEnum, ComponentNode},
-    dependency::{Dependency, DependencySource, DependencyValueUpdateRequest},
+    dependency::{
+        DependenciesCreatedForInstruction, DependencySource, DependencyValueUpdateRequest,
+    },
     state::essential_state::{EssentialDataOrigin, EssentialStateDescription, EssentialStateVar},
     state::state_var_calculations::StateVariableUpdateRequest,
     state::Freshness,
@@ -178,7 +180,7 @@ fn mark_stale_essential_datum_dependencies(
 fn request_updated_dependency_values_including_shadow(
     state_var_ptr: StateVarPointer,
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
-    dependencies: &Vec<Vec<Vec<Vec<Dependency>>>>,
+    dependencies: &Vec<Vec<Vec<DependenciesCreatedForInstruction>>>,
     is_direct_change_from_renderer: bool,
 ) -> Vec<StateVariableUpdateRequest> {
     let component_idx = state_var_ptr.component_idx;
@@ -208,7 +210,7 @@ fn convert_dependency_updates_requested_to_state_variable_update_requests(
     state_var_ptr: StateVarPointer,
     requests: Vec<DependencyValueUpdateRequest>,
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
-    dependencies: &Vec<Vec<Vec<Vec<Dependency>>>>,
+    dependencies: &Vec<Vec<Vec<DependenciesCreatedForInstruction>>>,
 ) -> Vec<StateVariableUpdateRequest> {
     let component_idx = state_var_ptr.component_idx;
     let state_var_idx = state_var_ptr.state_var_idx;

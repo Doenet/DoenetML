@@ -3,7 +3,10 @@ extern crate proc_macro2;
 use component_node::{
     component_node_derive, rendered_component_node_derive, rendered_state_derive,
 };
-use component_state_var_methods::component_state_variables_derive;
+use component_state_var_methods::{
+    component_state_variables_derive, state_variable_dependencies_derive,
+    state_variable_dependency_instructions_derive,
+};
 use proc_macro::TokenStream;
 use state_var_methods::{
     into_state_var_enum_refs_derive, state_var_methods_derive, state_var_methods_mut_derive,
@@ -79,4 +82,14 @@ pub fn component_state_variables_derive_wrapper(input: TokenStream) -> TokenStre
 #[proc_macro_derive(RenderedState)]
 pub fn rendered_state_derive_wrapper(input: TokenStream) -> TokenStream {
     rendered_state_derive(input)
+}
+
+#[proc_macro_derive(StateVariableDependencies, attributes(consume_remaining_instructions))]
+pub fn state_variable_dependencies_derive_wrapper(input: TokenStream) -> TokenStream {
+    state_variable_dependencies_derive(input)
+}
+
+#[proc_macro_derive(StateVariableDependencyInstructions)]
+pub fn state_variable_dependency_instructions_derive_wrapper(input: TokenStream) -> TokenStream {
+    state_variable_dependency_instructions_derive(input)
 }

@@ -1,4 +1,4 @@
-use std::{cell::RefCell, collections::HashMap, rc::Rc};
+use std::{cell::RefCell, collections::HashMap, ops::Deref, rc::Rc};
 
 use crate::{
     attribute::AttributeName,
@@ -17,7 +17,7 @@ use crate::{
 };
 
 /// A DependencyInstruction is used to make a Dependency based on the input document structure
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub enum DependencyInstruction {
     Child {
         /// The dependency will match child components that has at least one of these profiles
@@ -44,6 +44,7 @@ pub enum DependencyInstruction {
         match_profiles: Vec<ComponentProfile>,
         // TODO: do we need to add exclude_if_prefer_profiles?
     },
+    #[default]
     Essential,
 }
 
@@ -82,12 +83,21 @@ impl TryFrom<&DependencySource> for StateVarPointer {
 }
 
 /// Gives both the source of the dependency and the current value of the dependency
-///
-/// Passed into *calculate_state_var_from_dependencies_and_mark_fresh*
 #[derive(Debug)]
 pub struct Dependency {
     pub source: DependencySource,
     pub value: StateVarReadOnlyViewEnum,
+}
+
+/// The vector of dependencies that were created for a `DependencyInstruction`
+#[derive(Debug)]
+pub struct DependenciesCreatedForInstruction(pub Vec<Dependency>);
+
+impl Deref for DependenciesCreatedForInstruction {
+    type Target = Vec<Dependency>;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
 }
 
 /// Information which update were requested so that we can recurse
@@ -111,7 +121,7 @@ pub fn create_dependencies_from_instruction_initialize_essential(
     state_var_idx: StateVarIdx,
     instruction: &DependencyInstruction,
     essential_data: &mut Vec<HashMap<EssentialDataOrigin, EssentialStateVar>>,
-) -> Vec<Dependency> {
+) -> DependenciesCreatedForInstruction {
     // log!("Creating dependency {}:{} from instruction {:?}", component_name, state_var_idx, instruction);
 
     match instruction {
@@ -149,13 +159,13 @@ pub fn create_dependencies_from_instruction_initialize_essential(
                     new_view.create_new_read_only_view()
                 };
 
-            vec![Dependency {
+            DependenciesCreatedForInstruction(vec![Dependency {
                 source: DependencySource::Essential {
                     component_idx: source_idx,
                     origin: essential_origin,
                 },
                 value: essential_data_view,
-            }]
+            }])
         }
 
         DependencyInstruction::StateVar {
@@ -168,7 +178,7 @@ pub fn create_dependencies_from_instruction_initialize_essential(
 
             let comp = components[comp_idx].borrow();
 
-            vec![Dependency {
+            DependenciesCreatedForInstruction(vec![Dependency {
                 source: DependencySource::StateVar {
                     component_idx: comp_idx,
                     state_var_idx: *sv_idx,
@@ -177,7 +187,7 @@ pub fn create_dependencies_from_instruction_initialize_essential(
                     .get_state_variable(*sv_idx)
                     .unwrap()
                     .create_new_read_only_view(),
-            }]
+            }])
         }
 
         DependencyInstruction::Parent { state_var_name } => {
@@ -195,7 +205,7 @@ pub fn create_dependencies_from_instruction_initialize_essential(
                 .get_state_variable_index_from_name(state_var_name)
                 .unwrap_or_else(|| panic!("Invalid state variable 2: {}", state_var_name));
 
-            vec![Dependency {
+            DependenciesCreatedForInstruction(vec![Dependency {
                 source: DependencySource::StateVar {
                     component_idx: parent_idx,
                     state_var_idx: sv_idx,
@@ -204,7 +214,7 @@ pub fn create_dependencies_from_instruction_initialize_essential(
                     .get_state_variable(sv_idx)
                     .unwrap()
                     .create_new_read_only_view(),
-            }]
+            }])
         }
 
         DependencyInstruction::Child {
@@ -393,7 +403,7 @@ pub fn create_dependencies_from_instruction_initialize_essential(
                 });
             }
 
-            dependencies
+            DependenciesCreatedForInstruction(dependencies)
         }
 
         DependencyInstruction::AttributeChild {
@@ -541,7 +551,7 @@ pub fn create_dependencies_from_instruction_initialize_essential(
                 });
             }
 
-            dependencies
+            DependenciesCreatedForInstruction(dependencies)
         }
     }
 }
@@ -615,4 +625,36 @@ fn get_attribute_children_with_parent_falling_back_to_extend_source(
             }
             Some((attribute_children.clone(), component_idx))
         })
+}
+
+pub trait TryIntoStateVar<'a, T> {
+    type Error;
+
+    fn try_into_state_var(&self) -> Result<T, Self::Error>;
+}
+
+impl<'a, T> TryIntoStateVar<'a, T> for &'a DependenciesCreatedForInstruction
+where
+    T: TryFrom<&'a StateVarReadOnlyViewEnum>,
+{
+    type Error = T::Error;
+
+    fn try_into_state_var(&self) -> Result<T, Self::Error> {
+        if self.len() != 1 {
+            panic!("Must have a single dependency");
+            // return Err("Must have a single dependency");
+        }
+        (&self[0].value).try_into()
+    }
+}
+
+impl<'a, T> TryIntoStateVar<'a, Vec<T>> for &'a DependenciesCreatedForInstruction
+where
+    T: TryFrom<&'a StateVarReadOnlyViewEnum>,
+{
+    type Error = T::Error;
+
+    fn try_into_state_var(&self) -> Result<Vec<T>, Self::Error> {
+        self.iter().map(|dep| (&dep.value).try_into()).collect()
+    }
 }

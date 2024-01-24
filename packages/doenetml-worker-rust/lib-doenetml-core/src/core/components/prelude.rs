@@ -2,10 +2,14 @@
 //! macros properly. Rather than repeat them each time, collect them and re-export them here.
 
 // These imports are required for the derive macros to work correctly
-pub use doenetml_derive::{ComponentNode, ComponentStateVariables, RenderedComponentNode};
+pub use doenetml_derive::{
+    ComponentNode, ComponentStateVariables, RenderedComponentNode, StateVariableDependencies,
+    StateVariableDependencyInstructions,
+};
 pub use std::collections::HashMap;
 
 pub use crate::dast::Position as DastPosition;
+pub use crate::dependency::{DependenciesCreatedForInstruction, TryIntoStateVar};
 pub use crate::state::ComponentStateVariables;
 
 pub use crate::utils::KeyValueIgnoreCase;

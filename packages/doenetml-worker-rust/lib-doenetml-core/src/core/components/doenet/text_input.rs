@@ -187,7 +187,13 @@ impl RenderedComponentNode for TextInput {
 
 #[derive(Debug, Default)]
 struct ValueStateVarInterface {
-    essential_value: StateVarReadOnlyView<String>,
+    dependency_instructions: ValueDependencyInstructions,
+    dependency_values: ValueDependencies,
+}
+
+#[derive(Debug, Default, StateVariableDependencies, StateVariableDependencyInstructions)]
+struct ValueDependencies {
+    essential: StateVarReadOnlyView<String>,
     immediate_value: StateVarReadOnlyView<String>,
     sync_immediate_value: StateVarReadOnlyView<bool>,
     bind_value_to: StateVarReadOnlyView<String>,
@@ -196,57 +202,46 @@ struct ValueStateVarInterface {
 
 impl StateVarInterface<String> for ValueStateVarInterface {
     fn return_dependency_instructions(
-        &self,
-        _extending: Option<&ExtendSource>,
+        &mut self,
+        _extending: Option<ExtendSource>,
         _parameters: &StateVarParameters,
         _state_var_idx: StateVarIdx,
     ) -> Vec<DependencyInstruction> {
-        vec![
-            DependencyInstruction::Essential,
-            TextInputStateVariables::get_immediate_value_dependency_instructions(),
-            TextInputStateVariables::get_sync_immediate_value_dependency_instructions(),
-            TextInputStateVariables::get_bind_value_to_dependency_instructions(),
-            TextInputStateVariables::get_prefill_dependency_instructions(),
-        ]
+        self.dependency_instructions = ValueDependencyInstructions {
+            essential: Some(DependencyInstruction::Essential),
+            immediate_value: Some(
+                TextInputStateVariables::get_immediate_value_dependency_instructions(),
+            ),
+            sync_immediate_value: Some(
+                TextInputStateVariables::get_sync_immediate_value_dependency_instructions(),
+            ),
+            bind_value_to: Some(
+                TextInputStateVariables::get_bind_value_to_dependency_instructions(),
+            ),
+            prefill: Some(TextInputStateVariables::get_prefill_dependency_instructions()),
+        };
+
+        self.dependency_instructions.instructions_as_vec()
     }
 
-    fn save_dependencies(&mut self, dependencies: &Vec<Vec<Dependency>>) {
-        self.essential_value = (&dependencies[0][0].value).try_into().unwrap();
-        self.immediate_value = (&dependencies[1][0].value).try_into().unwrap();
-        self.sync_immediate_value = (&dependencies[2][0].value).try_into().unwrap();
-        self.bind_value_to = (&dependencies[3][0].value).try_into().unwrap();
-        self.prefill = (&dependencies[4][0].value).try_into().unwrap();
+    fn save_dependencies(&mut self, dependencies: &Vec<DependenciesCreatedForInstruction>) {
+        self.dependency_values = dependencies.try_into().unwrap();
     }
 
-    fn calculate_state_var_from_dependencies_and_mark_fresh(
-        &self,
-        state_var: &StateVarMutableView<String>,
-    ) {
-        let bind_value_to_used_default = self.bind_value_to.get_used_default();
-
-        let value = if *self.sync_immediate_value.get_fresh_value() {
-            self.immediate_value.get_fresh_value().clone()
-        } else if bind_value_to_used_default {
-            if self.essential_value.get_used_default() {
-                self.prefill.get_fresh_value().clone()
+    fn calculate_state_var_from_dependencies(&self, state_var: &StateVarMutableView<String>) {
+        let value = if *self.dependency_values.sync_immediate_value.get() {
+            self.dependency_values.immediate_value.get().clone()
+        } else if self.dependency_values.bind_value_to.get_used_default() {
+            if self.dependency_values.essential.get_used_default() {
+                self.dependency_values.prefill.get().clone()
             } else {
-                self.essential_value.get_fresh_value().clone()
+                self.dependency_values.essential.get().clone()
             }
         } else {
-            self.bind_value_to.get_fresh_value().clone()
+            self.dependency_values.bind_value_to.get().clone()
         };
 
-        let value_changed = if let Some(old_value) = state_var.try_get_last_value() {
-            value != *old_value
-        } else {
-            true
-        };
-
-        if value_changed {
-            state_var.set_value(value);
-        } else {
-            state_var.restore_previous_value();
-        }
+        state_var.set_value(value);
     }
 
     fn request_updated_dependency_values(
@@ -255,14 +250,18 @@ impl StateVarInterface<String> for ValueStateVarInterface {
         _is_direct_change_from_renderer: bool,
     ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
         let requested_value = state_var.get_requested_value();
-        let bind_value_to_used_default = self.bind_value_to.get_used_default();
+        let bind_value_to_used_default = self.dependency_values.bind_value_to.get_used_default();
 
         if bind_value_to_used_default {
-            self.essential_value
+            self.dependency_values
+                .essential
                 .request_change_value_to(requested_value.clone());
-            self.immediate_value
+            self.dependency_values
+                .immediate_value
                 .request_change_value_to(requested_value.clone());
-            self.sync_immediate_value.request_change_value_to(true);
+            self.dependency_values
+                .sync_immediate_value
+                .request_change_value_to(true);
 
             Ok(vec![
                 DependencyValueUpdateRequest {
@@ -279,9 +278,12 @@ impl StateVarInterface<String> for ValueStateVarInterface {
                 },
             ])
         } else {
-            self.bind_value_to
+            self.dependency_values
+                .bind_value_to
                 .request_change_value_to(requested_value.clone());
-            self.sync_immediate_value.request_change_value_to(true);
+            self.dependency_values
+                .sync_immediate_value
+                .request_change_value_to(true);
 
             Ok(vec![
                 DependencyValueUpdateRequest {
@@ -299,7 +301,13 @@ impl StateVarInterface<String> for ValueStateVarInterface {
 
 #[derive(Debug, Default)]
 struct ImmediateValueStateVarInterface {
-    essential_value: StateVarReadOnlyView<String>,
+    dependency_instructions: ImmediateValueDependencyInstructions,
+    dependency_values: ImmediateValueDependencies,
+}
+
+#[derive(Debug, Default, StateVariableDependencies, StateVariableDependencyInstructions)]
+struct ImmediateValueDependencies {
+    essential: StateVarReadOnlyView<String>,
     sync_immediate_value: StateVarReadOnlyView<bool>,
     bind_value_to: StateVarReadOnlyView<String>,
     prefill: StateVarReadOnlyView<String>,
@@ -307,52 +315,41 @@ struct ImmediateValueStateVarInterface {
 
 impl StateVarInterface<String> for ImmediateValueStateVarInterface {
     fn return_dependency_instructions(
-        &self,
-        _extending: Option<&ExtendSource>,
+        &mut self,
+        _extending: Option<ExtendSource>,
         _parameters: &StateVarParameters,
         _state_var_idx: StateVarIdx,
     ) -> Vec<DependencyInstruction> {
-        vec![
-            DependencyInstruction::Essential,
-            TextInputStateVariables::get_sync_immediate_value_dependency_instructions(),
-            TextInputStateVariables::get_bind_value_to_dependency_instructions(),
-            TextInputStateVariables::get_prefill_dependency_instructions(),
-        ]
-    }
-
-    fn save_dependencies(&mut self, dependencies: &Vec<Vec<Dependency>>) {
-        self.essential_value = (&dependencies[0][0].value).try_into().unwrap();
-        self.sync_immediate_value = (&dependencies[1][0].value).try_into().unwrap();
-        self.bind_value_to = (&dependencies[2][0].value).try_into().unwrap();
-        self.prefill = (&dependencies[3][0].value).try_into().unwrap();
-    }
-
-    fn calculate_state_var_from_dependencies_and_mark_fresh(
-        &self,
-        state_var: &StateVarMutableView<String>,
-    ) {
-        let bind_value_to_used_default = self.bind_value_to.get_used_default();
-
-        let immediate_value =
-            if !bind_value_to_used_default && *self.sync_immediate_value.get_fresh_value() {
-                self.bind_value_to.get_fresh_value().clone()
-            } else if self.essential_value.get_used_default() {
-                self.prefill.get_fresh_value().clone()
-            } else {
-                self.essential_value.get_fresh_value().clone()
-            };
-
-        let value_changed = if let Some(old_value) = state_var.try_get_last_value() {
-            immediate_value != *old_value
-        } else {
-            true
+        self.dependency_instructions = ImmediateValueDependencyInstructions {
+            essential: Some(DependencyInstruction::Essential),
+            sync_immediate_value: Some(
+                TextInputStateVariables::get_sync_immediate_value_dependency_instructions(),
+            ),
+            bind_value_to: Some(
+                TextInputStateVariables::get_bind_value_to_dependency_instructions(),
+            ),
+            prefill: Some(TextInputStateVariables::get_prefill_dependency_instructions()),
         };
 
-        if value_changed {
-            state_var.set_value(immediate_value);
+        self.dependency_instructions.instructions_as_vec()
+    }
+
+    fn save_dependencies(&mut self, dependencies: &Vec<DependenciesCreatedForInstruction>) {
+        self.dependency_values = dependencies.try_into().unwrap();
+    }
+
+    fn calculate_state_var_from_dependencies(&self, state_var: &StateVarMutableView<String>) {
+        let immediate_value = if !self.dependency_values.bind_value_to.get_used_default()
+            && *self.dependency_values.sync_immediate_value.get()
+        {
+            self.dependency_values.bind_value_to.get().clone()
+        } else if self.dependency_values.essential.get_used_default() {
+            self.dependency_values.prefill.get().clone()
         } else {
-            state_var.restore_previous_value();
-        }
+            self.dependency_values.essential.get().clone()
+        };
+
+        state_var.set_value(immediate_value);
     }
 
     fn request_updated_dependency_values(
@@ -363,9 +360,10 @@ impl StateVarInterface<String> for ImmediateValueStateVarInterface {
         let requested_value = state_var.get_requested_value();
 
         let mut updates = Vec::with_capacity(2);
-        let bind_value_to_used_default = self.bind_value_to.get_used_default();
+        let bind_value_to_used_default = self.dependency_values.bind_value_to.get_used_default();
 
-        self.essential_value
+        self.dependency_values
+            .essential
             .request_change_value_to(requested_value.clone());
 
         updates.push(DependencyValueUpdateRequest {
@@ -374,7 +372,8 @@ impl StateVarInterface<String> for ImmediateValueStateVarInterface {
         });
 
         if !is_direct_change_from_renderer && !bind_value_to_used_default {
-            self.bind_value_to
+            self.dependency_values
+                .bind_value_to
                 .request_change_value_to(requested_value.clone());
 
             updates.push(DependencyValueUpdateRequest {
@@ -389,28 +388,35 @@ impl StateVarInterface<String> for ImmediateValueStateVarInterface {
 
 #[derive(Debug, Default)]
 struct SyncImmediateValueStateVarInterface {
-    essential_value: StateVarReadOnlyView<bool>,
+    dependency_instructions: SyncImmediateValueDependencyInstructions,
+    dependency_values: SyncImmediateValueDependencies,
+}
+
+#[derive(Debug, Default, StateVariableDependencies, StateVariableDependencyInstructions)]
+struct SyncImmediateValueDependencies {
+    essential: StateVarReadOnlyView<bool>,
 }
 
 impl StateVarInterface<bool> for SyncImmediateValueStateVarInterface {
     fn return_dependency_instructions(
-        &self,
-        _extending: Option<&ExtendSource>,
+        &mut self,
+        _extending: Option<ExtendSource>,
         _parameters: &StateVarParameters,
         _state_var_idx: StateVarIdx,
     ) -> Vec<DependencyInstruction> {
-        vec![DependencyInstruction::Essential]
+        self.dependency_instructions = SyncImmediateValueDependencyInstructions {
+            essential: Some(DependencyInstruction::Essential),
+        };
+
+        self.dependency_instructions.instructions_as_vec()
     }
 
-    fn save_dependencies(&mut self, dependencies: &Vec<Vec<Dependency>>) {
-        self.essential_value = (&dependencies[0][0].value).try_into().unwrap();
+    fn save_dependencies(&mut self, dependencies: &Vec<DependenciesCreatedForInstruction>) {
+        self.dependency_values = dependencies.try_into().unwrap();
     }
 
-    fn calculate_state_var_from_dependencies_and_mark_fresh(
-        &self,
-        state_var: &StateVarMutableView<bool>,
-    ) {
-        state_var.set_value(*self.essential_value.get_fresh_value());
+    fn calculate_state_var_from_dependencies(&self, state_var: &StateVarMutableView<bool>) {
+        state_var.set_value(*self.dependency_values.essential.get());
     }
 
     fn request_updated_dependency_values(
@@ -420,7 +426,8 @@ impl StateVarInterface<bool> for SyncImmediateValueStateVarInterface {
     ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
         let requested_value = state_var.get_requested_value();
 
-        self.essential_value
+        self.dependency_values
+            .essential
             .request_change_value_to(*requested_value);
 
         Ok(vec![DependencyValueUpdateRequest {
