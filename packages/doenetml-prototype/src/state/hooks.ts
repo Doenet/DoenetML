@@ -15,7 +15,11 @@ export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
  */
 export const createLoggingAsyncThunk = <Returned, ThunkArg = void>(
     typePrefix: string,
-    payloadCreator: AsyncThunkPayloadCreator<Returned, ThunkArg, AsyncThunkConfig & {state: RootState}>,
+    payloadCreator: AsyncThunkPayloadCreator<
+        Returned,
+        ThunkArg,
+        AsyncThunkConfig & { state: RootState }
+    >,
 ) => {
     const wrappedPayloadCreator: typeof payloadCreator = (async (...args) => {
         try {

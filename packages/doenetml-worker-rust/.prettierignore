@@ -1,5 +1,0 @@
-.wireit
-node_modules
-target
-dist
-lib-js-wasm-binding/pkg

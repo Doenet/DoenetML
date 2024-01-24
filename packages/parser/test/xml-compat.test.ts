@@ -4,9 +4,9 @@ import * as fs from "node:fs/promises";
 import { parse, showCursor } from "../src/parser";
 
 describe("Xml files parse correctly", async () => {
-    const files = glob.sync(
-        new URL("./fragments/xml-*.doenet", import.meta.url).pathname,
-    ).filter((f) => !f.includes("-bad"));
+    const files = glob
+        .sync(new URL("./fragments/xml-*.doenet", import.meta.url).pathname)
+        .filter((f) => !f.includes("-bad"));
     const fileMap: Record<string, string> = Object.fromEntries(
         files.map((f) => [f.split("/").pop(), f]),
     );

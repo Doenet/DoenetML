@@ -1,0 +1,9 @@
+.wireit
+node_modules
+target
+dist
+lib-js-wasm-binding/pkg
+**/generated/*.json
+**/generated-assets/*.json
+**/*.html
+**/*.md

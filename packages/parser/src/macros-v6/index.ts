@@ -1,8 +1,4 @@
-import {
-    DastText,
-    DastMacroV6,
-    DastFunctionMacroV6,
-} from "../types";
+import { DastText, DastMacroV6, DastFunctionMacroV6 } from "../types";
 import { MacroParser } from "./parser";
 
 /**
