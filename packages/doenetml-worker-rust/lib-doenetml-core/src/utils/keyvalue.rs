@@ -59,8 +59,10 @@ mod tests {
         map.insert("Key1".to_string(), "Value1");
         map.insert("KEY2".to_string(), "Value2");
 
+        assert_eq!(map.get("Key1"), Some(&"Value1"));
         assert_eq!(map.remove_ignore_case("key1"), Some("Value1"));
         assert_eq!(map.remove_ignore_case("key2"), Some("Value2"));
         assert_eq!(map.remove_ignore_case("nonexistent"), None);
+        assert_eq!(map.get("Key1"), None);
     }
 }

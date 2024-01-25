@@ -41,7 +41,6 @@ fn basic_core_initialization() {
                         "action_names": [],
                         "state": {
                             "value": "you",
-                            "text": "you"
                         }
                     }
                 }
