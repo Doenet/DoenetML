@@ -63,19 +63,20 @@ pub struct TextInputStateVariables {
 impl TextInputStateVariables {
     fn new() -> Self {
         TextInputStateVariables {
-            value: StateVar::new(Box::<ValueStateVarInterface>::default(), Default::default()),
+            value: StateVar::new(
+                Box::new(ValueStateVarInterface::default()),
+                Default::default(),
+            ),
             immediate_value: StateVar::new(
-                Box::<ImmediateValueStateVarInterface>::default(),
+                Box::new(ImmediateValueStateVarInterface::default()),
                 Default::default(),
             ),
             sync_immediate_value: StateVar::new(
-                Box::<SyncImmediateValueStateVarInterface>::default(),
+                Box::new(SyncImmediateValueStateVarInterface::default()),
                 true,
             ),
             bind_value_to: StateVar::new(
                 Box::new(GeneralStringStateVarInterface::new(
-                    false,
-                    false,
                     DependencyInstruction::AttributeChild {
                         attribute_name: "bindValueTo",
                         match_profiles: vec![ComponentProfile::Text],
@@ -85,8 +86,6 @@ impl TextInputStateVariables {
             ),
             prefill: StateVar::new(
                 Box::new(GeneralStringStateVarInterface::new(
-                    false,
-                    false,
                     DependencyInstruction::AttributeChild {
                         attribute_name: "prefill",
                         match_profiles: vec![ComponentProfile::Text],
@@ -96,8 +95,6 @@ impl TextInputStateVariables {
             ),
             hidden: StateVar::new(
                 Box::new(GeneralBooleanStateVarInterface::new(
-                    false,
-                    false,
                     DependencyInstruction::AttributeChild {
                         attribute_name: "hide",
                         match_profiles: vec![ComponentProfile::Text, ComponentProfile::Boolean],
@@ -107,8 +104,6 @@ impl TextInputStateVariables {
             ),
             disabled: StateVar::new(
                 Box::new(GeneralBooleanStateVarInterface::new(
-                    false,
-                    false,
                     DependencyInstruction::AttributeChild {
                         attribute_name: "disabled",
                         match_profiles: vec![ComponentProfile::Text, ComponentProfile::Boolean],

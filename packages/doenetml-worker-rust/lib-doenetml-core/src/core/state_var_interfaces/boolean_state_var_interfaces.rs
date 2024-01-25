@@ -10,7 +10,7 @@ use crate::{
     ExtendSource,
 };
 
-use super::util::{create_dependency_instruction_from_extend_source, string_to_boolean};
+use super::util::{create_dependency_instruction_if_match_extend_source, string_to_boolean};
 
 /// A boolean state variable interface that concatenates all string dependencies.
 ///
@@ -21,8 +21,7 @@ use super::util::{create_dependency_instruction_from_extend_source, string_to_bo
 /// then propagate the `used_default` attribute of the essential state variable.
 #[derive(Debug, Default)]
 pub struct GeneralBooleanStateVarInterface {
-    should_create_dependency_from_extend_source: bool,
-    is_primary_state_variable_for_shadowing_extend_source: bool,
+    is_primary_state_variable: bool,
     base_dependency_instruction: DependencyInstruction,
 
     dependency_instructions: GeneralBooleanStateVarDependencyInstructions,
@@ -40,7 +39,7 @@ struct GeneralBooleanStateVarDependencies {
 
 #[derive(Debug, Default, StateVariableDependencyInstructions)]
 struct GeneralBooleanStateVarDependencyInstructions {
-    essential: Option<DependencyInstruction>,
+    extending: Option<DependencyInstruction>,
     base: Option<DependencyInstruction>,
 }
 
@@ -67,17 +66,17 @@ impl TryFrom<&StateVarReadOnlyViewEnum> for BooleanOrString {
 }
 
 impl GeneralBooleanStateVarInterface {
-    pub fn new(
-        should_create_dependency_from_extend_source: bool,
-        is_primary_state_variable_for_shadowing_extend_source: bool,
-        base_dependency_instruction: DependencyInstruction,
-    ) -> Self {
+    pub fn new(base_dependency_instruction: DependencyInstruction) -> Self {
         GeneralBooleanStateVarInterface {
-            should_create_dependency_from_extend_source,
-            is_primary_state_variable_for_shadowing_extend_source,
             base_dependency_instruction,
             ..Default::default()
         }
+    }
+
+    /// Set parameter `is_primary_state_variable` to true
+    pub fn is_primary_state_variable(mut self) -> Self {
+        self.is_primary_state_variable = true;
+        self
     }
 }
 
@@ -88,15 +87,11 @@ impl StateVarInterface<bool> for GeneralBooleanStateVarInterface {
         state_var_idx: StateVarIdx,
     ) -> Vec<DependencyInstruction> {
         self.dependency_instructions = GeneralBooleanStateVarDependencyInstructions {
-            essential: if self.should_create_dependency_from_extend_source {
-                create_dependency_instruction_from_extend_source(
-                    extending,
-                    self.is_primary_state_variable_for_shadowing_extend_source,
-                    state_var_idx,
-                )
-            } else {
-                None
-            },
+            extending: create_dependency_instruction_if_match_extend_source(
+                extending,
+                self.is_primary_state_variable,
+                state_var_idx,
+            ),
             base: Some(self.base_dependency_instruction.clone()),
         };
 

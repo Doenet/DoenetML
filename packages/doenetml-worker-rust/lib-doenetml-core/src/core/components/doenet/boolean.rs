@@ -14,7 +14,12 @@ pub struct Boolean {
 
 #[derive(Debug, ComponentStateVariables)]
 pub struct BooleanStateVariables {
+    #[is_public]
+    #[for_renderer]
+    #[component_profile_state_variables(Boolean)]
     value: StateVar<bool>,
+
+    #[is_public]
     boolean: StateVar<bool>,
 }
 
@@ -22,14 +27,13 @@ impl BooleanStateVariables {
     fn new() -> Self {
         BooleanStateVariables {
             value: StateVar::new(
-                Box::new(GeneralBooleanStateVarInterface::new(
-                    true,
-                    true,
-                    DependencyInstruction::Child {
+                Box::new(
+                    GeneralBooleanStateVarInterface::new(DependencyInstruction::Child {
                         match_profiles: vec![ComponentProfile::Text, ComponentProfile::Boolean],
                         exclude_if_prefer_profiles: vec![],
-                    },
-                )),
+                    })
+                    .is_primary_state_variable(),
+                ),
                 Default::default(),
             ),
             boolean: StateVar::new(

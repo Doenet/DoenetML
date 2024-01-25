@@ -10,7 +10,7 @@ use crate::{
     ExtendSource,
 };
 
-use super::util::create_dependency_instruction_from_extend_source;
+use super::util::create_dependency_instruction_if_match_extend_source;
 
 /// A string state variable interface that concatenates all string dependencies.
 ///
@@ -21,8 +21,7 @@ use super::util::create_dependency_instruction_from_extend_source;
 /// then propagate the `used_default` attribute of the essential state variable.
 #[derive(Debug, Default)]
 pub struct GeneralStringStateVarInterface {
-    should_create_dependency_from_extend_source: bool,
-    is_primary_state_variable_for_shadowing_extend_source: bool,
+    is_primary_state_variable: bool,
     base_dependency_instruction: DependencyInstruction,
 
     dependency_instructions: GeneralStringStateVarDependencyInstructions,
@@ -39,22 +38,22 @@ struct GeneralStringStateVarDependencies {
 
 #[derive(Debug, Default, StateVariableDependencyInstructions)]
 struct GeneralStringStateVarDependencyInstructions {
-    essential: Option<DependencyInstruction>,
+    extending: Option<DependencyInstruction>,
     other: Option<DependencyInstruction>,
 }
 
 impl GeneralStringStateVarInterface {
-    pub fn new(
-        should_create_dependency_from_extend_source: bool,
-        is_primary_state_variable_for_shadowing_extend_source: bool,
-        base_dependency_instruction: DependencyInstruction,
-    ) -> Self {
+    pub fn new(base_dependency_instruction: DependencyInstruction) -> Self {
         GeneralStringStateVarInterface {
-            should_create_dependency_from_extend_source,
-            is_primary_state_variable_for_shadowing_extend_source,
             base_dependency_instruction,
             ..Default::default()
         }
+    }
+
+    /// Set parameter `is_primary_state_variable` to true
+    pub fn is_primary_state_variable(mut self) -> Self {
+        self.is_primary_state_variable = true;
+        self
     }
 }
 
@@ -65,15 +64,11 @@ impl StateVarInterface<String> for GeneralStringStateVarInterface {
         state_var_idx: StateVarIdx,
     ) -> Vec<DependencyInstruction> {
         self.dependency_instructions = GeneralStringStateVarDependencyInstructions {
-            essential: if self.should_create_dependency_from_extend_source {
-                create_dependency_instruction_from_extend_source(
-                    extending,
-                    self.is_primary_state_variable_for_shadowing_extend_source,
-                    state_var_idx,
-                )
-            } else {
-                None
-            },
+            extending: create_dependency_instruction_if_match_extend_source(
+                extending,
+                self.is_primary_state_variable,
+                state_var_idx,
+            ),
             other: Some(self.base_dependency_instruction.clone()),
         };
 

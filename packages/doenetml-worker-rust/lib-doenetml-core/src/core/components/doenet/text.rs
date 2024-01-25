@@ -30,14 +30,13 @@ impl TextStateVariables {
     fn new() -> Self {
         TextStateVariables {
             value: StateVar::new(
-                Box::new(GeneralStringStateVarInterface::new(
-                    true,
-                    true,
-                    DependencyInstruction::Child {
+                Box::new(
+                    GeneralStringStateVarInterface::new(DependencyInstruction::Child {
                         match_profiles: vec![ComponentProfile::Text],
                         exclude_if_prefer_profiles: vec![],
-                    },
-                )),
+                    })
+                    .is_primary_state_variable(),
+                ),
                 Default::default(),
             ),
             text: StateVar::new(

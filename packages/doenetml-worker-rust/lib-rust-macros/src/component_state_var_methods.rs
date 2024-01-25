@@ -347,12 +347,15 @@ pub fn state_variable_dependencies_derive(input: TokenStream) -> TokenStream {
                         "consume_remaining_instructions",
                     ) {
                         try_from_dependencies_vec_statements.push(quote! {
-                        #field_identity: dependencies[#instruction_idx..].iter()
-                            .flat_map(|instruction| {
-                                let temp: Result<Vec<_>,_> = instruction.try_into_state_var();
-                                temp
-                            })
-                            .flatten().collect::<Vec<_>>(),
+                            // Note: This algorithm adds an extra layer that needs to be flattened twice.
+                            // TODO: understand why this is happening
+                            #field_identity: dependencies[#instruction_idx..].iter()
+                                .map(|instruction| {
+                                    // we first set to temp to make sure that try_into_state_var targets a vector
+                                    let temp: Result<Vec<_>,_> = instruction.try_into_state_var();
+                                    temp
+                                })
+                                .flatten().flatten().collect::<Vec<_>>(),
                         });
                         break;
                     } else {
