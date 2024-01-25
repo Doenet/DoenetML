@@ -22,25 +22,20 @@ impl BooleanStateVariables {
     fn new() -> Self {
         BooleanStateVariables {
             value: StateVar::new(
-                Box::<GeneralBooleanStateVarInterface>::default(),
-                StateVarParameters {
-                    dependency_instruction_hint: Some(DependencyInstruction::Child {
+                Box::new(GeneralBooleanStateVarInterface::new(
+                    true,
+                    true,
+                    DependencyInstruction::Child {
                         match_profiles: vec![ComponentProfile::Text, ComponentProfile::Boolean],
                         exclude_if_prefer_profiles: vec![],
-                    }),
-                    should_create_dependency_from_extend_source: true,
-                    is_primary_state_variable_for_shadowing_extend_source: true,
-                },
+                    },
+                )),
                 Default::default(),
             ),
             boolean: StateVar::new(
-                Box::<SingleDependencyBooleanStateVarInterface>::default(),
-                StateVarParameters {
-                    dependency_instruction_hint: Some(
-                        BooleanStateVariables::get_value_dependency_instructions(),
-                    ),
-                    ..Default::default()
-                },
+                Box::new(SingleDependencyBooleanStateVarInterface::new(
+                    BooleanStateVariables::get_value_dependency_instructions(),
+                )),
                 Default::default(),
             ),
         }

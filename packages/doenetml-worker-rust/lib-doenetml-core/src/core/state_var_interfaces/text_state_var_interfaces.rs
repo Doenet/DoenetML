@@ -4,7 +4,7 @@ use crate::{
     components::prelude::{
         DependenciesCreatedForInstruction, DependencyInstruction, DependencyValueUpdateRequest,
         RequestDependencyUpdateError, StateVarIdx, StateVarInterface, StateVarMutableView,
-        StateVarParameters, StateVarReadOnlyView, StateVarReadOnlyViewEnum, TryIntoStateVar,
+        StateVarReadOnlyView, TryIntoStateVar,
     },
     dependency::DependencySource,
     ExtendSource,
@@ -21,8 +21,13 @@ use super::util::create_dependency_instruction_from_extend_source;
 /// then propagate the `used_default` attribute of the essential state variable.
 #[derive(Debug, Default)]
 pub struct GeneralStringStateVarInterface {
+    should_create_dependency_from_extend_source: bool,
+    is_primary_state_variable_for_shadowing_extend_source: bool,
+    base_dependency_instruction: DependencyInstruction,
+
     dependency_instructions: GeneralStringStateVarDependencyInstructions,
     dependency_values: GeneralStringStateVarDependencies,
+
     from_single_essential: bool,
 }
 
@@ -38,24 +43,38 @@ struct GeneralStringStateVarDependencyInstructions {
     other: Option<DependencyInstruction>,
 }
 
+impl GeneralStringStateVarInterface {
+    pub fn new(
+        should_create_dependency_from_extend_source: bool,
+        is_primary_state_variable_for_shadowing_extend_source: bool,
+        base_dependency_instruction: DependencyInstruction,
+    ) -> Self {
+        GeneralStringStateVarInterface {
+            should_create_dependency_from_extend_source,
+            is_primary_state_variable_for_shadowing_extend_source,
+            base_dependency_instruction,
+            ..Default::default()
+        }
+    }
+}
+
 impl StateVarInterface<String> for GeneralStringStateVarInterface {
     fn return_dependency_instructions(
         &mut self,
         extending: Option<ExtendSource>,
-        parameters: &StateVarParameters,
         state_var_idx: StateVarIdx,
     ) -> Vec<DependencyInstruction> {
         self.dependency_instructions = GeneralStringStateVarDependencyInstructions {
-            essential: if parameters.should_create_dependency_from_extend_source {
+            essential: if self.should_create_dependency_from_extend_source {
                 create_dependency_instruction_from_extend_source(
                     extending,
-                    parameters,
+                    self.is_primary_state_variable_for_shadowing_extend_source,
                     state_var_idx,
                 )
             } else {
                 None
             },
-            other: parameters.dependency_instruction_hint.clone(),
+            other: Some(self.base_dependency_instruction.clone()),
         };
 
         self.dependency_instructions.instructions_as_vec()
@@ -118,14 +137,10 @@ impl StateVarInterface<String> for GeneralStringStateVarInterface {
 
 /// A simplified version of GeneralStringStateVarInterface
 /// that is based on a single dependency.
-/// Requires a `dependency_instruction_hint`.
-///
-/// Panics if `should_create_dependency_from_extend_source` is true,
-/// if not given a `dependency_instruction_hint`,
-/// or if given a `dependency_instruction_hint`
-/// that doesn't result in at least one string dependency.
 #[derive(Debug, Default)]
 pub struct SingleDependencyStringStateVarInterface {
+    dependency_instruction: DependencyInstruction,
+
     dependency_instructions: SingleDependencyStringDependencyInstructions,
     dependency_values: SingleDependencyStringDependencies,
 }
@@ -135,41 +150,29 @@ struct SingleDependencyStringDependencies {
     string: StateVarReadOnlyView<String>,
 }
 
+impl SingleDependencyStringStateVarInterface {
+    pub fn new(dependency_instruction: DependencyInstruction) -> Self {
+        SingleDependencyStringStateVarInterface {
+            dependency_instruction,
+            ..Default::default()
+        }
+    }
+}
+
 impl StateVarInterface<String> for SingleDependencyStringStateVarInterface {
     fn return_dependency_instructions(
         &mut self,
         _extending: Option<ExtendSource>,
-        parameters: &StateVarParameters,
         _state_var_idx: StateVarIdx,
     ) -> Vec<DependencyInstruction> {
-        if parameters.should_create_dependency_from_extend_source {
-            panic!("Cannot create dependency from extend source for SingleDependencyStringStateVarInterface");
-        }
-
-        if let Some(dependency_instruction) = &parameters.dependency_instruction_hint {
-            self.dependency_instructions = SingleDependencyStringDependencyInstructions {
-                string: Some(dependency_instruction.clone()),
-            };
-            self.dependency_instructions.instructions_as_vec()
-        } else {
-            panic!(
-                "SingleDependencyStringStateVarInterface requires a dependency_instruction_hint"
-            );
-        }
+        self.dependency_instructions = SingleDependencyStringDependencyInstructions {
+            string: Some(self.dependency_instruction.clone()),
+        };
+        self.dependency_instructions.instructions_as_vec()
     }
 
     fn save_dependencies(&mut self, dependencies: &Vec<DependenciesCreatedForInstruction>) {
-        if dependencies.is_empty() {
-            panic!("SingleDependencyStringStateVarInterface requires a dependency");
-        }
-
-        let dep_val = &dependencies[0][0].value;
-
-        if let StateVarReadOnlyViewEnum::String(string_val) = dep_val {
-            self.dependency_values.string = string_val.create_new_read_only_view();
-        } else {
-            panic!("Got a non-string value for a dependency for a SingleDependencyStringStateVarInterface");
-        }
+        self.dependency_values = dependencies.try_into().unwrap();
     }
 
     fn calculate_state_var_from_dependencies(&self, state_var: &StateVarMutableView<String>) {

@@ -30,25 +30,20 @@ impl TextStateVariables {
     fn new() -> Self {
         TextStateVariables {
             value: StateVar::new(
-                Box::<GeneralStringStateVarInterface>::default(),
-                StateVarParameters {
-                    dependency_instruction_hint: Some(DependencyInstruction::Child {
+                Box::new(GeneralStringStateVarInterface::new(
+                    true,
+                    true,
+                    DependencyInstruction::Child {
                         match_profiles: vec![ComponentProfile::Text],
                         exclude_if_prefer_profiles: vec![],
-                    }),
-                    should_create_dependency_from_extend_source: true,
-                    is_primary_state_variable_for_shadowing_extend_source: true,
-                },
+                    },
+                )),
                 Default::default(),
             ),
             text: StateVar::new(
-                Box::<SingleDependencyStringStateVarInterface>::default(),
-                StateVarParameters {
-                    dependency_instruction_hint: Some(
-                        TextStateVariables::get_value_dependency_instructions(),
-                    ),
-                    ..Default::default()
-                },
+                Box::new(SingleDependencyStringStateVarInterface::new(
+                    TextStateVariables::get_value_dependency_instructions(),
+                )),
                 Default::default(),
             ),
         }

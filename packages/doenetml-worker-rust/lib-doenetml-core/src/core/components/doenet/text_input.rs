@@ -63,70 +63,58 @@ pub struct TextInputStateVariables {
 impl TextInputStateVariables {
     fn new() -> Self {
         TextInputStateVariables {
-            value: StateVar::new(
-                Box::<ValueStateVarInterface>::default(),
-                StateVarParameters {
-                    ..Default::default()
-                },
-                Default::default(),
-            ),
+            value: StateVar::new(Box::<ValueStateVarInterface>::default(), Default::default()),
             immediate_value: StateVar::new(
                 Box::<ImmediateValueStateVarInterface>::default(),
-                StateVarParameters {
-                    ..Default::default()
-                },
                 Default::default(),
             ),
             sync_immediate_value: StateVar::new(
                 Box::<SyncImmediateValueStateVarInterface>::default(),
-                StateVarParameters {
-                    ..Default::default()
-                },
                 true,
             ),
             bind_value_to: StateVar::new(
-                Box::<GeneralStringStateVarInterface>::default(),
-                StateVarParameters {
-                    dependency_instruction_hint: Some(DependencyInstruction::AttributeChild {
+                Box::new(GeneralStringStateVarInterface::new(
+                    false,
+                    false,
+                    DependencyInstruction::AttributeChild {
                         attribute_name: "bindValueTo",
                         match_profiles: vec![ComponentProfile::Text],
-                    }),
-                    ..Default::default()
-                },
+                    },
+                )),
                 Default::default(),
             ),
             prefill: StateVar::new(
-                Box::<GeneralStringStateVarInterface>::default(),
-                StateVarParameters {
-                    dependency_instruction_hint: Some(DependencyInstruction::AttributeChild {
+                Box::new(GeneralStringStateVarInterface::new(
+                    false,
+                    false,
+                    DependencyInstruction::AttributeChild {
                         attribute_name: "prefill",
                         match_profiles: vec![ComponentProfile::Text],
-                    }),
-                    ..Default::default()
-                },
+                    },
+                )),
                 Default::default(),
             ),
             hidden: StateVar::new(
-                Box::<GeneralBooleanStateVarInterface>::default(),
-                StateVarParameters {
-                    dependency_instruction_hint: Some(DependencyInstruction::AttributeChild {
+                Box::new(GeneralBooleanStateVarInterface::new(
+                    false,
+                    false,
+                    DependencyInstruction::AttributeChild {
                         attribute_name: "hide",
                         match_profiles: vec![ComponentProfile::Text, ComponentProfile::Boolean],
-                    }),
-                    ..Default::default()
-                },
-                false,
+                    },
+                )),
+                Default::default(),
             ),
             disabled: StateVar::new(
-                Box::<GeneralBooleanStateVarInterface>::default(),
-                StateVarParameters {
-                    dependency_instruction_hint: Some(DependencyInstruction::AttributeChild {
+                Box::new(GeneralBooleanStateVarInterface::new(
+                    false,
+                    false,
+                    DependencyInstruction::AttributeChild {
                         attribute_name: "disabled",
                         match_profiles: vec![ComponentProfile::Text, ComponentProfile::Boolean],
-                    }),
-                    ..Default::default()
-                },
-                false,
+                    },
+                )),
+                Default::default(),
             ),
         }
     }
@@ -204,7 +192,6 @@ impl StateVarInterface<String> for ValueStateVarInterface {
     fn return_dependency_instructions(
         &mut self,
         _extending: Option<ExtendSource>,
-        _parameters: &StateVarParameters,
         _state_var_idx: StateVarIdx,
     ) -> Vec<DependencyInstruction> {
         self.dependency_instructions = ValueDependencyInstructions {
@@ -317,7 +304,6 @@ impl StateVarInterface<String> for ImmediateValueStateVarInterface {
     fn return_dependency_instructions(
         &mut self,
         _extending: Option<ExtendSource>,
-        _parameters: &StateVarParameters,
         _state_var_idx: StateVarIdx,
     ) -> Vec<DependencyInstruction> {
         self.dependency_instructions = ImmediateValueDependencyInstructions {
@@ -401,7 +387,6 @@ impl StateVarInterface<bool> for SyncImmediateValueStateVarInterface {
     fn return_dependency_instructions(
         &mut self,
         _extending: Option<ExtendSource>,
-        _parameters: &StateVarParameters,
         _state_var_idx: StateVarIdx,
     ) -> Vec<DependencyInstruction> {
         self.dependency_instructions = SyncImmediateValueDependencyInstructions {

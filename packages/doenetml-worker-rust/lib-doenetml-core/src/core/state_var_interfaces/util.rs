@@ -1,11 +1,11 @@
 use crate::{
-    components::prelude::{DependencyInstruction, StateVarIdx, StateVarParameters},
+    components::prelude::{DependencyInstruction, StateVarIdx},
     ExtendSource,
 };
 
 pub fn create_dependency_instruction_from_extend_source(
     extending: Option<ExtendSource>,
-    parameters: &StateVarParameters,
+    is_primary_state_variable_for_shadowing_extend_source: bool,
     state_var_idx: StateVarIdx,
 ) -> Option<DependencyInstruction> {
     extending.and_then(|extend_source| match extend_source {
@@ -16,7 +16,7 @@ pub fn create_dependency_instruction_from_extend_source(
                 state_var_match
                     .shadowing_idx
                     .map(|sv_idx| sv_idx == state_var_idx)
-                    .unwrap_or(parameters.is_primary_state_variable_for_shadowing_extend_source)
+                    .unwrap_or(is_primary_state_variable_for_shadowing_extend_source)
             })
             // Either
             // 1. shadowing index was supplied and it matches the index of the state variable, or

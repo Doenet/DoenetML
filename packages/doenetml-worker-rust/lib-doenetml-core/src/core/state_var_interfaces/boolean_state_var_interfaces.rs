@@ -4,7 +4,7 @@ use crate::{
     components::prelude::{
         DependenciesCreatedForInstruction, DependencyInstruction, DependencyValueUpdateRequest,
         RequestDependencyUpdateError, StateVarIdx, StateVarInterface, StateVarMutableView,
-        StateVarParameters, StateVarReadOnlyView, StateVarReadOnlyViewEnum, TryIntoStateVar,
+        StateVarReadOnlyView, StateVarReadOnlyViewEnum, TryIntoStateVar,
     },
     dependency::DependencySource,
     ExtendSource,
@@ -21,9 +21,13 @@ use super::util::{create_dependency_instruction_from_extend_source, string_to_bo
 /// then propagate the `used_default` attribute of the essential state variable.
 #[derive(Debug, Default)]
 pub struct GeneralBooleanStateVarInterface {
+    should_create_dependency_from_extend_source: bool,
+    is_primary_state_variable_for_shadowing_extend_source: bool,
+    base_dependency_instruction: DependencyInstruction,
+
     dependency_instructions: GeneralBooleanStateVarDependencyInstructions,
     dependency_values: GeneralBooleanStateVarDependencies,
-    // boolean_or_strings_dependency_values: BooleanOrStrings,
+
     from_single_essential: bool,
     have_invalid_combination: bool,
 }
@@ -37,7 +41,7 @@ struct GeneralBooleanStateVarDependencies {
 #[derive(Debug, Default, StateVariableDependencyInstructions)]
 struct GeneralBooleanStateVarDependencyInstructions {
     essential: Option<DependencyInstruction>,
-    other: Option<DependencyInstruction>,
+    base: Option<DependencyInstruction>,
 }
 
 #[derive(Debug)]
@@ -62,30 +66,38 @@ impl TryFrom<&StateVarReadOnlyViewEnum> for BooleanOrString {
     }
 }
 
-// impl Default for BooleanOrStrings {
-//     fn default() -> Self {
-//         BooleanOrStrings::Boolean(StateVarReadOnlyView::default())
-//     }
-// }
+impl GeneralBooleanStateVarInterface {
+    pub fn new(
+        should_create_dependency_from_extend_source: bool,
+        is_primary_state_variable_for_shadowing_extend_source: bool,
+        base_dependency_instruction: DependencyInstruction,
+    ) -> Self {
+        GeneralBooleanStateVarInterface {
+            should_create_dependency_from_extend_source,
+            is_primary_state_variable_for_shadowing_extend_source,
+            base_dependency_instruction,
+            ..Default::default()
+        }
+    }
+}
 
 impl StateVarInterface<bool> for GeneralBooleanStateVarInterface {
     fn return_dependency_instructions(
         &mut self,
         extending: Option<ExtendSource>,
-        parameters: &StateVarParameters,
         state_var_idx: StateVarIdx,
     ) -> Vec<DependencyInstruction> {
         self.dependency_instructions = GeneralBooleanStateVarDependencyInstructions {
-            essential: if parameters.should_create_dependency_from_extend_source {
+            essential: if self.should_create_dependency_from_extend_source {
                 create_dependency_instruction_from_extend_source(
                     extending,
-                    parameters,
+                    self.is_primary_state_variable_for_shadowing_extend_source,
                     state_var_idx,
                 )
             } else {
                 None
             },
-            other: parameters.dependency_instruction_hint.clone(),
+            base: Some(self.base_dependency_instruction.clone()),
         };
 
         self.dependency_instructions.instructions_as_vec()
@@ -184,13 +196,10 @@ impl StateVarInterface<bool> for GeneralBooleanStateVarInterface {
 /// A simplified version of GeneralBooleanStateVarInterface
 /// that is based on a single dependency.
 /// Requires a `dependency_instruction_hint`.
-///
-/// Panics if `should_create_dependency_from_extend_source` is true,
-/// if not given a `dependency_instruction_hint`,
-/// or if given a `dependency_instruction_hint`
-/// that doesn't result in at least one string dependency.
 #[derive(Debug, Default)]
 pub struct SingleDependencyBooleanStateVarInterface {
+    dependency_instruction: DependencyInstruction,
+
     dependency_instructions: SingleDependencyBooleanDependencyInstructions,
     dependency_values: SingleDependencyBooleanDependencies,
 }
@@ -200,41 +209,29 @@ struct SingleDependencyBooleanDependencies {
     boolean: StateVarReadOnlyView<bool>,
 }
 
+impl SingleDependencyBooleanStateVarInterface {
+    pub fn new(dependency_instruction: DependencyInstruction) -> Self {
+        SingleDependencyBooleanStateVarInterface {
+            dependency_instruction,
+            ..Default::default()
+        }
+    }
+}
+
 impl StateVarInterface<bool> for SingleDependencyBooleanStateVarInterface {
     fn return_dependency_instructions(
         &mut self,
         _extending: Option<ExtendSource>,
-        parameters: &StateVarParameters,
         _state_var_idx: StateVarIdx,
     ) -> Vec<DependencyInstruction> {
-        if parameters.should_create_dependency_from_extend_source {
-            panic!("Cannot create dependency from extend source for SingleDependencyBooleanStateVarInterface");
-        }
-
-        if let Some(dependency_instruction) = &parameters.dependency_instruction_hint {
-            self.dependency_instructions = SingleDependencyBooleanDependencyInstructions {
-                boolean: Some(dependency_instruction.clone()),
-            };
-            self.dependency_instructions.instructions_as_vec()
-        } else {
-            panic!(
-                "SingleDependencyBooleanStateVarInterface requires a dependency_instruction_hint"
-            );
-        }
+        self.dependency_instructions = SingleDependencyBooleanDependencyInstructions {
+            boolean: Some(self.dependency_instruction.clone()),
+        };
+        self.dependency_instructions.instructions_as_vec()
     }
 
     fn save_dependencies(&mut self, dependencies: &Vec<DependenciesCreatedForInstruction>) {
-        if dependencies.is_empty() {
-            panic!("SingleDependencyBooleanStateVarInterface requires a dependency");
-        }
-
-        let dep_val = &dependencies[0][0].value;
-
-        if let StateVarReadOnlyViewEnum::Boolean(boolean_val) = dep_val {
-            self.dependency_values.boolean = boolean_val.create_new_read_only_view();
-        } else {
-            panic!("Got a non-boolean value for a dependency for a SingleDependencyBooleanStateVarInterface");
-        }
+        self.dependency_values = dependencies.try_into().unwrap();
     }
 
     fn calculate_state_var_from_dependencies(&self, state_var: &StateVarMutableView<bool>) {
