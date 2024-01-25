@@ -1,5 +1,6 @@
 //! This file contains utilities for testing DoenetMLCore.
 use assert_json_diff::assert_json_eq;
+use doenetml_core::dast::DastRoot;
 use serde_json;
 pub use serde_json::{json, Value};
 use std::process::Command;
@@ -40,57 +41,45 @@ pub fn evaluate_dast_via_node_to_json(dast: &str, strip_position: bool) -> std::
 
 /// Expand the string containing DoenetML into a JSON string of the parsed DAST
 /// omitting the position props.
-#[macro_export]
-macro_rules! dast_no_position {
-    ($str:expr) => {
-        evaluate_dast_via_node_to_json($str, true).unwrap()
-    };
+#[allow(unused)]
+pub fn dast_no_position(str: &str) -> String {
+    evaluate_dast_via_node_to_json(str, true).unwrap()
 }
 
 /// Expand the string containing DoenetML into a JSON string of the parsed DAST
-#[macro_export]
-macro_rules! dast {
-    ($str:expr) => {
-        evaluate_dast_via_node_to_json($str, false).unwrap()
-    };
+#[allow(unused)]
+pub fn dast(str: &str) -> String {
+    evaluate_dast_via_node_to_json(str, false).unwrap()
 }
 
 /// Expand the string containing DoenetML into a serde `Value`
 /// omitting the position props.
-#[macro_export]
-macro_rules! dast_no_position_as_serde_value {
-    ($str:expr) => {
-        evaluate_dast_via_node($str, true).unwrap()
-    };
+#[allow(unused)]
+pub fn dast_no_position_as_serde_value(str: &str) -> Value {
+    evaluate_dast_via_node(str, true).unwrap()
 }
 
 /// Expand the string containing DoenetML into a serde `Value`
-#[macro_export]
-macro_rules! dast_as_serde_value {
-    ($str:expr) => {
-        evaluate_dast_via_node($str, false).unwrap()
-    };
+#[allow(unused)]
+pub fn dast_as_serde_value(str: &str) -> Value {
+    evaluate_dast_via_node(str, false).unwrap()
 }
 
 /// Expand the string containing DoenetML into `DastRoot`
-#[macro_export]
-macro_rules! dast_root {
-    ($str:expr) => {{
-        let root: DastRoot =
-            serde_json::from_str(&evaluate_dast_via_node_to_json($str, false).unwrap()).unwrap();
-        root
-    }};
+#[allow(unused)]
+pub fn dast_root(str: &str) -> DastRoot {
+    let root: DastRoot =
+        serde_json::from_str(&evaluate_dast_via_node_to_json(str, false).unwrap()).unwrap();
+    root
 }
 
 /// Expand the string containing DoenetML into `DastRoot`
 /// omitting the position props.
-#[macro_export]
-macro_rules! dast_root_no_position {
-    ($str:expr) => {{
-        let root: DastRoot =
-            serde_json::from_str(&evaluate_dast_via_node_to_json($str, true).unwrap()).unwrap();
-        root
-    }};
+#[allow(unused)]
+pub fn dast_root_no_position(str: &str) -> DastRoot {
+    let root: DastRoot =
+        serde_json::from_str(&evaluate_dast_via_node_to_json(str, true).unwrap()).unwrap();
+    root
 }
 
 #[macro_export]
@@ -152,7 +141,7 @@ fn can_parse_dast_via_macro() {
                 }
             ]
         }),
-        dast_no_position_as_serde_value!("<document />")
+        dast_no_position_as_serde_value("<document />")
     );
 
     // Parse with position information
@@ -168,6 +157,6 @@ fn can_parse_dast_via_macro() {
             }],
             "position":{"start":{"line":1,"column":1,"offset":0},"end":{"line":1,"column":13,"offset":12}}
         }),
-        dast_as_serde_value!("<document />")
+        dast_as_serde_value("<document />")
     );
 }
