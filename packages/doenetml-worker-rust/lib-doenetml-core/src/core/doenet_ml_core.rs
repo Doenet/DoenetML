@@ -409,7 +409,7 @@ impl DoenetMLCore {
     ///
     /// Include warnings as a separate vector (errors are embedded in the tree as elements).
     pub fn to_flat_dast(&mut self) -> FlatDastRoot {
-        //log!("***Calling to flat dast on core****");
+        log!("***Calling to flat dast on core****");
 
         // Since are outputting the whole dast, we ignore which components were freshened
         self.freshen_renderer_state();
