@@ -23,7 +23,8 @@
     },
     "scripts": {
         "watch": "vite build --watch",
-        "test": "echo \"No tests \"",
+        "test": "npm run test:rust",
+        "test:rust": "cargo test --workspace",
         "build:rust": "wireit",
         "build:js": "wireit",
         "build": "npm run build:rust && npm run build:js"

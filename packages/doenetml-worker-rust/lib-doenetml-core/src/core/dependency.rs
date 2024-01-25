@@ -636,7 +636,7 @@ where
 
     fn try_into_state_var(&self) -> Result<T, Self::Error> {
         if self.len() != 1 {
-            panic!("Must have a single dependency");
+            panic!("Must have a single dependency. Got `{:?}`", &self);
             // return Err("Must have a single dependency");
         }
         (&self[0].value).try_into()
