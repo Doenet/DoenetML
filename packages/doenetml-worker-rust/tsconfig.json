@@ -2,7 +2,7 @@
     "extends": "../../tsconfig.build.json",
     "compilerOptions": {
         "rootDir": "./lib-js-wasm-binding/src",
-        "outDir": "./dist/",
+        "outDir": "./dist/"
     },
     "include": [
         "./lib-js-wasm-binding/src/**/*.ts",

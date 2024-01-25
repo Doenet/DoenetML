@@ -130,22 +130,26 @@ describe("DoenetSourceObject", () => {
         source = `<a><b foo="bar">   <c>hi</c></b></a>`;
         sourceObj = new DoenetSourceObject(source);
         {
-            let { cursorPosition, node } = sourceObj.elementAtOffsetWithContext(4);
+            let { cursorPosition, node } =
+                sourceObj.elementAtOffsetWithContext(4);
             expect(cursorPosition).toEqual("openTagName");
             expect(node).toMatchObject({ type: "element", name: "b" });
         }
         {
-            let { cursorPosition, node } = sourceObj.elementAtOffsetWithContext(6);
+            let { cursorPosition, node } =
+                sourceObj.elementAtOffsetWithContext(6);
             expect(cursorPosition).toEqual("attributeName");
             expect(node).toMatchObject({ type: "element", name: "b" });
         }
         {
-            let { cursorPosition, node } = sourceObj.elementAtOffsetWithContext(11);
+            let { cursorPosition, node } =
+                sourceObj.elementAtOffsetWithContext(11);
             expect(cursorPosition).toEqual("attributeValue");
             expect(node).toMatchObject({ type: "element", name: "b" });
         }
         {
-            let { cursorPosition, node } = sourceObj.elementAtOffsetWithContext(17);
+            let { cursorPosition, node } =
+                sourceObj.elementAtOffsetWithContext(17);
             expect(cursorPosition).toEqual("body");
             expect(node).toMatchObject({ type: "element", name: "b" });
         }
@@ -153,22 +157,26 @@ describe("DoenetSourceObject", () => {
         source = `<a > </a   >`;
         sourceObj = new DoenetSourceObject(source);
         {
-            let { cursorPosition, node } = sourceObj.elementAtOffsetWithContext(3);
+            let { cursorPosition, node } =
+                sourceObj.elementAtOffsetWithContext(3);
             expect(cursorPosition).toEqual("openTag");
             expect(node).toMatchObject({ type: "element", name: "a" });
         }
         {
-            let { cursorPosition, node } = sourceObj.elementAtOffsetWithContext(5);
+            let { cursorPosition, node } =
+                sourceObj.elementAtOffsetWithContext(5);
             expect(cursorPosition).toEqual("body");
             expect(node).toMatchObject({ type: "element", name: "a" });
         }
         {
-            let { cursorPosition, node } = sourceObj.elementAtOffsetWithContext(9);
+            let { cursorPosition, node } =
+                sourceObj.elementAtOffsetWithContext(9);
             expect(cursorPosition).toEqual("unknown");
             expect(node).toMatchObject({ type: "element", name: "a" });
         }
         {
-            let { cursorPosition, node } = sourceObj.elementAtOffsetWithContext(11);
+            let { cursorPosition, node } =
+                sourceObj.elementAtOffsetWithContext(11);
             expect(cursorPosition).toEqual("unknown");
             expect(node).toMatchObject({ type: "element", name: "a" });
         }
@@ -177,7 +185,8 @@ describe("DoenetSourceObject", () => {
         sourceObj = new DoenetSourceObject(source);
         {
             const offset = source.indexOf("</a>") - 1;
-            let { cursorPosition, node } = sourceObj.elementAtOffsetWithContext(offset);
+            let { cursorPosition, node } =
+                sourceObj.elementAtOffsetWithContext(offset);
             expect(cursorPosition).toEqual("body");
             expect(node).toMatchObject({ type: "element", name: "b" });
         }
@@ -186,7 +195,8 @@ describe("DoenetSourceObject", () => {
             // is a non-closed element inside, we should claim to be inside the body
             // of the non-closed element.
             const offset = source.indexOf("</a>");
-            let { cursorPosition, node } = sourceObj.elementAtOffsetWithContext(offset);
+            let { cursorPosition, node } =
+                sourceObj.elementAtOffsetWithContext(offset);
             expect(cursorPosition).toEqual("body");
             expect(node).toMatchObject({ type: "element", name: "b" });
         }
@@ -196,7 +206,8 @@ describe("DoenetSourceObject", () => {
         sourceObj = new DoenetSourceObject(source);
         {
             const offset = source.indexOf("</a>");
-            let { cursorPosition, node } = sourceObj.elementAtOffsetWithContext(offset);
+            let { cursorPosition, node } =
+                sourceObj.elementAtOffsetWithContext(offset);
             expect(cursorPosition).toEqual("body");
             expect(node).toMatchObject({ type: "element", name: "b" });
         }
@@ -225,7 +236,8 @@ describe("DoenetSourceObject", () => {
         source = `<a    `;
         sourceObj = new DoenetSourceObject(source);
         {
-            let { cursorPosition, node } = sourceObj.elementAtOffsetWithContext(3);
+            let { cursorPosition, node } =
+                sourceObj.elementAtOffsetWithContext(3);
             expect(cursorPosition).toEqual("openTag");
             expect(node).toMatchObject({ type: "element", name: "a" });
         }
@@ -233,7 +245,8 @@ describe("DoenetSourceObject", () => {
         source = `<p><a    </p>`;
         sourceObj = new DoenetSourceObject(source);
         {
-            let { cursorPosition, node } = sourceObj.elementAtOffsetWithContext(7);
+            let { cursorPosition, node } =
+                sourceObj.elementAtOffsetWithContext(7);
             expect(cursorPosition).toEqual("openTag");
             expect(node).toMatchObject({ type: "element", name: "a" });
         }
@@ -241,7 +254,8 @@ describe("DoenetSourceObject", () => {
         source = `<`;
         sourceObj = new DoenetSourceObject(source);
         {
-            let { cursorPosition, node } = sourceObj.elementAtOffsetWithContext(1);
+            let { cursorPosition, node } =
+                sourceObj.elementAtOffsetWithContext(1);
             expect(cursorPosition).toEqual("unknown");
             expect(node).toEqual(null);
         }

@@ -1,4 +1,9 @@
-import { LRLanguage, LanguageSupport, foldNodeProp, indentNodeProp } from "@codemirror/language";
+import {
+    LRLanguage,
+    LanguageSupport,
+    foldNodeProp,
+    indentNodeProp,
+} from "@codemirror/language";
 import { parser } from "@doenet/parser";
 import { styleTags, tags as t } from "@lezer/highlight";
 

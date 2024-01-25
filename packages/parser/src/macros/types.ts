@@ -58,7 +58,11 @@ export type SimpleAddressMacro = {
         end: { offset: number; line: number; column: number };
     };
 };
-export type FullAddressMacro = { type: "macro"; path: Path; attributes: PropAttrs } & {
+export type FullAddressMacro = {
+    type: "macro";
+    path: Path;
+    attributes: PropAttrs;
+} & {
     position: {
         start: { offset: number; line: number; column: number };
         end: { offset: number; line: number; column: number };

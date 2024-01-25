@@ -438,24 +438,22 @@ pub fn create_dependencies_from_instruction_initialize_essential(
                                 let child_profile = child_profile_state_var.get_matching_profile();
 
                                 if match_profiles.contains(&child_profile) {
-                                    return Some(child_profile_state_var);
+                                    Some(child_profile_state_var)
                                 } else {
                                     None
                                 }
                             })
-                            .and_then(|profile_sv| {
+                            .map(|profile_sv| {
                                 let (state_var_view, sv_idx) =
                                     profile_sv.into_state_variable_view_enum_and_idx();
 
-                                let state_var_dep = Dependency {
+                                Dependency {
                                     source: DependencySource::StateVar {
                                         component_idx: *child_idx,
                                         state_var_idx: sv_idx,
                                     },
                                     value: state_var_view,
-                                };
-
-                                Some(state_var_dep)
+                                }
                             }),
                         ComponentPointerTextOrMacro::Text(string_value) => {
                             // Text children are just strings, and they just match the String or Text profiles

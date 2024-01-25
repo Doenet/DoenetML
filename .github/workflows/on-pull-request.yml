@@ -31,3 +31,48 @@ jobs:
 
             - name: Test
               run: npm test
+
+    lint:
+        name: Lint Rust Code
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout sources
+              uses: actions/checkout@v3
+
+            - name: Install toolchain
+              uses: actions-rs/toolchain@v1
+              with:
+                  profile: minimal
+                  toolchain: stable
+                  override: true
+                  components: rustfmt, clippy
+
+            - name: Cargo fmt
+              working-directory: ./packages/doenetml-worker-rust
+              run: cargo fmt --all -- --check
+
+            - name: Cargo clippy
+              working-directory: ./packages/doenetml-worker-rust
+              run: cargo clippy -- -D warnings
+
+    lint-ts:
+        name: Lint Typescript Code
+        runs-on: ubuntu-latest
+
+        strategy:
+            matrix:
+                node-version: [18.x]
+
+        steps:
+            - name: Checkout sources
+              uses: actions/checkout@v3
+            - name: Use Node.js ${{ matrix.node-version }}
+              uses: actions/setup-node@v3
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "npm"
+            - run: npm ci
+
+            - name: Prettier Check
+              run: npx prettier . --check

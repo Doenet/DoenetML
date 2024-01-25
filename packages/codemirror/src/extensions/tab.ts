@@ -6,7 +6,7 @@ import { Command, keymap } from "@codemirror/view";
 //tabs = 2 spaces
 const tab = "  ";
 const tabCommand: Command = ({ state, dispatch }) => {
-    console.log("running")
+    console.log("running");
     dispatch(
         state.update(state.replaceSelection(tab), {
             scrollIntoView: true,

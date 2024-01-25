@@ -4,8 +4,8 @@ import { AutoCompleter } from "..";
 
 export type CompletionContext =
     | { cursorPos: "body" }
-    | { cursorPos: "element"; complete: boolean;  }
-    | { cursorPos: "macro"; complete: boolean;node: DastMacro | null };
+    | { cursorPos: "element"; complete: boolean }
+    | { cursorPos: "macro"; complete: boolean; node: DastMacro | null };
 
 /**
  * Get context about the current cursor position to determine whether completions should be offered or not,
@@ -34,14 +34,18 @@ export function getCompletionContext(
         prevNonWhitespaceCharOffset,
     );
 
-    const leftNode = this.sourceObj.nodeAtOffset(offset, {side:"left"});
-    
+    const leftNode = this.sourceObj.nodeAtOffset(offset, { side: "left" });
+
     // Check for status inside a macro
     let macro = this.sourceObj.nodeAtOffset(offset, {
         type: "macro",
         side: "left",
     });
-    if (!macro && (prevChar === "." || prevChar === "[") && prevPrevChar !== ")") {
+    if (
+        !macro &&
+        (prevChar === "." || prevChar === "[") &&
+        prevPrevChar !== ")"
+    ) {
         macro = this.sourceObj.nodeAtOffset(offset - 1, {
             type: "macro",
             side: "left",

@@ -4,7 +4,7 @@ import init, {
     ActionResponse,
     ActionsEnum,
     PublicDoenetMLCore,
-    DastRoot as DastRootInCore
+    DastRoot as DastRootInCore,
 } from "lib-doenetml-worker-rust";
 export type * from "lib-doenetml-worker-rust";
 import type { DastRoot } from "@doenet/parser";
