@@ -348,10 +348,11 @@ pub fn state_variable_dependencies_derive(input: TokenStream) -> TokenStream {
                     ) {
                         try_from_dependencies_vec_statements.push(quote! {
                         #field_identity: dependencies[#instruction_idx..].iter()
-                        .flat_map(|instruction| {
-                            instruction.try_into_state_var()
-                        })
-                        .collect::<Vec<_>>(),
+                            .flat_map(|instruction| {
+                                let temp: Result<Vec<_>,_> = instruction.try_into_state_var();
+                                temp
+                            })
+                            .flatten().collect::<Vec<_>>(),
                         });
                         break;
                     } else {
