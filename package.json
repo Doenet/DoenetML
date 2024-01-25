@@ -50,7 +50,8 @@
         "typescript": "^5.2.2",
         "vite-node": "^0.34.6",
         "vitest": "^0.34.6",
-        "wasm-pack": "^0.12.1"
+        "wasm-pack": "^0.12.1",
+        "yargs": "^17.7.2"
     },
     "prettier": {
         "tabWidth": 4

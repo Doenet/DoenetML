@@ -22,7 +22,6 @@ pub struct TextStateVariables {
     value: StateVar<String>,
 
     #[is_public]
-    #[for_renderer]
     text: StateVar<String>,
 }
 
