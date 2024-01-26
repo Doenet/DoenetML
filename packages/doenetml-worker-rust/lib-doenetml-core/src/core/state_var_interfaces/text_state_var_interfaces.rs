@@ -42,6 +42,9 @@ struct GeneralStringStateVarDependencies {
     /// A vector of the string values of the dependencies
     #[consume_remaining_instructions]
     strings: Vec<StateVarReadOnlyView<String>>,
+
+    // TODO: add via attribute macro?
+    _instruction_mapping_data: GeneralStringStateVarDependencyData,
 }
 
 /// The dependency instructions that indicate how the dependencies of this state variable will be created.
@@ -161,6 +164,9 @@ pub struct SingleDependencyStringStateVarInterface {
 #[derive(Debug, Default, StateVariableDependencies, StateVariableDependencyInstructions)]
 struct SingleDependencyStringDependencies {
     string: StateVarReadOnlyView<String>,
+
+    // TODO: add via attribute macro?
+    _instruction_mapping_data: SingleDependencyStringDependencyData,
 }
 
 impl SingleDependencyStringStateVarInterface {

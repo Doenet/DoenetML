@@ -339,9 +339,28 @@ pub fn state_variable_dependencies_derive(input: TokenStream) -> TokenStream {
                     .map(|f| f.ident.as_ref().unwrap().clone())
                     .collect::<Vec<_>>();
 
+                let structure_name = structure_identity.to_string();
+                let sn_len = structure_name.len();
+
+                let data_name = if &structure_name[(sn_len - 3)..] == "ies" {
+                    format!("{}yData", &structure_name[..(sn_len - 3)])
+                } else {
+                    format!("{}Data", structure_name)
+                };
+                let data_identity = Ident::new(&data_name, Span::call_site());
+
                 let mut try_from_dependencies_vec_statements = Vec::new();
+                let mut data_struct_statements = Vec::new();
 
                 for (instruction_idx, field_identity) in field_identities.iter().enumerate() {
+                    if field_identity.to_string().starts_with('_') {
+                        continue;
+                    }
+
+                    data_struct_statements.push(quote! {
+                        #field_identity: Vec<(usize,usize)>,
+                    });
+
                     if check_if_field_has_attribute(
                         &named[instruction_idx],
                         "consume_remaining_instructions",
@@ -360,8 +379,8 @@ pub fn state_variable_dependencies_derive(input: TokenStream) -> TokenStream {
                         break;
                     } else {
                         try_from_dependencies_vec_statements.push(quote! {
-                        #field_identity: (&dependencies[#instruction_idx]).try_into_state_var()?,
-                    });
+                            #field_identity: (&dependencies[#instruction_idx]).try_into_state_var()?,
+                        });
                     }
                 }
 
@@ -371,8 +390,14 @@ pub fn state_variable_dependencies_derive(input: TokenStream) -> TokenStream {
                         fn try_from(dependencies: &Vec<DependenciesCreatedForInstruction>) -> Result<Self, Self::Error> {
                             Ok(#structure_identity {
                                 #(#try_from_dependencies_vec_statements)*
+                                _instruction_mapping_data: #data_identity::default()
                             })
                         }
+                    }
+
+                    #[derive(Debug, Default)]
+                    struct #data_identity {
+                        #(#data_struct_statements)*
                     }
 
                 }
@@ -402,10 +427,10 @@ pub fn state_variable_dependency_instructions_derive(input: TokenStream) -> Toke
                 let num_instructions = field_identities.len();
 
                 let structure_name = structure_identity.to_string();
-                let len = structure_name.len();
+                let sn_len = structure_name.len();
 
                 let structure_is_dependency_instructions =
-                    len > 22 && &structure_name[(len - 22)..] == "DependencyInstructions";
+                    sn_len > 22 && &structure_name[(sn_len - 22)..] == "DependencyInstructions";
 
                 if structure_is_dependency_instructions {
                     let mut instructions_as_vec_statements = Vec::new();
@@ -432,8 +457,8 @@ pub fn state_variable_dependency_instructions_derive(input: TokenStream) -> Toke
 
                     let mut instructions_as_vec_statements = Vec::new();
 
-                    let dependency_instruction_name = if &structure_name[(len - 3)..] == "ies" {
-                        format!("{}yInstructions", &structure_name[..(len - 3)])
+                    let dependency_instruction_name = if &structure_name[(sn_len - 3)..] == "ies" {
+                        format!("{}yInstructions", &structure_name[..(sn_len - 3)])
                     } else {
                         format!("{}Instructions", structure_name)
                     };
@@ -442,6 +467,10 @@ pub fn state_variable_dependency_instructions_derive(input: TokenStream) -> Toke
                         Ident::new(&dependency_instruction_name, Span::call_site());
 
                     for field_identity in field_identities.iter() {
+                        if field_identity.to_string().starts_with('_') {
+                            continue;
+                        }
+
                         dependency_instruction_struct_statements.push(quote! {
                             pub #field_identity: Option<DependencyInstruction>,
                         });
