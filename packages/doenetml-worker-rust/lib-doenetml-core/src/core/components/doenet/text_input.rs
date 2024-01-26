@@ -63,16 +63,13 @@ pub struct TextInputStateVariables {
 impl TextInputStateVariables {
     fn new() -> Self {
         TextInputStateVariables {
-            value: StateVar::new(
-                Box::new(ValueStateVarInterface::default()),
-                Default::default(),
-            ),
+            value: StateVar::new(Box::new(ValueStateVarInterface::new()), Default::default()),
             immediate_value: StateVar::new(
-                Box::new(ImmediateValueStateVarInterface::default()),
+                Box::new(ImmediateValueStateVarInterface::new()),
                 Default::default(),
             ),
             sync_immediate_value: StateVar::new(
-                Box::new(SyncImmediateValueStateVarInterface::default()),
+                Box::new(SyncImmediateValueStateVarInterface::new()),
                 true,
             ),
             bind_value_to: StateVar::new(
@@ -172,6 +169,14 @@ impl RenderedComponentNode for TextInput {
 struct ValueStateVarInterface {
     dependency_instructions: ValueDependencyInstructions,
     dependency_values: ValueDependencies,
+}
+
+impl ValueStateVarInterface {
+    fn new() -> Self {
+        ValueStateVarInterface {
+            ..Default::default()
+        }
+    }
 }
 
 #[derive(Debug, Default, StateVariableDependencies, StateVariableDependencyInstructions)]
@@ -287,6 +292,14 @@ struct ImmediateValueStateVarInterface {
     dependency_values: ImmediateValueDependencies,
 }
 
+impl ImmediateValueStateVarInterface {
+    fn new() -> Self {
+        ImmediateValueStateVarInterface {
+            ..Default::default()
+        }
+    }
+}
+
 #[derive(Debug, Default, StateVariableDependencies, StateVariableDependencyInstructions)]
 struct ImmediateValueDependencies {
     essential: StateVarReadOnlyView<String>,
@@ -371,6 +384,14 @@ impl StateVarInterface<String> for ImmediateValueStateVarInterface {
 struct SyncImmediateValueStateVarInterface {
     dependency_instructions: SyncImmediateValueDependencyInstructions,
     dependency_values: SyncImmediateValueDependencies,
+}
+
+impl SyncImmediateValueStateVarInterface {
+    fn new() -> Self {
+        SyncImmediateValueStateVarInterface {
+            ..Default::default()
+        }
+    }
 }
 
 #[derive(Debug, Default, StateVariableDependencies, StateVariableDependencyInstructions)]

@@ -401,6 +401,7 @@ fn match_public_state_variable(
     let new_idx = components.len();
     let matched_state_var_idx: StateVarIdx;
     let component_type;
+    let shadowing_variable_idx: StateVarIdx;
 
     {
         let matched_component = components[matched_component_idx].borrow();
@@ -414,19 +415,16 @@ fn match_public_state_variable(
             .get_state_variable(matched_state_var_idx)
             .unwrap();
 
-        component_type = state_var.get_default_component_type();
+        (component_type, shadowing_variable_idx) = state_var.get_default_shadowing_component();
     }
 
     let mut new_comp_enum = ComponentEnum::from_str(component_type).unwrap();
 
-    // Create extend source assuming that the shadowing index of the component
-    // is its first state variable.
-    // The component's initialize function can change the shadowing_idx if needed.
     let extending = ExtendSource::StateVar(ExtendStateVariableDescription {
         component_idx: matched_component_idx,
         state_variable_matching: vec![StateVariableShadowingMatch {
-            shadowing_idx: None, // use the primary state variable (as determined by component type)
-            shadowed_idx: matched_state_var_idx,
+            shadowing_state_var_idx: shadowing_variable_idx,
+            shadowed_state_var_idx: matched_state_var_idx,
         }],
     });
 

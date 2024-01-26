@@ -14,31 +14,49 @@ use super::util::create_dependency_instruction_if_match_extend_source;
 
 /// A string state variable interface that concatenates all string dependencies.
 ///
-/// If `should_create_dependency_from_extend_source` is true and has an extend source extending this variable,
-/// then prepend the shadowed state variable.
+/// If the component has an extend source so that this variable is shadowing another variable,
+/// then prepend the shadowed state variable to the list of dependencies.
 ///
 /// If the state variable has a single dependency that is an essential state variable,
 /// then propagate the `used_default` attribute of the essential state variable.
 #[derive(Debug, Default)]
 pub struct GeneralStringStateVarInterface {
-    is_primary_state_variable: bool,
+    /// The base dependency instruction that indicates how the dependencies of this state variable will be created.
     base_dependency_instruction: DependencyInstruction,
 
+    /// The base dependency instruction, potentially augmented by a dependency instruction
+    /// for shadowing another variable
     dependency_instructions: GeneralStringStateVarDependencyInstructions,
+
+    /// The values of the dependencies created from the dependency instructions
     dependency_values: GeneralStringStateVarDependencies,
 
+    /// If true, there is just a single dependency that is an essential state variable.
+    /// In this case, we'll propagate the `used_default` attribute of the essential state variable.
     from_single_essential: bool,
 }
 
+/// The values of the dependencies created from the dependency instructions
 #[derive(Debug, Default, StateVariableDependencies)]
 struct GeneralStringStateVarDependencies {
+    /// A vector of the string values of the dependencies
     #[consume_remaining_instructions]
     strings: Vec<StateVarReadOnlyView<String>>,
 }
 
+/// The dependency instructions that indicate how the dependencies of this state variable will be created.
+/// They consist of the base dependency instruction specified, potentially augmented by a dependency instruction
+/// for shadowing another variable
 #[derive(Debug, Default, StateVariableDependencyInstructions)]
 struct GeneralStringStateVarDependencyInstructions {
+    /// If present, `extending` contains an instruction requesting the value of another text variable.
+    /// It was created from the extend source for this component.
     extending: Option<DependencyInstruction>,
+
+    /// The base dependency instruction specified for this variable.
+    ///
+    /// (It is always present. It is an option only to satisfy the API for
+    /// the `StateVariableDependencyInstructions` derive macro.)
     other: Option<DependencyInstruction>,
 }
 
@@ -48,12 +66,6 @@ impl GeneralStringStateVarInterface {
             base_dependency_instruction,
             ..Default::default()
         }
-    }
-
-    /// Set parameter `is_primary_state_variable` to true
-    pub fn is_primary_state_variable(mut self) -> Self {
-        self.is_primary_state_variable = true;
-        self
     }
 }
 
@@ -66,7 +78,6 @@ impl StateVarInterface<String> for GeneralStringStateVarInterface {
         self.dependency_instructions = GeneralStringStateVarDependencyInstructions {
             extending: create_dependency_instruction_if_match_extend_source(
                 extending,
-                self.is_primary_state_variable,
                 state_var_idx,
             ),
             other: Some(self.base_dependency_instruction.clone()),

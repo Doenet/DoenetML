@@ -12,6 +12,19 @@ pub struct Boolean {
     pub no_rendered_children: Vec<ComponentPointerTextOrMacro>,
 }
 
+impl Boolean {
+    /// If a Boolean component extends a state variable of type boolean,
+    /// then its value state variable should shadow that variable.
+    ///
+    /// Returns: a tuple of (component type, state variable index)
+    pub fn get_state_variable_that_shadows_when_extending() -> (&'static str, StateVarIdx) {
+        (
+            Boolean::get_component_type(),
+            BooleanStateVariables::get_value_state_variable_index(),
+        )
+    }
+}
+
 #[derive(Debug, ComponentStateVariables)]
 pub struct BooleanStateVariables {
     #[is_public]
@@ -27,13 +40,12 @@ impl BooleanStateVariables {
     fn new() -> Self {
         BooleanStateVariables {
             value: StateVar::new(
-                Box::new(
-                    GeneralBooleanStateVarInterface::new(DependencyInstruction::Child {
+                Box::new(GeneralBooleanStateVarInterface::new(
+                    DependencyInstruction::Child {
                         match_profiles: vec![ComponentProfile::Text, ComponentProfile::Boolean],
                         exclude_if_prefer_profiles: vec![],
-                    })
-                    .is_primary_state_variable(),
-                ),
+                    },
+                )),
                 Default::default(),
             ),
             boolean: StateVar::new(

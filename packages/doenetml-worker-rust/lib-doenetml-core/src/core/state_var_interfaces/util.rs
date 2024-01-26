@@ -5,7 +5,6 @@ use crate::{
 
 pub fn create_dependency_instruction_if_match_extend_source(
     extending: Option<ExtendSource>,
-    is_primary_state_variable: bool,
     state_var_idx: StateVarIdx,
 ) -> Option<DependencyInstruction> {
     extending.and_then(|extend_source| match extend_source {
@@ -14,20 +13,13 @@ pub fn create_dependency_instruction_if_match_extend_source(
             .iter()
             .find(|state_var_match| {
                 // We look for a state variable match where shadowing_idx is state_var_idx.
-                // If shadowing_idx is None, then check if is_primary_state_variable,
-                // because shadowing_idx==None means match the primary state variable.
-                state_var_match
-                    .shadowing_idx
-                    .map(|sv_idx| sv_idx == state_var_idx)
-                    .unwrap_or(is_primary_state_variable)
+                state_var_match.shadowing_state_var_idx == state_var_idx
             })
-            // Either
-            // 1. shadowing index was supplied and it matches the index of the state variable, or
-            // 2. shadowing index was not supplied and this variable is the primary state variable.
-            // Therefore, we shadow the extend source.
+            // If found a match to state_var_idx,
+            // we shadow component and state variable indicated from the extend source.
             .map(|var| DependencyInstruction::StateVar {
                 component_idx: Some(description.component_idx),
-                state_var_idx: var.shadowed_idx,
+                state_var_idx: var.shadowed_state_var_idx,
             }),
         _ => None,
     })

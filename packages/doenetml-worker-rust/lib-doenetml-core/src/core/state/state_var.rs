@@ -17,6 +17,7 @@ use doenetml_derive::{
 };
 
 use crate::{
+    components::doenet::{boolean::Boolean, text::Text},
     dependency::{
         DependenciesCreatedForInstruction, DependencyInstruction, DependencyValueUpdateRequest,
     },
@@ -786,15 +787,20 @@ pub enum StateVarValueEnum {
 
 impl<'a> StateVarEnumRef<'a> {
     /// If creating a component from a reference to this state variable
-    /// then create a component of the given type.
+    /// then create a component of the given type with the given state variable
+    /// shadowing the original state variable.
     ///
     /// TODO: presumably, there should be a way to override this default.
-    pub fn get_default_component_type(&self) -> &'static str {
+    ///
+    /// Returns: a tuple of (component type, state variable name)
+    pub fn get_default_shadowing_component(&self) -> (&'static str, StateVarIdx) {
         match self {
-            StateVarEnumRef::Number(_) => "number",
-            StateVarEnumRef::Integer(_) => "number",
-            StateVarEnumRef::String(_) => "text",
-            StateVarEnumRef::Boolean(_) => "boolean",
+            StateVarEnumRef::Number(_) => unimplemented!("Have not yet created number component"),
+            StateVarEnumRef::Integer(_) => unimplemented!("Have not yet created number component"),
+            StateVarEnumRef::String(_) => Text::get_state_variable_that_shadows_when_extending(),
+            StateVarEnumRef::Boolean(_) => {
+                Boolean::get_state_variable_that_shadows_when_extending()
+            }
         }
     }
 }

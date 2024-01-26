@@ -12,34 +12,60 @@ use crate::{
 
 use super::util::{create_dependency_instruction_if_match_extend_source, string_to_boolean};
 
-/// A boolean state variable interface that concatenates all string dependencies.
+/// A boolean state variable interface for calculating the value of a boolean variable from dependencies.
 ///
-/// If `should_create_dependency_from_extend_source` is true and has an extend source extending this variable,
-/// then prepend the shadowed state variable.
+/// The current version is in a preliminary form, where the only valid options are
+/// - a single boolean dependency
+/// - string dependencies (that are concatenated to see if they spell out "true")
+///
+/// If the component has an extend source so that this variable is shadowing another variable,
+/// then prepend the shadowed state variable to the list of dependencies.
 ///
 /// If the state variable has a single boolean dependency that is an essential state variable,
 /// then propagate the `used_default` attribute of the essential state variable.
 #[derive(Debug, Default)]
 pub struct GeneralBooleanStateVarInterface {
-    is_primary_state_variable: bool,
+    /// The base dependency instruction that indicates how the dependencies of this state variable will be created.
     base_dependency_instruction: DependencyInstruction,
 
+    /// The base dependency instruction, potentially augmented by a dependency instruction
+    /// for shadowing another variable
     dependency_instructions: GeneralBooleanStateVarDependencyInstructions,
+
+    /// The values of the dependencies created from the dependency instructions
     dependency_values: GeneralBooleanStateVarDependencies,
 
+    /// If true, there is just a single dependency that is an essential state variable.
+    /// In this case, we'll propagate the `used_default` attribute of the essential state variable.
     from_single_essential: bool,
+
+    /// We have currently implemented only a few possible combinations of dependencies (single boolean or multiple string).
+    /// If `have_invalid_combination` is true, then we haven't implemented an algorithm
+    /// to handle to combinations, and the state variable will just have the value false.
     have_invalid_combination: bool,
 }
 
+/// The values of the dependencies created from the dependency instructions
 #[derive(Debug, Default, StateVariableDependencies)]
 struct GeneralBooleanStateVarDependencies {
+    /// A vector of the boolean or string values of the dependencies
     #[consume_remaining_instructions]
     booleans_or_strings: Vec<BooleanOrString>,
 }
 
+/// The dependency instructions that indicate how the dependencies of this state variable will be created.
+/// They consist of the base dependency instruction specified, potentially augmented by a dependency instruction
+/// for shadowing another variable
 #[derive(Debug, Default, StateVariableDependencyInstructions)]
 struct GeneralBooleanStateVarDependencyInstructions {
+    /// If present, `extending` contains an instruction requesting the value of another boolean variable.
+    /// It was created from the extend source for this component.
     extending: Option<DependencyInstruction>,
+
+    /// The base dependency instruction specified for this variable.
+    ///
+    /// (It is always present. It is an option only to satisfy the API for
+    /// the `StateVariableDependencyInstructions` derive macro.)
     base: Option<DependencyInstruction>,
 }
 
@@ -72,12 +98,6 @@ impl GeneralBooleanStateVarInterface {
             ..Default::default()
         }
     }
-
-    /// Set parameter `is_primary_state_variable` to true
-    pub fn is_primary_state_variable(mut self) -> Self {
-        self.is_primary_state_variable = true;
-        self
-    }
 }
 
 impl StateVarInterface<bool> for GeneralBooleanStateVarInterface {
@@ -89,7 +109,6 @@ impl StateVarInterface<bool> for GeneralBooleanStateVarInterface {
         self.dependency_instructions = GeneralBooleanStateVarDependencyInstructions {
             extending: create_dependency_instruction_if_match_extend_source(
                 extending,
-                self.is_primary_state_variable,
                 state_var_idx,
             ),
             base: Some(self.base_dependency_instruction.clone()),
