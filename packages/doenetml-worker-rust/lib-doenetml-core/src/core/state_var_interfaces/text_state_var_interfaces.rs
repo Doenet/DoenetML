@@ -36,7 +36,7 @@ pub struct GeneralStringStateVarInterface {
     from_single_essential: bool,
 }
 
-/// The values of the dependencies created from the dependency instructions
+/// The values of the dependencies that were created from the dependency instructions
 #[derive(Debug, Default, StateVariableDependencies)]
 struct GeneralStringStateVarDependencies {
     /// A vector of the string values of the dependencies
@@ -145,12 +145,19 @@ impl StateVarInterface<String> for GeneralStringStateVarInterface {
 /// that is based on a single dependency.
 #[derive(Debug, Default)]
 pub struct SingleDependencyStringStateVarInterface {
+    // the dependency instruction that was specified as a parameter
     dependency_instruction: DependencyInstruction,
 
+    /// The dependency instruction structure created by the
+    /// `StateVariableDependencyInstructions` macro
+    /// based on `SingleDependencyStringDependencies`
     dependency_instructions: SingleDependencyStringDependencyInstructions,
+
+    /// The values of the dependencies created from the dependency instructions
     dependency_values: SingleDependencyStringDependencies,
 }
 
+/// The values of the dependencies that were created from the dependency instructions.
 #[derive(Debug, Default, StateVariableDependencies, StateVariableDependencyInstructions)]
 struct SingleDependencyStringDependencies {
     string: StateVarReadOnlyView<String>,

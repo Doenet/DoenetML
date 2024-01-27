@@ -69,12 +69,18 @@ struct GeneralBooleanStateVarDependencyInstructions {
     base: Option<DependencyInstruction>,
 }
 
+/// Since the state variable is based on booleans or strings,
+/// the `BooleanOrString` enum is used to store
+/// the values of dependencies created.
 #[derive(Debug)]
 enum BooleanOrString {
     Boolean(StateVarReadOnlyView<bool>),
     String(StateVarReadOnlyView<String>),
 }
 
+// We implement TryFrom `StateVarReadOnlyViewEnum`
+// so that we can `try_into` `GeneralBooleanStateVarDependencies`
+// from the vector of dependencies.
 impl TryFrom<&StateVarReadOnlyViewEnum> for BooleanOrString {
     type Error = &'static str;
 
@@ -161,7 +167,7 @@ impl StateVarInterface<bool> for GeneralBooleanStateVarInterface {
             }
         } else {
             // concatenate the string values into a single string
-            // TODO: can we do this without cloning
+            // TODO: can we do this without cloning?
             let value: String = self
                 .dependency_values
                 .booleans_or_strings
@@ -209,15 +215,21 @@ impl StateVarInterface<bool> for GeneralBooleanStateVarInterface {
 
 /// A simplified version of GeneralBooleanStateVarInterface
 /// that is based on a single dependency.
-/// Requires a `dependency_instruction_hint`.
 #[derive(Debug, Default)]
 pub struct SingleDependencyBooleanStateVarInterface {
+    // the dependency instruction that was specified as a parameter
     dependency_instruction: DependencyInstruction,
 
+    /// The dependency instruction structure created by the
+    /// `StateVariableDependencyInstructions` macro
+    /// based on `SingleDependencyBooleanDependencies`
     dependency_instructions: SingleDependencyBooleanDependencyInstructions,
+
+    /// The values of the dependencies created from the dependency instructions
     dependency_values: SingleDependencyBooleanDependencies,
 }
 
+/// The values of the dependencies that were created from the dependency instructions.
 #[derive(Debug, Default, StateVariableDependencies, StateVariableDependencyInstructions)]
 struct SingleDependencyBooleanDependencies {
     boolean: StateVarReadOnlyView<bool>,

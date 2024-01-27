@@ -5,13 +5,20 @@ use crate::state_var_interfaces::text_state_var_interfaces::{
     GeneralStringStateVarInterface, SingleDependencyStringStateVarInterface,
 };
 
+/// Definition of the `<text>` DoenetML component
 #[derive(Debug, Default, ComponentNode, ComponentStateVariables)]
 pub struct Text {
+    /// The common component data needed to derive the `ComponentNode` trait
     pub common: ComponentCommonData,
 
-    pub no_rendered_children: Vec<ComponentPointerTextOrMacro>,
-
+    /// The state variables that underlie the `<text>` component.
     pub state: TextStateVariables,
+
+    /// An empty vector that will be returned with `get_rendered_children`
+    /// indicating this component has no children that are rendered.
+    ///
+    /// (Created because `get_rendered_children` must return a reference to a vector,)
+    pub no_rendered_children: Vec<ComponentPointerTextOrMacro>,
 }
 
 impl Text {
@@ -27,13 +34,25 @@ impl Text {
     }
 }
 
+/// The state variables that underlie the `<text>` component.
 #[derive(Debug, ComponentStateVariables)]
 pub struct TextStateVariables {
+    /// The value of the `<text>` component.
+    ///
+    /// It is marked `is_public` so that it can be referenced in DoenetML via `.value`.
+    ///
+    /// It is marked `for_renderer` to send this value to the renderer of the `<text>` component.
+    ///
+    /// It is marked with the `Text` component profile state variable, indicating that the `<text>` component
+    /// can represent a text value by returning the value of this state variable.
     #[is_public]
     #[for_renderer]
-    #[component_profile_state_variables(Text)]
+    #[component_profile_state_variable(Text)]
     value: StateVar<String>,
 
+    /// An alias to the `value` state variable.
+    ///
+    /// It is marked public so that it can be referenced in DoenetML via `.text`.
     #[is_public]
     #[for_renderer]
     text: StateVar<String>,

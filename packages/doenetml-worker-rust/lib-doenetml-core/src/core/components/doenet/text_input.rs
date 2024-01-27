@@ -28,33 +28,81 @@ pub enum TextInputAction {
     UpdateValue,
 }
 
+/// Definition of the `<textInput>` DoenetML component
 #[derive(Debug, Default, ComponentNode, ComponentStateVariables)]
 pub struct TextInput {
+    /// The common component data needed to derive the `ComponentNode` trait
     pub common: ComponentCommonData,
 
+    /// The state variables that underlie the `<textInput>` component.
     pub state: TextInputStateVariables,
+
+    /// An empty vector that will be returned with `get_rendered_children`
+    /// indicating this component has no children that are rendered.
+    ///
+    /// (Created because `get_rendered_children` must return a reference to a vector,)
+    pub no_rendered_children: Vec<ComponentPointerTextOrMacro>,
 }
 
+/// The state variables that underlie the `<textInput>` component.
 #[derive(Debug, ComponentStateVariables)]
 pub struct TextInputStateVariables {
+    /// The value of the `<textInput>` component.
+    ///
+    /// It is updated when a user presses Enter or blurs away from the input box.
+    /// (See the `immediate_value` state variable for the current value of the input box.)
+    ///
+    /// It is marked `is_public` so that it can be referenced in DoenetML via `.value`.
+    ///
+    /// It is marked with the `Text` component profile state variable, indicating that the `<textInput>` component
+    /// can represent a text value by returning the value of this state variable.
     #[is_public]
-    #[component_profile_state_variables(Text)]
+    #[component_profile_state_variable(Text)]
     value: StateVar<String>,
 
+    /// The current value of the text inside the input box of the `<textInput>` component.
+    ///
+    /// It is updated every time a user presses a key so that should represent that actual text shown
+    /// in the input box.
+    ///
+    /// It is marked `for_renderer` to send this value to the renderer of the `<textInput>` component.
+    ///
+    /// It is marked `is_public` so that it can be referenced in DoenetML via `.immediateValue`.
     #[for_renderer]
     #[is_public]
     immediate_value: StateVar<String>,
 
+    // TODO: there are subtleties for why needed `sync_immediate_value` to get the proper behavior of `<textInput>`.
+    // Will figure these out again as write a test for making sure it works correctly.
+    // Also, it's behavior may change if we replace `bind_value_to` with children.
     sync_immediate_value: StateVar<bool>,
 
+    // TODO: remove the `bind_value_to` attribute, and instead have the text input bind to the value of children, if present?
     bind_value_to: StateVar<String>,
 
+    /// The content that should prefill the `<textInput>`, giving it a default value before a user has interacted with the input.
+    ///
+    /// It is ignored if `bind_value_to` is specified.
+    /// (Assuming we remove `bind_value_to`, the presence of children will instead cause `prefill` to be ignored.)
     #[is_public]
     prefill: StateVar<String>,
 
+    /// A variable that determines whether or not a text input should be sent to the renderer (i.e., appear in the render tree).
+    ///
+    /// If `hidden` is true, then don't send the text input to the renderer. (TODO: implement this)
+    ///
+    /// It is marked `is_public` so that it can be referenced in DoenetML via `.hidden`.
     #[is_public]
     hidden: StateVar<bool>,
 
+    /// A variable that determines whether or not a text input can be interacted with.
+    ///
+    /// If `disabled`, then a user cannot interact with the text input,
+    /// and the input box should display as disabled (e.g., grayed out)
+    ///
+    /// It is marked `for_renderer` to send this value to the renderer of the `<textInput>` component.
+    ///
+    /// It is marked `is_public` so that it can be referenced in DoenetML via `.disabled`.
     #[for_renderer]
     #[is_public]
     disabled: StateVar<bool>,
@@ -119,6 +167,10 @@ impl Default for TextInputStateVariables {
 }
 
 impl RenderedComponentNode for TextInput {
+    fn get_rendered_children(&self) -> &Vec<ComponentPointerTextOrMacro> {
+        &self.no_rendered_children
+    }
+
     fn get_attribute_names(&self) -> Vec<AttributeName> {
         vec!["bindValueTo", "hide", "disabled", "prefill"]
     }
@@ -165,9 +217,13 @@ impl RenderedComponentNode for TextInput {
     }
 }
 
+/// The interface for the value state variable of a text input
 #[derive(Debug, Default)]
 struct ValueStateVarInterface {
+    /// The dependency instructions that indicate how the dependencies of this state variable will be created.
     dependency_instructions: ValueDependencyInstructions,
+
+    /// The values of the dependencies created from the dependency instructions
     dependency_values: ValueDependencies,
 }
 
@@ -179,6 +235,7 @@ impl ValueStateVarInterface {
     }
 }
 
+/// The dependencies of the value state variable of the text input component
 #[derive(Debug, Default, StateVariableDependencies, StateVariableDependencyInstructions)]
 struct ValueDependencies {
     essential: StateVarReadOnlyView<String>,
@@ -286,9 +343,13 @@ impl StateVarInterface<String> for ValueStateVarInterface {
     }
 }
 
+/// The interface for the immediate_value state variable of a text input
 #[derive(Debug, Default)]
 struct ImmediateValueStateVarInterface {
+    /// The dependency instructions that indicate how the dependencies of this state variable will be created.
     dependency_instructions: ImmediateValueDependencyInstructions,
+
+    /// The values of the dependencies created from the dependency instructions
     dependency_values: ImmediateValueDependencies,
 }
 
@@ -300,6 +361,7 @@ impl ImmediateValueStateVarInterface {
     }
 }
 
+/// The dependencies of the immediate_value state variable of the text input component
 #[derive(Debug, Default, StateVariableDependencies, StateVariableDependencyInstructions)]
 struct ImmediateValueDependencies {
     essential: StateVarReadOnlyView<String>,
@@ -380,9 +442,13 @@ impl StateVarInterface<String> for ImmediateValueStateVarInterface {
     }
 }
 
+/// The interface for the sync_immediate_value state variable of a text input
 #[derive(Debug, Default)]
 struct SyncImmediateValueStateVarInterface {
+    /// The dependency instructions that indicate how the dependencies of this state variable will be created.
     dependency_instructions: SyncImmediateValueDependencyInstructions,
+
+    /// The values of the dependencies created from the dependency instructions
     dependency_values: SyncImmediateValueDependencies,
 }
 
@@ -394,6 +460,7 @@ impl SyncImmediateValueStateVarInterface {
     }
 }
 
+/// The dependencies of the sync_immediate_value state variable of the text input component
 #[derive(Debug, Default, StateVariableDependencies, StateVariableDependencyInstructions)]
 struct SyncImmediateValueDependencies {
     essential: StateVarReadOnlyView<bool>,

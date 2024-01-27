@@ -53,9 +53,44 @@ pub fn into_state_var_enum_refs_derive_wrapper(input: TokenStream) -> TokenStrea
     into_state_var_enum_refs_derive(input)
 }
 
+/// Derives an implementation of the `ComponentStateVariables` trait and auxillary functions.
+///
+/// The derive macro is designed to be applied to the struct defining the DoenetML component itself
+/// as well as the struct defining the component's state variables.
+///
+/// The macro assumes that the component struct has a field `state` that contains
+/// the component state variables struct.
+///
+/// The macro assumes all fields of the component state variables struct are state variables `StateVar<T>`.
+///
+/// The following attributes specify properties of state variables in the component state variables structure.
+/// - #\[for_renderer\]
+///
+///   Designate the state variable as one that will be sent to the renderer.
+///   If `for_renderer` is set, the value of the state variable will be added to the `RenderedState`
+///   structure for the component that is sent to the renderer
+///
+/// - #\[is_public\]
+///
+///   Designate that the state variable is public, in the sense that it can be
+///   referenced by a macro in the document.
+///
+/// - #\[component_profile_state_variable(ProfileType)\]
+///
+///   Designate that the state variable
+///   can be used to satisfy the component profile of type `ProfileType`, where `ProfileType`
+///   can currently be one of `Text`, `Number`, `Integer`, `Boolean`.
+///
+///   If a parent has a `Child` or `AttributeChild` dependency instruction, it will request
+///   a particular profile type, and this state variable could be returned.
+///
+///   Currently, the `component_profile state_variables` does not have a mechanism for specifying
+///   priority in case more than one state variable matches what a parent is requesting.
+///   If there is more than one match, the state variable that appears first in the ordering of
+///   the fields of the struct will be selected.
 #[proc_macro_derive(
     ComponentStateVariables,
-    attributes(for_renderer, is_public, component_profile_state_variables)
+    attributes(for_renderer, is_public, component_profile_state_variable)
 )]
 pub fn component_state_variables_derive_wrapper(input: TokenStream) -> TokenStream {
     component_state_variables_derive(input)

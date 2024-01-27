@@ -141,7 +141,7 @@ pub fn component_state_variables_derive(input: TokenStream) -> TokenStream {
 
                         for profile_type in check_if_field_has_attribute_return_identities(
                             &named[sv_idx],
-                            "component_profile_state_variables",
+                            "component_profile_state_variable",
                         ) {
                             get_component_profile_state_variables_items.push(quote! {
                                 ComponentProfileStateVariable::#profile_type(
@@ -319,7 +319,7 @@ pub fn component_state_variables_derive(input: TokenStream) -> TokenStream {
             }
             _ => panic!("only named fields supported"),
         },
-        _ => panic!("only structs and enums supported"),
+        _ => panic!("only structs supported"),
     };
     output.into()
 }
