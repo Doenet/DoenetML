@@ -4,48 +4,83 @@ use crate::{
     components::prelude::{
         DependenciesCreatedForInstruction, DependencyInstruction, DependencyValueUpdateRequest,
         RequestDependencyUpdateError, StateVarIdx, StateVarInterface, StateVarMutableView,
-        StateVarParameters, StateVarReadOnlyView, StateVarReadOnlyViewEnum, TryIntoStateVar,
+        StateVarReadOnlyView, StateVarReadOnlyViewEnum, TryIntoStateVar,
     },
     dependency::DependencySource,
     ExtendSource,
 };
 
-use super::util::{create_dependency_instruction_from_extend_source, string_to_boolean};
+use super::util::{create_dependency_instruction_if_match_extend_source, string_to_boolean};
 
-/// A boolean state variable interface that concatenates all string dependencies.
+/// A boolean state variable interface for calculating the value of a boolean variable from dependencies.
 ///
-/// If `should_create_dependency_from_extend_source` is true and has an extend source extending this variable,
-/// then prepend the shadowed state variable.
+/// The current version is in a preliminary form, where the only valid options are
+/// - a single boolean dependency
+/// - string dependencies (that are concatenated to see if they spell out "true")
+///
+/// If the component has an extend source so that this variable is shadowing another variable,
+/// then prepend the shadowed state variable to the list of dependencies.
 ///
 /// If the state variable has a single boolean dependency that is an essential state variable,
 /// then propagate the `used_default` attribute of the essential state variable.
 #[derive(Debug, Default)]
 pub struct GeneralBooleanStateVarInterface {
+    /// The base dependency instruction that indicates how the dependencies of this state variable will be created.
+    base_dependency_instruction: DependencyInstruction,
+
+    /// The base dependency instruction, potentially augmented by a dependency instruction
+    /// for shadowing another variable
     dependency_instructions: GeneralBooleanStateVarDependencyInstructions,
+
+    /// The values of the dependencies created from the dependency instructions
     dependency_values: GeneralBooleanStateVarDependencies,
-    // boolean_or_strings_dependency_values: BooleanOrStrings,
+
+    /// If true, there is just a single dependency that is an essential state variable.
+    /// In this case, we'll propagate the `used_default` attribute of the essential state variable.
     from_single_essential: bool,
+
+    /// We have currently implemented only a few possible combinations of dependencies (single boolean or multiple string).
+    /// If `have_invalid_combination` is true, then we haven't implemented an algorithm
+    /// to handle to combinations, and the state variable will just have the value false.
     have_invalid_combination: bool,
 }
 
+/// The values of the dependencies created from the dependency instructions
 #[derive(Debug, Default, StateVariableDependencies)]
 struct GeneralBooleanStateVarDependencies {
+    /// A vector of the boolean or string values of the dependencies
     #[consume_remaining_instructions]
     booleans_or_strings: Vec<BooleanOrString>,
 }
 
+/// The dependency instructions that indicate how the dependencies of this state variable will be created.
+/// They consist of the base dependency instruction specified, potentially augmented by a dependency instruction
+/// for shadowing another variable
 #[derive(Debug, Default, StateVariableDependencyInstructions)]
 struct GeneralBooleanStateVarDependencyInstructions {
-    essential: Option<DependencyInstruction>,
-    other: Option<DependencyInstruction>,
+    /// If present, `extending` contains an instruction requesting the value of another boolean variable.
+    /// It was created from the extend source for this component.
+    extending: Option<DependencyInstruction>,
+
+    /// The base dependency instruction specified for this variable.
+    ///
+    /// (It is always present. It is an option only to satisfy the API for
+    /// the `StateVariableDependencyInstructions` derive macro.)
+    base: Option<DependencyInstruction>,
 }
 
+/// Since the state variable is based on booleans or strings,
+/// the `BooleanOrString` enum is used to store
+/// the values of dependencies created.
 #[derive(Debug)]
 enum BooleanOrString {
     Boolean(StateVarReadOnlyView<bool>),
     String(StateVarReadOnlyView<String>),
 }
 
+// We implement TryFrom `StateVarReadOnlyViewEnum`
+// so that we can `try_into` `GeneralBooleanStateVarDependencies`
+// from the vector of dependencies.
 impl TryFrom<&StateVarReadOnlyViewEnum> for BooleanOrString {
     type Error = &'static str;
 
@@ -62,30 +97,27 @@ impl TryFrom<&StateVarReadOnlyViewEnum> for BooleanOrString {
     }
 }
 
-// impl Default for BooleanOrStrings {
-//     fn default() -> Self {
-//         BooleanOrStrings::Boolean(StateVarReadOnlyView::default())
-//     }
-// }
+impl GeneralBooleanStateVarInterface {
+    pub fn new(base_dependency_instruction: DependencyInstruction) -> Self {
+        GeneralBooleanStateVarInterface {
+            base_dependency_instruction,
+            ..Default::default()
+        }
+    }
+}
 
 impl StateVarInterface<bool> for GeneralBooleanStateVarInterface {
     fn return_dependency_instructions(
         &mut self,
         extending: Option<ExtendSource>,
-        parameters: &StateVarParameters,
         state_var_idx: StateVarIdx,
     ) -> Vec<DependencyInstruction> {
         self.dependency_instructions = GeneralBooleanStateVarDependencyInstructions {
-            essential: if parameters.should_create_dependency_from_extend_source {
-                create_dependency_instruction_from_extend_source(
-                    extending,
-                    parameters,
-                    state_var_idx,
-                )
-            } else {
-                None
-            },
-            other: parameters.dependency_instruction_hint.clone(),
+            extending: create_dependency_instruction_if_match_extend_source(
+                extending,
+                state_var_idx,
+            ),
+            base: Some(self.base_dependency_instruction.clone()),
         };
 
         self.dependency_instructions.instructions_as_vec()
@@ -135,7 +167,7 @@ impl StateVarInterface<bool> for GeneralBooleanStateVarInterface {
             }
         } else {
             // concatenate the string values into a single string
-            // TODO: can we do this without cloning
+            // TODO: can we do this without cloning?
             let value: String = self
                 .dependency_values
                 .booleans_or_strings
@@ -183,58 +215,49 @@ impl StateVarInterface<bool> for GeneralBooleanStateVarInterface {
 
 /// A simplified version of GeneralBooleanStateVarInterface
 /// that is based on a single dependency.
-/// Requires a `dependency_instruction_hint`.
-///
-/// Panics if `should_create_dependency_from_extend_source` is true,
-/// if not given a `dependency_instruction_hint`,
-/// or if given a `dependency_instruction_hint`
-/// that doesn't result in at least one string dependency.
 #[derive(Debug, Default)]
 pub struct SingleDependencyBooleanStateVarInterface {
+    // the dependency instruction that was specified as a parameter
+    dependency_instruction: DependencyInstruction,
+
+    /// The dependency instruction structure created by the
+    /// `StateVariableDependencyInstructions` macro
+    /// based on `SingleDependencyBooleanDependencies`
     dependency_instructions: SingleDependencyBooleanDependencyInstructions,
+
+    /// The values of the dependencies created from the dependency instructions
     dependency_values: SingleDependencyBooleanDependencies,
 }
 
+/// The values of the dependencies that were created from the dependency instructions.
 #[derive(Debug, Default, StateVariableDependencies, StateVariableDependencyInstructions)]
 struct SingleDependencyBooleanDependencies {
     boolean: StateVarReadOnlyView<bool>,
+}
+
+impl SingleDependencyBooleanStateVarInterface {
+    pub fn new(dependency_instruction: DependencyInstruction) -> Self {
+        SingleDependencyBooleanStateVarInterface {
+            dependency_instruction,
+            ..Default::default()
+        }
+    }
 }
 
 impl StateVarInterface<bool> for SingleDependencyBooleanStateVarInterface {
     fn return_dependency_instructions(
         &mut self,
         _extending: Option<ExtendSource>,
-        parameters: &StateVarParameters,
         _state_var_idx: StateVarIdx,
     ) -> Vec<DependencyInstruction> {
-        if parameters.should_create_dependency_from_extend_source {
-            panic!("Cannot create dependency from extend source for SingleDependencyBooleanStateVarInterface");
-        }
-
-        if let Some(dependency_instruction) = &parameters.dependency_instruction_hint {
-            self.dependency_instructions = SingleDependencyBooleanDependencyInstructions {
-                boolean: Some(dependency_instruction.clone()),
-            };
-            self.dependency_instructions.instructions_as_vec()
-        } else {
-            panic!(
-                "SingleDependencyBooleanStateVarInterface requires a dependency_instruction_hint"
-            );
-        }
+        self.dependency_instructions = SingleDependencyBooleanDependencyInstructions {
+            boolean: Some(self.dependency_instruction.clone()),
+        };
+        self.dependency_instructions.instructions_as_vec()
     }
 
     fn save_dependencies(&mut self, dependencies: &Vec<DependenciesCreatedForInstruction>) {
-        if dependencies.is_empty() {
-            panic!("SingleDependencyBooleanStateVarInterface requires a dependency");
-        }
-
-        let dep_val = &dependencies[0][0].value;
-
-        if let StateVarReadOnlyViewEnum::Boolean(boolean_val) = dep_val {
-            self.dependency_values.boolean = boolean_val.create_new_read_only_view();
-        } else {
-            panic!("Got a non-boolean value for a dependency for a SingleDependencyBooleanStateVarInterface");
-        }
+        self.dependency_values = dependencies.try_into().unwrap();
     }
 
     fn calculate_state_var_from_dependencies(&self, state_var: &StateVarMutableView<bool>) {

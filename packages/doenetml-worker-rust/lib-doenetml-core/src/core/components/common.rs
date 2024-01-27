@@ -55,6 +55,9 @@ pub enum ActionsEnum {
     TextInput(TextInputAction),
 }
 
+/// A set of fields that are common to all DoenetML components.
+/// To derive the `ComponentNode` trait, a component should have
+/// `ComponentCommonData` in a field named `common`.
 #[derive(Debug, Default)]
 pub struct ComponentCommonData {
     /// The index of this component, which is its index

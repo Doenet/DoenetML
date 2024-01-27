@@ -141,7 +141,7 @@ pub fn component_state_variables_derive(input: TokenStream) -> TokenStream {
 
                         for profile_type in check_if_field_has_attribute_return_identities(
                             &named[sv_idx],
-                            "component_profile_state_variables",
+                            "component_profile_state_variable",
                         ) {
                             get_component_profile_state_variables_items.push(quote! {
                                 ComponentProfileStateVariable::#profile_type(
@@ -319,7 +319,7 @@ pub fn component_state_variables_derive(input: TokenStream) -> TokenStream {
             }
             _ => panic!("only named fields supported"),
         },
-        _ => panic!("only structs and enums supported"),
+        _ => panic!("only structs supported"),
     };
     output.into()
 }
@@ -347,11 +347,15 @@ pub fn state_variable_dependencies_derive(input: TokenStream) -> TokenStream {
                         "consume_remaining_instructions",
                     ) {
                         try_from_dependencies_vec_statements.push(quote! {
-                        #field_identity: dependencies[#instruction_idx..].iter()
-                        .flat_map(|instruction| {
-                            instruction.try_into_state_var()
-                        })
-                        .collect::<Vec<_>>(),
+                            // Note: This algorithm adds an extra layer that needs to be flattened twice.
+                            // TODO: understand why this is happening
+                            #field_identity: dependencies[#instruction_idx..].iter()
+                                .map(|instruction| {
+                                    // we first set to temp to make sure that try_into_state_var targets a vector
+                                    let temp: Result<Vec<_>,_> = instruction.try_into_state_var();
+                                    temp
+                                })
+                                .flatten().flatten().collect::<Vec<_>>(),
                         });
                         break;
                     } else {

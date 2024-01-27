@@ -219,19 +219,14 @@ pub struct ExtendStateVariableDescription {
 /// another state variable when extending a component
 #[derive(Debug, Clone)]
 pub struct StateVariableShadowingMatch {
-    /// The state variable index in the extending component
-    /// whose value will match (shadow) the state variable
+    /// The state variable with this index in the extending component
+    /// will match (shadow) the state variable
     /// from the component being extended
-    ///
-    /// If None, then the "primary" state variable as determined by the component type
-    /// should be the shadowing state variable.
-    /// The type of the primary state variable should match the state variable type
-    /// for which `StateVarValueEnumRef.get_default_component_type()`
-    /// yields the component type.
-    pub shadowing_idx: Option<StateVarIdx>,
+    pub shadowing_state_var_idx: StateVarIdx,
 
-    /// The state variable index in the component being extended
-    pub shadowed_idx: StateVarIdx,
+    /// The state variable with this index in the component being extended
+    /// will be shadowed
+    pub shadowed_state_var_idx: StateVarIdx,
 }
 
 impl DoenetMLCore {

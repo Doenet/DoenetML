@@ -17,6 +17,7 @@ use doenetml_derive::{
 };
 
 use crate::{
+    components::doenet::{boolean::Boolean, text::Text},
     dependency::{
         DependenciesCreatedForInstruction, DependencyInstruction, DependencyValueUpdateRequest,
     },
@@ -62,9 +63,6 @@ pub struct StateVar<T: Default + Clone> {
     /// or how to modify its dependencies to give it a new requested value
     interface: Box<dyn StateVarInterface<T>>,
 
-    /// Additional parameters determining the behavior of the state variable
-    parameters: StateVarParameters,
-
     /// Value if don't have dependencies that determine the value
     default_value: T,
 
@@ -95,7 +93,6 @@ pub trait StateVarInterface<T: Default + Clone>: std::fmt::Debug {
     fn return_dependency_instructions(
         &mut self,
         extending: Option<ExtendSource>,
-        parameters: &StateVarParameters,
         state_var_idx: StateVarIdx,
     ) -> Vec<DependencyInstruction>;
 
@@ -136,28 +133,6 @@ pub trait StateVarInterface<T: Default + Clone>: std::fmt::Debug {
     }
 }
 
-/// Parameters that influence the behavior of the state variable
-#[derive(Debug, Default)]
-pub struct StateVarParameters {
-    /// Hint for a dependency instruction that can be used by `return_dependency_instructions()`
-    /// of a state variable interface.
-    ///
-    /// May cause a subsequent `return_dependencies()` to panic if the resulting dependency
-    /// returns an incompatible type.
-    pub dependency_instruction_hint: Option<DependencyInstruction>,
-
-    /// Hint telling `return_dependency_instructions()` whether or not to use `extending`.
-    ///
-    /// If true and the extend source is a state variable where the shadowing name matches
-    /// the name of this state variable, then create a dependency from the shadowed state variable
-    pub should_create_dependency_from_extend_source: bool,
-
-    /// If true and `should_create_dependency_from_extend_source` is true,
-    /// then if the extend source is a state variable where the shadowing name is None,
-    /// create a dependency from the shadowed state variable.
-    pub is_primary_state_variable_for_shadowing_extend_source: bool,
-}
-
 /// A mutable view of the value of the state variable.
 /// It includes methods that allow one to view and change the variable.
 #[derive(Debug)]
@@ -187,7 +162,7 @@ pub struct StateVarReadOnlyView<T: Default + Clone> {
 /// The value of a state variable along with its meta data.
 ///
 /// Since StateVarInner (via StateVarMutableView and StateVarReadOnlyView)
-/// is also used for essential data, we keep extra fields, like parameters,
+/// is also used for essential data, we keep extra fields,
 /// off this structure and put them only in StateVar.
 #[derive(Debug)]
 struct StateVarInner<T: Default + Clone> {
@@ -582,18 +557,13 @@ impl<T: Default + Clone> Clone for StateVarReadOnlyView<T> {
 }
 
 impl<T: Default + Clone> StateVar<T> {
-    /// Create a new state variable with the supplied interface and parameters
-    pub fn new(
-        interface: Box<dyn StateVarInterface<T>>,
-        parameters: StateVarParameters,
-        default_value: T,
-    ) -> Self {
+    /// Create a new state variable with the supplied interface
+    pub fn new(interface: Box<dyn StateVarInterface<T>>, default_value: T) -> Self {
         let value = StateVarMutableView::new();
         StateVar {
             immutable_view_of_value: value.create_new_read_only_view(),
             value,
             interface,
-            parameters,
             default_value,
             all_dependency_values: vec![],
         }
@@ -692,7 +662,7 @@ impl<T: Default + Clone> StateVar<T> {
         state_var_idx: StateVarIdx,
     ) -> Vec<DependencyInstruction> {
         self.interface
-            .return_dependency_instructions(extending, &self.parameters, state_var_idx)
+            .return_dependency_instructions(extending, state_var_idx)
     }
 
     /// Call `save_dependencies` on interface
@@ -817,15 +787,20 @@ pub enum StateVarValueEnum {
 
 impl<'a> StateVarEnumRef<'a> {
     /// If creating a component from a reference to this state variable
-    /// then create a component of the given type.
+    /// then create a component of the given type with the given state variable
+    /// shadowing the original state variable.
     ///
     /// TODO: presumably, there should be a way to override this default.
-    pub fn get_default_component_type(&self) -> &'static str {
+    ///
+    /// Returns: a tuple of (component type, state variable name)
+    pub fn get_default_shadowing_component(&self) -> (&'static str, StateVarIdx) {
         match self {
-            StateVarEnumRef::Number(_) => "number",
-            StateVarEnumRef::Integer(_) => "number",
-            StateVarEnumRef::String(_) => "text",
-            StateVarEnumRef::Boolean(_) => "boolean",
+            StateVarEnumRef::Number(_) => unimplemented!("Have not yet created number component"),
+            StateVarEnumRef::Integer(_) => unimplemented!("Have not yet created number component"),
+            StateVarEnumRef::String(_) => Text::get_state_variable_that_shadows_when_extending(),
+            StateVarEnumRef::Boolean(_) => {
+                Boolean::get_state_variable_that_shadows_when_extending()
+            }
         }
     }
 }

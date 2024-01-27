@@ -1,11 +1,10 @@
 use crate::{
-    components::prelude::{DependencyInstruction, StateVarIdx, StateVarParameters},
+    components::prelude::{DependencyInstruction, StateVarIdx},
     ExtendSource,
 };
 
-pub fn create_dependency_instruction_from_extend_source(
+pub fn create_dependency_instruction_if_match_extend_source(
     extending: Option<ExtendSource>,
-    parameters: &StateVarParameters,
     state_var_idx: StateVarIdx,
 ) -> Option<DependencyInstruction> {
     extending.and_then(|extend_source| match extend_source {
@@ -13,19 +12,14 @@ pub fn create_dependency_instruction_from_extend_source(
             .state_variable_matching
             .iter()
             .find(|state_var_match| {
-                state_var_match
-                    .shadowing_idx
-                    .map(|sv_idx| sv_idx == state_var_idx)
-                    .unwrap_or(parameters.is_primary_state_variable_for_shadowing_extend_source)
+                // We look for a state variable match where shadowing_idx is state_var_idx.
+                state_var_match.shadowing_state_var_idx == state_var_idx
             })
-            // Either
-            // 1. shadowing index was supplied and it matches the index of the state variable, or
-            // 2. shadowing index was not supplied and this variable is the primary state variable
-            //    for use when shadowing extend sources.
-            // Therefore, we shadow the extend source.
+            // If found a match to state_var_idx,
+            // we shadow component and state variable indicated from the extend source.
             .map(|var| DependencyInstruction::StateVar {
                 component_idx: Some(description.component_idx),
-                state_var_idx: var.shadowed_idx,
+                state_var_idx: var.shadowed_state_var_idx,
             }),
         _ => None,
     })
