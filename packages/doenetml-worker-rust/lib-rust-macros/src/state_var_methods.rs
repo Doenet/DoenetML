@@ -29,7 +29,6 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
             let mut state_var_check_if_any_dependency_changed_since_last_viewed_arms = Vec::new();
             let mut state_var_calculate_state_var_from_dependencies_and_mark_fresh_arms =
                 Vec::new();
-            let mut state_var_request_updated_dependency_values_arms = Vec::new();
             let mut state_var_return_default_value_arms = Vec::new();
 
             for variant in variants {
@@ -93,12 +92,6 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
                 state_var_calculate_state_var_from_dependencies_and_mark_fresh_arms.push(quote! {
                     #enum_ident::#variant_ident(sv) => {
                         sv.calculate_state_var_from_dependencies_and_mark_fresh()
-                    },
-                });
-
-                state_var_request_updated_dependency_values_arms.push(quote! {
-                    #enum_ident::#variant_ident(sv) => {
-                        sv.request_updated_dependency_values(is_direct_change_from_renderer)
                     },
                 });
 
@@ -188,7 +181,7 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
 
                     /// Records on the state variable the requested value of the state variable.
                     /// This requested value will be used in a future call to
-                    /// `request_updated_dependency_values()`.
+                    /// `request_dependency_updates()`.
                     ///
                     /// Panics if the type of requested_value does not match the type of this StateVarEnum.
                     pub fn request_change_value_to(&self, requested_val: StateVarValueEnum) {
@@ -222,29 +215,6 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
                     pub fn calculate_state_var_from_dependencies_and_mark_fresh(&self) {
                         match self {
                             #(#state_var_calculate_state_var_from_dependencies_and_mark_fresh_arms)*
-                        }
-                    }
-
-                    /// Assuming that the requested value for this state variable has already been set,
-                    /// calculate the desired values of the dependencies
-                    /// that will lead to that requested value being calculated from those dependencies.
-                    ///
-                    /// These desired dependency values will be stored directly on the state variables
-                    /// or essential data of the dependencies.
-                    ///
-                    /// Returns: a result that is either
-                    /// - a vector containing just the identities specifying which dependencies have requested new values, or
-                    /// - an Err if the state variable is unable to change to the requested value.
-                    ///
-                    /// The `is_direct_change_from_renderer` argument is true if the requested value
-                    /// came directly from an action of the renderer
-                    /// (as opposed to coming from another state variable that depends on this variable).
-                    pub fn request_updated_dependency_values(
-                        &self,
-                        is_direct_change_from_renderer: bool,
-                    ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
-                        match self {
-                            #(#state_var_request_updated_dependency_values_arms)*
                         }
                     }
 
@@ -286,6 +256,7 @@ pub fn state_var_methods_mut_derive(input: TokenStream) -> TokenStream {
             let mut state_var_record_all_dependencies_viewed_arms = Vec::new();
             let mut state_var_return_dependency_instructions_arms = Vec::new();
             let mut state_var_save_dependencies_arms = Vec::new();
+            let mut state_var_request_dependency_updates_arms = Vec::new();
 
             for variant in variants {
                 let variant_ident = &variant.ident;
@@ -305,6 +276,12 @@ pub fn state_var_methods_mut_derive(input: TokenStream) -> TokenStream {
                 state_var_save_dependencies_arms.push(quote! {
                     #enum_ident::#variant_ident(sv) => {
                         sv.save_dependencies(dependencies)
+                    },
+                });
+
+                state_var_request_dependency_updates_arms.push(quote! {
+                    #enum_ident::#variant_ident(sv) => {
+                        sv.request_dependency_updates(is_direct_change_from_renderer)
                     },
                 });
             }
@@ -337,10 +314,33 @@ pub fn state_var_methods_mut_derive(input: TokenStream) -> TokenStream {
                     ///
                     /// The dependencies are saved to the state variable and will be used
                     /// in calls to `calculate_state_var_from_dependencies_and_mark_fresh()`
-                    /// and `request_updated_dependency_values()`.
+                    /// and `request_dependency_updates()`.
                     pub fn save_dependencies(&mut self, dependencies: &Vec<DependenciesCreatedForInstruction>) {
                         match self {
                             #(#state_var_save_dependencies_arms)*
+                        }
+                    }
+
+                    /// Assuming that the requested value for this state variable has already been set,
+                    /// calculate the desired values of the dependencies
+                    /// that will lead to that requested value being calculated from those dependencies.
+                    ///
+                    /// These desired dependency values will be stored directly on the state variables
+                    /// or essential data of the dependencies.
+                    ///
+                    /// Returns: a result that is either
+                    /// - a vector containing just the identities specifying which dependencies have requested new values, or
+                    /// - an Err if the state variable is unable to change to the requested value.
+                    ///
+                    /// The `is_direct_change_from_renderer` argument is true if the requested value
+                    /// came directly from an action of the renderer
+                    /// (as opposed to coming from another state variable that depends on this variable).
+                    pub fn request_dependency_updates(
+                        &mut self,
+                        is_direct_change_from_renderer: bool,
+                    ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
+                        match self {
+                            #(#state_var_request_dependency_updates_arms)*
                         }
                     }
 

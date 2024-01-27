@@ -243,6 +243,9 @@ struct ValueDependencies {
     sync_immediate_value: StateVarReadOnlyView<bool>,
     bind_value_to: StateVarReadOnlyView<String>,
     prefill: StateVarReadOnlyView<String>,
+
+    // TODO: add via attribute macro?
+    _instruction_mapping_data: ValueDependencyData,
 }
 
 impl StateVarInterface<String> for ValueStateVarInterface {
@@ -288,8 +291,8 @@ impl StateVarInterface<String> for ValueStateVarInterface {
         state_var.set_value(value);
     }
 
-    fn request_updated_dependency_values(
-        &self,
+    fn request_dependency_updates(
+        &mut self,
         state_var: &StateVarReadOnlyView<String>,
         _is_direct_change_from_renderer: bool,
     ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
@@ -299,47 +302,23 @@ impl StateVarInterface<String> for ValueStateVarInterface {
         if bind_value_to_used_default {
             self.dependency_values
                 .essential
-                .request_change_value_to(requested_value.clone());
+                .request_update(requested_value.clone());
             self.dependency_values
                 .immediate_value
-                .request_change_value_to(requested_value.clone());
+                .request_update(requested_value.clone());
             self.dependency_values
                 .sync_immediate_value
-                .request_change_value_to(true);
-
-            Ok(vec![
-                DependencyValueUpdateRequest {
-                    instruction_idx: 0,
-                    dependency_idx: 0,
-                },
-                DependencyValueUpdateRequest {
-                    instruction_idx: 1,
-                    dependency_idx: 0,
-                },
-                DependencyValueUpdateRequest {
-                    instruction_idx: 2,
-                    dependency_idx: 0,
-                },
-            ])
+                .request_update(true);
         } else {
             self.dependency_values
                 .bind_value_to
-                .request_change_value_to(requested_value.clone());
+                .request_update(requested_value.clone());
             self.dependency_values
                 .sync_immediate_value
-                .request_change_value_to(true);
-
-            Ok(vec![
-                DependencyValueUpdateRequest {
-                    instruction_idx: 3,
-                    dependency_idx: 0,
-                },
-                DependencyValueUpdateRequest {
-                    instruction_idx: 2,
-                    dependency_idx: 0,
-                },
-            ])
+                .request_update(true);
         }
+
+        Ok(self.dependency_values.return_update_requests())
     }
 }
 
@@ -368,6 +347,9 @@ struct ImmediateValueDependencies {
     sync_immediate_value: StateVarReadOnlyView<bool>,
     bind_value_to: StateVarReadOnlyView<String>,
     prefill: StateVarReadOnlyView<String>,
+
+    // TODO: add via attribute macro?
+    _instruction_mapping_data: ImmediateValueDependencyData,
 }
 
 impl StateVarInterface<String> for ImmediateValueStateVarInterface {
@@ -408,37 +390,26 @@ impl StateVarInterface<String> for ImmediateValueStateVarInterface {
         state_var.set_value(immediate_value);
     }
 
-    fn request_updated_dependency_values(
-        &self,
+    fn request_dependency_updates(
+        &mut self,
         state_var: &StateVarReadOnlyView<String>,
         is_direct_change_from_renderer: bool,
     ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
         let requested_value = state_var.get_requested_value();
 
-        let mut updates = Vec::with_capacity(2);
         let bind_value_to_used_default = self.dependency_values.bind_value_to.get_used_default();
 
         self.dependency_values
             .essential
-            .request_change_value_to(requested_value.clone());
-
-        updates.push(DependencyValueUpdateRequest {
-            instruction_idx: 0,
-            dependency_idx: 0,
-        });
+            .request_update(requested_value.clone());
 
         if !is_direct_change_from_renderer && !bind_value_to_used_default {
             self.dependency_values
                 .bind_value_to
-                .request_change_value_to(requested_value.clone());
-
-            updates.push(DependencyValueUpdateRequest {
-                instruction_idx: 2,
-                dependency_idx: 0,
-            });
+                .request_update(requested_value.clone());
         }
 
-        Ok(updates)
+        Ok(self.dependency_values.return_update_requests())
     }
 }
 
@@ -464,6 +435,9 @@ impl SyncImmediateValueStateVarInterface {
 #[derive(Debug, Default, StateVariableDependencies, StateVariableDependencyInstructions)]
 struct SyncImmediateValueDependencies {
     essential: StateVarReadOnlyView<bool>,
+
+    // TODO: add via attribute macro?
+    _instruction_mapping_data: SyncImmediateValueDependencyData,
 }
 
 impl StateVarInterface<bool> for SyncImmediateValueStateVarInterface {
@@ -487,8 +461,8 @@ impl StateVarInterface<bool> for SyncImmediateValueStateVarInterface {
         state_var.set_value(*self.dependency_values.essential.get());
     }
 
-    fn request_updated_dependency_values(
-        &self,
+    fn request_dependency_updates(
+        &mut self,
         state_var: &StateVarReadOnlyView<bool>,
         _is_direct_change_from_renderer: bool,
     ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
@@ -496,11 +470,8 @@ impl StateVarInterface<bool> for SyncImmediateValueStateVarInterface {
 
         self.dependency_values
             .essential
-            .request_change_value_to(*requested_value);
+            .request_update(*requested_value);
 
-        Ok(vec![DependencyValueUpdateRequest {
-            instruction_idx: 0,
-            dependency_idx: 0,
-        }])
+        Ok(self.dependency_values.return_update_requests())
     }
 }

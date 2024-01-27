@@ -351,6 +351,9 @@ pub fn state_variable_dependencies_derive(input: TokenStream) -> TokenStream {
 
                 let mut try_from_dependencies_vec_statements = Vec::new();
                 let mut data_struct_statements = Vec::new();
+                let mut reset_update_requests_statements = Vec::new();
+                let mut initialize_data_struct_statements = Vec::new();
+                let mut return_update_requests_statements = Vec::new();
 
                 for (instruction_idx, field_identity) in field_identities.iter().enumerate() {
                     if field_identity.to_string().starts_with('_') {
@@ -359,6 +362,23 @@ pub fn state_variable_dependencies_derive(input: TokenStream) -> TokenStream {
 
                     data_struct_statements.push(quote! {
                         #field_identity: Vec<(usize,usize)>,
+                    });
+
+                    reset_update_requests_statements.push(quote! {
+                        self.#field_identity.reset_update_requests();
+                    });
+
+                    return_update_requests_statements.push(quote! {
+
+                        let mapping_data = &self._instruction_mapping_data.#field_identity;
+
+                        requests.extend(self.#field_identity.return_indices_with_update_requests().into_iter().map(|idx| {
+                            let data = &mapping_data[idx];
+                            DependencyValueUpdateRequest {
+                                instruction_idx: data.0,
+                                dependency_idx: data.1,
+                            }
+                        }));
                     });
 
                     if check_if_field_has_attribute(
@@ -376,11 +396,23 @@ pub fn state_variable_dependencies_derive(input: TokenStream) -> TokenStream {
                                 })
                                 .flatten().flatten().collect::<Vec<_>>(),
                         });
+                        initialize_data_struct_statements.push(quote! {
+                            for (inst_idx_offset, inst) in dependencies[#instruction_idx..].iter().enumerate() {
+                                for (dep_idx, dep) in inst.iter().enumerate() {
+                                    mapping_data.#field_identity.push((#instruction_idx+inst_idx_offset, dep_idx));
+                                }
+                            }
+                        });
                         break;
                     } else {
                         try_from_dependencies_vec_statements.push(quote! {
                             #field_identity: (&dependencies[#instruction_idx]).try_into_state_var()?,
                         });
+                        initialize_data_struct_statements.push(quote! {
+                            for (dep_idx, dep) in dependencies[#instruction_idx].iter().enumerate() {
+                                mapping_data.#field_identity.push((#instruction_idx, dep_idx));
+                            }
+                        })
                     }
                 }
 
@@ -388,11 +420,29 @@ pub fn state_variable_dependencies_derive(input: TokenStream) -> TokenStream {
                     impl TryFrom<&Vec<DependenciesCreatedForInstruction>> for #structure_identity {
                         type Error = &'static str;
                         fn try_from(dependencies: &Vec<DependenciesCreatedForInstruction>) -> Result<Self, Self::Error> {
+                            let mut mapping_data = #data_identity::default();
+
+                            #(#initialize_data_struct_statements)*
+
                             Ok(#structure_identity {
                                 #(#try_from_dependencies_vec_statements)*
-                                _instruction_mapping_data: #data_identity::default()
+                                _instruction_mapping_data: mapping_data
                             })
                         }
+                    }
+
+                    impl #structure_identity {
+                        fn reset_update_requests(&mut self) {
+                            #(#reset_update_requests_statements)*
+                        }
+
+                        fn return_update_requests(&mut self) -> Vec<DependencyValueUpdateRequest> {
+                            let mut requests = Vec::new();
+                            #(#return_update_requests_statements)*
+                            self.reset_update_requests();
+                            requests
+                        }
+
                     }
 
                     #[derive(Debug, Default)]

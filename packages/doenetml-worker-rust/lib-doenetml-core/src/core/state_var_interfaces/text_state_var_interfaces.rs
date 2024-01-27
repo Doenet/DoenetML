@@ -1,14 +1,6 @@
 use doenetml_derive::{StateVariableDependencies, StateVariableDependencyInstructions};
 
-use crate::{
-    components::prelude::{
-        DependenciesCreatedForInstruction, DependencyInstruction, DependencyValueUpdateRequest,
-        RequestDependencyUpdateError, StateVarIdx, StateVarInterface, StateVarMutableView,
-        StateVarReadOnlyView, TryIntoStateVar,
-    },
-    dependency::DependencySource,
-    ExtendSource,
-};
+use crate::{components::prelude::*, dependency::DependencySource, ExtendSource};
 
 use super::util::create_dependency_instruction_if_match_extend_source;
 
@@ -123,8 +115,8 @@ impl StateVarInterface<String> for GeneralStringStateVarInterface {
         }
     }
 
-    fn request_updated_dependency_values(
-        &self,
+    fn request_dependency_updates(
+        &mut self,
         state_var: &StateVarReadOnlyView<String>,
         _is_direct_change_from_renderer: bool,
     ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
@@ -134,12 +126,9 @@ impl StateVarInterface<String> for GeneralStringStateVarInterface {
         } else {
             let requested_value = state_var.get_requested_value();
 
-            self.dependency_values.strings[0].request_change_value_to(requested_value.clone());
+            self.dependency_values.strings[0].request_update(requested_value.clone());
 
-            Ok(vec![DependencyValueUpdateRequest {
-                instruction_idx: 0,
-                dependency_idx: 0,
-            }])
+            Ok(self.dependency_values.return_update_requests())
         }
     }
 }
@@ -198,8 +187,8 @@ impl StateVarInterface<String> for SingleDependencyStringStateVarInterface {
         state_var.set_value(self.dependency_values.string.get().clone());
     }
 
-    fn request_updated_dependency_values(
-        &self,
+    fn request_dependency_updates(
+        &mut self,
         state_var: &StateVarReadOnlyView<String>,
         _is_direct_change_from_renderer: bool,
     ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
@@ -207,11 +196,8 @@ impl StateVarInterface<String> for SingleDependencyStringStateVarInterface {
 
         self.dependency_values
             .string
-            .request_change_value_to(requested_value.clone());
+            .request_update(requested_value.clone());
 
-        Ok(vec![DependencyValueUpdateRequest {
-            instruction_idx: 0,
-            dependency_idx: 0,
-        }])
+        Ok(self.dependency_values.return_update_requests())
     }
 }

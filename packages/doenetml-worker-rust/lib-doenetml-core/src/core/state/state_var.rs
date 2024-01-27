@@ -4,6 +4,9 @@ use std::{
     ops::Deref,
     rc::Rc,
 };
+
+use enum_dispatch::enum_dispatch;
+
 #[cfg(feature = "web")]
 use tsify::Tsify;
 #[cfg(feature = "web")]
@@ -77,7 +80,7 @@ pub struct StateVar<T: Default + Clone> {
 
 #[derive(Debug, Error)]
 pub enum RequestDependencyUpdateError {
-    #[error("request_updated_dependency_values is not implemented")]
+    #[error("request_dependency_updates is not implemented")]
     NotImplemented,
     #[error("could not update")]
     CouldNotUpdate,
@@ -124,8 +127,8 @@ pub trait StateVarInterface<T: Default + Clone>: std::fmt::Debug {
     /// came directly from an action of the renderer
     /// (as opposed to coming from another state variable that depends on this variable)
     #[allow(unused)]
-    fn request_updated_dependency_values(
-        &self,
+    fn request_dependency_updates(
+        &mut self,
         state_var: &StateVarReadOnlyView<T>,
         is_direct_change_from_renderer: bool,
     ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
@@ -157,6 +160,10 @@ pub struct StateVarReadOnlyView<T: Default + Clone> {
     /// a change counter that can be compared to the change counter of inner
     /// in order to determine if the state variable has changed since last viewed
     change_counter_when_last_viewed: u32,
+
+    ///
+    update_has_been_requested: bool,
+    // pub register_update_request: Option<RegisterUpdateRequest<'a>>,
 }
 
 /// The value of a state variable along with its meta data.
@@ -333,6 +340,7 @@ impl<T: Default + Clone> StateVarMutableView<T> {
         StateVarReadOnlyView {
             inner: self.inner.clone(),
             change_counter_when_last_viewed: 0,
+            update_has_been_requested: false,
         }
     }
 
@@ -519,19 +527,80 @@ impl<T: Default + Clone> StateVarReadOnlyView<T> {
         StateVarReadOnlyView {
             inner: self.inner.clone(),
             change_counter_when_last_viewed: 0,
+            update_has_been_requested: false,
         }
     }
 
     /// Set the `requested_value` field to the supplied value
-    pub fn request_change_value_to(&self, requested_val: T) {
+    /// and mark `update_has_been_requested` to true
+    pub fn request_update(&mut self, requested_val: T) {
         self.inner
             .borrow_mut()
             .request_change_value_to(requested_val);
+
+        self.update_has_been_requested = true;
     }
+
+    /// Get the value of 'update_has_been_requested`,
+    /// which will be true if `request_update` has been called
+    /// since `reset_update_request` was last called.
+    pub fn check_if_update_requested(&self) -> bool {
+        self.update_has_been_requested
+    }
+
+    pub fn reset_update_request(&mut self) {}
 
     /// Get a reference to the current `requested_value` field
     pub fn get_requested_value(&self) -> impl Deref<Target = T> + '_ {
         Ref::map(self.inner.borrow(), |v| v.get_requested_value())
+    }
+}
+
+#[enum_dispatch]
+pub trait QueryUpdateRequests {
+    /// Reset variable that tracks whether or not an update has been requested
+    fn reset_update_requests(&mut self);
+
+    fn return_indices_with_update_requests(&self) -> Vec<usize>;
+}
+
+impl<T: Default + Clone> QueryUpdateRequests for StateVarReadOnlyView<T> {
+    /// Reset 'update_has_been_requested` to false
+    fn reset_update_requests(&mut self) {
+        self.update_has_been_requested = false;
+    }
+
+    fn return_indices_with_update_requests(&self) -> Vec<usize> {
+        if self.update_has_been_requested {
+            vec![0]
+        } else {
+            vec![]
+        }
+    }
+}
+
+impl<T> QueryUpdateRequests for Vec<T>
+where
+    T: QueryUpdateRequests,
+{
+    fn reset_update_requests(&mut self) {
+        for val in self.iter_mut() {
+            val.reset_update_requests();
+        }
+    }
+
+    fn return_indices_with_update_requests(&self) -> Vec<usize> {
+        // Note: this algorithm does not correctly handle Vec<Vec<T: QueryUpdateRequests>>
+        self.iter()
+            .enumerate()
+            .filter_map(|(idx, val)| {
+                if val.return_indices_with_update_requests().is_empty() {
+                    None
+                } else {
+                    Some(idx)
+                }
+            })
+            .collect()
     }
 }
 
@@ -546,6 +615,7 @@ impl<T: Default + Clone> Default for StateVarReadOnlyView<T> {
                 change_counter: 1, // Note: start at 1 so starts out indicating it changed
             })),
             change_counter_when_last_viewed: 0,
+            update_has_been_requested: false,
         }
     }
 }
@@ -683,12 +753,12 @@ impl<T: Default + Clone> StateVar<T> {
         self.mark_fresh();
     }
 
-    /// Convenience function to call `request_updated_dependency_values` on interface
-    pub fn request_updated_dependency_values(
-        &self,
+    /// Convenience function to call `request_dependency_updates` on interface
+    pub fn request_dependency_updates(
+        &mut self,
         is_direct_change_from_renderer: bool,
     ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
-        self.interface.request_updated_dependency_values(
+        self.interface.request_dependency_updates(
             &self.immutable_view_of_value,
             is_direct_change_from_renderer,
         )

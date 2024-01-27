@@ -1,14 +1,8 @@
+use enum_dispatch::enum_dispatch;
+
 use doenetml_derive::{StateVariableDependencies, StateVariableDependencyInstructions};
 
-use crate::{
-    components::prelude::{
-        DependenciesCreatedForInstruction, DependencyInstruction, DependencyValueUpdateRequest,
-        RequestDependencyUpdateError, StateVarIdx, StateVarInterface, StateVarMutableView,
-        StateVarReadOnlyView, StateVarReadOnlyViewEnum, TryIntoStateVar,
-    },
-    dependency::DependencySource,
-    ExtendSource,
-};
+use crate::{components::prelude::*, dependency::DependencySource, ExtendSource};
 
 use super::util::{create_dependency_instruction_if_match_extend_source, string_to_boolean};
 
@@ -51,6 +45,9 @@ struct GeneralBooleanStateVarDependencies {
     /// A vector of the boolean or string values of the dependencies
     #[consume_remaining_instructions]
     booleans_or_strings: Vec<BooleanOrString>,
+
+    // TODO: add via attribute macro?
+    _instruction_mapping_data: GeneralBooleanStateVarDependencyData,
 }
 
 /// The dependency instructions that indicate how the dependencies of this state variable will be created.
@@ -73,6 +70,7 @@ struct GeneralBooleanStateVarDependencyInstructions {
 /// the `BooleanOrString` enum is used to store
 /// the values of dependencies created.
 #[derive(Debug)]
+#[enum_dispatch(QueryUpdateRequests)]
 enum BooleanOrString {
     Boolean(StateVarReadOnlyView<bool>),
     String(StateVarReadOnlyView<String>),
@@ -182,31 +180,23 @@ impl StateVarInterface<bool> for GeneralBooleanStateVarInterface {
         }
     }
 
-    fn request_updated_dependency_values(
-        &self,
+    fn request_dependency_updates(
+        &mut self,
         state_var: &StateVarReadOnlyView<bool>,
         _is_direct_change_from_renderer: bool,
     ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
         if self.dependency_values.booleans_or_strings.len() == 1 {
-            match &self.dependency_values.booleans_or_strings[0] {
+            match &mut self.dependency_values.booleans_or_strings[0] {
                 BooleanOrString::Boolean(boolean_value) => {
-                    boolean_value.request_change_value_to(*state_var.get_requested_value());
-                    Ok(vec![DependencyValueUpdateRequest {
-                        instruction_idx: 0,
-                        dependency_idx: 0,
-                    }])
+                    boolean_value.request_update(*state_var.get_requested_value());
                 }
                 BooleanOrString::String(string_value) => {
                     let requested_value = state_var.get_requested_value();
 
-                    string_value.request_change_value_to(requested_value.to_string());
-
-                    Ok(vec![DependencyValueUpdateRequest {
-                        instruction_idx: 0,
-                        dependency_idx: 0,
-                    }])
+                    string_value.request_update(requested_value.to_string());
                 }
             }
+            Ok(self.dependency_values.return_update_requests())
         } else {
             Err(RequestDependencyUpdateError::CouldNotUpdate)
         }
@@ -233,6 +223,9 @@ pub struct SingleDependencyBooleanStateVarInterface {
 #[derive(Debug, Default, StateVariableDependencies, StateVariableDependencyInstructions)]
 struct SingleDependencyBooleanDependencies {
     boolean: StateVarReadOnlyView<bool>,
+
+    // TODO: add via attribute macro?
+    _instruction_mapping_data: SingleDependencyBooleanDependencyData,
 }
 
 impl SingleDependencyBooleanStateVarInterface {
@@ -264,18 +257,15 @@ impl StateVarInterface<bool> for SingleDependencyBooleanStateVarInterface {
         state_var.set_value(*self.dependency_values.boolean.get());
     }
 
-    fn request_updated_dependency_values(
-        &self,
+    fn request_dependency_updates(
+        &mut self,
         state_var: &StateVarReadOnlyView<bool>,
         _is_direct_change_from_renderer: bool,
     ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
         self.dependency_values
             .boolean
-            .request_change_value_to(*state_var.get_requested_value());
+            .request_update(*state_var.get_requested_value());
 
-        Ok(vec![DependencyValueUpdateRequest {
-            instruction_idx: 0,
-            dependency_idx: 0,
-        }])
+        Ok(self.dependency_values.return_update_requests())
     }
 }

@@ -101,11 +101,12 @@ impl Deref for DependenciesCreatedForInstruction {
 }
 
 /// Information which update were requested so that we can recurse
-/// and call *request_updated_dependency_values*
+/// and call *request_dependency_updates*
 /// on the state variables of those dependencies.
 ///
 /// The actual requested values for those dependencies were stored
 /// in the *requested_value* field of their state variables.
+#[derive(Debug)]
 pub struct DependencyValueUpdateRequest {
     pub instruction_idx: usize,
     pub dependency_idx: usize,

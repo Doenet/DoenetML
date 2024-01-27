@@ -10,7 +10,7 @@ pub use std::collections::HashMap;
 
 pub use crate::dast::Position as DastPosition;
 pub use crate::dependency::{DependenciesCreatedForInstruction, TryIntoStateVar};
-pub use crate::state::ComponentStateVariables;
+pub use crate::state::{ComponentStateVariables, QueryUpdateRequests};
 
 pub use crate::utils::KeyValueIgnoreCase;
 pub use crate::{ComponentIdx, ComponentPointerTextOrMacro, ExtendSource};
