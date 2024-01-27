@@ -4,7 +4,6 @@ members = ["lib-*"]
 default-members = ["lib-js-wasm-binding"]
 
 [workspace.package]
-name = "donetml-core"
 version = "0.7.0"
 description = "A library for parsing and evaluating DonetML documents."
 authors = ["Duane Nykamp <nykamp@umn.edu>"]

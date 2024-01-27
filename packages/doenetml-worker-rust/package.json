@@ -23,12 +23,27 @@
     },
     "scripts": {
         "watch": "vite build --watch",
-        "test": "echo \"No tests \"",
+        "test": "npm run test:rust && echo 'tests complete (keep this message at the end of the tests)'",
+        "test:rust": "npm run test:rust:before && cargo test --workspace --features testing",
+        "test:rust:before": "wireit",
         "build:rust": "wireit",
         "build:js": "wireit",
         "build": "npm run build:rust && npm run build:js"
     },
     "wireit": {
+        "test:rust:before": {
+            "command": "vite build -c vite.rust-tests.config.ts",
+            "files": [
+                "lib-doenetml-core/tests/**/*.ts",
+                "vite.rust-tests.config.ts"
+            ],
+            "output": [
+                "lib-doenetml-core/tests/**/*.js"
+            ],
+            "dependencies": [
+                "../parser:build"
+            ]
+        },
         "build:js": {
             "command": "vite build",
             "files": [

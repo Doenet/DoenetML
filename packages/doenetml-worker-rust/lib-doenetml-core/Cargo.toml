@@ -31,6 +31,7 @@ tsify = { workspace = true }
 # code size when deploying.
 console_error_panic_hook = { workspace = true, optional = true }
 derive_more = { workspace = true }
+assert-json-diff = "2.0.2"
 
 [dev-dependencies]
 criterion = "0.3.6"
@@ -44,3 +45,7 @@ web = ["dep:web-sys", "dep:wasm-bindgen"]
 default = ["console_error_panic_hook"]
 web-debug-log = []
 web-logging = ['web']
+# Workaround for `cargo test` not working with `wasm-bindgen`.
+# Passing `--features testing` allows wasm-dependent functions
+# to be avoided during testing.
+testing = []

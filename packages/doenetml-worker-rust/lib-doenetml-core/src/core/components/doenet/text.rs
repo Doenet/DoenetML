@@ -54,7 +54,6 @@ pub struct TextStateVariables {
     ///
     /// It is marked public so that it can be referenced in DoenetML via `.text`.
     #[is_public]
-    #[for_renderer]
     text: StateVar<String>,
 }
 
