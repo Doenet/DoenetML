@@ -45,3 +45,7 @@ web = ["dep:web-sys", "dep:wasm-bindgen"]
 default = ["console_error_panic_hook"]
 web-debug-log = []
 web-logging = ['web']
+# Workaround for `cargo test` not working with `wasm-bindgen`.
+# Passing `--features testing` allows wasm-dependent functions
+# to be avoided during testing.
+testing = []

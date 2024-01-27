@@ -24,7 +24,7 @@
     "scripts": {
         "watch": "vite build --watch",
         "test": "npm run test:rust && echo 'tests complete (keep this message at the end of the tests)'",
-        "test:rust": "npm run test:rust:before && cargo test --workspace",
+        "test:rust": "npm run test:rust:before && cargo test --workspace --features testing",
         "test:rust:before": "wireit",
         "build:rust": "wireit",
         "build:js": "wireit",
