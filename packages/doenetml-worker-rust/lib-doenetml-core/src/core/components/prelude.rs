@@ -3,8 +3,8 @@
 
 // These imports are required for the derive macros to work correctly
 pub use doenetml_derive::{
-    ComponentNode, ComponentState, RenderedComponentNode, StateVariableDependencies,
-    StateVariableDependencyInstructions,
+    add_dependency_data, ComponentNode, ComponentState, RenderedComponentNode,
+    StateVariableDependencies, StateVariableDependencyInstructions,
 };
 pub use std::collections::HashMap;
 

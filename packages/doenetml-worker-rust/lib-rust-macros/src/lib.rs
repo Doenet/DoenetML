@@ -4,7 +4,7 @@ use component_node::{
     component_node_derive, rendered_component_node_derive, rendered_state_derive,
 };
 use component_state_methods::{
-    component_state_derive, state_variable_dependencies_derive,
+    add_dependency_data_impl, component_state_derive, state_variable_dependencies_derive,
     state_variable_dependency_instructions_derive,
 };
 use proc_macro::TokenStream;
@@ -127,4 +127,9 @@ pub fn state_variable_dependencies_derive_wrapper(input: TokenStream) -> TokenSt
 #[proc_macro_derive(StateVariableDependencyInstructions)]
 pub fn state_variable_dependency_instructions_derive_wrapper(input: TokenStream) -> TokenStream {
     state_variable_dependency_instructions_derive(input)
+}
+
+#[proc_macro_attribute]
+pub fn add_dependency_data(attr: TokenStream, item: TokenStream) -> TokenStream {
+    add_dependency_data_impl(attr, item)
 }

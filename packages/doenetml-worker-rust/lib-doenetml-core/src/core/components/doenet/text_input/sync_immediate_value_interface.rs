@@ -1,12 +1,10 @@
 use crate::components::prelude::*;
 
 /// The dependencies of the sync_immediate_value state variable of the text input component
+#[add_dependency_data]
 #[derive(Debug, Default, StateVariableDependencies, StateVariableDependencyInstructions)]
 struct SyncImmediateValueDependencies {
     essential: StateVarReadOnlyView<bool>,
-
-    // TODO: add via attribute macro?
-    _instruction_mapping_data: SyncImmediateValueDependencyData,
 }
 
 /// The interface for the sync_immediate_value state variable of a text input

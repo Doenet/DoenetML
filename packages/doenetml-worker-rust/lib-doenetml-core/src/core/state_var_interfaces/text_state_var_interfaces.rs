@@ -1,5 +1,3 @@
-use doenetml_derive::{StateVariableDependencies, StateVariableDependencyInstructions};
-
 use crate::{components::prelude::*, dependency::DependencySource, ExtendSource};
 
 use super::util::create_dependency_instruction_if_match_extend_source;
@@ -29,14 +27,12 @@ pub struct GeneralStringStateVarInterface {
 }
 
 /// The values of the dependencies that were created from the dependency instructions
+#[add_dependency_data]
 #[derive(Debug, Default, StateVariableDependencies)]
 struct GeneralStringStateVarDependencies {
     /// A vector of the string values of the dependencies
     #[consume_remaining_instructions]
     strings: Vec<StateVarReadOnlyView<String>>,
-
-    // TODO: add via attribute macro?
-    _instruction_mapping_data: GeneralStringStateVarDependencyData,
 }
 
 /// The dependency instructions that indicate how the dependencies of this state variable will be created.
@@ -181,12 +177,10 @@ pub struct SingleDependencyStringStateVarInterface {
 }
 
 /// The values of the dependencies that were created from the dependency instructions.
+#[add_dependency_data]
 #[derive(Debug, Default, StateVariableDependencies, StateVariableDependencyInstructions)]
 struct SingleDependencyStringDependencies {
     string: StateVarReadOnlyView<String>,
-
-    // TODO: add via attribute macro?
-    _instruction_mapping_data: SingleDependencyStringDependencyData,
 }
 
 impl SingleDependencyStringStateVarInterface {

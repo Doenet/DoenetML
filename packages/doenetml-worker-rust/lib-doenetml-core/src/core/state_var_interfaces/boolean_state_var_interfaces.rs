@@ -1,7 +1,5 @@
 use enum_dispatch::enum_dispatch;
 
-use doenetml_derive::{StateVariableDependencies, StateVariableDependencyInstructions};
-
 use crate::{components::prelude::*, dependency::DependencySource, ExtendSource};
 
 use super::util::{create_dependency_instruction_if_match_extend_source, string_to_boolean};
@@ -40,14 +38,12 @@ pub struct GeneralBooleanStateVarInterface {
 }
 
 /// The values of the dependencies created from the dependency instructions
+#[add_dependency_data]
 #[derive(Debug, Default, StateVariableDependencies)]
 struct GeneralBooleanStateVarDependencies {
     /// A vector of the boolean or string values of the dependencies
     #[consume_remaining_instructions]
     booleans_or_strings: Vec<BooleanOrString>,
-
-    // TODO: add via attribute macro?
-    _instruction_mapping_data: GeneralBooleanStateVarDependencyData,
 }
 
 /// The dependency instructions that indicate how the dependencies of this state variable will be created.
@@ -246,12 +242,10 @@ pub struct SingleDependencyBooleanStateVarInterface {
 }
 
 /// The values of the dependencies that were created from the dependency instructions.
+#[add_dependency_data]
 #[derive(Debug, Default, StateVariableDependencies, StateVariableDependencyInstructions)]
 struct SingleDependencyBooleanDependencies {
     boolean: StateVarReadOnlyView<bool>,
-
-    // TODO: add via attribute macro?
-    _instruction_mapping_data: SingleDependencyBooleanDependencyData,
 }
 
 impl SingleDependencyBooleanStateVarInterface {

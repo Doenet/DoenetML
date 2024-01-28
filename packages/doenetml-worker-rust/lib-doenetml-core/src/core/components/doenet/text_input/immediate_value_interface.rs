@@ -3,15 +3,13 @@ use crate::components::prelude::*;
 use super::TextInputState;
 
 /// The dependencies of the immediate_value state variable of the text input component
+#[add_dependency_data]
 #[derive(Debug, Default, StateVariableDependencies, StateVariableDependencyInstructions)]
 struct ImmediateValueDependencies {
     essential: StateVarReadOnlyView<String>,
     sync_immediate_value: StateVarReadOnlyView<bool>,
     bind_value_to: StateVarReadOnlyView<String>,
     prefill: StateVarReadOnlyView<String>,
-
-    // TODO: add via attribute macro?
-    _instruction_mapping_data: ImmediateValueDependencyData,
 }
 
 /// The interface for the immediate_value state variable of a text input

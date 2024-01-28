@@ -2,7 +2,7 @@ use convert_case::{Case, Casing};
 use proc_macro::TokenStream;
 use proc_macro2::{Ident, Span};
 use quote::quote;
-use syn::{self, FieldsNamed};
+use syn::{self, parse::Parser, FieldsNamed};
 
 use crate::util::{
     check_if_field_has_attribute, check_if_field_has_attribute_return_identities,
@@ -551,4 +551,42 @@ pub fn state_variable_dependency_instructions_derive(input: TokenStream) -> Toke
         _ => panic!("only structs supported"),
     };
     output.into()
+}
+
+pub fn add_dependency_data_impl(_attr: TokenStream, item: TokenStream) -> TokenStream {
+    let mut ast: syn::DeriveInput = syn::parse(item).unwrap();
+    let structure_identity = &ast.ident;
+
+    match &mut ast.data {
+        syn::Data::Struct(ref mut struct_data) => {
+            match &mut struct_data.fields {
+                syn::Fields::Named(fields) => {
+                    let structure_name = structure_identity.to_string();
+                    let sn_len = structure_name.len();
+
+                    let data_name = if &structure_name[(sn_len - 3)..] == "ies" {
+                        format!("{}yData", &structure_name[..(sn_len - 3)])
+                    } else {
+                        format!("{}Data", structure_name)
+                    };
+                    let data_identity = Ident::new(&data_name, Span::call_site());
+
+                    fields.named.push(
+                        syn::Field::parse_named
+                            .parse2(quote! {
+                                _instruction_mapping_data: #data_identity
+                            })
+                            .unwrap(),
+                    );
+                }
+                _ => (),
+            }
+
+            return quote! {
+                #ast
+            }
+            .into();
+        }
+        _ => panic!("`add_standard_component_fields` has to be used with structs."),
+    }
 }
