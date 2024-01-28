@@ -1,6 +1,5 @@
-mod immediate_value_interface;
-mod sync_immediate_value_interface;
-mod text_input_component;
-mod value_interface;
+mod component;
+mod state_vars;
 
-pub use text_input_component::*;
+pub use component::*;
+pub use state_vars::*;
