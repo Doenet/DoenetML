@@ -87,6 +87,9 @@ export function mergeAdjacentTextInArray(nodes: DastNodes[]): DastNodes[] {
 export function filterPositionInfo(
     nodes: DastNodes | DastNodes[],
 ): DastNodes | DastNodes[] {
+    if (typeof nodes !== "object" || nodes === null) {
+        return nodes;
+    }
     if (Array.isArray(nodes)) {
         return nodes.flatMap(filterPositionInfo);
     }
@@ -94,12 +97,7 @@ export function filterPositionInfo(
         delete nodes.position;
     }
     for (const value of Object.values(nodes)) {
-        if (Array.isArray(value)) {
-            filterPositionInfo(value);
-        }
-        if (value && typeof value === "object" && "position" in value) {
-            filterPositionInfo(value);
-        }
+        filterPositionInfo(value);
     }
     return nodes;
 }

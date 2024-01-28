@@ -423,49 +423,13 @@ describe("DAST", async () => {
                           {
                             "index": [],
                             "name": "x",
-                            "position": {
-                              "end": {
-                                "column": 3,
-                                "line": 1,
-                                "offset": 2,
-                              },
-                              "start": {
-                                "column": 2,
-                                "line": 1,
-                                "offset": 1,
-                              },
-                            },
                             "type": "pathPart",
                           },
                         ],
-                        "position": {
-                          "end": {
-                            "column": 8,
-                            "line": 1,
-                            "offset": 7,
-                          },
-                          "start": {
-                            "column": 6,
-                            "line": 1,
-                            "offset": 5,
-                          },
-                        },
                         "type": "macro",
                       },
                     ],
                     "name": "z",
-                    "position": {
-                      "end": {
-                        "column": 10,
-                        "line": 1,
-                        "offset": 9,
-                      },
-                      "start": {
-                        "column": 4,
-                        "line": 1,
-                        "offset": 3,
-                      },
-                    },
                     "type": "attribute",
                   },
                 },
@@ -492,49 +456,13 @@ describe("DAST", async () => {
                           {
                             "index": [],
                             "name": "z",
-                            "position": {
-                              "end": {
-                                "column": 9,
-                                "line": 1,
-                                "offset": 8,
-                              },
-                              "start": {
-                                "column": 8,
-                                "line": 1,
-                                "offset": 7,
-                              },
-                            },
                             "type": "pathPart",
                           },
                         ],
-                        "position": {
-                          "end": {
-                            "column": 9,
-                            "line": 1,
-                            "offset": 8,
-                          },
-                          "start": {
-                            "column": 7,
-                            "line": 1,
-                            "offset": 6,
-                          },
-                        },
                         "type": "macro",
                       },
                     ],
                     "name": "y",
-                    "position": {
-                      "end": {
-                        "column": 10,
-                        "line": 1,
-                        "offset": 9,
-                      },
-                      "start": {
-                        "column": 4,
-                        "line": 1,
-                        "offset": 3,
-                      },
-                    },
                     "type": "attribute",
                   },
                 },
