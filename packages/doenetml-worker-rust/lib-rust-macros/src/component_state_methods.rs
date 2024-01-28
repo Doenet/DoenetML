@@ -9,7 +9,7 @@ use crate::util::{
     find_type_from_state_var_with_generics,
 };
 
-pub fn component_state_variables_derive(input: TokenStream) -> TokenStream {
+pub fn component_state_derive(input: TokenStream) -> TokenStream {
     let ast: syn::DeriveInput = syn::parse(input).unwrap();
     let structure_identity = &ast.ident;
     let data = &ast.data;
@@ -37,7 +37,7 @@ pub fn component_state_variables_derive(input: TokenStream) -> TokenStream {
 
                 if is_component_struct {
                     quote! {
-                        impl ComponentStateVariables for #structure_identity {
+                        impl ComponentState for #structure_identity {
                             fn get_num_state_variables(&self) -> StateVarIdx {
                                 self.state.get_num_state_variables()
                             }
@@ -188,7 +188,7 @@ pub fn component_state_variables_derive(input: TokenStream) -> TokenStream {
                         get_state_variable_index_functions.push(quote! {
                             /// Get a state variable index
                             /// of the specified state variable
-                            fn #get_index_function_identity() -> StateVarIdx {
+                            pub fn #get_index_function_identity() -> StateVarIdx {
                                 #sv_idx
                             }
                         });
@@ -201,7 +201,7 @@ pub fn component_state_variables_derive(input: TokenStream) -> TokenStream {
                         get_value_dependency_instructions_functions.push(quote! {
                             /// Get a `DependencyInstruction` that requests the value
                             /// of the specified state variable
-                            fn #get_instruction_function_identity() -> DependencyInstruction {
+                            pub fn #get_instruction_function_identity() -> DependencyInstruction {
                                 DependencyInstruction::StateVar {
                                     component_idx: None,
                                     state_var_idx: #sv_idx,
@@ -211,7 +211,7 @@ pub fn component_state_variables_derive(input: TokenStream) -> TokenStream {
                     }
 
                     quote! {
-                        impl ComponentStateVariables for #structure_identity {
+                        impl ComponentState for #structure_identity {
 
                             fn get_num_state_variables(&self) -> StateVarIdx {
                                 #num_state_var
@@ -351,7 +351,6 @@ pub fn state_variable_dependencies_derive(input: TokenStream) -> TokenStream {
 
                 let mut try_from_dependencies_vec_statements = Vec::new();
                 let mut data_struct_statements = Vec::new();
-                let mut reset_update_requests_statements = Vec::new();
                 let mut initialize_data_struct_statements = Vec::new();
                 let mut return_update_requests_statements = Vec::new();
 
@@ -364,21 +363,18 @@ pub fn state_variable_dependencies_derive(input: TokenStream) -> TokenStream {
                         #field_identity: Vec<(usize,usize)>,
                     });
 
-                    reset_update_requests_statements.push(quote! {
-                        self.#field_identity.reset_update_requests();
-                    });
-
                     return_update_requests_statements.push(quote! {
 
                         let mapping_data = &self._instruction_mapping_data.#field_identity;
 
-                        requests.extend(self.#field_identity.return_indices_with_update_requests().into_iter().map(|idx| {
+                        requests.extend(self.#field_identity.return_indices_with_queued_updates().into_iter().map(|idx| {
                             let data = &mapping_data[idx];
                             DependencyValueUpdateRequest {
                                 instruction_idx: data.0,
                                 dependency_idx: data.1,
                             }
                         }));
+                        self.#field_identity.reset_queued_updates();
                     });
 
                     if check_if_field_has_attribute(
@@ -432,14 +428,16 @@ pub fn state_variable_dependencies_derive(input: TokenStream) -> TokenStream {
                     }
 
                     impl #structure_identity {
-                        fn reset_update_requests(&mut self) {
-                            #(#reset_update_requests_statements)*
-                        }
-
-                        fn return_update_requests(&mut self) -> Vec<DependencyValueUpdateRequest> {
+                        /// Return the updates queued during by calls to `queue_update()`
+                        /// on the dependencies of this `dependency_values` structure.
+                        ///
+                        /// Returns all queued updates since the last call to `return_queued_updates()`.
+                        ///
+                        /// The result of this function is intended to be sent as the return value
+                        /// for `request_dependency_updates`.
+                        fn return_queued_updates(&mut self) -> Vec<DependencyValueUpdateRequest> {
                             let mut requests = Vec::new();
                             #(#return_update_requests_statements)*
-                            self.reset_update_requests();
                             requests
                         }
 
@@ -483,21 +481,20 @@ pub fn state_variable_dependency_instructions_derive(input: TokenStream) -> Toke
                     sn_len > 22 && &structure_name[(sn_len - 22)..] == "DependencyInstructions";
 
                 if structure_is_dependency_instructions {
-                    let mut instructions_as_vec_statements = Vec::new();
+                    let mut from_structure_to_vec_statements = Vec::new();
 
                     for field_identity in field_identities.iter() {
-                        instructions_as_vec_statements.push(quote! {
-                            self.#field_identity.as_ref().map(|inst| {
+                        from_structure_to_vec_statements.push(quote! {
+                            structure.#field_identity.as_ref().map(|inst| {
                                 instruct_vec.push(inst.clone());
                             });
                         });
                     }
                     quote! {
-
-                        impl #structure_identity {
-                            fn instructions_as_vec(&self) -> Vec<DependencyInstruction> {
+                        impl From<&#structure_identity> for Vec<DependencyInstruction> {
+                            fn from(structure: &#structure_identity) -> Self {
                                 let mut instruct_vec = Vec::with_capacity(#num_instructions);
-                                #(#instructions_as_vec_statements)*
+                                #(#from_structure_to_vec_statements)*
                                 instruct_vec
                             }
                         }
@@ -505,7 +502,7 @@ pub fn state_variable_dependency_instructions_derive(input: TokenStream) -> Toke
                 } else {
                     let mut dependency_instruction_struct_statements = Vec::new();
 
-                    let mut instructions_as_vec_statements = Vec::new();
+                    let mut from_structure_to_vec_statements = Vec::new();
 
                     let dependency_instruction_name = if &structure_name[(sn_len - 3)..] == "ies" {
                         format!("{}yInstructions", &structure_name[..(sn_len - 3)])
@@ -525,8 +522,8 @@ pub fn state_variable_dependency_instructions_derive(input: TokenStream) -> Toke
                             pub #field_identity: Option<DependencyInstruction>,
                         });
 
-                        instructions_as_vec_statements.push(quote! {
-                            self.#field_identity.as_ref().map(|inst| {
+                        from_structure_to_vec_statements.push(quote! {
+                            structure.#field_identity.as_ref().map(|inst| {
                                 instruct_vec.push(inst.clone());
                             });
                         });
@@ -538,14 +535,13 @@ pub fn state_variable_dependency_instructions_derive(input: TokenStream) -> Toke
                             #(#dependency_instruction_struct_statements)*
                         }
 
-                        impl #dependency_instruction_identity {
-                            fn instructions_as_vec(&self) -> Vec<DependencyInstruction> {
+                        impl From<&#dependency_instruction_identity> for Vec<DependencyInstruction> {
+                            fn from(structure: &#dependency_instruction_identity) -> Self {
                                 let mut instruct_vec = Vec::with_capacity(#num_instructions);
-                                #(#instructions_as_vec_statements)*
+                                #(#from_structure_to_vec_statements)*
                                 instruct_vec
                             }
                         }
-
 
                     }
                 }

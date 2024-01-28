@@ -3,8 +3,8 @@ extern crate proc_macro2;
 use component_node::{
     component_node_derive, rendered_component_node_derive, rendered_state_derive,
 };
-use component_state_var_methods::{
-    component_state_variables_derive, state_variable_dependencies_derive,
+use component_state_methods::{
+    component_state_derive, state_variable_dependencies_derive,
     state_variable_dependency_instructions_derive,
 };
 use proc_macro::TokenStream;
@@ -14,7 +14,7 @@ use state_var_methods::{
 };
 
 mod component_node;
-mod component_state_var_methods;
+mod component_state_methods;
 mod state_var_methods;
 mod util;
 
@@ -48,12 +48,12 @@ pub fn state_var_read_only_view_methods_derive_wrapper(input: TokenStream) -> To
     state_var_read_only_view_methods_derive(input)
 }
 
-#[proc_macro_derive(FromStateVarIntoStateVarValueEnumRefs)]
+#[proc_macro_derive(FromStateVarIntoStateVarEnumRefs)]
 pub fn into_state_var_enum_refs_derive_wrapper(input: TokenStream) -> TokenStream {
     into_state_var_enum_refs_derive(input)
 }
 
-/// Derives an implementation of the `ComponentStateVariables` trait and auxillary functions.
+/// Derives an implementation of the `ComponentState` trait and auxillary functions.
 ///
 /// The derive macro is designed to be applied to the struct defining the DoenetML component itself
 /// as well as the struct defining the component's state variables.
@@ -89,11 +89,11 @@ pub fn into_state_var_enum_refs_derive_wrapper(input: TokenStream) -> TokenStrea
 ///   If there is more than one match, the state variable that appears first in the ordering of
 ///   the fields of the struct will be selected.
 #[proc_macro_derive(
-    ComponentStateVariables,
+    ComponentState,
     attributes(for_renderer, is_public, component_profile_state_variable)
 )]
-pub fn component_state_variables_derive_wrapper(input: TokenStream) -> TokenStream {
-    component_state_variables_derive(input)
+pub fn component_state_derive_wrapper(input: TokenStream) -> TokenStream {
+    component_state_derive(input)
 }
 
 /// Derives the RenderedState enum
@@ -103,16 +103,16 @@ pub fn component_state_variables_derive_wrapper(input: TokenStream) -> TokenStre
 /// It creates a parallel `RenderedState` enum whose variant names and field types
 /// are based on the variant names from the `ComponentEnum`.
 ///
-/// The variant names append `StateVariables` to the variant from `ComponentEnum`.
+/// The variant names append `State` to the variant from `ComponentEnum`.
 ///
 /// The field types prepend `Rendered` to the variant names. These structures
-/// are created by the `ComponentStateVariables` macro applied
+/// are created by the `ComponentState` macro applied
 /// to the components state variable struct.
 ///
-/// For example, the component type `Text` has a `TextStateVariables` struct,
-/// and the `ComponentStateVariables` macro creates the `RenderedTextStateVariables` struct.
+/// For example, the component type `Text` has a `TextState` struct,
+/// and the `ComponentState` macro creates the `RenderedTextState` struct.
 /// Since the `ComponentEnum` has a `Text` variant, the `RenderedState` macros
-/// adds the variant `TextStateVariables(RenderedTextStateVariables)`
+/// adds the variant `TextState(RenderedTextState)`
 /// to the `RenderedState` enum.
 #[proc_macro_derive(RenderedState)]
 pub fn rendered_state_derive_wrapper(input: TokenStream) -> TokenStream {

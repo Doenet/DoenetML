@@ -3,7 +3,7 @@ use std::{cell::RefCell, collections::HashMap, ops::Deref, rc::Rc};
 use crate::{
     attribute::AttributeName,
     components::{
-        prelude::{ComponentStateVariables, StateVarIdx},
+        prelude::{ComponentState, StateVarIdx},
         ComponentEnum, ComponentNode, ComponentProfile,
     },
     state::{
@@ -12,7 +12,7 @@ use crate::{
         },
         StateVarPointer,
     },
-    state::{StateVarName, StateVarReadOnlyViewEnum, StateVarValueEnum},
+    state::{StateVarName, StateVarReadOnlyViewEnum, StateVarValue},
     ComponentIdx, ComponentPointerTextOrMacro, ExtendSource,
 };
 
@@ -25,6 +25,7 @@ pub enum DependencyInstruction {
         /// ranked higher
         match_profiles: Vec<ComponentProfile>,
 
+        // TODO: can we remove exclude_if_prefer_profiles?
         /// If a child component has one of these profiles ranked higher
         /// than any in *match_profiles*, then the child is not matched.
         exclude_if_prefer_profiles: Vec<ComponentProfile>,
@@ -137,7 +138,7 @@ pub fn create_dependencies_from_instruction_initialize_essential(
                 if let Some(current_view) = essential_data[source_idx].get(&essential_origin) {
                     current_view.create_new_read_only_view()
                 } else {
-                    // Use the default value for the state variable and set used_default to true
+                    // Use the default value for the state variable and set came_from_default to true
                     let initial_data = components[component_idx]
                         .borrow()
                         .get_state_variable(state_var_idx)
@@ -146,7 +147,7 @@ pub fn create_dependencies_from_instruction_initialize_essential(
 
                     let initial_data = InitialEssentialData::Single {
                         value: initial_data,
-                        used_default: true,
+                        came_from_default: true,
                     };
 
                     let new_view = create_essential_data_for(
@@ -333,13 +334,13 @@ pub fn create_dependencies_from_instruction_initialize_essential(
                         {
                             current_view.create_new_read_only_view()
                         } else {
-                            let value = StateVarValueEnum::String(string_value.clone());
+                            let value = StateVarValue::String(string_value.clone());
                             let new_view = create_essential_data_for(
                                 actual_parent_idx,
                                 essential_origin.clone(),
                                 InitialEssentialData::Single {
                                     value,
-                                    used_default: false,
+                                    came_from_default: false,
                                 },
                                 essential_data,
                             );
@@ -386,7 +387,7 @@ pub fn create_dependencies_from_instruction_initialize_essential(
                             essential_origin.clone(),
                             InitialEssentialData::Single {
                                 value: initial_data,
-                                used_default: true,
+                                came_from_default: true,
                             },
                             essential_data,
                         );
@@ -474,13 +475,13 @@ pub fn create_dependencies_from_instruction_initialize_essential(
                                 {
                                     current_view.create_new_read_only_view()
                                 } else {
-                                    let value = StateVarValueEnum::String(string_value.clone());
+                                    let value = StateVarValue::String(string_value.clone());
                                     let new_view = create_essential_data_for(
                                         parent_idx,
                                         essential_origin.clone(),
                                         InitialEssentialData::Single {
                                             value,
-                                            used_default: false,
+                                            came_from_default: false,
                                         },
                                         essential_data,
                                     );
@@ -531,7 +532,7 @@ pub fn create_dependencies_from_instruction_initialize_essential(
                             essential_origin.clone(),
                             InitialEssentialData::Single {
                                 value: initial_data,
-                                used_default: true,
+                                came_from_default: true,
                             },
                             essential_data,
                         );

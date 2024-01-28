@@ -17,7 +17,7 @@ pub struct StateVarPointer {
 }
 
 #[enum_dispatch]
-pub trait ComponentStateVariables {
+pub trait ComponentState {
     /// Get the number of state variables for this component
     fn get_num_state_variables(&self) -> StateVarIdx;
 

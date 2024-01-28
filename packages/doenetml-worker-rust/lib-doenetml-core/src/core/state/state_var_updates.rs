@@ -11,7 +11,7 @@ use crate::{
     ComponentIdx, CoreProcessingState, DependencyGraph,
 };
 
-use super::{ComponentStateVariables, StateVarPointer};
+use super::{ComponentState, StateVarPointer};
 
 /// Recurse in the inverse direction along the dependency graph to attempt to satisfy
 /// the requested update of the state variable described in initial_update_request.

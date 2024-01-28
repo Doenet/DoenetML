@@ -16,7 +16,7 @@ use super::util::{create_dependency_instruction_if_match_extend_source, string_t
 /// then prepend the shadowed state variable to the list of dependencies.
 ///
 /// If the state variable has a single boolean dependency that is an essential state variable,
-/// then propagate the `used_default` attribute of the essential state variable.
+/// then propagate the `came_from_default` attribute of the essential state variable.
 #[derive(Debug, Default)]
 pub struct GeneralBooleanStateVarInterface {
     /// The base dependency instruction that indicates how the dependencies of this state variable will be created.
@@ -30,7 +30,7 @@ pub struct GeneralBooleanStateVarInterface {
     dependency_values: GeneralBooleanStateVarDependencies,
 
     /// If true, there is just a single dependency that is an essential state variable.
-    /// In this case, we'll propagate the `used_default` attribute of the essential state variable.
+    /// In this case, we'll propagate the `came_from_default` attribute of the essential state variable.
     from_single_essential: bool,
 
     /// We have currently implemented only a few possible combinations of dependencies (single boolean or multiple string).
@@ -102,6 +102,32 @@ impl GeneralBooleanStateVarInterface {
             ..Default::default()
         }
     }
+
+    pub fn new_from_children() -> Self {
+        GeneralBooleanStateVarInterface {
+            base_dependency_instruction: DependencyInstruction::Child {
+                match_profiles: vec![ComponentProfile::Text, ComponentProfile::Boolean],
+                exclude_if_prefer_profiles: vec![],
+            },
+            ..Default::default()
+        }
+    }
+
+    pub fn new_from_attribute(attr_name: AttributeName) -> Self {
+        GeneralBooleanStateVarInterface {
+            base_dependency_instruction: DependencyInstruction::AttributeChild {
+                attribute_name: attr_name,
+                match_profiles: vec![ComponentProfile::Text, ComponentProfile::Boolean],
+            },
+            ..Default::default()
+        }
+    }
+}
+
+impl From<GeneralBooleanStateVarInterface> for StateVar<bool> {
+    fn from(interface: GeneralBooleanStateVarInterface) -> Self {
+        StateVar::new(Box::new(interface), Default::default())
+    }
 }
 
 impl StateVarInterface<bool> for GeneralBooleanStateVarInterface {
@@ -118,7 +144,7 @@ impl StateVarInterface<bool> for GeneralBooleanStateVarInterface {
             base: Some(self.base_dependency_instruction.clone()),
         };
 
-        self.dependency_instructions.instructions_as_vec()
+        (&self.dependency_instructions).into()
     }
 
     fn save_dependencies(&mut self, dependencies: &Vec<DependenciesCreatedForInstruction>) {
@@ -142,25 +168,26 @@ impl StateVarInterface<bool> for GeneralBooleanStateVarInterface {
         }
     }
 
-    fn calculate_state_var_from_dependencies(&self, state_var: &StateVarMutableView<bool>) {
+    fn calculate_state_var_from_dependencies(&self) -> StateVarCalcResult<bool> {
         if self.have_invalid_combination {
-            state_var.set_value(false);
+            return StateVarCalcResult::Calculated(false);
         } else if self.dependency_values.booleans_or_strings.len() == 1 {
             match &self.dependency_values.booleans_or_strings[0] {
                 BooleanOrString::Boolean(boolean_value) => {
                     if self.from_single_essential {
-                        // if we are basing it on a single essential variable,
-                        // then we propagate used_default as well as the value.
-                        state_var.set_value_and_set_used_default(
-                            *boolean_value.get(),
-                            boolean_value.get_used_default(),
-                        );
+                        if boolean_value.came_from_default() {
+                            // If we are basing it on a single essential variable that came from default,
+                            // then we propagate came_from_default as well as the value.
+                            return StateVarCalcResult::FromDefault(*boolean_value.get());
+                        } else {
+                            return StateVarCalcResult::Calculated(*boolean_value.get());
+                        }
                     } else {
-                        state_var.set_value(*boolean_value.get());
+                        return StateVarCalcResult::Calculated(*boolean_value.get());
                     }
                 }
                 BooleanOrString::String(string_value) => {
-                    state_var.set_value(string_to_boolean(&string_value.get()))
+                    return StateVarCalcResult::Calculated(string_to_boolean(&string_value.get()));
                 }
             }
         } else {
@@ -175,8 +202,7 @@ impl StateVarInterface<bool> for GeneralBooleanStateVarInterface {
                     BooleanOrString::String(string_value) => string_value.get().to_string(),
                 })
                 .collect();
-
-            state_var.set_value(string_to_boolean(&value));
+            return StateVarCalcResult::Calculated(string_to_boolean(&value));
         }
     }
 
@@ -188,15 +214,15 @@ impl StateVarInterface<bool> for GeneralBooleanStateVarInterface {
         if self.dependency_values.booleans_or_strings.len() == 1 {
             match &mut self.dependency_values.booleans_or_strings[0] {
                 BooleanOrString::Boolean(boolean_value) => {
-                    boolean_value.request_update(*state_var.get_requested_value());
+                    boolean_value.queue_update(*state_var.get_requested_value());
                 }
                 BooleanOrString::String(string_value) => {
                     let requested_value = state_var.get_requested_value();
 
-                    string_value.request_update(requested_value.to_string());
+                    string_value.queue_update(requested_value.to_string());
                 }
             }
-            Ok(self.dependency_values.return_update_requests())
+            Ok(self.dependency_values.return_queued_updates())
         } else {
             Err(RequestDependencyUpdateError::CouldNotUpdate)
         }
@@ -237,6 +263,12 @@ impl SingleDependencyBooleanStateVarInterface {
     }
 }
 
+impl From<SingleDependencyBooleanStateVarInterface> for StateVar<bool> {
+    fn from(interface: SingleDependencyBooleanStateVarInterface) -> Self {
+        StateVar::new(Box::new(interface), Default::default())
+    }
+}
+
 impl StateVarInterface<bool> for SingleDependencyBooleanStateVarInterface {
     fn return_dependency_instructions(
         &mut self,
@@ -246,15 +278,15 @@ impl StateVarInterface<bool> for SingleDependencyBooleanStateVarInterface {
         self.dependency_instructions = SingleDependencyBooleanDependencyInstructions {
             boolean: Some(self.dependency_instruction.clone()),
         };
-        self.dependency_instructions.instructions_as_vec()
+        (&self.dependency_instructions).into()
     }
 
     fn save_dependencies(&mut self, dependencies: &Vec<DependenciesCreatedForInstruction>) {
         self.dependency_values = dependencies.try_into().unwrap();
     }
 
-    fn calculate_state_var_from_dependencies(&self, state_var: &StateVarMutableView<bool>) {
-        state_var.set_value(*self.dependency_values.boolean.get());
+    fn calculate_state_var_from_dependencies(&self) -> StateVarCalcResult<bool> {
+        StateVarCalcResult::Calculated(*self.dependency_values.boolean.get())
     }
 
     fn request_dependency_updates(
@@ -264,8 +296,8 @@ impl StateVarInterface<bool> for SingleDependencyBooleanStateVarInterface {
     ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
         self.dependency_values
             .boolean
-            .request_update(*state_var.get_requested_value());
+            .queue_update(*state_var.get_requested_value());
 
-        Ok(self.dependency_values.return_update_requests())
+        Ok(self.dependency_values.return_queued_updates())
     }
 }

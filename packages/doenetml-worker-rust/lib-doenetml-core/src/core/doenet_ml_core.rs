@@ -22,9 +22,7 @@ use super::state::state_var_updates::process_state_variable_update_request;
 use super::state::Freshness;
 
 use crate::components::actions::Action;
-use crate::components::prelude::{
-    ComponentStateVariables, DependenciesCreatedForInstruction, StateVarIdx,
-};
+use crate::components::prelude::{ComponentState, DependenciesCreatedForInstruction, StateVarIdx};
 use crate::dast::{get_flat_dast_update, to_flat_dast};
 use crate::state::StateVarPointer;
 #[allow(unused)]
@@ -315,8 +313,8 @@ impl DoenetMLCore {
     /// - `component_idx`: the index of the component originating the action
     /// - `action_name`: the name of the action
     /// - `args`: an object containing data that will be interpreted by the action implementation.
-    ///   The values of each field must be quantities that can be converted into `StateVarValueEnum`
-    ///   or a vector of `StateVarValueEnum`.
+    ///   The values of each field must be quantities that can be converted into `StateVarValue`
+    ///   or a vector of `StateVarValue`.
     pub fn dispatch_action(
         &mut self,
         action: Action,
@@ -359,7 +357,7 @@ impl DoenetMLCore {
                     // Later calls from within process_state_variable_update_request
                     // will call request_dependency_updates on the state variable
                     // which will look up this requested value.
-                    state_variable.request_change_value_to(requested_value);
+                    state_variable.set_requested_value(requested_value);
 
                     freshness = state_variable.get_freshness();
                 }

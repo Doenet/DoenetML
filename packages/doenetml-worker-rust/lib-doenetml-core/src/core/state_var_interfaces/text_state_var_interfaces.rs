@@ -10,7 +10,7 @@ use super::util::create_dependency_instruction_if_match_extend_source;
 /// then prepend the shadowed state variable to the list of dependencies.
 ///
 /// If the state variable has a single dependency that is an essential state variable,
-/// then propagate the `used_default` attribute of the essential state variable.
+/// then propagate the `came_from_default` attribute of the essential state variable.
 #[derive(Debug, Default)]
 pub struct GeneralStringStateVarInterface {
     /// The base dependency instruction that indicates how the dependencies of this state variable will be created.
@@ -24,7 +24,7 @@ pub struct GeneralStringStateVarInterface {
     dependency_values: GeneralStringStateVarDependencies,
 
     /// If true, there is just a single dependency that is an essential state variable.
-    /// In this case, we'll propagate the `used_default` attribute of the essential state variable.
+    /// In this case, we'll propagate the `came_from_default` attribute of the essential state variable.
     from_single_essential: bool,
 }
 
@@ -62,6 +62,32 @@ impl GeneralStringStateVarInterface {
             ..Default::default()
         }
     }
+
+    pub fn new_from_children() -> Self {
+        GeneralStringStateVarInterface {
+            base_dependency_instruction: DependencyInstruction::Child {
+                match_profiles: vec![ComponentProfile::Text],
+                exclude_if_prefer_profiles: vec![],
+            },
+            ..Default::default()
+        }
+    }
+
+    pub fn new_from_attribute(attr_name: AttributeName) -> Self {
+        GeneralStringStateVarInterface {
+            base_dependency_instruction: DependencyInstruction::AttributeChild {
+                attribute_name: attr_name,
+                match_profiles: vec![ComponentProfile::Text],
+            },
+            ..Default::default()
+        }
+    }
+}
+
+impl From<GeneralStringStateVarInterface> for StateVar<String> {
+    fn from(interface: GeneralStringStateVarInterface) -> Self {
+        StateVar::new(Box::new(interface), Default::default())
+    }
 }
 
 impl StateVarInterface<String> for GeneralStringStateVarInterface {
@@ -78,7 +104,7 @@ impl StateVarInterface<String> for GeneralStringStateVarInterface {
             other: Some(self.base_dependency_instruction.clone()),
         };
 
-        self.dependency_instructions.instructions_as_vec()
+        (&self.dependency_instructions).into()
     }
 
     fn save_dependencies(&mut self, dependencies: &Vec<DependenciesCreatedForInstruction>) {
@@ -94,14 +120,19 @@ impl StateVarInterface<String> for GeneralStringStateVarInterface {
         }
     }
 
-    fn calculate_state_var_from_dependencies(&self, state_var: &StateVarMutableView<String>) {
+    fn calculate_state_var_from_dependencies(&self) -> StateVarCalcResult<String> {
         if self.from_single_essential {
-            // if we are basing it on a single essential variable,
-            // then we propagate used_default as well as the value.
-            state_var.set_value_and_set_used_default(
-                self.dependency_values.strings[0].get().clone(),
-                self.dependency_values.strings[0].get_used_default(),
-            );
+            if self.dependency_values.strings[0].came_from_default() {
+                // if we are basing it on a single essential variable that came from default,
+                // then we propagate came_from_default as well as the value.
+                return StateVarCalcResult::FromDefault(
+                    self.dependency_values.strings[0].get().clone(),
+                );
+            } else {
+                return StateVarCalcResult::Calculated(
+                    self.dependency_values.strings[0].get().clone(),
+                );
+            }
         } else {
             // TODO: can we implement this without cloning the inner value?
             let value: String = self
@@ -111,7 +142,7 @@ impl StateVarInterface<String> for GeneralStringStateVarInterface {
                 .map(|v| v.get().clone())
                 .collect();
 
-            state_var.set_value(value);
+            return StateVarCalcResult::Calculated(value);
         }
     }
 
@@ -126,9 +157,9 @@ impl StateVarInterface<String> for GeneralStringStateVarInterface {
         } else {
             let requested_value = state_var.get_requested_value();
 
-            self.dependency_values.strings[0].request_update(requested_value.clone());
+            self.dependency_values.strings[0].queue_update(requested_value.clone());
 
-            Ok(self.dependency_values.return_update_requests())
+            Ok(self.dependency_values.return_queued_updates())
         }
     }
 }
@@ -167,6 +198,12 @@ impl SingleDependencyStringStateVarInterface {
     }
 }
 
+impl From<SingleDependencyStringStateVarInterface> for StateVar<String> {
+    fn from(interface: SingleDependencyStringStateVarInterface) -> Self {
+        StateVar::new(Box::new(interface), Default::default())
+    }
+}
+
 impl StateVarInterface<String> for SingleDependencyStringStateVarInterface {
     fn return_dependency_instructions(
         &mut self,
@@ -176,15 +213,15 @@ impl StateVarInterface<String> for SingleDependencyStringStateVarInterface {
         self.dependency_instructions = SingleDependencyStringDependencyInstructions {
             string: Some(self.dependency_instruction.clone()),
         };
-        self.dependency_instructions.instructions_as_vec()
+        (&self.dependency_instructions).into()
     }
 
     fn save_dependencies(&mut self, dependencies: &Vec<DependenciesCreatedForInstruction>) {
         self.dependency_values = dependencies.try_into().unwrap();
     }
 
-    fn calculate_state_var_from_dependencies(&self, state_var: &StateVarMutableView<String>) {
-        state_var.set_value(self.dependency_values.string.get().clone());
+    fn calculate_state_var_from_dependencies(&self) -> StateVarCalcResult<String> {
+        StateVarCalcResult::Calculated(self.dependency_values.string.get().clone())
     }
 
     fn request_dependency_updates(
@@ -196,8 +233,8 @@ impl StateVarInterface<String> for SingleDependencyStringStateVarInterface {
 
         self.dependency_values
             .string
-            .request_update(requested_value.clone());
+            .queue_update(requested_value.clone());
 
-        Ok(self.dependency_values.return_update_requests())
+        Ok(self.dependency_values.return_queued_updates())
     }
 }

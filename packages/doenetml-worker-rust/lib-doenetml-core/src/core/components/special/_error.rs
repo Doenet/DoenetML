@@ -1,11 +1,11 @@
 use crate::components::prelude::*;
 
-#[derive(Debug, Default, ComponentNode, RenderedComponentNode, ComponentStateVariables)]
+#[derive(Debug, Default, ComponentNode, RenderedComponentNode, ComponentState)]
 pub struct _Error {
     pub common: ComponentCommonData,
     pub message: String,
-    pub state: _ErrorStateVariables,
+    pub state: _ErrorState,
 }
 
-#[derive(Debug, Default, ComponentStateVariables)]
-pub struct _ErrorStateVariables {}
+#[derive(Debug, Default, ComponentState)]
+pub struct _ErrorState {}

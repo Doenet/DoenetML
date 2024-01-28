@@ -3,7 +3,7 @@ use std::{cell::RefCell, collections::HashMap, rc::Rc, str::FromStr};
 use crate::{
     components::{ComponentEnum, ComponentNode, _error::_Error, _external::_External},
     dast::{DastElement, DastElementContent, DastTextMacroContent, PathPart},
-    state::{ComponentStateVariables, StateVarIdx},
+    state::{ComponentState, StateVarIdx},
     utils::KeyValueIgnoreCase,
     ComponentIdx, ComponentPointerTextOrMacro, ExtendSource, ExtendStateVariableDescription,
     StateVariableShadowingMatch,

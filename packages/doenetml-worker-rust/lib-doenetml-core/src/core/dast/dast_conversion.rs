@@ -1,9 +1,7 @@
 use std::{cell::RefCell, rc::Rc};
 
 use crate::{
-    components::{
-        prelude::ComponentStateVariables, ComponentEnum, ComponentNode, RenderedComponentNode,
-    },
+    components::{prelude::ComponentState, ComponentEnum, ComponentNode, RenderedComponentNode},
     ComponentIdx, ComponentPointerTextOrMacro, ExtendSource,
 };
 

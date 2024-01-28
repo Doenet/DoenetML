@@ -8,8 +8,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::dast::{DastAttribute, Position as DastPosition};
 use crate::state::{
-    ComponentStateVariables, StateVarIdx, StateVarReadOnlyView, StateVarReadOnlyViewEnum,
-    StateVarValueEnum,
+    ComponentState, StateVarIdx, StateVarReadOnlyView, StateVarReadOnlyViewEnum, StateVarValue,
 };
 use crate::{ComponentIdx, ComponentPointerTextOrMacro, ExtendSource};
 
@@ -31,7 +30,7 @@ use super::doenet::text_input::*;
 ///
 /// Each component type added to `ComponentEnum` must implement that component node traits.
 #[derive(Debug, EnumString, RenderedState)]
-#[enum_dispatch(ComponentNode, ComponentStateVariables, RenderedComponentNode)]
+#[enum_dispatch(ComponentNode, ComponentState, RenderedComponentNode)]
 #[strum(ascii_case_insensitive)]
 pub enum ComponentEnum {
     Text(Text),
@@ -105,10 +104,10 @@ pub struct ComponentCommonData {
 }
 
 /// The Component trait specifies methods that will, in general, be implemented by deriving them.
-/// It depends on the ComponentStateVariables trait, which will be derived
+/// It depends on the ComponentState trait, which will be derived
 /// for each component type based on its state variable structure.
 #[enum_dispatch]
-pub trait ComponentNode: ComponentStateVariables {
+pub trait ComponentNode: ComponentState {
     /// Get the index of the component, which is its index in the `components` vector of `DoenetMLCore`.
     fn get_idx(&self) -> ComponentIdx;
     /// Get the index of the parent node
@@ -227,8 +226,8 @@ pub trait RenderedComponentNode: ComponentNode {
     fn on_action(
         &self,
         action: ActionsEnum,
-        resolve_and_retrieve_state_var: &mut dyn FnMut(StateVarIdx) -> StateVarValueEnum,
-    ) -> Result<Vec<(StateVarIdx, StateVarValueEnum)>, String> {
+        resolve_and_retrieve_state_var: &mut dyn FnMut(StateVarIdx) -> StateVarValue,
+    ) -> Result<Vec<(StateVarIdx, StateVarValue)>, String> {
         Err(format!(
             "Unknown action '{:?}' called on {}",
             action,

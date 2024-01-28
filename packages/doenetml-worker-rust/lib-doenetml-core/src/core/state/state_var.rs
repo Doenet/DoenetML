@@ -15,7 +15,7 @@ use wasm_bindgen::prelude::*;
 use thiserror::Error;
 
 use doenetml_derive::{
-    FromStateVarIntoStateVarValueEnumRefs, StateVarMethods, StateVarMethodsMut,
+    FromStateVarIntoStateVarEnumRefs, StateVarMethods, StateVarMethodsMut,
     StateVarMutableViewMethods, StateVarReadOnlyViewMethods,
 };
 
@@ -44,6 +44,14 @@ pub enum Freshness {
     Stale,
     Unresolved,
     Resolved,
+}
+
+/// The possible results of a call to `calculate_state_var_from_dependencies`:
+/// - Calculated(T): the value was calculated to be T
+/// - FromDefault(T): the value T was determined from the default value
+pub enum StateVarCalcResult<T> {
+    Calculated(T),
+    FromDefault(T),
 }
 
 /// StateVar<T> is the base data structure for the value of a state variable.
@@ -109,8 +117,8 @@ pub trait StateVarInterface<T: Default + Clone>: std::fmt::Debug {
 
     /// Calculate the value of the state variable from the current values of the dependencies
     /// that were stored in `save_dependencies`.
-    /// Save the result in state_var argument that is passed in.
-    fn calculate_state_var_from_dependencies(&self, state_var: &StateVarMutableView<T>);
+    /// Return the result as a `StateVarCalcResult`.
+    fn calculate_state_var_from_dependencies(&self) -> StateVarCalcResult<T>;
 
     /// Given the requested value stored in the meta data of the state_var argument,
     /// calculate the desired values of the dependencies
@@ -162,7 +170,7 @@ pub struct StateVarReadOnlyView<T: Default + Clone> {
     change_counter_when_last_viewed: u32,
 
     ///
-    update_has_been_requested: bool,
+    update_has_been_queued: bool,
     // pub register_update_request: Option<RegisterUpdateRequest<'a>>,
 }
 
@@ -191,7 +199,7 @@ struct StateVarInner<T: Default + Clone> {
     /// Is typically used to lower the precedence of this state variable's value
     /// when calculating another state variable, as it indicates that the document author
     /// did not explicitly set the value
-    used_default: bool,
+    came_from_default: bool,
 
     /// A counter that is incremented every time the value is set.
     /// Used to compare with another counter to determine if the variable has been changed
@@ -246,20 +254,20 @@ impl<T: Default + Clone> StateVarInner<T> {
     }
 
     /// Set the value of the state variable to `new_val`, mark it as Fresh,
-    /// set 'used_default` to false, and increment the change counter.
+    /// set 'came_from_default` to false, and increment the change counter.
     pub fn set_value(&mut self, new_val: T) {
         self.value = new_val;
         self.freshness = Freshness::Fresh;
-        self.used_default = false;
+        self.came_from_default = false;
         self.change_counter += 1;
     }
 
     /// Set the value of the state variable to `new_val`,
-    /// mark it as Fresh, set `used_default`, and increment the change counter.
-    pub fn set_value_and_set_used_default(&mut self, new_val: T, used_default: bool) {
+    /// mark it as Fresh, set `came_from_default`, and increment the change counter.
+    pub fn set_value_and_set_came_from_default(&mut self, new_val: T, came_from_default: bool) {
         self.value = new_val;
         self.freshness = Freshness::Fresh;
-        self.used_default = used_default;
+        self.came_from_default = came_from_default;
         self.change_counter += 1;
     }
 
@@ -280,13 +288,13 @@ impl<T: Default + Clone> StateVarInner<T> {
         }
     }
 
-    /// Get the value of the `used_default` field
-    pub fn get_used_default(&self) -> bool {
-        self.used_default
+    /// Get the value of the `came_from_default` field
+    pub fn came_from_default(&self) -> bool {
+        self.came_from_default
     }
 
     /// Set the `requested_value` field to the supplied value
-    pub fn request_change_value_to(&mut self, requested_val: T) {
+    pub fn set_requested_value(&mut self, requested_val: T) {
         self.requested_value = requested_val;
     }
     /// Get a reference to the current `requested_value` field
@@ -314,7 +322,7 @@ impl<T: Default + Clone> StateVarMutableView<T> {
                 value: T::default(),
                 freshness: Freshness::Unresolved,
                 requested_value: T::default(),
-                used_default: false,
+                came_from_default: false,
                 change_counter: 1, // Note: start at 1 so starts out indicating it changed
             })),
             change_counter_when_last_viewed: 0,
@@ -322,13 +330,13 @@ impl<T: Default + Clone> StateVarMutableView<T> {
     }
 
     /// Create a new fresh StateVarMutableView with supplied value
-    pub fn new_with_value(val: T, used_default: bool) -> Self {
+    pub fn new_with_value(val: T, came_from_default: bool) -> Self {
         StateVarMutableView {
             inner: Rc::new(RefCell::new(StateVarInner {
                 value: val,
                 freshness: Freshness::Fresh,
                 requested_value: T::default(),
-                used_default,
+                came_from_default,
                 change_counter: 1, // Note: start at 1 so starts out indicating it changed
             })),
             change_counter_when_last_viewed: 0,
@@ -340,7 +348,7 @@ impl<T: Default + Clone> StateVarMutableView<T> {
         StateVarReadOnlyView {
             inner: self.inner.clone(),
             change_counter_when_last_viewed: 0,
-            update_has_been_requested: false,
+            update_has_been_queued: false,
         }
     }
 
@@ -399,17 +407,17 @@ impl<T: Default + Clone> StateVarMutableView<T> {
     }
 
     /// Set the value of the state variable to the supplied value,
-    /// set 'used_default` to false, and mark it fresh
+    /// set 'came_from_default` to false, and mark it fresh
     pub fn set_value(&self, new_val: T) {
         self.inner.borrow_mut().set_value(new_val);
     }
 
     /// Set the value of the state variable to `new_val`,
-    /// mark it as Fresh, and set `used_default`.
-    pub fn set_value_and_set_used_default(&self, new_val: T, used_default: bool) {
+    /// mark it as Fresh, and set `came_from_default`.
+    pub fn set_value_and_set_came_from_default(&self, new_val: T, came_from_default: bool) {
         self.inner
             .borrow_mut()
-            .set_value_and_set_used_default(new_val, used_default);
+            .set_value_and_set_came_from_default(new_val, came_from_default);
     }
 
     /// If the state variable is Stale, mark it as Fresh
@@ -421,9 +429,9 @@ impl<T: Default + Clone> StateVarMutableView<T> {
         self.inner.borrow_mut().mark_fresh();
     }
 
-    /// Return if the `used_default` field was set
-    pub fn get_used_default(&self) -> bool {
-        self.inner.borrow().get_used_default()
+    /// Return if the value of this state variable was set from its default value
+    pub fn came_from_default(&self) -> bool {
+        self.inner.borrow().came_from_default()
     }
 
     /// Set the freshness of the variable to Stale
@@ -442,10 +450,8 @@ impl<T: Default + Clone> StateVarMutableView<T> {
     }
 
     /// Set the `requested_value` field to the supplied value
-    pub fn request_change_value_to(&self, requested_val: T) {
-        self.inner
-            .borrow_mut()
-            .request_change_value_to(requested_val);
+    pub fn set_requested_value(&self, requested_val: T) {
+        self.inner.borrow_mut().set_requested_value(requested_val);
     }
 
     /// Get a reference to the current `requested_value` field
@@ -517,9 +523,9 @@ impl<T: Default + Clone> StateVarReadOnlyView<T> {
         self.inner.borrow().freshness
     }
 
-    /// Return if the `used_default` field was set
-    pub fn get_used_default(&self) -> bool {
-        self.inner.borrow().get_used_default()
+    /// Return if the value of this state variable was set from its default value
+    pub fn came_from_default(&self) -> bool {
+        self.inner.borrow().came_from_default()
     }
 
     /// Create a new read-only view to this state variable
@@ -527,28 +533,25 @@ impl<T: Default + Clone> StateVarReadOnlyView<T> {
         StateVarReadOnlyView {
             inner: self.inner.clone(),
             change_counter_when_last_viewed: 0,
-            update_has_been_requested: false,
+            update_has_been_queued: false,
         }
     }
 
-    /// Set the `requested_value` field to the supplied value
-    /// and mark `update_has_been_requested` to true
-    pub fn request_update(&mut self, requested_val: T) {
-        self.inner
-            .borrow_mut()
-            .request_change_value_to(requested_val);
+    /// Queue an update to the dependency that will
+    /// attempt to set its value to the `requested_value` argument.
+    ///
+    /// To send all queued updates to core, call `return_queued_updates()`
+    /// on the `dependency_values` structure that contains this state variable
+    /// and pass the result as the return of the `request_dependency_updates()` function.
+    ///
+    /// A call to `queue_update` will never fail. However, the queued update may
+    /// be discarded by core if the request is overwritten
+    /// or if the update is not successful.
+    pub fn queue_update(&mut self, requested_val: T) {
+        self.inner.borrow_mut().set_requested_value(requested_val);
 
-        self.update_has_been_requested = true;
+        self.update_has_been_queued = true;
     }
-
-    /// Get the value of 'update_has_been_requested`,
-    /// which will be true if `request_update` has been called
-    /// since `reset_update_request` was last called.
-    pub fn check_if_update_requested(&self) -> bool {
-        self.update_has_been_requested
-    }
-
-    pub fn reset_update_request(&mut self) {}
 
     /// Get a reference to the current `requested_value` field
     pub fn get_requested_value(&self) -> impl Deref<Target = T> + '_ {
@@ -559,19 +562,19 @@ impl<T: Default + Clone> StateVarReadOnlyView<T> {
 #[enum_dispatch]
 pub trait QueryUpdateRequests {
     /// Reset variable that tracks whether or not an update has been requested
-    fn reset_update_requests(&mut self);
+    fn reset_queued_updates(&mut self);
 
-    fn return_indices_with_update_requests(&self) -> Vec<usize>;
+    fn return_indices_with_queued_updates(&self) -> Vec<usize>;
 }
 
 impl<T: Default + Clone> QueryUpdateRequests for StateVarReadOnlyView<T> {
-    /// Reset 'update_has_been_requested` to false
-    fn reset_update_requests(&mut self) {
-        self.update_has_been_requested = false;
+    /// Reset 'update_has_been_queued` to false
+    fn reset_queued_updates(&mut self) {
+        self.update_has_been_queued = false;
     }
 
-    fn return_indices_with_update_requests(&self) -> Vec<usize> {
-        if self.update_has_been_requested {
+    fn return_indices_with_queued_updates(&self) -> Vec<usize> {
+        if self.update_has_been_queued {
             vec![0]
         } else {
             vec![]
@@ -583,18 +586,18 @@ impl<T> QueryUpdateRequests for Vec<T>
 where
     T: QueryUpdateRequests,
 {
-    fn reset_update_requests(&mut self) {
+    fn reset_queued_updates(&mut self) {
         for val in self.iter_mut() {
-            val.reset_update_requests();
+            val.reset_queued_updates();
         }
     }
 
-    fn return_indices_with_update_requests(&self) -> Vec<usize> {
+    fn return_indices_with_queued_updates(&self) -> Vec<usize> {
         // Note: this algorithm does not correctly handle Vec<Vec<T: QueryUpdateRequests>>
         self.iter()
             .enumerate()
             .filter_map(|(idx, val)| {
-                if val.return_indices_with_update_requests().is_empty() {
+                if val.return_indices_with_queued_updates().is_empty() {
                     None
                 } else {
                     Some(idx)
@@ -611,11 +614,11 @@ impl<T: Default + Clone> Default for StateVarReadOnlyView<T> {
                 value: T::default(),
                 freshness: Freshness::Unresolved,
                 requested_value: T::default(),
-                used_default: false,
+                came_from_default: false,
                 change_counter: 1, // Note: start at 1 so starts out indicating it changed
             })),
             change_counter_when_last_viewed: 0,
-            update_has_been_requested: false,
+            update_has_been_queued: false,
         }
     }
 }
@@ -674,16 +677,16 @@ impl<T: Default + Clone> StateVar<T> {
     }
 
     /// Set the value of the state variable to the supplied value,
-    /// set 'used_default` to false, and mark it fresh
+    /// set 'came_from_default` to false, and mark it fresh
     pub fn set_value(&self, new_val: T) {
         self.value.set_value(new_val)
     }
 
     /// Set the value of the state variable to `new_val`,
-    /// mark it as Fresh, and set `used_default`.
-    pub fn set_value_and_set_used_default(&self, new_val: T, used_default: bool) {
+    /// mark it as Fresh, and set `came_from_default`.
+    pub fn set_value_and_set_came_from_default(&self, new_val: T, came_from_default: bool) {
         self.value
-            .set_value_and_set_used_default(new_val, used_default)
+            .set_value_and_set_came_from_default(new_val, came_from_default)
     }
 
     /// If the state variable is Stale, mark it as Fresh
@@ -695,9 +698,9 @@ impl<T: Default + Clone> StateVar<T> {
         self.value.mark_fresh()
     }
 
-    /// Return if the `used_default` field was set
-    pub fn get_used_default(&self) -> bool {
-        self.value.get_used_default()
+    /// Return if the value of this state variable was set from its default value
+    pub fn came_from_default(&self) -> bool {
+        self.value.came_from_default()
     }
 
     /// Set the freshness of the variable to Stale
@@ -716,8 +719,8 @@ impl<T: Default + Clone> StateVar<T> {
     }
 
     /// Set the `requested_value` field to the supplied value
-    pub fn request_change_value_to(&self, requested_val: T) {
-        self.value.request_change_value_to(requested_val)
+    pub fn set_requested_value(&self, requested_val: T) {
+        self.value.set_requested_value(requested_val)
     }
 
     /// Get a reference to the current `requested_value` field
@@ -748,8 +751,12 @@ impl<T: Default + Clone> StateVar<T> {
     /// Convenience function to call `calculate_state_var_from_dependencies` on interface
     /// and then call mark_fresh
     pub fn calculate_state_var_from_dependencies_and_mark_fresh(&self) {
-        self.interface
-            .calculate_state_var_from_dependencies(&self.value);
+        match self.interface.calculate_state_var_from_dependencies() {
+            StateVarCalcResult::Calculated(val) => self.value.set_value(val),
+            StateVarCalcResult::FromDefault(val) => {
+                self.value.set_value_and_set_came_from_default(val, true)
+            }
+        };
         self.mark_fresh();
     }
 
@@ -843,12 +850,12 @@ pub enum StateVarReadOnlyViewEnum {
     serde::Serialize,
     serde::Deserialize,
     derive_more::TryInto,
-    FromStateVarIntoStateVarValueEnumRefs,
+    FromStateVarIntoStateVarEnumRefs,
 )]
 #[serde(untagged)]
 #[cfg_attr(feature = "web", derive(Tsify))]
 #[cfg_attr(feature = "web", tsify(from_wasm_abi))]
-pub enum StateVarValueEnum {
+pub enum StateVarValue {
     String(String),
     Number(f64),
     Integer(i64),

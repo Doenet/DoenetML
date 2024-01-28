@@ -22,7 +22,7 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
             let mut state_var_set_as_resolved_arms = Vec::new();
             let mut state_var_get_freshness_arms = Vec::new();
             let mut state_var_get_mark_fresh_arms = Vec::new();
-            let mut state_var_get_used_default_arms = Vec::new();
+            let mut state_var_came_from_default_arms = Vec::new();
             let mut state_var_create_read_only_view_arms = Vec::new();
             let mut state_var_get_arms = Vec::new();
             let mut state_var_request_change_value_to_arms = Vec::new();
@@ -58,9 +58,9 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
                     },
                 });
 
-                state_var_get_used_default_arms.push(quote! {
+                state_var_came_from_default_arms.push(quote! {
                     #enum_ident::#variant_ident(sv) => {
-                        sv.get_used_default()
+                        sv.came_from_default()
                     },
                 });
 
@@ -73,13 +73,13 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
                 state_var_get_arms.push(quote! {
                     #enum_ident::#variant_ident(sv) => {
                         // TODO: need .clone()?
-                        StateVarValueEnum::#variant_ident(sv.get().clone())
+                        StateVarValue::#variant_ident(sv.get().clone())
                     },
                 });
 
                 state_var_request_change_value_to_arms.push(quote! {
                     #enum_ident::#variant_ident(sv) => {
-                        sv.request_change_value_to(requested_val.try_into().unwrap())
+                        sv.set_requested_value(requested_val.try_into().unwrap())
                     },
                 });
 
@@ -97,7 +97,7 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
 
                 state_var_return_default_value_arms.push(quote! {
                     #enum_ident::#variant_ident(sv) => {
-                        StateVarValueEnum::#variant_ident(sv.return_default_value())
+                        StateVarValue::#variant_ident(sv.return_default_value())
                     },
                 });
             }
@@ -153,9 +153,9 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
                     }
 
                     /// Returns whether or not the value of this state variable was set using its default value.
-                    pub fn get_used_default(&self) -> bool {
+                    pub fn came_from_default(&self) -> bool {
                         match self {
-                            #(#state_var_get_used_default_arms)*
+                            #(#state_var_came_from_default_arms)*
                         }
                     }
 
@@ -173,7 +173,7 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
                     /// Get the value of the state variable, assuming it is fresh
                     ///
                     /// Panics if the state variable is not fresh.
-                    pub fn get(&self) -> StateVarValueEnum {
+                    pub fn get(&self) -> StateVarValue {
                         match self {
                             #(#state_var_get_arms)*
                         }
@@ -184,7 +184,7 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
                     /// `request_dependency_updates()`.
                     ///
                     /// Panics if the type of requested_value does not match the type of this StateVarEnum.
-                    pub fn request_change_value_to(&self, requested_val: StateVarValueEnum) {
+                    pub fn set_requested_value(&self, requested_val: StateVarValue) {
                         match self {
                             #(#state_var_request_change_value_to_arms)*
                         }
@@ -224,7 +224,7 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
                     /// If no `default_value` parameter was specified,
                     /// this function will return the default value for the type of state variable,
                     /// which presumably will be meaningless.
-                    pub fn return_default_value(&self) -> StateVarValueEnum {
+                    pub fn return_default_value(&self) -> StateVarValue {
                         match self {
                             #(#state_var_return_default_value_arms)*
                         }
@@ -370,7 +370,7 @@ pub fn state_var_mutable_view_methods_derive(input: TokenStream) -> TokenStream 
             let mut state_var_mutable_view_mark_stale_arms = Vec::new();
             let mut state_var_mutable_view_set_as_resolved_arms = Vec::new();
             let mut state_var_mutable_view_get_freshness_arms = Vec::new();
-            let mut state_var_mutable_view_get_used_default_arms = Vec::new();
+            let mut state_var_mutable_view_came_from_default_arms = Vec::new();
             let mut state_var_mutable_view_create_read_only_view_arms = Vec::new();
             let mut state_var_mutable_view_get_arms = Vec::new();
             let mut state_var_mutable_view_set_value_to_requested_value_arms = Vec::new();
@@ -379,9 +379,9 @@ pub fn state_var_mutable_view_methods_derive(input: TokenStream) -> TokenStream 
                 let variant_ident = &variant.ident;
 
                 state_var_mutable_view_new_with_value_arms.push(quote! {
-                    StateVarValueEnum::#variant_ident(val) => {
+                    StateVarValue::#variant_ident(val) => {
                         StateVarMutableViewEnum::#variant_ident(
-                            StateVarMutableView::new_with_value(val, used_default),
+                            StateVarMutableView::new_with_value(val, came_from_default),
                         )
                     },
                 });
@@ -404,9 +404,9 @@ pub fn state_var_mutable_view_methods_derive(input: TokenStream) -> TokenStream 
                     },
                 });
 
-                state_var_mutable_view_get_used_default_arms.push(quote! {
+                state_var_mutable_view_came_from_default_arms.push(quote! {
                     StateVarMutableViewEnum::#variant_ident(sv) => {
-                        sv.get_used_default()
+                        sv.came_from_default()
                     },
                 });
 
@@ -419,7 +419,7 @@ pub fn state_var_mutable_view_methods_derive(input: TokenStream) -> TokenStream 
                 state_var_mutable_view_get_arms.push(quote! {
                     StateVarMutableViewEnum::#variant_ident(sv) => {
                         // TODO: need .clone()?
-                        StateVarValueEnum::#variant_ident(sv.get().clone())
+                        StateVarValue::#variant_ident(sv.get().clone())
                     },
                 });
 
@@ -439,7 +439,7 @@ pub fn state_var_mutable_view_methods_derive(input: TokenStream) -> TokenStream 
                     /// that is disconnected from any StateVarEnum.
                     ///
                     /// The type of state variable created is determined by the type of `sv_val`.
-                    pub fn new_with_value(sv_val: StateVarValueEnum, used_default: bool) -> Self {
+                    pub fn new_with_value(sv_val: StateVarValue, came_from_default: bool) -> Self {
                         match sv_val {
                             #(#state_var_mutable_view_new_with_value_arms)*
                         }
@@ -482,9 +482,9 @@ pub fn state_var_mutable_view_methods_derive(input: TokenStream) -> TokenStream 
                     }
 
                     /// Returns whether or not the value of this state variable was set using its default value.
-                    pub fn get_used_default(&self) -> bool {
+                    pub fn came_from_default(&self) -> bool {
                         match self {
-                            #(#state_var_mutable_view_get_used_default_arms)*
+                            #(#state_var_mutable_view_came_from_default_arms)*
                         }
                     }
 
@@ -502,7 +502,7 @@ pub fn state_var_mutable_view_methods_derive(input: TokenStream) -> TokenStream 
                     /// Get the value of the state variable, assuming it is fresh
                     ///
                     /// Panics if the state variable is not fresh.
-                    pub fn get(&self) -> StateVarValueEnum {
+                    pub fn get(&self) -> StateVarValue {
                         match self {
                             #(#state_var_mutable_view_get_arms)*
                         }
@@ -542,7 +542,7 @@ pub fn state_var_read_only_view_methods_derive(input: TokenStream) -> TokenStrea
             let variants = &v.variants;
 
             let mut state_var_read_only_view_get_freshness_arms = Vec::new();
-            let mut state_var_read_only_view_get_used_default_arms = Vec::new();
+            let mut state_var_read_only_view_came_from_default_arms = Vec::new();
             let mut state_var_read_only_view_get_arms = Vec::new();
             let mut state_var_read_only_view_create_new_read_only_view_arms = Vec::new();
             let mut state_var_read_only_view_check_if_changed_since_last_viewed_arms = Vec::new();
@@ -557,16 +557,16 @@ pub fn state_var_read_only_view_methods_derive(input: TokenStream) -> TokenStrea
                     },
                 });
 
-                state_var_read_only_view_get_used_default_arms.push(quote! {
+                state_var_read_only_view_came_from_default_arms.push(quote! {
                     StateVarReadOnlyViewEnum::#variant_ident(sv) => {
-                        sv.get_used_default()
+                        sv.came_from_default()
                     },
                 });
 
                 state_var_read_only_view_get_arms.push(quote! {
                     StateVarReadOnlyViewEnum::#variant_ident(sv) => {
                         // TODO: need .clone()?
-                        StateVarValueEnum::#variant_ident(sv.get().clone())
+                        StateVarValue::#variant_ident(sv.get().clone())
                     },
                 });
 
@@ -608,16 +608,16 @@ pub fn state_var_read_only_view_methods_derive(input: TokenStream) -> TokenStrea
                     }
 
                     /// Returns whether or not the value of this state variable was set using its default value.
-                    pub fn get_used_default(&self) -> bool {
+                    pub fn came_from_default(&self) -> bool {
                         match self {
-                            #(#state_var_read_only_view_get_used_default_arms)*
+                            #(#state_var_read_only_view_came_from_default_arms)*
                         }
                     }
 
                     /// Get the value of the state variable, assuming it is fresh
                     ///
                     /// Panics if the state variable is not fresh.
-                    pub fn get(&self) -> StateVarValueEnum {
+                    pub fn get(&self) -> StateVarValue {
                         match self {
                             #(#state_var_read_only_view_get_arms)*
                         }
@@ -668,7 +668,7 @@ pub fn state_var_read_only_view_methods_derive(input: TokenStream) -> TokenStrea
 ///
 /// For simplicity, created this macro so that it needs to be derived
 /// from an enum where each variant is just state variable type,
-/// so we derive it off `StateVarValueEnum`.
+/// so we derive it off `StateVarValue`.
 pub fn into_state_var_enum_refs_derive(input: TokenStream) -> TokenStream {
     let ast: syn::DeriveInput = syn::parse(input).unwrap();
     let data = &ast.data;
