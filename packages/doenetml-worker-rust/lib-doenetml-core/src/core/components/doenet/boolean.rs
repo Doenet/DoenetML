@@ -4,7 +4,7 @@ use crate::state_var_interfaces::boolean_state_var_interfaces::{
 };
 
 /// Definition of the `<boolean>` DoenetML component
-#[derive(Debug, Default, ComponentNode, ComponentState)]
+#[derive(Debug, Default, ComponentNode, ComponentState, ComponentActions, ComponentAttributes)]
 pub struct Boolean {
     /// The common component data needed to derive the `ComponentNode` trait
     pub common: ComponentCommonData,
@@ -73,7 +73,7 @@ impl Default for BooleanState {
     }
 }
 
-impl RenderedComponentNode for Boolean {
+impl RenderedChildren for Boolean {
     fn get_rendered_children(&self) -> &Vec<ComponentPointerTextOrMacro> {
         &self.no_rendered_children
     }

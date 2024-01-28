@@ -138,7 +138,7 @@ impl StateVarInterface<String> for GeneralStringStateVarInterface {
                 .map(|v| v.get().clone())
                 .collect();
 
-            return StateVarCalcResult::Calculated(value);
+            StateVarCalcResult::Calculated(value)
         }
     }
 

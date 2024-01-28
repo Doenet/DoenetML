@@ -9,7 +9,7 @@ use crate::{
     StateVariableShadowingMatch,
 };
 
-use super::RenderedComponentNode;
+use super::ComponentAttributes;
 
 /// Transform `dast_children` that are elements into components, recursing to their children.
 /// Gather names of the descendants for later use in replacing macros.

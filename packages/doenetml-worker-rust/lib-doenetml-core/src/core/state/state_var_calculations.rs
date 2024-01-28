@@ -1,7 +1,7 @@
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use crate::{
-    components::{ComponentEnum, ComponentNode, RenderedComponentNode},
+    components::{ComponentEnum, ComponentNode, RenderedChildren},
     dependency::{
         create_dependencies_from_instruction_initialize_essential, DependencyInstruction,
         DependencySource,

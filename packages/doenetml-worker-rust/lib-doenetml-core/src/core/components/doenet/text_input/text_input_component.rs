@@ -3,7 +3,7 @@ use strum::VariantNames;
 use strum_macros::EnumVariantNames;
 
 use crate::{
-    components::{actions::ActionBody, prelude::*, ActionsEnum},
+    components::prelude::*,
     state_var_interfaces::{
         boolean_state_var_interfaces::GeneralBooleanStateVarInterface,
         text_state_var_interfaces::GeneralStringStateVarInterface,
@@ -128,17 +128,20 @@ impl Default for TextInputState {
     }
 }
 
-// TODO: multiple traits
-impl RenderedComponentNode for TextInput {
+impl RenderedChildren for TextInput {
     fn get_rendered_children(&self) -> &Vec<ComponentPointerTextOrMacro> {
         static EMPTY_VECTOR: Vec<ComponentPointerTextOrMacro> = vec![];
         &EMPTY_VECTOR
     }
+}
 
+impl ComponentAttributes for TextInput {
     fn get_attribute_names(&self) -> Vec<AttributeName> {
         vec!["bindValueTo", "hide", "disabled", "prefill"]
     }
+}
 
+impl ComponentActions for TextInput {
     fn get_action_names(&self) -> Vec<String> {
         TextInputAction::VARIANTS
             .iter()
@@ -150,25 +153,15 @@ impl RenderedComponentNode for TextInput {
         &self,
         action: ActionsEnum,
         resolve_and_retrieve_state_var: &mut dyn FnMut(StateVarIdx) -> StateVarValue,
-    ) -> Result<Vec<(StateVarIdx, StateVarValue)>, String> {
+    ) -> Result<Vec<UpdateFromAction>, String> {
         // The type of `action` should have already been verified, so an
         // error here is a programming logic error, not an API error.
         let action: TextInputAction = action.try_into()?;
 
-        // TODO: change to opaque type for the "Update instructions" or whatever it is
-        // Then have an array of:
-        // TextInputState::request_immediate_value_update(args.text)
-
         match action {
             TextInputAction::UpdateImmediateValue(ActionBody { args }) => Ok(vec![
-                (
-                    TextInputState::get_immediate_value_state_variable_index(),
-                    StateVarValue::String(args.text),
-                ),
-                (
-                    TextInputState::get_sync_immediate_value_state_variable_index(),
-                    StateVarValue::Boolean(false),
-                ),
+                TextInputState::update_immediate_value_from_action(args.text),
+                TextInputState::update_sync_immediate_value_from_action(false),
             ]),
 
             TextInputAction::UpdateValue => {
@@ -176,9 +169,8 @@ impl RenderedComponentNode for TextInput {
                     TextInputState::get_immediate_value_state_variable_index(),
                 );
 
-                Ok(vec![(
-                    TextInputState::get_value_state_variable_index(),
-                    new_val,
+                Ok(vec![TextInputState::update_value_from_action(
+                    new_val.try_into().unwrap(),
                 )])
             }
         }

@@ -1,7 +1,8 @@
 extern crate proc_macro2;
 
 use component_node::{
-    component_node_derive, rendered_component_node_derive, rendered_state_derive,
+    component_actions_derive, component_attributes_derive, component_node_derive,
+    rendered_children_derive, rendered_state_derive,
 };
 use component_state_methods::{
     add_dependency_data_impl, component_state_derive, state_variable_dependencies_derive,
@@ -23,9 +24,19 @@ pub fn component_node_derive_wrapper(input: TokenStream) -> TokenStream {
     component_node_derive(input)
 }
 
-#[proc_macro_derive(RenderedComponentNode)]
-pub fn rendered_component_node_derive_wrapper(input: TokenStream) -> TokenStream {
-    rendered_component_node_derive(input)
+#[proc_macro_derive(RenderedChildren)]
+pub fn rendered_children_derive_wrapper(input: TokenStream) -> TokenStream {
+    rendered_children_derive(input)
+}
+
+#[proc_macro_derive(ComponentAttributes)]
+pub fn component_attributes_derive_wrapper(input: TokenStream) -> TokenStream {
+    component_attributes_derive(input)
+}
+
+#[proc_macro_derive(ComponentActions)]
+pub fn component_actions_derive_wrapper(input: TokenStream) -> TokenStream {
+    component_actions_derive(input)
 }
 
 #[proc_macro_derive(StateVarMethods)]

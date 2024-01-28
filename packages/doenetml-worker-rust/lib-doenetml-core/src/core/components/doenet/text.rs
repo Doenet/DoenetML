@@ -6,7 +6,7 @@ use crate::state_var_interfaces::text_state_var_interfaces::{
 };
 
 /// Definition of the `<text>` DoenetML component
-#[derive(Debug, Default, ComponentNode, ComponentState)]
+#[derive(Debug, Default, ComponentNode, ComponentState, ComponentActions, ComponentAttributes)]
 pub struct Text {
     /// The common component data needed to derive the `ComponentNode` trait
     pub common: ComponentCommonData,
@@ -69,7 +69,7 @@ impl Default for TextState {
     }
 }
 
-impl RenderedComponentNode for Text {
+impl RenderedChildren for Text {
     fn get_rendered_children(&self) -> &Vec<ComponentPointerTextOrMacro> {
         static EMPTY_VECTOR: Vec<ComponentPointerTextOrMacro> = vec![];
         &EMPTY_VECTOR

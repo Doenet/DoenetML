@@ -1,6 +1,9 @@
 use serde::{Deserialize, Serialize};
 
-use crate::ComponentIdx;
+use crate::{
+    state::{StateVarIdx, StateVarValue},
+    ComponentIdx,
+};
 
 use super::ActionsEnum;
 
@@ -21,3 +24,5 @@ pub struct Action {
     #[serde(flatten)]
     pub action: ActionsEnum,
 }
+
+pub struct UpdateFromAction(pub StateVarIdx, pub StateVarValue);

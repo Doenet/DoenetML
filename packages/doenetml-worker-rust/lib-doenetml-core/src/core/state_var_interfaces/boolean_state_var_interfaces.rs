@@ -166,7 +166,7 @@ impl StateVarInterface<bool> for GeneralBooleanStateVarInterface {
 
     fn calculate_state_var_from_dependencies(&self) -> StateVarCalcResult<bool> {
         if self.have_invalid_combination {
-            return StateVarCalcResult::Calculated(false);
+            StateVarCalcResult::Calculated(false)
         } else if self.dependency_values.booleans_or_strings.len() == 1 {
             match &self.dependency_values.booleans_or_strings[0] {
                 BooleanOrString::Boolean(boolean_value) => {

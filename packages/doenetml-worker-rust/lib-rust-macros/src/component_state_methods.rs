@@ -92,6 +92,11 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
                         }
                     }
                 } else {
+                    let field_types = named
+                        .iter()
+                        .map(|f| find_type_from_state_var_with_generics(&f.ty).unwrap())
+                        .collect::<Vec<_>>();
+
                     let num_state_var = field_identities.len();
 
                     let mut get_state_variable_arms = Vec::new();
@@ -109,6 +114,7 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
 
                     let mut get_state_variable_index_functions = Vec::new();
                     let mut get_value_dependency_instructions_functions = Vec::new();
+                    let mut update_from_action_functions = Vec::new();
 
                     let renderer_state_variables_name = format!("Rendered{}", structure_identity);
                     let rendered_state_variables_identity =
@@ -195,17 +201,29 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
 
                         let get_instructions_function_name =
                             format!("get_{}_dependency_instructions", field_identity);
-                        let get_instruction_function_identity =
+                        let get_instructions_function_identity =
                             Ident::new(&get_instructions_function_name, Span::call_site());
 
                         get_value_dependency_instructions_functions.push(quote! {
                             /// Get a `DependencyInstruction` that requests the value
                             /// of the specified state variable
-                            pub fn #get_instruction_function_identity() -> DependencyInstruction {
+                            pub fn #get_instructions_function_identity() -> DependencyInstruction {
                                 DependencyInstruction::StateVar {
                                     component_idx: None,
                                     state_var_idx: #sv_idx,
                                 }
+                            }
+                        });
+
+                        let update_from_action_function_name =
+                            format!("update_{}_from_action", field_identity);
+                        let update_from_action_function_identity =
+                            Ident::new(&update_from_action_function_name, Span::call_site());
+                        let val_type = &field_types[sv_idx];
+
+                        update_from_action_functions.push(quote! {
+                            pub fn #update_from_action_function_identity(val: #val_type) -> UpdateFromAction {
+                                UpdateFromAction(#sv_idx, val.clone().try_into().unwrap())
                             }
                         });
                     }
@@ -312,6 +330,7 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
 
                             #(#get_value_dependency_instructions_functions)*
 
+                            #(#update_from_action_functions)*
                         }
 
                     }
@@ -559,33 +578,30 @@ pub fn add_dependency_data_impl(_attr: TokenStream, item: TokenStream) -> TokenS
 
     match &mut ast.data {
         syn::Data::Struct(ref mut struct_data) => {
-            match &mut struct_data.fields {
-                syn::Fields::Named(fields) => {
-                    let structure_name = structure_identity.to_string();
-                    let sn_len = structure_name.len();
+            if let syn::Fields::Named(fields) = &mut struct_data.fields {
+                let structure_name = structure_identity.to_string();
+                let sn_len = structure_name.len();
 
-                    let data_name = if &structure_name[(sn_len - 3)..] == "ies" {
-                        format!("{}yData", &structure_name[..(sn_len - 3)])
-                    } else {
-                        format!("{}Data", structure_name)
-                    };
-                    let data_identity = Ident::new(&data_name, Span::call_site());
+                let data_name = if &structure_name[(sn_len - 3)..] == "ies" {
+                    format!("{}yData", &structure_name[..(sn_len - 3)])
+                } else {
+                    format!("{}Data", structure_name)
+                };
+                let data_identity = Ident::new(&data_name, Span::call_site());
 
-                    fields.named.push(
-                        syn::Field::parse_named
-                            .parse2(quote! {
-                                _instruction_mapping_data: #data_identity
-                            })
-                            .unwrap(),
-                    );
-                }
-                _ => (),
+                fields.named.push(
+                    syn::Field::parse_named
+                        .parse2(quote! {
+                            _instruction_mapping_data: #data_identity
+                        })
+                        .unwrap(),
+                );
             }
 
-            return quote! {
+            quote! {
                 #ast
             }
-            .into();
+            .into()
         }
         _ => panic!("`add_standard_component_fields` has to be used with structs."),
     }

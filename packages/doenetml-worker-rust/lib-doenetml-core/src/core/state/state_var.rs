@@ -850,6 +850,7 @@ pub enum StateVarReadOnlyViewEnum {
     serde::Serialize,
     serde::Deserialize,
     derive_more::TryInto,
+    derive_more::From,
     FromStateVarIntoStateVarEnumRefs,
 )]
 #[serde(untagged)]

@@ -1,6 +1,8 @@
 use crate::components::prelude::*;
 
-#[derive(Debug, Default, RenderedComponentNode, ComponentState)]
+#[derive(
+    Debug, Default, RenderedChildren, ComponentState, ComponentActions, ComponentAttributes,
+)]
 pub struct _External {
     pub common: ComponentCommonData,
 

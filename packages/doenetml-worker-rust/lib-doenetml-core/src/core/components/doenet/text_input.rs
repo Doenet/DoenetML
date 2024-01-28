@@ -1,6 +1,6 @@
 mod immediate_value_interface;
 mod sync_immediate_value_interface;
-pub mod text_input;
+mod text_input_component;
 mod value_interface;
 
-pub use text_input::*;
+pub use text_input_component::*;

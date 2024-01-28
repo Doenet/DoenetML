@@ -7,7 +7,7 @@ use super::components::component_creation::{
     create_component_children, replace_macro_referents_of_children_evaluate_attributes,
 };
 
-use super::components::{ComponentEnum, RenderedComponentNode};
+use super::components::{ComponentActions, ComponentEnum};
 use super::dast::{
     DastFunctionMacro, DastMacro, DastRoot, DastWarning, FlatDastElement, FlatDastElementContent,
     FlatDastElementUpdate, FlatDastRoot, Position as DastPosition,
@@ -21,7 +21,7 @@ use super::state::state_var_calculations::{
 use super::state::state_var_updates::process_state_variable_update_request;
 use super::state::Freshness;
 
-use crate::components::actions::Action;
+use crate::components::actions::{Action, UpdateFromAction};
 use crate::components::prelude::{ComponentState, DependenciesCreatedForInstruction, StateVarIdx};
 use crate::dast::{get_flat_dast_update, to_flat_dast};
 use crate::state::StateVarPointer;
@@ -346,7 +346,7 @@ impl DoenetMLCore {
                 .borrow()
                 .on_action(action.action, &mut state_var_resolver)?;
 
-            for (state_var_idx, requested_value) in state_vars_to_update {
+            for UpdateFromAction(state_var_idx, requested_value) in state_vars_to_update {
                 let freshness;
 
                 {
