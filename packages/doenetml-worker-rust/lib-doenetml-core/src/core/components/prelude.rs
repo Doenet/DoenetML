@@ -4,12 +4,12 @@
 // These imports are required for the derive macros to work correctly
 pub use doenetml_derive::{
     add_dependency_data, ComponentActions, ComponentAttributes, ComponentNode, ComponentState,
-    RenderedChildren, StateVariableDependencies, StateVariableDependencyInstructions,
+    RenderedChildren, StateVariableDataQueries, StateVariableDependencies,
 };
 pub use std::collections::HashMap;
 
 pub use crate::dast::Position as DastPosition;
-pub use crate::dependency::{DependenciesCreatedForInstruction, TryIntoStateVar};
+pub use crate::dependency::{DependenciesCreatedForDataQuery, TryIntoStateVar};
 pub use crate::state::{ComponentState, QueryUpdateRequests};
 
 pub use crate::utils::KeyValueIgnoreCase;
@@ -28,9 +28,9 @@ pub use crate::components::{ActionsEnum, ComponentEnum, ComponentProfile, Render
 pub use crate::dast::{
     DastAttribute, ElementData, FlatDastElement, FlatDastElementContent, FlatDastElementUpdate,
 };
-pub use crate::dependency::{Dependency, DependencyInstruction, DependencyValueUpdateRequest};
+pub use crate::dependency::{DataQuery, Dependency, DependencyValueUpdateRequest};
 pub use crate::state::{
     RequestDependencyUpdateError, StateVar, StateVarCalcResult, StateVarEnumRef,
-    StateVarEnumRefMut, StateVarIdx, StateVarInterface, StateVarMutableView, StateVarReadOnlyView,
-    StateVarReadOnlyViewEnum, StateVarValue,
+    StateVarEnumRefMut, StateVarIdx, StateVarMutableView, StateVarUpdater, StateVarValue,
+    StateVarView, StateVarViewEnum,
 };

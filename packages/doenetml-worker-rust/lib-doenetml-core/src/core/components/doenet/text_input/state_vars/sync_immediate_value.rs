@@ -1,68 +1,65 @@
 use crate::components::prelude::*;
 
-/// The dependencies of the sync_immediate_value state variable of the text input component
+/// A struct of all data required to compute the value of this state variable.
 #[add_dependency_data]
-#[derive(Debug, Default, StateVariableDependencies, StateVariableDependencyInstructions)]
-struct SyncImmediateValueDependencies {
-    essential: StateVarReadOnlyView<bool>,
+#[derive(Debug, Default, StateVariableDependencies, StateVariableDataQueries)]
+struct RequiredData {
+    essential: StateVarView<bool>,
 }
 
-/// The interface for the sync_immediate_value state variable of a text input
 #[derive(Debug, Default)]
-pub struct SyncImmediateValueStateVarInterface {
-    /// The dependency instructions that indicate how the dependencies of this state variable will be created.
-    dependency_instructions: SyncImmediateValueDependencyInstructions,
+pub struct SyncImmediateValueStateVar {
+    /// The data queries that indicate how the dependencies of this state variable will be created.
+    data_queries: RequiredDataDataQueries,
 
-    /// The values of the dependencies created from the dependency instructions
-    dependency_values: SyncImmediateValueDependencies,
+    /// The values of the dependencies created from the data queries
+    data: RequiredData,
 }
 
-impl SyncImmediateValueStateVarInterface {
+impl SyncImmediateValueStateVar {
     pub fn new() -> Self {
-        SyncImmediateValueStateVarInterface {
+        SyncImmediateValueStateVar {
             ..Default::default()
         }
     }
 }
 
-impl From<SyncImmediateValueStateVarInterface> for StateVar<bool> {
-    fn from(interface: SyncImmediateValueStateVarInterface) -> Self {
-        StateVar::new(Box::new(interface), true)
+impl From<SyncImmediateValueStateVar> for StateVar<bool> {
+    fn from(updater: SyncImmediateValueStateVar) -> Self {
+        StateVar::new(Box::new(updater), true)
     }
 }
 
-impl StateVarInterface<bool> for SyncImmediateValueStateVarInterface {
-    fn return_dependency_instructions(
+impl StateVarUpdater<bool> for SyncImmediateValueStateVar {
+    fn return_data_queries(
         &mut self,
         _extending: Option<ExtendSource>,
         _state_var_idx: StateVarIdx,
-    ) -> Vec<DependencyInstruction> {
-        self.dependency_instructions = SyncImmediateValueDependencyInstructions {
-            essential: Some(DependencyInstruction::Essential),
+    ) -> Vec<DataQuery> {
+        self.data_queries = RequiredDataDataQueries {
+            essential: Some(DataQuery::Essential),
         };
 
-        (&self.dependency_instructions).into()
+        (&self.data_queries).into()
     }
 
-    fn save_dependencies(&mut self, dependencies: &Vec<DependenciesCreatedForInstruction>) {
-        self.dependency_values = dependencies.try_into().unwrap();
+    fn save_data(&mut self, dependencies: &Vec<DependenciesCreatedForDataQuery>) {
+        self.data = dependencies.try_into().unwrap();
     }
 
-    fn calculate_state_var_from_dependencies(&self) -> StateVarCalcResult<bool> {
-        StateVarCalcResult::Calculated(*self.dependency_values.essential.get())
+    fn calculate(&self) -> StateVarCalcResult<bool> {
+        StateVarCalcResult::Calculated(*self.data.essential.get())
     }
 
-    fn request_dependency_updates(
+    fn invert(
         &mut self,
-        state_var: &StateVarReadOnlyView<bool>,
+        state_var: &StateVarView<bool>,
         _is_direct_change_from_renderer: bool,
     ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
         let requested_value = state_var.get_requested_value();
 
-        self.dependency_values
-            .essential
-            .queue_update(*requested_value);
+        self.data.essential.queue_update(*requested_value);
 
-        Ok(self.dependency_values.return_queued_updates())
+        Ok(self.data.return_queued_updates())
     }
 }

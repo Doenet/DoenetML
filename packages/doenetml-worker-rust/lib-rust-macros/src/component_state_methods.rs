@@ -113,7 +113,7 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
                     let mut rendered_state_variables_struct_statements = Vec::new();
 
                     let mut get_state_variable_index_functions = Vec::new();
-                    let mut get_value_dependency_instructions_functions = Vec::new();
+                    let mut get_value_data_queries_functions = Vec::new();
                     let mut update_from_action_functions = Vec::new();
 
                     let renderer_state_variables_name = format!("Rendered{}", structure_identity);
@@ -199,16 +199,16 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
                             }
                         });
 
-                        let get_instructions_function_name =
-                            format!("get_{}_dependency_instructions", field_identity);
-                        let get_instructions_function_identity =
-                            Ident::new(&get_instructions_function_name, Span::call_site());
+                        let get_queries_function_name =
+                            format!("get_{}_data_queries", field_identity);
+                        let get_queries_function_identity =
+                            Ident::new(&get_queries_function_name, Span::call_site());
 
-                        get_value_dependency_instructions_functions.push(quote! {
-                            /// Get a `DependencyInstruction` that requests the value
+                        get_value_data_queries_functions.push(quote! {
+                            /// Get a `DataQuery` that requests the value
                             /// of the specified state variable
-                            pub fn #get_instructions_function_identity() -> DependencyInstruction {
-                                DependencyInstruction::StateVar {
+                            pub fn #get_queries_function_identity() -> DataQuery {
+                                DataQuery::StateVar {
                                     component_idx: None,
                                     state_var_idx: #sv_idx,
                                 }
@@ -328,7 +328,7 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
 
                             #(#get_state_variable_index_functions)*
 
-                            #(#get_value_dependency_instructions_functions)*
+                            #(#get_value_data_queries_functions)*
 
                             #(#update_from_action_functions)*
                         }
@@ -373,7 +373,7 @@ pub fn state_variable_dependencies_derive(input: TokenStream) -> TokenStream {
                 let mut initialize_data_struct_statements = Vec::new();
                 let mut return_update_requests_statements = Vec::new();
 
-                for (instruction_idx, field_identity) in field_identities.iter().enumerate() {
+                for (data_query_idx, field_identity) in field_identities.iter().enumerate() {
                     if field_identity.to_string().starts_with('_') {
                         continue;
                     }
@@ -384,12 +384,12 @@ pub fn state_variable_dependencies_derive(input: TokenStream) -> TokenStream {
 
                     return_update_requests_statements.push(quote! {
 
-                        let mapping_data = &self._instruction_mapping_data.#field_identity;
+                        let mapping_data = &self._data_query_mapping_data.#field_identity;
 
                         requests.extend(self.#field_identity.return_indices_with_queued_updates().into_iter().map(|idx| {
                             let data = &mapping_data[idx];
                             DependencyValueUpdateRequest {
-                                instruction_idx: data.0,
+                                data_query_idx: data.0,
                                 dependency_idx: data.1,
                             }
                         }));
@@ -397,58 +397,58 @@ pub fn state_variable_dependencies_derive(input: TokenStream) -> TokenStream {
                     });
 
                     if check_if_field_has_attribute(
-                        &named[instruction_idx],
-                        "consume_remaining_instructions",
+                        &named[data_query_idx],
+                        "consume_remaining_data_queries",
                     ) {
                         try_from_dependencies_vec_statements.push(quote! {
                             // Note: This algorithm adds an extra layer that needs to be flattened twice.
                             // TODO: understand why this is happening
-                            #field_identity: dependencies[#instruction_idx..].iter()
-                                .map(|instruction| {
+                            #field_identity: dependencies[#data_query_idx..].iter()
+                                .map(|data_query| {
                                     // we first set to temp to make sure that try_into_state_var targets a vector
-                                    let temp: Result<Vec<_>,_> = instruction.try_into_state_var();
+                                    let temp: Result<Vec<_>,_> = data_query.try_into_state_var();
                                     temp
                                 })
                                 .flatten().flatten().collect::<Vec<_>>(),
                         });
                         initialize_data_struct_statements.push(quote! {
-                            for (inst_idx_offset, inst) in dependencies[#instruction_idx..].iter().enumerate() {
+                            for (inst_idx_offset, inst) in dependencies[#data_query_idx..].iter().enumerate() {
                                 for (dep_idx, dep) in inst.iter().enumerate() {
-                                    mapping_data.#field_identity.push((#instruction_idx+inst_idx_offset, dep_idx));
+                                    mapping_data.#field_identity.push((#data_query_idx+inst_idx_offset, dep_idx));
                                 }
                             }
                         });
                         break;
                     } else {
                         try_from_dependencies_vec_statements.push(quote! {
-                            #field_identity: (&dependencies[#instruction_idx]).try_into_state_var()?,
+                            #field_identity: (&dependencies[#data_query_idx]).try_into_state_var()?,
                         });
                         initialize_data_struct_statements.push(quote! {
-                            for (dep_idx, dep) in dependencies[#instruction_idx].iter().enumerate() {
-                                mapping_data.#field_identity.push((#instruction_idx, dep_idx));
+                            for (dep_idx, dep) in dependencies[#data_query_idx].iter().enumerate() {
+                                mapping_data.#field_identity.push((#data_query_idx, dep_idx));
                             }
                         })
                     }
                 }
 
                 quote! {
-                    impl TryFrom<&Vec<DependenciesCreatedForInstruction>> for #structure_identity {
+                    impl TryFrom<&Vec<DependenciesCreatedForDataQuery>> for #structure_identity {
                         type Error = &'static str;
-                        fn try_from(dependencies: &Vec<DependenciesCreatedForInstruction>) -> Result<Self, Self::Error> {
+                        fn try_from(dependencies: &Vec<DependenciesCreatedForDataQuery>) -> Result<Self, Self::Error> {
                             let mut mapping_data = #data_identity::default();
 
                             #(#initialize_data_struct_statements)*
 
                             Ok(#structure_identity {
                                 #(#try_from_dependencies_vec_statements)*
-                                _instruction_mapping_data: mapping_data
+                                _data_query_mapping_data: mapping_data
                             })
                         }
                     }
 
                     impl #structure_identity {
                         /// Return the updates queued during by calls to `queue_update()`
-                        /// on the dependencies of this `dependency_values` structure.
+                        /// on the dependencies of this `data` structure.
                         ///
                         /// Returns all queued updates since the last call to `return_queued_updates()`.
                         ///
@@ -476,7 +476,7 @@ pub fn state_variable_dependencies_derive(input: TokenStream) -> TokenStream {
     output.into()
 }
 
-pub fn state_variable_dependency_instructions_derive(input: TokenStream) -> TokenStream {
+pub fn state_variable_data_queries_derive(input: TokenStream) -> TokenStream {
     let ast: syn::DeriveInput = syn::parse(input).unwrap();
     let structure_identity = &ast.ident;
     let data = &ast.data;
@@ -491,15 +491,13 @@ pub fn state_variable_dependency_instructions_derive(input: TokenStream) -> Toke
                     .map(|f| f.ident.as_ref().unwrap().clone())
                     .collect::<Vec<_>>();
 
-                let num_instructions = field_identities.len();
+                let num_queries = field_identities.len();
 
                 let structure_name = structure_identity.to_string();
-                let sn_len = structure_name.len();
 
-                let structure_is_dependency_instructions =
-                    sn_len > 22 && &structure_name[(sn_len - 22)..] == "DependencyInstructions";
+                let structure_is_data_queries = structure_name.ends_with("DataQueries");
 
-                if structure_is_dependency_instructions {
+                if structure_is_data_queries {
                     let mut from_structure_to_vec_statements = Vec::new();
 
                     for field_identity in field_identities.iter() {
@@ -510,35 +508,30 @@ pub fn state_variable_dependency_instructions_derive(input: TokenStream) -> Toke
                         });
                     }
                     quote! {
-                        impl From<&#structure_identity> for Vec<DependencyInstruction> {
+                        impl From<&#structure_identity> for Vec<DataQuery> {
                             fn from(structure: &#structure_identity) -> Self {
-                                let mut instruct_vec = Vec::with_capacity(#num_instructions);
+                                let mut instruct_vec = Vec::with_capacity(#num_queries);
                                 #(#from_structure_to_vec_statements)*
                                 instruct_vec
                             }
                         }
                     }
                 } else {
-                    let mut dependency_instruction_struct_statements = Vec::new();
+                    let mut data_query_struct_statements = Vec::new();
 
                     let mut from_structure_to_vec_statements = Vec::new();
 
-                    let dependency_instruction_name = if &structure_name[(sn_len - 3)..] == "ies" {
-                        format!("{}yInstructions", &structure_name[..(sn_len - 3)])
-                    } else {
-                        format!("{}Instructions", structure_name)
-                    };
+                    let data_query_name = format!("{}DataQueries", structure_name);
 
-                    let dependency_instruction_identity =
-                        Ident::new(&dependency_instruction_name, Span::call_site());
+                    let data_query_identity = Ident::new(&data_query_name, Span::call_site());
 
                     for field_identity in field_identities.iter() {
                         if field_identity.to_string().starts_with('_') {
                             continue;
                         }
 
-                        dependency_instruction_struct_statements.push(quote! {
-                            pub #field_identity: Option<DependencyInstruction>,
+                        data_query_struct_statements.push(quote! {
+                            pub #field_identity: Option<DataQuery>,
                         });
 
                         from_structure_to_vec_statements.push(quote! {
@@ -550,13 +543,13 @@ pub fn state_variable_dependency_instructions_derive(input: TokenStream) -> Toke
 
                     quote! {
                         #[derive(Debug, Default)]
-                        pub struct #dependency_instruction_identity {
-                            #(#dependency_instruction_struct_statements)*
+                        struct #data_query_identity {
+                            #(#data_query_struct_statements)*
                         }
 
-                        impl From<&#dependency_instruction_identity> for Vec<DependencyInstruction> {
-                            fn from(structure: &#dependency_instruction_identity) -> Self {
-                                let mut instruct_vec = Vec::with_capacity(#num_instructions);
+                        impl From<&#data_query_identity> for Vec<DataQuery> {
+                            fn from(structure: &#data_query_identity) -> Self {
+                                let mut instruct_vec = Vec::with_capacity(#num_queries);
                                 #(#from_structure_to_vec_statements)*
                                 instruct_vec
                             }
@@ -592,7 +585,7 @@ pub fn add_dependency_data_impl(_attr: TokenStream, item: TokenStream) -> TokenS
                 fields.named.push(
                     syn::Field::parse_named
                         .parse2(quote! {
-                            _instruction_mapping_data: #data_identity
+                            _data_query_mapping_data: #data_identity
                         })
                         .unwrap(),
                 );
@@ -606,3 +599,6 @@ pub fn add_dependency_data_impl(_attr: TokenStream, item: TokenStream) -> TokenS
         _ => panic!("`add_standard_component_fields` has to be used with structs."),
     }
 }
+
+#[cfg(test)]
+mod test {}

@@ -16,14 +16,12 @@ use thiserror::Error;
 
 use doenetml_derive::{
     FromStateVarIntoStateVarEnumRefs, StateVarMethods, StateVarMethodsMut,
-    StateVarMutableViewMethods, StateVarReadOnlyViewMethods,
+    StateVarMutableViewMethods, StateVarViewMethods,
 };
 
 use crate::{
     components::doenet::{boolean::Boolean, text::Text},
-    dependency::{
-        DependenciesCreatedForInstruction, DependencyInstruction, DependencyValueUpdateRequest,
-    },
+    dependency::{DataQuery, DependenciesCreatedForDataQuery, DependencyValueUpdateRequest},
     ExtendSource,
 };
 
@@ -33,10 +31,10 @@ use super::StateVarIdx;
 pub type StateVarName = &'static str;
 
 /// The possible values of the freshness of a state variable.
-/// - Fresh: the state variable value has been calculated from given base variable values
-/// - Stale: a base variable influencing this state variable has changed so it must be recalculated
-/// - Unresolved: the dependencies for this state variable have not yet been created
-/// - Resolved: the dependencies for this state variable have been created,
+/// - `Fresh`: the state variable value has been calculated from given base variable values
+/// - `Stale`: a base variable influencing this state variable has changed so it must be recalculated
+/// - `Unresolved`: the dependencies for this state variable have not yet been created
+/// - `Resolved`: the dependencies for this state variable have been created,
 ///   but the value has not yet been calculated
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Freshness {
@@ -46,7 +44,7 @@ pub enum Freshness {
     Resolved,
 }
 
-/// The possible results of a call to `calculate_state_var_from_dependencies`:
+/// The possible results of a call to `calculate`:
 /// - Calculated(T): the value was calculated to be T
 /// - FromDefault(T): the value T was determined from the default value
 pub enum StateVarCalcResult<T> {
@@ -67,12 +65,12 @@ pub struct StateVar<T: Default + Clone> {
     /// It is just a cached copy of the result of calling
     /// `.create_new_read_only_view()` on `.value`, saved here for efficiency.
     /// Sent to functions to give them read only access to the variable.
-    immutable_view_of_value: StateVarReadOnlyView<T>,
+    immutable_view_of_value: StateVarView<T>,
 
-    /// Trait object that exposes the interface to used to specify
-    /// how the state variable is calculated from its dependencies
-    /// or how to modify its dependencies to give it a new requested value
-    interface: Box<dyn StateVarInterface<T>>,
+    /// Trait object that exposes the interface used "update" a state var.
+    /// That is, it specifies how the state variable is calculated from its dependencies
+    /// or how to modify its dependencies to give it a new requested value.
+    updater: Box<dyn StateVarUpdater<T>>,
 
     /// Value if don't have dependencies that determine the value
     default_value: T,
@@ -83,7 +81,7 @@ pub struct StateVar<T: Default + Clone> {
     /// It isn't actually used to calculate the state variable value,
     /// because, for efficiency, we will store values for calculations
     /// in a typed form (without enums) directly on the state variable structure.
-    all_dependency_values: Vec<StateVarReadOnlyViewEnum>,
+    all_data: Vec<StateVarViewEnum>,
 }
 
 #[derive(Debug, Error)]
@@ -94,50 +92,47 @@ pub enum RequestDependencyUpdateError {
     CouldNotUpdate,
 }
 
-/// StateVarInterface defines the relationship between the state variable
-/// and its dependencies
-pub trait StateVarInterface<T: Default + Clone>: std::fmt::Debug {
-    /// Return the instructions that can be used to calculate the dependencies
-    /// for this state variable based on the structure of the document,
+/// Methods used when updating a state variable's dependencies, including querying for its
+/// dependencies and calculating the value from its dependencies.
+pub trait StateVarUpdater<T: Default + Clone>: std::fmt::Debug {
+    /// Returns the data queries needed to calculate the dependencies
+    /// for this state variable. These queries may be based on structure of the document,
     /// e.g., the children, attributes, or other state variables
-    /// of the component of this state variable
-    fn return_dependency_instructions(
+    /// of the component of this state variable.
+    fn return_data_queries(
         &mut self,
         extending: Option<ExtendSource>,
         state_var_idx: StateVarIdx,
-    ) -> Vec<DependencyInstruction>;
+    ) -> Vec<DataQuery>;
 
-    /// Given the structure of the document and the dependency instructions,
-    /// the actual dependencies will be determined and passed to `save_dependencies`.
-    /// The function `save_dependencies` should store
-    /// the dependencies directly on the the structure (`self`)
-    /// in a form (presumably typed not with enums) for efficient calculation.
+    /// Called when data queries for the state variable have been completed.
+    /// State variables cache the results of their queries
+    /// for efficient future computations.
     #[allow(clippy::ptr_arg)]
-    fn save_dependencies(&mut self, dependencies: &Vec<DependenciesCreatedForInstruction>);
+    fn save_data(&mut self, dependencies: &Vec<DependenciesCreatedForDataQuery>);
 
-    /// Calculate the value of the state variable from the current values of the dependencies
-    /// that were stored in `save_dependencies`.
-    /// Return the result as a `StateVarCalcResult`.
-    fn calculate_state_var_from_dependencies(&self) -> StateVarCalcResult<T>;
+    /// Calculate the value of the state variable from the currently cached query results.
+    /// Results of this function will be cached, so local caching is not needed.
+    fn calculate(&self) -> StateVarCalcResult<T>;
 
-    /// Given the requested value stored in the meta data of the state_var argument,
-    /// calculate the desired values of the dependencies
-    /// that will lead to that requested value being calculated from those dependencies.
+    /// All state variables know how to calculate their value given their dependencies.
+    /// Sometimes a state variable is requested to take on a particular value. If the
+    /// state variable has dependencies, these dependencies must change in order for the
+    /// state variable to take on the target value.
     ///
-    /// Store the requested values of the dependencies in the dependency objects
-    /// that were saved on the structure (`self`) in `save_dependencies()`.
+    /// This function returns a list of update requests for the state variable's dependencies
+    /// that, if set on the dependencies, will cause the state variable to take on the
+    /// desired value.
     ///
-    /// Report these requested updates in the returned Result.
-    ///
-    /// If unable to change to the requested value, return Err.
+    /// An `Err` is returned if an effective combination of updates cannot be found.
     ///
     /// The `is_direct_change_from_renderer` argument is true if the requested value
     /// came directly from an action of the renderer
-    /// (as opposed to coming from another state variable that depends on this variable)
+    /// (as opposed to coming from another state variable that depends on this variable).
     #[allow(unused)]
-    fn request_dependency_updates(
+    fn invert(
         &mut self,
-        state_var: &StateVarReadOnlyView<T>,
+        state_var: &StateVarView<T>,
         is_direct_change_from_renderer: bool,
     ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
         Err(RequestDependencyUpdateError::NotImplemented)
@@ -152,15 +147,15 @@ pub struct StateVarMutableView<T: Default + Clone> {
     /// Since inner is in an Rc<RefCell>, it is shared with other views and could be changed by them.
     inner: Rc<RefCell<StateVarInner<T>>>,
 
-    /// a change counter that can be compared to the change counter of inner
-    /// in order to determine if the state variable has changed since last viewed
+    /// A change counter that can be compared to the change counter of inner
+    /// in order to determine if the state variable has changed since last viewed.
     change_counter_when_last_viewed: u32,
 }
 
 /// A read-only view of the value of the state variable.
 /// It includes methods that allow one to view the variable.
 #[derive(Debug)]
-pub struct StateVarReadOnlyView<T: Default + Clone> {
+pub struct StateVarView<T: Default + Clone> {
     /// Structure containing the value of the variable its meta data.
     /// Since inner is in an Rc<RefCell>, it is shared with other views and could be changed by them.
     inner: Rc<RefCell<StateVarInner<T>>>,
@@ -176,7 +171,7 @@ pub struct StateVarReadOnlyView<T: Default + Clone> {
 
 /// The value of a state variable along with its meta data.
 ///
-/// Since StateVarInner (via StateVarMutableView and StateVarReadOnlyView)
+/// Since StateVarInner (via StateVarMutableView and StateVarView)
 /// is also used for essential data, we keep extra fields,
 /// off this structure and put them only in StateVar.
 #[derive(Debug)]
@@ -344,8 +339,8 @@ impl<T: Default + Clone> StateVarMutableView<T> {
     }
 
     /// Create a new read-only view to this state variable
-    pub fn create_new_read_only_view(&self) -> StateVarReadOnlyView<T> {
-        StateVarReadOnlyView {
+    pub fn create_new_read_only_view(&self) -> StateVarView<T> {
+        StateVarView {
             inner: self.inner.clone(),
             change_counter_when_last_viewed: 0,
             update_has_been_queued: false,
@@ -470,7 +465,7 @@ impl<T: Default + Clone> StateVarMutableView<T> {
     }
 }
 
-impl<T: Default + Clone> StateVarReadOnlyView<T> {
+impl<T: Default + Clone> StateVarView<T> {
     /// Determine if the state variable has changed
     /// since we last called `get_value_record_viewed`.
     ///
@@ -529,8 +524,8 @@ impl<T: Default + Clone> StateVarReadOnlyView<T> {
     }
 
     /// Create a new read-only view to this state variable
-    pub fn create_new_read_only_view(&self) -> StateVarReadOnlyView<T> {
-        StateVarReadOnlyView {
+    pub fn create_new_read_only_view(&self) -> StateVarView<T> {
+        StateVarView {
             inner: self.inner.clone(),
             change_counter_when_last_viewed: 0,
             update_has_been_queued: false,
@@ -541,7 +536,7 @@ impl<T: Default + Clone> StateVarReadOnlyView<T> {
     /// attempt to set its value to the `requested_value` argument.
     ///
     /// To send all queued updates to core, call `return_queued_updates()`
-    /// on the `dependency_values` structure that contains this state variable
+    /// on the `data` structure that contains this state variable
     /// and pass the result as the return of the `request_dependency_updates()` function.
     ///
     /// A call to `queue_update` will never fail. However, the queued update may
@@ -567,7 +562,7 @@ pub trait QueryUpdateRequests {
     fn return_indices_with_queued_updates(&self) -> Vec<usize>;
 }
 
-impl<T: Default + Clone> QueryUpdateRequests for StateVarReadOnlyView<T> {
+impl<T: Default + Clone> QueryUpdateRequests for StateVarView<T> {
     /// Reset 'update_has_been_queued` to false
     fn reset_queued_updates(&mut self) {
         self.update_has_been_queued = false;
@@ -607,9 +602,9 @@ where
     }
 }
 
-impl<T: Default + Clone> Default for StateVarReadOnlyView<T> {
+impl<T: Default + Clone> Default for StateVarView<T> {
     fn default() -> Self {
-        StateVarReadOnlyView {
+        StateVarView {
             inner: Rc::new(RefCell::new(StateVarInner {
                 value: T::default(),
                 freshness: Freshness::Unresolved,
@@ -623,7 +618,7 @@ impl<T: Default + Clone> Default for StateVarReadOnlyView<T> {
     }
 }
 
-impl<T: Default + Clone> Clone for StateVarReadOnlyView<T> {
+impl<T: Default + Clone> Clone for StateVarView<T> {
     fn clone(&self) -> Self {
         self.create_new_read_only_view()
     }
@@ -631,19 +626,19 @@ impl<T: Default + Clone> Clone for StateVarReadOnlyView<T> {
 
 impl<T: Default + Clone> StateVar<T> {
     /// Create a new state variable with the supplied interface
-    pub fn new(interface: Box<dyn StateVarInterface<T>>, default_value: T) -> Self {
+    pub fn new(updater: Box<dyn StateVarUpdater<T>>, default_value: T) -> Self {
         let value = StateVarMutableView::new();
         StateVar {
             immutable_view_of_value: value.create_new_read_only_view(),
             value,
-            interface,
+            updater,
             default_value,
-            all_dependency_values: vec![],
+            all_data: vec![],
         }
     }
 
     /// Create a new read-only view to this state variable
-    pub fn create_new_read_only_view(&self) -> StateVarReadOnlyView<T> {
+    pub fn create_new_read_only_view(&self) -> StateVarView<T> {
         self.value.create_new_read_only_view()
     }
 
@@ -728,30 +723,29 @@ impl<T: Default + Clone> StateVar<T> {
         self.value.get_requested_value()
     }
 
-    /// Convenience function to call `return_dependency_instructions` on interface
-    pub fn return_dependency_instructions(
+    /// Convenience function to call `return_data_queries` on interface
+    pub fn return_data_queries(
         &mut self,
         extending: Option<ExtendSource>,
         state_var_idx: StateVarIdx,
-    ) -> Vec<DependencyInstruction> {
-        self.interface
-            .return_dependency_instructions(extending, state_var_idx)
+    ) -> Vec<DataQuery> {
+        self.updater.return_data_queries(extending, state_var_idx)
     }
 
     /// Call `save_dependencies` on interface
-    /// and save dependencies to `all_dependency_values` field
-    pub fn save_dependencies(&mut self, dependencies: &Vec<DependenciesCreatedForInstruction>) {
-        self.interface.save_dependencies(dependencies);
-        self.all_dependency_values = dependencies
+    /// and save dependencies to `all_data` field
+    pub fn save_dependencies(&mut self, dependencies: &Vec<DependenciesCreatedForDataQuery>) {
+        self.updater.save_data(dependencies);
+        self.all_data = dependencies
             .iter()
             .flat_map(|vec| vec.iter().map(|elt| elt.value.create_new_read_only_view()))
             .collect();
     }
 
-    /// Convenience function to call `calculate_state_var_from_dependencies` on interface
+    /// Convenience function to call `calculate` on interface
     /// and then call mark_fresh
-    pub fn calculate_state_var_from_dependencies_and_mark_fresh(&self) {
-        match self.interface.calculate_state_var_from_dependencies() {
+    pub fn calculate_and_mark_fresh(&self) {
+        match self.updater.calculate() {
             StateVarCalcResult::Calculated(val) => self.value.set_value(val),
             StateVarCalcResult::FromDefault(val) => {
                 self.value.set_value_and_set_came_from_default(val, true)
@@ -765,7 +759,7 @@ impl<T: Default + Clone> StateVar<T> {
         &mut self,
         is_direct_change_from_renderer: bool,
     ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
-        self.interface.request_dependency_updates(
+        self.updater.invert(
             &self.immutable_view_of_value,
             is_direct_change_from_renderer,
         )
@@ -776,23 +770,23 @@ impl<T: Default + Clone> StateVar<T> {
         self.default_value.clone()
     }
 
-    /// Record that the fact each of the dependencies in `all_dependency_values` were viewed.
+    /// Record that the fact each of the dependencies in `all_data` were viewed.
     /// Used to determine if any dependency changed since it was last viewed.
     pub fn record_all_dependencies_viewed(&mut self) {
-        self.all_dependency_values
+        self.all_data
             .iter_mut()
             .for_each(|state_var| state_var.record_viewed())
     }
 
     /// Check if a dependency has changed since we last called `record_all_dependencies_viewed`.
     pub fn check_if_any_dependency_changed_since_last_viewed(&self) -> bool {
-        if self.all_dependency_values.is_empty() {
+        if self.all_data.is_empty() {
             // if there are no dependencies, then report true if state variable is Unresolved or Resolved,
             // as in that case, we still need to calculate the state variable
             let this_freshness = self.get_freshness();
             this_freshness == Freshness::Resolved || this_freshness == Freshness::Unresolved
         } else {
-            self.all_dependency_values
+            self.all_data
                 .iter()
                 .any(|state_var| state_var.check_if_changed_since_last_viewed())
         }
@@ -833,12 +827,12 @@ pub enum StateVarMutableViewEnum {
 
 /// An read-only enum view of the value of the state variable.
 /// It includes methods that allow one to view the variable.
-#[derive(StateVarReadOnlyViewMethods)]
-pub enum StateVarReadOnlyViewEnum {
-    Number(StateVarReadOnlyView<f64>),
-    Integer(StateVarReadOnlyView<i64>),
-    String(StateVarReadOnlyView<String>),
-    Boolean(StateVarReadOnlyView<bool>),
+#[derive(StateVarViewMethods)]
+pub enum StateVarViewEnum {
+    Number(StateVarView<f64>),
+    Integer(StateVarView<i64>),
+    String(StateVarView<String>),
+    Boolean(StateVarView<bool>),
 }
 
 /// This can contain the value of a state variable of any type,
@@ -894,7 +888,7 @@ impl fmt::Debug for StateVarMutableViewEnum {
     }
 }
 
-impl fmt::Debug for StateVarReadOnlyViewEnum {
+impl fmt::Debug for StateVarViewEnum {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.get_freshness() {
             Freshness::Fresh => self.get().fmt(f),

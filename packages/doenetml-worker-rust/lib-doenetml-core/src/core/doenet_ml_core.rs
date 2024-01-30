@@ -22,7 +22,7 @@ use super::state::state_var_updates::process_state_variable_update_request;
 use super::state::Freshness;
 
 use crate::components::actions::{Action, UpdateFromAction};
-use crate::components::prelude::{ComponentState, DependenciesCreatedForInstruction, StateVarIdx};
+use crate::components::prelude::{ComponentState, DependenciesCreatedForDataQuery, StateVarIdx};
 use crate::dast::{get_flat_dast_update, to_flat_dast};
 use crate::state::StateVarPointer;
 #[allow(unused)]
@@ -68,7 +68,7 @@ pub struct DoenetMLCore {
     /// - The hash map value *EssentialStateVariable* is a *StateVarMutableViewEnum*
     ///   that stores the value.
     ///   (Note, unlike for state variables, *EssentialStateVariable* is not attached to any *StateVar*,
-    ///   as it doesn't need a *StateVarInterface*.)
+    ///   as it doesn't need *StateVarUpdater*.)
     pub essential_data: Vec<HashMap<EssentialDataOrigin, EssentialStateVar>>,
 
     pub processing_state: CoreProcessingState,
@@ -97,10 +97,10 @@ pub struct DependencyGraph {
     /// defined by the order in *components*.
     /// - The second index is the *StateVarIdx*,
     /// defined by the order in which state variables are defined for the component.
-    /// - The third index is the index of the *DependencyInstruction* for the state variable.
-    /// - The inner DependenciesCreatedForInstruction is the vector of dependencies
-    ///   that matched that DependencyInstruction.
-    pub dependencies: Vec<Vec<Vec<DependenciesCreatedForInstruction>>>,
+    /// - The third index is the index of the *DataQuery* for the state variable.
+    /// - The inner DependenciesCreatedForDataQuery is the vector of dependencies
+    ///   that matched that DataQuery.
+    pub dependencies: Vec<Vec<Vec<DependenciesCreatedForDataQuery>>>,
 
     /// The inverse of the dependency graph *dependencies* (along with *dependent_on_essential*).
     /// It specifies the state variables that are dependent on each state variable.

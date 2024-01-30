@@ -5,8 +5,8 @@ use component_node::{
     rendered_children_derive, rendered_state_derive,
 };
 use component_state_methods::{
-    add_dependency_data_impl, component_state_derive, state_variable_dependencies_derive,
-    state_variable_dependency_instructions_derive,
+    add_dependency_data_impl, component_state_derive, state_variable_data_queries_derive,
+    state_variable_dependencies_derive,
 };
 use proc_macro::TokenStream;
 use state_var_methods::{
@@ -54,7 +54,7 @@ pub fn state_var_mutable_view_methods_derive_wrapper(input: TokenStream) -> Toke
     state_var_mutable_view_methods_derive(input)
 }
 
-#[proc_macro_derive(StateVarReadOnlyViewMethods)]
+#[proc_macro_derive(StateVarViewMethods)]
 pub fn state_var_read_only_view_methods_derive_wrapper(input: TokenStream) -> TokenStream {
     state_var_read_only_view_methods_derive(input)
 }
@@ -92,7 +92,7 @@ pub fn into_state_var_enum_refs_derive_wrapper(input: TokenStream) -> TokenStrea
 ///   can be used to satisfy the component profile of type `ProfileType`, where `ProfileType`
 ///   can currently be one of `Text`, `Number`, `Integer`, `Boolean`.
 ///
-///   If a parent has a `Child` or `AttributeChild` dependency instruction, it will request
+///   If a parent has a `Child` or `AttributeChild` data query, it will request
 ///   a particular profile type, and this state variable could be returned.
 ///
 ///   Currently, the `component_profile state_variables` does not have a mechanism for specifying
@@ -130,14 +130,14 @@ pub fn rendered_state_derive_wrapper(input: TokenStream) -> TokenStream {
     rendered_state_derive(input)
 }
 
-#[proc_macro_derive(StateVariableDependencies, attributes(consume_remaining_instructions))]
+#[proc_macro_derive(StateVariableDependencies, attributes(consume_remaining_data_queries))]
 pub fn state_variable_dependencies_derive_wrapper(input: TokenStream) -> TokenStream {
     state_variable_dependencies_derive(input)
 }
 
-#[proc_macro_derive(StateVariableDependencyInstructions)]
-pub fn state_variable_dependency_instructions_derive_wrapper(input: TokenStream) -> TokenStream {
-    state_variable_dependency_instructions_derive(input)
+#[proc_macro_derive(StateVariableDataQueries)]
+pub fn state_variable_data_queries_derive_wrapper(input: TokenStream) -> TokenStream {
+    state_variable_data_queries_derive(input)
 }
 
 #[proc_macro_attribute]
