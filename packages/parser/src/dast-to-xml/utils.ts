@@ -87,19 +87,17 @@ export function mergeAdjacentTextInArray(nodes: DastNodes[]): DastNodes[] {
 export function filterPositionInfo(
     nodes: DastNodes | DastNodes[],
 ): DastNodes | DastNodes[] {
+    if (typeof nodes !== "object" || nodes === null) {
+        return nodes;
+    }
     if (Array.isArray(nodes)) {
         return nodes.flatMap(filterPositionInfo);
     }
-    if (nodes && typeof nodes === "object" && "position" in nodes) {
+    if ("position" in nodes) {
         delete nodes.position;
     }
     for (const value of Object.values(nodes)) {
-        if (Array.isArray(value)) {
-            filterPositionInfo(value);
-        }
-        if (value && typeof value === "object" && "position" in value) {
-            filterPositionInfo(value);
-        }
+        filterPositionInfo(value);
     }
     return nodes;
 }
