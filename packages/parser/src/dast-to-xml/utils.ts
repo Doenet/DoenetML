@@ -93,7 +93,7 @@ export function filterPositionInfo(
     if (Array.isArray(nodes)) {
         return nodes.flatMap(filterPositionInfo);
     }
-    if (nodes && typeof nodes === "object" && "position" in nodes) {
+    if ("position" in nodes) {
         delete nodes.position;
     }
     for (const value of Object.values(nodes)) {
