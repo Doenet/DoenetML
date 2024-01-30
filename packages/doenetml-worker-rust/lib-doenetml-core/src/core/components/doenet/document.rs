@@ -9,6 +9,7 @@ use crate::components::prelude::*;
     ComponentActions,
     ComponentAttributes,
 )]
+#[pass_through_children]
 pub struct Document {
     pub common: ComponentCommonData,
     pub state: DocumentState,

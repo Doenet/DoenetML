@@ -101,7 +101,7 @@ impl Deref for DependenciesCreatedForDataQuery {
     }
 }
 
-/// Information which update were requested so that we can recurse
+/// Information on which update were requested so that we can recurse
 /// and call *request_dependency_updates*
 /// on the state variables of those dependencies.
 ///

@@ -56,15 +56,15 @@ impl StateVarUpdater<String> for ImmediateValueStateVar {
     }
 
     fn calculate(&self) -> StateVarCalcResult<String> {
-        let immediate_value = if !self.data.bind_value_to.came_from_default()
-            && *self.data.sync_immediate_value.get()
-        {
-            self.data.bind_value_to.get().clone()
-        } else if self.data.essential.came_from_default() {
-            self.data.prefill.get().clone()
-        } else {
-            self.data.essential.get().clone()
-        };
+        let data = &self.data;
+        let immediate_value =
+            if !data.bind_value_to.came_from_default() && *data.sync_immediate_value.get() {
+                data.bind_value_to.get().clone()
+            } else if data.essential.came_from_default() {
+                data.prefill.get().clone()
+            } else {
+                data.essential.get().clone()
+            };
         StateVarCalcResult::Calculated(immediate_value)
     }
 
@@ -73,18 +73,16 @@ impl StateVarUpdater<String> for ImmediateValueStateVar {
         state_var: &StateVarView<String>,
         is_direct_change_from_renderer: bool,
     ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
+        let data = &mut self.data;
+
         let requested_value = state_var.get_requested_value();
 
-        let bind_value_to_came_from_default = self.data.bind_value_to.came_from_default();
+        data.essential.queue_update(requested_value.clone());
 
-        self.data.essential.queue_update(requested_value.clone());
-
-        if !is_direct_change_from_renderer && !bind_value_to_came_from_default {
-            self.data
-                .bind_value_to
-                .queue_update(requested_value.clone());
+        if !is_direct_change_from_renderer && !data.bind_value_to.came_from_default() {
+            data.bind_value_to.queue_update(requested_value.clone());
         }
 
-        Ok(self.data.return_queued_updates())
+        Ok(data.queued_updates())
     }
 }

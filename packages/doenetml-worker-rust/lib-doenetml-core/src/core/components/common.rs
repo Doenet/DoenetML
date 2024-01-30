@@ -198,21 +198,21 @@ pub trait ComponentNode: ComponentState {
     fn set_is_in_render_tree(&mut self, is_in_render_tree: bool);
 }
 
-/// The RenderedChildren trait can be derived for a component, giving it the default implementation
-/// of the rendered children being the same as the children.
-/// To specify other rendered children, a component type can implement
-/// the trait to override the defaults.
+/// Specifies the children that will be sent to the renderer.
+///
+/// Two behaviors can be automatically derived by the `RenderedChildren` macro
+/// based on helper attributes applied to the struct.
+/// - `#[pass_through_children]`: all children are passed through as the rendered children (default if no attributes)
+/// - `#[no_rendered_children]`: no children are passed to the renderer
 #[enum_dispatch]
-pub trait RenderedChildren: ComponentNode {
+pub trait RenderedChildren {
     /// Return the children that will be used in the flat dast sent to the renderer.
-    fn get_rendered_children(&self) -> &Vec<ComponentPointerTextOrMacro> {
-        self.get_children()
-    }
+    fn get_rendered_children(&self) -> &Vec<ComponentPointerTextOrMacro>;
 }
 
 /// The ComponentAttributes trait can be derived for a component,
-/// giving it the default implementation of no attributes.
-/// To add attributes, a component type can implement the trait to override the defaults.
+/// giving it the default implementation of ignoring all attributes.
+/// To add attributes to be processed by core, a component type can implement the trait.
 #[enum_dispatch]
 pub trait ComponentAttributes: ComponentNode {
     /// Return a list of the attribute names that the component will accept

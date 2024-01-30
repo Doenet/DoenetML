@@ -146,7 +146,7 @@ impl StateVarUpdater<String> for StringStateVar {
 
             self.data.strings[0].queue_update(requested_value.clone());
 
-            Ok(self.data.return_queued_updates())
+            Ok(self.data.queued_updates())
         }
     }
 }

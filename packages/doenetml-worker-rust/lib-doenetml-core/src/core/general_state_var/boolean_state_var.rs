@@ -164,20 +164,17 @@ impl StateVarUpdater<bool> for BooleanStateVar {
         }
     }
 
+    #[allow(clippy::needless_return)]
     fn calculate(&self) -> StateVarCalcResult<bool> {
         if self.have_invalid_combination {
-            StateVarCalcResult::Calculated(false)
+            return StateVarCalcResult::Calculated(false);
         } else if self.data.booleans_or_strings.len() == 1 {
             match &self.data.booleans_or_strings[0] {
                 BooleanOrString::Boolean(boolean_value) => {
-                    if self.from_single_essential {
-                        if boolean_value.came_from_default() {
-                            // If we are basing it on a single essential variable that came from default,
-                            // then we propagate came_from_default as well as the value.
-                            return StateVarCalcResult::FromDefault(*boolean_value.get());
-                        } else {
-                            return StateVarCalcResult::Calculated(*boolean_value.get());
-                        }
+                    if self.from_single_essential && boolean_value.came_from_default() {
+                        // If we are basing it on a single essential variable that came from default,
+                        // then we propagate came_from_default as well as the value.
+                        return StateVarCalcResult::FromDefault(*boolean_value.get());
                     } else {
                         return StateVarCalcResult::Calculated(*boolean_value.get());
                     }
@@ -218,7 +215,7 @@ impl StateVarUpdater<bool> for BooleanStateVar {
                     string_value.queue_update(requested_value.to_string());
                 }
             }
-            Ok(self.data.return_queued_updates())
+            Ok(self.data.queued_updates())
         } else {
             Err(RequestDependencyUpdateError::CouldNotUpdate)
         }

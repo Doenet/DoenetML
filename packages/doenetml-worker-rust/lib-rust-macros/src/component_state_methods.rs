@@ -5,7 +5,7 @@ use quote::quote;
 use syn::{self, parse::Parser, FieldsNamed};
 
 use crate::util::{
-    check_if_field_has_attribute, check_if_field_has_attribute_return_identities,
+    check_if_have_attribute, check_if_have_attribute_return_identities,
     find_type_from_state_var_with_generics,
 };
 
@@ -137,7 +137,7 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
                         //     x if x.eq_ignore_ascii_case(#field_camel_case) => Some(#sv_idx),
                         // });
 
-                        if check_if_field_has_attribute(&named[sv_idx], "is_public") {
+                        if check_if_have_attribute(&named[sv_idx].attrs, "is_public") {
                             get_public_state_variable_index_from_name_case_insensitive_arms.push(
                                 quote! {
                                     x if x.eq_ignore_ascii_case(#field_camel_case) => Some(#sv_idx),
@@ -145,8 +145,8 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
                             );
                         }
 
-                        for profile_type in check_if_field_has_attribute_return_identities(
-                            &named[sv_idx],
+                        for profile_type in check_if_have_attribute_return_identities(
+                            &named[sv_idx].attrs,
                             "component_profile_state_variable",
                         ) {
                             get_component_profile_state_variables_items.push(quote! {
@@ -157,7 +157,7 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
                             });
                         }
 
-                        if check_if_field_has_attribute(&named[sv_idx], "for_renderer") {
+                        if check_if_have_attribute(&named[sv_idx].attrs, "for_renderer") {
                             get_for_renderer_state_variable_indices_items.push(quote! {
                                 #sv_idx,
                             });
@@ -386,18 +386,18 @@ pub fn state_variable_dependencies_derive(input: TokenStream) -> TokenStream {
 
                         let mapping_data = &self._data_query_mapping_data.#field_identity;
 
-                        requests.extend(self.#field_identity.return_indices_with_queued_updates().into_iter().map(|idx| {
+                        requests.extend(self.#field_identity.indices_with_queued_updates().into_iter().map(|idx| {
                             let data = &mapping_data[idx];
                             DependencyValueUpdateRequest {
                                 data_query_idx: data.0,
                                 dependency_idx: data.1,
                             }
                         }));
-                        self.#field_identity.reset_queued_updates();
+                        self.#field_identity.clear_queued_updates();
                     });
 
-                    if check_if_field_has_attribute(
-                        &named[data_query_idx],
+                    if check_if_have_attribute(
+                        &named[data_query_idx].attrs,
                         "consume_remaining_data_queries",
                     ) {
                         try_from_dependencies_vec_statements.push(quote! {
@@ -450,11 +450,11 @@ pub fn state_variable_dependencies_derive(input: TokenStream) -> TokenStream {
                         /// Return the updates queued during by calls to `queue_update()`
                         /// on the dependencies of this `data` structure.
                         ///
-                        /// Returns all queued updates since the last call to `return_queued_updates()`.
+                        /// Returns all queued updates since the last call to `queued_updates()`.
                         ///
                         /// The result of this function is intended to be sent as the return value
                         /// for `request_dependency_updates`.
-                        fn return_queued_updates(&mut self) -> Vec<DependencyValueUpdateRequest> {
+                        fn queued_updates(&mut self) -> Vec<DependencyValueUpdateRequest> {
                             let mut requests = Vec::new();
                             #(#return_update_requests_statements)*
                             requests

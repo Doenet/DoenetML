@@ -1,5 +1,5 @@
 use proc_macro2::Ident;
-use syn::{self, Field, GenericArgument, Meta, PathArguments, Type, TypePath};
+use syn::{self, Attribute, GenericArgument, Meta, PathArguments, Type, TypePath};
 
 pub fn find_type_from_state_var(ty: &Type) -> Option<&Ident> {
     if let Type::Path(type_path) = ty {
@@ -23,8 +23,8 @@ pub fn find_type_from_state_var_with_generics(ty: &Type) -> Option<&Ident> {
     None
 }
 
-pub fn check_if_field_has_attribute(field: &Field, attr_name: &str) -> bool {
-    for attr in field.attrs.iter() {
+pub fn check_if_have_attribute(attrs: &[Attribute], attr_name: &str) -> bool {
+    for attr in attrs.iter() {
         if let Meta::Path(path) = &attr.meta {
             if path.segments[0].ident == attr_name {
                 return true;
@@ -34,12 +34,12 @@ pub fn check_if_field_has_attribute(field: &Field, attr_name: &str) -> bool {
     false
 }
 
-pub fn check_if_field_has_attribute_return_identities(
-    field: &Field,
+pub fn check_if_have_attribute_return_identities(
+    attrs: &[Attribute],
     attr_name: &str,
 ) -> Vec<Ident> {
     let mut identities = Vec::new();
-    for attr in field.attrs.iter() {
+    for attr in attrs.iter() {
         if let Meta::List(meta_list) = &attr.meta {
             if meta_list.path.segments[0].ident == attr_name {
                 let parse_result: Result<Ident, _> = syn::parse2(meta_list.tokens.clone());

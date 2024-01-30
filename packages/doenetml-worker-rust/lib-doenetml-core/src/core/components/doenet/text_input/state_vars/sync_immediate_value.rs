@@ -56,10 +56,11 @@ impl StateVarUpdater<bool> for SyncImmediateValueStateVar {
         state_var: &StateVarView<bool>,
         _is_direct_change_from_renderer: bool,
     ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
+        let data = &mut self.data;
         let requested_value = state_var.get_requested_value();
 
-        self.data.essential.queue_update(*requested_value);
+        data.essential.queue_update(*requested_value);
 
-        Ok(self.data.return_queued_updates())
+        Ok(data.queued_updates())
     }
 }

@@ -535,7 +535,7 @@ impl<T: Default + Clone> StateVarView<T> {
     /// Queue an update to the dependency that will
     /// attempt to set its value to the `requested_value` argument.
     ///
-    /// To send all queued updates to core, call `return_queued_updates()`
+    /// To send all queued updates to core, call `queued_updates()`
     /// on the `data` structure that contains this state variable
     /// and pass the result as the return of the `request_dependency_updates()` function.
     ///
@@ -556,19 +556,19 @@ impl<T: Default + Clone> StateVarView<T> {
 
 #[enum_dispatch]
 pub trait QueryUpdateRequests {
-    /// Reset variable that tracks whether or not an update has been requested
-    fn reset_queued_updates(&mut self);
+    /// Clear variable that tracks whether or not an update has been requested
+    fn clear_queued_updates(&mut self);
 
-    fn return_indices_with_queued_updates(&self) -> Vec<usize>;
+    fn indices_with_queued_updates(&self) -> Vec<usize>;
 }
 
 impl<T: Default + Clone> QueryUpdateRequests for StateVarView<T> {
     /// Reset 'update_has_been_queued` to false
-    fn reset_queued_updates(&mut self) {
+    fn clear_queued_updates(&mut self) {
         self.update_has_been_queued = false;
     }
 
-    fn return_indices_with_queued_updates(&self) -> Vec<usize> {
+    fn indices_with_queued_updates(&self) -> Vec<usize> {
         if self.update_has_been_queued {
             vec![0]
         } else {
@@ -581,18 +581,18 @@ impl<T> QueryUpdateRequests for Vec<T>
 where
     T: QueryUpdateRequests,
 {
-    fn reset_queued_updates(&mut self) {
+    fn clear_queued_updates(&mut self) {
         for val in self.iter_mut() {
-            val.reset_queued_updates();
+            val.clear_queued_updates();
         }
     }
 
-    fn return_indices_with_queued_updates(&self) -> Vec<usize> {
+    fn indices_with_queued_updates(&self) -> Vec<usize> {
         // Note: this algorithm does not correctly handle Vec<Vec<T: QueryUpdateRequests>>
         self.iter()
             .enumerate()
             .filter_map(|(idx, val)| {
-                if val.return_indices_with_queued_updates().is_empty() {
+                if val.indices_with_queued_updates().is_empty() {
                     None
                 } else {
                     Some(idx)

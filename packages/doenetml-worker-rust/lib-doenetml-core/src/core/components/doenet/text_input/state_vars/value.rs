@@ -58,16 +58,17 @@ impl StateVarUpdater<String> for ValueStateVar {
     }
 
     fn calculate(&self) -> StateVarCalcResult<String> {
-        let value = if *self.data.sync_immediate_value.get() {
-            self.data.immediate_value.get().clone()
-        } else if self.data.bind_value_to.came_from_default() {
-            if self.data.essential.came_from_default() {
-                self.data.prefill.get().clone()
+        let data = &self.data;
+        let value = if *data.sync_immediate_value.get() {
+            data.immediate_value.get().clone()
+        } else if data.bind_value_to.came_from_default() {
+            if data.essential.came_from_default() {
+                data.prefill.get().clone()
             } else {
-                self.data.essential.get().clone()
+                data.essential.get().clone()
             }
         } else {
-            self.data.bind_value_to.get().clone()
+            data.bind_value_to.get().clone()
         };
 
         StateVarCalcResult::Calculated(value)
@@ -82,9 +83,7 @@ impl StateVarUpdater<String> for ValueStateVar {
 
         let data = &mut self.data;
 
-        let bind_value_to_came_from_default = data.bind_value_to.came_from_default();
-
-        if bind_value_to_came_from_default {
+        if data.bind_value_to.came_from_default() {
             data.essential.queue_update(requested_value.clone());
             data.immediate_value.queue_update(requested_value.clone());
             data.sync_immediate_value.queue_update(true);
@@ -93,6 +92,6 @@ impl StateVarUpdater<String> for ValueStateVar {
             data.sync_immediate_value.queue_update(true);
         }
 
-        Ok(data.return_queued_updates())
+        Ok(data.queued_updates())
     }
 }

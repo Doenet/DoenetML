@@ -2,19 +2,22 @@ use crate::components::prelude::*;
 use crate::general_state_var::BooleanStateVar;
 
 /// Definition of the `<boolean>` DoenetML component
-#[derive(Debug, Default, ComponentNode, ComponentState, ComponentActions, ComponentAttributes)]
+#[derive(
+    Debug,
+    Default,
+    ComponentNode,
+    ComponentState,
+    ComponentActions,
+    ComponentAttributes,
+    RenderedChildren,
+)]
+#[no_rendered_children]
 pub struct Boolean {
     /// The common component data needed to derive the `ComponentNode` trait
     pub common: ComponentCommonData,
 
     /// The state variables that underlie the `<boolean>` component.
     pub state: BooleanState,
-
-    /// An empty vector that will be returned with `get_rendered_children`
-    /// indicating this component has no children that are rendered.
-    ///
-    /// (Created because `get_rendered_children` must return a reference to a vector,)
-    pub no_rendered_children: Vec<ComponentPointerTextOrMacro>,
 }
 
 impl Boolean {
@@ -65,11 +68,5 @@ impl BooleanState {
 impl Default for BooleanState {
     fn default() -> Self {
         BooleanState::new()
-    }
-}
-
-impl RenderedChildren for Boolean {
-    fn get_rendered_children(&self) -> &Vec<ComponentPointerTextOrMacro> {
-        &self.no_rendered_children
     }
 }

@@ -25,20 +25,14 @@ pub enum TextInputAction {
 }
 
 /// Definition of the `<textInput>` DoenetML component
-#[derive(Debug, Default, ComponentNode, ComponentState)]
+#[derive(Debug, Default, ComponentNode, ComponentState, RenderedChildren)]
+#[no_rendered_children]
 pub struct TextInput {
     /// The common component data needed to derive the `ComponentNode` trait
     pub common: ComponentCommonData,
 
     /// The state variables that underlie the `<textInput>` component.
     pub state: TextInputState,
-}
-
-impl RenderedChildren for TextInput {
-    fn get_rendered_children(&self) -> &Vec<ComponentPointerTextOrMacro> {
-        static EMPTY_VECTOR: Vec<ComponentPointerTextOrMacro> = vec![];
-        &EMPTY_VECTOR
-    }
 }
 
 impl ComponentAttributes for TextInput {

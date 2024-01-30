@@ -4,6 +4,8 @@ use proc_macro2::{Ident, Span};
 use quote::quote;
 use syn::{self, FieldsNamed};
 
+use crate::util::check_if_have_attribute;
+
 /// Implement the ComponentNode trait structs
 /// assuming they have have a common field that is `ComponentCommonData`
 pub fn component_node_derive(input: TokenStream) -> TokenStream {
@@ -126,12 +128,29 @@ pub fn rendered_children_derive(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let data = &ast.data;
 
+    let pass_through_children = check_if_have_attribute(&ast.attrs, "pass_through_children")
+        || !check_if_have_attribute(&ast.attrs, "no_rendered_children");
+
     let output = match data {
         syn::Data::Struct(s) => match &s.fields {
             syn::Fields::Named(FieldsNamed { .. }) => {
-                quote! {
-                    impl RenderedChildren for #name {
-                        // using default implementations for all traits so no code necessary here
+                if pass_through_children {
+                    quote! {
+                        impl RenderedChildren for #name {
+                            fn get_rendered_children(&self) -> &Vec<ComponentPointerTextOrMacro> {
+                                &self.common.children
+                            }
+                        }
+                    }
+                } else {
+                    // no_rendered_children
+                    quote! {
+                        impl RenderedChildren for #name {
+                            fn get_rendered_children(&self) -> &Vec<ComponentPointerTextOrMacro> {
+                                static EMPTY_VECTOR: Vec<ComponentPointerTextOrMacro> = vec![];
+                                &EMPTY_VECTOR
+                            }
+                        }
                     }
                 }
             }
