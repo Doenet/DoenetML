@@ -107,7 +107,7 @@ impl Deref for DependenciesCreatedForDataQuery {
 ///
 /// The actual requested values for those dependencies were stored
 /// in the *requested_value* field of their state variables.
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct DependencyValueUpdateRequest {
     pub data_query_idx: usize,
     pub dependency_idx: usize,

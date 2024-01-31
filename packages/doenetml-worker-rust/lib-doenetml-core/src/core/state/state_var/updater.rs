@@ -13,6 +13,7 @@ use super::{StateVarIdx, StateVarView};
 /// The possible results of a call to `calculate`:
 /// - Calculated(T): the value was calculated to be T
 /// - FromDefault(T): the value T was determined from the default value
+#[derive(Debug, PartialEq)]
 pub enum StateVarCalcResult<T> {
     Calculated(T),
     FromDefault(T),
