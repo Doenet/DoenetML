@@ -115,8 +115,8 @@ impl StateVarUpdater<String, StringRequiredData> for StringStateVar {
             }
             _ => {
                 // multiple string variables, so concatenate
-                // TODO: can we implement this without cloning the inner value?
-                let value: String = strings.iter().map(|v| v.get().clone()).collect();
+                let mut value = String::new();
+                value.extend(strings.iter().map(|v| v.get().clone()));
 
                 StateVarCalcResult::Calculated(value)
             }

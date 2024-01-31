@@ -158,15 +158,13 @@ impl StateVarUpdater<bool, BooleanRequiredData> for BooleanStateVar {
             return StateVarCalcResult::Calculated(false);
         } else if data.base.len() > 1 {
             // Have multiple string variables. Concatenate the string values into a single string
-            // TODO: can we do this without cloning?
-            let value: String = data
-                .base
-                .iter()
-                .map(|v| match v {
-                    BooleanOrString::Boolean(boolean_val) => boolean_val.get().to_string(),
-                    BooleanOrString::String(string_value) => string_value.get().to_string(),
-                })
-                .collect();
+
+            let mut value = String::new();
+            value.extend(data.base.iter().map(|v| match v {
+                BooleanOrString::Boolean(boolean_val) => boolean_val.get().to_string(),
+                BooleanOrString::String(string_value) => string_value.get().to_string(),
+            }));
+
             return StateVarCalcResult::Calculated(string_to_boolean(&value));
         } else {
             // not extending and have no base dependencies, so use the essential value,

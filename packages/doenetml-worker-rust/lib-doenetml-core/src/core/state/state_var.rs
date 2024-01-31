@@ -158,7 +158,7 @@ impl<T: Default + Clone> StateVarInner<T> {
 
     /// Set the value of the state variable to `new_val`,
     /// mark it as Fresh, set `came_from_default` to true, and increment the change counter.
-    pub fn set_value_and_set_came_from_default(&mut self, new_val: T) {
+    pub fn set_value_from_default(&mut self, new_val: T) {
         self.value = new_val;
         self.freshness = Freshness::Fresh;
         self.came_from_default = true;
@@ -257,8 +257,8 @@ impl<T: Default + Clone> StateVar<T> {
 
     /// Set the value of the state variable to `new_val`,
     /// mark it as Fresh, and set `came_from_default` to true.
-    pub fn set_value_and_set_came_from_default(&self, new_val: T) {
-        self.value.set_value_and_set_came_from_default(new_val)
+    pub fn set_value_from_default(&self, new_val: T) {
+        self.value.set_value_from_default(new_val)
     }
 
     /// If the state variable is Stale, mark it as Fresh
@@ -324,9 +324,7 @@ impl<T: Default + Clone> StateVar<T> {
     pub fn calculate_and_mark_fresh(&self) {
         match self.updater.calculate() {
             StateVarCalcResult::Calculated(val) => self.value.set_value(val),
-            StateVarCalcResult::FromDefault(val) => {
-                self.value.set_value_and_set_came_from_default(val)
-            }
+            StateVarCalcResult::FromDefault(val) => self.value.set_value_from_default(val),
         };
         self.mark_fresh();
     }
