@@ -135,17 +135,17 @@ impl<T: Default + Clone> StateVarMutableView<T> {
     }
 
     /// Set the value of the state variable to the supplied value,
-    /// set 'came_from_default` to false, and mark it fresh
+    /// set `came_from_default` to false, and mark it fresh
     pub fn set_value(&self, new_val: T) {
         self.inner.borrow_mut().set_value(new_val);
     }
 
     /// Set the value of the state variable to `new_val`,
-    /// mark it as Fresh, and set `came_from_default`.
-    pub fn set_value_and_set_came_from_default(&self, new_val: T, came_from_default: bool) {
+    /// mark it as Fresh, and set `came_from_default` to true.
+    pub fn set_value_and_set_came_from_default(&self, new_val: T) {
         self.inner
             .borrow_mut()
-            .set_value_and_set_came_from_default(new_val, came_from_default);
+            .set_value_and_set_came_from_default(new_val);
     }
 
     /// If the state variable is Stale, mark it as Fresh
