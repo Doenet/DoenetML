@@ -700,15 +700,15 @@ pub fn into_state_var_enum_refs_derive(input: TokenStream) -> TokenStream {
 
                         impl_try_from_read_only_enum_to_ready_only_view_variants.push(quote! {
 
-                            impl TryFrom<&StateVarViewEnum> for StateVarView<#state_var_type> {
+                            impl TryFromState<StateVarViewEnum> for StateVarView<#state_var_type> {
                                 type Error = &'static str;
-                                fn try_from(value: &StateVarViewEnum) -> Result<Self, Self::Error> {
+                                fn try_from_state(value: &StateVarViewEnum) -> Result<Self, Self::Error> {
                                     match value {
                                         StateVarViewEnum::#variant_ident(ref sv_ref) => {
                                             Result::Ok(sv_ref.create_new_read_only_view())
                                         }
                                         _ => Result::Err(
-                                            "Only #variant_ident can be converted to StateVarView<#state_var_type>",
+                                            "Incompatible type to be converted to StateVarView<T>",
                                         ),
                                     }
                                 }

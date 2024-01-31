@@ -3,7 +3,7 @@ use std::{cell::RefCell, collections::HashMap, ops::Deref, rc::Rc};
 use crate::{
     attribute::AttributeName,
     components::{
-        prelude::{ComponentState, StateVarIdx},
+        prelude::{ComponentState, StateVarIdx, TryFromState, TryToState},
         ComponentEnum, ComponentNode, ComponentProfile,
     },
     state::{
@@ -84,14 +84,14 @@ impl TryFrom<&DependencySource> for StateVarPointer {
 }
 
 /// Gives both the source of the dependency and the current value of the dependency
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Dependency {
     pub source: DependencySource,
     pub value: StateVarViewEnum,
 }
 
 /// The vector of dependencies that were created for a `DataQuery`
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct DependenciesCreatedForDataQuery(pub Vec<Dependency>);
 
 impl Deref for DependenciesCreatedForDataQuery {
@@ -622,34 +622,46 @@ fn get_attribute_children_with_parent_falling_back_to_extend_source(
         })
 }
 
-pub trait TryIntoStateVar<'a, T> {
-    type Error;
-
-    fn try_into_state_var(&self) -> Result<T, Self::Error>;
-}
-
-impl<'a, T> TryIntoStateVar<'a, T> for &'a DependenciesCreatedForDataQuery
+impl<T> TryFromState<DependenciesCreatedForDataQuery> for T
 where
-    T: TryFrom<&'a StateVarViewEnum>,
+    T: TryFromState<StateVarViewEnum>,
 {
     type Error = T::Error;
 
-    fn try_into_state_var(&self) -> Result<T, Self::Error> {
-        if self.len() != 1 {
-            panic!("Must have a single dependency. Got `{:?}`", &self);
+    fn try_from_state(value: &DependenciesCreatedForDataQuery) -> Result<Self, Self::Error> {
+        if value.len() != 1 {
+            panic!("Must have a single dependency. Got `{:?}`", &value);
             // return Err("Must have a single dependency");
         }
-        (&self[0].value).try_into()
+        value[0].value.try_to_state()
     }
 }
 
-impl<'a, T> TryIntoStateVar<'a, Vec<T>> for &'a DependenciesCreatedForDataQuery
+impl<T> TryFromState<DependenciesCreatedForDataQuery> for Option<T>
 where
-    T: TryFrom<&'a StateVarViewEnum>,
+    T: TryFromState<StateVarViewEnum>,
 {
     type Error = T::Error;
 
-    fn try_into_state_var(&self) -> Result<Vec<T>, Self::Error> {
-        self.iter().map(|dep| (&dep.value).try_into()).collect()
+    fn try_from_state(value: &DependenciesCreatedForDataQuery) -> Result<Self, Self::Error> {
+        if value.is_empty() {
+            Ok(None)
+        } else if value.len() > 1 {
+            panic!("Must have a single dependency. Got `{:?}`", &value);
+            // return Err("Must have a single dependency");
+        } else {
+            Ok(Some(value[0].value.try_to_state()?))
+        }
+    }
+}
+
+impl<T> TryFromState<DependenciesCreatedForDataQuery> for Vec<T>
+where
+    T: TryFromState<StateVarViewEnum>,
+{
+    type Error = T::Error;
+
+    fn try_from_state(value: &DependenciesCreatedForDataQuery) -> Result<Self, Self::Error> {
+        value.iter().map(|dep| dep.value.try_to_state()).collect()
     }
 }

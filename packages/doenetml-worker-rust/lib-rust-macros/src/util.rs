@@ -23,7 +23,7 @@ pub fn find_type_from_state_var_with_generics(ty: &Type) -> Option<&Ident> {
     None
 }
 
-pub fn check_if_have_attribute(attrs: &[Attribute], attr_name: &str) -> bool {
+pub fn has_attribute(attrs: &[Attribute], attr_name: &str) -> bool {
     for attr in attrs.iter() {
         if let Meta::Path(path) = &attr.meta {
             if path.segments[0].ident == attr_name {
@@ -34,10 +34,7 @@ pub fn check_if_have_attribute(attrs: &[Attribute], attr_name: &str) -> bool {
     false
 }
 
-pub fn check_if_have_attribute_return_identities(
-    attrs: &[Attribute],
-    attr_name: &str,
-) -> Vec<Ident> {
+pub fn return_identities_if_have_attribute(attrs: &[Attribute], attr_name: &str) -> Vec<Ident> {
     let mut identities = Vec::new();
     for attr in attrs.iter() {
         if let Meta::List(meta_list) = &attr.meta {

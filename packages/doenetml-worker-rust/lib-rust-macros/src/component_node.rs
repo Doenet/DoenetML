@@ -4,7 +4,7 @@ use proc_macro2::{Ident, Span};
 use quote::quote;
 use syn::{self, FieldsNamed};
 
-use crate::util::check_if_have_attribute;
+use crate::util::has_attribute;
 
 /// Implement the ComponentNode trait structs
 /// assuming they have have a common field that is `ComponentCommonData`
@@ -128,8 +128,8 @@ pub fn rendered_children_derive(input: TokenStream) -> TokenStream {
     let name = &ast.ident;
     let data = &ast.data;
 
-    let pass_through_children = check_if_have_attribute(&ast.attrs, "pass_through_children")
-        || !check_if_have_attribute(&ast.attrs, "no_rendered_children");
+    let pass_through_children = has_attribute(&ast.attrs, "pass_through_children")
+        || !has_attribute(&ast.attrs, "no_rendered_children");
 
     let output = match data {
         syn::Data::Struct(s) => match &s.fields {

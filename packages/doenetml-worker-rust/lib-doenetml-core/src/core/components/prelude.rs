@@ -9,8 +9,10 @@ pub use doenetml_derive::{
 pub use std::collections::HashMap;
 
 pub use crate::dast::Position as DastPosition;
-pub use crate::dependency::{DependenciesCreatedForDataQuery, TryIntoStateVar};
-pub use crate::state::{ComponentState, QueryUpdateRequests};
+pub use crate::dependency::DependenciesCreatedForDataQuery;
+pub use crate::state::{
+    ComponentState, FromDependencies, QueryUpdateRequests, TryFromState, TryToState,
+};
 
 pub use crate::utils::KeyValueIgnoreCase;
 pub use crate::{ComponentIdx, ComponentPointerTextOrMacro, ExtendSource};
@@ -30,7 +32,7 @@ pub use crate::dast::{
 };
 pub use crate::dependency::{DataQuery, Dependency, DependencyValueUpdateRequest};
 pub use crate::state::{
-    RequestDependencyUpdateError, StateVar, StateVarCalcResult, StateVarEnumRef,
+    IntoStateVar, RequestDependencyUpdateError, StateVar, StateVarCalcResult, StateVarEnumRef,
     StateVarEnumRefMut, StateVarIdx, StateVarMutableView, StateVarUpdater, StateVarValue,
     StateVarView, StateVarViewEnum,
 };

@@ -5,8 +5,7 @@ use quote::quote;
 use syn::{self, parse::Parser, FieldsNamed};
 
 use crate::util::{
-    check_if_have_attribute, check_if_have_attribute_return_identities,
-    find_type_from_state_var_with_generics,
+    find_type_from_state_var_with_generics, has_attribute, return_identities_if_have_attribute,
 };
 
 pub fn component_state_derive(input: TokenStream) -> TokenStream {
@@ -137,7 +136,7 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
                         //     x if x.eq_ignore_ascii_case(#field_camel_case) => Some(#sv_idx),
                         // });
 
-                        if check_if_have_attribute(&named[sv_idx].attrs, "is_public") {
+                        if has_attribute(&named[sv_idx].attrs, "is_public") {
                             get_public_state_variable_index_from_name_case_insensitive_arms.push(
                                 quote! {
                                     x if x.eq_ignore_ascii_case(#field_camel_case) => Some(#sv_idx),
@@ -145,7 +144,7 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
                             );
                         }
 
-                        for profile_type in check_if_have_attribute_return_identities(
+                        for profile_type in return_identities_if_have_attribute(
                             &named[sv_idx].attrs,
                             "component_profile_state_variable",
                         ) {
@@ -157,7 +156,7 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
                             });
                         }
 
-                        if check_if_have_attribute(&named[sv_idx].attrs, "for_renderer") {
+                        if has_attribute(&named[sv_idx].attrs, "for_renderer") {
                             get_for_renderer_state_variable_indices_items.push(quote! {
                                 #sv_idx,
                             });
@@ -361,14 +360,13 @@ pub fn state_variable_dependencies_derive(input: TokenStream) -> TokenStream {
                 let structure_name = structure_identity.to_string();
                 let sn_len = structure_name.len();
 
-                let data_name = if &structure_name[(sn_len - 3)..] == "ies" {
+                let data_name = if structure_name.ends_with("ies") {
                     format!("{}yData", &structure_name[..(sn_len - 3)])
                 } else {
                     format!("{}Data", structure_name)
                 };
                 let data_identity = Ident::new(&data_name, Span::call_site());
 
-                let mut try_from_dependencies_vec_statements = Vec::new();
                 let mut data_struct_statements = Vec::new();
                 let mut initialize_data_struct_statements = Vec::new();
                 let mut return_update_requests_statements = Vec::new();
@@ -396,53 +394,43 @@ pub fn state_variable_dependencies_derive(input: TokenStream) -> TokenStream {
                         self.#field_identity.clear_queued_updates();
                     });
 
-                    if check_if_have_attribute(
-                        &named[data_query_idx].attrs,
-                        "consume_remaining_data_queries",
-                    ) {
-                        try_from_dependencies_vec_statements.push(quote! {
-                            // Note: This algorithm adds an extra layer that needs to be flattened twice.
-                            // TODO: understand why this is happening
-                            #field_identity: dependencies[#data_query_idx..].iter()
-                                .map(|data_query| {
-                                    // we first set to temp to make sure that try_into_state_var targets a vector
-                                    let temp: Result<Vec<_>,_> = data_query.try_into_state_var();
-                                    temp
-                                })
-                                .flatten().flatten().collect::<Vec<_>>(),
-                        });
-                        initialize_data_struct_statements.push(quote! {
-                            for (inst_idx_offset, inst) in dependencies[#data_query_idx..].iter().enumerate() {
-                                for (dep_idx, dep) in inst.iter().enumerate() {
-                                    mapping_data.#field_identity.push((#data_query_idx+inst_idx_offset, dep_idx));
-                                }
+                    initialize_data_struct_statements.push(quote! {
+                        // #data_query_idx is the index of this query in the list of fields
+                        // in #structure_identity.
+                        // However, since some fields may have been skipped in dependencies vector from core
+                        // (as the queries weren't actually used)
+                        // when need to potentially shift the index to account for their absence in dependencies[]
+                        if queries_used.contains(&#data_query_idx) {
+                            for (dep_idx, dep) in dependencies[shifted_query_idx].iter().enumerate() {
+                                mapping_data.#field_identity.push((shifted_query_idx, dep_idx));
                             }
-                        });
-                        break;
-                    } else {
-                        try_from_dependencies_vec_statements.push(quote! {
-                            #field_identity: (&dependencies[#data_query_idx]).try_into_state_var()?,
-                        });
-                        initialize_data_struct_statements.push(quote! {
-                            for (dep_idx, dep) in dependencies[#data_query_idx].iter().enumerate() {
-                                mapping_data.#field_identity.push((#data_query_idx, dep_idx));
-                            }
-                        })
-                    }
+                            data_struct.#field_identity = (&dependencies[shifted_query_idx]).try_to_state().unwrap();
+
+                            // since this query was actually used, we increment the index for dependencies[]
+                            shifted_query_idx += 1;
+                        }
+                    })
                 }
 
                 quote! {
-                    impl TryFrom<&Vec<DependenciesCreatedForDataQuery>> for #structure_identity {
-                        type Error = &'static str;
-                        fn try_from(dependencies: &Vec<DependenciesCreatedForDataQuery>) -> Result<Self, Self::Error> {
+                    impl FromDependencies for #structure_identity {
+                        fn from_dependencies(
+                            dependencies: &Vec<DependenciesCreatedForDataQuery>,
+                            queries_used: &Vec<usize>,
+                        ) -> Self {
+
+                            let mut data_struct = #structure_identity::default();
                             let mut mapping_data = #data_identity::default();
+
+                            // index for looking up values in dependencies[]
+                            // It will be incremented only when the query was actually used and appears in dependencies[]
+                            let mut shifted_query_idx = 0;
 
                             #(#initialize_data_struct_statements)*
 
-                            Ok(#structure_identity {
-                                #(#try_from_dependencies_vec_statements)*
-                                _data_query_mapping_data: mapping_data
-                            })
+                            data_struct._data_query_mapping_data = mapping_data;
+
+                            data_struct
                         }
                     }
 
@@ -521,7 +509,7 @@ pub fn state_variable_data_queries_derive(input: TokenStream) -> TokenStream {
 
                     let mut from_structure_to_vec_statements = Vec::new();
 
-                    let data_query_name = format!("{}DataQueries", structure_name);
+                    let data_query_name = format!("{}Queries", structure_name);
 
                     let data_query_identity = Ident::new(&data_query_name, Span::call_site());
 
@@ -535,9 +523,7 @@ pub fn state_variable_data_queries_derive(input: TokenStream) -> TokenStream {
                         });
 
                         from_structure_to_vec_statements.push(quote! {
-                            structure.#field_identity.as_ref().map(|inst| {
-                                instruct_vec.push(inst.clone());
-                            });
+                            instruct_vec.push(structure.#field_identity);
                         });
                     }
 
@@ -547,8 +533,8 @@ pub fn state_variable_data_queries_derive(input: TokenStream) -> TokenStream {
                             #(#data_query_struct_statements)*
                         }
 
-                        impl From<&#data_query_identity> for Vec<DataQuery> {
-                            fn from(structure: &#data_query_identity) -> Self {
+                        impl From<#data_query_identity> for Vec<Option<DataQuery>> {
+                            fn from(structure: #data_query_identity) -> Self {
                                 let mut instruct_vec = Vec::with_capacity(#num_queries);
                                 #(#from_structure_to_vec_statements)*
                                 instruct_vec
@@ -575,7 +561,7 @@ pub fn add_dependency_data_impl(_attr: TokenStream, item: TokenStream) -> TokenS
                 let structure_name = structure_identity.to_string();
                 let sn_len = structure_name.len();
 
-                let data_name = if &structure_name[(sn_len - 3)..] == "ies" {
+                let data_name = if structure_name.ends_with("ies") {
                     format!("{}yData", &structure_name[..(sn_len - 3)])
                 } else {
                     format!("{}Data", structure_name)

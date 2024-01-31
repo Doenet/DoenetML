@@ -78,13 +78,14 @@ pub struct TextInputState {
 impl TextInputState {
     fn new() -> Self {
         TextInputState {
-            value: ValueStateVar::new().into(),
-            immediate_value: ImmediateValueStateVar::new().into(),
-            sync_immediate_value: SyncImmediateValueStateVar::new().into(),
-            bind_value_to: StringStateVar::new_from_attribute("bindValueTo").into(),
-            prefill: StringStateVar::new_from_attribute("prefill").into(),
-            hidden: BooleanStateVar::new_from_attribute("hidden").into(),
-            disabled: BooleanStateVar::new_from_attribute("disabled").into(),
+            value: ValueStateVar::new().into_state_var(),
+            immediate_value: ImmediateValueStateVar::new().into_state_var(),
+            sync_immediate_value: SyncImmediateValueStateVar::new().into_state_var(),
+            bind_value_to: StringStateVar::new_from_attribute("bindValueTo", "".to_string())
+                .into_state_var(),
+            prefill: StringStateVar::new_from_attribute("prefill", "".to_string()).into_state_var(),
+            hidden: BooleanStateVar::new_from_attribute("hidden", false).into_state_var(),
+            disabled: BooleanStateVar::new_from_attribute("disabled", false).into_state_var(),
         }
     }
 }
