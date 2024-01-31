@@ -123,6 +123,8 @@ impl StateVarUpdater<String, StringRequiredData> for StringStateVar {
         }
     }
 
+    /// If the state variable is determined by a single string variable or an essential variable,
+    /// then request that variable take on the requested value for this variable.
     fn invert(
         data: &mut StringRequiredData,
         state_var: &StateVarView<String>,
@@ -139,7 +141,7 @@ impl StateVarUpdater<String, StringRequiredData> for StringStateVar {
 
         match strings.len() {
             0 => {
-                // not extending and have no base dependencies, so use the essential value,
+                // Not extending and have no base dependencies, so set the essential value.
                 data.essential
                     .queue_update(state_var.get_requested_value().clone());
                 Ok(data.queued_updates())

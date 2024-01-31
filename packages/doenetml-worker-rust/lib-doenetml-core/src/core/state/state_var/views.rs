@@ -6,7 +6,7 @@ use std::{
 
 use super::{Freshness, QueryUpdateRequests, StateVarInner};
 
-/// A mutable view of the value of the state variable.
+/// A mutable view of a state variable.
 /// It includes methods that allow one to view and change the variable.
 #[derive(Debug)]
 pub struct StateVarMutableView<T: Default + Clone> {
@@ -17,23 +17,6 @@ pub struct StateVarMutableView<T: Default + Clone> {
     /// A change counter that can be compared to the change counter of inner
     /// in order to determine if the state variable has changed since last viewed.
     change_counter_when_last_viewed: u32,
-}
-
-/// A read-only view of the value of the state variable.
-/// It includes methods that allow one to view the variable.
-#[derive(Debug)]
-pub struct StateVarView<T: Default + Clone> {
-    /// Structure containing the value of the variable its meta data.
-    /// Since inner is in an Rc<RefCell>, it is shared with other views and could be changed by them.
-    inner: Rc<RefCell<StateVarInner<T>>>,
-
-    /// a change counter that can be compared to the change counter of inner
-    /// in order to determine if the state variable has changed since last viewed
-    change_counter_when_last_viewed: u32,
-
-    ///
-    update_has_been_queued: bool,
-    // pub register_update_request: Option<RegisterUpdateRequest<'a>>,
 }
 
 impl<T: Default + Clone> Default for StateVarMutableView<T> {
@@ -135,13 +118,13 @@ impl<T: Default + Clone> StateVarMutableView<T> {
     }
 
     /// Set the value of the state variable to the supplied value,
-    /// set `came_from_default` to false, and mark it fresh
+    /// set `came_from_default` to `false`, and mark it fresh
     pub fn set_value(&self, new_val: T) {
         self.inner.borrow_mut().set_value(new_val);
     }
 
     /// Set the value of the state variable to `new_val`,
-    /// mark it as Fresh, and set `came_from_default` to true.
+    /// mark it as Fresh, and set `came_from_default` to `true`.
     pub fn set_value_from_default(&self, new_val: T) {
         self.inner.borrow_mut().set_value_from_default(new_val);
     }
@@ -194,6 +177,23 @@ impl<T: Default + Clone> StateVarMutableView<T> {
         let new_value = inner.get_requested_value().clone();
         inner.set_value(new_value);
     }
+}
+
+/// A read-only view of a state variable.
+/// Includes methods to view its value and queue updates that set the requested value for this variable.
+#[derive(Debug)]
+pub struct StateVarView<T: Default + Clone> {
+    /// Structure containing the value of the variable its meta data.
+    /// Since inner is in an Rc<RefCell>, it is shared with other views and could be changed by them.
+    inner: Rc<RefCell<StateVarInner<T>>>,
+
+    /// a change counter that can be compared to the change counter of inner
+    /// in order to determine if the state variable has changed since last viewed
+    change_counter_when_last_viewed: u32,
+
+    ///
+    update_has_been_queued: bool,
+    // pub register_update_request: Option<RegisterUpdateRequest<'a>>,
 }
 
 impl<T: Default + Clone> StateVarView<T> {

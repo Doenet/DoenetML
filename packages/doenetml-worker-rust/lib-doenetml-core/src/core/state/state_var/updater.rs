@@ -46,7 +46,7 @@ pub trait StateVarUpdater<T: Default + Clone, D>: std::fmt::Debug {
         state_var_idx: StateVarIdx,
     ) -> Vec<Option<DataQuery>>;
 
-    /// Calculate the value of the state variable from the currently cached query results.
+    /// Calculate the value of the state variable from the passed in `data`.
     /// Results of this function will be cached, so local caching is not needed.
     fn calculate(data: &D) -> StateVarCalcResult<T>;
 

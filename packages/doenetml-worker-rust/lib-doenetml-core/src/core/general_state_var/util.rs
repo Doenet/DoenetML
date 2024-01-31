@@ -3,6 +3,8 @@ use crate::{
     ExtendSource,
 };
 
+/// If `extending` indicates that the state variable with `state_var_idx` is shadowing another variable,
+/// then create a `DataQuery` requesting the value of the shadowed variable.
 pub fn create_data_query_if_match_extend_source(
     extending: Option<ExtendSource>,
     state_var_idx: StateVarIdx,

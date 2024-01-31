@@ -148,7 +148,7 @@ impl<T: Default + Clone> StateVarInner<T> {
     }
 
     /// Set the value of the state variable to `new_val`, mark it as Fresh,
-    /// set `came_from_default` to false, and increment the change counter.
+    /// set `came_from_default` to `false`, and increment the change counter.
     pub fn set_value(&mut self, new_val: T) {
         self.value = new_val;
         self.freshness = Freshness::Fresh;
@@ -157,7 +157,7 @@ impl<T: Default + Clone> StateVarInner<T> {
     }
 
     /// Set the value of the state variable to `new_val`,
-    /// mark it as Fresh, set `came_from_default` to true, and increment the change counter.
+    /// mark it as Fresh, set `came_from_default` to `true`, and increment the change counter.
     pub fn set_value_from_default(&mut self, new_val: T) {
         self.value = new_val;
         self.freshness = Freshness::Fresh;
@@ -250,13 +250,13 @@ impl<T: Default + Clone> StateVar<T> {
     }
 
     /// Set the value of the state variable to the supplied value,
-    /// set `came_from_default` to false, and mark it fresh
+    /// set `came_from_default` to `false`, and mark it fresh
     pub fn set_value(&self, new_val: T) {
         self.value.set_value(new_val)
     }
 
     /// Set the value of the state variable to `new_val`,
-    /// mark it as Fresh, and set `came_from_default` to true.
+    /// mark it as Fresh, and set `came_from_default` to `true`.
     pub fn set_value_from_default(&self, new_val: T) {
         self.value.set_value_from_default(new_val)
     }
