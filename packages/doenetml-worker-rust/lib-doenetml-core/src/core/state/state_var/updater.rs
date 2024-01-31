@@ -146,9 +146,9 @@ where
             .into_iter()
             .enumerate()
             .filter_map(|(dep_idx, data_query_option)| {
-                data_query_option
-                    .as_ref()
-                    .map(|_| self.queries_used.push(dep_idx));
+                if data_query_option.is_some() {
+                    self.queries_used.push(dep_idx);
+                }
                 data_query_option
             })
             .collect()
@@ -194,13 +194,13 @@ where
 }
 
 pub trait DependenciesToData<D> {
-    fn to_data(&self, queries_used: &Vec<usize>) -> D;
+    fn to_data(&self, queries_used: &[usize]) -> D;
 }
 
 pub trait FromDependencies {
     fn from_dependencies(
-        dependencies: &Vec<DependenciesCreatedForDataQuery>,
-        queries_used: &Vec<usize>,
+        dependencies: &[DependenciesCreatedForDataQuery],
+        queries_used: &[usize],
     ) -> Self;
 }
 
@@ -208,7 +208,7 @@ impl<D> DependenciesToData<D> for Vec<DependenciesCreatedForDataQuery>
 where
     D: FromDependencies,
 {
-    fn to_data(&self, queries_used: &Vec<usize>) -> D {
+    fn to_data(&self, queries_used: &[usize]) -> D {
         D::from_dependencies(self, queries_used)
     }
 }

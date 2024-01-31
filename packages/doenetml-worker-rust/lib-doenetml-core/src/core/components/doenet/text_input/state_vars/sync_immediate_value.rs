@@ -12,9 +12,7 @@ pub struct SyncImmediateValueStateVar {}
 
 impl SyncImmediateValueStateVar {
     pub fn new() -> Self {
-        SyncImmediateValueStateVar {
-            ..Default::default()
-        }
+        SyncImmediateValueStateVar {}
     }
 }
 

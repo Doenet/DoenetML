@@ -17,9 +17,7 @@ pub struct ImmediateValueStateVar {}
 
 impl ImmediateValueStateVar {
     pub fn new() -> Self {
-        ImmediateValueStateVar {
-            ..Default::default()
-        }
+        ImmediateValueStateVar {}
     }
 }
 

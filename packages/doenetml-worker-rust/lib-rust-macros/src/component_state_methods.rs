@@ -415,8 +415,8 @@ pub fn state_variable_dependencies_derive(input: TokenStream) -> TokenStream {
                 quote! {
                     impl FromDependencies for #structure_identity {
                         fn from_dependencies(
-                            dependencies: &Vec<DependenciesCreatedForDataQuery>,
-                            queries_used: &Vec<usize>,
+                            dependencies: &[DependenciesCreatedForDataQuery],
+                            queries_used: &[usize],
                         ) -> Self {
 
                             let mut data_struct = #structure_identity::default();

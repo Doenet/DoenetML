@@ -61,7 +61,7 @@ pub struct TextState {
 impl TextState {
     fn new() -> Self {
         TextState {
-            value: StringStateVar::new_from_children().into_state_var(),
+            value: StringStateVar::new_from_children("".to_string()).into_state_var(),
             text: StringStateVar::new(TextState::get_value_data_queries()).into_state_var(),
         }
     }

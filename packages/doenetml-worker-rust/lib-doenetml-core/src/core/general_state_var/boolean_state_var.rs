@@ -33,6 +33,10 @@ pub struct BooleanRequiredData {
 
     /// A vector of the boolean or string values of the dependencies coming from the base_data_query
     base: Vec<BooleanOrString>,
+
+    /// If not extending and don't have any base data,
+    /// then use this essential value, which will be initialized with the default value
+    essential: StateVarView<bool>,
 }
 
 /// Since the state variable is based on booleans or strings,
@@ -47,7 +51,7 @@ enum BooleanOrString {
 
 // We implement TryFromState
 // because all RequiredData must implement this trait.
-// (Needed to create the create the RequiredData from the information sent the state variable)
+// (Needed to create the RequiredData from the information sent the state variable)
 impl TryFromState<StateVarViewEnum> for BooleanOrString {
     type Error = &'static str;
 
@@ -74,17 +78,18 @@ impl BooleanStateVar {
     }
 
     /// Creates a state var that queries its value from children matching the `Text` or `Boolean` profile.
-    pub fn new_from_children() -> Self {
+    pub fn new_from_children(default_value: bool) -> Self {
         BooleanStateVar {
             base_data_query: DataQuery::Child {
                 match_profiles: vec![ComponentProfile::Text, ComponentProfile::Boolean],
                 exclude_if_prefer_profiles: vec![],
             },
-            ..Default::default()
+            default_value,
         }
     }
 
-    /// Creates a state var that queries its value from attributes matching the `Text` or `Boolean` profile.
+    /// Creates a state var that queries its value from attr given by `attr_name`,
+    /// returning the attribute children that match the `Text` or `Boolean` profile.
     pub fn new_from_attribute(attr_name: AttributeName, default_value: bool) -> Self {
         BooleanStateVar {
             base_data_query: DataQuery::AttributeChild {
@@ -92,7 +97,6 @@ impl BooleanStateVar {
                 match_profiles: vec![ComponentProfile::Text, ComponentProfile::Boolean],
             },
             default_value,
-            ..Default::default()
         }
     }
 }
@@ -110,6 +114,7 @@ impl StateVarUpdater<bool, BooleanRequiredData> for BooleanStateVar {
         BooleanRequiredDataQueries {
             extending: create_data_query_if_match_extend_source(extending, state_var_idx),
             base: Some(self.base_data_query.clone()),
+            essential: Some(DataQuery::Essential),
         }
         .into()
     }
@@ -117,6 +122,7 @@ impl StateVarUpdater<bool, BooleanRequiredData> for BooleanStateVar {
     #[allow(clippy::needless_return)]
     fn calculate(data: &BooleanRequiredData) -> StateVarCalcResult<bool> {
         if let Some(extending) = data.extending.as_ref() {
+            // this state variable is extending another state variable
             if data.base.is_empty() {
                 if extending.came_from_default() {
                     return StateVarCalcResult::FromDefault(*extending.get());
@@ -128,6 +134,7 @@ impl StateVarUpdater<bool, BooleanRequiredData> for BooleanStateVar {
                 return StateVarCalcResult::Calculated(false);
             }
         } else if data.base.len() == 1 {
+            // not extending and have a single variable from the base query
             match &data.base[0] {
                 BooleanOrString::Boolean(boolean_value) => {
                     if boolean_value.came_from_default() {
@@ -149,8 +156,8 @@ impl StateVarUpdater<bool, BooleanRequiredData> for BooleanStateVar {
         {
             // invalid combination. Haven't implemented boolean dependency with other
             return StateVarCalcResult::Calculated(false);
-        } else {
-            // concatenate the string values into a single string
+        } else if data.base.len() > 1 {
+            // Have multiple string variables. Concatenate the string values into a single string
             // TODO: can we do this without cloning?
             let value: String = data
                 .base
@@ -161,6 +168,14 @@ impl StateVarUpdater<bool, BooleanRequiredData> for BooleanStateVar {
                 })
                 .collect();
             return StateVarCalcResult::Calculated(string_to_boolean(&value));
+        } else {
+            // not extending and have no base dependencies, so use the essential value,
+            // propagating came_from_default as well as the value
+            if data.essential.came_from_default() {
+                return StateVarCalcResult::FromDefault(*data.essential.get());
+            } else {
+                return StateVarCalcResult::Calculated(*data.essential.get());
+            }
         }
     }
 
@@ -171,6 +186,7 @@ impl StateVarUpdater<bool, BooleanRequiredData> for BooleanStateVar {
         _is_direct_change_from_renderer: bool,
     ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
         if let Some(extending) = data.extending.as_mut() {
+            // this state variable is extending another state variable
             if data.base.is_empty() {
                 extending.queue_update(*state_var.get_requested_value());
                 return Ok(data.queued_updates());
@@ -179,6 +195,7 @@ impl StateVarUpdater<bool, BooleanRequiredData> for BooleanStateVar {
                 return Err(RequestDependencyUpdateError::CouldNotUpdate);
             }
         } else if data.base.len() == 1 {
+            // not extending and have a single variable from the base query
             match &mut data.base[0] {
                 BooleanOrString::Boolean(boolean_value) => {
                     boolean_value.queue_update(*state_var.get_requested_value());
@@ -190,7 +207,13 @@ impl StateVarUpdater<bool, BooleanRequiredData> for BooleanStateVar {
                 }
             }
             return Ok(data.queued_updates());
+        } else if data.base.is_empty() {
+            // not extending and have no base dependencies, so use the essential value,
+            data.essential
+                .queue_update(*state_var.get_requested_value());
+            return Ok(data.queued_updates());
         } else {
+            // for all other combinations, we cannot invert
             return Err(RequestDependencyUpdateError::CouldNotUpdate);
         }
     }

@@ -18,9 +18,7 @@ pub struct ValueStateVar {}
 
 impl ValueStateVar {
     pub fn new() -> Self {
-        ValueStateVar {
-            ..Default::default()
-        }
+        ValueStateVar {}
     }
 }
 

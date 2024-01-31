@@ -59,7 +59,7 @@ pub struct BooleanState {
 impl BooleanState {
     fn new() -> Self {
         BooleanState {
-            value: BooleanStateVar::new_from_children().into_state_var(),
+            value: BooleanStateVar::new_from_children(false).into_state_var(),
             boolean: BooleanStateVar::new(BooleanState::get_value_data_queries()).into_state_var(),
         }
     }

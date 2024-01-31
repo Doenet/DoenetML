@@ -358,49 +358,6 @@ pub fn create_dependencies_from_data_query_initialize_essential(
                 }
             }
 
-            if dependencies.is_empty() {
-                // Found no matching children.
-                // Create an essential dependency with the default_value for the state variable
-
-                // Treat the essential data as though it came from the first string child
-                // of the component, except recursing to extend source components
-                // in order to share the essential data with the extend source.
-
-                let source_idx = get_extend_source_origin(components, component_idx);
-
-                let essential_origin = EssentialDataOrigin::StringChild(0);
-
-                let essential_data_view =
-                    if let Some(current_view) = essential_data[source_idx].get(&essential_origin) {
-                        current_view.create_new_read_only_view()
-                    } else {
-                        let initial_data = components[source_idx]
-                            .borrow()
-                            .get_state_variable(state_var_idx)
-                            .unwrap()
-                            .return_default_value();
-
-                        let new_view = create_essential_data_for(
-                            source_idx,
-                            essential_origin.clone(),
-                            InitialEssentialData::Single {
-                                value: initial_data,
-                                came_from_default: true,
-                            },
-                            essential_data,
-                        );
-                        new_view.create_new_read_only_view()
-                    };
-
-                dependencies.push(Dependency {
-                    source: DependencySource::Essential {
-                        component_idx: source_idx,
-                        origin: essential_origin,
-                    },
-                    value: essential_data_view,
-                });
-            }
-
             DependenciesCreatedForDataQuery(dependencies)
         }
 
@@ -426,7 +383,7 @@ pub fn create_dependencies_from_data_query_initialize_essential(
             // Use it to generate the index for the EssentialDataOrigin so it points to the right string child
             let mut essential_data_index = 0;
 
-            let mut dependencies: Vec<_> = attribute_children
+            let dependencies: Vec<_> = attribute_children
                 .iter()
                 .filter_map(|child| {
                     match child {
@@ -501,50 +458,6 @@ pub fn create_dependencies_from_data_query_initialize_essential(
                     }
                 })
                 .collect();
-
-            if dependencies.is_empty() {
-                // Found no matching attribute children.
-                // This means that the component and any component extend sources do not have any attribute children.
-
-                // Create an essential dependency with the default_value for the state variable
-                // Treat the essential data as though it came from the first string attribute child
-                // of the component, except recursing to extend source components
-                // in order to share the essential data with the extend source.
-
-                let source_idx = get_extend_source_origin(components, component_idx);
-
-                let essential_origin = EssentialDataOrigin::AttributeChild(attribute_name, 0);
-
-                let essential_data_view =
-                    if let Some(current_view) = essential_data[source_idx].get(&essential_origin) {
-                        current_view.create_new_read_only_view()
-                    } else {
-                        let initial_data = components[source_idx]
-                            .borrow()
-                            .get_state_variable(state_var_idx)
-                            .unwrap()
-                            .return_default_value();
-
-                        let new_view = create_essential_data_for(
-                            source_idx,
-                            essential_origin.clone(),
-                            InitialEssentialData::Single {
-                                value: initial_data,
-                                came_from_default: true,
-                            },
-                            essential_data,
-                        );
-                        new_view.create_new_read_only_view()
-                    };
-
-                dependencies.push(Dependency {
-                    source: DependencySource::Essential {
-                        component_idx: source_idx,
-                        origin: essential_origin,
-                    },
-                    value: essential_data_view,
-                });
-            }
 
             DependenciesCreatedForDataQuery(dependencies)
         }
