@@ -1,17 +1,16 @@
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use crate::{
-    components::{ComponentEnum, ComponentNode, RenderedComponentNode},
+    components::{ComponentEnum, ComponentNode, RenderedChildren},
     dependency::{
-        create_dependencies_from_instruction_initialize_essential, DependencyInstruction,
-        DependencySource,
+        create_dependencies_from_data_query_initialize_essential, DataQuery, DependencySource,
     },
     state::essential_state::{EssentialDataOrigin, EssentialStateDescription, EssentialStateVar},
-    state::{Freshness, StateVarValueEnum},
+    state::{Freshness, StateVarValue},
     ComponentIdx, ComponentPointerTextOrMacro, CoreProcessingState, DependencyGraph, ExtendSource,
 };
 
-use super::{ComponentStateVariables, StateVarPointer};
+use super::{ComponentState, StateVarPointer};
 
 /// Freshen the state variable specified by original_state_var_ptr,
 /// then get its fresh value
@@ -21,7 +20,7 @@ pub fn get_state_var_value(
     dependency_graph: &mut DependencyGraph,
     essential_data: &mut Vec<HashMap<EssentialDataOrigin, EssentialStateVar>>,
     freshen_stack: &mut Vec<StateVarPointer>,
-) -> StateVarValueEnum {
+) -> StateVarValue {
     freshen_state_var(
         original_state_var_ptr,
         components,
@@ -267,7 +266,7 @@ pub fn freshen_state_var(
 
             // Check if any dependency has changed since we last called record_all_dependencies_viewed.
             if state_var.check_if_any_dependency_changed_since_last_viewed() {
-                state_var.calculate_state_var_from_dependencies_and_mark_fresh();
+                state_var.calculate_and_mark_fresh();
                 state_var.record_all_dependencies_viewed();
             } else {
                 state_var.mark_fresh();
@@ -292,7 +291,7 @@ pub fn resolve_state_var(
         let component_idx = state_var_ptr.component_idx;
         let state_var_idx = state_var_ptr.state_var_idx;
 
-        let dependency_instructions: Vec<DependencyInstruction>;
+        let data_queries: Vec<DataQuery>;
 
         {
             let extending: Option<ExtendSource> =
@@ -308,18 +307,17 @@ pub fn resolve_state_var(
                 continue;
             }
 
-            dependency_instructions =
-                state_var.return_dependency_instructions(extending, state_var_idx);
+            data_queries = state_var.return_data_queries(extending, state_var_idx);
         }
 
-        let mut dependencies_for_state_var = Vec::with_capacity(dependency_instructions.len());
+        let mut dependencies_for_state_var = Vec::with_capacity(data_queries.len());
 
-        for dep_instruction in dependency_instructions.iter() {
-            let instruct_dependencies = create_dependencies_from_instruction_initialize_essential(
+        for query in data_queries.iter() {
+            let instruct_dependencies = create_dependencies_from_data_query_initialize_essential(
                 components,
                 component_idx,
                 state_var_idx,
-                dep_instruction,
+                query,
                 essential_data,
             );
 

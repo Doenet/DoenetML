@@ -17,7 +17,7 @@ pub struct StateVarPointer {
 }
 
 #[enum_dispatch]
-pub trait ComponentStateVariables {
+pub trait ComponentState {
     /// Get the number of state variables for this component
     fn get_num_state_variables(&self) -> StateVarIdx;
 
@@ -28,7 +28,7 @@ pub trait ComponentStateVariables {
     fn get_state_variable_mut(&mut self, state_var_idx: StateVarIdx) -> Option<StateVarEnumRefMut>;
 
     // TODO: do we need get_state_variable_index_from_name?
-    // Right now, we use it in the parent DependencyInstruction, but maybe we can find a way
+    // Right now, we use it in the parent DataQuery, but maybe we can find a way
     // to specify via index directly from a function created via macro
     fn get_state_variable_index_from_name(&self, name: &str) -> Option<StateVarIdx>;
 

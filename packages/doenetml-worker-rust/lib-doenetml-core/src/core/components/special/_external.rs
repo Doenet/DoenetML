@@ -1,15 +1,18 @@
 use crate::components::prelude::*;
 
-#[derive(Debug, Default, RenderedComponentNode, ComponentStateVariables)]
+#[derive(
+    Debug, Default, RenderedChildren, ComponentState, ComponentActions, ComponentAttributes,
+)]
+#[pass_through_children]
 pub struct _External {
     pub common: ComponentCommonData,
 
     pub name: String,
-    pub state: _ExternalStateVariables,
+    pub state: _ExternalState,
 }
 
-#[derive(Debug, Default, ComponentStateVariables)]
-pub struct _ExternalStateVariables {}
+#[derive(Debug, Default, ComponentState)]
+pub struct _ExternalState {}
 
 impl ComponentNode for _External {
     fn get_idx(&self) -> ComponentIdx {

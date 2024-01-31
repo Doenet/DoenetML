@@ -4,7 +4,7 @@ use serde::Serialize;
 
 use crate::{
     attribute::AttributeName,
-    state::{StateVarMutableViewEnum, StateVarValueEnum},
+    state::{StateVarMutableViewEnum, StateVarValue},
     ComponentIdx,
 };
 
@@ -46,8 +46,8 @@ pub enum EssentialDataOrigin {
 // If not, remove enum.
 pub enum InitialEssentialData {
     Single {
-        value: StateVarValueEnum,
-        used_default: bool,
+        value: StateVarValue,
+        came_from_default: bool,
     },
 }
 
@@ -81,8 +81,8 @@ pub fn create_essential_data_for(
     let essential_state = match initial_values {
         InitialEssentialData::Single {
             value,
-            used_default,
-        } => EssentialStateVar::new_with_value(value, used_default),
+            came_from_default,
+        } => EssentialStateVar::new_with_value(value, came_from_default),
     };
 
     comp_essential_data.insert(origin.clone(), essential_state);

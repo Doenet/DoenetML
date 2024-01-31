@@ -2,7 +2,7 @@ use std::{cell::RefCell, rc::Rc};
 
 use crate::{
     components::{
-        prelude::ComponentStateVariables, ComponentEnum, ComponentNode, RenderedComponentNode,
+        prelude::ComponentState, ComponentActions, ComponentEnum, ComponentNode, RenderedChildren,
     },
     ComponentIdx, ComponentPointerTextOrMacro, ExtendSource,
 };

@@ -1,24 +1,25 @@
 use std::collections::HashMap;
 
 use crate::components::prelude::*;
-use crate::state_var_interfaces::text_state_var_interfaces::{
-    GeneralStringStateVarInterface, SingleDependencyStringStateVarInterface,
-};
+use crate::general_state_var::StringStateVar;
 
 /// Definition of the `<text>` DoenetML component
-#[derive(Debug, Default, ComponentNode, ComponentStateVariables)]
+#[derive(
+    Debug,
+    Default,
+    ComponentNode,
+    ComponentState,
+    ComponentActions,
+    ComponentAttributes,
+    RenderedChildren,
+)]
+#[no_rendered_children]
 pub struct Text {
     /// The common component data needed to derive the `ComponentNode` trait
     pub common: ComponentCommonData,
 
     /// The state variables that underlie the `<text>` component.
-    pub state: TextStateVariables,
-
-    /// An empty vector that will be returned with `get_rendered_children`
-    /// indicating this component has no children that are rendered.
-    ///
-    /// (Created because `get_rendered_children` must return a reference to a vector,)
-    pub no_rendered_children: Vec<ComponentPointerTextOrMacro>,
+    pub state: TextState,
 }
 
 impl Text {
@@ -29,14 +30,14 @@ impl Text {
     pub fn get_state_variable_that_shadows_when_extending() -> (&'static str, StateVarIdx) {
         (
             Text::get_component_type(),
-            TextStateVariables::get_value_state_variable_index(),
+            TextState::get_value_state_variable_index(),
         )
     }
 }
 
 /// The state variables that underlie the `<text>` component.
-#[derive(Debug, ComponentStateVariables)]
-pub struct TextStateVariables {
+#[derive(Debug, ComponentState)]
+pub struct TextState {
     /// The value of the `<text>` component.
     ///
     /// It is marked `is_public` so that it can be referenced in DoenetML via `.value`.
@@ -57,36 +58,17 @@ pub struct TextStateVariables {
     text: StateVar<String>,
 }
 
-impl TextStateVariables {
+impl TextState {
     fn new() -> Self {
-        TextStateVariables {
-            value: StateVar::new(
-                Box::new(GeneralStringStateVarInterface::new(
-                    DependencyInstruction::Child {
-                        match_profiles: vec![ComponentProfile::Text],
-                        exclude_if_prefer_profiles: vec![],
-                    },
-                )),
-                Default::default(),
-            ),
-            text: StateVar::new(
-                Box::new(SingleDependencyStringStateVarInterface::new(
-                    TextStateVariables::get_value_dependency_instructions(),
-                )),
-                Default::default(),
-            ),
+        TextState {
+            value: StringStateVar::new_from_children("".to_string()).into_state_var(),
+            text: StringStateVar::new(TextState::get_value_data_queries()).into_state_var(),
         }
     }
 }
 
-impl Default for TextStateVariables {
+impl Default for TextState {
     fn default() -> Self {
-        TextStateVariables::new()
-    }
-}
-
-impl RenderedComponentNode for Text {
-    fn get_rendered_children(&self) -> &Vec<ComponentPointerTextOrMacro> {
-        &self.no_rendered_children
+        TextState::new()
     }
 }

@@ -7,7 +7,7 @@ use super::components::component_creation::{
     create_component_children, replace_macro_referents_of_children_evaluate_attributes,
 };
 
-use super::components::{ComponentEnum, RenderedComponentNode};
+use super::components::{ComponentActions, ComponentEnum};
 use super::dast::{
     DastFunctionMacro, DastMacro, DastRoot, DastWarning, FlatDastElement, FlatDastElementContent,
     FlatDastElementUpdate, FlatDastRoot, Position as DastPosition,
@@ -21,10 +21,8 @@ use super::state::state_var_calculations::{
 use super::state::state_var_updates::process_state_variable_update_request;
 use super::state::Freshness;
 
-use crate::components::actions::Action;
-use crate::components::prelude::{
-    ComponentStateVariables, DependenciesCreatedForInstruction, StateVarIdx,
-};
+use crate::components::actions::{Action, UpdateFromAction};
+use crate::components::prelude::{ComponentState, DependenciesCreatedForDataQuery, StateVarIdx};
 use crate::dast::{get_flat_dast_update, to_flat_dast};
 use crate::state::StateVarPointer;
 #[allow(unused)]
@@ -70,7 +68,7 @@ pub struct DoenetMLCore {
     /// - The hash map value *EssentialStateVariable* is a *StateVarMutableViewEnum*
     ///   that stores the value.
     ///   (Note, unlike for state variables, *EssentialStateVariable* is not attached to any *StateVar*,
-    ///   as it doesn't need a *StateVarInterface*.)
+    ///   as it doesn't need *StateVarUpdater*.)
     pub essential_data: Vec<HashMap<EssentialDataOrigin, EssentialStateVar>>,
 
     pub processing_state: CoreProcessingState,
@@ -99,10 +97,10 @@ pub struct DependencyGraph {
     /// defined by the order in *components*.
     /// - The second index is the *StateVarIdx*,
     /// defined by the order in which state variables are defined for the component.
-    /// - The third index is the index of the *DependencyInstruction* for the state variable.
-    /// - The inner DependenciesCreatedForInstruction is the vector of dependencies
-    ///   that matched that DependencyInstruction.
-    pub dependencies: Vec<Vec<Vec<DependenciesCreatedForInstruction>>>,
+    /// - The third index is the index of the *DataQuery* for the state variable.
+    /// - The inner DependenciesCreatedForDataQuery is the vector of dependencies
+    ///   that matched that DataQuery.
+    pub dependencies: Vec<Vec<Vec<DependenciesCreatedForDataQuery>>>,
 
     /// The inverse of the dependency graph *dependencies* (along with *dependent_on_essential*).
     /// It specifies the state variables that are dependent on each state variable.
@@ -315,8 +313,8 @@ impl DoenetMLCore {
     /// - `component_idx`: the index of the component originating the action
     /// - `action_name`: the name of the action
     /// - `args`: an object containing data that will be interpreted by the action implementation.
-    ///   The values of each field must be quantities that can be converted into `StateVarValueEnum`
-    ///   or a vector of `StateVarValueEnum`.
+    ///   The values of each field must be quantities that can be converted into `StateVarValue`
+    ///   or a vector of `StateVarValue`.
     pub fn dispatch_action(
         &mut self,
         action: Action,
@@ -348,7 +346,7 @@ impl DoenetMLCore {
                 .borrow()
                 .on_action(action.action, &mut state_var_resolver)?;
 
-            for (state_var_idx, requested_value) in state_vars_to_update {
+            for UpdateFromAction(state_var_idx, requested_value) in state_vars_to_update {
                 let freshness;
 
                 {
@@ -357,9 +355,9 @@ impl DoenetMLCore {
 
                     // Record the requested value directly on the state variable.
                     // Later calls from within process_state_variable_update_request
-                    // will call request_updated_dependency_values on the state variable
+                    // will call request_dependency_updates on the state variable
                     // which will look up this requested value.
-                    state_variable.request_change_value_to(requested_value);
+                    state_variable.set_requested_value(requested_value);
 
                     freshness = state_variable.get_freshness();
                 }

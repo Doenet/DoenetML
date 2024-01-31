@@ -3,13 +3,13 @@ use std::{cell::RefCell, collections::HashMap, rc::Rc, str::FromStr};
 use crate::{
     components::{ComponentEnum, ComponentNode, _error::_Error, _external::_External},
     dast::{DastElement, DastElementContent, DastTextMacroContent, PathPart},
-    state::{ComponentStateVariables, StateVarIdx},
+    state::{ComponentState, StateVarIdx},
     utils::KeyValueIgnoreCase,
     ComponentIdx, ComponentPointerTextOrMacro, ExtendSource, ExtendStateVariableDescription,
     StateVariableShadowingMatch,
 };
 
-use super::RenderedComponentNode;
+use super::ComponentAttributes;
 
 /// Transform `dast_children` that are elements into components, recursing to their children.
 /// Gather names of the descendants for later use in replacing macros.

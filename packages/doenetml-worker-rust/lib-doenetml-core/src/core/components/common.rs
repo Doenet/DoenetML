@@ -7,16 +7,14 @@ use crate::attribute::{AttributeName, AttributeType};
 use serde::{Deserialize, Serialize};
 
 use crate::dast::{DastAttribute, Position as DastPosition};
-use crate::state::{
-    ComponentStateVariables, StateVarIdx, StateVarReadOnlyView, StateVarReadOnlyViewEnum,
-    StateVarValueEnum,
-};
+use crate::state::{ComponentState, StateVarIdx, StateVarValue, StateVarView, StateVarViewEnum};
 use crate::{ComponentIdx, ComponentPointerTextOrMacro, ExtendSource};
 
 use doenetml_derive::RenderedState;
 
 use super::_error::*;
 use super::_external::*;
+use super::actions::UpdateFromAction;
 use super::doenet::boolean::*;
 use super::doenet::document::*;
 use super::doenet::p::*;
@@ -31,7 +29,13 @@ use super::doenet::text_input::*;
 ///
 /// Each component type added to `ComponentEnum` must implement that component node traits.
 #[derive(Debug, EnumString, RenderedState)]
-#[enum_dispatch(ComponentNode, ComponentStateVariables, RenderedComponentNode)]
+#[enum_dispatch(
+    ComponentNode,
+    ComponentState,
+    RenderedChildren,
+    ComponentAttributes,
+    ComponentActions
+)]
 #[strum(ascii_case_insensitive)]
 pub enum ComponentEnum {
     Text(Text),
@@ -105,10 +109,10 @@ pub struct ComponentCommonData {
 }
 
 /// The Component trait specifies methods that will, in general, be implemented by deriving them.
-/// It depends on the ComponentStateVariables trait, which will be derived
+/// It depends on the ComponentState trait, which will be derived
 /// for each component type based on its state variable structure.
 #[enum_dispatch]
-pub trait ComponentNode: ComponentStateVariables {
+pub trait ComponentNode: ComponentState {
     /// Get the index of the component, which is its index in the `components` vector of `DoenetMLCore`.
     fn get_idx(&self) -> ComponentIdx;
     /// Get the index of the parent node
@@ -194,23 +198,36 @@ pub trait ComponentNode: ComponentStateVariables {
     fn set_is_in_render_tree(&mut self, is_in_render_tree: bool);
 }
 
-/// The RenderedComponentNode trait can be derived for a component, giving it the default implementations.
-/// To add actions or what information is sent when rendering, a component type can implement
-/// the trait to override the defaults.
+/// Specifies the children that will be sent to the renderer.
+///
+/// Two behaviors can be automatically derived by the `RenderedChildren` macro
+/// based on helper attributes applied to the struct.
+/// - `#[pass_through_children]`: all children are passed through as the rendered children (default if no attributes)
+/// - `#[no_rendered_children]`: no children are passed to the renderer
 #[enum_dispatch]
-pub trait RenderedComponentNode: ComponentNode {
+pub trait RenderedChildren {
     /// Return the children that will be used in the flat dast sent to the renderer.
-    fn get_rendered_children(&self) -> &Vec<ComponentPointerTextOrMacro> {
-        self.get_children()
-    }
+    fn get_rendered_children(&self) -> &Vec<ComponentPointerTextOrMacro>;
+}
 
+/// The ComponentAttributes trait can be derived for a component,
+/// giving it the default implementation of ignoring all attributes.
+/// To add attributes to be processed by core, a component type can implement the trait.
+#[enum_dispatch]
+pub trait ComponentAttributes: ComponentNode {
     /// Return a list of the attribute names that the component will accept
     fn get_attribute_names(&self) -> Vec<AttributeName> {
         // TODO: add default attribute names, like hide and disabled?
         // If so, should provide a mechanism for including default state variables depending on them.
         vec![]
     }
+}
 
+/// The ComponentActions trait can be derived for a component,
+/// giving it the default implementation of no actions.
+/// To add actions, a component type can implement the trait to override the defaults.
+#[enum_dispatch]
+pub trait ComponentActions: ComponentNode {
     /// Return a list of the action names that the renderer can call on this component.
     /// The list much match
     fn get_action_names(&self) -> Vec<String> {
@@ -227,8 +244,8 @@ pub trait RenderedComponentNode: ComponentNode {
     fn on_action(
         &self,
         action: ActionsEnum,
-        resolve_and_retrieve_state_var: &mut dyn FnMut(StateVarIdx) -> StateVarValueEnum,
-    ) -> Result<Vec<(StateVarIdx, StateVarValueEnum)>, String> {
+        resolve_and_retrieve_state_var: &mut dyn FnMut(StateVarIdx) -> StateVarValue,
+    ) -> Result<Vec<UpdateFromAction>, String> {
         Err(format!(
             "Unknown action '{:?}' called on {}",
             action,
@@ -237,7 +254,7 @@ pub trait RenderedComponentNode: ComponentNode {
     }
 }
 
-/// A `ComponentProfile` is used in the `DependencyInstruction` specifying children.
+/// A `ComponentProfile` is used in the `DataQuery` specifying children.
 /// A component profile will match children that have a `ComponentProfileStateVariable` of the corresponding type,
 /// and the resulting dependency will give the value of that state variable.
 #[derive(Debug, Clone, PartialEq)]
@@ -254,24 +271,24 @@ pub enum ComponentProfile {
 /// by using the value of that specified state variable.
 ///
 /// The component profile state variables are used to match the component profiles
-/// specified in a dependency instruction requesting children.
+/// specified in a data query requesting children.
 ///
 /// A component specifies a vector of ComponentProfileStateVariables in priority order,
 /// where the first ComponentProfileStateVariable matching a ComponentProfile
-/// of a dependency instruction will determine the dependency.
+/// of a data query will determine the dependency.
 #[derive(Debug, Clone)]
 pub enum ComponentProfileStateVariable {
-    Text(StateVarReadOnlyView<String>, StateVarIdx),
-    String(StateVarReadOnlyView<String>, StateVarIdx),
-    Number(StateVarReadOnlyView<f64>, StateVarIdx),
-    Integer(StateVarReadOnlyView<i64>, StateVarIdx),
-    Boolean(StateVarReadOnlyView<bool>, StateVarIdx),
+    Text(StateVarView<String>, StateVarIdx),
+    String(StateVarView<String>, StateVarIdx),
+    Number(StateVarView<f64>, StateVarIdx),
+    Integer(StateVarView<i64>, StateVarIdx),
+    Boolean(StateVarView<bool>, StateVarIdx),
 }
 
 // TODO: derive these with macro?
 impl ComponentProfileStateVariable {
     /// Return the ComponentProfile that matches this ComponentProfileStateVariable
-    /// so that it can be matched with the ComponentProfiles of a child dependency instruction.
+    /// so that it can be matched with the ComponentProfiles of a child data query.
     pub fn get_matching_profile(&self) -> ComponentProfile {
         match self {
             ComponentProfileStateVariable::Text(..) => ComponentProfile::Text,
@@ -285,26 +302,26 @@ impl ComponentProfileStateVariable {
     /// Convert into a state variable view enum of the component profile state variable
     /// as well as the state variable's index.
     ///
-    /// Used to create the dependency matching ComponentProfile of a child dependency instruction.
+    /// Used to create the dependency matching ComponentProfile of a child data query.
     ///
     /// In this way, the state variable depending on the children can calculate its value
     /// from the state variable value of the ComponentProfileStateVariable.
-    pub fn into_state_variable_view_enum_and_idx(self) -> (StateVarReadOnlyViewEnum, StateVarIdx) {
+    pub fn into_state_variable_view_enum_and_idx(self) -> (StateVarViewEnum, StateVarIdx) {
         match self {
             ComponentProfileStateVariable::Text(sv, state_var_idx) => {
-                (StateVarReadOnlyViewEnum::String(sv), state_var_idx)
+                (StateVarViewEnum::String(sv), state_var_idx)
             }
             ComponentProfileStateVariable::String(sv, state_var_idx) => {
-                (StateVarReadOnlyViewEnum::String(sv), state_var_idx)
+                (StateVarViewEnum::String(sv), state_var_idx)
             }
             ComponentProfileStateVariable::Number(sv, state_var_idx) => {
-                (StateVarReadOnlyViewEnum::Number(sv), state_var_idx)
+                (StateVarViewEnum::Number(sv), state_var_idx)
             }
             ComponentProfileStateVariable::Integer(sv, state_var_idx) => {
-                (StateVarReadOnlyViewEnum::Integer(sv), state_var_idx)
+                (StateVarViewEnum::Integer(sv), state_var_idx)
             }
             ComponentProfileStateVariable::Boolean(sv, state_var_idx) => {
-                (StateVarReadOnlyViewEnum::Boolean(sv), state_var_idx)
+                (StateVarViewEnum::Boolean(sv), state_var_idx)
             }
         }
     }

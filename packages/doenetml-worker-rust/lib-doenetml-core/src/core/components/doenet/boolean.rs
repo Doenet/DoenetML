@@ -1,22 +1,23 @@
 use crate::components::prelude::*;
-use crate::state_var_interfaces::boolean_state_var_interfaces::{
-    GeneralBooleanStateVarInterface, SingleDependencyBooleanStateVarInterface,
-};
+use crate::general_state_var::BooleanStateVar;
 
 /// Definition of the `<boolean>` DoenetML component
-#[derive(Debug, Default, ComponentNode, ComponentStateVariables)]
+#[derive(
+    Debug,
+    Default,
+    ComponentNode,
+    ComponentState,
+    ComponentActions,
+    ComponentAttributes,
+    RenderedChildren,
+)]
+#[no_rendered_children]
 pub struct Boolean {
     /// The common component data needed to derive the `ComponentNode` trait
     pub common: ComponentCommonData,
 
     /// The state variables that underlie the `<boolean>` component.
-    pub state: BooleanStateVariables,
-
-    /// An empty vector that will be returned with `get_rendered_children`
-    /// indicating this component has no children that are rendered.
-    ///
-    /// (Created because `get_rendered_children` must return a reference to a vector,)
-    pub no_rendered_children: Vec<ComponentPointerTextOrMacro>,
+    pub state: BooleanState,
 }
 
 impl Boolean {
@@ -27,14 +28,14 @@ impl Boolean {
     pub fn get_state_variable_that_shadows_when_extending() -> (&'static str, StateVarIdx) {
         (
             Boolean::get_component_type(),
-            BooleanStateVariables::get_value_state_variable_index(),
+            BooleanState::get_value_state_variable_index(),
         )
     }
 }
 
 /// The state variables that underlie the `<boolean>` component.
-#[derive(Debug, ComponentStateVariables)]
-pub struct BooleanStateVariables {
+#[derive(Debug, ComponentState)]
+pub struct BooleanState {
     /// The value of the `<boolean>` component.
     ///
     /// It is marked `is_public` so that it can be referenced in DoenetML via `.value`.
@@ -55,36 +56,17 @@ pub struct BooleanStateVariables {
     boolean: StateVar<bool>,
 }
 
-impl BooleanStateVariables {
+impl BooleanState {
     fn new() -> Self {
-        BooleanStateVariables {
-            value: StateVar::new(
-                Box::new(GeneralBooleanStateVarInterface::new(
-                    DependencyInstruction::Child {
-                        match_profiles: vec![ComponentProfile::Text, ComponentProfile::Boolean],
-                        exclude_if_prefer_profiles: vec![],
-                    },
-                )),
-                Default::default(),
-            ),
-            boolean: StateVar::new(
-                Box::new(SingleDependencyBooleanStateVarInterface::new(
-                    BooleanStateVariables::get_value_dependency_instructions(),
-                )),
-                Default::default(),
-            ),
+        BooleanState {
+            value: BooleanStateVar::new_from_children(false).into_state_var(),
+            boolean: BooleanStateVar::new(BooleanState::get_value_data_queries()).into_state_var(),
         }
     }
 }
 
-impl Default for BooleanStateVariables {
+impl Default for BooleanState {
     fn default() -> Self {
-        BooleanStateVariables::new()
-    }
-}
-
-impl RenderedComponentNode for Boolean {
-    fn get_rendered_children(&self) -> &Vec<ComponentPointerTextOrMacro> {
-        &self.no_rendered_children
+        BooleanState::new()
     }
 }

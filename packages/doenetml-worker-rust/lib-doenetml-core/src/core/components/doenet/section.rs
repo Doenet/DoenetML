@@ -1,11 +1,20 @@
 use crate::components::prelude::*;
 
-#[derive(Debug, Default, ComponentNode, RenderedComponentNode, ComponentStateVariables)]
+#[derive(
+    Debug,
+    Default,
+    ComponentNode,
+    RenderedChildren,
+    ComponentState,
+    ComponentActions,
+    ComponentAttributes,
+)]
+#[pass_through_children]
 pub struct Section {
     pub common: ComponentCommonData,
 
-    pub state: SectionStateVariables,
+    pub state: SectionState,
 }
 
-#[derive(Debug, Default, ComponentStateVariables)]
-pub struct SectionStateVariables {}
+#[derive(Debug, Default, ComponentState)]
+pub struct SectionState {}

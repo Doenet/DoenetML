@@ -1,12 +1,14 @@
 use crate::{
-    components::prelude::{DependencyInstruction, StateVarIdx},
+    components::prelude::{DataQuery, StateVarIdx},
     ExtendSource,
 };
 
-pub fn create_dependency_instruction_if_match_extend_source(
+/// If `extending` indicates that the state variable with `state_var_idx` is shadowing another variable,
+/// then create a `DataQuery` requesting the value of the shadowed variable.
+pub fn create_data_query_if_match_extend_source(
     extending: Option<ExtendSource>,
     state_var_idx: StateVarIdx,
-) -> Option<DependencyInstruction> {
+) -> Option<DataQuery> {
     extending.and_then(|extend_source| match extend_source {
         ExtendSource::StateVar(description) => description
             .state_variable_matching
@@ -17,7 +19,7 @@ pub fn create_dependency_instruction_if_match_extend_source(
             })
             // If found a match to state_var_idx,
             // we shadow component and state variable indicated from the extend source.
-            .map(|var| DependencyInstruction::StateVar {
+            .map(|var| DataQuery::StateVar {
                 component_idx: Some(description.component_idx),
                 state_var_idx: var.shadowed_state_var_idx,
             }),

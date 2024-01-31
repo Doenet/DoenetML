@@ -3,7 +3,7 @@ use std::{cell::RefCell, collections::HashMap, ops::Deref, rc::Rc};
 use crate::{
     attribute::AttributeName,
     components::{
-        prelude::{ComponentStateVariables, StateVarIdx},
+        prelude::{ComponentState, StateVarIdx, TryFromState, TryToState},
         ComponentEnum, ComponentNode, ComponentProfile,
     },
     state::{
@@ -12,28 +12,29 @@ use crate::{
         },
         StateVarPointer,
     },
-    state::{StateVarName, StateVarReadOnlyViewEnum, StateVarValueEnum},
+    state::{StateVarName, StateVarValue, StateVarViewEnum},
     ComponentIdx, ComponentPointerTextOrMacro, ExtendSource,
 };
 
-/// A DependencyInstruction is used to make a Dependency based on the input document structure
+/// A DataQuery is used to make a Dependency based on the input document structure
 #[derive(Debug, Clone, Default)]
-pub enum DependencyInstruction {
+pub enum DataQuery {
     Child {
         /// The dependency will match child components that has at least one of these profiles
         /// unless the child component has one of the profiles in *exclude_if_prefer_profiles*
         /// ranked higher
         match_profiles: Vec<ComponentProfile>,
 
+        // TODO: can we remove exclude_if_prefer_profiles?
         /// If a child component has one of these profiles ranked higher
         /// than any in *match_profiles*, then the child is not matched.
         exclude_if_prefer_profiles: Vec<ComponentProfile>,
     },
     StateVar {
-        /// If None, state variable is from the component giving the instruction.
+        /// If None, state variable is from the component making the query.
         component_idx: Option<ComponentIdx>,
 
-        /// The state variable from component_idx or component given the instruction
+        /// The state variable from component_idx or component making the query.
         state_var_idx: StateVarIdx,
     },
     Parent {
@@ -83,49 +84,48 @@ impl TryFrom<&DependencySource> for StateVarPointer {
 }
 
 /// Gives both the source of the dependency and the current value of the dependency
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Dependency {
     pub source: DependencySource,
-    pub value: StateVarReadOnlyViewEnum,
+    pub value: StateVarViewEnum,
 }
 
-/// The vector of dependencies that were created for a `DependencyInstruction`
-#[derive(Debug)]
-pub struct DependenciesCreatedForInstruction(pub Vec<Dependency>);
+/// The vector of dependencies that were created for a `DataQuery`
+#[derive(Debug, Clone)]
+pub struct DependenciesCreatedForDataQuery(pub Vec<Dependency>);
 
-impl Deref for DependenciesCreatedForInstruction {
+impl Deref for DependenciesCreatedForDataQuery {
     type Target = Vec<Dependency>;
     fn deref(&self) -> &Self::Target {
         &self.0
     }
 }
 
-/// Information which update were requested so that we can recurse
-/// and call *request_updated_dependency_values*
+/// Information on which update were requested so that we can recurse
+/// and call *request_dependency_updates*
 /// on the state variables of those dependencies.
 ///
 /// The actual requested values for those dependencies were stored
 /// in the *requested_value* field of their state variables.
+#[derive(Debug)]
 pub struct DependencyValueUpdateRequest {
-    pub instruction_idx: usize,
+    pub data_query_idx: usize,
     pub dependency_idx: usize,
 }
 
-/// Create the dependencies specified in the dependency instruction
-/// by finding elements in the document that match the instruction.
+/// Create the dependencies specified by the data query
+/// by finding elements in the document that match.
 ///
-/// If an instruction asks for essential data, create it and add it to *essential_data*.
-pub fn create_dependencies_from_instruction_initialize_essential(
+/// If an data query asks for essential data, create it and add it to *essential_data*.
+pub fn create_dependencies_from_data_query_initialize_essential(
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
     component_idx: ComponentIdx,
     state_var_idx: StateVarIdx,
-    instruction: &DependencyInstruction,
+    query: &DataQuery,
     essential_data: &mut Vec<HashMap<EssentialDataOrigin, EssentialStateVar>>,
-) -> DependenciesCreatedForInstruction {
-    // log!("Creating dependency {}:{} from instruction {:?}", component_name, state_var_idx, instruction);
-
-    match instruction {
-        DependencyInstruction::Essential => {
+) -> DependenciesCreatedForDataQuery {
+    match query {
+        DataQuery::Essential => {
             // We recurse to extend source components so that this essential data
             // is shared with the extend source any any other components that extend from it.
             let source_idx = get_extend_source_origin(components, component_idx);
@@ -136,7 +136,7 @@ pub fn create_dependencies_from_instruction_initialize_essential(
                 if let Some(current_view) = essential_data[source_idx].get(&essential_origin) {
                     current_view.create_new_read_only_view()
                 } else {
-                    // Use the default value for the state variable and set used_default to true
+                    // Use the default value for the state variable and set came_from_default to true
                     let initial_data = components[component_idx]
                         .borrow()
                         .get_state_variable(state_var_idx)
@@ -145,7 +145,7 @@ pub fn create_dependencies_from_instruction_initialize_essential(
 
                     let initial_data = InitialEssentialData::Single {
                         value: initial_data,
-                        used_default: true,
+                        came_from_default: true,
                     };
 
                     let new_view = create_essential_data_for(
@@ -158,7 +158,7 @@ pub fn create_dependencies_from_instruction_initialize_essential(
                     new_view.create_new_read_only_view()
                 };
 
-            DependenciesCreatedForInstruction(vec![Dependency {
+            DependenciesCreatedForDataQuery(vec![Dependency {
                 source: DependencySource::Essential {
                     component_idx: source_idx,
                     origin: essential_origin,
@@ -167,7 +167,7 @@ pub fn create_dependencies_from_instruction_initialize_essential(
             }])
         }
 
-        DependencyInstruction::StateVar {
+        DataQuery::StateVar {
             component_idx: comp_idx,
             state_var_idx: sv_idx,
         } => {
@@ -177,7 +177,7 @@ pub fn create_dependencies_from_instruction_initialize_essential(
 
             let comp = components[comp_idx].borrow();
 
-            DependenciesCreatedForInstruction(vec![Dependency {
+            DependenciesCreatedForDataQuery(vec![Dependency {
                 source: DependencySource::StateVar {
                     component_idx: comp_idx,
                     state_var_idx: *sv_idx,
@@ -189,7 +189,7 @@ pub fn create_dependencies_from_instruction_initialize_essential(
             }])
         }
 
-        DependencyInstruction::Parent { state_var_name } => {
+        DataQuery::Parent { state_var_name } => {
             // Create a dependency that references the value of state_var_name
             // from the parent of this component
 
@@ -204,7 +204,7 @@ pub fn create_dependencies_from_instruction_initialize_essential(
                 .get_state_variable_index_from_name(state_var_name)
                 .unwrap_or_else(|| panic!("Invalid state variable 2: {}", state_var_name));
 
-            DependenciesCreatedForInstruction(vec![Dependency {
+            DependenciesCreatedForDataQuery(vec![Dependency {
                 source: DependencySource::StateVar {
                     component_idx: parent_idx,
                     state_var_idx: sv_idx,
@@ -216,7 +216,7 @@ pub fn create_dependencies_from_instruction_initialize_essential(
             }])
         }
 
-        DependencyInstruction::Child {
+        DataQuery::Child {
             match_profiles,
             exclude_if_prefer_profiles,
         } => {
@@ -332,13 +332,13 @@ pub fn create_dependencies_from_instruction_initialize_essential(
                         {
                             current_view.create_new_read_only_view()
                         } else {
-                            let value = StateVarValueEnum::String(string_value.clone());
+                            let value = StateVarValue::String(string_value.clone());
                             let new_view = create_essential_data_for(
                                 actual_parent_idx,
                                 essential_origin.clone(),
                                 InitialEssentialData::Single {
                                     value,
-                                    used_default: false,
+                                    came_from_default: false,
                                 },
                                 essential_data,
                             );
@@ -358,53 +358,10 @@ pub fn create_dependencies_from_instruction_initialize_essential(
                 }
             }
 
-            if dependencies.is_empty() {
-                // Found no matching children.
-                // Create an essential dependency with the default_value for the state variable
-
-                // Treat the essential data as though it came from the first string child
-                // of the component, except recursing to extend source components
-                // in order to share the essential data with the extend source.
-
-                let source_idx = get_extend_source_origin(components, component_idx);
-
-                let essential_origin = EssentialDataOrigin::StringChild(0);
-
-                let essential_data_view =
-                    if let Some(current_view) = essential_data[source_idx].get(&essential_origin) {
-                        current_view.create_new_read_only_view()
-                    } else {
-                        let initial_data = components[source_idx]
-                            .borrow()
-                            .get_state_variable(state_var_idx)
-                            .unwrap()
-                            .return_default_value();
-
-                        let new_view = create_essential_data_for(
-                            source_idx,
-                            essential_origin.clone(),
-                            InitialEssentialData::Single {
-                                value: initial_data,
-                                used_default: true,
-                            },
-                            essential_data,
-                        );
-                        new_view.create_new_read_only_view()
-                    };
-
-                dependencies.push(Dependency {
-                    source: DependencySource::Essential {
-                        component_idx: source_idx,
-                        origin: essential_origin,
-                    },
-                    value: essential_data_view,
-                });
-            }
-
-            DependenciesCreatedForInstruction(dependencies)
+            DependenciesCreatedForDataQuery(dependencies)
         }
 
-        DependencyInstruction::AttributeChild {
+        DataQuery::AttributeChild {
             attribute_name,
             match_profiles,
         } => {
@@ -426,7 +383,7 @@ pub fn create_dependencies_from_instruction_initialize_essential(
             // Use it to generate the index for the EssentialDataOrigin so it points to the right string child
             let mut essential_data_index = 0;
 
-            let mut dependencies: Vec<_> = attribute_children
+            let dependencies: Vec<_> = attribute_children
                 .iter()
                 .filter_map(|child| {
                     match child {
@@ -473,13 +430,13 @@ pub fn create_dependencies_from_instruction_initialize_essential(
                                 {
                                     current_view.create_new_read_only_view()
                                 } else {
-                                    let value = StateVarValueEnum::String(string_value.clone());
+                                    let value = StateVarValue::String(string_value.clone());
                                     let new_view = create_essential_data_for(
                                         parent_idx,
                                         essential_origin.clone(),
                                         InitialEssentialData::Single {
                                             value,
-                                            used_default: false,
+                                            came_from_default: false,
                                         },
                                         essential_data,
                                     );
@@ -502,51 +459,7 @@ pub fn create_dependencies_from_instruction_initialize_essential(
                 })
                 .collect();
 
-            if dependencies.is_empty() {
-                // Found no matching attribute children.
-                // This means that the component and any component extend sources do not have any attribute children.
-
-                // Create an essential dependency with the default_value for the state variable
-                // Treat the essential data as though it came from the first string attribute child
-                // of the component, except recursing to extend source components
-                // in order to share the essential data with the extend source.
-
-                let source_idx = get_extend_source_origin(components, component_idx);
-
-                let essential_origin = EssentialDataOrigin::AttributeChild(attribute_name, 0);
-
-                let essential_data_view =
-                    if let Some(current_view) = essential_data[source_idx].get(&essential_origin) {
-                        current_view.create_new_read_only_view()
-                    } else {
-                        let initial_data = components[source_idx]
-                            .borrow()
-                            .get_state_variable(state_var_idx)
-                            .unwrap()
-                            .return_default_value();
-
-                        let new_view = create_essential_data_for(
-                            source_idx,
-                            essential_origin.clone(),
-                            InitialEssentialData::Single {
-                                value: initial_data,
-                                used_default: true,
-                            },
-                            essential_data,
-                        );
-                        new_view.create_new_read_only_view()
-                    };
-
-                dependencies.push(Dependency {
-                    source: DependencySource::Essential {
-                        component_idx: source_idx,
-                        origin: essential_origin,
-                    },
-                    value: essential_data_view,
-                });
-            }
-
-            DependenciesCreatedForInstruction(dependencies)
+            DependenciesCreatedForDataQuery(dependencies)
         }
     }
 }
@@ -622,34 +535,46 @@ fn get_attribute_children_with_parent_falling_back_to_extend_source(
         })
 }
 
-pub trait TryIntoStateVar<'a, T> {
-    type Error;
-
-    fn try_into_state_var(&self) -> Result<T, Self::Error>;
-}
-
-impl<'a, T> TryIntoStateVar<'a, T> for &'a DependenciesCreatedForInstruction
+impl<T> TryFromState<DependenciesCreatedForDataQuery> for T
 where
-    T: TryFrom<&'a StateVarReadOnlyViewEnum>,
+    T: TryFromState<StateVarViewEnum>,
 {
     type Error = T::Error;
 
-    fn try_into_state_var(&self) -> Result<T, Self::Error> {
-        if self.len() != 1 {
-            panic!("Must have a single dependency. Got `{:?}`", &self);
+    fn try_from_state(value: &DependenciesCreatedForDataQuery) -> Result<Self, Self::Error> {
+        if value.len() != 1 {
+            panic!("Must have a single dependency. Got `{:?}`", &value);
             // return Err("Must have a single dependency");
         }
-        (&self[0].value).try_into()
+        value[0].value.try_to_state()
     }
 }
 
-impl<'a, T> TryIntoStateVar<'a, Vec<T>> for &'a DependenciesCreatedForInstruction
+impl<T> TryFromState<DependenciesCreatedForDataQuery> for Option<T>
 where
-    T: TryFrom<&'a StateVarReadOnlyViewEnum>,
+    T: TryFromState<StateVarViewEnum>,
 {
     type Error = T::Error;
 
-    fn try_into_state_var(&self) -> Result<Vec<T>, Self::Error> {
-        self.iter().map(|dep| (&dep.value).try_into()).collect()
+    fn try_from_state(value: &DependenciesCreatedForDataQuery) -> Result<Self, Self::Error> {
+        if value.is_empty() {
+            Ok(None)
+        } else if value.len() > 1 {
+            panic!("Must have a single dependency. Got `{:?}`", &value);
+            // return Err("Must have a single dependency");
+        } else {
+            Ok(Some(value[0].value.try_to_state()?))
+        }
+    }
+}
+
+impl<T> TryFromState<DependenciesCreatedForDataQuery> for Vec<T>
+where
+    T: TryFromState<StateVarViewEnum>,
+{
+    type Error = T::Error;
+
+    fn try_from_state(value: &DependenciesCreatedForDataQuery) -> Result<Self, Self::Error> {
+        value.iter().map(|dep| dep.value.try_to_state()).collect()
     }
 }
