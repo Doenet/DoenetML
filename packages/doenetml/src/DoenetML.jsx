@@ -159,11 +159,8 @@ export function DoenetML({
         >
             <RecoilRoot>
                 <MathJaxContext
-                    version={2}
+                    version={3}
                     config={mathjaxConfig}
-                    onStartup={(mathJax) =>
-                        (mathJax.Hub.processSectionDelay = 0)
-                    }
                 >
                     <ActivityViewer
                         doenetML={doenetML}

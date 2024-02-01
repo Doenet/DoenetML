@@ -114,7 +114,7 @@ root.render(
         </pre>
 
         <MathJaxContext
-            version={2}
+            version={3}
             config={mathjaxConfig}
             onStartup={(mathJax) => (mathJax.Hub.processSectionDelay = 0)}
         >
