@@ -68,7 +68,7 @@ pub fn process_state_variable_update_request(
 
                 // The vector dep_update_requests will contain just the identities
                 // of the state variables or essential data that we need to recurse to.
-                let mut dep_update_requests = request_dependency_updates_including_shadow(
+                let mut dep_update_requests = invert_including_shadow(
                     state_var_ptr,
                     components,
                     &dependency_graph.dependencies,
@@ -175,7 +175,7 @@ fn mark_stale_essential_datum_dependencies(
 ///
 /// Returns a vector specifying which state variables or essential data have been requested to change.
 /// The actual requested values will be added directly to the state variables or essential data.
-fn request_dependency_updates_including_shadow(
+fn invert_including_shadow(
     state_var_ptr: StateVarPointer,
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
     dependencies: &Vec<Vec<Vec<DependenciesCreatedForDataQuery>>>,
@@ -186,7 +186,7 @@ fn request_dependency_updates_including_shadow(
     let mut component = components[component_idx].borrow_mut();
     let state_variable = &mut component.get_state_variable_mut(state_var_idx).unwrap();
 
-    let requests = state_variable.request_dependency_updates(is_direct_change_from_renderer);
+    let requests = state_variable.invert(is_direct_change_from_renderer);
 
     requests
         .map(|req| {
@@ -200,7 +200,7 @@ fn request_dependency_updates_including_shadow(
         .unwrap_or_default()
 }
 
-/// Convert the dependency update results of `request_dependency_updates()`
+/// Convert the dependency update results of `invert()`
 /// into state variable update requests by determining the state variables
 /// referenced by the dependencies.
 #[allow(clippy::ptr_arg)]

@@ -21,7 +21,7 @@ pub enum StateVarCalcResult<T> {
 
 #[derive(Debug, Error)]
 pub enum RequestDependencyUpdateError {
-    #[error("request_dependency_updates is not implemented")]
+    #[error("invert is not implemented")]
     NotImplemented,
     #[error("could not update")]
     CouldNotUpdate,

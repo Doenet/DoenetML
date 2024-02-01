@@ -329,8 +329,8 @@ impl<T: Default + Clone> StateVar<T> {
         self.mark_fresh();
     }
 
-    /// Convenience function to call `request_dependency_updates` on interface
-    pub fn request_dependency_updates(
+    /// Convenience function to call `invert` on interface
+    pub fn invert(
         &mut self,
         is_direct_change_from_renderer: bool,
     ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {

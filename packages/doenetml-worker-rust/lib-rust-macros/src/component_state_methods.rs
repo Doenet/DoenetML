@@ -441,7 +441,7 @@ pub fn state_variable_dependencies_derive(input: TokenStream) -> TokenStream {
                         /// Returns all queued updates since the last call to `queued_updates()`.
                         ///
                         /// The result of this function is intended to be sent as the return value
-                        /// for `request_dependency_updates`.
+                        /// for `invert`.
                         fn queued_updates(&mut self) -> Vec<DependencyValueUpdateRequest> {
                             let mut requests = Vec::new();
                             #(#return_update_requests_statements)*

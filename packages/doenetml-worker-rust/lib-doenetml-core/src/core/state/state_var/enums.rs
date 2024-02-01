@@ -45,7 +45,7 @@ pub enum StateVarEnumRefMut<'a> {
 
 /// An mutable enum view of the value of the state variable.
 /// It includes methods that allow one to view and change the variable.
-#[derive(StateVarMutableViewMethods)]
+#[derive(StateVarMutableViewMethods, derive_more::From)]
 pub enum StateVarMutableViewEnum {
     Number(StateVarMutableView<f64>),
     Integer(StateVarMutableView<i64>),
@@ -55,7 +55,7 @@ pub enum StateVarMutableViewEnum {
 
 /// An read-only enum view of the value of the state variable.
 /// It includes methods that allow one to view the variable.
-#[derive(Clone, StateVarViewMethods)]
+#[derive(Clone, StateVarViewMethods, derive_more::From)]
 pub enum StateVarViewEnum {
     Number(StateVarView<f64>),
     Integer(StateVarView<i64>),

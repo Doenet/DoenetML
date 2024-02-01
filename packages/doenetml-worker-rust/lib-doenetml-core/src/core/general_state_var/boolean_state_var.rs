@@ -1,3 +1,7 @@
+#[cfg(test)]
+#[path = "boolean_state_var.test.rs"]
+mod tests;
+
 use enum_dispatch::enum_dispatch;
 
 use crate::{components::prelude::*, ExtendSource};

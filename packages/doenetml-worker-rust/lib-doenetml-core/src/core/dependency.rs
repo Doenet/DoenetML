@@ -17,7 +17,7 @@ use crate::{
 };
 
 /// A DataQuery is used to make a Dependency based on the input document structure
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, PartialEq)]
 pub enum DataQuery {
     Child {
         /// The dependency will match child components that has at least one of these profiles
@@ -102,7 +102,7 @@ impl Deref for DependenciesCreatedForDataQuery {
 }
 
 /// Information on which update were requested so that we can recurse
-/// and call *request_dependency_updates*
+/// and call *invert*
 /// on the state variables of those dependencies.
 ///
 /// The actual requested values for those dependencies were stored

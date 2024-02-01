@@ -180,7 +180,7 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
 
                     /// Records on the state variable the requested value of the state variable.
                     /// This requested value will be used in a future call to
-                    /// `request_dependency_updates()`.
+                    /// `invert()`.
                     ///
                     /// Panics if the type of requested_value does not match the type of this StateVarEnum.
                     pub fn set_requested_value(&self, requested_val: StateVarValue) {
@@ -255,7 +255,7 @@ pub fn state_var_methods_mut_derive(input: TokenStream) -> TokenStream {
             let mut state_var_record_all_dependencies_viewed_arms = Vec::new();
             let mut state_var_return_data_queries_arms = Vec::new();
             let mut state_var_save_dependencies_arms = Vec::new();
-            let mut state_var_request_dependency_updates_arms = Vec::new();
+            let mut state_var_invert_arms = Vec::new();
 
             for variant in variants {
                 let variant_ident = &variant.ident;
@@ -278,9 +278,9 @@ pub fn state_var_methods_mut_derive(input: TokenStream) -> TokenStream {
                     },
                 });
 
-                state_var_request_dependency_updates_arms.push(quote! {
+                state_var_invert_arms.push(quote! {
                     #enum_ident::#variant_ident(sv) => {
-                        sv.request_dependency_updates(is_direct_change_from_renderer)
+                        sv.invert(is_direct_change_from_renderer)
                     },
                 });
             }
@@ -313,7 +313,7 @@ pub fn state_var_methods_mut_derive(input: TokenStream) -> TokenStream {
                     ///
                     /// The dependencies are saved to the state variable and will be used
                     /// in calls to `calculate_and_mark_fresh()`
-                    /// and `request_dependency_updates()`.
+                    /// and `invert()`.
                     pub fn save_dependencies(&mut self, dependencies: &Vec<DependenciesCreatedForDataQuery>) {
                         match self {
                             #(#state_var_save_dependencies_arms)*
@@ -334,12 +334,12 @@ pub fn state_var_methods_mut_derive(input: TokenStream) -> TokenStream {
                     /// The `is_direct_change_from_renderer` argument is true if the requested value
                     /// came directly from an action of the renderer
                     /// (as opposed to coming from another state variable that depends on this variable).
-                    pub fn request_dependency_updates(
+                    pub fn invert(
                         &mut self,
                         is_direct_change_from_renderer: bool,
                     ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
                         match self {
-                            #(#state_var_request_dependency_updates_arms)*
+                            #(#state_var_invert_arms)*
                         }
                     }
 

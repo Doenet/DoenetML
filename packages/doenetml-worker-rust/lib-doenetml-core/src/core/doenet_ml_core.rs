@@ -355,7 +355,7 @@ impl DoenetMLCore {
 
                     // Record the requested value directly on the state variable.
                     // Later calls from within process_state_variable_update_request
-                    // will call request_dependency_updates on the state variable
+                    // will call invert on the state variable
                     // which will look up this requested value.
                     state_variable.set_requested_value(requested_value);
 
