@@ -17,8 +17,7 @@ use crate::{
 };
 
 use super::{
-    Freshness, RequestDependencyUpdateError, StateVar, StateVarIdx, StateVarMutableView,
-    StateVarView, TryFromState,
+    Freshness, InvertError, StateVar, StateVarIdx, StateVarMutableView, StateVarView, TryFromState,
 };
 
 ///////////////////////////////////////////////////////////////////////

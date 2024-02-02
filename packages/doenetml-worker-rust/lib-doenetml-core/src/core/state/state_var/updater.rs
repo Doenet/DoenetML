@@ -20,10 +20,10 @@ pub enum StateVarCalcResult<T> {
 }
 
 #[derive(Debug, Error)]
-pub enum RequestDependencyUpdateError {
+pub enum InvertError {
     #[error("invert is not implemented")]
     NotImplemented,
-    #[error("could not update")]
+    #[error("could not invert")]
     CouldNotUpdate,
 }
 
@@ -71,8 +71,8 @@ pub trait StateVarUpdater<T: Default + Clone, D>: std::fmt::Debug {
         data: &mut D,
         state_var: &StateVarView<T>,
         is_direct_change_from_renderer: bool,
-    ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
-        Err(RequestDependencyUpdateError::NotImplemented)
+    ) -> Result<Vec<DependencyValueUpdateRequest>, InvertError> {
+        Err(InvertError::NotImplemented)
     }
 }
 
@@ -118,8 +118,8 @@ pub trait StateVarUpdaterWithCache<T: Default + Clone>: std::fmt::Debug {
         &mut self,
         state_var: &StateVarView<T>,
         is_direct_change_from_renderer: bool,
-    ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
-        Err(RequestDependencyUpdateError::NotImplemented)
+    ) -> Result<Vec<DependencyValueUpdateRequest>, InvertError> {
+        Err(InvertError::NotImplemented)
     }
 }
 
@@ -168,7 +168,7 @@ where
         &mut self,
         state_var: &StateVarView<T>,
         is_direct_change_from_renderer: bool,
-    ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
+    ) -> Result<Vec<DependencyValueUpdateRequest>, InvertError> {
         self.state_var_updater
             .invert(&mut self.cache, state_var, is_direct_change_from_renderer)
     }

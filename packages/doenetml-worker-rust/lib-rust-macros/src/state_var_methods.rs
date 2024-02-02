@@ -337,7 +337,7 @@ pub fn state_var_methods_mut_derive(input: TokenStream) -> TokenStream {
                     pub fn invert(
                         &mut self,
                         is_direct_change_from_renderer: bool,
-                    ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
+                    ) -> Result<Vec<DependencyValueUpdateRequest>, InvertError> {
                         match self {
                             #(#state_var_invert_arms)*
                         }

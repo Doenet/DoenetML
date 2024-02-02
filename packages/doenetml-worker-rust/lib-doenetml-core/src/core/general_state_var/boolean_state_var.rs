@@ -194,7 +194,7 @@ impl StateVarUpdater<bool, BooleanRequiredData> for BooleanStateVar {
         data: &mut BooleanRequiredData,
         state_var: &StateVarView<bool>,
         _is_direct_change_from_renderer: bool,
-    ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
+    ) -> Result<Vec<DependencyValueUpdateRequest>, InvertError> {
         if let Some(extending) = data.extending.as_mut() {
             // this state variable is extending another state variable
             if data.base.is_empty() {
@@ -202,7 +202,7 @@ impl StateVarUpdater<bool, BooleanRequiredData> for BooleanStateVar {
                 return Ok(data.queued_updates());
             } else {
                 // Invalid combination. Haven't implemented extending plus other data.
-                return Err(RequestDependencyUpdateError::CouldNotUpdate);
+                return Err(InvertError::CouldNotUpdate);
             }
         } else if data.base.len() == 1 {
             // not extending and have a single variable from the base query
@@ -224,7 +224,7 @@ impl StateVarUpdater<bool, BooleanRequiredData> for BooleanStateVar {
             return Ok(data.queued_updates());
         } else {
             // for all other combinations, we cannot invert
-            return Err(RequestDependencyUpdateError::CouldNotUpdate);
+            return Err(InvertError::CouldNotUpdate);
         }
     }
 }

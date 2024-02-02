@@ -134,7 +134,7 @@ impl StateVarUpdater<String, StringRequiredData> for StringStateVar {
         data: &mut StringRequiredData,
         state_var: &StateVarView<String>,
         _is_direct_change_from_renderer: bool,
-    ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
+    ) -> Result<Vec<DependencyValueUpdateRequest>, InvertError> {
         // concatenate the strings from extending and the base data query
         let mut strings = if let Some(extending) = data.extending.as_mut() {
             vec![extending]
@@ -159,7 +159,7 @@ impl StateVarUpdater<String, StringRequiredData> for StringStateVar {
 
                 Ok(data.queued_updates())
             }
-            _ => Err(RequestDependencyUpdateError::CouldNotUpdate),
+            _ => Err(InvertError::CouldNotUpdate),
         }
     }
 }

@@ -333,7 +333,7 @@ impl<T: Default + Clone> StateVar<T> {
     pub fn invert(
         &mut self,
         is_direct_change_from_renderer: bool,
-    ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
+    ) -> Result<Vec<DependencyValueUpdateRequest>, InvertError> {
         self.updater.invert(
             &self.immutable_view_of_value,
             is_direct_change_from_renderer,

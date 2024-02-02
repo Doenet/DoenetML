@@ -53,7 +53,7 @@ impl StateVarUpdater<String, RequiredData> for ImmediateValueStateVar {
         data: &mut RequiredData,
         state_var: &StateVarView<String>,
         is_direct_change_from_renderer: bool,
-    ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
+    ) -> Result<Vec<DependencyValueUpdateRequest>, InvertError> {
         let requested_value = state_var.get_requested_value();
 
         data.essential.queue_update(requested_value.clone());

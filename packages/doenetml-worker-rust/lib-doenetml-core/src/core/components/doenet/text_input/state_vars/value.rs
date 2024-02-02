@@ -59,7 +59,7 @@ impl StateVarUpdater<String, RequiredData> for ValueStateVar {
         data: &mut RequiredData,
         state_var: &StateVarView<String>,
         _is_direct_change_from_renderer: bool,
-    ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
+    ) -> Result<Vec<DependencyValueUpdateRequest>, InvertError> {
         let requested_value = state_var.get_requested_value();
 
         if data.bind_value_to.came_from_default() {
