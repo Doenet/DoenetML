@@ -1,280 +1,545 @@
+use crate::{
+    utils::test_utils::{create_essential_dependency, create_state_var_dependency},
+    ExtendStateVariableDescription, StateVariableShadowingMatch,
+};
+
 use super::*;
 
-/// Create a mutual view of a state variable along with a read only view
-fn create_view_pair(
-    value: &str,
-    came_from_default: bool,
-) -> (StateVarMutableView<String>, StateVarView<String>) {
-    let mutable_view = StateVarMutableView::new_with_value(value.to_string(), came_from_default);
-    let view = mutable_view.create_new_read_only_view();
-    (mutable_view, view)
+/// Testing the case of string state variable requesting children but receiving no children dependencies
+/// so that the only dependency is the implicit essential data.
+/// For example, if we have a `<text></text>` with no children,
+/// its `value` state variable would follow this pattern.
+#[test]
+fn string_state_var_with_no_children() {
+    // create a string state variable requesting children
+    let mut state_var = StringStateVar::new_from_children(String::from("")).into_state_var();
+    let mut state_var_view = state_var.create_new_read_only_view();
+
+    //////////////////////////////////////////////////
+    // Step 1: check that get the correct data queries
+    //////////////////////////////////////////////////
+    let queries = state_var.return_data_queries(None, 3);
+
+    // should return a query for text or boolean children and an essential state variable
+    assert_eq!(
+        queries,
+        vec![
+            DataQuery::Child {
+                match_profiles: vec![ComponentProfile::Text],
+                exclude_if_prefer_profiles: vec![]
+            },
+            DataQuery::Essential
+        ]
+    );
+
+    ////////////////////////////////////////////////////////////////
+    // Step 2: fulfill data query with no children and the essential
+    ////////////////////////////////////////////////////////////////
+    let (essential_dependency, essential_var) = create_essential_dependency::<String>();
+
+    let dependencies_created_for_data_queries = vec![
+        DependenciesCreatedForDataQuery(vec![]),
+        DependenciesCreatedForDataQuery(vec![essential_dependency]),
+    ];
+
+    state_var.save_dependencies(&dependencies_created_for_data_queries);
+
+    ////////////////////////////////////////////////////////////////
+    // Step 3: check if get the correct calculated value
+    ////////////////////////////////////////////////////////////////
+    state_var.calculate_and_mark_fresh();
+
+    // we expect a value of false and came_from_default to be true,
+    // since that the variable is coming from the essential dependency,
+    // and we made the create_essential_dependency() function, above, to return those values.
+    assert_eq!(state_var.get().to_string(), "");
+    assert_eq!(state_var.came_from_default(), true);
+
+    ////////////////////////////////////////////////////////////////
+    // Step 4: invert to make the value "hello"
+    ////////////////////////////////////////////////////////////////
+
+    // on the state variable view, record that we request the value be true
+    state_var_view.queue_update(String::from("hello"));
+
+    let invert_result = state_var.invert(false).unwrap();
+
+    // we should get a request informing core that we need to change the essential variable
+    assert_eq!(
+        invert_result,
+        vec![DependencyValueUpdateRequest {
+            // data_query_idx is 1 because essential is the second data query
+            data_query_idx: 1,
+            dependency_idx: 0
+        }]
+    );
+    // the essential variable has recorded that it has been requested to be "hello"
+    assert_eq!(essential_var.get_requested_value().clone(), "hello");
+
+    ////////////////////////////////////////////////////////////////
+    // Step 5: make the changes to actually make the value "hello"
+    ////////////////////////////////////////////////////////////////
+
+    essential_var.set_value(String::from("hello"));
+
+    state_var.calculate_and_mark_fresh();
+
+    // now the value should be "hello" and it is no longer marked as coming from default
+    assert_eq!(state_var.get().clone(), "hello");
+    assert_eq!(state_var.came_from_default(), false);
 }
 
-/// Testing the case of string state variable without any dependencies (other than the implicit essential data).
-/// For example, where we have a `<text></text>` with no children,
-/// its `value` state variable would have no dependencies.
+/// Testing the case of string state variable requesting children
+/// and receiving a single string child dependency.
+/// For example, if we have a `<text>hello</text>`,
+/// its `value` state variable would follow this pattern.
 #[test]
-fn string_state_var_with_no_dependencies() {
-    // set up data that consists of just the essential variable
-    let mut string_data = StringRequiredData::default();
+fn string_state_var_with_string_child() {
+    // create a boolean state variable requesting children
+    let mut state_var = StringStateVar::new_from_children(String::from("")).into_state_var();
+    let mut state_var_view = state_var.create_new_read_only_view();
 
-    let (essential, essential_view) = create_view_pair("", true);
+    //////////////////////////////////////////////////
+    // Step 1: check that get the correct data queries
+    //////////////////////////////////////////////////
+    let queries = state_var.return_data_queries(None, 3);
 
-    string_data.essential = essential_view;
-
-    // a call to calculate gives the default "", as that is what essential contains
+    // should return a query for text or boolean children and an essential state variable
     assert_eq!(
-        StringStateVar::calculate(&string_data),
-        StateVarCalcResult::FromDefault("".to_string())
+        queries,
+        vec![
+            DataQuery::Child {
+                match_profiles: vec![ComponentProfile::Text],
+                exclude_if_prefer_profiles: vec![]
+            },
+            DataQuery::Essential
+        ]
     );
 
-    // if change the value of essential, get calculated value with new value
-    essential.set_value("hello".to_string());
+    ////////////////////////////////////////////////////////////////
+    // Step 2: fulfill data query with one string child and the essential
+    ////////////////////////////////////////////////////////////////
+    let (essential_dependency, essential_var) = create_essential_dependency::<String>();
+    let (child_dependency, child_var) = create_state_var_dependency(String::from("hello"));
+
+    let dependencies_created_for_data_queries = vec![
+        DependenciesCreatedForDataQuery(vec![child_dependency]),
+        DependenciesCreatedForDataQuery(vec![essential_dependency]),
+    ];
+
+    state_var.save_dependencies(&dependencies_created_for_data_queries);
+
+    ////////////////////////////////////////////////////////////////
+    // Step 3: check if get the correct calculated value
+    ////////////////////////////////////////////////////////////////
+    state_var.calculate_and_mark_fresh();
+
+    // we expect a value of "hello" and came_from_default to be false,
+    // since that the variable is coming from the child dependency, which we initialized to "hello".
+    assert_eq!(state_var.get().clone(), "hello");
+    assert_eq!(state_var.came_from_default(), false);
+
+    ////////////////////////////////////////////////////////////////
+    // Step 4: invert to make the value "bye"
+    ////////////////////////////////////////////////////////////////
+
+    // on the state variable view, record that we request the value be false
+    state_var_view.queue_update(String::from("bye"));
+
+    let invert_result = state_var.invert(false).unwrap();
+
+    // we should get a request informing core that we need to change the essential variable
     assert_eq!(
-        StringStateVar::calculate(&string_data),
-        StateVarCalcResult::Calculated("hello".to_string())
+        invert_result,
+        vec![DependencyValueUpdateRequest {
+            // data_query_idx is 0 because child is the first data query
+            data_query_idx: 0,
+            dependency_idx: 0
+        }]
     );
+    // the child variable has recorded that it has been requested to be false
+    assert_eq!(child_var.get_requested_value().to_string(), "bye");
 
-    // if change the value of essential as though it were the default,
-    // get the new default value
-    essential.set_value_from_default("bye".to_string());
-    assert_eq!(
-        StringStateVar::calculate(&string_data),
-        StateVarCalcResult::FromDefault("bye".to_string())
-    );
+    ////////////////////////////////////////////////////////////////
+    // Step 5: make the changes to actually make the value "bye"
+    ////////////////////////////////////////////////////////////////
 
-    // set up a view of the state variable itself, as needed for invert
-    let (state_var, state_var_view) = create_view_pair("", false);
-    state_var.set_requested_value("new".to_string());
+    child_var.set_value(String::from("bye"));
 
-    // add meta data needed for invert to work. Use arbitrary values just to test.
-    string_data._data_query_mapping_data.essential.push((5, 7));
+    state_var.calculate_and_mark_fresh();
 
-    // we get an Ok result from invert
-    let invert_result = StringStateVar::invert(&mut string_data, &state_var_view, false).unwrap();
+    // now the value should be "bye"
+    assert_eq!(state_var.get().clone(), "bye");
+    assert_eq!(state_var.get().clone(), "bye");
 
-    // the request is to change corresponds to the mapping data we made for essential
-    assert_eq!(invert_result.len(), 1);
-    assert_eq!(
-        invert_result[0],
-        DependencyValueUpdateRequest {
-            data_query_idx: 5,
-            dependency_idx: 7
-        }
-    );
+    ////////////////////////////////////////////////////////////////
+    // Step 6: verify changing essential does not affect the value
+    ////////////////////////////////////////////////////////////////
 
-    // the essential value was requested to change to the new value
-    assert_eq!(
-        essential.get_requested_value().to_string(),
-        "new".to_string()
-    );
+    essential_var.set_value(String::from("ignore me"));
+
+    state_var.calculate_and_mark_fresh();
+
+    // the value should still be "bye"
+    assert_eq!(state_var.get().clone(), "bye");
 }
 
-/// Testing the case of string state variable with a single string base dependency.
-/// For example, where we have a `<text>hello</text>` with one string child,
-/// its `value` state variable would just depend on the string "hello".
+/// Testing the case of a string state variable requesting children
+/// and receiving two string child dependencies.
+/// For example, if we have a `<text>Hello <text>World</text></text>`,
+/// the outer text's `value` state variable would follow this pattern.
 #[test]
-fn string_state_var_with_one_base_dependency() {
-    // set up data that consists of the essential variable and one base variable
-    let mut string_data = StringRequiredData::default();
+fn string_state_var_with_two_string_children() {
+    // create a boolean state variable requesting children
+    let mut state_var = StringStateVar::new_from_children(String::from("")).into_state_var();
+    let mut state_var_view = state_var.create_new_read_only_view();
 
-    let (essential, essential_view) = create_view_pair("", true);
-    string_data.essential = essential_view;
+    //////////////////////////////////////////////////
+    // Step 1: check that get the correct data queries
+    //////////////////////////////////////////////////
+    let queries = state_var.return_data_queries(None, 3);
 
-    let (base, base_view) = create_view_pair("the", false);
-
-    string_data.base = vec![base_view];
-
-    // a call to calculate matches the base variable
+    // should return a query for text or boolean children and an essential state variable
     assert_eq!(
-        StringStateVar::calculate(&string_data),
-        StateVarCalcResult::Calculated("the".to_string())
+        queries,
+        vec![
+            DataQuery::Child {
+                match_profiles: vec![ComponentProfile::Text],
+                exclude_if_prefer_profiles: vec![]
+            },
+            DataQuery::Essential
+        ]
     );
 
-    // the essential variable is being ignored, so changes to it do not alter the calculation
-    essential.set_value("hello".to_string());
-    assert_eq!(
-        StringStateVar::calculate(&string_data),
-        StateVarCalcResult::Calculated("the".to_string())
-    );
+    ////////////////////////////////////////////////////////////////
+    // Step 2: fulfill data query with two string children and the essential
+    ////////////////////////////////////////////////////////////////
+    let (essential_dependency, essential_var) = create_essential_dependency::<String>();
+    let (child1_dependency, child1_var) = create_state_var_dependency(String::from("Hello "));
+    let (child2_dependency, child2_var) = create_state_var_dependency(String::from("World"));
 
-    base.set_value("other".to_string());
-    assert_eq!(
-        StringStateVar::calculate(&string_data),
-        StateVarCalcResult::Calculated("other".to_string())
-    );
+    let dependencies_created_for_data_queries = vec![
+        DependenciesCreatedForDataQuery(vec![child1_dependency, child2_dependency]),
+        DependenciesCreatedForDataQuery(vec![essential_dependency]),
+    ];
 
-    // set up a view of the state variable itself, as needed for invert
-    let (state_var, state_var_view) = create_view_pair("", false);
-    state_var.set_requested_value("new".to_string());
+    state_var.save_dependencies(&dependencies_created_for_data_queries);
 
-    // add meta data needed for invert to work. Use arbitrary values just to test.
-    string_data._data_query_mapping_data.base.push((3, 2));
+    ////////////////////////////////////////////////////////////////
+    // Step 3: check if get the correct calculated value
+    ////////////////////////////////////////////////////////////////
+    state_var.calculate_and_mark_fresh();
 
-    // we get an Ok result from invert
-    let invert_result = StringStateVar::invert(&mut string_data, &state_var_view, false).unwrap();
+    // we expect a value of "Hello World" and came_from_default to be false,
+    // since that the variable is coming from the child dependency, which we initialized to true.
+    assert_eq!(state_var.get().clone(), "Hello World");
+    assert_eq!(state_var.came_from_default(), false);
 
-    // the request is to change corresponds to the mapping data we made for essential
-    assert_eq!(invert_result.len(), 1);
-    assert_eq!(
-        invert_result[0],
-        DependencyValueUpdateRequest {
-            data_query_idx: 3,
-            dependency_idx: 2
-        }
-    );
+    ////////////////////////////////////////////////////////////////
+    // Step 4: cannot invert to make the value "Bye World"
+    ////////////////////////////////////////////////////////////////
 
-    // the base value was requested to change to the new value
-    assert_eq!(base.get_requested_value().to_string(), "new".to_string());
-}
+    // on the state variable view, record that we request the value be false
+    state_var_view.queue_update(String::from("Bye World"));
 
-/// Testing the case of string state variable with two string base dependencies.
-/// For example, for `<text>hello <text>there</text></text>`,
-/// where the outer `<text>` has one string children and on text child,
-/// its `value` state variable would depend on two string base dependencies.
-#[test]
-fn string_state_var_with_two_base_dependencies() {
-    // set up data that consists of the essential variable and two base variables
-    let mut string_data = StringRequiredData::default();
-    let (essential, essential_view) = create_view_pair("", true);
-    string_data.essential = essential_view;
-
-    let (_base1, base1_view) = create_view_pair("Hello", false);
-    let (base2, base2_view) = create_view_pair("World", false);
-
-    string_data.base = vec![base1_view, base2_view];
-
-    // a call to calculate matches the concatenation of the base variables
-    assert_eq!(
-        StringStateVar::calculate(&string_data),
-        StateVarCalcResult::Calculated("HelloWorld".to_string())
-    );
-
-    // the essential variable is being ignored, so changes to it do not alter the calculation
-    essential.set_value("bye".to_string());
-    assert_eq!(
-        StringStateVar::calculate(&string_data),
-        StateVarCalcResult::Calculated("HelloWorld".to_string())
-    );
-
-    base2.set_value("Earth".to_string());
-    assert_eq!(
-        StringStateVar::calculate(&string_data),
-        StateVarCalcResult::Calculated("HelloEarth".to_string())
-    );
-
-    // set up a view of the state variable itself, as needed for invert
-    let (state_var, state_var_view) = create_view_pair("", false);
-    state_var.set_requested_value("new".to_string());
-
-    // we get an Err result from invert
-    let invert_result = StringStateVar::invert(&mut string_data, &state_var_view, false);
+    let invert_result = state_var.invert(false);
 
     assert!(invert_result.is_err());
+
+    ////////////////////////////////////////////////////////////////
+    // Step 5: change the text children to make it "Bye Earth"
+    ////////////////////////////////////////////////////////////////
+
+    child1_var.set_value(String::from("Bye "));
+    child2_var.set_value(String::from("Earth"));
+
+    state_var.calculate_and_mark_fresh();
+
+    // now the value should be "Bye Earth"
+    assert_eq!(state_var.get().clone(), "Bye Earth");
+
+    ////////////////////////////////////////////////////////////////
+    // Step 6: verify changing essential does not affect the value
+    ////////////////////////////////////////////////////////////////
+
+    essential_var.set_value(String::from("ignore me"));
+
+    state_var.calculate_and_mark_fresh();
+
+    // the value should still be "Bye Earth"
+    assert_eq!(state_var.get().clone(), "Bye Earth");
 }
 
-/// Testing the case of string state variable with an extending dependency.
-/// For example, for `<text name="h">hello</text> <text extends="$h" />`,
-/// where the second `<text>` extends the first,
-/// its `value` state variable would depend an extending dependency.
+/// Testing the case of string state variable
+/// is extending another string state variable
+/// For example, if we have `<text name="t">hello</text> <text extends="$t" />`
+/// the `value` state variable of the second <text> would follow this pattern.
 #[test]
-fn string_state_var_just_extending() {
-    // set up data that consists of the essential variable and an extending variable
-    let mut string_data = StringRequiredData::default();
-    let (essential, essential_view) = create_view_pair("", true);
-    string_data.essential = essential_view;
+fn string_state_var_with_just_extending() {
+    // create a string state variable requesting children
+    let mut state_var = StringStateVar::new_from_children(String::from("")).into_state_var();
+    let mut state_var_view = state_var.create_new_read_only_view();
 
-    let (extending, extending_view) = create_view_pair("the", false);
-    string_data.extending = Some(extending_view);
+    let extend_source = ExtendSource::StateVar(ExtendStateVariableDescription {
+        component_idx: 5,
+        state_variable_matching: vec![StateVariableShadowingMatch {
+            shadowing_state_var_idx: 3, // we are making this state variable be index 3, below
+            shadowed_state_var_idx: 7,
+        }],
+    });
 
-    // a call to calculate matches the extending variable
+    //////////////////////////////////////////////////
+    // Step 1: check that get the correct data queries
+    //////////////////////////////////////////////////
+    let queries = state_var.return_data_queries(Some(extend_source), 3);
+
+    // should return a query for text children and an essential state variable
     assert_eq!(
-        StringStateVar::calculate(&string_data),
-        StateVarCalcResult::Calculated("the".to_string())
+        queries,
+        vec![
+            // these numbers match what we entered in the extend_source, above
+            DataQuery::StateVar {
+                component_idx: Some(5),
+                state_var_idx: 7
+            },
+            DataQuery::Child {
+                match_profiles: vec![ComponentProfile::Text],
+                exclude_if_prefer_profiles: vec![]
+            },
+            DataQuery::Essential
+        ]
     );
 
-    // the essential variable is being ignored, so changes to it do not alter the calculation
-    essential.set_value("hello".to_string());
+    ////////////////////////////////////////////////////////////////
+    // Step 2: fulfill data query with a string extend source, no children and the essential
+    ////////////////////////////////////////////////////////////////
+    let (essential_dependency, essential_var) = create_essential_dependency::<String>();
+    let (extend_dependency, extend_var) = create_state_var_dependency(String::from("hello"));
+
+    let dependencies_created_for_data_queries = vec![
+        DependenciesCreatedForDataQuery(vec![extend_dependency]),
+        DependenciesCreatedForDataQuery(vec![]),
+        DependenciesCreatedForDataQuery(vec![essential_dependency]),
+    ];
+
+    state_var.save_dependencies(&dependencies_created_for_data_queries);
+
+    ////////////////////////////////////////////////////////////////
+    // Step 3: check if get the correct calculated value
+    ////////////////////////////////////////////////////////////////
+    state_var.calculate_and_mark_fresh();
+
+    // we expect a value of "hello" and came_from_default to be false,
+    // since that the variable is coming from the extend dependency, which we initialized to "hello".
+    assert_eq!(state_var.get().clone(), String::from("hello"));
+    assert_eq!(state_var.came_from_default(), false);
+
+    ////////////////////////////////////////////////////////////////
+    // Step 4: invert to make the value "bye"
+    ////////////////////////////////////////////////////////////////
+
+    // on the state variable view, record that we request the value be "bye"
+    state_var_view.queue_update(String::from("bye"));
+
+    let invert_result = state_var.invert(false).unwrap();
+
+    // we should get a request informing core that we need to change the essential variable
     assert_eq!(
-        StringStateVar::calculate(&string_data),
-        StateVarCalcResult::Calculated("the".to_string())
+        invert_result,
+        vec![DependencyValueUpdateRequest {
+            // data_query_idx is 0 because extend is the first data query
+            data_query_idx: 0,
+            dependency_idx: 0
+        }]
     );
+    // the extend variable has recorded that it has been requested to be "bye"
+    assert_eq!(extend_var.get_requested_value().clone(), "bye");
 
-    extending.set_value("other".to_string());
-    assert_eq!(
-        StringStateVar::calculate(&string_data),
-        StateVarCalcResult::Calculated("other".to_string())
-    );
+    ////////////////////////////////////////////////////////////////
+    // Step 5: make the changes to actually make the value "bye"
+    ////////////////////////////////////////////////////////////////
 
-    // set up a view of the state variable itself, as needed for invert
-    let (state_var, state_var_view) = create_view_pair("", false);
-    state_var.set_requested_value("new".to_string());
+    extend_var.set_value(String::from("bye"));
 
-    // add meta data needed for invert to work. Use arbitrary values just to test.
-    string_data._data_query_mapping_data.extending.push((3, 2));
+    state_var.calculate_and_mark_fresh();
 
-    // we get an Ok result from invert
-    let invert_result = StringStateVar::invert(&mut string_data, &state_var_view, false).unwrap();
+    // now the value should be "bye"
+    assert_eq!(state_var.get().clone(), "bye");
 
-    // the request is to change corresponds to the mapping data we made for essential
-    assert_eq!(invert_result.len(), 1);
-    assert_eq!(
-        invert_result[0],
-        DependencyValueUpdateRequest {
-            data_query_idx: 3,
-            dependency_idx: 2
-        }
-    );
+    ////////////////////////////////////////////////////////////////
+    // Step 6: verify changing essential does not affect the value
+    ////////////////////////////////////////////////////////////////
 
-    // the extending value was requested to change to the new value
-    assert_eq!(
-        extending.get_requested_value().to_string(),
-        "new".to_string()
-    );
+    essential_var.set_value(String::from("ignore me"));
+
+    state_var.calculate_and_mark_fresh();
+
+    // the value should still be "bye"
+    assert_eq!(state_var.get().clone(), "bye");
 }
 
-/// Testing the case of string state variable with an extending dependency and a base dependency.
-/// For example, for `<text name="h">hello</text> <text extends="$h">there</text>`,
-/// where the second `<text>` extends the first and has an additional child,
-/// its `value` state variable would depend an extending dependency plus a base dependency.
+/// Testing the case of string state variable
+/// is extending another string state variable
+/// and has children dependencies.
+/// For example, if we have `<text name="t">hello</text> <text extends="$t"> there</text>`
+/// the `value` state variable of the second <text> would follow this pattern.
 #[test]
-fn string_state_var_extending_and_with_one_base_dependency() {
-    // set up data that consists of the essential variable, and extending, and one base variable
-    let mut string_data = StringRequiredData::default();
-    let (essential, essential_view) = create_view_pair("", true);
-    string_data.essential = essential_view;
+fn string_state_var_extending_and_with_one_child() {
+    // create a string state variable requesting children
+    let mut state_var = StringStateVar::new_from_children(String::from("")).into_state_var();
+    let mut state_var_view = state_var.create_new_read_only_view();
 
-    let (_extending, extending_view) = create_view_pair("Hello", false);
-    string_data.extending = Some(extending_view);
+    let extend_source = ExtendSource::StateVar(ExtendStateVariableDescription {
+        component_idx: 5,
+        state_variable_matching: vec![StateVariableShadowingMatch {
+            shadowing_state_var_idx: 3, // we are making this state variable be index 3, below
+            shadowed_state_var_idx: 7,
+        }],
+    });
 
-    let (base, base_view) = create_view_pair("World", false);
-    string_data.base = vec![base_view];
+    //////////////////////////////////////////////////
+    // Step 1: check that get the correct data queries
+    //////////////////////////////////////////////////
+    let queries = state_var.return_data_queries(Some(extend_source), 3);
 
-    // a call to calculate matches the concatenation of the base variables
+    // should return a query for text children and an essential state variable
     assert_eq!(
-        StringStateVar::calculate(&string_data),
-        StateVarCalcResult::Calculated("HelloWorld".to_string())
+        queries,
+        vec![
+            // these numbers match what we entered in the extend_source, above
+            DataQuery::StateVar {
+                component_idx: Some(5),
+                state_var_idx: 7
+            },
+            DataQuery::Child {
+                match_profiles: vec![ComponentProfile::Text],
+                exclude_if_prefer_profiles: vec![]
+            },
+            DataQuery::Essential
+        ]
     );
 
-    // the essential variable is being ignored, so changes to it do not alter the calculation
-    essential.set_value("bye".to_string());
-    assert_eq!(
-        StringStateVar::calculate(&string_data),
-        StateVarCalcResult::Calculated("HelloWorld".to_string())
-    );
+    ////////////////////////////////////////////////////////////////
+    // Step 2: fulfill data query with a string extend source, one child and the essential
+    ////////////////////////////////////////////////////////////////
+    let (essential_dependency, essential_var) = create_essential_dependency::<String>();
+    let (child_dependency, child_var) = create_state_var_dependency(String::from(" there"));
+    let (extend_dependency, extend_var) = create_state_var_dependency(String::from("hello"));
 
-    base.set_value("Earth".to_string());
-    assert_eq!(
-        StringStateVar::calculate(&string_data),
-        StateVarCalcResult::Calculated("HelloEarth".to_string())
-    );
+    let dependencies_created_for_data_queries = vec![
+        DependenciesCreatedForDataQuery(vec![extend_dependency]),
+        DependenciesCreatedForDataQuery(vec![child_dependency]),
+        DependenciesCreatedForDataQuery(vec![essential_dependency]),
+    ];
 
-    // set up a view of the state variable itself, as needed for invert
-    let (state_var, state_var_view) = create_view_pair("", false);
-    state_var.set_requested_value("new".to_string());
+    state_var.save_dependencies(&dependencies_created_for_data_queries);
 
-    // we get an Err result from invert
-    let invert_result = StringStateVar::invert(&mut string_data, &state_var_view, false);
+    ////////////////////////////////////////////////////////////////
+    // Step 3: check if get the correct calculated value
+    ////////////////////////////////////////////////////////////////
+    state_var.calculate_and_mark_fresh();
+
+    // we expect a value of "hello there"
+    // (a concatenation of the extending and the child)
+    // and came_from_default to be false
+    assert_eq!(state_var.get().clone(), String::from("hello there"));
+    assert_eq!(state_var.came_from_default(), false);
+
+    ////////////////////////////////////////////////////////////////
+    // Step 4: cannot invert to make the value "bye now"
+    ////////////////////////////////////////////////////////////////
+
+    // on the state variable view, record that we request the value be false
+    state_var_view.queue_update(String::from("bye now"));
+
+    let invert_result = state_var.invert(false);
 
     assert!(invert_result.is_err());
+
+    ////////////////////////////////////////////////////////////////
+    // Step 5: change the extending and child to make it "bye now"
+    ////////////////////////////////////////////////////////////////
+
+    extend_var.set_value(String::from("bye "));
+    child_var.set_value(String::from("now"));
+
+    state_var.calculate_and_mark_fresh();
+
+    // now the value should be "bye now"
+    assert_eq!(state_var.get().clone(), "bye now");
+
+    ////////////////////////////////////////////////////////////////
+    // Step 6: verify changing essential does not affect the value
+    ////////////////////////////////////////////////////////////////
+
+    essential_var.set_value(String::from("ignore me"));
+
+    state_var.calculate_and_mark_fresh();
+
+    // the value should still be "bye now"
+    assert_eq!(state_var.get().clone(), "bye now");
+}
+
+/// Testing the case of string state variable based on an attribute
+/// For example, if we have a `<textInput prefill/>`
+/// its `prefill` state variable would follow this pattern.
+#[test]
+fn string_state_var_with_attribute() {
+    // create a boolean state variable requesting children
+    let mut state_var =
+        StringStateVar::new_from_attribute("my_attr", String::from("")).into_state_var();
+
+    //////////////////////////////////////////////////
+    // check that get the correct data queries
+    //////////////////////////////////////////////////
+    let queries = state_var.return_data_queries(None, 3);
+
+    // should return a query for "my_attr" with text children and an essential state variable
+    assert_eq!(
+        queries,
+        vec![
+            DataQuery::AttributeChild {
+                attribute_name: "my_attr",
+                match_profiles: vec![ComponentProfile::Text]
+            },
+            DataQuery::Essential
+        ]
+    );
+
+    // Note: from this point on, at the level of these tests where dependencies are specified manually,
+    // there is no difference in this state variable as the above ones with children,
+    // so we don't repeat the same steps
+}
+
+/// Testing the case of string state variable
+/// where we pass in a particular data query
+#[test]
+fn string_state_var_with_specified_query() {
+    // create a boolean state variable requesting children
+    let mut state_var = StringStateVar::new(DataQuery::StateVar {
+        component_idx: Some(11),
+        state_var_idx: 13,
+    })
+    .into_state_var();
+
+    //////////////////////////////////////////////////
+    // check that get the data query back
+    //////////////////////////////////////////////////
+    let queries = state_var.return_data_queries(None, 3);
+
+    // should return a query for "my_attr" with text children and an essential state variable
+    assert_eq!(
+        queries,
+        vec![
+            DataQuery::StateVar {
+                component_idx: Some(11),
+                state_var_idx: 13,
+            },
+            DataQuery::Essential
+        ]
+    );
+
+    // Note: from this point on, at the level of these tests where dependencies are specified manually,
+    // there is no difference in this state variable as the above ones with children,
+    // so we don't repeat the same steps
 }

@@ -29,13 +29,26 @@ pub fn create_data_query_if_match_extend_source(
 
 /// Convert string to boolean
 ///
-/// The word "true" (case-insensitive) or an empty string become true.
-/// All other strings become false.
-///
-/// TODO: the empty string is try so that attribute="" sets the boolean attribute to true.
-/// Are there other cases where we'd want the empty string to be false?
-/// For example, an empty `<textInput>` becomes true with this algorithm,
-/// which may be confusing for authors. Not sure how to treat that case differently.
-pub fn string_to_boolean(s: &str) -> bool {
-    s.eq_ignore_ascii_case("true") || s.is_empty()
+/// The word "true" (case-insensitive) becomes `true`.
+/// If `empty_is_true` is `true`, then an empty string also becomes `true`.
+/// All other strings become `false`.
+pub fn string_to_boolean(s: &str, empty_is_true: bool) -> bool {
+    s.eq_ignore_ascii_case("true") || (empty_is_true && s.is_empty())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_string_to_boolean() {
+        assert_eq!(string_to_boolean("", true), true);
+        assert_eq!(string_to_boolean("", false), false);
+        assert_eq!(string_to_boolean(" ", true), false);
+        assert_eq!(string_to_boolean("true", false), true);
+        assert_eq!(string_to_boolean("tRUe", false), true);
+        assert_eq!(string_to_boolean("false", false), false);
+        assert_eq!(string_to_boolean("t", false), false);
+        assert_eq!(string_to_boolean("T", false), false);
+    }
 }

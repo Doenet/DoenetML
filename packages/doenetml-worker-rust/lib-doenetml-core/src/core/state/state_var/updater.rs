@@ -49,7 +49,7 @@ pub trait StateVarUpdater<T: Default + Clone, D>: std::fmt::Debug {
 
     /// Calculate the value of the state variable from the passed in `data`.
     /// Results of this function will be cached, so local caching is not needed.
-    fn calculate(data: &D) -> StateVarCalcResult<T>;
+    fn calculate(&self, data: &D) -> StateVarCalcResult<T>;
 
     /// All state variables know how to calculate their value given their dependencies.
     /// Sometimes a state variable is requested to take on a particular value. If the
@@ -67,6 +67,7 @@ pub trait StateVarUpdater<T: Default + Clone, D>: std::fmt::Debug {
     /// (as opposed to coming from another state variable that depends on this variable).
     #[allow(unused)]
     fn invert(
+        &self,
         data: &mut D,
         state_var: &StateVarView<T>,
         is_direct_change_from_renderer: bool,
@@ -160,7 +161,7 @@ where
     }
 
     fn calculate(&self) -> StateVarCalcResult<T> {
-        S::calculate(&self.cache)
+        self.state_var_updater.calculate(&self.cache)
     }
 
     fn invert(
@@ -168,7 +169,8 @@ where
         state_var: &StateVarView<T>,
         is_direct_change_from_renderer: bool,
     ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
-        S::invert(&mut self.cache, state_var, is_direct_change_from_renderer)
+        self.state_var_updater
+            .invert(&mut self.cache, state_var, is_direct_change_from_renderer)
     }
 }
 

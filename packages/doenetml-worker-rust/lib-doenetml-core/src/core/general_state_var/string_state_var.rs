@@ -88,7 +88,7 @@ impl StateVarUpdater<String, StringRequiredData> for StringStateVar {
         .into()
     }
 
-    fn calculate(data: &StringRequiredData) -> StateVarCalcResult<String> {
+    fn calculate(&self, data: &StringRequiredData) -> StateVarCalcResult<String> {
         // concatenate the strings from extending and the base data query
         let mut strings = if let Some(extending) = data.extending.as_ref() {
             vec![extending]
@@ -130,6 +130,7 @@ impl StateVarUpdater<String, StringRequiredData> for StringStateVar {
     /// If the state variable is determined by a single string variable or an essential variable,
     /// then request that variable take on the requested value for this variable.
     fn invert(
+        &self,
         data: &mut StringRequiredData,
         state_var: &StateVarView<String>,
         _is_direct_change_from_renderer: bool,

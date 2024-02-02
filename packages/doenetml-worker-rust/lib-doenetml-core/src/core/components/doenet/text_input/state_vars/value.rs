@@ -38,7 +38,7 @@ impl StateVarUpdater<String, RequiredData> for ValueStateVar {
         .into()
     }
 
-    fn calculate(data: &RequiredData) -> StateVarCalcResult<String> {
+    fn calculate(&self, data: &RequiredData) -> StateVarCalcResult<String> {
         let value = if *data.sync_immediate_value.get() {
             data.immediate_value.get().clone()
         } else if data.bind_value_to.came_from_default() {
@@ -55,6 +55,7 @@ impl StateVarUpdater<String, RequiredData> for ValueStateVar {
     }
 
     fn invert(
+        &self,
         data: &mut RequiredData,
         state_var: &StateVarView<String>,
         _is_direct_change_from_renderer: bool,

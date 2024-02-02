@@ -25,6 +25,8 @@ pub struct BooleanStateVar {
     base_data_query: DataQuery,
 
     default_value: bool,
+
+    from_attribute: bool,
 }
 
 /// The values of the dependencies created from the data queries
@@ -89,6 +91,7 @@ impl BooleanStateVar {
                 exclude_if_prefer_profiles: vec![],
             },
             default_value,
+            from_attribute: false,
         }
     }
 
@@ -101,6 +104,7 @@ impl BooleanStateVar {
                 match_profiles: vec![ComponentProfile::Text, ComponentProfile::Boolean],
             },
             default_value,
+            from_attribute: true,
         }
     }
 }
@@ -124,7 +128,7 @@ impl StateVarUpdater<bool, BooleanRequiredData> for BooleanStateVar {
     }
 
     #[allow(clippy::needless_return)]
-    fn calculate(data: &BooleanRequiredData) -> StateVarCalcResult<bool> {
+    fn calculate(&self, data: &BooleanRequiredData) -> StateVarCalcResult<bool> {
         if let Some(extending) = data.extending.as_ref() {
             // this state variable is extending another state variable
             if data.base.is_empty() {
@@ -150,7 +154,10 @@ impl StateVarUpdater<bool, BooleanRequiredData> for BooleanStateVar {
                     }
                 }
                 BooleanOrString::String(string_value) => {
-                    return StateVarCalcResult::Calculated(string_to_boolean(&string_value.get()));
+                    return StateVarCalcResult::Calculated(string_to_boolean(
+                        &string_value.get(),
+                        self.from_attribute,
+                    ));
                 }
             }
         } else if data
@@ -169,7 +176,7 @@ impl StateVarUpdater<bool, BooleanRequiredData> for BooleanStateVar {
                 BooleanOrString::String(string_value) => string_value.get().to_string(),
             }));
 
-            return StateVarCalcResult::Calculated(string_to_boolean(&value));
+            return StateVarCalcResult::Calculated(string_to_boolean(&value, false));
         } else {
             // not extending and have no base dependencies, so use the essential value,
             // propagating came_from_default as well as the value
@@ -183,6 +190,7 @@ impl StateVarUpdater<bool, BooleanRequiredData> for BooleanStateVar {
 
     #[allow(clippy::needless_return)]
     fn invert(
+        &self,
         data: &mut BooleanRequiredData,
         state_var: &StateVarView<bool>,
         _is_direct_change_from_renderer: bool,

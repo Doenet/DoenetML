@@ -32,11 +32,12 @@ impl StateVarUpdater<bool, RequiredData> for SyncImmediateValueStateVar {
         .into()
     }
 
-    fn calculate(data: &RequiredData) -> StateVarCalcResult<bool> {
+    fn calculate(&self, data: &RequiredData) -> StateVarCalcResult<bool> {
         StateVarCalcResult::Calculated(*data.essential.get())
     }
 
     fn invert(
+        &self,
         data: &mut RequiredData,
         state_var: &StateVarView<bool>,
         _is_direct_change_from_renderer: bool,
