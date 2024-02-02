@@ -11,7 +11,7 @@ fn basic_core_initialization() {
 
     let result = core.to_flat_dast();
 
-    let processed_string = to_serde_value!(&result);
+    let processed_string = to_serde_value(&result);
     assert_json_eq!(
         json!({
             "type": "root",
