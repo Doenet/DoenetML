@@ -4,8 +4,8 @@ use crate::{
     state::essential_state::EssentialDataOrigin,
 };
 
-/// Create a mutual view of a state variable along with a read only view
-pub fn create_view_pair<T: Default + Clone>(
+/// Create a mutable view of a state variable along with a read only view
+pub fn create_state_var_views<T: Default + Clone>(
     value: T,
     came_from_default: bool,
 ) -> (StateVarMutableView<T>, StateVarView<T>) {
@@ -19,7 +19,7 @@ where
     // make sure T is one of the types that we can convert from StateVarView<T> into StateVarViewEnum
     StateVarViewEnum: From<StateVarView<T>>,
 {
-    let (essential, essential_view) = create_view_pair(T::default(), true);
+    let (essential, essential_view) = create_state_var_views(T::default(), true);
 
     let dependency_source = DependencySource::Essential {
         component_idx: 0,
@@ -41,7 +41,7 @@ where
     // make sure T is one of the types that we can convert from StateVarView<T> into StateVarViewEnum
     StateVarViewEnum: From<StateVarView<T>>,
 {
-    let (state_var, state_var_view) = create_view_pair(initial_value, false);
+    let (state_var, state_var_view) = create_state_var_views(initial_value, false);
 
     let dependency_source = DependencySource::StateVar {
         component_idx: 0,

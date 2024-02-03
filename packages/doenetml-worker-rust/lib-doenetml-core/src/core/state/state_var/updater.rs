@@ -5,10 +5,10 @@ use thiserror::Error;
 
 use crate::{
     dependency::{DataQuery, DependenciesCreatedForDataQuery, DependencyValueUpdateRequest},
-    state, ExtendSource,
+    state,
 };
 
-use super::{StateVarIdx, StateVarView};
+use super::StateVarView;
 
 /// The possible results of a call to `calculate`:
 /// - Calculated(T): the value was calculated to be T
@@ -41,11 +41,7 @@ pub trait StateVarUpdater<T: Default + Clone, D>: std::fmt::Debug {
     /// for this state variable. These queries may be based on structure of the document,
     /// e.g., the children, attributes, or other state variables
     /// of the component of this state variable.
-    fn return_data_queries(
-        &self,
-        extending: Option<ExtendSource>,
-        state_var_idx: StateVarIdx,
-    ) -> Vec<Option<DataQuery>>;
+    fn return_data_queries(&self) -> Vec<Option<DataQuery>>;
 
     /// Calculate the value of the state variable from the passed in `data`.
     /// Results of this function will be cached, so local caching is not needed.
@@ -83,11 +79,7 @@ pub trait StateVarUpdaterWithCache<T: Default + Clone>: std::fmt::Debug {
     /// for this state variable. These queries may be based on structure of the document,
     /// e.g., the children, attributes, or other state variables
     /// of the component of this state variable.
-    fn return_data_queries(
-        &mut self,
-        extending: Option<ExtendSource>,
-        state_var_idx: StateVarIdx,
-    ) -> Vec<DataQuery>;
+    fn return_data_queries(&mut self) -> Vec<DataQuery>;
 
     /// Called when data queries for the state variable have been completed.
     /// State variables cache the results of their queries
@@ -136,15 +128,11 @@ where
     T: Default + Clone,
     D: std::fmt::Debug + Default + FromDependencies,
 {
-    fn return_data_queries(
-        &mut self,
-        extending: Option<ExtendSource>,
-        state_var_idx: StateVarIdx,
-    ) -> Vec<DataQuery> {
+    fn return_data_queries(&mut self) -> Vec<DataQuery> {
         self.queries_used = Vec::new();
 
         self.state_var_updater
-            .return_data_queries(extending, state_var_idx)
+            .return_data_queries()
             .into_iter()
             .enumerate()
             .filter_map(|(dep_idx, data_query_option)| {

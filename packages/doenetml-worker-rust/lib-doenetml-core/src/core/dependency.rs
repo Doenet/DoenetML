@@ -242,35 +242,54 @@ pub fn create_dependencies_from_data_query_initialize_essential(
 
             let mut relevant_children: Vec<RelevantChild> = Vec::new();
 
-            // For each component child (including those from an extend source)
-            // iterate through all its component profile state variables
-            // to see if one matches matches_profile before one matches exclude_if_prefer_profiles.
+            // We address two possible extend sources
+            // 1. If there is a state variable extend source extending this state variable,
+            //    and that state variable matches `match_profiles`, then the first dependency
+            //    will be that state variable.
+            // 2. If, instead, there is a component extend source, then include the children
+            //    from the extend source in the list of children (starting with extend source children)
 
+            let mut dependencies = Vec::new();
+
+            // First check if there is a matching a state variable extend source
+            match create_dependency_from_extend_source_if_matches_profile(
+                components[component_idx].borrow().get_extending(),
+                state_var_idx,
+                match_profiles,
+                components,
+            ) {
+                Some(dependency) => dependencies.push(dependency),
+                None => (),
+            }
+
+            // To address a potential component extend source, we get all children,
+            // including those from a component extend source.
             let children_info =
                 get_children_with_parent_including_from_extend_source(components, component_idx);
 
+            // Iterate through all its component profile state variables
+            // to see if one matches matches_profile before one matches exclude_if_prefer_profiles.
             for child_info in children_info.iter() {
                 match child_info {
                     (ComponentPointerTextOrMacro::Component(child_idx), parent_idx) => {
                         let child = components[*child_idx].borrow();
 
-                        let mut child_matches_with_profile = None;
-                        for child_profile_state_var in child.get_component_profile_state_variables()
-                        {
-                            let child_profile = child_profile_state_var.get_matching_profile();
+                        let mut child_matches_with_sv = None;
+
+                        for sv_idx in child.get_component_profile_state_variable_indices() {
+                            let child_sv = child.get_state_variable(sv_idx).unwrap();
+                            let child_profile = child_sv.get_matching_component_profile();
 
                             if match_profiles.contains(&child_profile) {
-                                child_matches_with_profile = Some(child_profile_state_var);
+                                child_matches_with_sv =
+                                    Some((child_sv.create_new_read_only_view(), sv_idx));
                                 break;
                             } else if exclude_if_prefer_profiles.contains(&child_profile) {
                                 break;
                             }
                         }
 
-                        if let Some(profile_sv) = child_matches_with_profile {
-                            let (state_var_view, sv_idx) =
-                                profile_sv.into_state_variable_view_enum_and_idx();
-
+                        if let Some((state_var_view, sv_idx)) = child_matches_with_sv {
                             let state_var_dep = Dependency {
                                 source: DependencySource::StateVar {
                                     component_idx: *child_idx,
@@ -299,8 +318,6 @@ pub fn create_dependencies_from_data_query_initialize_essential(
                     _ => (),
                 }
             }
-
-            let mut dependencies = Vec::new();
 
             // Stores how many string children added per parent.
             // Use it to generate the index for the EssentialDataOrigin so it points to the right string child
@@ -358,6 +375,49 @@ pub fn create_dependencies_from_data_query_initialize_essential(
                 }
             }
 
+            if dependencies.is_empty() {
+                // Found no matching children.
+                // Create an essential dependency with the default_value for the state variable
+
+                // Treat the essential data as though it came from the first string child
+                // of the component, except recursing to extend source components
+                // in order to share the essential data with the extend source.
+
+                let source_idx = get_extend_source_origin(components, component_idx);
+
+                let essential_origin = EssentialDataOrigin::StringChild(0);
+
+                let essential_data_view =
+                    if let Some(current_view) = essential_data[source_idx].get(&essential_origin) {
+                        current_view.create_new_read_only_view()
+                    } else {
+                        let initial_data = components[source_idx]
+                            .borrow()
+                            .get_state_variable(state_var_idx)
+                            .unwrap()
+                            .return_default_value();
+
+                        let new_view = create_essential_data_for(
+                            source_idx,
+                            essential_origin.clone(),
+                            InitialEssentialData::Single {
+                                value: initial_data,
+                                came_from_default: true,
+                            },
+                            essential_data,
+                        );
+                        new_view.create_new_read_only_view()
+                    };
+
+                dependencies.push(Dependency {
+                    source: DependencySource::Essential {
+                        component_idx: source_idx,
+                        origin: essential_origin,
+                    },
+                    value: essential_data_view,
+                });
+            }
+
             DependenciesCreatedForDataQuery(dependencies)
         }
 
@@ -387,31 +447,29 @@ pub fn create_dependencies_from_data_query_initialize_essential(
                 .iter()
                 .filter_map(|child| {
                     match child {
-                        ComponentPointerTextOrMacro::Component(child_idx) => components[*child_idx]
-                            .borrow()
-                            .get_component_profile_state_variables()
-                            .into_iter()
-                            .find_map(|child_profile_state_var| {
-                                let child_profile = child_profile_state_var.get_matching_profile();
+                        ComponentPointerTextOrMacro::Component(child_idx) => {
+                            let child_comp = components[*child_idx].borrow();
 
-                                if match_profiles.contains(&child_profile) {
-                                    Some(child_profile_state_var)
-                                } else {
-                                    None
-                                }
-                            })
-                            .map(|profile_sv| {
-                                let (state_var_view, sv_idx) =
-                                    profile_sv.into_state_variable_view_enum_and_idx();
+                            child_comp
+                                .get_component_profile_state_variable_indices()
+                                .into_iter()
+                                .find_map(|sv_idx| {
+                                    let child_sv = child_comp.get_state_variable(sv_idx).unwrap();
+                                    let child_profile = child_sv.get_matching_component_profile();
 
-                                Dependency {
-                                    source: DependencySource::StateVar {
-                                        component_idx: *child_idx,
-                                        state_var_idx: sv_idx,
-                                    },
-                                    value: state_var_view,
-                                }
-                            }),
+                                    if match_profiles.contains(&child_profile) {
+                                        Some(Dependency {
+                                            source: DependencySource::StateVar {
+                                                component_idx: *child_idx,
+                                                state_var_idx: sv_idx,
+                                            },
+                                            value: child_sv.create_new_read_only_view(),
+                                        })
+                                    } else {
+                                        None
+                                    }
+                                })
+                        }
                         ComponentPointerTextOrMacro::Text(string_value) => {
                             // Text children are just strings, and they just match the String or Text profiles
                             if match_profiles.contains(&ComponentProfile::String)
@@ -462,6 +520,58 @@ pub fn create_dependencies_from_data_query_initialize_essential(
             DependenciesCreatedForDataQuery(dependencies)
         }
     }
+}
+
+/// Create a Dependency on a state variable if we can find a StateVariableShadowingMatch
+/// from `extending` where `state_var_idx` is the shadowing state variable
+/// and the shadowed stat variable matches a profile from `match_profiles`.
+fn create_dependency_from_extend_source_if_matches_profile(
+    extending: Option<&ExtendSource>,
+    state_var_idx: usize,
+    match_profiles: &[ComponentProfile],
+    components: &[Rc<RefCell<ComponentEnum>>],
+) -> Option<Dependency> {
+    // If extending from a `state_var`,
+    // then check to see if it has a shadowing match where `state_var_idx` is the shadowing state var.
+    // If so then check if the state variable matches a `ComponentProfile`,
+    // creating a `Dependency` if found.
+
+    extending.and_then(|extend_source| match extend_source {
+        ExtendSource::StateVar(description) => description
+            .state_variable_matching
+            .iter()
+            .find(|state_var_match| {
+                // We look for a state variable match where shadowing_idx is state_var_idx.
+                state_var_match.shadowing_state_var_idx == state_var_idx
+            })
+            .and_then(|var_match| {
+                // We found a match to state_var_idx.
+                // Next, check if this match is of the correct type
+                // by determining the `ComponentProfile` of the state variable
+                // and checking if it matches `match_profiles`.
+
+                // Note: we are ignoring `exclude_if_prefer_profiles` because
+                // the main purpose of this check is to verify that we have an appropriate type,
+                // rather than filter out possible matches.
+                // We assume if an `ExtendSource` was created, it should be used if it matches.
+
+                let source_component = components[description.component_idx].borrow();
+                let source_state_var = source_component
+                    .get_state_variable(var_match.shadowed_state_var_idx)
+                    .unwrap();
+
+                let sv_profile = source_state_var.get_matching_component_profile();
+
+                match_profiles.contains(&sv_profile).then(|| Dependency {
+                    source: DependencySource::StateVar {
+                        component_idx: description.component_idx,
+                        state_var_idx: var_match.shadowed_state_var_idx,
+                    },
+                    value: source_state_var.create_new_read_only_view(),
+                })
+            }),
+        _ => None,
+    })
 }
 
 /// Recurse until the name of the original source is found.

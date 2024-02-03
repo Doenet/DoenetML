@@ -29,6 +29,7 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
             let mut state_var_check_if_any_dependency_changed_since_last_viewed_arms = Vec::new();
             let mut state_var_calculate_and_mark_fresh_arms = Vec::new();
             let mut state_var_return_default_value_arms = Vec::new();
+            let mut get_matching_component_profile_arms = Vec::new();
 
             for variant in variants {
                 let variant_ident = &variant.ident;
@@ -99,6 +100,20 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
                         StateVarValue::#variant_ident(sv.return_default_value())
                     },
                 });
+
+                if *variant_ident == "String" {
+                    get_matching_component_profile_arms.push(quote! {
+                        #enum_ident::#variant_ident(_sv) => {
+                            ComponentProfile::Text
+                        },
+                    })
+                } else {
+                    get_matching_component_profile_arms.push(quote! {
+                        #enum_ident::#variant_ident(_sv) => {
+                            ComponentProfile::#variant_ident
+                        },
+                    })
+                }
             }
 
             quote! {
@@ -229,6 +244,12 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
                         }
                     }
 
+                    pub fn get_matching_component_profile(&self) -> ComponentProfile {
+                        match self {
+                            #(#get_matching_component_profile_arms)*
+                        }
+                    }
+
                 }
 
             }
@@ -268,7 +289,7 @@ pub fn state_var_methods_mut_derive(input: TokenStream) -> TokenStream {
 
                 state_var_return_data_queries_arms.push(quote! {
                     #enum_ident::#variant_ident(sv) => {
-                        sv.return_data_queries(extending, state_var_idx)
+                        sv.return_data_queries()
                     },
                 });
 
@@ -299,7 +320,7 @@ pub fn state_var_methods_mut_derive(input: TokenStream) -> TokenStream {
 
                     /// Return a vector data queries, which will be used to
                     /// calculate dependencies from the document structure.
-                    pub fn return_data_queries(&mut self, extending: Option<ExtendSource>, state_var_idx: StateVarIdx) -> Vec<DataQuery> {
+                    pub fn return_data_queries(&mut self) -> Vec<DataQuery> {
                         match self {
                             #(#state_var_return_data_queries_arms)*
                         }

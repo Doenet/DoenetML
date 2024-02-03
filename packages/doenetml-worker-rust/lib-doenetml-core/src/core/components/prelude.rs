@@ -18,8 +18,7 @@ pub use crate::utils::KeyValueIgnoreCase;
 pub use crate::{ComponentIdx, ComponentPointerTextOrMacro, ExtendSource};
 
 pub use crate::components::{
-    ComponentActions, ComponentAttributes, ComponentCommonData, ComponentNode,
-    ComponentProfileStateVariable, RenderedChildren,
+    ComponentActions, ComponentAttributes, ComponentCommonData, ComponentNode, RenderedChildren,
 };
 
 // These imports are commonly used in components

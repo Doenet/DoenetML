@@ -4,9 +4,9 @@ mod tests;
 
 use enum_dispatch::enum_dispatch;
 
-use crate::{components::prelude::*, ExtendSource};
+use crate::components::prelude::*;
 
-use super::util::{create_data_query_if_match_extend_source, string_to_boolean};
+use super::util::{string_attr_to_boolean, string_to_boolean};
 
 /// A boolean state variable interface for calculating the value of a boolean variable from dependencies.
 ///
@@ -33,16 +33,8 @@ pub struct BooleanStateVar {
 #[add_dependency_data]
 #[derive(Debug, Default, StateVariableDependencies, StateVariableDataQueries)]
 pub struct BooleanRequiredData {
-    /// If this state variable is extending another state variable,
-    /// the value that is being extended
-    extending: Option<StateVarView<bool>>,
-
     /// A vector of the boolean or string values of the dependencies coming from the base_data_query
-    base: Vec<BooleanOrString>,
-
-    /// If not extending and don't have any base data,
-    /// then use this essential value, which will be initialized with the default value
-    essential: StateVarView<bool>,
+    booleans_and_strings: Vec<BooleanOrString>,
 }
 
 /// Since the state variable is based on booleans or strings,
@@ -114,76 +106,62 @@ impl StateVarUpdater<bool, BooleanRequiredData> for BooleanStateVar {
         self.default_value
     }
 
-    fn return_data_queries(
-        &self,
-        extending: Option<ExtendSource>,
-        state_var_idx: StateVarIdx,
-    ) -> Vec<Option<DataQuery>> {
+    fn return_data_queries(&self) -> Vec<Option<DataQuery>> {
         BooleanRequiredDataQueries {
-            extending: create_data_query_if_match_extend_source(extending, state_var_idx),
-            base: Some(self.base_data_query.clone()),
-            essential: Some(DataQuery::Essential),
+            booleans_and_strings: Some(self.base_data_query.clone()),
         }
         .into()
     }
 
     #[allow(clippy::needless_return)]
     fn calculate(&self, data: &BooleanRequiredData) -> StateVarCalcResult<bool> {
-        if let Some(extending) = data.extending.as_ref() {
-            // this state variable is extending another state variable
-            if data.base.is_empty() {
-                if extending.came_from_default() {
-                    return StateVarCalcResult::FromDefault(*extending.get());
-                } else {
-                    return StateVarCalcResult::Calculated(*extending.get());
-                }
-            } else {
-                // invalid combination. Haven't implemented extending plus other data
+        match data.booleans_and_strings.len() {
+            0 => {
                 return StateVarCalcResult::Calculated(false);
             }
-        } else if data.base.len() == 1 {
-            // not extending and have a single variable from the base query
-            match &data.base[0] {
-                BooleanOrString::Boolean(boolean_value) => {
-                    if boolean_value.came_from_default() {
-                        // If we are basing it on a single variable that came from default,
-                        // then we propagate came_from_default as well as the value.
-                        return StateVarCalcResult::FromDefault(*boolean_value.get());
-                    } else {
-                        return StateVarCalcResult::Calculated(*boolean_value.get());
+            1 => {
+                match &data.booleans_and_strings[0] {
+                    BooleanOrString::Boolean(boolean_value) => {
+                        if boolean_value.came_from_default() {
+                            // If we are basing it on a single variable that came from default,
+                            // then we propagate came_from_default as well as the value.
+                            return StateVarCalcResult::FromDefault(*boolean_value.get());
+                        } else {
+                            return StateVarCalcResult::Calculated(*boolean_value.get());
+                        }
+                    }
+                    BooleanOrString::String(string_value) => {
+                        return StateVarCalcResult::Calculated(if self.from_attribute {
+                            string_attr_to_boolean(&string_value.get())
+                        } else {
+                            string_to_boolean(&string_value.get())
+                        });
                     }
                 }
-                BooleanOrString::String(string_value) => {
-                    return StateVarCalcResult::Calculated(string_to_boolean(
-                        &string_value.get(),
-                        self.from_attribute,
-                    ));
-                }
             }
-        } else if data
-            .base
-            .iter()
-            .any(|dep_value| matches!(dep_value, BooleanOrString::Boolean(_)))
-        {
-            // invalid combination. Haven't implemented boolean dependency with other
-            return StateVarCalcResult::Calculated(false);
-        } else if data.base.len() > 1 {
-            // Have multiple string variables. Concatenate the string values into a single string
+            _ => {
+                if data
+                    .booleans_and_strings
+                    .iter()
+                    .any(|dep_value| matches!(dep_value, BooleanOrString::Boolean(_)))
+                {
+                    // invalid combination. Haven't implemented boolean dependency with others
+                    return StateVarCalcResult::Calculated(false);
+                } else {
+                    // Have multiple string variables. Concatenate the string values into a single string
 
-            let mut value = String::new();
-            value.extend(data.base.iter().map(|v| match v {
-                BooleanOrString::Boolean(boolean_val) => boolean_val.get().to_string(),
-                BooleanOrString::String(string_value) => string_value.get().to_string(),
-            }));
+                    let mut value = String::new();
+                    value.extend(data.booleans_and_strings.iter().map(|v| match v {
+                        BooleanOrString::Boolean(boolean_val) => boolean_val.get().to_string(),
+                        BooleanOrString::String(string_value) => string_value.get().to_string(),
+                    }));
 
-            return StateVarCalcResult::Calculated(string_to_boolean(&value, false));
-        } else {
-            // not extending and have no base dependencies, so use the essential value,
-            // propagating came_from_default as well as the value
-            if data.essential.came_from_default() {
-                return StateVarCalcResult::FromDefault(*data.essential.get());
-            } else {
-                return StateVarCalcResult::Calculated(*data.essential.get());
+                    return StateVarCalcResult::Calculated(if self.from_attribute {
+                        string_attr_to_boolean(&value)
+                    } else {
+                        string_to_boolean(&value)
+                    });
+                }
             }
         }
     }
@@ -195,36 +173,22 @@ impl StateVarUpdater<bool, BooleanRequiredData> for BooleanStateVar {
         state_var: &StateVarView<bool>,
         _is_direct_change_from_action: bool,
     ) -> Result<Vec<DependencyValueUpdateRequest>, InvertError> {
-        if let Some(extending) = data.extending.as_mut() {
-            // this state variable is extending another state variable
-            if data.base.is_empty() {
-                extending.queue_update(*state_var.get_requested_value());
-                return Ok(data.queued_updates());
-            } else {
-                // Invalid combination. Haven't implemented extending plus other data.
-                return Err(InvertError::CouldNotUpdate);
-            }
-        } else if data.base.len() == 1 {
-            // not extending and have a single variable from the base query
-            match &mut data.base[0] {
-                BooleanOrString::Boolean(boolean_value) => {
-                    boolean_value.queue_update(*state_var.get_requested_value());
+        match data.booleans_and_strings.len() {
+            1 => {
+                // based on a single value, so we can invert
+                let requested_value = *state_var.get_requested_value();
+                match &mut data.booleans_and_strings[0] {
+                    BooleanOrString::Boolean(boolean_value) => {
+                        boolean_value.queue_update(requested_value);
+                    }
+                    BooleanOrString::String(string_value) => {
+                        string_value.queue_update(requested_value.to_string());
+                    }
                 }
-                BooleanOrString::String(string_value) => {
-                    let requested_value = state_var.get_requested_value();
 
-                    string_value.queue_update(requested_value.to_string());
-                }
+                Ok(data.queued_updates())
             }
-            return Ok(data.queued_updates());
-        } else if data.base.is_empty() {
-            // not extending and have no base dependencies, so use the essential value,
-            data.essential
-                .queue_update(*state_var.get_requested_value());
-            return Ok(data.queued_updates());
-        } else {
-            // for all other combinations, we cannot invert
-            return Err(InvertError::CouldNotUpdate);
+            _ => Err(InvertError::CouldNotUpdate),
         }
     }
 }

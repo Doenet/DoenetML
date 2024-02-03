@@ -46,7 +46,7 @@ pub struct BooleanState {
     /// can represent a boolean value by returning the value of this state variable.
     #[is_public]
     #[for_renderer]
-    #[component_profile_state_variable(Boolean)]
+    #[component_profile_state_variable]
     value: StateVar<bool>,
 
     /// An alias to the `value` state variable.

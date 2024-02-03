@@ -12,8 +12,8 @@ use doenetml_derive::{
 
 use crate::{
     components::doenet::{boolean::Boolean, text::Text},
+    components::ComponentProfile,
     dependency::{DataQuery, DependenciesCreatedForDataQuery, DependencyValueUpdateRequest},
-    ExtendSource,
 };
 
 use super::{

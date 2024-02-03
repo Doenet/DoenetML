@@ -23,11 +23,7 @@ impl ValueStateVar {
 }
 
 impl StateVarUpdater<String, RequiredData> for ValueStateVar {
-    fn return_data_queries(
-        &self,
-        _extending: Option<ExtendSource>,
-        _state_var_idx: StateVarIdx,
-    ) -> Vec<Option<DataQuery>> {
+    fn return_data_queries(&self) -> Vec<Option<DataQuery>> {
         RequiredDataQueries {
             essential: Some(DataQuery::Essential),
             immediate_value: Some(TextInputState::get_immediate_value_data_queries()),

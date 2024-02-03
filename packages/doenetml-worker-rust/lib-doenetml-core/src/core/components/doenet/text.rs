@@ -48,7 +48,7 @@ pub struct TextState {
     /// can represent a text value by returning the value of this state variable.
     #[is_public]
     #[for_renderer]
-    #[component_profile_state_variable(Text)]
+    #[component_profile_state_variable]
     value: StateVar<String>,
 
     /// An alias to the `value` state variable.

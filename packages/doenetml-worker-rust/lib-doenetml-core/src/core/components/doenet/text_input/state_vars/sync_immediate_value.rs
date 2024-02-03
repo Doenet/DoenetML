@@ -21,11 +21,7 @@ impl StateVarUpdater<bool, RequiredData> for SyncImmediateValueStateVar {
         true
     }
 
-    fn return_data_queries(
-        &self,
-        _extending: Option<ExtendSource>,
-        _state_var_idx: StateVarIdx,
-    ) -> Vec<Option<DataQuery>> {
+    fn return_data_queries(&self) -> Vec<Option<DataQuery>> {
         RequiredDataQueries {
             essential: Some(DataQuery::Essential),
         }

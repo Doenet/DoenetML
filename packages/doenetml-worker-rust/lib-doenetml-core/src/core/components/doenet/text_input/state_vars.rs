@@ -24,7 +24,7 @@ pub struct TextInputState {
     /// It is marked with the `Text` component profile state variable, indicating that the `<textInput>` component
     /// can represent a text value by returning the value of this state variable.
     #[is_public]
-    #[component_profile_state_variable(Text)]
+    #[component_profile_state_variable]
     value: StateVar<String>,
 
     /// The current value of the text inside the input box of the `<textInput>` component.
@@ -41,16 +41,17 @@ pub struct TextInputState {
 
     // TODO: there are subtleties for why needed `sync_immediate_value` to get the proper behavior of `<textInput>`.
     // Will figure these out again as write a test for making sure it works correctly.
-    // Also, it's behavior may change if we replace `bind_value_to` with children.
+    // Also, it's behavior may change if we replace `value_from_children` with children.
     sync_immediate_value: StateVar<bool>,
 
-    // TODO: remove the `bind_value_to` attribute, and instead have the text input bind to the value of children, if present?
-    bind_value_to: StateVar<String>,
+    /// The string value computed from any children to the textInput.
+    /// If the textInput has children, use those children, rather than the essential state variable
+    /// to
+    value_from_children: StateVar<String>,
 
     /// The content that should prefill the `<textInput>`, giving it a default value before a user has interacted with the input.
     ///
-    /// It is ignored if `bind_value_to` is specified.
-    /// (Assuming we remove `bind_value_to`, the presence of children will instead cause `prefill` to be ignored.)
+    /// It is ignored if `value_from_children` is specified.
     #[is_public]
     prefill: StateVar<String>,
 
@@ -81,8 +82,7 @@ impl TextInputState {
             value: ValueStateVar::new().into_state_var(),
             immediate_value: ImmediateValueStateVar::new().into_state_var(),
             sync_immediate_value: SyncImmediateValueStateVar::new().into_state_var(),
-            bind_value_to: StringStateVar::new_from_attribute("bindValueTo", "".to_string())
-                .into_state_var(),
+            value_from_children: StringStateVar::new_from_children("".to_string()).into_state_var(),
             prefill: StringStateVar::new_from_attribute("prefill", "".to_string()).into_state_var(),
             hidden: BooleanStateVar::new_from_attribute("hidden", false).into_state_var(),
             disabled: BooleanStateVar::new_from_attribute("disabled", false).into_state_var(),

@@ -10,11 +10,8 @@ pub use enums::*;
 pub use updater::*;
 pub use views::*;
 
-use crate::{
-    components::prelude::{
-        DataQuery, DependenciesCreatedForDataQuery, DependencyValueUpdateRequest,
-    },
-    ExtendSource,
+use crate::components::prelude::{
+    DataQuery, DependenciesCreatedForDataQuery, DependencyValueUpdateRequest,
 };
 
 pub use super::StateVarIdx;
@@ -301,12 +298,8 @@ impl<T: Default + Clone> StateVar<T> {
     }
 
     /// Convenience function to call `return_data_queries` on interface
-    pub fn return_data_queries(
-        &mut self,
-        extending: Option<ExtendSource>,
-        state_var_idx: StateVarIdx,
-    ) -> Vec<DataQuery> {
-        self.updater.return_data_queries(extending, state_var_idx)
+    pub fn return_data_queries(&mut self) -> Vec<DataQuery> {
+        self.updater.return_data_queries()
     }
 
     /// Call `save_dependencies` on interface
