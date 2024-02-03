@@ -280,7 +280,7 @@ pub fn state_var_methods_mut_derive(input: TokenStream) -> TokenStream {
 
                 state_var_invert_arms.push(quote! {
                     #enum_ident::#variant_ident(sv) => {
-                        sv.invert(is_direct_change_from_renderer)
+                        sv.invert(is_direct_change_from_action)
                     },
                 });
             }
@@ -331,12 +331,12 @@ pub fn state_var_methods_mut_derive(input: TokenStream) -> TokenStream {
                     /// - a vector containing just the identities specifying which dependencies have requested new values, or
                     /// - an Err if the state variable is unable to change to the requested value.
                     ///
-                    /// The `is_direct_change_from_renderer` argument is true if the requested value
+                    /// The `is_direct_change_from_action` argument is true if the requested value
                     /// came directly from an action of the renderer
                     /// (as opposed to coming from another state variable that depends on this variable).
                     pub fn invert(
                         &mut self,
-                        is_direct_change_from_renderer: bool,
+                        is_direct_change_from_action: bool,
                     ) -> Result<Vec<DependencyValueUpdateRequest>, InvertError> {
                         match self {
                             #(#state_var_invert_arms)*

@@ -40,7 +40,7 @@ impl StateVarUpdater<bool, RequiredData> for SyncImmediateValueStateVar {
         &self,
         data: &mut RequiredData,
         state_var: &StateVarView<bool>,
-        _is_direct_change_from_renderer: bool,
+        _is_direct_change_from_action: bool,
     ) -> Result<Vec<DependencyValueUpdateRequest>, InvertError> {
         let requested_value = state_var.get_requested_value();
 

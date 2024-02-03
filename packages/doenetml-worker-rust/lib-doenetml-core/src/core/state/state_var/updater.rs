@@ -62,7 +62,7 @@ pub trait StateVarUpdater<T: Default + Clone, D>: std::fmt::Debug {
     ///
     /// An `Err` is returned if an effective combination of updates cannot be found.
     ///
-    /// The `is_direct_change_from_renderer` argument is true if the requested value
+    /// The `is_direct_change_from_action` argument is true if the requested value
     /// came directly from an action of the renderer
     /// (as opposed to coming from another state variable that depends on this variable).
     #[allow(unused)]
@@ -70,7 +70,7 @@ pub trait StateVarUpdater<T: Default + Clone, D>: std::fmt::Debug {
         &self,
         data: &mut D,
         state_var: &StateVarView<T>,
-        is_direct_change_from_renderer: bool,
+        is_direct_change_from_action: bool,
     ) -> Result<Vec<DependencyValueUpdateRequest>, InvertError> {
         Err(InvertError::NotImplemented)
     }
@@ -110,14 +110,14 @@ pub trait StateVarUpdaterWithCache<T: Default + Clone>: std::fmt::Debug {
     ///
     /// An `Err` is returned if an effective combination of updates cannot be found.
     ///
-    /// The `is_direct_change_from_renderer` argument is true if the requested value
+    /// The `is_direct_change_from_action` argument is true if the requested value
     /// came directly from an action of the renderer
     /// (as opposed to coming from another state variable that depends on this variable).
     #[allow(unused)]
     fn invert(
         &mut self,
         state_var: &StateVarView<T>,
-        is_direct_change_from_renderer: bool,
+        is_direct_change_from_action: bool,
     ) -> Result<Vec<DependencyValueUpdateRequest>, InvertError> {
         Err(InvertError::NotImplemented)
     }
@@ -167,10 +167,10 @@ where
     fn invert(
         &mut self,
         state_var: &StateVarView<T>,
-        is_direct_change_from_renderer: bool,
+        is_direct_change_from_action: bool,
     ) -> Result<Vec<DependencyValueUpdateRequest>, InvertError> {
         self.state_var_updater
-            .invert(&mut self.cache, state_var, is_direct_change_from_renderer)
+            .invert(&mut self.cache, state_var, is_direct_change_from_action)
     }
 }
 

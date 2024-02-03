@@ -332,12 +332,10 @@ impl<T: Default + Clone> StateVar<T> {
     /// Convenience function to call `invert` on interface
     pub fn invert(
         &mut self,
-        is_direct_change_from_renderer: bool,
+        is_direct_change_from_action: bool,
     ) -> Result<Vec<DependencyValueUpdateRequest>, InvertError> {
-        self.updater.invert(
-            &self.immutable_view_of_value,
-            is_direct_change_from_renderer,
-        )
+        self.updater
+            .invert(&self.immutable_view_of_value, is_direct_change_from_action)
     }
 
     /// Return the default value of this state variable

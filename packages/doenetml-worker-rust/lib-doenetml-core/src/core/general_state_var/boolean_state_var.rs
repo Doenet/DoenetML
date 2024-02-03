@@ -193,7 +193,7 @@ impl StateVarUpdater<bool, BooleanRequiredData> for BooleanStateVar {
         &self,
         data: &mut BooleanRequiredData,
         state_var: &StateVarView<bool>,
-        _is_direct_change_from_renderer: bool,
+        _is_direct_change_from_action: bool,
     ) -> Result<Vec<DependencyValueUpdateRequest>, InvertError> {
         if let Some(extending) = data.extending.as_mut() {
             // this state variable is extending another state variable
