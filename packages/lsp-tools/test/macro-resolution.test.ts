@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import util from "util";
 
-import { filterPositionInfo, DastMacro, DastElement, DastMacroV6 } from "@doenet/parser";
+import { DastMacro, DastElement, DastMacroV6 } from "@doenet/parser";
 import { DoenetSourceObject, isOldMacro } from "../src/doenet-source-object";
 import {
     getPrefixes,
