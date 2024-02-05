@@ -1,7 +1,7 @@
 //! Macros use a `path`, which consists of _names_ separated by dots (e.g. `a.b.c`), possibly followed by
 //! state variable names separated by dots (e.g. `a.b.c.x.y.z`). A `Resolver` searches for a matching node
 //! from a given starting position. Because a `Resolver` does not know whether part of a path corresponds to a
-//! name or state variable name, the longest valid partial math is used and unmatched portions of a `path` are
+//! name or state variable name, the longest valid partial match is used and unmatched portions of a `path` are
 //! preserved for future use.
 
 use std::{collections::HashMap, iter, mem};
