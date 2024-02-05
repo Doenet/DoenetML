@@ -192,49 +192,57 @@ fn can_expand_function_macros() {
         r#"<document><point name="p" /><function name="f" /><evaluate><ol><li>1</li><li>2</li><li><point /></li></ol></evaluate></document>"#,
         flat_root.to_xml()
     );
-    //    println!("{}", flat_root.to_xml());
-    //    println!("{}", serde_json::to_string(&flat_root).unwrap());
-    //assert_json_eq!(
-    //    serde_json::to_value(&flat_root).unwrap(),
-    //    json!(
-    //        {
-    //            "type": "FlatRoot",
-    //            "children": [0],
-    //            "nodes": [
-    //              {
-    //                "type": "Element",
-    //                "name": "document",
-    //                "children": [1, 2],
-    //                "attributes": [],
-    //                "idx": 0
-    //              },
-    //              {
-    //                "type": "Element",
-    //                "name": "point",
-    //                "parent": 0,
-    //                "children": [],
-    //                "attributes": [{ "name": "name", "parent": 1, "children": ["p"] }],
-    //                "idx": 1
-    //              },
-    //              {
-    //                "type": "Element",
-    //                "name": "a",
-    //                "parent": 0,
-    //                "children": [],
-    //                "attributes": [{ "name": "foo", "parent": 2, "children": [3] }],
-    //                "idx": 2
-    //              },
-    //              {
-    //                "type": "Element",
-    //                "name": "point",
-    //                "parent": 2,
-    //                "children": [],
-    //                "attributes": [],
-    //                "idx": 3,
-    //                "extending": { "node_idx": 1, "unresolved_path": null }
-    //              }
-    //            ]
-    //        }
-    //    )
-    //);
+}
+
+#[test]
+fn can_expand_an_extend_attribute_to_a_node_ref() {
+    let dast_root = dast_root_no_position(r#"<point name="p"/><point extend="$p" foo="bar" />"#);
+    let mut flat_root = FlatRoot::from_dast(&dast_root);
+    Expander::expand(&mut flat_root);
+    assert_json_eq!(
+        serde_json::to_value(&flat_root).unwrap(),
+        json!(
+          {
+            "type": "FlatRoot",
+            "children": [0],
+            "nodes": [
+              {
+                "type": "Element",
+                "name": "document",
+                "children": [1, 2],
+                "attributes": [],
+                "idx": 0
+              },
+              {
+                "type": "Element",
+                "name": "point",
+                "parent": 0,
+                "children": [],
+                "attributes": [{ "name": "name", "parent": 1, "children": ["p"] }],
+                "idx": 1
+              },
+              {
+                "type": "Element",
+                "name": "point",
+                "parent": 0,
+                "children": [],
+                "attributes": [{ "name": "foo", "parent": 2, "children": ["bar"] }],
+                "idx": 2,
+                "extending": { "node_idx": 1, "unresolved_path": null }
+              },
+              // Note, this element is left over from the original `$p` macro. However, it is
+              // no longer referenced anywhere.
+              {
+                "type": "Element",
+                "name": "point",
+                "parent": 2,
+                "children": [],
+                "attributes": [],
+                "idx": 3,
+                "extending": { "node_idx": 1, "unresolved_path": null }
+              }
+            ]
+          }
+        )
+    );
 }

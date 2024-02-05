@@ -1,11 +1,13 @@
 use std::{collections::HashMap, mem};
 
+use anyhow::anyhow;
+
 use crate::dast::untagged_flat_dast::Index;
 
 use super::{
-    macro_resolve::Resolver,
+    macro_resolve::{RefResolution, Resolver},
     untagged_flat_dast::{FlatElement, FlatError, FlatNode, FlatRoot, UntaggedContent},
-    DastElement, DastElementContent,
+    DastElement, DastElementContent, DastError,
 };
 
 /// An `Expander` replaces all macros with their `DastElement`-equivalent forms. For example
@@ -28,7 +30,11 @@ impl Expander {
     /// other elements.
     pub fn expand(flat_root: &mut FlatRoot) {
         let resolver = Resolver::from_flat_root(flat_root);
-
+        Expander::expand_macros(flat_root, &resolver);
+        Expander::consume_extend_attributes(flat_root);
+    }
+    /// Expand all macros and function macros into their "xml" form.
+    fn expand_macros(flat_root: &mut FlatRoot, resolver: &Resolver) {
         for idx in 0..flat_root.nodes.len() {
             // The original `nodes[idx]` node is being completely replaced, so we are free to take its value,
             // which will prevent the borrow checker form complaining if we mutate `flat_root` during processing.
@@ -67,12 +73,6 @@ impl Expander {
                 FlatNode::FunctionMacro(function_macro) => {
                     // A function ref `$$f(x)` becomes `<evaluate extend="f"><ol><li>x</li></ol></evaluate>`
                     // This involves creating multiple new nodes and setting them as children of the `evaluate` node.
-                    fn lookup_idx(untagged: &UntaggedContent) -> Index {
-                        match untagged {
-                            UntaggedContent::Ref(idx) => *idx,
-                            _ => panic!("Expected a reference"),
-                        }
-                    }
                     let resolved = match resolver.resolve(&function_macro.path, function_macro.idx)
                     {
                         Ok(ref_resolution) => {
@@ -107,7 +107,7 @@ impl Expander {
                                     Some(idx),
                                 );
                                 let ol_node_children_indices =
-                                    match &flat_root.nodes[lookup_idx(&ol)] {
+                                    match &flat_root.nodes[lookup_idx(&ol).unwrap()] {
                                         FlatNode::Element(e) => e,
                                         _ => panic!("Expected an element"),
                                     }
@@ -123,7 +123,7 @@ impl Expander {
                                     // `input_content` (the argument to the function) have already been inserted into flat_root.nodes
                                     // so we can safely clone `input_content` and set it as children. All references contained
                                     // within should be valid.
-                                    flat_root.set_children(li_idx, input_content.clone());
+                                    flat_root.set_children(li_idx.unwrap(), input_content.clone());
                                 }
 
                                 // Set the `ol` as a child of the `evaluate` node.
@@ -145,6 +145,108 @@ impl Expander {
                 other => other,
             };
         }
+    }
+    /// Remove all `extend` attributes from the `FlatRoot` and replace them with the index of their referent.
+    /// This should be called _after_ all macros have been expanded into element form.
+    fn consume_extend_attributes(flat_root: &mut FlatRoot) {
+        for i in 0..flat_root.nodes.len() {
+            // Skip any cases we don't need to consider.
+            if let FlatNode::Element(e) = &flat_root.nodes[i] {
+                if e.extending.is_some() {
+                    // If `extending` is already set, references have already been resolved, so there's
+                    // nothing to do.
+                    continue;
+                }
+                if !e
+                    .attributes
+                    .iter()
+                    .any(|attr| attr.name.eq_ignore_ascii_case("extend"))
+                {
+                    continue;
+                }
+            } else {
+                continue;
+            }
+
+            // If we're here we have an element with an `extend` attribute.
+            // Take this element so that we can mutate it without the borrow checker complaining.
+            let mut node = mem::take(&mut flat_root.nodes[i]);
+            let element = match &mut node {
+                FlatNode::Element(e) => e,
+                // Should be safe because we already verified we're an element.
+                _ => panic!(),
+            };
+            let extend = element
+                .attributes
+                .iter()
+                .find(|attr| attr.name.eq_ignore_ascii_case("extend"))
+                // Should be safe because we already verified we have an `extend` attribute
+                .unwrap();
+
+            // All macros should be expanded by now, so we look for a unique child with `extending`
+            // This would arise because `extend="$f"` is replaced with `<foo _extending="f" />` where `_extending`
+            // is a special, internal attribute.
+
+            // There are various bail conditions.
+            //  1. Non-whitespace text is present
+            //  2. No element with an `extending` is present
+            //  3. Multiple elements are present
+            let mut is_invalid_attr = false;
+            let mut num_element_children = 0;
+            let extend_referent: Option<RefResolution> = extend
+                .children
+                .iter()
+                .flat_map(|child| match child {
+                    UntaggedContent::Ref(idx) => {
+                        num_element_children += 1;
+
+                        match &flat_root.nodes[*idx] {
+                            FlatNode::Element(e) => e.extending.clone(),
+                            _ => None,
+                        }
+                    }
+                    UntaggedContent::Text(t) => {
+                        if !t.chars().all(char::is_whitespace) {
+                            is_invalid_attr = true;
+                        }
+                        None
+                    }
+                })
+                .last();
+
+            if is_invalid_attr || num_element_children != 1 || extend_referent.is_none() {
+                // We couldn't find a unique `extending` prop, so the `extend` attribute is invalid.
+                // Push an error message as a child of `node`.
+                element.children.push(flat_root.merge_content(
+                    &DastElementContent::Error(DastError {
+                        message: "Invalid `extend` attribute".to_string(),
+                        position: extend.position.clone(),
+                    }),
+                    extend.parent,
+                ));
+
+                // We took this memory earlier, so we need to put it back.
+                flat_root.nodes[i] = node;
+                continue;
+            }
+            element.extending = extend_referent;
+
+            // We successfully consumed the `extend` attribute, so remove the `extend` attribute.
+            element
+                .attributes
+                .retain(|attr| !attr.name.eq_ignore_ascii_case("extend"));
+
+            // Put ourselves back into `flat_root` (we took the memory earlier)
+            flat_root.nodes[i] = node;
+        }
+    }
+}
+
+/// Return the index of the referent of `UntaggedContent` if it is a reference.
+fn lookup_idx(untagged: &UntaggedContent) -> Result<Index, anyhow::Error> {
+    match untagged {
+        UntaggedContent::Ref(idx) => Ok(*idx),
+        _ => Err(anyhow!("Expected a reference")),
     }
 }
 
