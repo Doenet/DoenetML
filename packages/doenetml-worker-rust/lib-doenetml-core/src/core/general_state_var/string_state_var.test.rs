@@ -56,7 +56,7 @@ fn string_state_var_with_string_child() {
 
     let invert_result = state_var.invert(false).unwrap();
 
-    // we should get a request informing core that we need to change the essential variable
+    // we should get a request informing core that we need to change the child variable
     assert_eq!(
         invert_result,
         vec![DependencyValueUpdateRequest {

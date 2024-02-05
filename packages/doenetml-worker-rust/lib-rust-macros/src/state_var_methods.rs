@@ -344,8 +344,7 @@ pub fn state_var_methods_mut_derive(input: TokenStream) -> TokenStream {
                     /// calculate the desired values of the dependencies
                     /// that will lead to that requested value being calculated from those dependencies.
                     ///
-                    /// These desired dependency values will be stored directly on the state variables
-                    /// or essential data of the dependencies.
+                    /// These desired dependency values will be stored directly on the dependent state variables.
                     ///
                     /// Returns: a result that is either
                     /// - a vector containing just the identities specifying which dependencies have requested new values, or

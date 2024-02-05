@@ -43,8 +43,9 @@ pub struct TextInputState {
     sync_immediate_value: StateVar<bool>,
 
     /// The string value computed from any children to the textInput.
-    /// If the textInput has children, use those children, rather than the essential state variable
-    /// to
+    /// If the textInput has children, then this state variable will not be marked `came_from_default`,
+    /// and the `value` and `immediate_value` state variable will use these children,
+    /// rather than their preliminary value variable when calculating.
     value_from_children: StateVar<String>,
 
     /// The content that should prefill the `<textInput>`, giving it a default value before a user has interacted with the input.

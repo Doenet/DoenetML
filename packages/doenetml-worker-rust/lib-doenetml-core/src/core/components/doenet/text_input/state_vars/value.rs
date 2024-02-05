@@ -6,7 +6,7 @@ use super::TextInputState;
 #[add_dependency_data]
 #[derive(Debug, Default, StateVariableDependencies, StateVariableDataQueries)]
 pub struct RequiredData {
-    essential: StateVarView<String>,
+    preliminary_value: StateVarView<String>,
     immediate_value: StateVarView<String>,
     sync_immediate_value: StateVarView<bool>,
     value_from_children: StateVarView<String>,
@@ -25,7 +25,7 @@ impl ValueStateVar {
 impl StateVarUpdater<String, RequiredData> for ValueStateVar {
     fn return_data_queries(&self) -> Vec<Option<DataQuery>> {
         RequiredDataQueries {
-            essential: Some(DataQuery::PreliminaryValue),
+            preliminary_value: Some(DataQuery::PreliminaryValue),
             immediate_value: Some(TextInputState::get_immediate_value_data_queries()),
             sync_immediate_value: Some(TextInputState::get_sync_immediate_value_data_queries()),
             value_from_children: Some(TextInputState::get_value_from_children_data_queries()),
@@ -38,10 +38,10 @@ impl StateVarUpdater<String, RequiredData> for ValueStateVar {
         let value = if *data.sync_immediate_value.get() {
             data.immediate_value.get().clone()
         } else if data.value_from_children.came_from_default() {
-            if data.essential.came_from_default() {
+            if data.preliminary_value.came_from_default() {
                 data.prefill.get().clone()
             } else {
-                data.essential.get().clone()
+                data.preliminary_value.get().clone()
             }
         } else {
             data.value_from_children.get().clone()
@@ -59,7 +59,7 @@ impl StateVarUpdater<String, RequiredData> for ValueStateVar {
         let requested_value = state_var.get_requested_value();
 
         if data.value_from_children.came_from_default() {
-            data.essential.queue_update(requested_value.clone());
+            data.preliminary_value.queue_update(requested_value.clone());
             data.immediate_value.queue_update(requested_value.clone());
             data.sync_immediate_value.queue_update(true);
         } else {

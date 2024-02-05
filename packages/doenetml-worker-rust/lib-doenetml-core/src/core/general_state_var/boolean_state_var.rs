@@ -14,8 +14,8 @@ use super::util::{string_attr_to_boolean, string_to_boolean};
 /// - a single boolean dependency
 /// - string dependencies (that are concatenated to see if they spell out "true")
 ///
-/// If the state variable has a single boolean dependency that is an essential state variable,
-/// then propagate the `came_from_default` attribute of the essential state variable.
+/// If the state variable has a single boolean dependency,
+/// then propagate the `came_from_default` attribute.
 #[derive(Debug, Default)]
 pub struct BooleanStateVar {
     /// The data query that indicates how the dependencies of this state variable will be created.
