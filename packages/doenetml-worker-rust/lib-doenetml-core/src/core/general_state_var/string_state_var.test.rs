@@ -30,7 +30,7 @@ fn string_state_var_with_string_child() {
     ////////////////////////////////////////////////////////////////
     // Step 2: fulfill data query with one string child
     ////////////////////////////////////////////////////////////////
-    let (child_dependency, child_var) = create_state_var_dependency(String::from("hello"));
+    let (child_dependency, child_var) = create_state_var_dependency(String::from("hello"), false);
 
     let dependencies_created_for_data_queries =
         vec![DependenciesCreatedForDataQuery(vec![child_dependency])];
@@ -78,7 +78,6 @@ fn string_state_var_with_string_child() {
 
     // now the value should be "bye"
     assert_eq!(state_var.get().clone(), "bye");
-    assert_eq!(state_var.get().clone(), "bye");
 }
 
 /// Testing the case of a string state variable requesting children
@@ -109,8 +108,9 @@ fn string_state_var_with_two_string_children() {
     ////////////////////////////////////////////////////////////////
     // Step 2: fulfill data query with two string children
     ////////////////////////////////////////////////////////////////
-    let (child1_dependency, child1_var) = create_state_var_dependency(String::from("Hello "));
-    let (child2_dependency, child2_var) = create_state_var_dependency(String::from("World"));
+    let (child1_dependency, child1_var) =
+        create_state_var_dependency(String::from("Hello "), false);
+    let (child2_dependency, child2_var) = create_state_var_dependency(String::from("World"), false);
 
     let dependencies_created_for_data_queries = vec![DependenciesCreatedForDataQuery(vec![
         child1_dependency,
@@ -179,4 +179,31 @@ fn string_state_var_with_attribute() {
     // Note: from this point on, at the level of these tests where dependencies are specified manually,
     // there is no difference in this state variable as the above ones with children,
     // so we don't repeat the same steps
+}
+
+/// If the variable is based on a single variable using its default value,
+/// the variable should also be designated as coming from default.
+/// For example, if we have a `<text></text>`,
+/// its `value` state variable should be the default
+#[test]
+fn propagate_came_from_default() {
+    // create a string state variable requesting children
+    let mut state_var = StringStateVar::new_from_children(String::from("")).into_state_var();
+
+    // need to return data queries since side effect is saving the required data
+    state_var.return_data_queries();
+
+    let (child_dependency, _child_var) = create_state_var_dependency(String::from(""), true);
+
+    let dependencies_created_for_data_queries =
+        vec![DependenciesCreatedForDataQuery(vec![child_dependency])];
+
+    state_var.save_dependencies(&dependencies_created_for_data_queries);
+
+    state_var.calculate_and_mark_fresh();
+
+    // we expect a value of "hello" and came_from_default to be false,
+    // since that the variable is coming from the child dependency, which we initialized to "hello".
+    assert_eq!(state_var.get().clone(), "");
+    assert_eq!(state_var.came_from_default(), true);
 }
