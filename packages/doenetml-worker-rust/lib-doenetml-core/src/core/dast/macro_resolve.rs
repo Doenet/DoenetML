@@ -30,6 +30,7 @@ pub struct RefResolution {
 }
 
 /// Status of a pointer referring to children of an element.
+#[derive(Debug)]
 enum Ref {
     Unique(Index),
     Ambiguous(Vec<Index>),
@@ -38,15 +39,18 @@ enum Ref {
 /// A `Resolver` is used to lookup elements by path/name. It constructs a search index
 /// upon construction. If the underlying `FlatRoot` changes, a new `Resolver` should be
 /// recreated.
-pub struct Resolver<'a> {
-    flat_root: &'a FlatRoot,
+#[derive(Debug)]
+pub struct Resolver {
+    /// List of the parent of a node at a given index.
+    node_parent: Vec<Option<Index>>,
+    /// Map of all the names that are accessible (as descendants) from a given node.
     name_map: Vec<HashMap<String, Ref>>,
 }
 
-impl<'a> Resolver<'a> {
-    pub fn from_flat_root(flat_root: &'a FlatRoot) -> Self {
+impl Resolver {
+    pub fn from_flat_root(flat_root: &FlatRoot) -> Self {
         Resolver {
-            flat_root,
+            node_parent: flat_root.nodes.iter().map(|node| node.parent()).collect(),
             name_map: Self::build_name_map(flat_root),
         }
     }
@@ -148,7 +152,7 @@ impl<'a> Resolver<'a> {
     /// Return the referent of `name`.
     fn search_parents(&self, name: &str, origin: Index) -> Result<Index, ResolutionError> {
         let mut current_idx = origin;
-        while let Some(parent) = self.flat_root.nodes[current_idx].parent() {
+        while let Some(parent) = self.node_parent[current_idx] {
             if let Some(resolved) = self.name_map[parent].get(name) {
                 match resolved {
                     Ref::Unique(idx) => {
@@ -168,12 +172,9 @@ impl<'a> Resolver<'a> {
     /// and the indices of the referents.
     fn build_name_map(flat_root: &FlatRoot) -> Vec<HashMap<String, Ref>> {
         // Pre-populate with empty hashmaps for each element
-        let mut descendant_names =
-            Vec::from_iter(flat_root.nodes.iter().filter_map(|node| match node {
-                // Only elements can have names
-                FlatNode::Element(_) => Some(HashMap::new()),
-                _ => None,
-            }));
+        let mut descendant_names = iter::repeat_with(HashMap::new)
+            .take(flat_root.nodes.len())
+            .collect::<Vec<_>>();
 
         for element in flat_root.nodes.iter().filter_map(|node| match node {
             // Only elements can have names

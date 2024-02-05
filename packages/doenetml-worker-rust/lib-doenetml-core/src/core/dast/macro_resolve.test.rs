@@ -178,3 +178,16 @@ fn resolution_stops_at_path_index() {
         })
     );
 }
+
+#[test]
+fn can_resolve_name_at_macro_origin() {
+    let dast_root = dast_root_no_position(r#"<a name="x" />$b"#);
+    let flat_root = FlatRoot::from_dast(&dast_root);
+    let a_idx = find_node_index_by_name(&flat_root, "a").unwrap();
+
+    let resolver = Resolver::from_flat_root(&flat_root);
+    // The macro `$b` should be right after the `a` node
+    let b_idx = a_idx + 1;
+    let referent = resolver.search_parents("x", b_idx);
+    assert_eq!(referent, Ok(a_idx));
+}

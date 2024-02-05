@@ -55,6 +55,17 @@ pub struct FlatError {
     pub idx: Index,
 }
 
+impl FlatError {
+    pub fn with_message(message: String, idx: Index) -> Self {
+        Self {
+            parent: None,
+            message,
+            position: None,
+            idx,
+        }
+    }
+}
+
 #[derive(Clone, Debug, Serialize)]
 pub struct FlatMacro {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -84,6 +95,17 @@ pub enum FlatNode {
     Error(FlatError),
     FunctionMacro(FlatFunctionMacro),
     Macro(FlatMacro),
+}
+
+impl Default for FlatNode {
+    fn default() -> Self {
+        FlatNode::Error(FlatError {
+            parent: None,
+            message: "DEFAULT NODE".to_string(),
+            position: None,
+            idx: 0,
+        })
+    }
 }
 
 impl FlatNode {
@@ -149,19 +171,21 @@ impl FlatRoot {
         }
     }
 
-    /// Merge DAST content into `FlatRoot`.
-    pub fn merge_content(
+    /// Update the the node at `idx` to be `node`. Any children of `node` are added to the `FlatRoot` as well,
+    /// but children of the old node are not removed. This function does no consistency checking, so it is
+    /// the _caller should be extra careful_.
+    pub fn update_content(
         &mut self,
         node: &DastElementContent,
+        idx: Index,
         parent: Option<Index>,
     ) -> UntaggedContent {
         match node {
             DastElementContent::Element(elm) => {
-                let idx = self.push_element(elm, parent);
+                self.set_element(elm, idx, parent);
                 let ret = UntaggedContent::Ref(idx);
-                if parent.is_none() {
-                    self.children.push(ret.clone());
-                }
+                // Newly set elements have empty children and attributes. It is our
+                // job to fill them in.
                 let children = elm
                     .children
                     .iter()
@@ -200,32 +224,19 @@ impl FlatRoot {
                 ret
             }
             DastElementContent::Error(err) => {
-                let ret = UntaggedContent::Ref(self.push_error(err, parent));
+                let ret = UntaggedContent::Ref(self.set_error(err, idx, parent));
                 if parent.is_none() {
                     self.children.push(ret.clone());
                 }
                 ret
             }
-            DastElementContent::Text(txt) => {
-                let ret = UntaggedContent::Text(txt.value.clone());
-                if parent.is_none() {
-                    self.children.push(ret.clone());
-                }
-                ret
-            }
+            DastElementContent::Text(txt) => UntaggedContent::Text(txt.value.clone()),
             DastElementContent::Macro(macro_) => {
-                let ret = UntaggedContent::Ref(self.push_macro(macro_, parent));
-                if parent.is_none() {
-                    self.children.push(ret.clone());
-                }
-                ret
+                UntaggedContent::Ref(self.set_macro(macro_, idx, parent))
             }
             DastElementContent::FunctionMacro(function_macro) => {
-                let idx = self.push_function_macro(function_macro, parent);
+                self.set_function_macro(function_macro, idx, parent);
                 let ret = UntaggedContent::Ref(idx);
-                if parent.is_none() {
-                    self.children.push(ret.clone());
-                }
                 if let Some(input) = function_macro.input.as_ref() {
                     let input: Vec<Vec<UntaggedContent>> = input
                         .iter()
@@ -243,46 +254,38 @@ impl FlatRoot {
         }
     }
 
-    /// Push a new element to the `nodes` array and return its index.
-    /// The element will be initialized with empty children and attributes.
-    fn push_element(&mut self, node: &DastElement, parent: Option<Index>) -> usize {
-        let idx = self.nodes.len();
-        self.nodes.push(FlatNode::Element(FlatElement {
-            name: node.name.clone(),
-            children: Vec::new(),
-            attributes: Vec::new(),
-            position: node.position.clone(),
-            parent,
-            idx,
-            // It is impossible to directly set `extending` in DAST; it is computed later.
-            extending: None,
-        }));
-        idx
+    /// Merge DAST content into `FlatRoot`.
+    pub fn merge_content(
+        &mut self,
+        node: &DastElementContent,
+        parent: Option<Index>,
+    ) -> UntaggedContent {
+        let ret = match node {
+            DastElementContent::Text(_) => {
+                // A text node doesn't get pushed to `nodes`, so the value of `idx` doesn't matter.
+                // We pass in `Index::MAX` so that an error will be thrown if this value is used.
+                self.update_content(node, Index::MAX, parent)
+            }
+            _ => {
+                // We push an error onto the nodes stack and then we do an in-place update of
+                // that error to the correct node. This avoids code duplication.
+                let idx = self.nodes.len();
+                self.nodes.push(FlatNode::Error(FlatError::with_message(
+                    "TEMPORARY NODE CREATED DURING `merge_content()`".to_string(),
+                    idx,
+                )));
+                self.update_content(node, idx, parent)
+            }
+        };
+
+        if parent.is_none() {
+            self.children.push(ret.clone());
+        }
+        ret
     }
-    /// Push a new error to the `nodes` array and return its index.
-    fn push_error(&mut self, node: &DastError, parent: Option<Index>) -> usize {
-        let idx = self.nodes.len();
-        self.nodes.push(FlatNode::Error(FlatError {
-            message: node.message.clone(),
-            position: node.position.clone(),
-            parent,
-            idx,
-        }));
-        idx
-    }
-    /// Push a new macro to the `nodes` array and return its index.
-    fn push_macro(&mut self, node: &DastMacro, parent: Option<Index>) -> usize {
-        let idx = self.nodes.len();
-        self.nodes.push(FlatNode::Macro(FlatMacro {
-            path: node.path.clone(),
-            position: node.position.clone(),
-            parent,
-            idx,
-        }));
-        idx
-    }
-    /// Set the children of an element or attribute node.
-    fn set_children(&mut self, idx: usize, children: Vec<UntaggedContent>) {
+
+    /// Set the children of an element node.
+    pub fn set_children(&mut self, idx: usize, children: Vec<UntaggedContent>) {
         match &mut self.nodes[idx] {
             FlatNode::Element(elm) => {
                 elm.children = children;
@@ -290,6 +293,7 @@ impl FlatRoot {
             _ => panic!("set_children called on non-element node"),
         }
     }
+
     /// Set the attributes of an element node.
     fn set_attributes(&mut self, idx: usize, attributes: Vec<FlatAttribute>) {
         match &mut self.nodes[idx] {
@@ -299,18 +303,7 @@ impl FlatRoot {
             _ => panic!("set_attributes called on non-element node"),
         }
     }
-    /// Push a new function macro to the `nodes` array and return its index.
-    fn push_function_macro(&mut self, node: &DastFunctionMacro, parent: Option<Index>) -> usize {
-        let idx = self.nodes.len();
-        self.nodes.push(FlatNode::FunctionMacro(FlatFunctionMacro {
-            path: node.path.clone(),
-            input: None,
-            position: node.position.clone(),
-            parent,
-            idx,
-        }));
-        idx
-    }
+
     /// Set the input of a function macro node.
     fn set_function_macro_input(&mut self, idx: usize, args: Vec<Vec<UntaggedContent>>) {
         match &mut self.nodes[idx] {
@@ -319,6 +312,61 @@ impl FlatRoot {
             }
             _ => panic!("set_function_macro_args called on non-function-macro node"),
         }
+    }
+
+    /// Set the node at position `idx` to be the specified element.
+    /// The element will be initialized with empty children and attributes.
+    fn set_element(&mut self, node: &DastElement, idx: Index, parent: Option<Index>) -> usize {
+        self.nodes[idx] = FlatNode::Element(FlatElement {
+            name: node.name.clone(),
+            children: Vec::new(),
+            attributes: Vec::new(),
+            position: node.position.clone(),
+            parent,
+            idx,
+            // It is impossible to directly set `extending` in DAST; it is computed later.
+            extending: None,
+        });
+        idx
+    }
+
+    /// Set the node at position `idx` to be the specified error.
+    fn set_error(&mut self, node: &DastError, idx: Index, parent: Option<Index>) -> usize {
+        self.nodes[idx] = FlatNode::Error(FlatError {
+            message: node.message.clone(),
+            position: node.position.clone(),
+            parent,
+            idx,
+        });
+        idx
+    }
+
+    /// Set the node at position `idx` to be the specified macro.
+    fn set_macro(&mut self, node: &DastMacro, idx: Index, parent: Option<Index>) -> usize {
+        self.nodes[idx] = FlatNode::Macro(FlatMacro {
+            path: node.path.clone(),
+            position: node.position.clone(),
+            parent,
+            idx,
+        });
+        idx
+    }
+
+    /// Set the node at position `idx` to be the specified function macro.
+    fn set_function_macro(
+        &mut self,
+        node: &DastFunctionMacro,
+        idx: Index,
+        parent: Option<Index>,
+    ) -> usize {
+        self.nodes[idx] = FlatNode::FunctionMacro(FlatFunctionMacro {
+            path: node.path.clone(),
+            input: None,
+            position: node.position.clone(),
+            parent,
+            idx,
+        });
+        idx
     }
 
     /// Convert the `FlatRoot` to an XML string. This function should not be relied upon to create

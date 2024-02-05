@@ -34,6 +34,12 @@ pub enum DastElementContent {
     Error(DastError),
 }
 
+impl DastElementContent {
+    pub fn element_with_name(name: &str) -> Self {
+        DastElementContent::Element(DastElement::with_name(name))
+    }
+}
+
 /// Allowed children of an attribute node
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(untagged)]
@@ -61,6 +67,18 @@ pub struct DastElement {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub position: Option<Position>,
+}
+
+impl DastElement {
+    pub fn with_name(name: &str) -> Self {
+        DastElement {
+            name: name.to_string(),
+            attributes: HashMap::new(),
+            children: Vec::new(),
+            data: None,
+            position: None,
+        }
+    }
 }
 
 /// Additional data associated with an element. The majority of the data
