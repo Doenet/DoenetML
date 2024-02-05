@@ -1,3 +1,7 @@
+#[cfg(test)]
+#[path = "independent_state_var.test.rs"]
+mod tests;
+
 use crate::components::prelude::*;
 
 /// A struct of all data required to compute the value of this state variable.

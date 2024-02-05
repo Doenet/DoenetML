@@ -17,7 +17,7 @@ fn string_state_var_with_string_child() {
     //////////////////////////////////////////////////
     let queries = state_var.return_data_queries();
 
-    // should return a query for text children and an essential state variable
+    // should return a query for text children
     assert_eq!(
         queries,
         vec![DataQuery::Child {
@@ -166,7 +166,7 @@ fn string_state_var_with_attribute() {
     //////////////////////////////////////////////////
     let queries = state_var.return_data_queries();
 
-    // should return a query for "my_attr" with text children and an essential state variable
+    // should return a query for "my_attr" with text children
     assert_eq!(
         queries,
         vec![DataQuery::AttributeChild {

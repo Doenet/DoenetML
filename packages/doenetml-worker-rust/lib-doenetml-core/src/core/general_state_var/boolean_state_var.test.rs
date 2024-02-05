@@ -1,9 +1,4 @@
-use crate::{
-    components::ComponentProfile, general_state_var::BooleanStateVar,
-    utils::test_utils::create_state_var_dependency,
-};
-
-// use self::state::{essential_state::EssentialDataOrigin, StateVarMutableView};
+use crate::utils::test_utils::create_state_var_dependency;
 
 use super::*;
 
@@ -22,7 +17,7 @@ fn boolean_state_var_with_boolean_child() {
     //////////////////////////////////////////////////
     let queries = state_var.return_data_queries();
 
-    // should return a query for text or boolean children and an essential state variable
+    // should return a query for text or boolean children
     assert_eq!(
         queries,
         vec![DataQuery::Child {
@@ -99,7 +94,7 @@ fn boolean_state_var_with_string_child() {
     //////////////////////////////////////////////////
     let queries = state_var.return_data_queries();
 
-    // should return a query for text or boolean children and an essential state variable
+    // should return a query for text or boolean children
     assert_eq!(
         queries,
         vec![DataQuery::Child {

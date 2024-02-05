@@ -2,13 +2,12 @@ use crate::utils::test_utils::create_state_var_dependency;
 
 use super::*;
 
-/// Testing the case of boolean state variable mirroring another variable.
-/// For example, the `<boolean>`` state variable `boolean`
-/// mirrors the state variable `value`.
+/// Testing the case of an independent boolean state variable,
+/// i.e., a state variable that doesn't depend on others.
 #[test]
-fn mirror_boolean() {
-    // create a boolean state variable mirroring another variable
-    let mut state_var: StateVar<bool> = MirrorStateVar::new(0).into_state_var();
+fn independent_boolean() {
+    // create an independent boolean state variable with initial value of false
+    let mut state_var: StateVar<bool> = IndependentStateVar::new(false).into_state_var();
     let mut state_var_view = state_var.create_new_read_only_view();
 
     //////////////////////////////////////////////////
@@ -16,22 +15,21 @@ fn mirror_boolean() {
     //////////////////////////////////////////////////
     let queries = state_var.return_data_queries();
 
-    // should return a query for a state variable with index 0, as given above when creating it.
-    assert_eq!(
-        queries,
-        vec![DataQuery::StateVar {
-            component_idx: None,
-            state_var_idx: 0
-        },]
-    );
+    // should return a query just for a preliminary value
+    assert_eq!(queries, vec![DataQuery::PreliminaryValue,]);
 
     ////////////////////////////////////////////////////////////////
     // Step 2: fulfill data query with one boolean variable
     ////////////////////////////////////////////////////////////////
-    let (mirrored_dependency, mirrored_var) = create_state_var_dependency(false, true);
 
-    let dependencies_created_for_data_queries =
-        vec![DependenciesCreatedForDataQuery(vec![mirrored_dependency])];
+    // Note: the default_value specified in the creation of state_var above
+    // isn't used at this level of testing, so we supply it directly here to match
+    let (preliminary_value_dependency, preliminary_value_var) =
+        create_state_var_dependency(false, true);
+
+    let dependencies_created_for_data_queries = vec![DependenciesCreatedForDataQuery(vec![
+        preliminary_value_dependency,
+    ])];
 
     state_var.save_dependencies(&dependencies_created_for_data_queries);
 
@@ -41,7 +39,7 @@ fn mirror_boolean() {
     state_var.calculate_and_mark_fresh();
 
     // we expect a value of false and came_from_default to be true,
-    // mirroring the dependency
+    // given how we created the preliminary value
     assert_eq!(*state_var.get(), false);
     assert_eq!(state_var.came_from_default(), true);
 
@@ -63,13 +61,13 @@ fn mirror_boolean() {
         }]
     );
     // the child variable has recorded that it has been requested to be true
-    assert_eq!(*mirrored_var.get_requested_value(), true);
+    assert_eq!(*preliminary_value_var.get_requested_value(), true);
 
     ////////////////////////////////////////////////////////////////
     // Step 5: make the changes to actually make the value true
     ////////////////////////////////////////////////////////////////
 
-    mirrored_var.set_value(true);
+    preliminary_value_var.set_value(true);
 
     state_var.calculate_and_mark_fresh();
 
@@ -78,13 +76,13 @@ fn mirror_boolean() {
     assert_eq!(state_var.came_from_default(), false);
 }
 
-/// Testing the case of string state variable mirroring another variable.
-/// For example, the `<text>`` state variable `text`
-/// mirrors the state variable `value`.
+/// Testing the case of an independent string state variable,
+/// i.e., a state variable that doesn't depend on others.
 #[test]
 fn mirror_string() {
-    // create a string state variable mirroring another variable
-    let mut state_var: StateVar<String> = MirrorStateVar::new(0).into_state_var();
+    // create an independent string state variable with initial value of ""
+    let mut state_var: StateVar<String> =
+        IndependentStateVar::new(String::from("")).into_state_var();
     let mut state_var_view = state_var.create_new_read_only_view();
 
     //////////////////////////////////////////////////
@@ -92,22 +90,21 @@ fn mirror_string() {
     //////////////////////////////////////////////////
     let queries = state_var.return_data_queries();
 
-    // should return a query for a state variable with index 0, as given above when creating it.
-    assert_eq!(
-        queries,
-        vec![DataQuery::StateVar {
-            component_idx: None,
-            state_var_idx: 0
-        },]
-    );
+    // should return a query just for a preliminary value
+    assert_eq!(queries, vec![DataQuery::PreliminaryValue,]);
 
     ////////////////////////////////////////////////////////////////
     // Step 2: fulfill data query with one string variable
     ////////////////////////////////////////////////////////////////
-    let (mirrored_dependency, mirrored_var) = create_state_var_dependency(String::from(""), true);
 
-    let dependencies_created_for_data_queries =
-        vec![DependenciesCreatedForDataQuery(vec![mirrored_dependency])];
+    // Note: the default_value specified in the creation of state_var above
+    // isn't used at this level of testing, so we supply it directly here to match
+    let (preliminary_value_dependency, preliminary_value_var) =
+        create_state_var_dependency(String::from(""), true);
+
+    let dependencies_created_for_data_queries = vec![DependenciesCreatedForDataQuery(vec![
+        preliminary_value_dependency,
+    ])];
 
     state_var.save_dependencies(&dependencies_created_for_data_queries);
 
@@ -139,13 +136,13 @@ fn mirror_string() {
         }]
     );
     // the child variable has recorded that it has been requested to be "hello"
-    assert_eq!(mirrored_var.get_requested_value().clone(), "hello");
+    assert_eq!(preliminary_value_var.get_requested_value().clone(), "hello");
 
     ////////////////////////////////////////////////////////////////
     // Step 5: make the changes to actually make the value true
     ////////////////////////////////////////////////////////////////
 
-    mirrored_var.set_value(String::from("hello"));
+    preliminary_value_var.set_value(String::from("hello"));
 
     state_var.calculate_and_mark_fresh();
 
