@@ -368,56 +368,6 @@ impl FlatRoot {
         });
         idx
     }
-
-    /// Convert the `FlatRoot` to an XML string. This function should not be relied upon to create
-    /// valid XML. It is intended for debugging and testing.
-    pub fn to_xml(&self) -> String {
-        let nodes = &self.nodes;
-        fn node_to_xml(nodes: &[FlatNode], node: &UntaggedContent) -> String {
-            match node {
-                UntaggedContent::Text(txt) => txt.into(),
-                UntaggedContent::Ref(idx) => {
-                    let node = &nodes[*idx];
-                    match node {
-                        FlatNode::Element(elm) => {
-                            let children = String::from_iter(
-                                elm.children.iter().map(|c| node_to_xml(nodes, c)),
-                            );
-                            // attributes are printed with a space in front, so we can join them with a space
-                            let mut attrs: Vec<String> = elm
-                                .attributes
-                                .iter()
-                                .map(|a| attribute_to_xml(nodes, a))
-                                .collect();
-                            // Attributes are sorted to ensure stable printing
-                            attrs.sort();
-                            let attributes = attrs.join("");
-                            if children.is_empty() {
-                                format!("<{}{} />", elm.name, attributes)
-                            } else {
-                                format!("<{}{}>{}</{}>", elm.name, attributes, children, elm.name)
-                            }
-                        }
-                        FlatNode::Error(err) => format!("<_error message=\"{}\"/>", err.message),
-                        FlatNode::Macro(_macro_) => "[MACRO PRINTING NOT IMPLEMENTED]".to_string(),
-                        FlatNode::FunctionMacro(_function_macro) => {
-                            "[FUNCTION MACRO PRINTING NOT IMPLEMENTED]".to_string()
-                        }
-                    }
-                }
-            }
-        }
-        fn attribute_to_xml(nodes: &[FlatNode], attr: &FlatAttribute) -> String {
-            let children = attr
-                .children
-                .iter()
-                .map(|c| node_to_xml(nodes, c))
-                .collect::<Vec<_>>()
-                .join("");
-            format!(" {}=\"{}\"", attr.name, children)
-        }
-        String::from_iter(self.children.iter().map(|c| node_to_xml(nodes, c)))
-    }
 }
 
 impl Default for FlatRoot {
