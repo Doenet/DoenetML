@@ -37,7 +37,7 @@ impl Expander {
     fn expand_macros(flat_root: &mut FlatRoot, resolver: &Resolver) {
         for idx in 0..flat_root.nodes.len() {
             // The original `nodes[idx]` node is being completely replaced, so we are free to take its value,
-            // which will prevent the borrow checker form complaining if we mutate `flat_root` during processing.
+            // which will prevent the borrow checker from complaining if we mutate `flat_root` during processing.
             flat_root.nodes[idx] = match mem::take(&mut flat_root.nodes[idx]) {
                 FlatNode::Macro(macro_) => {
                     // A macro $f get's replace with <foo extend="f" /> where `foo` is the tag name of the referent.
