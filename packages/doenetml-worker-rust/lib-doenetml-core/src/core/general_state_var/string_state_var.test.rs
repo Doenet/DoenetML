@@ -22,7 +22,8 @@ fn string_state_var_with_string_child() {
         queries,
         vec![DataQuery::Child {
             match_profiles: vec![ComponentProfile::Text],
-            exclude_if_prefer_profiles: vec![]
+            exclude_if_prefer_profiles: vec![],
+            always_return_value: true,
         },]
     );
 
@@ -100,7 +101,8 @@ fn string_state_var_with_two_string_children() {
         queries,
         vec![DataQuery::Child {
             match_profiles: vec![ComponentProfile::Text],
-            exclude_if_prefer_profiles: vec![]
+            exclude_if_prefer_profiles: vec![],
+            always_return_value: true,
         },]
     );
 
@@ -169,7 +171,8 @@ fn string_state_var_with_attribute() {
         queries,
         vec![DataQuery::AttributeChild {
             attribute_name: "my_attr",
-            match_profiles: vec![ComponentProfile::Text]
+            match_profiles: vec![ComponentProfile::Text],
+            always_return_value: true,
         },]
     );
 

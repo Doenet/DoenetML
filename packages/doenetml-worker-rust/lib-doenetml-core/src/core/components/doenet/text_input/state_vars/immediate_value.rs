@@ -24,7 +24,7 @@ impl ImmediateValueStateVar {
 impl StateVarUpdater<String, RequiredData> for ImmediateValueStateVar {
     fn return_data_queries(&self) -> Vec<Option<DataQuery>> {
         RequiredDataQueries {
-            essential: Some(DataQuery::Essential),
+            essential: Some(DataQuery::PreliminaryValue),
             sync_immediate_value: Some(TextInputState::get_sync_immediate_value_data_queries()),
             value_from_children: Some(TextInputState::get_value_from_children_data_queries()),
             prefill: Some(TextInputState::get_prefill_data_queries()),

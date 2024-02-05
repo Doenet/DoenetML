@@ -81,6 +81,7 @@ impl BooleanStateVar {
             base_data_query: DataQuery::Child {
                 match_profiles: vec![ComponentProfile::Text, ComponentProfile::Boolean],
                 exclude_if_prefer_profiles: vec![],
+                always_return_value: true,
             },
             default_value,
             from_attribute: false,
@@ -94,6 +95,7 @@ impl BooleanStateVar {
             base_data_query: DataQuery::AttributeChild {
                 attribute_name: attr_name,
                 match_profiles: vec![ComponentProfile::Text, ComponentProfile::Boolean],
+                always_return_value: true,
             },
             default_value,
             from_attribute: true,

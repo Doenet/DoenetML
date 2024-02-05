@@ -27,7 +27,8 @@ fn boolean_state_var_with_boolean_child() {
         queries,
         vec![DataQuery::Child {
             match_profiles: vec![ComponentProfile::Text, ComponentProfile::Boolean],
-            exclude_if_prefer_profiles: vec![]
+            exclude_if_prefer_profiles: vec![],
+            always_return_value: true,
         },]
     );
 
@@ -103,7 +104,8 @@ fn boolean_state_var_with_string_child() {
         queries,
         vec![DataQuery::Child {
             match_profiles: vec![ComponentProfile::Text, ComponentProfile::Boolean],
-            exclude_if_prefer_profiles: vec![]
+            exclude_if_prefer_profiles: vec![],
+            always_return_value: true,
         },]
     );
 
@@ -284,7 +286,8 @@ fn boolean_state_var_with_attribute() {
         queries,
         vec![DataQuery::AttributeChild {
             attribute_name: "my_attr",
-            match_profiles: vec![ComponentProfile::Text, ComponentProfile::Boolean]
+            match_profiles: vec![ComponentProfile::Text, ComponentProfile::Boolean],
+            always_return_value: true
         },]
     );
 

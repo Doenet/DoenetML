@@ -42,6 +42,7 @@ impl StringStateVar {
             base_data_query: DataQuery::Child {
                 match_profiles: vec![ComponentProfile::Text],
                 exclude_if_prefer_profiles: vec![],
+                always_return_value: true,
             },
             default_value,
         }
@@ -54,6 +55,7 @@ impl StringStateVar {
             base_data_query: DataQuery::AttributeChild {
                 attribute_name: attr_name,
                 match_profiles: vec![ComponentProfile::Text],
+                always_return_value: true,
             },
             default_value,
         }

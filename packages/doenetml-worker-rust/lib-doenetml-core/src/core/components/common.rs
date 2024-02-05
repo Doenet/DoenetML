@@ -254,13 +254,14 @@ pub trait ComponentActions: ComponentNode {
     }
 }
 
-/// A `ComponentProfile` is used in the `DataQuery` specifying children.
-/// A component profile will match children that have a `ComponentProfileStateVariable` of the corresponding type,
-/// and the resulting dependency will give the value of that state variable.
+/// A `ComponentProfile` is used in a `DataQuery` specifying children or attribute children.
+/// A component profile will match children that have a state variable of the corresponding type
+/// that has been designated with `#[component_profile_state_variable]`.
+/// When a state variable from a child is matched, the value of that state variable is returned.
 #[derive(Debug, Clone, PartialEq)]
 pub enum ComponentProfile {
-    Text,   // matched by text state variables, also matched by literal string children
-    String, // matched by literal string children only
+    Text,          // matched by text state variables, also matched by literal string children
+    LiteralString, // matched by literal string children only
     Number,
     Integer,
     Boolean,
