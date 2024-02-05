@@ -6,15 +6,12 @@ use crate::components::prelude::*;
 
 /// A string state variable interface that concatenates all string dependencies.
 ///
-/// If the component has an extend source so that this variable is shadowing another variable,
-/// then prepend the shadowed state variable to the list of dependencies.
-///
 /// If the state variable has a single dependency,
 /// then propagate the `came_from_default` attribute.
 #[derive(Debug, Default)]
 pub struct StringStateVar {
-    /// The base data query that indicates how the dependencies of this state variable will be created.
-    base_data_query: DataQuery,
+    /// The data query that indicates how the dependencies of this state variable will be created.
+    data_query: DataQuery,
 
     default_value: String,
 }
@@ -23,15 +20,15 @@ pub struct StringStateVar {
 #[add_dependency_data]
 #[derive(Debug, Default, StateVariableDependencies, StateVariableDataQueries)]
 pub struct StringRequiredData {
-    /// A vector of the string values of the dependencies coming from the base_data_query
+    /// A vector of the string values of the dependencies coming from the data_query
     strings: Vec<StateVarView<String>>,
 }
 
 impl StringStateVar {
     /// Creates a state var that queries its value from the given data query.
-    pub fn new(base_data_query: DataQuery) -> Self {
+    pub fn new(data_query: DataQuery) -> Self {
         StringStateVar {
-            base_data_query,
+            data_query,
             ..Default::default()
         }
     }
@@ -39,7 +36,7 @@ impl StringStateVar {
     /// Creates a state var that queries its value from children matching the `Text` profile.
     pub fn new_from_children(default_value: String) -> Self {
         StringStateVar {
-            base_data_query: DataQuery::Child {
+            data_query: DataQuery::Child {
                 match_profiles: vec![ComponentProfile::Text],
                 exclude_if_prefer_profiles: vec![],
                 always_return_value: true,
@@ -52,7 +49,7 @@ impl StringStateVar {
     /// returning the attribute children that match the `Text` profile.
     pub fn new_from_attribute(attr_name: AttributeName, default_value: String) -> Self {
         StringStateVar {
-            base_data_query: DataQuery::AttributeChild {
+            data_query: DataQuery::AttributeChild {
                 attribute_name: attr_name,
                 match_profiles: vec![ComponentProfile::Text],
                 always_return_value: true,
@@ -69,7 +66,7 @@ impl StateVarUpdater<String, StringRequiredData> for StringStateVar {
 
     fn return_data_queries(&self) -> Vec<Option<DataQuery>> {
         StringRequiredDataQueries {
-            strings: Some(self.base_data_query.clone()),
+            strings: Some(self.data_query.clone()),
         }
         .into()
     }

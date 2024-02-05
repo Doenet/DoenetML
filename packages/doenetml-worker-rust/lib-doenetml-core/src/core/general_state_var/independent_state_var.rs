@@ -44,7 +44,12 @@ where
     }
 
     fn calculate(&self, data: &IndependentRequiredData<T>) -> StateVarCalcResult<T> {
-        StateVarCalcResult::Calculated(data.preliminary_value.get().clone())
+        // take on the value from `preliminary_value`, propagating `came_from_default`.
+        if data.preliminary_value.came_from_default() {
+            StateVarCalcResult::FromDefault(data.preliminary_value.get().clone())
+        } else {
+            StateVarCalcResult::Calculated(data.preliminary_value.get().clone())
+        }
     }
 
     fn invert(

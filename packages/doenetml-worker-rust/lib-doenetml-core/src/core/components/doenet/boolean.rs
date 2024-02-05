@@ -1,5 +1,5 @@
 use crate::components::prelude::*;
-use crate::general_state_var::BooleanStateVar;
+use crate::general_state_var::{BooleanStateVar, MirrorStateVar};
 
 /// Definition of the `<boolean>` DoenetML component
 #[derive(
@@ -60,7 +60,8 @@ impl BooleanState {
     fn new() -> Self {
         BooleanState {
             value: BooleanStateVar::new_from_children(false).into_state_var(),
-            boolean: BooleanStateVar::new(BooleanState::get_value_data_queries()).into_state_var(),
+            boolean: MirrorStateVar::new(BooleanState::get_value_state_variable_index())
+                .into_state_var(),
         }
     }
 }

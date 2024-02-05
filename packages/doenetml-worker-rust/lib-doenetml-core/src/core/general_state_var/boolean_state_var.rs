@@ -14,15 +14,12 @@ use super::util::{string_attr_to_boolean, string_to_boolean};
 /// - a single boolean dependency
 /// - string dependencies (that are concatenated to see if they spell out "true")
 ///
-/// If the component has an extend source so that this variable is shadowing another variable,
-/// then prepend the shadowed state variable to the list of dependencies.
-///
 /// If the state variable has a single boolean dependency that is an essential state variable,
 /// then propagate the `came_from_default` attribute of the essential state variable.
 #[derive(Debug, Default)]
 pub struct BooleanStateVar {
-    /// The base data query that indicates how the dependencies of this state variable will be created.
-    base_data_query: DataQuery,
+    /// The data query that indicates how the dependencies of this state variable will be created.
+    data_query: DataQuery,
 
     default_value: bool,
 
@@ -33,7 +30,7 @@ pub struct BooleanStateVar {
 #[add_dependency_data]
 #[derive(Debug, Default, StateVariableDependencies, StateVariableDataQueries)]
 pub struct BooleanRequiredData {
-    /// A vector of the boolean or string values of the dependencies coming from the base_data_query
+    /// A vector of the boolean or string values of the dependencies coming from the data_query
     booleans_and_strings: Vec<BooleanOrString>,
 }
 
@@ -68,9 +65,9 @@ impl TryFromState<StateVarViewEnum> for BooleanOrString {
 
 impl BooleanStateVar {
     /// Creates a state var that queries its value from the given data query.
-    pub fn new(base_data_query: DataQuery) -> Self {
+    pub fn new(data_query: DataQuery) -> Self {
         BooleanStateVar {
-            base_data_query,
+            data_query,
             ..Default::default()
         }
     }
@@ -78,7 +75,7 @@ impl BooleanStateVar {
     /// Creates a state var that queries its value from children matching the `Text` or `Boolean` profile.
     pub fn new_from_children(default_value: bool) -> Self {
         BooleanStateVar {
-            base_data_query: DataQuery::Child {
+            data_query: DataQuery::Child {
                 match_profiles: vec![ComponentProfile::Text, ComponentProfile::Boolean],
                 exclude_if_prefer_profiles: vec![],
                 always_return_value: true,
@@ -92,7 +89,7 @@ impl BooleanStateVar {
     /// returning the attribute children that match the `Text` or `Boolean` profile.
     pub fn new_from_attribute(attr_name: AttributeName, default_value: bool) -> Self {
         BooleanStateVar {
-            base_data_query: DataQuery::AttributeChild {
+            data_query: DataQuery::AttributeChild {
                 attribute_name: attr_name,
                 match_profiles: vec![ComponentProfile::Text, ComponentProfile::Boolean],
                 always_return_value: true,
@@ -110,7 +107,7 @@ impl StateVarUpdater<bool, BooleanRequiredData> for BooleanStateVar {
 
     fn return_data_queries(&self) -> Vec<Option<DataQuery>> {
         BooleanRequiredDataQueries {
-            booleans_and_strings: Some(self.base_data_query.clone()),
+            booleans_and_strings: Some(self.data_query.clone()),
         }
         .into()
     }
