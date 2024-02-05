@@ -1,14 +1,12 @@
 mod immediate_value;
-mod sync_immediate_value;
 mod value;
 
 pub use immediate_value::ImmediateValueStateVar;
-pub use sync_immediate_value::SyncImmediateValueStateVar;
 pub use value::ValueStateVar;
 
 use crate::{
     components::prelude::*,
-    general_state_var::{BooleanStateVar, StringStateVar},
+    general_state_var::{BooleanStateVar, IndependentStateVar, StringStateVar},
 };
 
 /// The state variables that underlie the `<textInput>` component.
@@ -81,7 +79,7 @@ impl TextInputState {
         TextInputState {
             value: ValueStateVar::new().into_state_var(),
             immediate_value: ImmediateValueStateVar::new().into_state_var(),
-            sync_immediate_value: SyncImmediateValueStateVar::new().into_state_var(),
+            sync_immediate_value: IndependentStateVar::new(true).into_state_var(),
             value_from_children: StringStateVar::new_from_children("".to_string()).into_state_var(),
             prefill: StringStateVar::new_from_attribute("prefill", "".to_string()).into_state_var(),
             hidden: BooleanStateVar::new_from_attribute("hidden", false).into_state_var(),

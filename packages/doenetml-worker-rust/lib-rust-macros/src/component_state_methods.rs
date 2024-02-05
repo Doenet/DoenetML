@@ -338,6 +338,7 @@ pub fn state_variable_dependencies_derive(input: TokenStream) -> TokenStream {
     let ast: syn::DeriveInput = syn::parse(input).unwrap();
     let structure_identity = &ast.ident;
     let data = &ast.data;
+    let generics = &ast.generics;
 
     let output = match data {
         syn::Data::Struct(s) => match &s.fields {
@@ -404,8 +405,21 @@ pub fn state_variable_dependencies_derive(input: TokenStream) -> TokenStream {
                     })
                 }
 
+                // if we have a generic,
+                // we also need to restrict to those with a StateVarView that we can try_into a StateVarViewEnum
+                // with an error that implements Debug
+                let where_clause = generics.where_clause.as_ref().map(|wc| {
+                    quote!(
+                        #wc
+                        StateVarView #generics: TryFromState<StateVarViewEnum>,
+                        <StateVarView #generics as TryFromState<StateVarViewEnum>>::Error: std::fmt::Debug,
+                    )
+                });
+
                 quote! {
-                    impl FromDependencies for #structure_identity {
+                    impl #generics FromDependencies for #structure_identity #generics
+                        #where_clause
+                    {
                         fn from_dependencies(
                             dependencies: &[DependenciesCreatedForDataQuery],
                             queries_used: &[usize],
@@ -426,7 +440,9 @@ pub fn state_variable_dependencies_derive(input: TokenStream) -> TokenStream {
                         }
                     }
 
-                    impl #structure_identity {
+                    impl #generics #structure_identity #generics
+                        #where_clause
+                    {
                         /// Return the updates queued during by calls to `queue_update()`
                         /// on the dependencies of this `data` structure.
                         ///
