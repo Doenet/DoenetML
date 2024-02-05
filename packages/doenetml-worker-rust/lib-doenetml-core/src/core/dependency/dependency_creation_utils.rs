@@ -88,17 +88,19 @@ pub fn get_children_with_parent_including_from_extend_source(
     children_vec
 }
 
-/// Recurse until the name of the original source is found.
+/// If the component has an extend source of `Component` type,
+/// return the component index of that extend source,
+/// except recurse until the component index of the original source is found.
 ///
-/// When we store essential data, we store it with this original source name,
+/// When we store essential data, we store it with this original source index,
 /// allowing copies to share the same essential data as the source.
-pub fn get_extend_source_origin(
+pub fn get_component_extend_source_origin(
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
     component_idx: ComponentIdx,
 ) -> ComponentIdx {
     match &components[component_idx].borrow().get_extending() {
         Some(&ExtendSource::Component(source_idx)) => {
-            get_extend_source_origin(components, source_idx)
+            get_component_extend_source_origin(components, source_idx)
         }
         _ => component_idx,
     }

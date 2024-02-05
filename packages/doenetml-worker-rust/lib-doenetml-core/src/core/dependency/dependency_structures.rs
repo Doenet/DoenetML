@@ -15,12 +15,6 @@ use crate::{
 #[derive(Debug, Clone, Default, PartialEq)]
 pub enum DataQuery {
     /// Query for all children that match the prescribed `ComponentProfile`s.
-    ///
-    /// TODO: add parameter whether or not to return something even if no match.
-    ///
-    /// What type should it return? Right now based on source type, which could be an error.
-    /// What to use for the default value?
-    /// This also applies to attribute children.
     Child {
         /// The data query will match child components that have at least one of these profiles
         /// unless the child component has one of the profiles in `exclude_if_prefer_profiles`
@@ -44,6 +38,7 @@ pub enum DataQuery {
         /// and will be initialized to the default value of that type.
         always_return_value: bool,
     },
+    /// Query for a particular state variable of a component
     StateVar {
         /// If None, state variable is from the component making the query.
         component_idx: Option<ComponentIdx>,
@@ -51,9 +46,9 @@ pub enum DataQuery {
         /// The state variable from component_idx or component making the query.
         state_var_idx: StateVarIdx,
     },
-    Parent {
-        state_var_name: StateVarName,
-    },
+    /// Query for a state variable from a parent
+    Parent { state_var_name: StateVarName },
+    /// Query for all children of an attribute that match the prescribed `ComponentProfile`
     AttributeChild {
         /// The name of the attribute whose children will be matched.
         attribute_name: AttributeName,

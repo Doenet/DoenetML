@@ -266,3 +266,19 @@ pub enum ComponentProfile {
     Integer,
     Boolean,
 }
+
+// TODO: implement with macro?
+impl ComponentProfile {
+    /// Return the default value that is associated with the type of state variable
+    /// represented by the component profile.
+    pub fn get_default_value(&self) -> StateVarValue {
+        match self {
+            ComponentProfile::Boolean => StateVarValue::Boolean(bool::default()),
+            ComponentProfile::Integer => StateVarValue::Integer(i64::default()),
+            ComponentProfile::Number => StateVarValue::Number(f64::default()),
+            ComponentProfile::LiteralString | ComponentProfile::Text => {
+                StateVarValue::String(String::default())
+            }
+        }
+    }
+}

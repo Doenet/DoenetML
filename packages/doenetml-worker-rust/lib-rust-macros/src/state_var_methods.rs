@@ -232,12 +232,11 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
                         }
                     }
 
-                    /// Returns the value of the `default_value` parameters
+                    /// Returns the value of the `default_value` parameter
                     /// specified when the state variable was defined.
                     ///
                     /// If no `default_value` parameter was specified,
-                    /// this function will return the default value for the type of state variable,
-                    /// which presumably will be meaningless.
+                    /// this function will return the default value for the type of state variable.
                     pub fn return_default_value(&self) -> StateVarValue {
                         match self {
                             #(#state_var_return_default_value_arms)*
