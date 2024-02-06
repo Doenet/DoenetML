@@ -13,10 +13,12 @@ use super::StateVarView;
 /// The possible results of a call to `calculate`:
 /// - Calculated(T): the value was calculated to be T
 /// - FromDefault(T): the value T was determined from the default value
-#[derive(Debug, PartialEq)]
-pub enum StateVarCalcResult<T> {
+/// - From(&StateVarView<T>): set both `value` and `came_from_default` from `StateVarView<T>`
+#[derive(Debug)]
+pub enum StateVarCalcResult<'a, T: Default + Clone> {
     Calculated(T),
     FromDefault(T),
+    From(&'a StateVarView<T>),
 }
 
 #[derive(Debug, Error)]
@@ -45,7 +47,7 @@ pub trait StateVarUpdater<T: Default + Clone, D>: std::fmt::Debug {
 
     /// Calculate the value of the state variable from the passed in `data`.
     /// Results of this function will be cached, so local caching is not needed.
-    fn calculate(&self, data: &D) -> StateVarCalcResult<T>;
+    fn calculate<'a>(&self, data: &'a D) -> StateVarCalcResult<'a, T>;
 
     /// All state variables know how to calculate their value given their dependencies.
     /// Sometimes a state variable is requested to take on a particular value. If the

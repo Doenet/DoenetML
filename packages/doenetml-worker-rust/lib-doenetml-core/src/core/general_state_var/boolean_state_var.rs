@@ -1,7 +1,3 @@
-#[cfg(test)]
-#[path = "boolean_state_var.test.rs"]
-mod tests;
-
 use enum_dispatch::enum_dispatch;
 
 use crate::components::prelude::*;
@@ -113,7 +109,7 @@ impl StateVarUpdater<bool, BooleanRequiredData> for BooleanStateVar {
     }
 
     #[allow(clippy::needless_return)]
-    fn calculate(&self, data: &BooleanRequiredData) -> StateVarCalcResult<bool> {
+    fn calculate<'a>(&self, data: &'a BooleanRequiredData) -> StateVarCalcResult<'a, bool> {
         match data.booleans_and_strings.len() {
             0 => {
                 return StateVarCalcResult::Calculated(false);
@@ -121,13 +117,9 @@ impl StateVarUpdater<bool, BooleanRequiredData> for BooleanStateVar {
             1 => {
                 match &data.booleans_and_strings[0] {
                     BooleanOrString::Boolean(boolean_value) => {
-                        if boolean_value.came_from_default() {
-                            // If we are basing it on a single variable that came from default,
-                            // then we propagate came_from_default as well as the value.
-                            return StateVarCalcResult::FromDefault(*boolean_value.get());
-                        } else {
-                            return StateVarCalcResult::Calculated(*boolean_value.get());
-                        }
+                        // If we are basing it on a single variable that came from default,
+                        // then we propagate came_from_default as well as the value.
+                        return StateVarCalcResult::From(&boolean_value);
                     }
                     BooleanOrString::String(string_value) => {
                         return StateVarCalcResult::Calculated(if self.from_attribute {
@@ -191,3 +183,7 @@ impl StateVarUpdater<bool, BooleanRequiredData> for BooleanStateVar {
         }
     }
 }
+
+#[cfg(test)]
+#[path = "boolean_state_var.test.rs"]
+mod tests;

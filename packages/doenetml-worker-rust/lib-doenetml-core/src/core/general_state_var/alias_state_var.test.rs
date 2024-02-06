@@ -11,7 +11,7 @@ fn set_up_boolean_mirror_state_var(
     StateVarView<bool>,
     StateVarMutableView<bool>,
 ) {
-    let mut state_var: StateVar<bool> = MirrorStateVar::new(0).into_state_var();
+    let mut state_var: StateVar<bool> = StateVarAlias::new(0).into_state_var();
     let state_var_view = state_var.create_new_read_only_view();
 
     // need to return data queries since side effect is saving the required data
@@ -37,7 +37,7 @@ fn set_up_string_mirror_state_var(
     StateVarView<String>,
     StateVarMutableView<String>,
 ) {
-    let mut state_var: StateVar<String> = MirrorStateVar::new(0).into_state_var();
+    let mut state_var: StateVar<String> = StateVarAlias::new(0).into_state_var();
     let state_var_view = state_var.create_new_read_only_view();
 
     // need to return data queries since side effect is saving the required data
@@ -59,7 +59,7 @@ fn set_up_string_mirror_state_var(
 #[test]
 fn mirror_state_var_gives_correct_data_queries() {
     // boolean
-    let mut state_var: StateVar<bool> = MirrorStateVar::new(3).into_state_var();
+    let mut state_var: StateVar<bool> = StateVarAlias::new(3).into_state_var();
     let queries = state_var.return_data_queries();
     assert_eq!(
         queries,
@@ -70,7 +70,7 @@ fn mirror_state_var_gives_correct_data_queries() {
     );
 
     // String
-    let mut state_var: StateVar<String> = MirrorStateVar::new(4).into_state_var();
+    let mut state_var: StateVar<String> = StateVarAlias::new(4).into_state_var();
     let queries = state_var.return_data_queries();
     assert_eq!(
         queries,

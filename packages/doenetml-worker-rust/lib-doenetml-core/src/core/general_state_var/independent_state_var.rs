@@ -1,7 +1,3 @@
-#[cfg(test)]
-#[path = "independent_state_var.test.rs"]
-mod tests;
-
 use crate::components::prelude::*;
 
 /// A struct of all data required to compute the value of this state variable.
@@ -14,11 +10,10 @@ where
     preliminary_value: StateVarView<T>,
 }
 
-/// A state variable that doesn't depend on any data queries,
-/// other that its own preliminary value data query.
+/// A state variable that doesn't depend on outside data.
 ///
-/// The state variable takes on its preliminary value,
-/// and when inverting, sets its preliminary value.
+/// The state variable will be initialized to its `default_value`,
+/// and when inverting, will change to match the requested value.
 #[derive(Debug, Default)]
 pub struct IndependentStateVar<T: Default + Clone> {
     default_value: T,
@@ -47,13 +42,9 @@ where
         .into()
     }
 
-    fn calculate(&self, data: &IndependentRequiredData<T>) -> StateVarCalcResult<T> {
+    fn calculate<'a>(&self, data: &'a IndependentRequiredData<T>) -> StateVarCalcResult<'a, T> {
         // take on the value from `preliminary_value`, propagating `came_from_default`.
-        if data.preliminary_value.came_from_default() {
-            StateVarCalcResult::FromDefault(data.preliminary_value.get().clone())
-        } else {
-            StateVarCalcResult::Calculated(data.preliminary_value.get().clone())
-        }
+        StateVarCalcResult::From(&data.preliminary_value)
     }
 
     fn invert(
@@ -68,3 +59,7 @@ where
         Ok(data.queued_updates())
     }
 }
+
+#[cfg(test)]
+#[path = "independent_state_var.test.rs"]
+mod tests;

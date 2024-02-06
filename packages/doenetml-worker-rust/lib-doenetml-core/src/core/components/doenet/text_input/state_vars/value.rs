@@ -34,7 +34,7 @@ impl StateVarUpdater<String, RequiredData> for ValueStateVar {
         .into()
     }
 
-    fn calculate(&self, data: &RequiredData) -> StateVarCalcResult<String> {
+    fn calculate<'a>(&self, data: &'a RequiredData) -> StateVarCalcResult<'a, String> {
         let value = if *data.sync_immediate_value.get() {
             data.immediate_value.get().clone()
         } else if data.value_from_children.came_from_default() {

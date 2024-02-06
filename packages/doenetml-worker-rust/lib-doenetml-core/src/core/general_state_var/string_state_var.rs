@@ -1,7 +1,3 @@
-#[cfg(test)]
-#[path = "string_state_var.test.rs"]
-mod tests;
-
 use crate::components::prelude::*;
 
 /// A string state variable interface that concatenates all string dependencies.
@@ -71,17 +67,13 @@ impl StateVarUpdater<String, StringRequiredData> for StringStateVar {
         .into()
     }
 
-    fn calculate(&self, data: &StringRequiredData) -> StateVarCalcResult<String> {
+    fn calculate<'a>(&self, data: &'a StringRequiredData) -> StateVarCalcResult<'a, String> {
         match data.strings.len() {
             0 => StateVarCalcResult::Calculated(String::from("")),
             1 => {
-                if data.strings[0].came_from_default() {
-                    // if we are basing it on a single variable that came from default,
-                    // then we propagate came_from_default as well as the value.
-                    StateVarCalcResult::FromDefault(data.strings[0].get().clone())
-                } else {
-                    StateVarCalcResult::Calculated(data.strings[0].get().clone())
-                }
+                // if we are basing it on a single variable that came from default,
+                // then we propagate came_from_default as well as the value.
+                StateVarCalcResult::From(&data.strings[0])
             }
             _ => {
                 // multiple string variables, so concatenate
@@ -114,3 +106,7 @@ impl StateVarUpdater<String, StringRequiredData> for StringStateVar {
         }
     }
 }
+
+#[cfg(test)]
+#[path = "string_state_var.test.rs"]
+mod tests;

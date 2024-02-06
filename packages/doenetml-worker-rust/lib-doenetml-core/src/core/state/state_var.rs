@@ -318,6 +318,14 @@ impl<T: Default + Clone> StateVar<T> {
         match self.updater.calculate() {
             StateVarCalcResult::Calculated(val) => self.value.set_value(val),
             StateVarCalcResult::FromDefault(val) => self.value.set_value_from_default(val),
+            StateVarCalcResult::From(state_var_view) => {
+                if state_var_view.came_from_default() {
+                    self.value
+                        .set_value_from_default(state_var_view.get().clone())
+                } else {
+                    self.value.set_value(state_var_view.get().clone())
+                }
+            }
         };
         self.mark_fresh();
     }

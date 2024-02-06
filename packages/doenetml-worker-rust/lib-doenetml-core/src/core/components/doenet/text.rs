@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::components::prelude::*;
-use crate::general_state_var::{MirrorStateVar, StringStateVar};
+use crate::general_state_var::{StateVarAlias, StringStateVar};
 
 /// Definition of the `<text>` DoenetML component
 #[derive(
@@ -62,7 +62,7 @@ impl TextState {
     fn new() -> Self {
         TextState {
             value: StringStateVar::new_from_children("".to_string()).into_state_var(),
-            text: MirrorStateVar::new(TextState::get_value_state_variable_index()).into_state_var(),
+            text: StateVarAlias::new(TextState::get_value_state_variable_index()).into_state_var(),
         }
     }
 }
