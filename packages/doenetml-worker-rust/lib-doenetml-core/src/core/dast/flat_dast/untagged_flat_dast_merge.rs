@@ -33,7 +33,9 @@ impl FlatRoot {
 
     /// Update the the node at `idx` to be `node`. Any children of `node` are added to the `FlatRoot` as well,
     /// but children of the old node are not removed. This function does no consistency checking, so it is
-    /// the _caller should be extra careful_.
+    /// the _caller should be extra careful to_
+    ///  - Ensure `idx` on the node is set correctly.
+    ///  - Ensure `parent` on the node is set correctly.
     pub fn update_content(
         &mut self,
         node: &DastElementContent,
@@ -84,11 +86,7 @@ impl FlatRoot {
                 ret
             }
             DastElementContent::Error(err) => {
-                let ret = UntaggedContent::Ref(self.set_error(err, idx, parent));
-                if parent.is_none() {
-                    self.children.push(ret.clone());
-                }
-                ret
+                UntaggedContent::Ref(self.set_error(err, idx, parent))
             }
             DastElementContent::Text(txt) => UntaggedContent::Text(txt.value.clone()),
             DastElementContent::Macro(macro_) => {

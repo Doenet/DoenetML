@@ -84,7 +84,7 @@ pub struct FlatFunctionMacro {
     pub idx: Index,
 }
 
-/// Objects that can be store in the main `nodes` array of a `FlatRoot`.
+/// Objects that can be stored in the main `nodes` array of a `FlatRoot`.
 #[derive(Clone, Debug, Serialize)]
 #[serde(tag = "type")]
 pub enum FlatNode {
