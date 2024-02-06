@@ -2,30 +2,25 @@ use crate::utils::test_utils::create_state_var_dependency;
 
 use super::*;
 
-/// Testing the case of an independent boolean state variable,
-/// i.e., a state variable that doesn't depend on others.
-#[test]
-fn independent_boolean() {
-    // create an independent boolean state variable with initial value of false
-    let mut state_var: StateVar<bool> = IndependentStateVar::new(false).into_state_var();
-    let mut state_var_view = state_var.create_new_read_only_view();
+/// Utility function to set up independent boolean state variable and its preliminary value dependency
+fn set_up_boolean_independent_state_var(
+    initial_value: bool,
+    came_from_default: bool,
+) -> (
+    StateVar<bool>,
+    StateVarView<bool>,
+    StateVarMutableView<bool>,
+) {
+    let mut state_var: StateVar<bool> = IndependentStateVar::new(initial_value).into_state_var();
+    let state_var_view = state_var.create_new_read_only_view();
 
-    //////////////////////////////////////////////////
-    // Step 1: check that get the correct data queries
-    //////////////////////////////////////////////////
-    let queries = state_var.return_data_queries();
-
-    // should return a query just for a preliminary value
-    assert_eq!(queries, vec![DataQuery::PreliminaryValue,]);
-
-    ////////////////////////////////////////////////////////////////
-    // Step 2: fulfill data query with one boolean variable
-    ////////////////////////////////////////////////////////////////
+    // need to return data queries since side effect is saving the required data
+    state_var.return_data_queries();
 
     // Note: the default_value specified in the creation of state_var above
     // isn't used at this level of testing, so we supply it directly here to match
     let (preliminary_value_dependency, preliminary_value_var) =
-        create_state_var_dependency(false, true);
+        create_state_var_dependency(initial_value, came_from_default);
 
     let dependencies_created_for_data_queries = vec![DependenciesCreatedForDataQuery(vec![
         preliminary_value_dependency,
@@ -33,97 +28,98 @@ fn independent_boolean() {
 
     state_var.save_dependencies(&dependencies_created_for_data_queries);
 
-    ////////////////////////////////////////////////////////////////
-    // Step 3: check if get the correct calculated value
-    ////////////////////////////////////////////////////////////////
-    state_var.calculate_and_mark_fresh();
+    (state_var, state_var_view, preliminary_value_var)
+}
 
-    // we expect a value of false and came_from_default to be true,
-    // given how we created the preliminary value
+/// Utility function to set up independent string state variable and its preliminary value dependency
+fn set_up_string_independent_state_var(
+    initial_value: String,
+    came_from_default: bool,
+) -> (
+    StateVar<String>,
+    StateVarView<String>,
+    StateVarMutableView<String>,
+) {
+    let mut state_var: StateVar<String> =
+        IndependentStateVar::new(initial_value.clone()).into_state_var();
+    let state_var_view = state_var.create_new_read_only_view();
+
+    // need to return data queries since side effect is saving the required data
+    state_var.return_data_queries();
+
+    // Note: the default_value specified in the creation of state_var above
+    // isn't used at this level of testing, so we supply it directly here to match
+    let (preliminary_value_dependency, preliminary_value_var) =
+        create_state_var_dependency(initial_value, came_from_default);
+
+    let dependencies_created_for_data_queries = vec![DependenciesCreatedForDataQuery(vec![
+        preliminary_value_dependency,
+    ])];
+
+    state_var.save_dependencies(&dependencies_created_for_data_queries);
+
+    (state_var, state_var_view, preliminary_value_var)
+}
+
+/// check that an independent state variable
+/// gives the correct data query that requests preliminary value
+#[test]
+fn independent_state_var_gives_correct_data_queries() {
+    // boolean
+    let mut state_var: StateVar<bool> = IndependentStateVar::new(false).into_state_var();
+    let queries = state_var.return_data_queries();
+    assert_eq!(queries, vec![DataQuery::PreliminaryValue,]);
+
+    // String
+    let mut state_var: StateVar<String> =
+        IndependentStateVar::new(String::from("")).into_state_var();
+    let queries = state_var.return_data_queries();
+    assert_eq!(queries, vec![DataQuery::PreliminaryValue,]);
+}
+
+/// For an independent boolean state variable,
+/// its value should be the same as its preliminary value
+#[test]
+fn independent_boolean_state_var_calculated_() {
+    let (state_var, _state_var_view, preliminary_value_var) =
+        set_up_boolean_independent_state_var(true, false);
+
+    // we initialize preliminary value to be true, so should get true
+    state_var.calculate_and_mark_fresh();
+    assert_eq!(*state_var.get(), true);
+
+    // changing preliminary value to be false, results in state variable being false
+    preliminary_value_var.set_value(false);
+    state_var.calculate_and_mark_fresh();
     assert_eq!(*state_var.get(), false);
+}
+
+/// For an independent boolean state variable,
+/// its came_from_default should be the same as the preliminary value's came_from_default
+#[test]
+fn independent_boolean_state_var_passes_through_came_from_default() {
+    let (state_var, _state_var_view, preliminary_value_var) =
+        set_up_boolean_independent_state_var(false, true);
+
+    // we initialized with default value, so we should start with came_from_default being true
+    state_var.calculate_and_mark_fresh();
     assert_eq!(state_var.came_from_default(), true);
 
-    ////////////////////////////////////////////////////////////////
-    // Step 4: invert to make the value true
-    ////////////////////////////////////////////////////////////////
-
-    // on the state variable view, record that we request the value be true
-    state_var_view.queue_update(true);
-
-    let invert_result = state_var.invert(false).unwrap();
-
-    // we should get a request informing core that we need to change the variable
-    assert_eq!(
-        invert_result,
-        vec![DependencyValueUpdateRequest {
-            data_query_idx: 0,
-            dependency_idx: 0
-        }]
-    );
-    // the child variable has recorded that it has been requested to be true
-    assert_eq!(*preliminary_value_var.get_requested_value(), true);
-
-    ////////////////////////////////////////////////////////////////
-    // Step 5: make the changes to actually make the value true
-    ////////////////////////////////////////////////////////////////
-
+    // setting the preliminary value sets came_from_default to false
     preliminary_value_var.set_value(true);
-
     state_var.calculate_and_mark_fresh();
-
-    // now the value should be true
-    assert_eq!(*state_var.get(), true);
     assert_eq!(state_var.came_from_default(), false);
 }
 
-/// Testing the case of an independent string state variable,
-/// i.e., a state variable that doesn't depend on others.
+/// Calling invert on a boolean independent state variable
+/// causes the preliminary value to receive that requested value
 #[test]
-fn mirror_string() {
-    // create an independent string state variable with initial value of ""
-    let mut state_var: StateVar<String> =
-        IndependentStateVar::new(String::from("")).into_state_var();
-    let mut state_var_view = state_var.create_new_read_only_view();
+fn invert_independent_boolean_state_var() {
+    let (mut state_var, mut state_var_view, preliminary_value_var) =
+        set_up_boolean_independent_state_var(true, false);
 
-    //////////////////////////////////////////////////
-    // Step 1: check that get the correct data queries
-    //////////////////////////////////////////////////
-    let queries = state_var.return_data_queries();
-
-    // should return a query just for a preliminary value
-    assert_eq!(queries, vec![DataQuery::PreliminaryValue,]);
-
-    ////////////////////////////////////////////////////////////////
-    // Step 2: fulfill data query with one string variable
-    ////////////////////////////////////////////////////////////////
-
-    // Note: the default_value specified in the creation of state_var above
-    // isn't used at this level of testing, so we supply it directly here to match
-    let (preliminary_value_dependency, preliminary_value_var) =
-        create_state_var_dependency(String::from(""), true);
-
-    let dependencies_created_for_data_queries = vec![DependenciesCreatedForDataQuery(vec![
-        preliminary_value_dependency,
-    ])];
-
-    state_var.save_dependencies(&dependencies_created_for_data_queries);
-
-    ////////////////////////////////////////////////////////////////
-    // Step 3: check if get the correct calculated value
-    ////////////////////////////////////////////////////////////////
-    state_var.calculate_and_mark_fresh();
-
-    // we expect a value of "" and came_from_default to be true,
-    // mirroring the dependency
-    assert_eq!(state_var.get().clone(), "");
-    assert_eq!(state_var.came_from_default(), true);
-
-    ////////////////////////////////////////////////////////////////
-    // Step 4: invert to make the value "hello"
-    ////////////////////////////////////////////////////////////////
-
-    // on the state variable view, record that we request the value be "hello"
-    state_var_view.queue_update(String::from("hello"));
+    // on the state variable view, record that we request the value be false
+    state_var_view.queue_update(false);
 
     let invert_result = state_var.invert(false).unwrap();
 
@@ -135,18 +131,66 @@ fn mirror_string() {
             dependency_idx: 0
         }]
     );
-    // the child variable has recorded that it has been requested to be "hello"
-    assert_eq!(preliminary_value_var.get_requested_value().clone(), "hello");
 
-    ////////////////////////////////////////////////////////////////
-    // Step 5: make the changes to actually make the value true
-    ////////////////////////////////////////////////////////////////
+    // the preliminary value variable has recorded that it has been requested to be false
+    assert_eq!(*preliminary_value_var.get_requested_value(), false);
+}
 
-    preliminary_value_var.set_value(String::from("hello"));
+/// For an independent string state variable,
+/// its value should be the same as its preliminary value
+#[test]
+fn independent_string_state_var_calculated_() {
+    let (state_var, _state_var_view, preliminary_value_var) =
+        set_up_string_independent_state_var(String::from("hello"), false);
 
+    // we initialize preliminary value to be true, so should get true
     state_var.calculate_and_mark_fresh();
+    assert_eq!(*state_var.get(), "hello");
 
-    // now the value should be "hello"
-    assert_eq!(state_var.get().clone(), "hello");
+    // changing preliminary value to be false, results in state variable being false
+    preliminary_value_var.set_value(String::from("bye"));
+    state_var.calculate_and_mark_fresh();
+    assert_eq!(*state_var.get(), "bye");
+}
+
+/// For an independent string state variable,
+/// its came_from_default should be the same as the preliminary value's came_from_default
+#[test]
+fn independent_string_state_var_passes_through_came_from_default() {
+    let (state_var, _state_var_view, preliminary_value_var) =
+        set_up_string_independent_state_var(String::from(""), true);
+
+    // we initialized with default value, so we should start with came_from_default being true
+    state_var.calculate_and_mark_fresh();
+    assert_eq!(state_var.came_from_default(), true);
+
+    // setting the preliminary value sets came_from_default to false
+    preliminary_value_var.set_value(String::from("hi"));
+    state_var.calculate_and_mark_fresh();
     assert_eq!(state_var.came_from_default(), false);
+}
+
+/// Calling invert on a string independent state variable
+/// causes the preliminary value to receive that requested value
+#[test]
+fn invert_independent_string_state_var() {
+    let (mut state_var, mut state_var_view, preliminary_value_var) =
+        set_up_string_independent_state_var(String::from("hello"), false);
+
+    // on the state variable view, record that we request the value be "bye"
+    state_var_view.queue_update(String::from("bye"));
+
+    let invert_result = state_var.invert(false).unwrap();
+
+    // we should get a request informing core that we need to change the variable
+    assert_eq!(
+        invert_result,
+        vec![DependencyValueUpdateRequest {
+            data_query_idx: 0,
+            dependency_idx: 0
+        }]
+    );
+
+    // the preliminary value variable has recorded that it has been requested to be false
+    assert_eq!(*preliminary_value_var.get_requested_value(), "bye");
 }

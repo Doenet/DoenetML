@@ -2,7 +2,7 @@ use crate::utils::test_utils::create_state_var_dependency;
 
 use super::*;
 
-/// Utility function to set boolean state variable that depends on one child variable
+/// Utility function to set up boolean state variable that depends on one child variable
 fn set_up_boolean_state_var_with_child<T>(
     initial_value: T,
     came_from_default: bool,
@@ -30,7 +30,7 @@ where
     (state_var, state_var_view, child_var)
 }
 
-/// Utility function to set boolean state variable that depends on two child variables
+/// Utility function to set up boolean state variable that depends on two child variables
 fn set_up_boolean_state_var_with_two_children<T>(
     initial_value_1: T,
     initial_value_2: T,
@@ -70,7 +70,7 @@ where
     (state_var, state_var_view, child_var_1, child_var_2)
 }
 
-/// Utility function to set boolean state variable that depends on one attribute child variable
+/// Utility function to set up boolean state variable that depends on one attribute child variable
 fn set_up_boolean_state_var_with_attribute_child<T>(
     attr_name: AttributeName,
     initial_value: T,

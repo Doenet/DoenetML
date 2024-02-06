@@ -2,7 +2,7 @@ use crate::utils::test_utils::create_state_var_dependency;
 
 use super::*;
 
-/// Utility function to set string state variable that depends on one string child variable
+/// Utility function to set up string state variable that depends on one string child variable
 fn set_up_string_state_var_with_string_child(
     initial_value: String,
     came_from_default: bool,
@@ -30,7 +30,7 @@ fn set_up_string_state_var_with_string_child(
     (state_var, state_var_view, child_var)
 }
 
-/// Utility function to set string state variable that depends on two string child variables
+/// Utility function to set up string state variable that depends on two string child variables
 fn set_up_string_state_var_with_two_string_children(
     initial_value_1: String,
     initial_value_2: String,
