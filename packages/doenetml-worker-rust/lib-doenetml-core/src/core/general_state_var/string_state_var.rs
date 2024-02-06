@@ -15,7 +15,7 @@ pub struct StringStateVar {
 /// The data required to compute the value of this state variable.
 #[add_dependency_data]
 #[derive(Debug, Default, StateVariableDependencies, StateVariableDataQueries)]
-pub struct StringRequiredData {
+pub struct RequiredData {
     /// A vector of the string values of the dependencies coming from the data_query
     strings: Vec<StateVarView<String>>,
 }
@@ -55,19 +55,19 @@ impl StringStateVar {
     }
 }
 
-impl StateVarUpdater<String, StringRequiredData> for StringStateVar {
+impl StateVarUpdater<String, RequiredData> for StringStateVar {
     fn default_value(&self) -> String {
         self.default_value.clone()
     }
 
     fn return_data_queries(&self) -> Vec<Option<DataQuery>> {
-        StringRequiredDataQueries {
+        RequiredDataQueries {
             strings: Some(self.data_query.clone()),
         }
         .into()
     }
 
-    fn calculate<'a>(&self, data: &'a StringRequiredData) -> StateVarCalcResult<'a, String> {
+    fn calculate<'a>(&self, data: &'a RequiredData) -> StateVarCalcResult<'a, String> {
         match data.strings.len() {
             0 => StateVarCalcResult::Calculated(String::from("")),
             1 => {
@@ -89,7 +89,7 @@ impl StateVarUpdater<String, StringRequiredData> for StringStateVar {
     /// then request that variable take on the requested value for this variable.
     fn invert(
         &self,
-        data: &mut StringRequiredData,
+        data: &mut RequiredData,
         state_var: &StateVarView<String>,
         _is_direct_change_from_action: bool,
     ) -> Result<Vec<DependencyValueUpdateRequest>, InvertError> {

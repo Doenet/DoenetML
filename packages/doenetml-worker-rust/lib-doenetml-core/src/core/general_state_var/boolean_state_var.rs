@@ -25,7 +25,7 @@ pub struct BooleanStateVar {
 /// The values of the dependencies created from the data queries
 #[add_dependency_data]
 #[derive(Debug, Default, StateVariableDependencies, StateVariableDataQueries)]
-pub struct BooleanRequiredData {
+pub struct RequiredData {
     /// A vector of the boolean or string values of the dependencies coming from the data_query
     booleans_and_strings: Vec<BooleanOrString>,
 }
@@ -96,20 +96,20 @@ impl BooleanStateVar {
     }
 }
 
-impl StateVarUpdater<bool, BooleanRequiredData> for BooleanStateVar {
+impl StateVarUpdater<bool, RequiredData> for BooleanStateVar {
     fn default_value(&self) -> bool {
         self.default_value
     }
 
     fn return_data_queries(&self) -> Vec<Option<DataQuery>> {
-        BooleanRequiredDataQueries {
+        RequiredDataQueries {
             booleans_and_strings: Some(self.data_query.clone()),
         }
         .into()
     }
 
     #[allow(clippy::needless_return)]
-    fn calculate<'a>(&self, data: &'a BooleanRequiredData) -> StateVarCalcResult<'a, bool> {
+    fn calculate<'a>(&self, data: &'a RequiredData) -> StateVarCalcResult<'a, bool> {
         match data.booleans_and_strings.len() {
             0 => {
                 return StateVarCalcResult::Calculated(false);
@@ -160,7 +160,7 @@ impl StateVarUpdater<bool, BooleanRequiredData> for BooleanStateVar {
     #[allow(clippy::needless_return)]
     fn invert(
         &self,
-        data: &mut BooleanRequiredData,
+        data: &mut RequiredData,
         state_var: &StateVarView<bool>,
         _is_direct_change_from_action: bool,
     ) -> Result<Vec<DependencyValueUpdateRequest>, InvertError> {
