@@ -271,7 +271,7 @@ pub enum ComponentProfile {
 impl ComponentProfile {
     /// Return the default value that is associated with the type of state variable
     /// represented by the component profile.
-    pub fn get_default_value(&self) -> StateVarValue {
+    pub fn default(&self) -> StateVarValue {
         match self {
             ComponentProfile::Boolean => StateVarValue::Boolean(bool::default()),
             ComponentProfile::Integer => StateVarValue::Integer(i64::default()),

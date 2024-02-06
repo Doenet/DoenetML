@@ -332,7 +332,7 @@ impl<T: Default + Clone> StateVar<T> {
     }
 
     /// Return the default value of this state variable
-    pub fn return_default_value(&self) -> T {
+    pub fn default(&self) -> T {
         self.default_value.clone()
     }
 

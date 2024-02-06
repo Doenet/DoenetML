@@ -28,7 +28,7 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
             let mut state_var_request_change_value_to_arms = Vec::new();
             let mut state_var_check_if_any_dependency_changed_since_last_viewed_arms = Vec::new();
             let mut state_var_calculate_and_mark_fresh_arms = Vec::new();
-            let mut state_var_return_default_value_arms = Vec::new();
+            let mut state_var_default_arms = Vec::new();
             let mut get_matching_component_profile_arms = Vec::new();
 
             for variant in variants {
@@ -95,9 +95,9 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
                     },
                 });
 
-                state_var_return_default_value_arms.push(quote! {
+                state_var_default_arms.push(quote! {
                     #enum_ident::#variant_ident(sv) => {
-                        StateVarValue::#variant_ident(sv.return_default_value())
+                        StateVarValue::#variant_ident(sv.default())
                     },
                 });
 
@@ -237,9 +237,9 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
                     ///
                     /// If no `default_value` parameter was specified,
                     /// this function will return the default value for the type of state variable.
-                    pub fn return_default_value(&self) -> StateVarValue {
+                    pub fn default(&self) -> StateVarValue {
                         match self {
-                            #(#state_var_return_default_value_arms)*
+                            #(#state_var_default_arms)*
                         }
                     }
 

@@ -48,7 +48,7 @@ pub fn create_dependencies_from_data_query_initialize_essential(
                         .borrow()
                         .get_state_variable(state_var_idx)
                         .unwrap()
-                        .return_default_value();
+                        .default();
 
                     let initial_data = InitialEssentialData::Single {
                         value: initial_data,
@@ -311,12 +311,12 @@ pub fn create_dependencies_from_data_query_initialize_essential(
                     let initial_data = if match_profiles
                         .contains(&source_state_var.get_matching_component_profile())
                     {
-                        source_state_var.return_default_value()
+                        source_state_var.default()
                     } else {
                         // Since the state variable wasn't in match_profiles,
                         // create a state variable of the type from the first match_profile
                         // and use the default value associated with that type
-                        match_profiles[0].get_default_value()
+                        match_profiles[0].default()
                     };
 
                     let new_view = create_essential_data_for(
@@ -471,12 +471,12 @@ pub fn create_dependencies_from_data_query_initialize_essential(
                     let initial_data = if match_profiles
                         .contains(&source_state_var.get_matching_component_profile())
                     {
-                        source_state_var.return_default_value()
+                        source_state_var.default()
                     } else {
                         // Since the state variable wasn't in match_profiles,
                         // create a state variable of the type from the first match_profile
                         // and use the default value associated with that type
-                        match_profiles[0].get_default_value()
+                        match_profiles[0].default()
                     };
 
                     let new_view = create_essential_data_for(
