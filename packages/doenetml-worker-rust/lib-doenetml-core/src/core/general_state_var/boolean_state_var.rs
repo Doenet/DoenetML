@@ -119,7 +119,7 @@ impl StateVarUpdater<bool, BooleanRequiredData> for BooleanStateVar {
                     BooleanOrString::Boolean(boolean_value) => {
                         // If we are basing it on a single variable that came from default,
                         // then we propagate came_from_default as well as the value.
-                        return StateVarCalcResult::From(&boolean_value);
+                        return StateVarCalcResult::From(boolean_value);
                     }
                     BooleanOrString::String(string_value) => {
                         return StateVarCalcResult::Calculated(if self.from_attribute {
