@@ -1,7 +1,5 @@
 //! This file contains utilities for testing DoenetMLCore. It is a duplicate of `tests/test_utils.rs`, made available for internal testing purposes.
-use crate::dast::flat_dast::untagged_flat_dast::{
-    FlatAttribute, FlatNode, FlatRoot, UntaggedContent,
-};
+use crate::dast::flat_dast::{FlatAttribute, FlatNode, FlatRoot, UntaggedContent};
 use crate::dast::{DastRoot, FlatDastRoot};
 use serde_json;
 pub use serde_json::{json, Value};

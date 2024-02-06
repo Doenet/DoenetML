@@ -3,9 +3,7 @@ use std::{collections::HashMap, mem};
 use anyhow::anyhow;
 
 use super::{
-    flat_dast::untagged_flat_dast::{
-        FlatElement, FlatError, FlatNode, FlatRoot, Index, UntaggedContent,
-    },
+    flat_dast::{FlatElement, FlatError, FlatNode, FlatRoot, Index, UntaggedContent},
     macro_resolve::{RefResolution, Resolver},
     DastElement, DastElementContent, DastError,
 };
