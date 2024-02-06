@@ -23,40 +23,6 @@ use super::{
 pub struct Expander {}
 
 impl Expander {
-    /// Check that the referent of every `extending` prop and the node that is extending share the same tag name.
-    /// Extending nodes are replaced with Error nodes if the tag names don't match. A special exception is made for
-    /// `<evaluate />` nodes. The type of element they extend is not checked.
-    pub fn assert_ref_types_match(flat_root: &mut FlatRoot) {
-        for i in 0..flat_root.nodes.len() {
-            let node = &flat_root.nodes[i];
-            if let FlatNode::Element(elm) = node {
-                if let Some(ref_resolution) = &elm.extending {
-                    if elm.name.eq_ignore_ascii_case("evaluate") {
-                        // `<evaluate />` are special. They don't extend in the usual sense.
-                        continue;
-                    }
-                    let referent = &flat_root.nodes[ref_resolution.node_idx];
-                    let name = &elm.name;
-                    let referent_name = match referent {
-                        FlatNode::Element(referent) => &referent.name,
-                        _ => "",
-                    };
-                    if !name.eq_ignore_ascii_case(referent_name) {
-                        flat_root.nodes[i] = FlatNode::Error(FlatError {
-                            idx: elm.idx,
-                            parent: elm.parent,
-                            message: format!(
-                                "Referent and extending node have different tag names: {} and {}",
-                                name, referent_name
-                            ),
-                            position: elm.position.clone(),
-                        });
-                    }
-                }
-            }
-        }
-    }
-
     /// Expand all macros and function macros into their "xml" form. After expansion,
     /// the resulting tree may not be serializable as XML since element attributes may contain
     /// other elements.
@@ -139,7 +105,9 @@ impl Expander {
                                     &DastElementContent::Element(dast_ol),
                                     Some(idx),
                                 );
-                                let ol_node_children_indices =
+                                // The `<li>` tags the exclusive children of the `<ol>` tag.
+                                // We created the same number of `<li>` tags as there are `inputs`.
+                                let li_node_indices =
                                     match &flat_root.nodes[lookup_idx(&ol).unwrap()] {
                                         FlatNode::Element(e) => e,
                                         _ => panic!("Expected an element"),
@@ -150,9 +118,7 @@ impl Expander {
                                     .collect::<Vec<_>>();
 
                                 // Set the inputs as children of the `li` nodes.
-                                for (input_content, li_idx) in
-                                    inputs.iter().zip(ol_node_children_indices)
-                                {
+                                for (input_content, li_idx) in inputs.iter().zip(li_node_indices) {
                                     // `input_content` (the argument to the function) have already been inserted into flat_root.nodes
                                     // so we can safely clone `input_content` and set it as children. All references contained
                                     // within should be valid.
@@ -208,7 +174,7 @@ impl Expander {
             let element = match &mut node {
                 FlatNode::Element(e) => e,
                 // Should be safe because we already verified we're an element.
-                _ => panic!(),
+                _ => unreachable!(),
             };
             let extend = element
                 .attributes
