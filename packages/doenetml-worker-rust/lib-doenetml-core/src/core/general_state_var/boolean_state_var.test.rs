@@ -296,8 +296,7 @@ fn boolean_state_var_calculated_from_two_string_children() {
     assert_eq!(*state_var.get(), true);
 }
 
-/// Calling invert on a boolean state variable with a single boolean child
-/// causes the child to receive that requested value
+/// Cannot invert a boolean state variable with a two boolean children
 #[test]
 fn cannot_invert_boolean_state_var_from_two_string_children() {
     // create a boolean state variable with two string children
@@ -316,7 +315,7 @@ fn cannot_invert_boolean_state_var_from_two_string_children() {
 /// gives the correct data query that requests text and boolean children from that attribute
 #[test]
 fn boolean_state_var_from_attribute_gives_correct_data_queries() {
-    // create a boolean state variable requesting children
+    // create a boolean state variable from attribute
     let mut state_var = BooleanStateVar::new_from_attribute("my_attr", true).into_state_var();
 
     let queries = state_var.return_data_queries();
