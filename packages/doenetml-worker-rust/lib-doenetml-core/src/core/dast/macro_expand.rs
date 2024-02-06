@@ -2,11 +2,11 @@ use std::{collections::HashMap, mem};
 
 use anyhow::anyhow;
 
-use crate::dast::untagged_flat_dast::Index;
-
 use super::{
+    flat_dast::untagged_flat_dast::{
+        FlatElement, FlatError, FlatNode, FlatRoot, Index, UntaggedContent,
+    },
     macro_resolve::{RefResolution, Resolver},
-    untagged_flat_dast::{FlatElement, FlatError, FlatNode, FlatRoot, UntaggedContent},
     DastElement, DastElementContent, DastError,
 };
 
@@ -25,6 +25,40 @@ use super::{
 pub struct Expander {}
 
 impl Expander {
+    /// Check that the referent of every `extending` prop and the node that is extending share the same tag name.
+    /// Extending nodes are replaced with Error nodes if the tag names don't match. A special exception is made for
+    /// `<evaluate />` nodes. The type of element they extend is not checked.
+    pub fn assert_ref_types_match(flat_root: &mut FlatRoot) {
+        for i in 0..flat_root.nodes.len() {
+            let node = &flat_root.nodes[i];
+            if let FlatNode::Element(elm) = node {
+                if let Some(ref_resolution) = &elm.extending {
+                    if elm.name.eq_ignore_ascii_case("evaluate") {
+                        // `<evaluate />` are special. They don't extend in the usual sense.
+                        continue;
+                    }
+                    let referent = &flat_root.nodes[ref_resolution.node_idx];
+                    let name = &elm.name;
+                    let referent_name = match referent {
+                        FlatNode::Element(referent) => &referent.name,
+                        _ => "",
+                    };
+                    if !name.eq_ignore_ascii_case(referent_name) {
+                        flat_root.nodes[i] = FlatNode::Error(FlatError {
+                            idx: elm.idx,
+                            parent: elm.parent,
+                            message: format!(
+                                "Referent and extending node have different tag names: {} and {}",
+                                name, referent_name
+                            ),
+                            position: elm.position.clone(),
+                        });
+                    }
+                }
+            }
+        }
+    }
+
     /// Expand all macros and function macros into their "xml" form. After expansion,
     /// the resulting tree may not be serializable as XML since element attributes may contain
     /// other elements.
@@ -33,6 +67,7 @@ impl Expander {
         Expander::expand_macros(flat_root, &resolver);
         Expander::consume_extend_attributes(flat_root);
     }
+
     /// Expand all macros and function macros into their "xml" form.
     fn expand_macros(flat_root: &mut FlatRoot, resolver: &Resolver) {
         for idx in 0..flat_root.nodes.len() {
@@ -146,6 +181,7 @@ impl Expander {
             };
         }
     }
+
     /// Remove all `extend` attributes from the `FlatRoot` and replace them with the index of their referent.
     /// This should be called _after_ all macros have been expanded into element form.
     fn consume_extend_attributes(flat_root: &mut FlatRoot) {

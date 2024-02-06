@@ -6,10 +6,10 @@
 
 use std::{collections::HashMap, iter, mem};
 
-use crate::dast::untagged_flat_dast::{FlatNode, UntaggedContent};
+use crate::dast::flat_dast::untagged_flat_dast::{FlatNode, UntaggedContent};
 
 use super::{
-    untagged_flat_dast::{FlatRoot, Index},
+    flat_dast::untagged_flat_dast::{FlatRoot, Index},
     PathPart,
 };
 use serde::Serialize;
