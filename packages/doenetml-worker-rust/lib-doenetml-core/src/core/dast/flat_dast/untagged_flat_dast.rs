@@ -4,7 +4,10 @@
 
 use serde::Serialize;
 
-use super::super::{macro_resolve::RefResolution, PathPart, Position};
+use super::{
+    super::{macro_resolve::RefResolution, PathPart, Position},
+    normalized_flat_dast::{NormalizedNode, NormalizedRoot},
+};
 
 pub use super::parent_iterator::ParentIterator;
 
@@ -164,6 +167,19 @@ impl FlatRoot {
         Self {
             children: Vec::new(),
             nodes: Vec::new(),
+        }
+    }
+
+    /// Convert `Self` into a `NormalizedRoot`. If `self.nodes` contains a non `Element`/`Error` node,
+    /// this function will panic.
+    pub fn into_normalized_root(self) -> NormalizedRoot {
+        NormalizedRoot {
+            children: self.children,
+            nodes: self
+                .nodes
+                .into_iter()
+                .map(|n| NormalizedNode::from_flat_node(&n))
+                .collect(),
         }
     }
 }
