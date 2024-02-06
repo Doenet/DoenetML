@@ -102,3 +102,97 @@ fn can_print_to_xml() {
         flat_root.to_xml()
     );
 }
+#[test]
+fn can_compactify() {
+    let dast_root = dast_root_no_position(r#"<document><a><b /></a></document>"#);
+    let dast_root2 = dast_root_no_position(r#"<document><x><y /></x></document>"#);
+    let mut flat_root = FlatRoot::from_dast(&dast_root);
+    // Add several nodes that aren't connected to the root
+    flat_root.merge_content(&dast_root2.children[0], Some(0));
+    flat_root.compactify();
+    assert_json_eq!(
+        serde_json::to_value(&flat_root).unwrap(),
+        json!(
+          {
+            "type": "FlatRoot",
+            "children": [0],
+            "nodes": [
+              {
+                "type": "Element",
+                "name": "document",
+                "children": [1],
+                "attributes": [],
+                "idx": 0
+              },
+              {
+                "type": "Element",
+                "name": "a",
+                "parent": 0,
+                "children": [2],
+                "attributes": [],
+                "idx": 1
+              },
+              {
+                "type": "Element",
+                "name": "b",
+                "parent": 1,
+                "children": [],
+                "attributes": [],
+                "idx": 2
+              }
+            ]
+          }
+        )
+    );
+
+    // Try again, but this time we will attach nodes 2 and 3 to the root.
+    flat_root = FlatRoot::from_dast(&dast_root);
+    // Add several nodes that aren't connected to the root
+    flat_root.merge_content(&dast_root2.children[0], Some(0));
+    flat_root.children = vec![UntaggedContent::Ref(2), UntaggedContent::Ref(3)];
+    flat_root.compactify();
+
+    assert_json_eq!(
+        serde_json::to_value(&flat_root).unwrap(),
+        json!(
+          {
+            "type": "FlatRoot",
+            "children": [0, 1],
+            "nodes": [
+              {
+                "type": "Element",
+                "name": "b",
+                "parent": 0,
+                "children": [],
+                "attributes": [],
+                "idx": 0
+              },
+              {
+                "type": "Element",
+                "name": "document",
+                "parent": 0,
+                "children": [2],
+                "attributes": [],
+                "idx": 1
+              },
+              {
+                "type": "Element",
+                "name": "x",
+                "parent": 1,
+                "children": [3],
+                "attributes": [],
+                "idx": 2
+              },
+              {
+                "type": "Element",
+                "name": "y",
+                "parent": 2,
+                "children": [],
+                "attributes": [],
+                "idx": 3
+              }
+            ]
+          }
+        )
+    );
+}

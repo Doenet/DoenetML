@@ -115,6 +115,17 @@ impl FlatNode {
             FlatNode::Macro(e) => e.idx,
         }
     }
+
+    /// Set the index of `self` to `idx`
+    pub fn set_idx(&mut self, idx: Index) {
+        match self {
+            FlatNode::Element(e) => e.idx = idx,
+            FlatNode::Error(e) => e.idx = idx,
+            FlatNode::FunctionMacro(e) => e.idx = idx,
+            FlatNode::Macro(e) => e.idx = idx,
+        }
+    }
+
     /// Get the index of the parent of the node.
     pub fn parent(&self) -> Option<Index> {
         match self {
