@@ -162,7 +162,6 @@ fn can_compactify() {
               {
                 "type": "Element",
                 "name": "b",
-                "parent": 0,
                 "children": [],
                 "attributes": [],
                 "idx": 0
@@ -170,7 +169,6 @@ fn can_compactify() {
               {
                 "type": "Element",
                 "name": "document",
-                "parent": 0,
                 "children": [2],
                 "attributes": [],
                 "idx": 1

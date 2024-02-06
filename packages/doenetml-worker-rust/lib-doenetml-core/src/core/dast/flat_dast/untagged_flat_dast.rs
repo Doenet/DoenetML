@@ -135,6 +135,16 @@ impl FlatNode {
             FlatNode::Macro(e) => e.parent,
         }
     }
+
+    /// Set the parent of the node to `parent`
+    pub fn set_parent(&mut self, parent: Option<Index>) {
+        match self {
+            FlatNode::Element(e) => e.parent = parent,
+            FlatNode::Error(e) => e.parent = parent,
+            FlatNode::FunctionMacro(e) => e.parent = parent,
+            FlatNode::Macro(e) => e.parent = parent,
+        }
+    }
 }
 
 /// Untagged version of a Flattened DAST. All elements/errors/macros/function macros are stored in

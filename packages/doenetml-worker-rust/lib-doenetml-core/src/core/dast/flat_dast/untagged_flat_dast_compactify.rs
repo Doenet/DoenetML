@@ -142,20 +142,43 @@ impl FlatRoot {
 
         // Make sure that the locally stored index on each node is correct.
         // A node may have an inconsistent index if it was manually inserted.
-        self.nodes
-            .iter_mut()
-            .enumerate()
-            .for_each(|(new_idx, node)| {
-                node.set_idx(new_idx);
-            });
+        self.recompute_indices();
         self.nodes.retain(|node| is_referenced[node.idx()]);
 
         // Clean up the indices of the nodes
-        self.nodes
-            .iter_mut()
-            .enumerate()
-            .for_each(|(new_idx, node)| {
-                node.set_idx(new_idx);
-            });
+        self.recompute_indices();
+        self.recompute_parents();
+    }
+
+    /// Make sure that every node has an index equal to its position in the `nodes`
+    /// array. This is used for ensuring a consistent state after manual manipulation.
+    fn recompute_indices(&mut self) {
+        self.nodes.iter_mut().enumerate().for_each(|(idx, node)| {
+            node.set_idx(idx);
+        });
+    }
+
+    /// Recompute the parent of each node. Only nodes that are reachable from `self.children`
+    /// are considered. This is used to ensure consistency after manual manipulation.
+    fn recompute_parents(&mut self) {
+        struct Pair {
+            ref_idx: Index,
+            parent: Option<Index>,
+        }
+        let mut stack = Vec::from_iter(self.children.iter().filter_map(|child| match child {
+            UntaggedContent::Ref(idx) => Some(Pair {
+                ref_idx: *idx,
+                parent: None,
+            }),
+            _ => None,
+        }));
+        while let Some(pair) = stack.pop() {
+            let node = &mut self.nodes[pair.ref_idx];
+            node.set_parent(pair.parent);
+            stack.extend(node.all_references().iter().map(|idx| Pair {
+                ref_idx: *idx,
+                parent: Some(pair.ref_idx),
+            }));
+        }
     }
 }
