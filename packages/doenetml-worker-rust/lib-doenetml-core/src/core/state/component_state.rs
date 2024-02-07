@@ -1,7 +1,7 @@
 use enum_dispatch::enum_dispatch;
 
 use crate::{
-    components::{ComponentEnum, ComponentProfileStateVariable, RenderedState},
+    components::{ComponentEnum, RenderedState},
     ComponentIdx,
 };
 
@@ -46,8 +46,9 @@ pub trait ComponentState {
         name: &str,
     ) -> Option<StateVarIdx>;
 
-    /// Return a vector of all component profile state variables of this component.
-    fn get_component_profile_state_variables(&self) -> Vec<ComponentProfileStateVariable>;
+    /// Return a vector of the indices of this component's state variables
+    /// that have been marked `component_profile_state_variable`.
+    fn get_component_profile_state_variable_indices(&self) -> Vec<StateVarIdx>;
 
     /// Get the vector of the indices of all this component's state variables
     /// that have been marked `for_renderer`.

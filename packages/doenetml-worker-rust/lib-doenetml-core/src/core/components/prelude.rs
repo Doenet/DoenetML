@@ -18,8 +18,7 @@ pub use crate::utils::KeyValueIgnoreCase;
 pub use crate::{ComponentIdx, ComponentPointerTextOrMacro, ExtendSource};
 
 pub use crate::components::{
-    ComponentActions, ComponentAttributes, ComponentCommonData, ComponentNode,
-    ComponentProfileStateVariable, RenderedChildren,
+    ComponentActions, ComponentAttributes, ComponentCommonData, ComponentNode, RenderedChildren,
 };
 
 // These imports are commonly used in components
@@ -32,7 +31,7 @@ pub use crate::dast::{
 };
 pub use crate::dependency::{DataQuery, Dependency, DependencyValueUpdateRequest};
 pub use crate::state::{
-    IntoStateVar, RequestDependencyUpdateError, StateVar, StateVarCalcResult, StateVarEnumRef,
-    StateVarEnumRefMut, StateVarIdx, StateVarMutableView, StateVarUpdater, StateVarValue,
-    StateVarView, StateVarViewEnum,
+    IntoStateVar, InvertError, StateVar, StateVarCalcResult, StateVarEnumRef, StateVarEnumRefMut,
+    StateVarIdx, StateVarMutableView, StateVarUpdater, StateVarValue, StateVarView,
+    StateVarViewEnum,
 };

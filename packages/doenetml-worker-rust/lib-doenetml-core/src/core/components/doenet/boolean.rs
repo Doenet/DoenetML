@@ -1,5 +1,5 @@
 use crate::components::prelude::*;
-use crate::general_state_var::BooleanStateVar;
+use crate::general_state_var::{BooleanStateVar, StateVarAlias};
 
 /// Definition of the `<boolean>` DoenetML component
 #[derive(
@@ -46,7 +46,7 @@ pub struct BooleanState {
     /// can represent a boolean value by returning the value of this state variable.
     #[is_public]
     #[for_renderer]
-    #[component_profile_state_variable(Boolean)]
+    #[component_profile_state_variable]
     value: StateVar<bool>,
 
     /// An alias to the `value` state variable.
@@ -60,7 +60,8 @@ impl BooleanState {
     fn new() -> Self {
         BooleanState {
             value: BooleanStateVar::new_from_children(false).into_state_var(),
-            boolean: BooleanStateVar::new(BooleanState::get_value_data_queries()).into_state_var(),
+            boolean: StateVarAlias::new(BooleanState::get_value_state_variable_index())
+                .into_state_var(),
         }
     }
 }

@@ -1,18 +1,21 @@
-use crate::{components::prelude::*, ExtendSource};
+use crate::components::prelude::*;
 
-use super::util::create_data_query_if_match_extend_source;
-
-/// A string state variable interface that concatenates all string dependencies.
+/// A string state variable that calculates its value by concatenating all string dependencies.
 ///
-/// If the component has an extend source so that this variable is shadowing another variable,
-/// then prepend the shadowed state variable to the list of dependencies.
+/// If the state variable has a single dependency,
+/// then it propagates the `came_from_default` attribute.
 ///
-/// If the state variable has a single dependency that is an essential state variable,
-/// then propagate the `came_from_default` attribute of the essential state variable.
+/// The string state variable can be created via the constructors:
+/// - `new(data_query)`: base the value on an arbitrary data query
+/// - `new_from_children(default_value)`: base the value on the component's `Text` children,
+///   falling back to `default_value` if there are no matching children.
+/// - `new_from_attribute(attr_name, default_value)`: base the value on the component's `attr_name` attribute.
+///   The calculation will use the `Text` children of the attribute,
+///   falling back to `default_value` if there are no matching children.
 #[derive(Debug, Default)]
 pub struct StringStateVar {
-    /// The base data query that indicates how the dependencies of this state variable will be created.
-    base_data_query: DataQuery,
+    /// The data query that indicates how the dependencies of this state variable will be created.
+    data_query: DataQuery,
 
     default_value: String,
 }
@@ -20,141 +23,103 @@ pub struct StringStateVar {
 /// The data required to compute the value of this state variable.
 #[add_dependency_data]
 #[derive(Debug, Default, StateVariableDependencies, StateVariableDataQueries)]
-pub struct StringRequiredData {
-    /// If this state variable is extending another state variable,
-    /// the value that is being extended
-    extending: Option<StateVarView<String>>,
-
-    /// A vector of the string values of the dependencies coming from the base_data_query
-    base: Vec<StateVarView<String>>,
-
-    /// If not extending and don't have any base data,
-    /// then use this essential value, which will be initialized with the default value
-    essential: StateVarView<String>,
+pub struct RequiredData {
+    /// A vector of the string values of the dependencies coming from the data_query
+    strings: Vec<StateVarView<String>>,
 }
 
 impl StringStateVar {
-    /// Creates a state var that queries its value from the given data query.
-    pub fn new(base_data_query: DataQuery) -> Self {
+    /// Creates a string state var that calculates its value from the given data query.
+    pub fn new(data_query: DataQuery) -> Self {
         StringStateVar {
-            base_data_query,
+            data_query,
             ..Default::default()
         }
     }
 
-    /// Creates a state var that queries its value from children matching the `Text` profile.
+    /// Creates a string state var that calculates its value from the component's children
+    /// matching the `Text`  profile.
+    ///
+    /// If there are no matching children, the state variable will be initialized with `default_value`.
     pub fn new_from_children(default_value: String) -> Self {
         StringStateVar {
-            base_data_query: DataQuery::Child {
+            data_query: DataQuery::Child {
                 match_profiles: vec![ComponentProfile::Text],
                 exclude_if_prefer_profiles: vec![],
+                always_return_value: true,
             },
             default_value,
         }
     }
 
-    /// Creates a state var that queries its value from attr given by `attr_name`,
-    /// returning the attribute children that match the `Text` profile.
+    /// Creates a string state var that calculates its value from the attribute given by `attr_name`,
+    /// basing the calculation on the attribute children that match the `Text` profile.
+    ///
+    /// If there are no matching attribute children, the state variable will be initialized with `default_value`.
     pub fn new_from_attribute(attr_name: AttributeName, default_value: String) -> Self {
         StringStateVar {
-            base_data_query: DataQuery::AttributeChild {
+            data_query: DataQuery::AttributeChild {
                 attribute_name: attr_name,
                 match_profiles: vec![ComponentProfile::Text],
+                always_return_value: true,
             },
             default_value,
         }
     }
 }
 
-impl StateVarUpdater<String, StringRequiredData> for StringStateVar {
+impl StateVarUpdater<String, RequiredData> for StringStateVar {
     fn default_value(&self) -> String {
         self.default_value.clone()
     }
 
-    fn return_data_queries(
-        &self,
-        extending: Option<ExtendSource>,
-        state_var_idx: StateVarIdx,
-    ) -> Vec<Option<DataQuery>> {
-        StringRequiredDataQueries {
-            extending: create_data_query_if_match_extend_source(extending, state_var_idx),
-            base: Some(self.base_data_query.clone()),
-            essential: Some(DataQuery::Essential),
+    fn return_data_queries(&self) -> Vec<Option<DataQuery>> {
+        RequiredDataQueries {
+            strings: Some(self.data_query.clone()),
         }
         .into()
     }
 
-    fn calculate(data: &StringRequiredData) -> StateVarCalcResult<String> {
-        // concatenate the strings from extending and the base data query
-        let mut strings = if let Some(extending) = data.extending.as_ref() {
-            vec![extending]
-        } else {
-            vec![]
-        };
-
-        strings.extend(data.base.iter());
-
-        match strings.len() {
-            0 => {
-                // not extending and have no base dependencies, so use the essential value,
-                // propagating came_from_default as well as the value
-                if data.essential.came_from_default() {
-                    return StateVarCalcResult::FromDefault(data.essential.get().clone());
-                } else {
-                    return StateVarCalcResult::Calculated(data.essential.get().clone());
-                }
-            }
+    fn calculate<'a>(&self, data: &'a RequiredData) -> StateVarCalcResult<'a, String> {
+        match data.strings.len() {
+            0 => StateVarCalcResult::Calculated(String::from("")),
             1 => {
-                if strings[0].came_from_default() {
-                    // if we are basing it on a single variable that came from default,
-                    // then we propagate came_from_default as well as the value.
-                    return StateVarCalcResult::FromDefault(strings[0].get().clone());
-                } else {
-                    return StateVarCalcResult::Calculated(strings[0].get().clone());
-                }
+                // if we are basing it on a single variable that came from default,
+                // then we propagate came_from_default as well as the value.
+                StateVarCalcResult::From(&data.strings[0])
             }
             _ => {
                 // multiple string variables, so concatenate
                 let mut value = String::new();
-                value.extend(strings.iter().map(|v| v.get().clone()));
+                value.extend(data.strings.iter().map(|v| v.get().clone()));
 
                 StateVarCalcResult::Calculated(value)
             }
         }
     }
 
-    /// If the state variable is determined by a single string variable or an essential variable,
+    /// If the state variable is determined by a single string variable,
     /// then request that variable take on the requested value for this variable.
     fn invert(
-        data: &mut StringRequiredData,
+        &self,
+        data: &mut RequiredData,
         state_var: &StateVarView<String>,
-        _is_direct_change_from_renderer: bool,
-    ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
-        // concatenate the strings from extending and the base data query
-        let mut strings = if let Some(extending) = data.extending.as_mut() {
-            vec![extending]
-        } else {
-            vec![]
-        };
-
-        strings.extend(data.base.iter_mut());
-
-        match strings.len() {
-            0 => {
-                // Not extending and have no base dependencies, so set the essential value.
-                data.essential
-                    .queue_update(state_var.get_requested_value().clone());
-                Ok(data.queued_updates())
-            }
+        _is_direct_change_from_action: bool,
+    ) -> Result<Vec<DependencyValueUpdateRequest>, InvertError> {
+        match data.strings.len() {
             1 => {
                 // based on a single string value, so we can invert
                 let requested_value = state_var.get_requested_value();
 
-                strings[0].queue_update(requested_value.clone());
+                data.strings[0].queue_update(requested_value.clone());
 
                 Ok(data.queued_updates())
             }
-            _ => Err(RequestDependencyUpdateError::CouldNotUpdate),
+            _ => Err(InvertError::CouldNotUpdate),
         }
     }
 }
+
+#[cfg(test)]
+#[path = "string_state_var.test.rs"]
+mod tests;

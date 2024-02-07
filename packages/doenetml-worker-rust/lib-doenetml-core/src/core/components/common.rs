@@ -7,7 +7,7 @@ use crate::attribute::{AttributeName, AttributeType};
 use serde::{Deserialize, Serialize};
 
 use crate::dast::{DastAttribute, Position as DastPosition};
-use crate::state::{ComponentState, StateVarIdx, StateVarValue, StateVarView, StateVarViewEnum};
+use crate::state::{ComponentState, StateVarIdx, StateVarValue};
 use crate::{ComponentIdx, ComponentPointerTextOrMacro, ExtendSource};
 
 use doenetml_derive::RenderedState;
@@ -254,74 +254,30 @@ pub trait ComponentActions: ComponentNode {
     }
 }
 
-/// A `ComponentProfile` is used in the `DataQuery` specifying children.
-/// A component profile will match children that have a `ComponentProfileStateVariable` of the corresponding type,
-/// and the resulting dependency will give the value of that state variable.
+/// A `ComponentProfile` is used in a `DataQuery` specifying children or attribute children.
+/// A component profile will match children that have a state variable of the corresponding type
+/// that has been designated with `#[component_profile_state_variable]`.
+/// When a state variable from a child is matched, the value of that state variable is returned.
 #[derive(Debug, Clone, PartialEq)]
 pub enum ComponentProfile {
-    Text,   // matched by text state variables, also matched by literal string children
-    String, // matched by literal string children only
+    Text,          // matched by text state variables, also matched by literal string children
+    LiteralString, // matched by literal string children only
     Number,
     Integer,
     Boolean,
 }
 
-/// When a component designates a component profile state variable,
-/// it means that the component can represent a state variable of a given type
-/// by using the value of that specified state variable.
-///
-/// The component profile state variables are used to match the component profiles
-/// specified in a data query requesting children.
-///
-/// A component specifies a vector of ComponentProfileStateVariables in priority order,
-/// where the first ComponentProfileStateVariable matching a ComponentProfile
-/// of a data query will determine the dependency.
-#[derive(Debug, Clone)]
-pub enum ComponentProfileStateVariable {
-    Text(StateVarView<String>, StateVarIdx),
-    String(StateVarView<String>, StateVarIdx),
-    Number(StateVarView<f64>, StateVarIdx),
-    Integer(StateVarView<i64>, StateVarIdx),
-    Boolean(StateVarView<bool>, StateVarIdx),
-}
-
-// TODO: derive these with macro?
-impl ComponentProfileStateVariable {
-    /// Return the ComponentProfile that matches this ComponentProfileStateVariable
-    /// so that it can be matched with the ComponentProfiles of a child data query.
-    pub fn get_matching_profile(&self) -> ComponentProfile {
+// TODO: implement with macro?
+impl ComponentProfile {
+    /// Return the default value that is associated with the type of state variable
+    /// represented by the component profile.
+    pub fn default(&self) -> StateVarValue {
         match self {
-            ComponentProfileStateVariable::Text(..) => ComponentProfile::Text,
-            ComponentProfileStateVariable::String(..) => ComponentProfile::String,
-            ComponentProfileStateVariable::Number(..) => ComponentProfile::Number,
-            ComponentProfileStateVariable::Integer(..) => ComponentProfile::Integer,
-            ComponentProfileStateVariable::Boolean(..) => ComponentProfile::Boolean,
-        }
-    }
-
-    /// Convert into a state variable view enum of the component profile state variable
-    /// as well as the state variable's index.
-    ///
-    /// Used to create the dependency matching ComponentProfile of a child data query.
-    ///
-    /// In this way, the state variable depending on the children can calculate its value
-    /// from the state variable value of the ComponentProfileStateVariable.
-    pub fn into_state_variable_view_enum_and_idx(self) -> (StateVarViewEnum, StateVarIdx) {
-        match self {
-            ComponentProfileStateVariable::Text(sv, state_var_idx) => {
-                (StateVarViewEnum::String(sv), state_var_idx)
-            }
-            ComponentProfileStateVariable::String(sv, state_var_idx) => {
-                (StateVarViewEnum::String(sv), state_var_idx)
-            }
-            ComponentProfileStateVariable::Number(sv, state_var_idx) => {
-                (StateVarViewEnum::Number(sv), state_var_idx)
-            }
-            ComponentProfileStateVariable::Integer(sv, state_var_idx) => {
-                (StateVarViewEnum::Integer(sv), state_var_idx)
-            }
-            ComponentProfileStateVariable::Boolean(sv, state_var_idx) => {
-                (StateVarViewEnum::Boolean(sv), state_var_idx)
+            ComponentProfile::Boolean => StateVarValue::Boolean(bool::default()),
+            ComponentProfile::Integer => StateVarValue::Integer(i64::default()),
+            ComponentProfile::Number => StateVarValue::Number(f64::default()),
+            ComponentProfile::LiteralString | ComponentProfile::Text => {
+                StateVarValue::String(String::default())
             }
         }
     }

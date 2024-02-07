@@ -268,7 +268,7 @@ impl<T: Default + Clone> StateVarView<T> {
     ///
     /// To send all queued updates to core, call `queued_updates()`
     /// on the `data` structure that contains this state variable
-    /// and pass the result as the return of the `request_dependency_updates()` function.
+    /// and pass the result as the return of the `invert()` function.
     ///
     /// A call to `queue_update` will never fail. However, the queued update may
     /// be discarded by core if the request is overwritten

@@ -294,9 +294,6 @@ pub fn resolve_state_var(
         let data_queries: Vec<DataQuery>;
 
         {
-            let extending: Option<ExtendSource> =
-                components[component_idx].borrow().get_extending().cloned();
-
             let mut component = components[component_idx].borrow_mut();
             let state_var = &mut component.get_state_variable_mut(state_var_idx).unwrap();
 
@@ -307,7 +304,7 @@ pub fn resolve_state_var(
                 continue;
             }
 
-            data_queries = state_var.return_data_queries(extending, state_var_idx);
+            data_queries = state_var.return_data_queries();
         }
 
         let mut dependencies_for_state_var = Vec::with_capacity(data_queries.len());

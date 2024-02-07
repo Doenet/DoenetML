@@ -28,7 +28,8 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
             let mut state_var_request_change_value_to_arms = Vec::new();
             let mut state_var_check_if_any_dependency_changed_since_last_viewed_arms = Vec::new();
             let mut state_var_calculate_and_mark_fresh_arms = Vec::new();
-            let mut state_var_return_default_value_arms = Vec::new();
+            let mut state_var_default_arms = Vec::new();
+            let mut get_matching_component_profile_arms = Vec::new();
 
             for variant in variants {
                 let variant_ident = &variant.ident;
@@ -94,11 +95,25 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
                     },
                 });
 
-                state_var_return_default_value_arms.push(quote! {
+                state_var_default_arms.push(quote! {
                     #enum_ident::#variant_ident(sv) => {
-                        StateVarValue::#variant_ident(sv.return_default_value())
+                        StateVarValue::#variant_ident(sv.default())
                     },
                 });
+
+                if *variant_ident == "String" {
+                    get_matching_component_profile_arms.push(quote! {
+                        #enum_ident::#variant_ident(_sv) => {
+                            ComponentProfile::Text
+                        },
+                    })
+                } else {
+                    get_matching_component_profile_arms.push(quote! {
+                        #enum_ident::#variant_ident(_sv) => {
+                            ComponentProfile::#variant_ident
+                        },
+                    })
+                }
             }
 
             quote! {
@@ -180,7 +195,7 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
 
                     /// Records on the state variable the requested value of the state variable.
                     /// This requested value will be used in a future call to
-                    /// `request_dependency_updates()`.
+                    /// `invert()`.
                     ///
                     /// Panics if the type of requested_value does not match the type of this StateVarEnum.
                     pub fn set_requested_value(&self, requested_val: StateVarValue) {
@@ -217,15 +232,20 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
                         }
                     }
 
-                    /// Returns the value of the `default_value` parameters
+                    /// Returns the value of the `default_value` parameter
                     /// specified when the state variable was defined.
                     ///
                     /// If no `default_value` parameter was specified,
-                    /// this function will return the default value for the type of state variable,
-                    /// which presumably will be meaningless.
-                    pub fn return_default_value(&self) -> StateVarValue {
+                    /// this function will return the default value for the type of state variable.
+                    pub fn default(&self) -> StateVarValue {
                         match self {
-                            #(#state_var_return_default_value_arms)*
+                            #(#state_var_default_arms)*
+                        }
+                    }
+
+                    pub fn get_matching_component_profile(&self) -> ComponentProfile {
+                        match self {
+                            #(#get_matching_component_profile_arms)*
                         }
                     }
 
@@ -255,7 +275,7 @@ pub fn state_var_methods_mut_derive(input: TokenStream) -> TokenStream {
             let mut state_var_record_all_dependencies_viewed_arms = Vec::new();
             let mut state_var_return_data_queries_arms = Vec::new();
             let mut state_var_save_dependencies_arms = Vec::new();
-            let mut state_var_request_dependency_updates_arms = Vec::new();
+            let mut state_var_invert_arms = Vec::new();
 
             for variant in variants {
                 let variant_ident = &variant.ident;
@@ -268,7 +288,7 @@ pub fn state_var_methods_mut_derive(input: TokenStream) -> TokenStream {
 
                 state_var_return_data_queries_arms.push(quote! {
                     #enum_ident::#variant_ident(sv) => {
-                        sv.return_data_queries(extending, state_var_idx)
+                        sv.return_data_queries()
                     },
                 });
 
@@ -278,9 +298,9 @@ pub fn state_var_methods_mut_derive(input: TokenStream) -> TokenStream {
                     },
                 });
 
-                state_var_request_dependency_updates_arms.push(quote! {
+                state_var_invert_arms.push(quote! {
                     #enum_ident::#variant_ident(sv) => {
-                        sv.request_dependency_updates(is_direct_change_from_renderer)
+                        sv.invert(is_direct_change_from_action)
                     },
                 });
             }
@@ -299,7 +319,7 @@ pub fn state_var_methods_mut_derive(input: TokenStream) -> TokenStream {
 
                     /// Return a vector data queries, which will be used to
                     /// calculate dependencies from the document structure.
-                    pub fn return_data_queries(&mut self, extending: Option<ExtendSource>, state_var_idx: StateVarIdx) -> Vec<DataQuery> {
+                    pub fn return_data_queries(&mut self) -> Vec<DataQuery> {
                         match self {
                             #(#state_var_return_data_queries_arms)*
                         }
@@ -313,7 +333,7 @@ pub fn state_var_methods_mut_derive(input: TokenStream) -> TokenStream {
                     ///
                     /// The dependencies are saved to the state variable and will be used
                     /// in calls to `calculate_and_mark_fresh()`
-                    /// and `request_dependency_updates()`.
+                    /// and `invert()`.
                     pub fn save_dependencies(&mut self, dependencies: &Vec<DependenciesCreatedForDataQuery>) {
                         match self {
                             #(#state_var_save_dependencies_arms)*
@@ -324,22 +344,21 @@ pub fn state_var_methods_mut_derive(input: TokenStream) -> TokenStream {
                     /// calculate the desired values of the dependencies
                     /// that will lead to that requested value being calculated from those dependencies.
                     ///
-                    /// These desired dependency values will be stored directly on the state variables
-                    /// or essential data of the dependencies.
+                    /// These desired dependency values will be stored directly on the dependent state variables.
                     ///
                     /// Returns: a result that is either
                     /// - a vector containing just the identities specifying which dependencies have requested new values, or
                     /// - an Err if the state variable is unable to change to the requested value.
                     ///
-                    /// The `is_direct_change_from_renderer` argument is true if the requested value
+                    /// The `is_direct_change_from_action` argument is true if the requested value
                     /// came directly from an action of the renderer
                     /// (as opposed to coming from another state variable that depends on this variable).
-                    pub fn request_dependency_updates(
+                    pub fn invert(
                         &mut self,
-                        is_direct_change_from_renderer: bool,
-                    ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
+                        is_direct_change_from_action: bool,
+                    ) -> Result<Vec<DependencyValueUpdateRequest>, InvertError> {
                         match self {
-                            #(#state_var_request_dependency_updates_arms)*
+                            #(#state_var_invert_arms)*
                         }
                     }
 

@@ -10,11 +10,8 @@ pub use enums::*;
 pub use updater::*;
 pub use views::*;
 
-use crate::{
-    components::prelude::{
-        DataQuery, DependenciesCreatedForDataQuery, DependencyValueUpdateRequest,
-    },
-    ExtendSource,
+use crate::components::prelude::{
+    DataQuery, DependenciesCreatedForDataQuery, DependencyValueUpdateRequest,
 };
 
 pub use super::StateVarIdx;
@@ -301,12 +298,8 @@ impl<T: Default + Clone> StateVar<T> {
     }
 
     /// Convenience function to call `return_data_queries` on interface
-    pub fn return_data_queries(
-        &mut self,
-        extending: Option<ExtendSource>,
-        state_var_idx: StateVarIdx,
-    ) -> Vec<DataQuery> {
-        self.updater.return_data_queries(extending, state_var_idx)
+    pub fn return_data_queries(&mut self) -> Vec<DataQuery> {
+        self.updater.return_data_queries()
     }
 
     /// Call `save_dependencies` on interface
@@ -325,23 +318,29 @@ impl<T: Default + Clone> StateVar<T> {
         match self.updater.calculate() {
             StateVarCalcResult::Calculated(val) => self.value.set_value(val),
             StateVarCalcResult::FromDefault(val) => self.value.set_value_from_default(val),
+            StateVarCalcResult::From(state_var_view) => {
+                if state_var_view.came_from_default() {
+                    self.value
+                        .set_value_from_default(state_var_view.get().clone())
+                } else {
+                    self.value.set_value(state_var_view.get().clone())
+                }
+            }
         };
         self.mark_fresh();
     }
 
-    /// Convenience function to call `request_dependency_updates` on interface
-    pub fn request_dependency_updates(
+    /// Convenience function to call `invert` on interface
+    pub fn invert(
         &mut self,
-        is_direct_change_from_renderer: bool,
-    ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
-        self.updater.invert(
-            &self.immutable_view_of_value,
-            is_direct_change_from_renderer,
-        )
+        is_direct_change_from_action: bool,
+    ) -> Result<Vec<DependencyValueUpdateRequest>, InvertError> {
+        self.updater
+            .invert(&self.immutable_view_of_value, is_direct_change_from_action)
     }
 
     /// Return the default value of this state variable
-    pub fn return_default_value(&self) -> T {
+    pub fn default(&self) -> T {
         self.default_value.clone()
     }
 
