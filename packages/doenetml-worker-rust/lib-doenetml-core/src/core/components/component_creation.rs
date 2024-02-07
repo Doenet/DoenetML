@@ -92,9 +92,7 @@ pub fn create_component_children(
             DastElementContent::Error(child_error) => {
                 let child_idx = components.len();
 
-                let mut error = _Error {
-                    ..Default::default()
-                };
+                let mut error = _Error::new();
                 error.initialize(
                     child_idx,
                     parent_idx_option,

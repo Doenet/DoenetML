@@ -16,5 +16,11 @@ pub struct _Error {
     pub state: _ErrorState,
 }
 
+impl _Error {
+    pub fn new() -> Self {
+        Self::default()
+    }
+}
+
 #[derive(Debug, Default, ComponentState)]
 pub struct _ErrorState {}
