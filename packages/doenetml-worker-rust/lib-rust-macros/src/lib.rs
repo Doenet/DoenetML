@@ -89,11 +89,10 @@ pub fn into_state_var_enum_refs_derive_wrapper(input: TokenStream) -> TokenStrea
 ///   Designate that the state variable is public, in the sense that it can be
 ///   referenced by a macro in the document.
 ///
-/// - #\[component_profile_state_variable(ProfileType)\]
+/// - #\[component_profile_state_variable\]
 ///
-///   Designate that the state variable
-///   can be used to satisfy the component profile of type `ProfileType`, where `ProfileType`
-///   can currently be one of `Text`, `Number`, `Integer`, `Boolean`.
+///   Designate that the state variable can be used to satisfy the [`ComponentProfile`]
+///   that corresponds to the state variable's type.
 ///
 ///   If a parent has a `Child` or `AttributeChild` data query, it will request
 ///   a particular profile type, and this state variable could be returned.

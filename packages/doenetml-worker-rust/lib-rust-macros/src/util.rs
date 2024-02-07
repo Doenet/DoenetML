@@ -34,19 +34,22 @@ pub fn has_attribute(attrs: &[Attribute], attr_name: &str) -> bool {
     false
 }
 
-pub fn return_identities_if_have_attribute(attrs: &[Attribute], attr_name: &str) -> Vec<Ident> {
-    let mut identities = Vec::new();
-    for attr in attrs.iter() {
-        if let Meta::List(meta_list) = &attr.meta {
-            if meta_list.path.segments[0].ident == attr_name {
-                let parse_result: Result<Ident, _> = syn::parse2(meta_list.tokens.clone());
+// TODO: no longer need this as we've changed component_profile_state_variable.
+// However, we could use this pattern to specify an integer to order these state variables.
 
-                if let Ok(ident) = parse_result {
-                    identities.push(ident)
-                }
-            }
-        }
-    }
+// pub fn return_identities_if_have_attribute(attrs: &[Attribute], attr_name: &str) -> Vec<Ident> {
+//     let mut identities = Vec::new();
+//     for attr in attrs.iter() {
+//         if let Meta::List(meta_list) = &attr.meta {
+//             if meta_list.path.segments[0].ident == attr_name {
+//                 let parse_result: Result<Ident, _> = syn::parse2(meta_list.tokens.clone());
 
-    identities
-}
+//                 if let Ok(ident) = parse_result {
+//                     identities.push(ident)
+//                 }
+//             }
+//         }
+//     }
+
+//     identities
+// }

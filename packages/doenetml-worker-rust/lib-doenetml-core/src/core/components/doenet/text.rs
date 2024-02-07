@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::components::prelude::*;
-use crate::general_state_var::StringStateVar;
+use crate::general_state_var::{StateVarAlias, StringStateVar};
 
 /// Definition of the `<text>` DoenetML component
 #[derive(
@@ -48,7 +48,7 @@ pub struct TextState {
     /// can represent a text value by returning the value of this state variable.
     #[is_public]
     #[for_renderer]
-    #[component_profile_state_variable(Text)]
+    #[component_profile_state_variable]
     value: StateVar<String>,
 
     /// An alias to the `value` state variable.
@@ -62,7 +62,7 @@ impl TextState {
     fn new() -> Self {
         TextState {
             value: StringStateVar::new_from_children("".to_string()).into_state_var(),
-            text: StringStateVar::new(TextState::get_value_data_queries()).into_state_var(),
+            text: StateVarAlias::new(TextState::get_value_state_variable_index()).into_state_var(),
         }
     }
 }

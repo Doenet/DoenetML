@@ -37,7 +37,7 @@ pub struct TextInput {
 
 impl ComponentAttributes for TextInput {
     fn get_attribute_names(&self) -> Vec<AttributeName> {
-        vec!["bindValueTo", "hide", "disabled", "prefill"]
+        vec!["hide", "disabled", "prefill"]
     }
 }
 

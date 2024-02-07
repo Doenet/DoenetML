@@ -5,24 +5,27 @@ use thiserror::Error;
 
 use crate::{
     dependency::{DataQuery, DependenciesCreatedForDataQuery, DependencyValueUpdateRequest},
-    state, ExtendSource,
+    state,
 };
 
-use super::{StateVarIdx, StateVarView};
+use super::StateVarView;
 
 /// The possible results of a call to `calculate`:
 /// - Calculated(T): the value was calculated to be T
 /// - FromDefault(T): the value T was determined from the default value
-pub enum StateVarCalcResult<T> {
+/// - From(&StateVarView<T>): set both `value` and `came_from_default` from `StateVarView<T>`
+#[derive(Debug)]
+pub enum StateVarCalcResult<'a, T: Default + Clone> {
     Calculated(T),
     FromDefault(T),
+    From(&'a StateVarView<T>),
 }
 
 #[derive(Debug, Error)]
-pub enum RequestDependencyUpdateError {
-    #[error("request_dependency_updates is not implemented")]
+pub enum InvertError {
+    #[error("invert is not implemented")]
     NotImplemented,
-    #[error("could not update")]
+    #[error("could not invert")]
     CouldNotUpdate,
 }
 
@@ -40,15 +43,11 @@ pub trait StateVarUpdater<T: Default + Clone, D>: std::fmt::Debug {
     /// for this state variable. These queries may be based on structure of the document,
     /// e.g., the children, attributes, or other state variables
     /// of the component of this state variable.
-    fn return_data_queries(
-        &self,
-        extending: Option<ExtendSource>,
-        state_var_idx: StateVarIdx,
-    ) -> Vec<Option<DataQuery>>;
+    fn return_data_queries(&self) -> Vec<Option<DataQuery>>;
 
     /// Calculate the value of the state variable from the passed in `data`.
     /// Results of this function will be cached, so local caching is not needed.
-    fn calculate(data: &D) -> StateVarCalcResult<T>;
+    fn calculate<'a>(&self, data: &'a D) -> StateVarCalcResult<'a, T>;
 
     /// All state variables know how to calculate their value given their dependencies.
     /// Sometimes a state variable is requested to take on a particular value. If the
@@ -61,16 +60,17 @@ pub trait StateVarUpdater<T: Default + Clone, D>: std::fmt::Debug {
     ///
     /// An `Err` is returned if an effective combination of updates cannot be found.
     ///
-    /// The `is_direct_change_from_renderer` argument is true if the requested value
+    /// The `is_direct_change_from_action` argument is true if the requested value
     /// came directly from an action of the renderer
     /// (as opposed to coming from another state variable that depends on this variable).
     #[allow(unused)]
     fn invert(
+        &self,
         data: &mut D,
         state_var: &StateVarView<T>,
-        is_direct_change_from_renderer: bool,
-    ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
-        Err(RequestDependencyUpdateError::NotImplemented)
+        is_direct_change_from_action: bool,
+    ) -> Result<Vec<DependencyValueUpdateRequest>, InvertError> {
+        Err(InvertError::NotImplemented)
     }
 }
 
@@ -81,11 +81,7 @@ pub trait StateVarUpdaterWithCache<T: Default + Clone>: std::fmt::Debug {
     /// for this state variable. These queries may be based on structure of the document,
     /// e.g., the children, attributes, or other state variables
     /// of the component of this state variable.
-    fn return_data_queries(
-        &mut self,
-        extending: Option<ExtendSource>,
-        state_var_idx: StateVarIdx,
-    ) -> Vec<DataQuery>;
+    fn return_data_queries(&mut self) -> Vec<DataQuery>;
 
     /// Called when data queries for the state variable have been completed.
     /// State variables cache the results of their queries
@@ -108,16 +104,16 @@ pub trait StateVarUpdaterWithCache<T: Default + Clone>: std::fmt::Debug {
     ///
     /// An `Err` is returned if an effective combination of updates cannot be found.
     ///
-    /// The `is_direct_change_from_renderer` argument is true if the requested value
+    /// The `is_direct_change_from_action` argument is true if the requested value
     /// came directly from an action of the renderer
     /// (as opposed to coming from another state variable that depends on this variable).
     #[allow(unused)]
     fn invert(
         &mut self,
         state_var: &StateVarView<T>,
-        is_direct_change_from_renderer: bool,
-    ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
-        Err(RequestDependencyUpdateError::NotImplemented)
+        is_direct_change_from_action: bool,
+    ) -> Result<Vec<DependencyValueUpdateRequest>, InvertError> {
+        Err(InvertError::NotImplemented)
     }
 }
 
@@ -134,15 +130,11 @@ where
     T: Default + Clone,
     D: std::fmt::Debug + Default + FromDependencies,
 {
-    fn return_data_queries(
-        &mut self,
-        extending: Option<ExtendSource>,
-        state_var_idx: StateVarIdx,
-    ) -> Vec<DataQuery> {
+    fn return_data_queries(&mut self) -> Vec<DataQuery> {
         self.queries_used = Vec::new();
 
         self.state_var_updater
-            .return_data_queries(extending, state_var_idx)
+            .return_data_queries()
             .into_iter()
             .enumerate()
             .filter_map(|(dep_idx, data_query_option)| {
@@ -159,15 +151,16 @@ where
     }
 
     fn calculate(&self) -> StateVarCalcResult<T> {
-        S::calculate(&self.cache)
+        self.state_var_updater.calculate(&self.cache)
     }
 
     fn invert(
         &mut self,
         state_var: &StateVarView<T>,
-        is_direct_change_from_renderer: bool,
-    ) -> Result<Vec<DependencyValueUpdateRequest>, RequestDependencyUpdateError> {
-        S::invert(&mut self.cache, state_var, is_direct_change_from_renderer)
+        is_direct_change_from_action: bool,
+    ) -> Result<Vec<DependencyValueUpdateRequest>, InvertError> {
+        self.state_var_updater
+            .invert(&mut self.cache, state_var, is_direct_change_from_action)
     }
 }
 

@@ -4,9 +4,7 @@ use proc_macro2::{Ident, Span};
 use quote::quote;
 use syn::{self, parse::Parser, FieldsNamed};
 
-use crate::util::{
-    find_type_from_state_var_with_generics, has_attribute, return_identities_if_have_attribute,
-};
+use crate::util::{find_type_from_state_var_with_generics, has_attribute};
 
 pub fn component_state_derive(input: TokenStream) -> TokenStream {
     let ast: syn::DeriveInput = syn::parse(input).unwrap();
@@ -60,8 +58,8 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
                             //     self.state.get_state_variable_index_from_name_case_insensitive(name)
                             // }
 
-                            fn get_component_profile_state_variables(&self) -> Vec<ComponentProfileStateVariable> {
-                                self.state.get_component_profile_state_variables()
+                            fn get_component_profile_state_variable_indices(&self) -> Vec<StateVarIdx> {
+                                self.state.get_component_profile_state_variable_indices()
 
 
                             }
@@ -104,7 +102,7 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
                     // let mut get_state_variable_index_from_name_case_insensitive_arms = Vec::new();
                     let mut get_public_state_variable_index_from_name_case_insensitive_arms =
                         Vec::new();
-                    let mut get_component_profile_state_variables_items = Vec::new();
+                    let mut get_component_profile_state_variable_indices_items = Vec::new();
                     let mut get_for_renderer_state_variable_indices_items = Vec::new();
                     let mut check_if_state_variable_is_for_renderer_arms = Vec::new();
                     let mut return_rendered_state_items = Vec::new();
@@ -144,15 +142,9 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
                             );
                         }
 
-                        for profile_type in return_identities_if_have_attribute(
-                            &named[sv_idx].attrs,
-                            "component_profile_state_variable",
-                        ) {
-                            get_component_profile_state_variables_items.push(quote! {
-                                ComponentProfileStateVariable::#profile_type(
-                                    self.#field_identity.create_new_read_only_view(),
-                                    #sv_idx,
-                                )
+                        if has_attribute(&named[sv_idx].attrs, "component_profile_state_variable") {
+                            get_component_profile_state_variable_indices_items.push(quote! {
+                                #sv_idx,
                             });
                         }
 
@@ -276,9 +268,9 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
                                 }
                             }
 
-                            fn get_component_profile_state_variables(&self) -> Vec<ComponentProfileStateVariable> {
+                            fn get_component_profile_state_variable_indices(&self) -> Vec<StateVarIdx> {
                                 vec![
-                                    #(#get_component_profile_state_variables_items)*
+                                    #(#get_component_profile_state_variable_indices_items)*
                                 ]
                             }
 
@@ -346,6 +338,7 @@ pub fn state_variable_dependencies_derive(input: TokenStream) -> TokenStream {
     let ast: syn::DeriveInput = syn::parse(input).unwrap();
     let structure_identity = &ast.ident;
     let data = &ast.data;
+    let generics = &ast.generics;
 
     let output = match data {
         syn::Data::Struct(s) => match &s.fields {
@@ -412,8 +405,21 @@ pub fn state_variable_dependencies_derive(input: TokenStream) -> TokenStream {
                     })
                 }
 
+                // if we have a generic,
+                // we also need to restrict to those with a StateVarView that we can try_into a StateVarViewEnum
+                // with an error that implements Debug
+                let where_clause = generics.where_clause.as_ref().map(|wc| {
+                    quote!(
+                        #wc
+                        StateVarView #generics: TryFromState<StateVarViewEnum>,
+                        <StateVarView #generics as TryFromState<StateVarViewEnum>>::Error: std::fmt::Debug,
+                    )
+                });
+
                 quote! {
-                    impl FromDependencies for #structure_identity {
+                    impl #generics FromDependencies for #structure_identity #generics
+                        #where_clause
+                    {
                         fn from_dependencies(
                             dependencies: &[DependenciesCreatedForDataQuery],
                             queries_used: &[usize],
@@ -434,14 +440,16 @@ pub fn state_variable_dependencies_derive(input: TokenStream) -> TokenStream {
                         }
                     }
 
-                    impl #structure_identity {
+                    impl #generics #structure_identity #generics
+                        #where_clause
+                    {
                         /// Return the updates queued during by calls to `queue_update()`
                         /// on the dependencies of this `data` structure.
                         ///
                         /// Returns all queued updates since the last call to `queued_updates()`.
                         ///
                         /// The result of this function is intended to be sent as the return value
-                        /// for `request_dependency_updates`.
+                        /// for `invert`.
                         fn queued_updates(&mut self) -> Vec<DependencyValueUpdateRequest> {
                             let mut requests = Vec::new();
                             #(#return_update_requests_statements)*
