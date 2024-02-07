@@ -150,6 +150,8 @@ fn can_compactify() {
     // Add several nodes that aren't connected to the root
     flat_root.merge_content(&dast_root2.children[0], Some(0));
     flat_root.children = vec![UntaggedContent::Ref(2), UntaggedContent::Ref(3)];
+    flat_root.nodes[2].set_parent(None);
+    flat_root.nodes[3].set_parent(None);
     flat_root.compactify();
 
     assert_json_eq!(
