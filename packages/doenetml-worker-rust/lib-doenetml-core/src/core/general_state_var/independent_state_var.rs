@@ -14,12 +14,16 @@ where
 ///
 /// The state variable will be initialized to its `default_value`,
 /// and when inverting, will change to match the requested value.
+///
+/// Constructor:
+/// - `new(default_value)`: create an independent state variable with the given default value.
 #[derive(Debug, Default)]
 pub struct IndependentStateVar<T: Default + Clone> {
     default_value: T,
 }
 
 impl<T: Default + Clone> IndependentStateVar<T> {
+    /// Create an independent state variable with the given default value.
     pub fn new(default_value: T) -> Self {
         IndependentStateVar { default_value }
     }

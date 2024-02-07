@@ -4,14 +4,22 @@ use crate::components::prelude::*;
 
 use super::util::{string_attr_to_boolean, string_to_boolean};
 
-/// A boolean state variable interface for calculating the value of a boolean variable from dependencies.
+/// A boolean state variable that calculates its value from dependencies.
 ///
 /// The current version is in a preliminary form, where the only valid options are
 /// - a single boolean dependency
 /// - string dependencies (that are concatenated to see if they spell out "true")
 ///
 /// If the state variable has a single boolean dependency,
-/// then propagate the `came_from_default` attribute.
+/// then it propagates the `came_from_default` attribute.
+///
+/// The boolean state variable can be created via the constructors:
+/// - `new(data_query)`: base the value on an arbitrary data query
+/// - `new_from_children(default_value)`: base the value on the component's `Boolean` and `Text` children,
+///   falling back to `default_value` if there are no matching children.
+/// - `new_from_attribute(attr_name, default_value)`: base the value on the component's `attr_name` attribute.
+///   The calculation will use the `Boolean` and `Text` children of the attribute,
+///   falling back to `default_value` if there are no matching children.
 #[derive(Debug, Default)]
 pub struct BooleanStateVar {
     /// The data query that indicates how the dependencies of this state variable will be created.
@@ -60,7 +68,7 @@ impl TryFromState<StateVarViewEnum> for BooleanOrString {
 }
 
 impl BooleanStateVar {
-    /// Creates a state var that queries its value from the given data query.
+    /// Creates a boolean state var that calculates its value from the given data query.
     pub fn new(data_query: DataQuery) -> Self {
         BooleanStateVar {
             data_query,
@@ -68,7 +76,10 @@ impl BooleanStateVar {
         }
     }
 
-    /// Creates a state var that queries its value from children matching the `Text` or `Boolean` profile.
+    /// Creates a boolean state var that calculates its value from the component's children
+    /// matching the `Text` or `Boolean` profile.
+    ///
+    /// If there are no matching children, the state variable will be initialized with `default_value`.
     pub fn new_from_children(default_value: bool) -> Self {
         BooleanStateVar {
             data_query: DataQuery::Child {
@@ -81,8 +92,10 @@ impl BooleanStateVar {
         }
     }
 
-    /// Creates a state var that queries its value from attr given by `attr_name`,
-    /// returning the attribute children that match the `Text` or `Boolean` profile.
+    /// Creates a boolean state var that calculates its value from the attribute given by `attr_name`,
+    /// basing the calculation on the attribute children that match the `Text` or `Boolean` profile.
+    ///
+    /// If there are no matching attribute children, the state variable will be initialized with `default_value`.
     pub fn new_from_attribute(attr_name: AttributeName, default_value: bool) -> Self {
         BooleanStateVar {
             data_query: DataQuery::AttributeChild {

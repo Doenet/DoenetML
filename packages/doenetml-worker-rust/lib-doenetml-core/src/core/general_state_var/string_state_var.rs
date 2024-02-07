@@ -1,9 +1,17 @@
 use crate::components::prelude::*;
 
-/// A string state variable interface that concatenates all string dependencies.
+/// A string state variable that calculates its value by concatenating all string dependencies.
 ///
 /// If the state variable has a single dependency,
-/// then propagate the `came_from_default` attribute.
+/// then it propagates the `came_from_default` attribute.
+///
+/// The string state variable can be created via the constructors:
+/// - `new(data_query)`: base the value on an arbitrary data query
+/// - `new_from_children(default_value)`: base the value on the component's `Text` children,
+///   falling back to `default_value` if there are no matching children.
+/// - `new_from_attribute(attr_name, default_value)`: base the value on the component's `attr_name` attribute.
+///   The calculation will use the `Text` children of the attribute,
+///   falling back to `default_value` if there are no matching children.
 #[derive(Debug, Default)]
 pub struct StringStateVar {
     /// The data query that indicates how the dependencies of this state variable will be created.
@@ -21,7 +29,7 @@ pub struct RequiredData {
 }
 
 impl StringStateVar {
-    /// Creates a state var that queries its value from the given data query.
+    /// Creates a string state var that calculates its value from the given data query.
     pub fn new(data_query: DataQuery) -> Self {
         StringStateVar {
             data_query,
@@ -29,7 +37,10 @@ impl StringStateVar {
         }
     }
 
-    /// Creates a state var that queries its value from children matching the `Text` profile.
+    /// Creates a string state var that calculates its value from the component's children
+    /// matching the `Text`  profile.
+    ///
+    /// If there are no matching children, the state variable will be initialized with `default_value`.
     pub fn new_from_children(default_value: String) -> Self {
         StringStateVar {
             data_query: DataQuery::Child {
@@ -41,8 +52,10 @@ impl StringStateVar {
         }
     }
 
-    /// Creates a state var that queries its value from attr given by `attr_name`,
-    /// returning the attribute children that match the `Text` profile.
+    /// Creates a string state var that calculates its value from the attribute given by `attr_name`,
+    /// basing the calculation on the attribute children that match the `Text` profile.
+    ///
+    /// If there are no matching attribute children, the state variable will be initialized with `default_value`.
     pub fn new_from_attribute(attr_name: AttributeName, default_value: String) -> Self {
         StringStateVar {
             data_query: DataQuery::AttributeChild {

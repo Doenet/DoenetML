@@ -12,15 +12,20 @@ where
 
 /// A state variable that aliases another state variable from the same component.
 ///
-/// The state variable has a single data query, which is for the value of another state variable.
-/// It takes on the value of this other state variable,
+/// The state variable takes on the value of this other state variable,
 /// and when inverting, requests that the value of this other variable be changed.
+///
+/// Constructor:
+/// - `new(aliased_state_var_idx)`: create a state variable that aliases
+///   the variable with the index `aliased_state_var_idx`.
 #[derive(Debug, Default)]
 pub struct StateVarAlias {
     aliased_state_var_idx: StateVarIdx,
 }
 
 impl StateVarAlias {
+    /// Create a state variable that aliases
+    /// the variable with the index `aliased_state_var_idx`.
     pub fn new(aliased_state_var_idx: StateVarIdx) -> Self {
         StateVarAlias {
             aliased_state_var_idx,
