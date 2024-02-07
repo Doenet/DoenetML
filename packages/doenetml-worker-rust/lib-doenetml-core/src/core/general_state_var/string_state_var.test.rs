@@ -1,70 +1,7 @@
 use crate::utils::test_utils::create_state_var_dependency;
 
 use super::*;
-
-/// Utility function to set up string state variable that depends on one string child variable
-fn set_up_string_state_var_with_string_child(
-    initial_value: String,
-    came_from_default: bool,
-) -> (
-    StateVar<String>,
-    StateVarView<String>,
-    StateVarMutableView<String>,
-) {
-    let mut state_var: StateVar<String> =
-        StringStateVar::new_from_children(String::from("")).into_state_var();
-    let state_var_view = state_var.create_new_read_only_view();
-
-    // need to return data queries since side effect is saving the required data
-    state_var.return_data_queries();
-
-    // fulfill data query with one child of type T
-    let (child_dependency, child_var) =
-        create_state_var_dependency(initial_value, came_from_default);
-
-    let dependencies_created_for_data_queries =
-        vec![DependenciesCreatedForDataQuery(vec![child_dependency])];
-
-    state_var.save_dependencies(&dependencies_created_for_data_queries);
-
-    (state_var, state_var_view, child_var)
-}
-
-/// Utility function to set up string state variable that depends on two string child variables
-fn set_up_string_state_var_with_two_string_children(
-    initial_value_1: String,
-    initial_value_2: String,
-    came_from_default: bool,
-) -> (
-    StateVar<String>,
-    StateVarView<String>,
-    StateVarMutableView<String>,
-    StateVarMutableView<String>,
-) {
-    let mut state_var: StateVar<String> =
-        StringStateVar::new_from_children(String::from("")).into_state_var();
-    let state_var_view = state_var.create_new_read_only_view();
-
-    // need to return data queries since side effect is saving the required data
-    state_var.return_data_queries();
-
-    // fulfill data query with two children of type T
-    let (child_dependency_1, child_var_1) =
-        create_state_var_dependency(initial_value_1, came_from_default);
-
-    // fulfill data query with two children of type T
-    let (child_dependency_2, child_var_2) =
-        create_state_var_dependency(initial_value_2, came_from_default);
-
-    let dependencies_created_for_data_queries = vec![DependenciesCreatedForDataQuery(vec![
-        child_dependency_1,
-        child_dependency_2,
-    ])];
-
-    state_var.save_dependencies(&dependencies_created_for_data_queries);
-
-    (state_var, state_var_view, child_var_1, child_var_2)
-}
+use setup_functions::*;
 
 /// check that a string state variable created from children
 /// gives the correct data query that requests text children
@@ -86,45 +23,30 @@ fn string_state_var_from_children_gives_correct_data_queries() {
 }
 
 /// If a string state variable is based on a single string child,
-/// its value should be the same as the string child's value
+/// its value should be the same as the string child's value,
+/// and its came_from_default should be the same as the string child's came_from_default
 #[test]
 fn string_state_var_calculated_from_single_string_child() {
     // create a string state variable with one string child
     let (state_var, _state_var_view, child_var) =
-        set_up_string_state_var_with_string_child(String::from("hello"), false);
+        set_up_string_state_var_with_string_child(String::from("hello"), true);
 
     // we initialize child to be "hello", so should get "hello"
     state_var.calculate_and_mark_fresh();
     assert_eq!(*state_var.get(), "hello");
+    assert_eq!(state_var.came_from_default(), true);
 
     // changing child to be "bye", results in state variable being "bye"
     child_var.set_value(String::from("bye"));
     state_var.calculate_and_mark_fresh();
     assert_eq!(*state_var.get(), "bye");
-}
-
-/// If a string state variable is based on a single string child,
-/// its came_from_default should be the same as the string child's came_from_default
-#[test]
-fn string_state_var_from_single_string_child_passes_through_came_from_default() {
-    // create a string state variable with one string child
-    let (state_var, _state_var_view, child_var) =
-        set_up_string_state_var_with_string_child(String::from(""), true);
-
-    // we initialized with default value, so we should start with came_from_default being true
-    state_var.calculate_and_mark_fresh();
-    assert_eq!(state_var.came_from_default(), true);
-
-    // setting the child sets came_from_default to false
-    child_var.set_value(String::from("hi"));
-    state_var.calculate_and_mark_fresh();
     assert_eq!(state_var.came_from_default(), false);
 }
 
 /// Calling invert on a string state variable with a single string child
 /// causes the child to receive that requested value
 #[test]
-fn invert_string_state_var_from_single_string_child() {
+fn invert_string_state_var_that_has_a_single_string_child() {
     // create a string state variable with one string child
     let (mut state_var, mut state_var_view, child_var) =
         set_up_string_state_var_with_string_child(String::from("hello"), false);
@@ -172,7 +94,7 @@ fn string_state_var_calculated_from_two_string_children() {
 
 /// Cannot invert a string state variable with a two string children
 #[test]
-fn cannot_invert_string_state_var_from_two_string_children() {
+fn cannot_invert_string_state_var_that_has_two_string_children() {
     // create a string state variable with two string children
     let (mut state_var, mut state_var_view, _child_var_1, _child_var_2) =
         set_up_string_state_var_with_two_string_children(
@@ -207,4 +129,73 @@ fn string_state_var_from_attribute_gives_correct_data_queries() {
             always_return_value: true
         },]
     );
+}
+
+mod setup_functions {
+
+    use super::*;
+
+    /// Utility function to set up string state variable that depends on one string child variable
+    pub fn set_up_string_state_var_with_string_child(
+        initial_value: String,
+        came_from_default: bool,
+    ) -> (
+        StateVar<String>,
+        StateVarView<String>,
+        StateVarMutableView<String>,
+    ) {
+        let mut state_var: StateVar<String> =
+            StringStateVar::new_from_children(String::from("")).into_state_var();
+        let state_var_view = state_var.create_new_read_only_view();
+
+        // need to return data queries since side effect is saving the required data
+        state_var.return_data_queries();
+
+        // fulfill data query with one child of type T
+        let (child_dependency, child_var) =
+            create_state_var_dependency(initial_value, came_from_default);
+
+        let dependencies_created_for_data_queries =
+            vec![DependenciesCreatedForDataQuery(vec![child_dependency])];
+
+        state_var.save_dependencies(&dependencies_created_for_data_queries);
+
+        (state_var, state_var_view, child_var)
+    }
+
+    /// Utility function to set up string state variable that depends on two string child variables
+    pub fn set_up_string_state_var_with_two_string_children(
+        initial_value_1: String,
+        initial_value_2: String,
+        came_from_default: bool,
+    ) -> (
+        StateVar<String>,
+        StateVarView<String>,
+        StateVarMutableView<String>,
+        StateVarMutableView<String>,
+    ) {
+        let mut state_var: StateVar<String> =
+            StringStateVar::new_from_children(String::from("")).into_state_var();
+        let state_var_view = state_var.create_new_read_only_view();
+
+        // need to return data queries since side effect is saving the required data
+        state_var.return_data_queries();
+
+        // fulfill data query with two children of type T
+        let (child_dependency_1, child_var_1) =
+            create_state_var_dependency(initial_value_1, came_from_default);
+
+        // fulfill data query with two children of type T
+        let (child_dependency_2, child_var_2) =
+            create_state_var_dependency(initial_value_2, came_from_default);
+
+        let dependencies_created_for_data_queries = vec![DependenciesCreatedForDataQuery(vec![
+            child_dependency_1,
+            child_dependency_2,
+        ])];
+
+        state_var.save_dependencies(&dependencies_created_for_data_queries);
+
+        (state_var, state_var_view, child_var_1, child_var_2)
+    }
 }
