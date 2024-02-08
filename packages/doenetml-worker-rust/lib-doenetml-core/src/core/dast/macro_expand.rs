@@ -105,7 +105,7 @@ impl Expander {
                                     &DastElementContent::Element(dast_ol),
                                     Some(idx),
                                 );
-                                // The `<li>` tags the exclusive children of the `<ol>` tag.
+                                // The `<li>` tags are the exclusive children of the `<ol>` tag.
                                 // We created the same number of `<li>` tags as there are `inputs`.
                                 let li_node_indices =
                                     match &flat_root.nodes[lookup_idx(&ol).unwrap()] {
