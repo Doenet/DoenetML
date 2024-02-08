@@ -15,9 +15,9 @@ fn can_resolve_name_among_parents() {
         <d name="y" />"#,
     );
     let flat_root = FlatRoot::from_dast(&dast_root);
-    let b_idx = find_node_index_by_name(&flat_root, "b").unwrap();
-    let c_idx = find_node_index_by_name(&flat_root, "c").unwrap();
-    let d_idx = find_node_index_by_name(&flat_root, "d").unwrap();
+    let b_idx = find(&flat_root, "b").unwrap();
+    let c_idx = find(&flat_root, "c").unwrap();
+    let d_idx = find(&flat_root, "d").unwrap();
 
     let resolver = Resolver::from_flat_root(&flat_root);
     // Searching from `c` for `y` should find the `b` node
@@ -43,8 +43,8 @@ fn can_resolve_names() {
         <d name="y" />"#,
     );
     let flat_root = FlatRoot::from_dast(&dast_root);
-    let b_idx = find_node_index_by_name(&flat_root, "b").unwrap();
-    let c_idx = find_node_index_by_name(&flat_root, "c").unwrap();
+    let b_idx = find(&flat_root, "b").unwrap();
+    let c_idx = find(&flat_root, "c").unwrap();
 
     let resolver = Resolver::from_flat_root(&flat_root);
 
@@ -93,8 +93,8 @@ fn resolution_stops_at_path_index() {
         <d name="y" />"#,
     );
     let flat_root = FlatRoot::from_dast(&dast_root);
-    let b_idx = find_node_index_by_name(&flat_root, "b").unwrap();
-    let c_idx = find_node_index_by_name(&flat_root, "c").unwrap();
+    let b_idx = find(&flat_root, "b").unwrap();
+    let c_idx = find(&flat_root, "c").unwrap();
 
     let resolver = Resolver::from_flat_root(&flat_root);
 
@@ -174,7 +174,7 @@ fn resolution_matches_largest_possible_when_index_present() {
         <d name="y" />"#,
     );
     let flat_root = FlatRoot::from_dast(&dast_root);
-    let c_idx = find_node_index_by_name(&flat_root, "c").unwrap();
+    let c_idx = find(&flat_root, "c").unwrap();
 
     let resolver = Resolver::from_flat_root(&flat_root);
 
@@ -218,7 +218,7 @@ fn resolution_matches_largest_possible_when_index_present() {
 fn can_resolve_name_at_macro_origin() {
     let dast_root = dast_root_no_position(r#"<a name="x" />$b"#);
     let flat_root = FlatRoot::from_dast(&dast_root);
-    let a_idx = find_node_index_by_name(&flat_root, "a").unwrap();
+    let a_idx = find(&flat_root, "a").unwrap();
 
     let resolver = Resolver::from_flat_root(&flat_root);
     // The macro `$b` should be right after the `a` node
@@ -230,9 +230,10 @@ fn can_resolve_name_at_macro_origin() {
 mod test_helpers {
     use super::*;
 
-    pub fn find_node_index_by_name(flat_root: &FlatRoot, name: &str) -> Option<Index> {
+    /// Find the index of the first element with the given tag name.
+    pub fn find(flat_root: &FlatRoot, tag_name: &str) -> Option<Index> {
         flat_root.nodes.iter().find_map(|node| match node {
-            FlatNode::Element(e) if e.name == name => Some(e.idx),
+            FlatNode::Element(e) if e.name == tag_name => Some(e.idx),
             _ => None,
         })
     }
