@@ -11,7 +11,7 @@ use super::{Freshness, QueryUpdateRequests, StateVarInner};
 #[derive(Debug)]
 pub struct StateVarMutableView<T: Default + Clone> {
     /// Structure containing the value of the variable its meta data.
-    /// Since inner is in an Rc<RefCell>, it is shared with other views and could be changed by them.
+    /// Since inner is in an `Rc<RefCell>`, it is shared with other views and could be changed by them.
     inner: Rc<RefCell<StateVarInner<T>>>,
 
     /// A change counter that can be compared to the change counter of inner
@@ -184,7 +184,7 @@ impl<T: Default + Clone> StateVarMutableView<T> {
 #[derive(Debug)]
 pub struct StateVarView<T: Default + Clone> {
     /// Structure containing the value of the variable its meta data.
-    /// Since inner is in an Rc<RefCell>, it is shared with other views and could be changed by them.
+    /// Since inner is in an `Rc<RefCell>`, it is shared with other views and could be changed by them.
     inner: Rc<RefCell<StateVarInner<T>>>,
 
     /// a change counter that can be compared to the change counter of inner

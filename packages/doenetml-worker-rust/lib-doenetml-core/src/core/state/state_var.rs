@@ -33,7 +33,7 @@ pub enum Freshness {
     Resolved,
 }
 
-/// StateVar<T> is the base data structure for the value of a state variable.
+/// `StateVar<T>` is the base data structure for the value of a state variable.
 #[derive(Debug)]
 pub struct StateVar<T: Default + Clone> {
     /// The current value of the state variable
