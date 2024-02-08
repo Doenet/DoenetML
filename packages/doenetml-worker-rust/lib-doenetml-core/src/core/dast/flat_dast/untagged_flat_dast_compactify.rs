@@ -106,6 +106,8 @@ impl FlatRoot {
             .collect::<Vec<_>>();
         while let Some(idx) = to_visit.pop() {
             // Don't visit a node's children more than once.
+            // This shouldn't ever happen if the children form a _tree_, but this
+            // allows the algorithm to work on an arbitrary graph.
             if is_referenced[idx] {
                 continue;
             }
