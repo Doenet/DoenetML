@@ -12,6 +12,21 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
     let ast: syn::DeriveInput = syn::parse(input).unwrap();
     let name = &ast.ident;
     let data = &ast.data;
+    // XXX TODO
+    // // Figure out if there is a `#[ref_renames_to(...)]` directive present.
+    // let ref_renames_to = match &ast.attrs.iter().find(|a| a.path.is_ident("ref_renames_to")) {
+    //     Some(attr) => {
+    //         let meta = attr.parse_meta().unwrap();
+    //         match meta {
+    //             syn::Meta::NameValue(syn::MetaNameValue {
+    //                 lit: syn::Lit::Str(lit_str),
+    //                 ..
+    //             }) => Some(lit_str.value()),
+    //             _ => panic!("ref_renames_to must be a string"),
+    //         }
+    //     }
+    //     None => None,
+    // };
 
     let output = match data {
         syn::Data::Struct(s) => match &s.fields {

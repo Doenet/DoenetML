@@ -3,10 +3,6 @@ use std::{cell::RefCell, collections::HashMap, rc::Rc};
 #[cfg(feature = "web")]
 use wasm_bindgen::prelude::*;
 
-use super::components::component_creation::{
-    create_component_children, replace_macro_referents_of_children_evaluate_attributes,
-};
-
 use super::components::{ComponentActions, ComponentEnum};
 use super::dast::{
     DastFunctionMacro, DastMacro, DastRoot, DastWarning, FlatDastElement, FlatDastElementContent,
@@ -22,7 +18,10 @@ use super::state::state_var_updates::process_state_variable_update_request;
 use super::state::Freshness;
 
 use crate::components::actions::{Action, UpdateFromAction};
+use crate::components::component_builder::ComponentBuilder;
 use crate::components::prelude::{ComponentState, DependenciesCreatedForDataQuery, StateVarIdx};
+use crate::dast::flat_dast::{FlatRoot, NormalizedRoot, UntaggedContent};
+use crate::dast::macro_expand::Expander;
 use crate::dast::{get_flat_dast_update, to_flat_dast};
 use crate::state::StateVarPointer;
 #[allow(unused)]
@@ -234,20 +233,31 @@ impl DoenetMLCore {
         _flags_json: &str,
         existing_essential_data: Option<Vec<HashMap<EssentialDataOrigin, EssentialStateVar>>>,
     ) -> Self {
-        let mut components: Vec<Rc<RefCell<ComponentEnum>>> = Vec::new();
         let warnings: Vec<DastWarning> = Vec::new();
 
-        let (children, descendant_names) =
-            create_component_children(&mut components, &dast_root.children, None);
+        let mut flat_root = FlatRoot::from_dast(&dast_root);
+        Expander::expand(&mut flat_root);
+        flat_root.compactify();
+        let normalized_root = NormalizedRoot::from_flat_root(&flat_root);
+        let components = ComponentBuilder::from_normalized_root(&normalized_root)
+            .components
+            .into_iter()
+            .map(|c| Rc::new(RefCell::new(c)))
+            .collect::<Vec<_>>();
 
         // add root node
         let root = DoenetMLRoot {
-            children,
-            descendant_names,
-            position: dast_root.position.clone(),
+            children: flat_root
+                .children
+                .iter()
+                .map(|c| match c {
+                    UntaggedContent::Ref(idx) => ComponentPointerTextOrMacro::Component(*idx),
+                    UntaggedContent::Text(s) => ComponentPointerTextOrMacro::Text(s.to_string()),
+                })
+                .collect(),
+            descendant_names: HashMap::new(),
+            position: None,
         };
-
-        replace_macro_referents_of_children_evaluate_attributes(&mut components, 0);
 
         let essential_data = existing_essential_data
             .unwrap_or_else(|| (0..components.len()).map(|_| HashMap::new()).collect());

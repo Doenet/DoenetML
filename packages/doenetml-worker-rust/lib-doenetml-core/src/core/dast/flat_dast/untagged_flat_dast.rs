@@ -21,6 +21,31 @@ pub enum UntaggedContent {
 }
 
 #[derive(Clone, Debug, Serialize)]
+pub enum Source<T> {
+    Attribute(T),
+    Macro(T),
+}
+
+impl<T> Source<T> {
+    /// Recast `self` as `Self::Attribute`.
+    pub fn as_attribute(self) -> Self {
+        match self {
+            Source::Attribute(_) => self,
+            Source::Macro(m) => Source::Attribute(m),
+        }
+    }
+}
+
+impl Source<RefResolution> {
+    pub fn idx(&self) -> Index {
+        match self {
+            Source::Attribute(a) => a.node_idx,
+            Source::Macro(m) => m.node_idx,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Serialize)]
 pub struct FlatElement {
     pub name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -32,7 +57,7 @@ pub struct FlatElement {
     pub idx: Index,
     /// Information about the referent that this element extends (e.g., as specified by the `extend` attribute).
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub extending: Option<RefResolution>,
+    pub extending: Option<Source<RefResolution>>,
 }
 
 #[derive(Clone, Debug, Serialize)]
