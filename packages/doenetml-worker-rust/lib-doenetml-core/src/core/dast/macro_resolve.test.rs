@@ -3,26 +3,7 @@ use crate::{
     dast::{DastIndex, DastText, DastTextMacroContent},
     test_utils::*,
 };
-
-fn find_node_index_by_name(flat_root: &FlatRoot, name: &str) -> Option<Index> {
-    flat_root.nodes.iter().find_map(|node| match node {
-        FlatNode::Element(e) if e.name == name => Some(e.idx),
-        _ => None,
-    })
-}
-
-fn make_path<'a, T: AsRef<[&'a str]>>(path_str: T) -> Vec<PathPart> {
-    let path_str = path_str.as_ref();
-    path_str
-        .iter()
-        .map(|s| PathPart {
-            name: s.to_string(),
-            index: Vec::new(),
-            position: None,
-        })
-        .collect()
-}
-
+use test_helpers::*;
 #[test]
 fn can_resolve_name_among_parents() {
     let dast_root = dast_root_no_position(
@@ -244,4 +225,27 @@ fn can_resolve_name_at_macro_origin() {
     let b_idx = a_idx + 1;
     let referent = resolver.search_parents("x", b_idx);
     assert_eq!(referent, Ok(a_idx));
+}
+
+mod test_helpers {
+    use super::*;
+
+    pub fn find_node_index_by_name(flat_root: &FlatRoot, name: &str) -> Option<Index> {
+        flat_root.nodes.iter().find_map(|node| match node {
+            FlatNode::Element(e) if e.name == name => Some(e.idx),
+            _ => None,
+        })
+    }
+
+    pub fn make_path<'a, T: AsRef<[&'a str]>>(path_str: T) -> Vec<PathPart> {
+        let path_str = path_str.as_ref();
+        path_str
+            .iter()
+            .map(|s| PathPart {
+                name: s.to_string(),
+                index: Vec::new(),
+                position: None,
+            })
+            .collect()
+    }
 }
