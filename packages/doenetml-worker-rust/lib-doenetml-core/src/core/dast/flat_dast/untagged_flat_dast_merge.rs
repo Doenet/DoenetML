@@ -172,7 +172,7 @@ impl FlatRoot {
         }
     }
 
-    /// Set the node at position `idx` to be the specified element.
+    /// Set the node at `idx` to be an element with the same name and position as `node`.
     /// The element will be initialized with empty children and attributes.
     fn set_element(&mut self, node: &DastElement, idx: Index, parent: Option<Index>) -> usize {
         self.nodes[idx] = FlatNode::Element(FlatElement {
@@ -188,7 +188,7 @@ impl FlatRoot {
         idx
     }
 
-    /// Set the node at position `idx` to be the specified error.
+    /// Set the node at `idx` to be the specified error.
     fn set_error(&mut self, node: &DastError, idx: Index, parent: Option<Index>) -> usize {
         self.nodes[idx] = FlatNode::Error(FlatError {
             message: node.message.clone(),
@@ -199,7 +199,7 @@ impl FlatRoot {
         idx
     }
 
-    /// Set the node at position `idx` to be the specified macro.
+    /// Set the node at `idx` to be the specified macro.
     fn set_macro(&mut self, node: &DastMacro, idx: Index, parent: Option<Index>) -> usize {
         self.nodes[idx] = FlatNode::Macro(FlatMacro {
             path: node.path.clone(),
@@ -210,7 +210,7 @@ impl FlatRoot {
         idx
     }
 
-    /// Set the node at position `idx` to be the specified function macro.
+    /// Set the node at `idx` to be the specified function macro.
     fn set_function_macro(
         &mut self,
         node: &DastFunctionMacro,
