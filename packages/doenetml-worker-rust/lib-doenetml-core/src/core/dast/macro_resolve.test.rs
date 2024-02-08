@@ -117,6 +117,7 @@ fn resolution_stops_at_path_index() {
 
     let resolver = Resolver::from_flat_root(&flat_root);
 
+    // `$y.z`
     let path = vec![
         PathPart {
             name: "y".into(),
@@ -146,6 +147,8 @@ fn resolution_stops_at_path_index() {
         })],
         position: None,
     }];
+
+    // `$y[2].z`
     let path = vec![
         PathPart {
             name: "y".into(),
@@ -175,6 +178,57 @@ fn resolution_stops_at_path_index() {
                     position: None
                 }
             ])
+        })
+    );
+}
+
+#[test]
+fn resolution_matches_largest_possible_when_index_present() {
+    let dast_root = dast_root_no_position(
+        r#"<a name="x">
+            <b name="y">
+                <c name="z" />
+            </b>
+        </a>
+        <d name="y" />"#,
+    );
+    let flat_root = FlatRoot::from_dast(&dast_root);
+    let c_idx = find_node_index_by_name(&flat_root, "c").unwrap();
+
+    let resolver = Resolver::from_flat_root(&flat_root);
+
+    let index = vec![DastIndex {
+        value: vec![DastTextMacroContent::Text(DastText {
+            value: "2".into(),
+            position: None,
+            data: None,
+        })],
+        position: None,
+    }];
+    // `$y.z[2]`
+    let path = vec![
+        PathPart {
+            name: "y".into(),
+            index: vec![],
+            position: None,
+        },
+        PathPart {
+            name: "z".into(),
+            index: index.clone(),
+            position: None,
+        },
+    ];
+
+    let referent = resolver.resolve(path, c_idx);
+    assert_eq!(
+        referent,
+        Ok(RefResolution {
+            node_idx: c_idx,
+            unresolved_path: Some(vec![PathPart {
+                name: "".into(),
+                index: index.clone(),
+                position: None
+            },])
         })
     );
 }

@@ -56,7 +56,7 @@ impl Resolver {
     }
 
     /// Search for a node specified by `path` starting from `origin`. This algorithm searches first
-    /// for the nearest parent that has an element with `path[0].name` as its name. Then it tries
+    /// for the nearest parent that has a descendent with `path[0].name` as its name. Then it tries
     /// to match as much of `path[1..]` as possible. A match is returned along with any unmatched
     /// path parts.
     ///
@@ -108,8 +108,7 @@ impl Resolver {
 
         while let Some(part) = path.next() {
             // current_idx specifies the "root" of the search. We try to resolve
-            // children based on the path part, breaking if any of them are not found or if
-            // there is an `index` specified.
+            // children based on the path part, returning an error if there is an ambiguity.
             if let Some(referent) = self.name_map[current_idx].get(&part.name) {
                 match referent {
                     Ref::Unique(idx) => {
@@ -119,21 +118,26 @@ impl Resolver {
                         return Err(ResolutionError::NonUniqueReferent);
                     }
                 }
-                // If there index specified, we immediately stop since component information is needed
-                // to resolve all remaining path parts.
-                if !part.index.is_empty() {
-                    let remaining_path: Vec<PathPart> =
-                        iter::once(part.clone()).chain(path.cloned()).collect();
-                    return Ok(RefResolution {
-                        node_idx: current_idx,
-                        unresolved_path: Some(remaining_path),
-                    });
-                }
             } else {
                 // If we cannot find an appropriate child, the remaining path parts might be
                 // state variable references. Return them and consider `current_idx` the match.
                 let remaining_path: Vec<PathPart> =
                     iter::once(part.clone()).chain(path.cloned()).collect();
+                return Ok(RefResolution {
+                    node_idx: current_idx,
+                    unresolved_path: Some(remaining_path),
+                });
+            }
+            // If there index specified, we immediately stop since component information is needed
+            // to resolve all remaining path parts.
+            if !part.index.is_empty() {
+                let remaining_path: Vec<PathPart> = iter::once(PathPart {
+                    name: "".into(),
+                    index: part.index.clone(),
+                    position: part.position.clone(),
+                })
+                .chain(path.cloned())
+                .collect();
                 return Ok(RefResolution {
                     node_idx: current_idx,
                     unresolved_path: Some(remaining_path),
