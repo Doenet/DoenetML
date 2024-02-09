@@ -1,18 +1,9 @@
-use crate::{
-    components::{
-        actions::{Action, ActionBody},
-        doenet::{
-            text::TextState,
-            text_input::{TextInputAction, TextInputActionArgs, TextInputState},
-        },
-        prelude::StateVarIdx,
-        ActionsEnum, ComponentNode,
-    },
-    test_utils::dast_root_no_position,
-    ComponentIdx, DoenetMLCore,
-};
+use crate::{components::ComponentNode, test_utils::dast_root_no_position, DoenetMLCore};
+
+use super::*;
 
 mod basic_actions;
+mod extending;
 mod test_helpers;
 mod with_references;
 
