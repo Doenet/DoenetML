@@ -44,7 +44,7 @@ pub struct TextState {
     ///
     /// It is marked `for_renderer` to send this value to the renderer of the `<text>` component.
     ///
-    /// It is marked with the `Text` component profile state variable, indicating that the `<text>` component
+    /// It is marked with as a component profile state variable, indicating that the `<text>` component
     /// can represent a text value by returning the value of this state variable.
     #[is_public]
     #[for_renderer]

@@ -19,7 +19,7 @@ pub struct TextInputState {
     ///
     /// It is marked `is_public` so that it can be referenced in DoenetML via `.value`.
     ///
-    /// It is marked with the `Text` component profile state variable, indicating that the `<textInput>` component
+    /// It is marked as a component profile state variable, indicating that the `<textInput>` component
     /// can represent a text value by returning the value of this state variable.
     #[is_public]
     #[component_profile_state_variable]

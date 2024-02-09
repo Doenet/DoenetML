@@ -6,5 +6,6 @@ mod basic_actions;
 mod extending;
 mod test_helpers;
 mod with_references;
+mod with_references_to_boolean;
 
 use test_helpers::*;

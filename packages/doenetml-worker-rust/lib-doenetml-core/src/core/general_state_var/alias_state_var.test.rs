@@ -123,7 +123,7 @@ mod setup_functions {
 
     use super::*;
 
-    /// Utility function to set up mirror boolean state variable and its original dependency
+    /// Utility function to set up a boolean state variable alias and its original dependency
     pub fn set_up_boolean_state_var_alias(
         initial_value: bool,
         came_from_default: bool,
@@ -149,7 +149,7 @@ mod setup_functions {
         (state_var, state_var_view, alias_var)
     }
 
-    /// Utility function to set up mirror string state variable and its original dependency
+    /// Utility function to set up a string state variable alias and its original dependency
     pub fn set_up_string_state_var_alias(
         initial_value: String,
         came_from_default: bool,
