@@ -260,10 +260,16 @@ pub trait ComponentActions: ComponentNode {
 /// When a state variable from a child is matched, the value of that state variable is returned.
 #[derive(Debug, Clone, PartialEq)]
 pub enum ComponentProfile {
-    Text,          // matched by text state variables, also matched by literal string children
-    LiteralString, // matched by literal string children only
+    /// Matches String state variables as well as literal string children
+    String,
+    /// Matches literal string children. Use if wish to exclude String state variables.
+    /// Use the `String` variant to also match string state variables.
+    LiteralString,
+    /// Matches Number state variables
     Number,
+    /// Matches Integer state variables
     Integer,
+    /// Matches Boolean state variables
     Boolean,
 }
 
@@ -276,7 +282,7 @@ impl ComponentProfile {
             ComponentProfile::Boolean => StateVarValue::Boolean(bool::default()),
             ComponentProfile::Integer => StateVarValue::Integer(i64::default()),
             ComponentProfile::Number => StateVarValue::Number(f64::default()),
-            ComponentProfile::LiteralString | ComponentProfile::Text => {
+            ComponentProfile::LiteralString | ComponentProfile::String => {
                 StateVarValue::String(String::default())
             }
         }

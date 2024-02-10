@@ -45,13 +45,13 @@ impl BooleanStateVar {
     }
 
     /// Creates a boolean state var that calculates its value from the component's children
-    /// matching the `Text` or `Boolean` profile.
+    /// matching the `String` or `Boolean` profile.
     ///
     /// If there are no matching children, the state variable will be initialized with `default_value`.
     pub fn new_from_children(default_value: bool) -> Self {
         BooleanStateVar {
             data_query: DataQuery::Child {
-                match_profiles: vec![ComponentProfile::Text, ComponentProfile::Boolean],
+                match_profiles: vec![ComponentProfile::String, ComponentProfile::Boolean],
                 exclude_if_prefer_profiles: vec![],
                 always_return_value: true,
             },
@@ -61,14 +61,14 @@ impl BooleanStateVar {
     }
 
     /// Creates a boolean state var that calculates its value from the attribute given by `attr_name`,
-    /// basing the calculation on the attribute children that match the `Text` or `Boolean` profile.
+    /// basing the calculation on the attribute children that match the `String` or `Boolean` profile.
     ///
     /// If there are no matching attribute children, the state variable will be initialized with `default_value`.
     pub fn new_from_attribute(attr_name: AttributeName, default_value: bool) -> Self {
         BooleanStateVar {
             data_query: DataQuery::AttributeChild {
                 attribute_name: attr_name,
-                match_profiles: vec![ComponentProfile::Text, ComponentProfile::Boolean],
+                match_profiles: vec![ComponentProfile::String, ComponentProfile::Boolean],
                 always_return_value: true,
             },
             default_value,
