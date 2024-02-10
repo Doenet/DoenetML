@@ -23,11 +23,11 @@ pub struct Text {
 }
 
 impl Text {
-    /// If a Text component extends a state variable of type text,
+    /// If a Text component extends a state variable of type string,
     /// then its value state variable should shadow that variable.
     ///
     /// Returns: a tuple of (component type, state variable index)
-    pub fn get_state_variable_that_shadows_when_extending() -> (&'static str, StateVarIdx) {
+    pub const fn get_state_variable_that_shadows_when_extending() -> (&'static str, StateVarIdx) {
         (
             Text::get_component_type(),
             TextState::get_value_state_variable_index(),
@@ -44,8 +44,9 @@ pub struct TextState {
     ///
     /// It is marked `for_renderer` to send this value to the renderer of the `<text>` component.
     ///
-    /// It is marked with the `Text` component profile state variable, indicating that the `<text>` component
-    /// can represent a text value by returning the value of this state variable.
+    /// It is marked as a component profile state variable,
+    /// which means this state variable will be used if a parent of a `<text>` component
+    /// queries for children with the `Text` component profile.
     #[is_public]
     #[for_renderer]
     #[component_profile_state_variable]

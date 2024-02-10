@@ -4,7 +4,7 @@ use super::*;
 use setup_functions::*;
 
 /// check that a boolean state variable created from children
-/// gives the correct data query that requests text and boolean children
+/// gives the correct data query that requests string and boolean children
 #[test]
 fn boolean_state_var_from_children_gives_correct_data_queries() {
     // create a boolean state variable requesting children
@@ -15,7 +15,7 @@ fn boolean_state_var_from_children_gives_correct_data_queries() {
     assert_eq!(
         queries,
         vec![DataQuery::Child {
-            match_profiles: vec![ComponentProfile::Text, ComponentProfile::Boolean],
+            match_profiles: vec![ComponentProfile::String, ComponentProfile::Boolean],
             exclude_if_prefer_profiles: vec![],
             always_return_value: true,
         },]
@@ -192,7 +192,7 @@ fn cannot_invert_boolean_state_var_that_has_two_string_children() {
 }
 
 /// check that a boolean state variable created from an attribute
-/// gives the correct data query that requests text and boolean children from that attribute
+/// gives the correct data query that requests string and boolean children from that attribute
 #[test]
 fn boolean_state_var_from_attribute_gives_correct_data_queries() {
     // create a boolean state variable from attribute
@@ -204,7 +204,7 @@ fn boolean_state_var_from_attribute_gives_correct_data_queries() {
         queries,
         vec![DataQuery::AttributeChild {
             attribute_name: "my_attr",
-            match_profiles: vec![ComponentProfile::Text, ComponentProfile::Boolean],
+            match_profiles: vec![ComponentProfile::String, ComponentProfile::Boolean],
             always_return_value: true
         },]
     );

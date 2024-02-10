@@ -38,13 +38,13 @@ impl StringStateVar {
     }
 
     /// Creates a string state var that calculates its value from the component's children
-    /// matching the `Text`  profile.
+    /// matching the `String`  profile.
     ///
     /// If there are no matching children, the state variable will be initialized with `default_value`.
     pub fn new_from_children(default_value: String) -> Self {
         StringStateVar {
             data_query: DataQuery::Child {
-                match_profiles: vec![ComponentProfile::Text],
+                match_profiles: vec![ComponentProfile::String],
                 exclude_if_prefer_profiles: vec![],
                 always_return_value: true,
             },
@@ -53,14 +53,14 @@ impl StringStateVar {
     }
 
     /// Creates a string state var that calculates its value from the attribute given by `attr_name`,
-    /// basing the calculation on the attribute children that match the `Text` profile.
+    /// basing the calculation on the attribute children that match the `String` profile.
     ///
     /// If there are no matching attribute children, the state variable will be initialized with `default_value`.
     pub fn new_from_attribute(attr_name: AttributeName, default_value: String) -> Self {
         StringStateVar {
             data_query: DataQuery::AttributeChild {
                 attribute_name: attr_name,
-                match_profiles: vec![ComponentProfile::Text],
+                match_profiles: vec![ComponentProfile::String],
                 always_return_value: true,
             },
             default_value,
