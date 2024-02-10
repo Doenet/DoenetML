@@ -46,19 +46,19 @@ impl ComponentBuilder {
                             ..Default::default()
                         })
                     });
-                    if let Some(Source::Macro(_)) = &elm.extending {
+                    if let Some(Source::Macro(ref_resolution)) = &elm.extending {
                         // Some components specify that when they are referenced with the `$foo` syntax,
                         // a different component should be created in their place. E.g., `<textInput name="i" />$i`
                         // should become `<textInput name="i" /><text extend="$i` />`.
                         // This information is stored in `ref_transmutes_to()`.
-                        if let Some(name) = component.ref_transmutes_to() {
-                            // It is forbidden to expand to an invalid component type, so we do not
-                            // have a fallback to `_External` here.
-                            component = ComponentEnum::from_str(name).unwrap();
+                        if ref_resolution.unresolved_path.is_none() {
+                            if let Some(name) = component.ref_transmutes_to() {
+                                // It is forbidden to expand to an invalid component type, so we do not
+                                // have a fallback to `_External` here.
+                                component = ComponentEnum::from_str(name).unwrap();
+                            }
                         }
                     }
-                    // Some references
-                    component.ref_transmutes_to();
                     // XXX: we temporarily fill each required attribute with an empty vector.
                     // This will be removed when typed attributes are integrated.
                     let attributes: HashMap<&'static str, _> = HashMap::from_iter(
@@ -80,29 +80,29 @@ impl ComponentBuilder {
                                     } else {
                                         // We only know how to handle single state variable access at the moment.
                                         if let Some(state_var) = component
-                                            .get_state_variable_index_from_name(
-                                                &unresolved_path[0].name,
-                                            )
-                                        {
-                                            Ok(Some(ExtendSource::StateVar(
-                                                ExtendStateVariableDescription {
-                                                    component_idx: ref_resolution.node_idx,
-                                                    state_variable_matching: vec![
-                                                        StateVariableShadowingMatch {
-                                                            // XXX: THIS 0 IS MADE UP AND IS A PLACEHOLDER UNTIL WE HAVE AN ACTUAL METHOD
-                                                            shadowed_state_var_idx: 0,
-                                                            shadowing_state_var_idx: state_var,
-                                                        },
-                                                    ],
-                                                },
-                                            )))
-                                        } else {
-                                            Err(anyhow!(
-                                                "State variable {} not found on component {}",
-                                                unresolved_path[0].name,
-                                                elm.name
-                                            ))
-                                        }
+                                        .get_public_state_variable_index_from_name_case_insensitive(
+                                            &unresolved_path[0].name,
+                                        )
+                                    {
+                                        Ok(Some(ExtendSource::StateVar(
+                                            ExtendStateVariableDescription {
+                                                component_idx: ref_resolution.node_idx,
+                                                state_variable_matching: vec![
+                                                    StateVariableShadowingMatch {
+                                                        // XXX: THIS 0 IS MADE UP AND IS A PLACEHOLDER UNTIL WE HAVE AN ACTUAL METHOD
+                                                        shadowed_state_var_idx: 0,
+                                                        shadowing_state_var_idx: state_var,
+                                                    },
+                                                ],
+                                            },
+                                        )))
+                                    } else {
+                                        Err(anyhow!(
+                                            "State variable {} not found on component {}",
+                                            unresolved_path[0].name,
+                                            elm.name
+                                        ))
+                                    }
                                     }
                                 } else {
                                     Ok(Some(ExtendSource::Component(ref_resolution.node_idx)))
