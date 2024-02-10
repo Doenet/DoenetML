@@ -196,6 +196,15 @@ pub trait ComponentNode: ComponentState {
     ///
     /// Used to determine if its rendered state variables need to be freshened and set to the renderer.
     fn set_is_in_render_tree(&mut self, is_in_render_tree: bool);
+
+    /// The name of the component that a direct reference should transmute to.
+    /// For example in `<textInput name="i"/>$i`, the `$i` should be rendered as a `<text extend="$i"/>`
+    /// rather than a `<textInput extend="$i"/>`. In this case `self.ref_transmutes_to()` should return `Some("Text")`.
+    ///
+    /// If `None` is returned, no transmutation will occur.
+    fn ref_transmutes_to(&self) -> Option<&'static str> {
+        None
+    }
 }
 
 /// Specifies the children that will be sent to the renderer.

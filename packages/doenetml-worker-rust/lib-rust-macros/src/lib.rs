@@ -19,7 +19,16 @@ mod component_state_methods;
 mod state_var_methods;
 mod util;
 
-#[proc_macro_derive(ComponentNode)]
+/// Derive functions needed to be initialized as a component.
+///
+/// Options can be set using the `#[component(...)]` attribute.
+///
+/// ## Options
+///  - `#[component(ref_transmutes_to = "...")]` - The name of the component that should be used to
+///    render a direct reference to this component. E.g. in `<textInput name="i"/>$i`, the `$i`
+///    should be rendered as a `<text extend="$i"/>` rather than a `<textInput extend="$i"/>`.
+///    Setting `#[component(ref_transmutes_to = "Text")]` will do this.
+#[proc_macro_derive(ComponentNode, attributes(component))]
 pub fn component_node_derive_wrapper(input: TokenStream) -> TokenStream {
     component_node_derive(input)
 }

@@ -14,10 +14,6 @@ fn can_create_normalized_dast_after_expanding_macros() {
     Expander::expand(&mut flat_root);
     flat_root.compactify();
     let normalized_flat_root = flat_root.into_normalized_root();
-    println!(
-        "{}",
-        serde_json::to_string_pretty(&normalized_flat_root).unwrap()
-    );
     assert_json_eq!(
         serde_json::to_value(&normalized_flat_root).unwrap(),
         json!(
@@ -68,8 +64,10 @@ fn can_create_normalized_dast_after_expanding_macros() {
                 "attributes": [],
                 "idx": 3,
                 "extending": {
-                  "node_idx": 2,
-                  "unresolved_path": null
+                  "Macro": {
+                    "node_idx": 2,
+                    "unresolved_path": null
+                  }
                 }
               },
               {
@@ -80,8 +78,10 @@ fn can_create_normalized_dast_after_expanding_macros() {
                 "attributes": [],
                 "idx": 4,
                 "extending": {
-                  "node_idx": 1,
-                  "unresolved_path": null
+                  "Macro": {
+                    "node_idx": 1,
+                    "unresolved_path": null
+                  }
                 }
               },
               {
@@ -106,8 +106,10 @@ fn can_create_normalized_dast_after_expanding_macros() {
                 "attributes": [],
                 "idx": 6,
                 "extending": {
-                  "node_idx": 1,
-                  "unresolved_path": null
+                  "Macro": {
+                    "node_idx": 1,
+                    "unresolved_path": null
+                  }
                 }
               },
               {

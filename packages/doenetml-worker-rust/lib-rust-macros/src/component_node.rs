@@ -4,7 +4,20 @@ use proc_macro2::{Ident, Span};
 use quote::quote;
 use syn::{self, FieldsNamed};
 
+use darling::FromDeriveInput;
+
 use crate::util::has_attribute;
+
+/// Extra options a component may pass to the `ComponentNode` derive macro.
+#[derive(Debug, Default, FromDeriveInput)]
+#[darling(attributes(component))]
+pub struct ComponentOptions {
+    /// Accessible with `#[component(ref_transmutes_to = "new_name")]`.
+    /// Indicates what component a reference should become. For example
+    /// `<textInput name="a"/>$a`, one may want `$a` to appear as a `Text` by default,
+    /// rather than a `TextInput`. In this case, you would set `ref_transmutes_to = "Text"`.
+    pub ref_transmutes_to: Option<String>,
+}
 
 /// Implement the ComponentNode trait structs
 /// assuming they have have a common field that is `ComponentCommonData`
@@ -12,21 +25,7 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
     let ast: syn::DeriveInput = syn::parse(input).unwrap();
     let name = &ast.ident;
     let data = &ast.data;
-    // XXX TODO
-    // // Figure out if there is a `#[ref_renames_to(...)]` directive present.
-    // let ref_renames_to = match &ast.attrs.iter().find(|a| a.path.is_ident("ref_renames_to")) {
-    //     Some(attr) => {
-    //         let meta = attr.parse_meta().unwrap();
-    //         match meta {
-    //             syn::Meta::NameValue(syn::MetaNameValue {
-    //                 lit: syn::Lit::Str(lit_str),
-    //                 ..
-    //             }) => Some(lit_str.value()),
-    //             _ => panic!("ref_renames_to must be a string"),
-    //         }
-    //     }
-    //     None => None,
-    // };
+    let options: ComponentOptions = FromDeriveInput::from_derive_input(&ast).unwrap();
 
     let output = match data {
         syn::Data::Struct(s) => match &s.fields {
@@ -37,8 +36,7 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                     n => n.to_case(Case::Camel),
                 };
 
-                quote! {
-                    impl ComponentNode for #name {
+                let mut component_node_impl_body = quote! {
                         fn get_idx(&self) -> ComponentIdx {
                             self.common.idx
                         }
@@ -121,7 +119,18 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                         fn set_is_in_render_tree(&mut self, is_in_render_tree: bool) {
                             self.common.is_in_render_tree = is_in_render_tree;
                         }
+                };
+                if let Some(ref_transmute_to) = &options.ref_transmutes_to {
+                    component_node_impl_body.extend(quote! {
+                        fn ref_transmutes_to(&self) -> Option<&'static str> {
+                            Some(#ref_transmute_to)
+                        }
+                    });
+                }
 
+                quote! {
+                    impl ComponentNode for #name {
+                        #component_node_impl_body
                     }
 
                     impl #name {

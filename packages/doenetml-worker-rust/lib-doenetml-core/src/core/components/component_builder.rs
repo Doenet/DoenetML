@@ -5,7 +5,7 @@ use std::{collections::HashMap, str::FromStr};
 
 use crate::{
     components::{ComponentAttributes, ComponentNode},
-    dast::flat_dast::{NormalizedNode, NormalizedRoot, UntaggedContent},
+    dast::flat_dast::{NormalizedNode, NormalizedRoot, Source, UntaggedContent},
     ComponentPointerTextOrMacro, ExtendSource,
 };
 
@@ -43,6 +43,19 @@ impl ComponentBuilder {
                             ..Default::default()
                         })
                     });
+                    if let Some(Source::Macro(_)) = &elm.extending {
+                        // Some components specify that when they are referenced with the `$foo` syntax,
+                        // a different component should be created in their place. E.g., `<textInput name="i" />$i`
+                        // should become `<textInput name="i" /><text extend="$i` />`.
+                        // This information is stored in `ref_transmutes_to()`.
+                        if let Some(name) = component.ref_transmutes_to() {
+                            // It is forbidden to expand to an invalid component type, so we do not
+                            // have a fallback to `_External` here.
+                            component = ComponentEnum::from_str(name).unwrap();
+                        }
+                    }
+                    // Some references
+                    component.ref_transmutes_to();
                     // XXX: we temporarily fill each required attribute with an empty vector.
                     // This will be removed when typed attributes are integrated.
                     let attributes: HashMap<&'static str, _> = HashMap::from_iter(
