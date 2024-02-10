@@ -25,7 +25,7 @@ impl Boolean {
     /// then its value state variable should shadow that variable.
     ///
     /// Returns: a tuple of (component type, state variable index)
-    pub fn get_state_variable_that_shadows_when_extending() -> (&'static str, StateVarIdx) {
+    pub const fn get_state_variable_that_shadows_when_extending() -> (&'static str, StateVarIdx) {
         (
             Boolean::get_component_type(),
             BooleanState::get_value_state_variable_index(),
