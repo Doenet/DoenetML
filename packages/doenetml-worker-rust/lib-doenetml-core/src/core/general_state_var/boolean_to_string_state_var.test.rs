@@ -17,7 +17,7 @@ fn boolean_to_string_state_var_gives_correct_data_queries() {
 }
 
 #[test]
-fn boolean_to_string_state_var_calculated_() {
+fn calculate_boolean_to_string_state_var() {
     let (state_var, _state_var_view, boolean_var) = set_up_boolean_to_string_state_var(false, true);
 
     // we initialize original value to be false, so should get "false"

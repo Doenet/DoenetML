@@ -23,7 +23,7 @@ fn independent_state_var_gives_correct_data_queries() {
 /// its value should be the same as its preliminary value,
 /// and its came_from_default should be the same as the preliminary value's came_from_default
 #[test]
-fn independent_boolean_state_var_calculated_() {
+fn calculate_independent_boolean_state_var() {
     let (state_var, _state_var_view, preliminary_value_var) =
         set_up_boolean_independent_state_var(false, true);
 
@@ -68,7 +68,7 @@ fn invert_independent_boolean_state_var() {
 /// its value should be the same as its preliminary value
 /// and its came_from_default should be the same as the preliminary value's came_from_default
 #[test]
-fn independent_string_state_var_calculated_() {
+fn calculate_independent_string_state_var() {
     let (state_var, _state_var_view, preliminary_value_var) =
         set_up_string_independent_state_var(String::from("hello"), true);
 

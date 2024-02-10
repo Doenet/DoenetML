@@ -14,8 +14,10 @@ fn boolean_sv_is_alias_of_value() {
     // the boolean will be index 1, as the document tag will be index 0.
     let boolean_idx = 1;
 
-    assert_eq!(get_value_prop(boolean_idx, &mut core), true);
-    assert_eq!(get_boolean_prop(boolean_idx, &mut core), true);
+    assert_eq!(
+        get_value_prop(boolean_idx, &mut core),
+        get_boolean_prop(boolean_idx, &mut core)
+    );
 }
 
 #[test]

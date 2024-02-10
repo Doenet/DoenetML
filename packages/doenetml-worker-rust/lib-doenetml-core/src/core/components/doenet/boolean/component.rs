@@ -42,8 +42,9 @@ pub struct BooleanState {
     ///
     /// It is marked `for_renderer` to send this value to the renderer of the `<boolean>` component.
     ///
-    /// It is marked with a component profile state variable, indicating that the `<boolean>` component
-    /// can represent a boolean value by returning the value of this state variable.
+    /// It is marked as a component profile state variable,
+    /// which means this state variable will be used if a parent of a `<boolean>` component
+    /// queries for children with the `Boolean` component profile.
     #[is_public]
     #[for_renderer]
     #[component_profile_state_variable]
@@ -60,8 +61,8 @@ pub struct BooleanState {
     /// It is marked `is_public` so that it can be referenced in DoenetML via `.text`.
     ///
     /// It is marked as a component profile state variable,
-    /// indicating that the `<boolean>` component can represent a text value
-    /// by returning the value of this state variable.
+    /// which means this state variable will be used if a parent of a `<boolean>` component
+    /// queries for children with the `Text` component profile.
     #[is_public]
     #[component_profile_state_variable]
     text: StateVar<String>,

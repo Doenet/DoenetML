@@ -71,7 +71,7 @@ fn value_and_immediate_value_with_prefill_respond_to_actions() {
 /// only their initial values are from the child.
 #[test]
 fn value_and_immediate_value_with_string_child_respond_to_actions() {
-    let dast_root = dast_root_no_position(r#"<textInput >hello</textInput>"#);
+    let dast_root = dast_root_no_position(r#"<textInput>hello</textInput>"#);
     let mut core = DoenetMLCore::new(dast_root, "", "", None);
 
     // the text input will be index 1, as the document tag will be index 0.
@@ -104,7 +104,7 @@ fn value_and_immediate_value_with_string_child_respond_to_actions() {
 /// only their initial values are from the child.
 #[test]
 fn value_and_immediate_value_with_text_child_respond_to_actions() {
-    let dast_root = dast_root_no_position(r#"<textInput ><text>hello</text></textInput>"#);
+    let dast_root = dast_root_no_position(r#"<textInput><text>hello</text></textInput>"#);
     let mut core = DoenetMLCore::new(dast_root, "", "", None);
 
     // the text input will be index 1, as the document tag will be index 0.
@@ -137,7 +137,7 @@ fn value_and_immediate_value_with_text_child_respond_to_actions() {
 /// but `UpdateValue` reverts both to their original value
 #[test]
 fn value_and_immediate_value_with_two_children_respond_to_actions() {
-    let dast_root = dast_root_no_position(r#"<textInput ><text>hello</text> there</textInput>"#);
+    let dast_root = dast_root_no_position(r#"<textInput><text>hello</text> there</textInput>"#);
     let mut core = DoenetMLCore::new(dast_root, "", "", None);
 
     // the text input will be index 1, as the document tag will be index 0.
@@ -176,7 +176,7 @@ fn value_and_immediate_value_with_two_children_respond_to_actions() {
 #[test]
 fn value_and_immediate_value_with_two_grandchildren_respond_to_actions() {
     let dast_root =
-        dast_root_no_position(r#"<textInput ><text><text>hello</text> there</text></textInput>"#);
+        dast_root_no_position(r#"<textInput><text><text>hello</text> there</text></textInput>"#);
     let mut core = DoenetMLCore::new(dast_root, "", "", None);
 
     // the text input will be index 1, as the document tag will be index 0.
