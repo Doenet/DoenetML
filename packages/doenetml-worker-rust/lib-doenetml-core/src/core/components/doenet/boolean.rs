@@ -1,5 +1,5 @@
 use crate::components::prelude::*;
-use crate::general_state_var::{BooleanStateVar, StateVarAlias};
+use crate::general_state_var::{BooleanStateVar, BooleanToStringStateVar, StateVarAlias};
 
 /// Definition of the `<boolean>` DoenetML component
 #[derive(
@@ -25,7 +25,7 @@ impl Boolean {
     /// then its value state variable should shadow that variable.
     ///
     /// Returns: a tuple of (component type, state variable index)
-    pub fn get_state_variable_that_shadows_when_extending() -> (&'static str, StateVarIdx) {
+    pub const fn get_state_variable_that_shadows_when_extending() -> (&'static str, StateVarIdx) {
         (
             Boolean::get_component_type(),
             BooleanState::get_value_state_variable_index(),
@@ -42,8 +42,9 @@ pub struct BooleanState {
     ///
     /// It is marked `for_renderer` to send this value to the renderer of the `<boolean>` component.
     ///
-    /// It is marked with the `Boolean` component profile state variable, indicating that the `<boolean>` component
-    /// can represent a boolean value by returning the value of this state variable.
+    /// It is marked as a component profile state variable,
+    /// which means this state variable will be used if a parent of a `<boolean>` component
+    /// queries for children with the `Boolean` component profile.
     #[is_public]
     #[for_renderer]
     #[component_profile_state_variable]
@@ -54,6 +55,17 @@ pub struct BooleanState {
     /// It is marked `is_public` so that it can be referenced in DoenetML via `.boolean`.
     #[is_public]
     boolean: StateVar<bool>,
+
+    /// A conversion of the boolean value into a string.
+    ///
+    /// It is marked `is_public` so that it can be referenced in DoenetML via `.text`.
+    ///
+    /// It is marked as a component profile state variable,
+    /// which means this state variable will be used if a parent of a `<boolean>` component
+    /// queries for children with the `Text` component profile.
+    #[is_public]
+    #[component_profile_state_variable]
+    text: StateVar<String>,
 }
 
 impl BooleanState {
@@ -61,6 +73,8 @@ impl BooleanState {
         BooleanState {
             value: BooleanStateVar::new_from_children(false).into_state_var(),
             boolean: StateVarAlias::new(BooleanState::get_value_state_variable_index())
+                .into_state_var(),
+            text: BooleanToStringStateVar::new(BooleanState::get_value_state_variable_index())
                 .into_state_var(),
         }
     }

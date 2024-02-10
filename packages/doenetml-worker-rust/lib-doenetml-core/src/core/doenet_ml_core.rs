@@ -434,4 +434,26 @@ impl DoenetMLCore {
         }
         flat_dast_updates
     }
+
+    /// Convenience function to freshen and evaluate a state variable from tests.
+    ///
+    /// Intended for use in integration tests.
+    /// Not generally useful as it requires a mutable reference to all of core,
+    /// which doesn't play well with the borrow checker.
+    pub fn get_state_var_value(
+        &mut self,
+        component_idx: ComponentIdx,
+        state_var_idx: StateVarIdx,
+    ) -> crate::components::prelude::StateVarValue {
+        get_state_var_value(
+            StateVarPointer {
+                component_idx,
+                state_var_idx,
+            },
+            &self.components,
+            &mut self.dependency_graph,
+            &mut self.essential_data,
+            &mut self.processing_state.freshen_stack,
+        )
+    }
 }

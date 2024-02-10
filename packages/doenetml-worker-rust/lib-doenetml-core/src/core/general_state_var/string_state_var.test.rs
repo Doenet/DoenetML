@@ -4,7 +4,7 @@ use super::*;
 use setup_functions::*;
 
 /// check that a string state variable created from children
-/// gives the correct data query that requests text children
+/// gives the correct data query that requests string children
 #[test]
 fn string_state_var_from_children_gives_correct_data_queries() {
     // create a string state variable requesting children
@@ -15,7 +15,7 @@ fn string_state_var_from_children_gives_correct_data_queries() {
     assert_eq!(
         queries,
         vec![DataQuery::Child {
-            match_profiles: vec![ComponentProfile::Text],
+            match_profiles: vec![ComponentProfile::String],
             exclude_if_prefer_profiles: vec![],
             always_return_value: true,
         },]
@@ -112,7 +112,7 @@ fn cannot_invert_string_state_var_that_has_two_string_children() {
 }
 
 /// check that a string state variable created from an attribute
-/// gives the correct data query that requests text children from that attribute
+/// gives the correct data query that requests string children from that attribute
 #[test]
 fn string_state_var_from_attribute_gives_correct_data_queries() {
     // create a string state variable from attribute
@@ -125,7 +125,7 @@ fn string_state_var_from_attribute_gives_correct_data_queries() {
         queries,
         vec![DataQuery::AttributeChild {
             attribute_name: "my_attr",
-            match_profiles: vec![ComponentProfile::Text],
+            match_profiles: vec![ComponentProfile::String],
             always_return_value: true
         },]
     );

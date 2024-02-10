@@ -1,6 +1,4 @@
 //! This file contains utilities for testing DoenetMLCore.
-#[cfg(test)]
-use assert_json_diff::assert_json_eq;
 use doenetml_core::dast::{DastRoot, FlatDastRoot};
 use serde_json;
 pub use serde_json::{json, Value};
@@ -83,78 +81,9 @@ pub fn dast_root_no_position(str: &str) -> DastRoot {
     root
 }
 
+#[allow(unused)]
 pub fn to_serde_value(val: &FlatDastRoot) -> Value {
     let val: serde_json::Value =
         serde_json::from_str(&serde_json::to_string(val).unwrap()).unwrap();
     val
-}
-
-#[test]
-fn can_parse_dast_via_node() {
-    // Parse without any position information
-    assert_json_eq!(
-        json!({
-            "type": "root",
-            "children": [
-                {
-                    "type": "element",
-                    "name": "document",
-                    "attributes": {},
-                    "children": []
-                }
-            ]
-        }),
-        evaluate_dast_via_node("<document />", true).unwrap()
-    );
-
-    // Parse with position information
-    assert_json_eq!(
-        json!({
-            "type": "root",
-            "children":[{
-                "type":"element",
-                "name":"document",
-                "attributes":{},
-                "children":[],
-                "position":{"start":{"line":1,"column":1,"offset":0},"end":{"line":1,"column":13,"offset":12}}
-            }],
-            "position":{"start":{"line":1,"column":1,"offset":0},"end":{"line":1,"column":13,"offset":12}}
-        }),
-        evaluate_dast_via_node("<document />", false).unwrap()
-    );
-}
-
-#[test]
-fn can_parse_dast_via_macro() {
-    // Parse without any position information
-    assert_json_eq!(
-        json!({
-            "type": "root",
-            "children": [
-                {
-                    "type": "element",
-                    "name": "document",
-                    "attributes": {},
-                    "children": []
-                }
-            ]
-        }),
-        dast_no_position_as_serde_value("<document />")
-    );
-
-    // Parse with position information
-    assert_json_eq!(
-        json!({
-            "type": "root",
-            "children":[{
-                "type":"element",
-                "name":"document",
-                "attributes":{},
-                "children":[],
-                "position":{"start":{"line":1,"column":1,"offset":0},"end":{"line":1,"column":13,"offset":12}}
-            }],
-            "position":{"start":{"line":1,"column":1,"offset":0},"end":{"line":1,"column":13,"offset":12}}
-        }),
-        dast_as_serde_value("<document />")
-    );
 }

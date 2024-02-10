@@ -185,7 +185,7 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
                         get_state_variable_index_functions.push(quote! {
                             /// Get a state variable index
                             /// of the specified state variable
-                            pub fn #get_index_function_identity() -> StateVarIdx {
+                            pub const fn #get_index_function_identity() -> StateVarIdx {
                                 #sv_idx
                             }
                         });
@@ -198,7 +198,7 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
                         get_value_data_queries_functions.push(quote! {
                             /// Get a `DataQuery` that requests the value
                             /// of the specified state variable
-                            pub fn #get_queries_function_identity() -> DataQuery {
+                            pub const fn #get_queries_function_identity() -> DataQuery {
                                 DataQuery::StateVar {
                                     component_idx: None,
                                     state_var_idx: #sv_idx,

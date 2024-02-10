@@ -101,19 +101,11 @@ pub fn state_var_methods_derive(input: TokenStream) -> TokenStream {
                     },
                 });
 
-                if *variant_ident == "String" {
-                    get_matching_component_profile_arms.push(quote! {
-                        #enum_ident::#variant_ident(_sv) => {
-                            ComponentProfile::Text
-                        },
-                    })
-                } else {
-                    get_matching_component_profile_arms.push(quote! {
-                        #enum_ident::#variant_ident(_sv) => {
-                            ComponentProfile::#variant_ident
-                        },
-                    })
-                }
+                get_matching_component_profile_arms.push(quote! {
+                    #enum_ident::#variant_ident(_sv) => {
+                        ComponentProfile::#variant_ident
+                    },
+                })
             }
 
             quote! {

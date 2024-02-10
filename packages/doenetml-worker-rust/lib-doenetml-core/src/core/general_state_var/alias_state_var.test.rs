@@ -34,7 +34,7 @@ fn state_var_alias_gives_correct_data_queries() {
 /// its value should be the same as the original value,
 /// and its came_from_default should be the same as the original value's came_from_default
 #[test]
-fn boolean_state_var_alias_calculated_() {
+fn calculate_boolean_state_var_alias() {
     let (state_var, _state_var_view, alias_var) = set_up_boolean_state_var_alias(false, true);
 
     // we initialize original value to be false, so should get false
@@ -78,7 +78,7 @@ fn invert_boolean_state_var_alias() {
 /// its value should be the same as its original value,
 /// and its came_from_default should be the same as the original value's came_from_default
 #[test]
-fn string_state_var_alias_calculated_() {
+fn calculate_string_state_var_alias() {
     let (state_var, _state_var_view, alias_var) =
         set_up_string_state_var_alias(String::from("hello"), true);
 
@@ -123,7 +123,7 @@ mod setup_functions {
 
     use super::*;
 
-    /// Utility function to set up mirror boolean state variable and its original dependency
+    /// Utility function to set up a boolean state variable alias and its original dependency
     pub fn set_up_boolean_state_var_alias(
         initial_value: bool,
         came_from_default: bool,
@@ -149,7 +149,7 @@ mod setup_functions {
         (state_var, state_var_view, alias_var)
     }
 
-    /// Utility function to set up mirror string state variable and its original dependency
+    /// Utility function to set up a string state variable alias and its original dependency
     pub fn set_up_string_state_var_alias(
         initial_value: String,
         came_from_default: bool,

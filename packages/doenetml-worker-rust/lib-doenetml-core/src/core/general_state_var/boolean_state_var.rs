@@ -1,8 +1,6 @@
-use enum_dispatch::enum_dispatch;
-
 use crate::components::prelude::*;
 
-use super::util::{string_attr_to_boolean, string_to_boolean};
+use super::util::{string_attr_to_boolean, string_to_boolean, BooleanOrString};
 
 /// A boolean state variable that calculates its value from dependencies.
 ///
@@ -37,36 +35,6 @@ pub struct RequiredData {
     /// A vector of the boolean or string values of the dependencies coming from the data_query
     booleans_and_strings: Vec<BooleanOrString>,
 }
-
-/// Since the state variable is based on booleans or strings,
-/// the `BooleanOrString` enum is used to store
-/// the values of dependencies created.
-#[derive(Debug)]
-#[enum_dispatch(QueryUpdateRequests)]
-enum BooleanOrString {
-    Boolean(StateVarView<bool>),
-    String(StateVarView<String>),
-}
-
-// We implement TryFromState
-// because all RequiredData must implement this trait.
-// (Needed to create the RequiredData from the information sent the state variable)
-impl TryFromState<StateVarViewEnum> for BooleanOrString {
-    type Error = &'static str;
-
-    fn try_from_state(value: &StateVarViewEnum) -> Result<Self, Self::Error> {
-        match value {
-            StateVarViewEnum::Boolean(boolean_sv) => Ok(BooleanOrString::Boolean(
-                boolean_sv.create_new_read_only_view(),
-            )),
-            StateVarViewEnum::String(string_sv) => Ok(BooleanOrString::String(
-                string_sv.create_new_read_only_view(),
-            )),
-            _ => Err("BooleanOrString can only be a boolean or string state variable"),
-        }
-    }
-}
-
 impl BooleanStateVar {
     /// Creates a boolean state var that calculates its value from the given data query.
     pub fn new(data_query: DataQuery) -> Self {
@@ -77,13 +45,13 @@ impl BooleanStateVar {
     }
 
     /// Creates a boolean state var that calculates its value from the component's children
-    /// matching the `Text` or `Boolean` profile.
+    /// matching the `String` or `Boolean` profile.
     ///
     /// If there are no matching children, the state variable will be initialized with `default_value`.
     pub fn new_from_children(default_value: bool) -> Self {
         BooleanStateVar {
             data_query: DataQuery::Child {
-                match_profiles: vec![ComponentProfile::Text, ComponentProfile::Boolean],
+                match_profiles: vec![ComponentProfile::String, ComponentProfile::Boolean],
                 exclude_if_prefer_profiles: vec![],
                 always_return_value: true,
             },
@@ -93,14 +61,14 @@ impl BooleanStateVar {
     }
 
     /// Creates a boolean state var that calculates its value from the attribute given by `attr_name`,
-    /// basing the calculation on the attribute children that match the `Text` or `Boolean` profile.
+    /// basing the calculation on the attribute children that match the `String` or `Boolean` profile.
     ///
     /// If there are no matching attribute children, the state variable will be initialized with `default_value`.
     pub fn new_from_attribute(attr_name: AttributeName, default_value: bool) -> Self {
         BooleanStateVar {
             data_query: DataQuery::AttributeChild {
                 attribute_name: attr_name,
-                match_profiles: vec![ComponentProfile::Text, ComponentProfile::Boolean],
+                match_profiles: vec![ComponentProfile::String, ComponentProfile::Boolean],
                 always_return_value: true,
             },
             default_value,

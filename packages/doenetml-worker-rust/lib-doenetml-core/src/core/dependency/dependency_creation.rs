@@ -217,9 +217,9 @@ pub fn create_dependencies_from_data_query_initialize_essential(
                         }
                     }
                     (ComponentPointerTextOrMacro::Text(string_value), parent_idx) => {
-                        // Text children are just strings, and they just match the String or Text profiles
-                        if match_profiles.contains(&ComponentProfile::LiteralString)
-                            || match_profiles.contains(&ComponentProfile::Text)
+                        // Text children are just strings, and they just match the String or LiteralString profiles
+                        if match_profiles.contains(&ComponentProfile::String)
+                            || match_profiles.contains(&ComponentProfile::LiteralString)
                         {
                             relevant_children.push(RelevantChild::String {
                                 value: string_value,
@@ -400,9 +400,9 @@ pub fn create_dependencies_from_data_query_initialize_essential(
                                 })
                         }
                         ComponentPointerTextOrMacro::Text(string_value) => {
-                            // Text children are just strings, and they just match the String or Text profiles
-                            if match_profiles.contains(&ComponentProfile::LiteralString)
-                                || match_profiles.contains(&ComponentProfile::Text)
+                            // Text children are just strings, and they just match the String or LiteralString profiles
+                            if match_profiles.contains(&ComponentProfile::String)
+                                || match_profiles.contains(&ComponentProfile::LiteralString)
                             {
                                 let essential_origin = EssentialDataOrigin::AttributeChild(
                                     attribute_name,
