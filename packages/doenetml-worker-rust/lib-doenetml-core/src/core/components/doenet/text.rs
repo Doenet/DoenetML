@@ -23,7 +23,7 @@ pub struct Text {
 }
 
 impl Text {
-    /// If a Text component extends a state variable of type text,
+    /// If a Text component extends a state variable of type string,
     /// then its value state variable should shadow that variable.
     ///
     /// Returns: a tuple of (component type, state variable index)
