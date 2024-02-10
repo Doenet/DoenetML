@@ -427,9 +427,9 @@ impl DoenetMLCore {
 
     /// Convenience function to freshen and evaluate a state variable from tests.
     ///
-    /// Not used in production code as it requires a mutable reference to all of core,
+    /// Intended for use in integration tests.
+    /// Not generally useful as it requires a mutable reference to all of core,
     /// which doesn't play well with the borrow checker.
-    #[cfg(test)]
     pub fn get_state_var_value(
         &mut self,
         component_idx: ComponentIdx,

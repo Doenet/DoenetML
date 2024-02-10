@@ -2,10 +2,6 @@ use super::*;
 
 use test_helpers::*;
 
-use crate::{
-    components::prelude::StateVarIdx, test_utils::dast_root_no_position, ComponentIdx, DoenetMLCore,
-};
-
 #[test]
 fn text_sv_is_alias_of_value() {
     let dast_root = dast_root_no_position(r#"<text>hello</text>"#);
@@ -21,7 +17,6 @@ fn text_sv_is_alias_of_value() {
 }
 
 mod test_helpers {
-    use crate::DoenetMLCore;
 
     use super::*;
 

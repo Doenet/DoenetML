@@ -1,15 +1,5 @@
 use super::*;
 
-use crate::{
-    components::{
-        actions::{Action, ActionBody},
-        doenet::{boolean::BooleanState, text::TextState},
-        prelude::StateVarIdx,
-        ActionsEnum,
-    },
-    ComponentIdx,
-};
-
 const IMMEDIATE_VALUE_IDX: StateVarIdx = TextInputState::get_immediate_value_state_variable_index();
 const VALUE_IDX: StateVarIdx = TextInputState::get_value_state_variable_index();
 
