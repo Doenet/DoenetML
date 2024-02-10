@@ -43,6 +43,13 @@ impl Source<RefResolution> {
             Source::Macro(m) => m.node_idx,
         }
     }
+    /// Unwraps the `RefResolution` from `self`.
+    pub fn get_resolution(&self) -> &RefResolution {
+        match self {
+            Source::Attribute(a) => a,
+            Source::Macro(m) => m,
+        }
+    }
 }
 
 #[derive(Clone, Debug, Serialize)]

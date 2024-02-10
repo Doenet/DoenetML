@@ -3,10 +3,13 @@
 
 use std::{collections::HashMap, str::FromStr};
 
+use anyhow::anyhow;
+
 use crate::{
-    components::{ComponentAttributes, ComponentNode},
+    components::{prelude::ComponentState, ComponentAttributes, ComponentNode},
     dast::flat_dast::{NormalizedNode, NormalizedRoot, Source, UntaggedContent},
-    ComponentPointerTextOrMacro, ExtendSource,
+    ComponentPointerTextOrMacro, ExtendSource, ExtendStateVariableDescription,
+    StateVariableShadowingMatch,
 };
 
 use super::{ComponentEnum, _error::_Error, _external::_External};
@@ -64,12 +67,65 @@ impl ComponentBuilder {
                             .iter()
                             .map(|&name| (name, Vec::new())),
                     );
+
+                    let extending: Result<Option<ExtendSource>, anyhow::Error> =
+                        match &elm.extending {
+                            Some(ref_resolution) => {
+                                let ref_resolution = ref_resolution.get_resolution();
+                                // If there is no remaining path, we are extending a component directly. Otherwise,
+                                // we look up the state variable on that component and extend it.
+                                if let Some(unresolved_path) = &ref_resolution.unresolved_path {
+                                    if unresolved_path.len() != 1 {
+                                        Err(anyhow!("Handle nested state variables"))
+                                    } else {
+                                        // We only know how to handle single state variable access at the moment.
+                                        if let Some(state_var) = component
+                                            .get_state_variable_index_from_name(
+                                                &unresolved_path[0].name,
+                                            )
+                                        {
+                                            Ok(Some(ExtendSource::StateVar(
+                                                ExtendStateVariableDescription {
+                                                    component_idx: ref_resolution.node_idx,
+                                                    state_variable_matching: vec![
+                                                        StateVariableShadowingMatch {
+                                                            // XXX: THIS 0 IS MADE UP AND IS A PLACEHOLDER UNTIL WE HAVE AN ACTUAL METHOD
+                                                            shadowed_state_var_idx: 0,
+                                                            shadowing_state_var_idx: state_var,
+                                                        },
+                                                    ],
+                                                },
+                                            )))
+                                        } else {
+                                            Err(anyhow!(
+                                                "State variable {} not found on component {}",
+                                                unresolved_path[0].name,
+                                                elm.name
+                                            ))
+                                        }
+                                    }
+                                } else {
+                                    Ok(Some(ExtendSource::Component(ref_resolution.node_idx)))
+                                }
+                            }
+                            _ => Ok(None),
+                        };
+
+                    let extending = match extending {
+                        Err(error) => {
+                            component = ComponentEnum::_Error(_Error {
+                                message: error.to_string(),
+                                ..Default::default()
+                            });
+                            None
+                        }
+                        Ok(extending) => extending,
+                    };
+
                     component.initialize(
                         elm.idx,
                         elm.parent,
-                        elm.extending
-                            .clone()
-                            .map(|ref_resolution| ExtendSource::Component(ref_resolution.idx())),
+                        extending,
                         HashMap::new(),
                         elm.position.clone(),
                     );
