@@ -110,7 +110,7 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                     }
 
                     impl #name {
-                        fn get_component_type() -> &'static str {
+                        const fn get_component_type() -> &'static str {
                             #component_string
                         }
                     }
