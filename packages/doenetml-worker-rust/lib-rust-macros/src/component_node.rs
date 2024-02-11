@@ -145,7 +145,7 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                         format!("local_get_{}_state_variable_index", store_in);
                     let local_get_index_function_identity =
                         Ident::new(&local_get_index_function_name, Span::call_site());
-                    let match_profile_identity = Ident::new(&match_profile, Span::call_site());
+                    let match_profile_identity = Ident::new(match_profile, Span::call_site());
 
                     component_node_impl_body.extend(quote! {
                         fn extends_component_profiles(&self) -> Vec<(ComponentProfile, StateVarIdx)> {

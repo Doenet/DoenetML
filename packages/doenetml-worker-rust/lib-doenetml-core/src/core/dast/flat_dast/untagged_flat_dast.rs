@@ -43,6 +43,15 @@ impl Source<RefResolution> {
             Source::Macro(m) => m.node_idx,
         }
     }
+
+    /// Set the `node_idx` of the wrapped `RefResolution`.
+    pub fn set_idx(&mut self, idx: Index) {
+        match self {
+            Source::Attribute(a) => a.node_idx = idx,
+            Source::Macro(m) => m.node_idx = idx,
+        }
+    }
+
     /// Unwraps the `RefResolution` from `self`.
     pub fn get_resolution(&self) -> &RefResolution {
         match self {
