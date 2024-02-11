@@ -65,7 +65,7 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                         &mut self,
                         idx: ComponentIdx,
                         parent: Option<ComponentIdx>,
-                        extending: Option<ExtendSource>,
+                        extending: Option<Extending>,
                         attributes: HashMap<String, DastAttribute>,
                         position: Option<DastPosition>,
                     ) {
@@ -76,8 +76,12 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                         self.common.unevaluated_attributes = attributes;
                     }
 
-                    fn get_extending(&self) -> Option<&ExtendSource> {
+                    fn get_extending(&self) -> Option<&Extending> {
                         self.common.extending.as_ref()
+                    }
+
+                    fn set_extending(&mut self, extending: Option<Extending>) {
+                        self.common.extending = extending;
                     }
 
                     fn get_component_type(&self) -> &str {
@@ -148,7 +152,7 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                     let match_profile_identity = Ident::new(match_profile, Span::call_site());
 
                     component_node_impl_body.extend(quote! {
-                        fn extends_component_profiles(&self) -> Vec<(ComponentProfile, StateVarIdx)> {
+                        fn accepted_profiles(&self) -> Vec<(ComponentProfile, StateVarIdx)> {
                             vec![(ComponentProfile::#match_profile_identity, self.state.#local_get_index_function_identity())]
                         }
                     });

@@ -16,7 +16,7 @@ pub use crate::state::{
 };
 
 pub use crate::utils::KeyValueIgnoreCase;
-pub use crate::{ComponentIdx, ExtendSource};
+pub use crate::{ComponentIdx, Extending};
 
 pub use crate::components::{
     ComponentActions, ComponentAttributes, ComponentCommonData, ComponentNode, RenderedChildren,

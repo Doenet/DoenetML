@@ -35,7 +35,7 @@ impl ComponentNode for _External {
         &mut self,
         idx: ComponentIdx,
         parent: Option<ComponentIdx>,
-        _extending: Option<ExtendSource>,
+        _extending: Option<Extending>,
         attributes: HashMap<String, DastAttribute>,
         position: Option<DastPosition>,
     ) {
@@ -45,8 +45,12 @@ impl ComponentNode for _External {
         self.common.unevaluated_attributes = attributes;
     }
 
-    fn get_extending(&self) -> Option<&ExtendSource> {
+    fn get_extending(&self) -> Option<&Extending> {
         None
+    }
+
+    fn set_extending(&mut self, _extending: Option<Extending>) {
+        // External components cannot extend anything, so this is a no-op
     }
 
     // The main reason we customize the implementation of ComponentNode

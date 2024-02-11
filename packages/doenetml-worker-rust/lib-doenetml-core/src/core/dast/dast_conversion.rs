@@ -4,7 +4,7 @@ use crate::{
     components::{
         prelude::ComponentState, ComponentActions, ComponentEnum, ComponentNode, RenderedChildren,
     },
-    ComponentIdx, ExtendSource,
+    ComponentIdx, Extending,
 };
 
 use super::{
@@ -23,7 +23,7 @@ pub fn to_flat_dast(
 
         // if extending a source that is a component,
         // add children from that source first
-        children = if let Some(ExtendSource::Component(source_idx)) = component.get_extending() {
+        children = if let Some(Extending::Component(source_idx)) = component.get_extending() {
             let source_dast = to_flat_dast(*source_idx, components);
 
             source_dast.children

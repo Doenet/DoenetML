@@ -31,6 +31,7 @@ tsify = { workspace = true }
 # code size when deploying.
 console_error_panic_hook = { workspace = true, optional = true }
 derive_more = { workspace = true }
+itertools = { workspace = true }
 assert-json-diff = "2.0.2"
 
 [dev-dependencies]

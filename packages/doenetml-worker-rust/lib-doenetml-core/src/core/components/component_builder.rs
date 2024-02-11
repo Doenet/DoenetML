@@ -4,18 +4,18 @@
 use std::{collections::HashMap, str::FromStr};
 
 use anyhow::anyhow;
+use itertools::Itertools;
 
 use crate::{
     components::{prelude::ComponentState, ComponentAttributes, ComponentNode},
     dast::{
-        flat_dast::{FlatElement, NormalizedNode, NormalizedRoot, Source},
+        flat_dast::{NormalizedNode, NormalizedRoot, Source},
         macro_resolve::RefResolution,
     },
-    state::StateVarIdx,
-    ComponentIdx, ExtendSource, ExtendStateVariableDescription, StateVariableShadowingMatch,
+    ExtendStateVar, Extending, StateVarShadowingPair,
 };
 
-use super::{ComponentEnum, ComponentProfile, _error::_Error, _external::_External};
+use super::{ComponentEnum, _error::_Error, _external::_External};
 
 pub struct ComponentBuilder {
     /// Hydrated components that are ready for use in Core.
@@ -35,7 +35,9 @@ impl ComponentBuilder {
         }
     }
 
-    pub fn from_normalized_root(normalized_root: &NormalizedRoot) -> Self {
+    /// Creates all `components` but sets all their `extending` fields to `None`.
+    /// This is an intermediate step that needs to be done before resolving references in `extending`.
+    fn from_normalized_root_without_extending(normalized_root: &NormalizedRoot) -> Self {
         let components = normalized_root
             .nodes
             .iter()
@@ -64,18 +66,6 @@ impl ComponentBuilder {
                         }
                     }
 
-                    let extending_from_state_variable_profile =
-                        determine_extending_state_var_profile(
-                            elm.extending.as_ref(),
-                            &normalized_root.nodes,
-                        )
-                        .map(|(component_type, sv_idx, sv_profile)| {
-                            // At this point, we just need to create the correct type of component.
-                            // Details for extending from this state variable will be calculated below.
-                            component = ComponentEnum::from_str(component_type).unwrap();
-                            (sv_idx, sv_profile)
-                        });
-
                     // XXX: we temporarily fill each required attribute with an empty vector.
                     // This will be removed when typed attributes are integrated.
                     let attributes: HashMap<&'static str, _> = HashMap::from_iter(
@@ -85,31 +75,14 @@ impl ComponentBuilder {
                             .map(|&name| (name, Vec::new())),
                     );
 
-                    let extending = determine_extending(
-                        elm.extending.as_ref(),
-                        &component,
-                        &normalized_root.nodes,
-                        extending_from_state_variable_profile,
-                    );
-
-                    let extending = match extending {
-                        Err(error) => {
-                            component = ComponentEnum::_Error(_Error {
-                                message: error.to_string(),
-                                ..Default::default()
-                            });
-                            None
-                        }
-                        Ok(extending) => extending,
-                    };
-
                     component.initialize(
                         elm.idx,
                         elm.parent,
-                        extending,
+                        None,
                         HashMap::new(),
                         elm.position.clone(),
                     );
+                    component.get_extending();
                     // The referenced children may not yet be created as components, but by the end of the loop
                     // they should all be created with the exact same indices as the `normalized_flat_dast` indices.
                     component.set_children(elm.children.clone());
@@ -130,173 +103,161 @@ impl ComponentBuilder {
 
         Self { components }
     }
-}
 
-fn determine_extending_state_var_profile(
-    original_extending: Option<&Source<RefResolution>>,
-    nodes: &[NormalizedNode],
-) -> Option<(&'static str, StateVarIdx, ComponentProfile)> {
-    if let Some(ref_resolution) = original_extending {
-        let ref_resolution = ref_resolution.get_resolution();
-        // If there is no remaining path, we are extending a component directly. Otherwise,
-        // we look up the state variable on that component and extend it.
+    pub fn from_normalized_root(normalized_root: &NormalizedRoot) -> Self {
+        let mut builder = Self::from_normalized_root_without_extending(normalized_root);
+        for idx in 0..builder.components.len() {
+            if !(matches!(&normalized_root.nodes[idx], NormalizedNode::Element(_))) {
+                continue;
+            };
+            let elm = match &normalized_root.nodes[idx] {
+                NormalizedNode::Element(elm) => elm,
+                _ => unreachable!(),
+            };
+            let extending = elm.extending.clone().map(|e| e.take_resolution());
+            if extending.is_none() {
+                continue;
+            }
+            let ref_resolution = extending.unwrap();
+            let component = &builder.components[idx];
+            let referent = &builder.components[ref_resolution.node_idx];
+
+            match Self::determine_extending(&ref_resolution, component, referent) {
+                Ok(extending) => {
+                    builder.components[idx].set_extending(extending);
+                }
+                Err(err) => {
+                    builder.components[idx] = ComponentEnum::_Error(_Error {
+                        message: format!("Error while extending: {}", err),
+                        ..Default::default()
+                    });
+                }
+            }
+        }
+        builder
+    }
+
+    /// DoenetML coerces the type of `extending` to allow users to be sloppy with types.
+    /// For example
+    /// ```xml
+    /// <textInput name="i" /><text extend="$i" />
+    /// ```
+    /// would be coerced to
+    /// ```xml
+    /// <textInput name="i" /><text extend="$i.value" />
+    /// ```
+    /// since `$i.value` is of `Text` type, where `$i` is a `TextInput` type.
+    ///
+    /// This coercion is based on _component profiles_ based on the following algorithm:
+    ///  1. If the component tag name matches the referent's tag name, no coercion is done.
+    ///  2. If the tag names differ, a search is done for a state variable on the referent that matches the preferred profile
+    ///     of the component.
+    fn determine_extending(
+        ref_resolution: &RefResolution,
+        component: &ComponentEnum,
+        referent: &ComponentEnum,
+    ) -> Result<Option<Extending>, anyhow::Error> {
+        // If the referent is an error or external, we're immediately done.
+        match referent {
+            ComponentEnum::_Error(_) => {
+                return Err(anyhow!(
+                    "Attempted to extend component from an error component"
+                ))
+            }
+            ComponentEnum::_External(_) => {
+                return Err(anyhow!(
+                    "Attempted to extend component from an external component"
+                ))
+            }
+            _ => {}
+        }
+
+        // Handle the case where there is a remaining path
         if let Some(unresolved_path) = &ref_resolution.unresolved_path {
-            if unresolved_path.len() == 1 {
-                match &nodes[ref_resolution.node_idx] {
-                    NormalizedNode::Element(extend_from_elm) => {
-                        match ComponentEnum::from_str(&extend_from_elm.name) {
-                            Ok(temp_component) => {
-                                // TODO: handle case with nested state variables.
-                                // (No need to create an error here, as it will get caught below)
-                                if let Some(state_var_idx) = temp_component
-                                    .get_public_state_variable_index_from_name_case_insensitive(
-                                        &unresolved_path[0].name,
-                                    )
-                                {
-                                    // We found a public state variable that matched the remaining path.
-                                    let state_var =
-                                        &temp_component.get_state_variable(state_var_idx).unwrap();
-
-                                    let sv_profile = temp_component
-                                        .get_state_variable(state_var_idx)
-                                        .unwrap()
-                                        .get_matching_component_profile();
-
-                                    return Some((
-                                        state_var.get_default_shadowing_component_type(),
-                                        state_var_idx,
-                                        sv_profile,
-                                    ));
-                                } else {
-                                    return None;
-                                }
-                            }
-                            Err(_) => return None,
-                        }
-                    }
-                    NormalizedNode::Error(_) => return None,
-                }
+            if unresolved_path.len() != 1 {
+                return Err(anyhow!("Nested state variables not implemented yet"));
             }
-        }
-    }
-    None
-}
-
-fn determine_extending(
-    original_extending: Option<&Source<RefResolution>>,
-    component: &ComponentEnum,
-    nodes: &[NormalizedNode],
-    extending_from_state_variable_profile: Option<(StateVarIdx, ComponentProfile)>,
-) -> Result<Option<ExtendSource>, anyhow::Error> {
-    match original_extending {
-        Some(ref_resolution) => {
-            let ref_resolution = ref_resolution.get_resolution();
-            // If there is no remaining path, we are extending a component directly. Otherwise,
-            // we look up the state variable on that component and extend it.
-            if let Some(unresolved_path) = &ref_resolution.unresolved_path {
-                if unresolved_path.len() != 1 {
-                    return Err(anyhow!("Handle nested state variables"));
-                }
-
-                if let Some(profile_tuple) = extending_from_state_variable_profile {
-                    extend_from_profiles(component, vec![profile_tuple], ref_resolution.node_idx)
-                } else {
-                    match &unresolved_path[0].name {
-                        x if x.is_empty() => Err(anyhow!("Path indices not yet supported")),
-                        _ => Err(anyhow!(
-                            "State variable {} not found on component {}",
-                            unresolved_path[0].name,
-                            component.get_component_type()
-                        )),
-                    }
-                }
-            } else {
-                match &nodes[ref_resolution.node_idx] {
-                    NormalizedNode::Element(elm) => {
-                        if elm
-                            .name
-                            .eq_ignore_ascii_case(component.get_component_type())
-                        {
-                            Ok(Some(ExtendSource::Component(ref_resolution.node_idx)))
-                        } else {
-                            extend_from_different_type(elm, component, ref_resolution.node_idx)
-                                .map_err(|_| {
-                                    anyhow!(
-                                        "Cannot extend from {} to {}",
-                                        elm.name,
-                                        component.get_component_type()
-                                    )
-                                })
-                        }
-                    }
-                    NormalizedNode::Error(_) => Err(anyhow!("Cannot extend from an error")),
-                }
+            if !unresolved_path[0].index.is_empty() {
+                return Err(anyhow!("Path indices not yet supported"));
             }
-        }
-        _ => Ok(None),
-    }
-}
+            let referenced_sv_name = &unresolved_path[0].name;
+            // Look to see if there is a state variable with a matching name on `referent`
+            let referent_sv_idx = referent
+                .get_public_state_variable_index_from_name_case_insensitive(referenced_sv_name);
+            if referent_sv_idx.is_none() {
+                return Err(anyhow!(
+                    "State variable {} not found on component {}",
+                    referenced_sv_name,
+                    referent.get_component_type()
+                ));
+            }
+            let referent_sv_idx = referent_sv_idx.unwrap();
+            // We found a public state variable that matched the remaining path.
+            let referent_sv = &referent.get_state_variable(referent_sv_idx).unwrap();
 
-/// Attempt to extend `component` with `element`, where `element` is a different type than `component`.
-///
-/// Check if `element` has a component profile state variable that matches one of the profiles
-/// that `component` can extend from. If so, return the `ExtendSource` matching the state variables.
-/// Otherwise, return an error.
-fn extend_from_different_type(
-    element: &FlatElement,
-    component: &ComponentEnum,
-    source_idx: ComponentIdx,
-) -> Result<Option<ExtendSource>, anyhow::Error> {
-    // create a temporary component based on element
-    // so that we can access the state variable information of the component type
-    // that would be created from element.
-    let temp_component = ComponentEnum::from_str(&element.name)?;
-    let state_var_profiles = Vec::from_iter(
-        temp_component
-            .get_component_profile_state_variable_indices()
-            .iter()
-            .map(|sv_idx| {
-                let temp_sv = temp_component.get_state_variable(*sv_idx).unwrap();
-                let temp_profile = temp_sv.get_matching_component_profile();
-                (*sv_idx, temp_profile)
-            }),
-    );
+            // This is the profile that the referent says it can provide.
+            let referent_sv_profile = referent_sv.get_matching_component_profile();
 
-    extend_from_profiles(component, state_var_profiles, source_idx)
-}
-
-fn extend_from_profiles(
-    component: &ComponentEnum,
-    state_var_profiles: Vec<(StateVarIdx, ComponentProfile)>,
-    source_idx: ComponentIdx,
-) -> Result<Option<ExtendSource>, anyhow::Error> {
-    component
-        .extends_component_profiles()
-        .into_iter()
-        .find_map(|(profile, state_var_idx)| {
-            // for each profile that `component` can extend from,
-            // look to see if `temp_component` has a matching component profile state variable.
-            state_var_profiles
-                .iter()
-                .find_map(|(sv_idx, sv_profile)| {
-                    if profile == *sv_profile {
-                        // we found a matching profile from temp_component
-                        Some(*sv_idx)
+            let extending = component.accepted_profiles().into_iter().find_map(
+                |(profile, component_sv_idx)| {
+                    if profile == referent_sv_profile {
+                        Some(Extending::StateVar(ExtendStateVar {
+                            component_idx: referent.get_idx(),
+                            state_variable_matching: vec![StateVarShadowingPair {
+                                dest_idx: component_sv_idx,
+                                source_idx: referent_sv_idx,
+                            }],
+                        }))
                     } else {
                         None
                     }
-                })
-                .map(|sv_idx| {
-                    // Note: this creates a Some of a Some
-                    // but we'll turn the outer Some into Ok at the end.
-                    Some(ExtendSource::StateVar(ExtendStateVariableDescription {
-                        component_idx: source_idx,
-                        state_variable_matching: vec![StateVariableShadowingMatch {
-                            shadowing_state_var_idx: state_var_idx,
-                            shadowed_state_var_idx: sv_idx,
-                        }],
-                    }))
-                })
-        })
-        .ok_or(anyhow!(""))
+                },
+            );
+            if extending.is_some() {
+                return Ok(extending);
+            } else {
+                return Err(anyhow!("No matching state variable profile found"));
+            }
+        }
+        // If we're here, there is no remaining path.
+
+        // If we are extending a component of the same name, then this is a "component extension",
+        // which is treated differently than extending by a state variable.
+        if component.get_component_type() == referent.get_component_type() {
+            return Ok(Some(Extending::Component(referent.get_idx())));
+        }
+
+        // In this case, we know the referent, but we do not know what the _source_ state variable
+        // is on `referent` and what the _dest_ state variable is `component`. We do this by searching
+        // through the profiles `referent` provides and the profiles `component` accepts and look for a match.
+
+        let extending = component
+            .accepted_profiles()
+            .into_iter()
+            .cartesian_product(referent.accepted_profiles())
+            .find_map(
+                |((component_profile, component_sv_idx), (referent_profile, referent_sv_idx))| {
+                    if component_profile == referent_profile {
+                        Some(Extending::StateVar(ExtendStateVar {
+                            component_idx: referent.get_idx(),
+                            state_variable_matching: vec![StateVarShadowingPair {
+                                dest_idx: component_sv_idx,
+                                source_idx: referent_sv_idx,
+                            }],
+                        }))
+                    } else {
+                        None
+                    }
+                },
+            );
+        if extending.is_some() {
+            Ok(extending)
+        } else {
+            Err(anyhow!(
+                "Cannot extend from {} to {}",
+                component.get_component_type(),
+                referent.get_component_type()
+            ))
+        }
+    }
 }

@@ -7,7 +7,7 @@ use crate::{
     },
     state::essential_state::{EssentialDataOrigin, EssentialStateDescription, EssentialStateVar},
     state::{Freshness, StateVarValue},
-    ComponentIdx, CoreProcessingState, DependencyGraph, ExtendSource,
+    ComponentIdx, CoreProcessingState, DependencyGraph, Extending,
 };
 
 use super::{ComponentState, StateVarPointer};
@@ -111,8 +111,7 @@ fn get_non_string_rendered_children_including_from_extend(
 ) -> Vec<ComponentIdx> {
     let component = components[component_idx].borrow();
 
-    let mut children = if let Some(&ExtendSource::Component(source_idx)) = component.get_extending()
-    {
+    let mut children = if let Some(&Extending::Component(source_idx)) = component.get_extending() {
         get_non_string_rendered_children_including_from_extend(source_idx, components)
     } else {
         Vec::new()

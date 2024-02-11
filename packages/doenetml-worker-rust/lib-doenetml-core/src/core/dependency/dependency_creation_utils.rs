@@ -6,7 +6,7 @@ use crate::{
         prelude::{ComponentState, UntaggedContent},
         ComponentEnum, ComponentNode, ComponentProfile,
     },
-    ComponentIdx, ExtendSource,
+    ComponentIdx, Extending,
 };
 
 use super::{Dependency, DependencySource};
@@ -15,7 +15,7 @@ use super::{Dependency, DependencySource};
 /// from `extending` where `state_var_idx` is the shadowing state variable
 /// and the shadowed stat variable matches a profile from `match_profiles`.
 pub fn create_dependency_from_extend_source_if_matches_profile(
-    extending: Option<&ExtendSource>,
+    extending: Option<&Extending>,
     state_var_idx: usize,
     match_profiles: &[ComponentProfile],
     components: &[Rc<RefCell<ComponentEnum>>],
@@ -26,12 +26,12 @@ pub fn create_dependency_from_extend_source_if_matches_profile(
     // creating a `Dependency` if found.
 
     extending.and_then(|extend_source| match extend_source {
-        ExtendSource::StateVar(description) => description
+        Extending::StateVar(description) => description
             .state_variable_matching
             .iter()
             .find(|state_var_match| {
                 // We look for a state variable match where shadowing_idx is state_var_idx.
-                state_var_match.shadowing_state_var_idx == state_var_idx
+                state_var_match.dest_idx == state_var_idx
             })
             .and_then(|var_match| {
                 // We found a match to state_var_idx.
@@ -42,11 +42,11 @@ pub fn create_dependency_from_extend_source_if_matches_profile(
                 // Note: we are ignoring `exclude_if_prefer_profiles` because
                 // the main purpose of this check is to verify that we have an appropriate type,
                 // rather than filter out possible matches.
-                // We assume if an `ExtendSource` was created, it should be used if it matches.
+                // We assume if an `Extending` was created, it should be used if it matches.
 
                 let source_component = components[description.component_idx].borrow();
                 let source_state_var = source_component
-                    .get_state_variable(var_match.shadowed_state_var_idx)
+                    .get_state_variable(var_match.source_idx)
                     .unwrap();
 
                 let sv_profile = source_state_var.get_matching_component_profile();
@@ -54,7 +54,7 @@ pub fn create_dependency_from_extend_source_if_matches_profile(
                 match_profiles.contains(&sv_profile).then(|| Dependency {
                     source: DependencySource::StateVar {
                         component_idx: description.component_idx,
-                        state_var_idx: var_match.shadowed_state_var_idx,
+                        state_var_idx: var_match.source_idx,
                     },
                     value: source_state_var.create_new_read_only_view(),
                 })
@@ -75,7 +75,7 @@ pub fn get_children_with_parent_including_from_extend_source(
     let component = components[component_idx].borrow();
 
     let mut children_vec =
-        if let Some(&ExtendSource::Component(source_idx)) = component.get_extending() {
+        if let Some(&Extending::Component(source_idx)) = component.get_extending() {
             get_children_with_parent_including_from_extend_source(components, source_idx)
         } else {
             Vec::new()
@@ -102,7 +102,7 @@ pub fn get_component_extend_source_origin(
     component_idx: ComponentIdx,
 ) -> ComponentIdx {
     match &components[component_idx].borrow().get_extending() {
-        Some(&ExtendSource::Component(source_idx)) => {
+        Some(&Extending::Component(source_idx)) => {
             get_component_extend_source_origin(components, source_idx)
         }
         _ => component_idx,
@@ -126,7 +126,7 @@ pub fn get_attribute_children_with_parent_falling_back_to_extend_source(
         .get_attribute_children_for_attribute(attribute)
         .and_then(|attribute_children| {
             if attribute_children.is_empty() {
-                if let Some(&ExtendSource::Component(source_idx)) = component.get_extending() {
+                if let Some(&Extending::Component(source_idx)) = component.get_extending() {
                     return get_attribute_children_with_parent_falling_back_to_extend_source(
                         components, source_idx, attribute,
                     );

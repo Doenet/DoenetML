@@ -174,37 +174,37 @@ impl DoenetMLRoot {
 /// Information of the source that a component is extending, which is currently
 /// either another component or a state variable.
 #[derive(Debug, Clone)]
-pub enum ExtendSource {
+pub enum Extending {
     /// The component is extending another entire component, given by the component index
     Component(ComponentIdx),
     // TODO: what about array state variables?
     /// The component is extending the state variable of another component
-    StateVar(ExtendStateVariableDescription),
+    StateVar(ExtendStateVar),
 }
 
 /// Description of the shadowing of state variables
 /// when a component extends the state variable of another component
 #[derive(Debug, Clone)]
-pub struct ExtendStateVariableDescription {
+pub struct ExtendStateVar {
     /// the component being extended
     pub component_idx: ComponentIdx,
 
     /// the matching of which state variables are shadowing which state variables
-    pub state_variable_matching: Vec<StateVariableShadowingMatch>,
+    pub state_variable_matching: Vec<StateVarShadowingPair>,
 }
 
 /// Description of which state variable is shadowing
 /// another state variable when extending a component
 #[derive(Debug, Clone)]
-pub struct StateVariableShadowingMatch {
+pub struct StateVarShadowingPair {
     /// The state variable with this index in the extending component
     /// will match (shadow) the state variable
     /// from the component being extended
-    pub shadowing_state_var_idx: StateVarIdx,
+    pub dest_idx: StateVarIdx,
 
     /// The state variable with this index in the component being extended
     /// will be shadowed
-    pub shadowed_state_var_idx: StateVarIdx,
+    pub source_idx: StateVarIdx,
 }
 
 impl DoenetMLCore {

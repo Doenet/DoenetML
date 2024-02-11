@@ -59,6 +59,14 @@ impl Source<RefResolution> {
             Source::Macro(m) => m,
         }
     }
+
+    /// Similar to `get_resolution`, but consumes `self` and returns the `RefResolution`.
+    pub fn take_resolution(self) -> RefResolution {
+        match self {
+            Source::Attribute(a) => a,
+            Source::Macro(m) => m,
+        }
+    }
 }
 
 #[derive(Clone, Debug, Serialize)]

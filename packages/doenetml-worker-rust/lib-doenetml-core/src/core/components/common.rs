@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::dast::{DastAttribute, Position as DastPosition};
 use crate::state::{ComponentState, StateVarIdx, StateVarValue};
-use crate::{ComponentIdx, ExtendSource};
+use crate::{ComponentIdx, Extending};
 
 use doenetml_derive::RenderedState;
 
@@ -85,7 +85,7 @@ pub struct ComponentCommonData {
 
     /// If this component is extending another component or state variable,
     /// then the `extending` field gives the source that it is extending.
-    pub extending: Option<ExtendSource>,
+    pub extending: Option<Extending>,
 
     /// A map of descendant names to their indices.
     ///
@@ -137,14 +137,16 @@ pub trait ComponentNode: ComponentState {
         &mut self,
         idx: ComponentIdx,
         parent: Option<ComponentIdx>,
-        extending: Option<ExtendSource>,
+        extending: Option<Extending>,
         attributes: HashMap<String, DastAttribute>,
         position: Option<DastPosition>,
     );
 
-    /// Get the extend source of this component,
-    /// indicating any component or state variable that this component extends.
-    fn get_extending(&self) -> Option<&ExtendSource>;
+    /// Get a reference to the component/state variable that this component extends.
+    fn get_extending(&self) -> Option<&Extending>;
+
+    /// Set a reference to the component/state variable that this component extends.
+    fn set_extending(&mut self, extending: Option<Extending>);
 
     /// Get the component type, which is the name of the component's struct
     /// converted to camel case.
@@ -208,8 +210,27 @@ pub trait ComponentNode: ComponentState {
         None
     }
 
-    fn extends_component_profiles(&self) -> Vec<(ComponentProfile, StateVarIdx)> {
+    /// When this component has `extend="$ref"`, depending on the different
+    /// `ComponentProfiles` `$ref` may present itself as, the component might want
+    /// to set different state variable values. This function returns a vector of
+    /// possible pairings of the `ComponentProfile` that `$ref` may provide and
+    /// the index of the state variable that should be set if `$ref` provides that
+    /// `ComponentProfile`.
+    fn accepted_profiles(&self) -> Vec<(ComponentProfile, StateVarIdx)> {
         vec![]
+    }
+
+    /// A vector of the possible profiles this component provides along with the
+    /// index of the state variable that you should refer to if you want data satisfying
+    /// that profile.
+    fn provided_profiles(&self) -> Vec<(ComponentProfile, StateVarIdx)> {
+        self.get_component_profile_state_variable_indices()
+            .into_iter()
+            .map(|sv_idx| {
+                let state_var = self.get_state_variable(sv_idx).unwrap();
+                (state_var.get_matching_component_profile(), sv_idx)
+            })
+            .collect()
     }
 }
 
