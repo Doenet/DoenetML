@@ -70,14 +70,12 @@ impl ComponentBuilder {
                             elm.extending.as_ref(),
                             &normalized_root.nodes,
                         )
-                        .and_then(
-                            |(component_type, sv_idx, sv_profile)| {
-                                // At this point, we just need to create the correct type of component.
-                                // Details for extending from this state variable will be calculated below.
-                                component = ComponentEnum::from_str(component_type).unwrap();
-                                Some((sv_idx, sv_profile))
-                            },
-                        );
+                        .map(|(component_type, sv_idx, sv_profile)| {
+                            // At this point, we just need to create the correct type of component.
+                            // Details for extending from this state variable will be calculated below.
+                            component = ComponentEnum::from_str(component_type).unwrap();
+                            (sv_idx, sv_profile)
+                        });
 
                     // XXX: we temporarily fill each required attribute with an empty vector.
                     // This will be removed when typed attributes are integrated.
@@ -214,21 +212,15 @@ fn determine_extending(
                 }
 
                 if let Some(profile_tuple) = extending_from_state_variable_profile {
-                    return extend_from_profiles(
-                        component,
-                        vec![profile_tuple],
-                        ref_resolution.node_idx,
-                    );
+                    extend_from_profiles(component, vec![profile_tuple], ref_resolution.node_idx)
                 } else {
                     match &unresolved_path[0].name {
-                        x if x == "" => return Err(anyhow!("Path indices not yet supported")),
-                        _ => {
-                            return Err(anyhow!(
-                                "State variable {} not found on component {}",
-                                unresolved_path[0].name,
-                                component.get_component_type()
-                            ));
-                        }
+                        x if x.is_empty() => Err(anyhow!("Path indices not yet supported")),
+                        _ => Err(anyhow!(
+                            "State variable {} not found on component {}",
+                            unresolved_path[0].name,
+                            component.get_component_type()
+                        )),
                     }
                 }
             } else {
@@ -238,20 +230,16 @@ fn determine_extending(
                             .name
                             .eq_ignore_ascii_case(component.get_component_type())
                         {
-                            return Ok(Some(ExtendSource::Component(ref_resolution.node_idx)));
+                            Ok(Some(ExtendSource::Component(ref_resolution.node_idx)))
                         } else {
-                            return extend_from_different_type(
-                                elm,
-                                component,
-                                ref_resolution.node_idx,
-                            )
-                            .or_else(|_| {
-                                Err(anyhow!(
-                                    "Cannot extend from {} to {}",
-                                    elm.name,
-                                    component.get_component_type()
-                                ))
-                            });
+                            extend_from_different_type(elm, component, ref_resolution.node_idx)
+                                .map_err(|_| {
+                                    anyhow!(
+                                        "Cannot extend from {} to {}",
+                                        elm.name,
+                                        component.get_component_type()
+                                    )
+                                })
                         }
                     }
                     NormalizedNode::Error(_) => Err(anyhow!("Cannot extend from an error")),
