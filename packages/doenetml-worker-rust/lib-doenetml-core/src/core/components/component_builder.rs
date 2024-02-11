@@ -17,6 +17,7 @@ use crate::{
 
 use super::{ComponentEnum, _error::_Error, _external::_External};
 
+#[derive(Debug)]
 pub struct ComponentBuilder {
     /// Hydrated components that are ready for use in Core.
     pub components: Vec<ComponentEnum>,
@@ -62,6 +63,37 @@ impl ComponentBuilder {
                                 // It is forbidden to expand to an invalid component type, so we do not
                                 // have a fallback to `_External` here.
                                 component = ComponentEnum::from_str(name).unwrap();
+                            }
+                        } else {
+                            // If there is a remaining path, we may need to further mutate the component.
+                            // For example,  `<textInput name="i" />$i.value`
+                            // should become `<textInput name="i" /><text extend="$i.value" />`
+                            // rather than   `<textInput name="i" /><textInput extend="$i.value" />`
+                            let path = ref_resolution.unresolved_path.as_ref().unwrap();
+                            if path.len() == 1 && path[0].index.is_empty() {
+                                let path_part = &path[0];
+                                // XXX: this needs to be redone with a queue because the component should already be computed.
+                                let referent = ComponentEnum::from_str(
+                                    match &normalized_root.nodes[ref_resolution.node_idx] {
+                                        NormalizedNode::Element(elm) => &elm.name,
+                                        _ => unreachable!(),
+                                    },
+                                )
+                                .unwrap();
+                                let referent_sv_idx = referent
+                                    .get_public_state_variable_index_from_name_case_insensitive(
+                                        &path_part.name,
+                                    );
+                                if let Some(referent_sv_idx) = referent_sv_idx {
+                                    let new_component_type = referent
+                                        .get_state_variable(referent_sv_idx)
+                                        .unwrap()
+                                        .preferred_component_type();
+                                    if new_component_type != component.get_component_type() {
+                                        component =
+                                            ComponentEnum::from_str(new_component_type).unwrap();
+                                    }
+                                }
                             }
                         }
                     }
@@ -234,7 +266,7 @@ impl ComponentBuilder {
         let extending = component
             .accepted_profiles()
             .into_iter()
-            .cartesian_product(referent.accepted_profiles())
+            .cartesian_product(referent.provided_profiles())
             .find_map(
                 |((component_profile, component_sv_idx), (referent_profile, referent_sv_idx))| {
                     if component_profile == referent_profile {
@@ -254,10 +286,14 @@ impl ComponentBuilder {
             Ok(extending)
         } else {
             Err(anyhow!(
-                "Cannot extend from {} to {}",
+                "Cannot do <{} extend='$ref'/> where $ref is type `{}`",
                 component.get_component_type(),
                 referent.get_component_type()
             ))
         }
     }
 }
+
+#[cfg(test)]
+#[path = "component_builder.test.rs"]
+mod test;

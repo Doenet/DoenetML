@@ -1,13 +1,17 @@
+<textInput prefill="hi" name="ti" />
+The value: $ti.immediateValue
+
+"<text extend="$ti.immediateValue"> world</text>"
+"<text extend="$ti.value"> world</text>"
+
 <!--
-  <textInput prefill="hi" name="ti" />
-The value: $ti.value
--->
 
 <text name="t">hello</text> ___
 
 "<text extend="$t"> world</text>"
 
 <textInput name="ti" />
+aaa $ti bbb
 
 "<text extend="$ti.immediateValue"> world</text>"
 
@@ -16,6 +20,7 @@ dsaf
   $ti
 </p>
 
+-->
 
 
 <!--

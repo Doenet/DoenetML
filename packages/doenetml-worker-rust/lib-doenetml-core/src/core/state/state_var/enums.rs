@@ -90,7 +90,7 @@ impl<'a> StateVarEnumRef<'a> {
     /// TODO: presumably, there should be a way to override this default.
     ///
     /// Returns: a tuple of (component type, state variable name)
-    pub fn get_default_shadowing_component_type(&self) -> &'static str {
+    pub fn preferred_component_type(&self) -> &'static str {
         match self {
             StateVarEnumRef::Number(_) => unimplemented!("Have not yet created number component"),
             StateVarEnumRef::Integer(_) => unimplemented!("Have not yet created number component"),
