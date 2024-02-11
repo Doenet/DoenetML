@@ -14,25 +14,13 @@ use crate::general_state_var::{StateVarAlias, StringStateVar};
     RenderedChildren,
 )]
 #[no_rendered_children]
+#[component(when_extending(match_profile = "String", store_in = "value"))]
 pub struct Text {
     /// The common component data needed to derive the `ComponentNode` trait
     pub common: ComponentCommonData,
 
     /// The state variables that underlie the `<text>` component.
     pub state: TextState,
-}
-
-impl Text {
-    /// If a Text component extends a state variable of type string,
-    /// then its value state variable should shadow that variable.
-    ///
-    /// Returns: a tuple of (component type, state variable index)
-    pub const fn get_state_variable_that_shadows_when_extending() -> (&'static str, StateVarIdx) {
-        (
-            Text::get_component_type(),
-            TextState::get_value_state_variable_index(),
-        )
-    }
 }
 
 /// The state variables that underlie the `<text>` component.

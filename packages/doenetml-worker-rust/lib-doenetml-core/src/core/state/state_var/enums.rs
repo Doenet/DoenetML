@@ -16,9 +16,7 @@ use crate::{
     dependency::{DataQuery, DependenciesCreatedForDataQuery, DependencyValueUpdateRequest},
 };
 
-use super::{
-    Freshness, InvertError, StateVar, StateVarIdx, StateVarMutableView, StateVarView, TryFromState,
-};
+use super::{Freshness, InvertError, StateVar, StateVarMutableView, StateVarView, TryFromState};
 
 ///////////////////////////////////////////////////////////////////////
 // State variable enum views that allow one to refer to state variables
@@ -92,14 +90,12 @@ impl<'a> StateVarEnumRef<'a> {
     /// TODO: presumably, there should be a way to override this default.
     ///
     /// Returns: a tuple of (component type, state variable name)
-    pub fn get_default_shadowing_component(&self) -> (&'static str, StateVarIdx) {
+    pub fn get_default_shadowing_component_type(&self) -> &'static str {
         match self {
             StateVarEnumRef::Number(_) => unimplemented!("Have not yet created number component"),
             StateVarEnumRef::Integer(_) => unimplemented!("Have not yet created number component"),
-            StateVarEnumRef::String(_) => Text::get_state_variable_that_shadows_when_extending(),
-            StateVarEnumRef::Boolean(_) => {
-                Boolean::get_state_variable_that_shadows_when_extending()
-            }
+            StateVarEnumRef::String(_) => Text::get_component_type(),
+            StateVarEnumRef::Boolean(_) => Boolean::get_component_type(),
         }
     }
 }

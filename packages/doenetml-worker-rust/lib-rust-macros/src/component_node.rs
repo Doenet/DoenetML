@@ -4,7 +4,7 @@ use proc_macro2::{Ident, Span};
 use quote::quote;
 use syn::{self, FieldsNamed};
 
-use darling::FromDeriveInput;
+use darling::{FromDeriveInput, FromMeta};
 
 use crate::util::has_attribute;
 
@@ -17,6 +17,14 @@ pub struct ComponentOptions {
     /// `<textInput name="a"/>$a`, one may want `$a` to appear as a `Text` by default,
     /// rather than a `TextInput`. In this case, you would set `ref_transmutes_to = "Text"`.
     pub ref_transmutes_to: Option<String>,
+
+    pub when_extending: Option<WhenExtending>,
+}
+
+#[derive(Debug, Default, FromMeta)]
+pub struct WhenExtending {
+    pub match_profile: String,
+    pub store_in: String,
 }
 
 /// Implement the ComponentNode trait structs
@@ -128,13 +136,31 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                     });
                 }
 
+                if let Some(WhenExtending {
+                    match_profile,
+                    store_in,
+                }) = &options.when_extending
+                {
+                    let local_get_index_function_name =
+                        format!("local_get_{}_state_variable_index", store_in);
+                    let local_get_index_function_identity =
+                        Ident::new(&local_get_index_function_name, Span::call_site());
+                    let match_profile_identity = Ident::new(&match_profile, Span::call_site());
+
+                    component_node_impl_body.extend(quote! {
+                        fn extends_component_profiles(&self) -> Vec<(ComponentProfile, StateVarIdx)> {
+                            vec![(ComponentProfile::#match_profile_identity, self.state.#local_get_index_function_identity())]
+                        }
+                    });
+                }
+
                 quote! {
                     impl ComponentNode for #name {
                         #component_node_impl_body
                     }
 
                     impl #name {
-                        const fn get_component_type() -> &'static str {
+                        pub const fn get_component_type() -> &'static str {
                             #component_string
                         }
                     }

@@ -205,6 +205,10 @@ pub trait ComponentNode: ComponentState {
     fn ref_transmutes_to(&self) -> Option<&'static str> {
         None
     }
+
+    fn extends_component_profiles(&self) -> Vec<(ComponentProfile, StateVarIdx)> {
+        vec![]
+    }
 }
 
 /// Specifies the children that will be sent to the renderer.
