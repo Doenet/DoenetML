@@ -8,12 +8,11 @@ use anyhow::anyhow;
 use crate::{
     components::{prelude::ComponentState, ComponentAttributes, ComponentNode},
     dast::{
-        flat_dast::{FlatElement, NormalizedNode, NormalizedRoot, Source, UntaggedContent},
+        flat_dast::{FlatElement, NormalizedNode, NormalizedRoot, Source},
         macro_resolve::RefResolution,
     },
     state::StateVarIdx,
-    ComponentIdx, ComponentPointerTextOrMacro, ExtendSource, ExtendStateVariableDescription,
-    StateVariableShadowingMatch,
+    ComponentIdx, ExtendSource, ExtendStateVariableDescription, StateVariableShadowingMatch,
 };
 
 use super::{ComponentEnum, ComponentProfile, _error::_Error, _external::_External};
@@ -113,19 +112,7 @@ impl ComponentBuilder {
                     );
                     // The referenced children may not yet be created as components, but by the end of the loop
                     // they should all be created with the exact same indices as the `normalized_flat_dast` indices.
-                    component.set_children(
-                        elm.children
-                            .iter()
-                            .map(|c| match c {
-                                UntaggedContent::Text(t) => {
-                                    ComponentPointerTextOrMacro::Text(t.clone())
-                                }
-                                UntaggedContent::Ref(idx) => {
-                                    ComponentPointerTextOrMacro::Component(*idx)
-                                }
-                            })
-                            .collect(),
-                    );
+                    component.set_children(elm.children.clone());
                     component.set_attribute_children(attributes);
                     // Small sanity check. We are assuming the component indices and the `normalized_flat_dast` indices are the same.
                     assert_eq!(idx, elm.idx, "Index misalignment while creating components");

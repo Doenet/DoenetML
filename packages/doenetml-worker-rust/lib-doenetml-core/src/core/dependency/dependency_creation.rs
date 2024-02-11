@@ -2,13 +2,13 @@ use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use crate::{
     components::{
-        prelude::{ComponentState, StateVarIdx, StateVarValue},
+        prelude::{ComponentState, StateVarIdx, StateVarValue, UntaggedContent},
         ComponentEnum, ComponentNode, ComponentProfile,
     },
     state::essential_state::{
         create_essential_data_for, EssentialDataOrigin, EssentialStateVar, InitialEssentialData,
     },
-    ComponentIdx, ComponentPointerTextOrMacro,
+    ComponentIdx,
 };
 
 use super::{
@@ -180,7 +180,7 @@ pub fn create_dependencies_from_data_query_initialize_essential(
 
             for child_info in children_info.iter() {
                 match child_info {
-                    (ComponentPointerTextOrMacro::Component(child_idx), parent_idx) => {
+                    (UntaggedContent::Ref(child_idx), parent_idx) => {
                         let child = components[*child_idx].borrow();
 
                         // Iterate through all the child's component profile state variables
@@ -216,7 +216,7 @@ pub fn create_dependencies_from_data_query_initialize_essential(
                             });
                         }
                     }
-                    (ComponentPointerTextOrMacro::Text(string_value), parent_idx) => {
+                    (UntaggedContent::Text(string_value), parent_idx) => {
                         // Text children are just strings, and they just match the String or LiteralString profiles
                         if match_profiles.contains(&ComponentProfile::String)
                             || match_profiles.contains(&ComponentProfile::LiteralString)
@@ -227,7 +227,6 @@ pub fn create_dependencies_from_data_query_initialize_essential(
                             });
                         }
                     }
-                    _ => (),
                 }
             }
 
@@ -376,7 +375,7 @@ pub fn create_dependencies_from_data_query_initialize_essential(
                 .iter()
                 .filter_map(|child| {
                     match child {
-                        ComponentPointerTextOrMacro::Component(child_idx) => {
+                        UntaggedContent::Ref(child_idx) => {
                             let child_comp = components[*child_idx].borrow();
 
                             child_comp
@@ -399,7 +398,7 @@ pub fn create_dependencies_from_data_query_initialize_essential(
                                     }
                                 })
                         }
-                        ComponentPointerTextOrMacro::Text(string_value) => {
+                        UntaggedContent::Text(string_value) => {
                             // Text children are just strings, and they just match the String or LiteralString profiles
                             if match_profiles.contains(&ComponentProfile::String)
                                 || match_profiles.contains(&ComponentProfile::LiteralString)
@@ -441,7 +440,6 @@ pub fn create_dependencies_from_data_query_initialize_essential(
                                 None
                             }
                         }
-                        _ => None,
                     }
                 })
                 .collect();

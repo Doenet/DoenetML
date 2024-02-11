@@ -4,10 +4,13 @@ use crate::{
     components::{
         prelude::ComponentState, ComponentActions, ComponentEnum, ComponentNode, RenderedChildren,
     },
-    ComponentIdx, ComponentPointerTextOrMacro, ExtendSource,
+    ComponentIdx, ExtendSource,
 };
 
-use super::{ElementData, FlatDastElement, FlatDastElementContent, FlatDastElementUpdate};
+use super::{
+    flat_dast::UntaggedContent, ElementData, FlatDastElement, FlatDastElementContent,
+    FlatDastElementUpdate,
+};
 
 /// Return the flat dast element sent to the renderer.
 pub fn to_flat_dast(
@@ -33,15 +36,9 @@ pub fn to_flat_dast(
             component
                 .get_rendered_children()
                 .iter()
-                .filter_map(|child| match child {
-                    ComponentPointerTextOrMacro::Component(comp_idx) => {
-                        Some(FlatDastElementContent::Element(*comp_idx))
-                    }
-                    ComponentPointerTextOrMacro::Text(s) => {
-                        Some(FlatDastElementContent::Text(s.to_string()))
-                    }
-                    ComponentPointerTextOrMacro::Macro(_the_macro) => None,
-                    ComponentPointerTextOrMacro::FunctionMacro(_function_macro) => None,
+                .map(|child| match child {
+                    UntaggedContent::Ref(comp_idx) => FlatDastElementContent::Element(*comp_idx),
+                    UntaggedContent::Text(s) => FlatDastElementContent::Text(s.to_string()),
                 }),
         );
     }

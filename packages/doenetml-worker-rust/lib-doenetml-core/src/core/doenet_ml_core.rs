@@ -5,8 +5,8 @@ use wasm_bindgen::prelude::*;
 
 use super::components::{ComponentActions, ComponentEnum};
 use super::dast::{
-    DastFunctionMacro, DastMacro, DastRoot, DastWarning, FlatDastElement, FlatDastElementContent,
-    FlatDastElementUpdate, FlatDastRoot, Position as DastPosition,
+    DastRoot, DastWarning, FlatDastElement, FlatDastElementContent, FlatDastElementUpdate,
+    FlatDastRoot, Position as DastPosition,
 };
 
 use super::state::essential_state::{EssentialDataOrigin, EssentialStateVar};
@@ -139,7 +139,7 @@ pub struct CoreProcessingState {
 
 #[derive(Debug)]
 pub struct DoenetMLRoot {
-    pub children: Vec<ComponentPointerTextOrMacro>,
+    pub children: Vec<UntaggedContent>,
 
     // map of descendant names to their indices
     pub descendant_names: HashMap<String, Vec<ComponentIdx>>,
@@ -156,15 +156,9 @@ impl DoenetMLRoot {
         let children: Vec<FlatDastElementContent> = self
             .children
             .iter()
-            .filter_map(|child| match child {
-                ComponentPointerTextOrMacro::Component(comp_idx) => {
-                    Some(FlatDastElementContent::Element(*comp_idx))
-                }
-                ComponentPointerTextOrMacro::Text(s) => {
-                    Some(FlatDastElementContent::Text(s.to_string()))
-                }
-                ComponentPointerTextOrMacro::Macro(_the_macro) => None,
-                ComponentPointerTextOrMacro::FunctionMacro(_function_macro) => None,
+            .map(|child| match child {
+                UntaggedContent::Ref(comp_idx) => FlatDastElementContent::Element(*comp_idx),
+                UntaggedContent::Text(s) => FlatDastElementContent::Text(s.to_string()),
             })
             .collect();
 
@@ -175,19 +169,6 @@ impl DoenetMLRoot {
             position: self.position.clone(),
         }
     }
-}
-
-/// Information specifying a component, string or macro, used for component children or attributes.
-/// - For a component, we just store its index.
-/// - For a string, store that string
-///
-/// TODO: can we eliminate macros eventually since they should be converted to components and strings?
-#[derive(Debug, Clone)]
-pub enum ComponentPointerTextOrMacro {
-    Component(ComponentIdx),
-    Text(String),
-    Macro(DastMacro),
-    FunctionMacro(DastFunctionMacro),
 }
 
 /// Information of the source that a component is extending, which is currently
@@ -247,14 +228,7 @@ impl DoenetMLCore {
 
         // add root node
         let root = DoenetMLRoot {
-            children: flat_root
-                .children
-                .iter()
-                .map(|c| match c {
-                    UntaggedContent::Ref(idx) => ComponentPointerTextOrMacro::Component(*idx),
-                    UntaggedContent::Text(s) => ComponentPointerTextOrMacro::Text(s.to_string()),
-                })
-                .collect(),
+            children: flat_root.children,
             descendant_names: HashMap::new(),
             position: None,
         };

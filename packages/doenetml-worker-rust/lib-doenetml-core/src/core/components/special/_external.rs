@@ -21,16 +21,13 @@ impl ComponentNode for _External {
     fn get_parent(&self) -> Option<ComponentIdx> {
         self.common.parent
     }
-    fn get_children(&self) -> &Vec<ComponentPointerTextOrMacro> {
+    fn get_children(&self) -> &Vec<UntaggedContent> {
         &self.common.children
     }
-    fn set_children(&mut self, children: Vec<ComponentPointerTextOrMacro>) {
+    fn set_children(&mut self, children: Vec<UntaggedContent>) {
         self.common.children = children;
     }
-    fn replace_children(
-        &mut self,
-        new_children: Vec<ComponentPointerTextOrMacro>,
-    ) -> Vec<ComponentPointerTextOrMacro> {
+    fn replace_children(&mut self, new_children: Vec<UntaggedContent>) -> Vec<UntaggedContent> {
         std::mem::replace(&mut self.common.children, new_children)
     }
 
@@ -74,7 +71,7 @@ impl ComponentNode for _External {
 
     fn set_attribute_children(
         &mut self,
-        attribute_children: HashMap<AttributeName, Vec<ComponentPointerTextOrMacro>>,
+        attribute_children: HashMap<AttributeName, Vec<UntaggedContent>>,
     ) {
         self.common.attribute_children = attribute_children;
     }
@@ -82,7 +79,7 @@ impl ComponentNode for _External {
     fn get_attribute_children_for_attribute(
         &self,
         attribute: AttributeName,
-    ) -> Option<&Vec<ComponentPointerTextOrMacro>> {
+    ) -> Option<&Vec<UntaggedContent>> {
         self.common.attribute_children.get(attribute)
     }
 

@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::dast::{DastAttribute, Position as DastPosition};
 use crate::state::{ComponentState, StateVarIdx, StateVarValue};
-use crate::{ComponentIdx, ComponentPointerTextOrMacro, ExtendSource};
+use crate::{ComponentIdx, ExtendSource};
 
 use doenetml_derive::RenderedState;
 
@@ -21,6 +21,7 @@ use super::doenet::p::*;
 use super::doenet::section::*;
 use super::doenet::text::*;
 use super::doenet::text_input::*;
+use super::prelude::UntaggedContent;
 
 /// A enum that can contain a component of any possible component type.
 ///
@@ -37,6 +38,10 @@ use super::doenet::text_input::*;
     ComponentActions
 )]
 #[strum(ascii_case_insensitive)]
+// Components vary in size. It is unclear if we want to `Box` all of them,
+// or accept a size-inefficient data structure for simplicity.
+// Revisit when we have more components.
+#[allow(clippy::large_enum_variant)]
 pub enum ComponentEnum {
     Text(Text),
     TextInput(TextInput),
@@ -76,7 +81,7 @@ pub struct ComponentCommonData {
     ///
     /// Macros remain in this vector only if they couldn't be expanded.
     /// TODO: implement function macros so they don't stay in this vector
-    pub children: Vec<ComponentPointerTextOrMacro>,
+    pub children: Vec<UntaggedContent>,
 
     /// If this component is extending another component or state variable,
     /// then the `extending` field gives the source that it is extending.
@@ -95,7 +100,7 @@ pub struct ComponentCommonData {
     pub attribute_types: HashMap<AttributeName, AttributeType>,
 
     /// The vector of all the attribute children that have been created for this attribute.
-    pub attribute_children: HashMap<AttributeName, Vec<ComponentPointerTextOrMacro>>,
+    pub attribute_children: HashMap<AttributeName, Vec<UntaggedContent>>,
 
     /// Any remaining attributes that appeared in the DoenetML
     /// but where not defined in the component
@@ -118,14 +123,11 @@ pub trait ComponentNode: ComponentState {
     /// Get the index of the parent node
     fn get_parent(&self) -> Option<ComponentIdx>;
     /// Get the vector containing the indices of all child component nodes and the literal string children.
-    fn get_children(&self) -> &Vec<ComponentPointerTextOrMacro>;
+    fn get_children(&self) -> &Vec<UntaggedContent>;
     /// Set the vector containing the indices of all child component nodes and the literal string children.
-    fn set_children(&mut self, children: Vec<ComponentPointerTextOrMacro>);
+    fn set_children(&mut self, children: Vec<UntaggedContent>);
     /// Replace with new values the vector containing the indices of all child component nodes and the literal string children.
-    fn replace_children(
-        &mut self,
-        new_children: Vec<ComponentPointerTextOrMacro>,
-    ) -> Vec<ComponentPointerTextOrMacro>;
+    fn replace_children(&mut self, new_children: Vec<UntaggedContent>) -> Vec<UntaggedContent>;
 
     /// Set component's index, parent, extending, and position in the original DoenetML string.
     ///
@@ -164,14 +166,14 @@ pub trait ComponentNode: ComponentState {
     /// indices of all child component nodes and the literal string children.
     fn set_attribute_children(
         &mut self,
-        attribute_children: HashMap<AttributeName, Vec<ComponentPointerTextOrMacro>>,
+        attribute_children: HashMap<AttributeName, Vec<UntaggedContent>>,
     );
 
     /// Get the vector of all the attribute children that have been created for this attribute.
     fn get_attribute_children_for_attribute(
         &self,
         attribute: AttributeName,
-    ) -> Option<&Vec<ComponentPointerTextOrMacro>>;
+    ) -> Option<&Vec<UntaggedContent>>;
 
     /// Get the hash map of all attributes that have not yet been evaluated to create attribute children.
     ///
@@ -220,7 +222,7 @@ pub trait ComponentNode: ComponentState {
 #[enum_dispatch]
 pub trait RenderedChildren {
     /// Return the children that will be used in the flat dast sent to the renderer.
-    fn get_rendered_children(&self) -> &Vec<ComponentPointerTextOrMacro>;
+    fn get_rendered_children(&self) -> &Vec<UntaggedContent>;
 }
 
 /// The ComponentAttributes trait can be derived for a component,

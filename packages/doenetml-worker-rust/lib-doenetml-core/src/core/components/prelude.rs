@@ -8,6 +8,7 @@ pub use doenetml_derive::{
 };
 pub use std::collections::HashMap;
 
+pub use crate::dast::flat_dast::UntaggedContent;
 pub use crate::dast::Position as DastPosition;
 pub use crate::dependency::DependenciesCreatedForDataQuery;
 pub use crate::state::{
@@ -15,7 +16,7 @@ pub use crate::state::{
 };
 
 pub use crate::utils::KeyValueIgnoreCase;
-pub use crate::{ComponentIdx, ComponentPointerTextOrMacro, ExtendSource};
+pub use crate::{ComponentIdx, ExtendSource};
 
 pub use crate::components::{
     ComponentActions, ComponentAttributes, ComponentCommonData, ComponentNode, RenderedChildren,

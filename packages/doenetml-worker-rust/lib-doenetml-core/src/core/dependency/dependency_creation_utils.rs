@@ -2,8 +2,11 @@ use std::{cell::RefCell, rc::Rc};
 
 use crate::{
     attribute::AttributeName,
-    components::{prelude::ComponentState, ComponentEnum, ComponentNode, ComponentProfile},
-    ComponentIdx, ComponentPointerTextOrMacro, ExtendSource,
+    components::{
+        prelude::{ComponentState, UntaggedContent},
+        ComponentEnum, ComponentNode, ComponentProfile,
+    },
+    ComponentIdx, ExtendSource,
 };
 
 use super::{Dependency, DependencySource};
@@ -68,7 +71,7 @@ pub fn create_dependency_from_extend_source_if_matches_profile(
 pub fn get_children_with_parent_including_from_extend_source(
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
     component_idx: ComponentIdx,
-) -> Vec<(ComponentPointerTextOrMacro, ComponentIdx)> {
+) -> Vec<(UntaggedContent, ComponentIdx)> {
     let component = components[component_idx].borrow();
 
     let mut children_vec =
@@ -116,7 +119,7 @@ pub fn get_attribute_children_with_parent_falling_back_to_extend_source(
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
     component_idx: ComponentIdx,
     attribute: AttributeName,
-) -> Option<(Vec<ComponentPointerTextOrMacro>, ComponentIdx)> {
+) -> Option<(Vec<UntaggedContent>, ComponentIdx)> {
     let component = components[component_idx].borrow();
 
     component
