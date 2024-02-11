@@ -12,25 +12,13 @@ use crate::general_state_var::{BooleanStateVar, BooleanToStringStateVar, StateVa
     RenderedChildren,
 )]
 #[no_rendered_children]
+#[component(when_extending(match_profile = "Boolean", store_in = "value"))]
 pub struct Boolean {
     /// The common component data needed to derive the `ComponentNode` trait
     pub common: ComponentCommonData,
 
     /// The state variables that underlie the `<boolean>` component.
     pub state: BooleanState,
-}
-
-impl Boolean {
-    /// If a Boolean component extends a state variable of type boolean,
-    /// then its value state variable should shadow that variable.
-    ///
-    /// Returns: a tuple of (component type, state variable index)
-    pub const fn get_state_variable_that_shadows_when_extending() -> (&'static str, StateVarIdx) {
-        (
-            Boolean::get_component_type(),
-            BooleanState::get_value_state_variable_index(),
-        )
-    }
 }
 
 /// The state variables that underlie the `<boolean>` component.

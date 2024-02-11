@@ -60,9 +60,8 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
 
                             fn get_component_profile_state_variable_indices(&self) -> Vec<StateVarIdx> {
                                 self.state.get_component_profile_state_variable_indices()
-
-
                             }
+
                             fn get_public_state_variable_index_from_name_case_insensitive(
                                 &self,
                                 name: &str,
@@ -182,10 +181,18 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
                         let get_index_function_identity =
                             Ident::new(&get_index_function_name, Span::call_site());
 
+                        let local_get_index_function_name =
+                            format!("local_get_{}_state_variable_index", field_identity);
+                        let local_get_index_function_identity =
+                            Ident::new(&local_get_index_function_name, Span::call_site());
+
                         get_state_variable_index_functions.push(quote! {
                             /// Get a state variable index
                             /// of the specified state variable
                             pub const fn #get_index_function_identity() -> StateVarIdx {
+                                #sv_idx
+                            }
+                            pub const fn #local_get_index_function_identity(&self) -> StateVarIdx {
                                 #sv_idx
                             }
                         });
