@@ -12,6 +12,7 @@ use crate::{
         flat_dast::{Index, NormalizedNode, NormalizedRoot, Source},
         macro_resolve::RefResolution,
     },
+    utils::KeyValueIgnoreCase,
     ExtendStateVar, Extending, StateVarShadowingPair,
 };
 
@@ -78,12 +79,14 @@ impl ComponentBuilder {
         let mut components: Vec<Option<ComponentEnum>> = iter::repeat_with(|| None)
             .take(normalized_root.nodes.len())
             .collect();
-        #[derive(Clone, Copy)]
+        #[derive(Clone, Copy, Debug)]
         enum Status {
             /// No component has been created at this index.
             Empty,
             /// A component is in the process of being created at this index.
             Creating,
+            /// A component has been created at this index.
+            Created,
         }
         let mut component_status: Vec<Status> = iter::repeat(Status::Empty)
             .take(normalized_root.nodes.len())
@@ -108,10 +111,14 @@ impl ComponentBuilder {
             match Self::create_component(node, &components) {
                 Ok(component) => {
                     components[idx] = Some(component);
+                    // Logically, we don't need to set the status to `Created` since we received a component,
+                    // but it may help with debugging.
+                    component_status[idx] = Status::Created;
                 }
                 Err(dependency_idx) => {
                     // If we have a dependency that needs to be created first, then we need to queue this node again.
                     queue.push(idx);
+                    component_status[idx] = Status::Empty;
                     queue.push(dependency_idx);
                 }
             }
@@ -311,20 +318,25 @@ impl ComponentBuilder {
                     }
                 }
 
-                // XXX: we temporarily fill each required attribute with an empty vector.
-                // This will be removed when typed attributes are integrated.
-                let attributes: HashMap<&'static str, _> = HashMap::from_iter(
-                    component
-                        .get_attribute_names()
+                // These are the unused attributes that are not recognized by the component
+                let mut unused_attributes = HashMap::<String, _>::from_iter(
+                    elm.attributes
                         .iter()
-                        .map(|&name| (name, Vec::new())),
+                        .map(|attr| (attr.name.clone(), attr.clone())),
                 );
+
+                let attributes: HashMap<&'static str, _> =
+                    HashMap::from_iter(component.get_attribute_names().iter().map(|&name| {
+                        unused_attributes
+                            .remove_ignore_case(name)
+                            .map_or_else(|| (name, Vec::new()), |v| (name, v.children))
+                    }));
 
                 component.initialize(
                     elm.idx,
                     elm.parent,
                     None,
-                    HashMap::new(),
+                    unused_attributes,
                     elm.position.clone(),
                 );
                 component.get_extending();

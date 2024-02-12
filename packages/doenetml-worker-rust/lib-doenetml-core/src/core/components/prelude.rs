@@ -8,6 +8,7 @@ pub use doenetml_derive::{
 };
 pub use std::collections::HashMap;
 
+pub use crate::dast::flat_dast::FlatAttribute;
 pub use crate::dast::flat_dast::UntaggedContent;
 pub use crate::dast::Position as DastPosition;
 pub use crate::dependency::DependenciesCreatedForDataQuery;

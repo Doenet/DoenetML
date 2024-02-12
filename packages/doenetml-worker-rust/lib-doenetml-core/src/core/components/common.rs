@@ -4,9 +4,10 @@ use enum_dispatch::enum_dispatch;
 use strum_macros::EnumString;
 
 use crate::attribute::{AttributeName, AttributeType};
+use crate::dast::flat_dast::FlatAttribute;
 use serde::{Deserialize, Serialize};
 
-use crate::dast::{DastAttribute, Position as DastPosition};
+use crate::dast::Position as DastPosition;
 use crate::state::{ComponentState, StateVarIdx, StateVarValue};
 use crate::{ComponentIdx, Extending};
 
@@ -103,8 +104,8 @@ pub struct ComponentCommonData {
     pub attribute_children: HashMap<AttributeName, Vec<UntaggedContent>>,
 
     /// Any remaining attributes that appeared in the DoenetML
-    /// but where not defined in the component
-    pub unevaluated_attributes: HashMap<String, DastAttribute>,
+    /// but where not recognized component
+    pub unrecognized_attributes: HashMap<String, FlatAttribute>,
 
     /// Whether or not this component is to be rendered, i.e.,
     /// whether or not it is in the tree of rendered components.
@@ -138,7 +139,7 @@ pub trait ComponentNode: ComponentState {
         idx: ComponentIdx,
         parent: Option<ComponentIdx>,
         extending: Option<Extending>,
-        attributes: HashMap<String, DastAttribute>,
+        unrecognized_attributes: HashMap<String, FlatAttribute>,
         position: Option<DastPosition>,
     );
 
@@ -181,13 +182,13 @@ pub trait ComponentNode: ComponentState {
     ///
     /// The hash map initially contains all attributes received from the dast,
     /// but then attributes that are defined for the component are removed.
-    fn get_unevaluated_attributes(&self) -> &HashMap<String, DastAttribute>;
+    fn get_unrecognized_attributes(&self) -> &HashMap<String, FlatAttribute>;
 
     /// Get a mutable reference to the hash map of all attributes that have not yet been evaluated to create attribute children.
     ///
     /// The hash map initially contains all attributes received from the dast,
     /// but then attributes that are defined for the component are removed.
-    fn get_unevaluated_attributes_mut(&mut self) -> &mut HashMap<String, DastAttribute>;
+    fn get_unrecognized_attributes_mut(&mut self) -> &mut HashMap<String, FlatAttribute>;
 
     /// Get whether or not this component is to be rendered, i.e.,
     /// whether or not it is in the tree of rendered components.

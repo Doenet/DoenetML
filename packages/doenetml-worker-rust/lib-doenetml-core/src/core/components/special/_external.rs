@@ -1,4 +1,4 @@
-use crate::components::prelude::*;
+use crate::{components::prelude::*, dast::flat_dast::FlatAttribute};
 
 #[derive(
     Debug, Default, RenderedChildren, ComponentState, ComponentActions, ComponentAttributes,
@@ -36,13 +36,13 @@ impl ComponentNode for _External {
         idx: ComponentIdx,
         parent: Option<ComponentIdx>,
         _extending: Option<Extending>,
-        attributes: HashMap<String, DastAttribute>,
+        unrecognized_attributes: HashMap<String, FlatAttribute>,
         position: Option<DastPosition>,
     ) {
         self.common.idx = idx;
         self.common.parent = parent;
         self.common.position = position;
-        self.common.unevaluated_attributes = attributes;
+        self.common.unrecognized_attributes = unrecognized_attributes;
     }
 
     fn get_extending(&self) -> Option<&Extending> {
@@ -87,12 +87,12 @@ impl ComponentNode for _External {
         self.common.attribute_children.get(attribute)
     }
 
-    fn get_unevaluated_attributes(&self) -> &HashMap<String, DastAttribute> {
-        &self.common.unevaluated_attributes
+    fn get_unrecognized_attributes(&self) -> &HashMap<String, FlatAttribute> {
+        &self.common.unrecognized_attributes
     }
 
-    fn get_unevaluated_attributes_mut(&mut self) -> &mut HashMap<String, DastAttribute> {
-        &mut self.common.unevaluated_attributes
+    fn get_unrecognized_attributes_mut(&mut self) -> &mut HashMap<String, FlatAttribute> {
+        &mut self.common.unrecognized_attributes
     }
 
     fn get_is_in_render_tree(&self) -> bool {

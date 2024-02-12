@@ -6,6 +6,18 @@ use crate::components::prelude::*;
 
 use super::TextInputState;
 
+#[derive(Debug, Deserialize, EnumVariantNames)]
+#[serde(rename_all = "camelCase")]
+#[strum(serialize_all = "camelCase")]
+pub enum TextInputAttribute {
+    /// Whether the `<textInput>` should be hidden.
+    Hide,
+    /// Whether the `<textInput>` should be editable.
+    Disabled,
+    /// The content that should prefill the `<textInput>`, giving it a default value before a user has interacted with the input.
+    Prefill,
+}
+
 #[derive(Debug, Deserialize, Serialize)]
 #[cfg_attr(feature = "web", derive(tsify::Tsify))]
 #[cfg_attr(feature = "web", tsify(from_wasm_abi))]
@@ -38,7 +50,7 @@ pub struct TextInput {
 
 impl ComponentAttributes for TextInput {
     fn get_attribute_names(&self) -> Vec<AttributeName> {
-        vec!["hide", "disabled", "prefill"]
+        TextInputAttribute::VARIANTS.into()
     }
 }
 
