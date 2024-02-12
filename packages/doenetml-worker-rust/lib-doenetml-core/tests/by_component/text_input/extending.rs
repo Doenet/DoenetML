@@ -1,7 +1,6 @@
 use super::*;
 
 /// A text input extending a text input mirrors both value and immediate value
-#[ignore = "extend not yet implemented"]
 #[test]
 fn text_input_extending_text_input() {
     let dast_root = dast_root_no_position(r#"<textInput name="ti"/> <textInput extend="$ti" />"#);
@@ -49,10 +48,9 @@ fn text_input_extending_text_input() {
 }
 
 /// A text extending a text input mirrors `value`
-#[ignore = "extend not yet implemented"]
 #[test]
 fn references_to_value_and_immediate_value_respond_to_actions() {
-    let dast_root = dast_root_no_position(r#"<textInput name="ti"/> <text extend="$t" />"#);
+    let dast_root = dast_root_no_position(r#"<textInput name="ti"/> <text extend="$ti" />"#);
     let mut core = DoenetMLCore::new(dast_root, "", "", None);
 
     // the text input will be index 1, as the document tag will be index 0.

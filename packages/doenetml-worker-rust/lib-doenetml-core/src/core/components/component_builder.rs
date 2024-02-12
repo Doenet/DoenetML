@@ -78,12 +78,10 @@ impl ComponentBuilder {
         let mut components: Vec<Option<ComponentEnum>> = iter::repeat_with(|| None)
             .take(normalized_root.nodes.len())
             .collect();
-        #[derive(Clone, Copy, Debug, PartialEq)]
+        #[derive(Clone, Copy)]
         enum Status {
             /// No component has been created at this index.
             Empty,
-            /// A component has been created at this index.
-            Created,
             /// A component is in the process of being created at this index.
             Creating,
         }
@@ -95,11 +93,11 @@ impl ComponentBuilder {
         let mut queue: Vec<usize> = Vec::from_iter((0..components.len()).rev());
 
         while let Some(idx) = queue.pop() {
-            if component_status[idx] == Status::Created {
-                // No need to remake an element.
+            if components[idx].is_some() {
+                // No need to remake a component.
                 continue;
             }
-            if component_status[idx] == Status::Creating {
+            if matches!(component_status[idx], Status::Creating) {
                 // If we are trying to create a component that is already in the process of being created,
                 // then we have a circular dependency.
                 panic!("Circular dependency detected while creating components");
@@ -110,7 +108,6 @@ impl ComponentBuilder {
             match Self::create_component(node, &components) {
                 Ok(component) => {
                     components[idx] = Some(component);
-                    component_status[idx] = Status::Created;
                 }
                 Err(dependency_idx) => {
                     // If we have a dependency that needs to be created first, then we need to queue this node again.

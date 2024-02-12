@@ -143,7 +143,6 @@ fn references_to_value_and_immediate_value_respond_to_actions() {
 }
 
 /// A plain reference to a text input expands into a text mirroring `value`
-#[ignore = "feature not yet implemented"]
 #[test]
 fn plain_reference_to_text_input_expands_into_text() {
     let dast_root = dast_root_no_position(r#"<textInput name="ti"/> $ti"#);
