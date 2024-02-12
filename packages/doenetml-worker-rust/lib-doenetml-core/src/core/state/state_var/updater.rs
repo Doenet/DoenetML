@@ -31,7 +31,7 @@ pub enum InvertError {
 
 /// Methods used when updating a state variable's dependencies, including querying for its
 /// dependencies and calculating the value from its dependencies.
-pub trait StateVarUpdater<T: Default + Clone, D>: std::fmt::Debug {
+pub trait StateVarUpdater<T: Default + Clone, RequiredData>: std::fmt::Debug {
     /// The default value that core will use to assign the value of this state variable.
     ///
     /// Used only when the state variable doesn't depend on other values
@@ -47,7 +47,7 @@ pub trait StateVarUpdater<T: Default + Clone, D>: std::fmt::Debug {
 
     /// Calculate the value of the state variable from the passed in `data`.
     /// Results of this function will be cached, so local caching is not needed.
-    fn calculate<'a>(&self, data: &'a D) -> StateVarCalcResult<'a, T>;
+    fn calculate<'a>(&self, data: &'a RequiredData) -> StateVarCalcResult<'a, T>;
 
     /// All state variables know how to calculate their value given their dependencies.
     /// Sometimes a state variable is requested to take on a particular value. If the
@@ -66,7 +66,7 @@ pub trait StateVarUpdater<T: Default + Clone, D>: std::fmt::Debug {
     #[allow(unused)]
     fn invert(
         &self,
-        data: &mut D,
+        data: &mut RequiredData,
         state_var: &StateVarView<T>,
         is_direct_change_from_action: bool,
     ) -> Result<Vec<DependencyValueUpdateRequest>, InvertError> {
@@ -117,18 +117,34 @@ pub trait StateVarUpdaterWithCache<T: Default + Clone>: std::fmt::Debug {
     }
 }
 
+/// The structure we will use to create `StateVarUpdaterWithCache<T>` trait objects
+/// for the `updater` field of a `StateVar<T>`.
+///
+/// To create a `StateVarUpdaterWithCacheStruct` one needs:
+/// - SvUpdater: an object that implements StateVarUpdater<T, RequiredData>
+/// - RequiredData: a structure that stores all the required data to calculate the state variable.
+///   It must implement `FromDependencies` so that it can be from the dependencies
+///   returned from a data query.
 #[derive(Debug)]
-pub struct StateVarUpdaterWithCacheStruct<S, D: Default> {
-    state_var_updater: S,
-    cache: D,
+pub struct StateVarUpdaterWithCacheStruct<SvUpdater, RequiredData: Default> {
+    state_var_updater: SvUpdater,
+    cache: RequiredData,
     queries_used: Vec<usize>,
 }
 
-impl<S, T, D> StateVarUpdaterWithCache<T> for StateVarUpdaterWithCacheStruct<S, D>
+/// An implementation of `StateVarUpdaterWithCache<T>`
+/// requires that we specify:
+/// - T: the type of `StateVar<T>`
+/// - SvUpdater: an object that implements StateVarUpdater<T, RequiredData>
+/// - RequiredData: a structure that stores all the required data to calculate the state variable.
+///   It must implement `FromDependencies` so that it can be from the dependencies
+///   returned from a data query.
+impl<T, SvUpdater, RequiredData> StateVarUpdaterWithCache<T>
+    for StateVarUpdaterWithCacheStruct<SvUpdater, RequiredData>
 where
-    S: StateVarUpdater<T, D>,
+    SvUpdater: StateVarUpdater<T, RequiredData>,
     T: Default + Clone,
-    D: std::fmt::Debug + Default + FromDependencies,
+    RequiredData: std::fmt::Debug + Default + FromDependencies,
 {
     fn return_data_queries(&mut self) -> Vec<DataQuery> {
         self.queries_used = Vec::new();
@@ -164,16 +180,17 @@ where
     }
 }
 
-pub trait IntoStateVar<T: Default + Clone, D: Default> {
+pub trait IntoStateVar<T: Default + Clone, RequiredData: Default> {
     fn into_state_var(self) -> StateVar<T>;
 }
 
-impl<T, D, S> IntoStateVar<T, D> for S
+impl<T, RequiredData, SvUpdater> IntoStateVar<T, RequiredData> for SvUpdater
 where
     T: Default + Clone,
-    D: 'static + std::fmt::Debug + Default + FromDependencies,
-    S: 'static + StateVarUpdater<T, D>,
+    RequiredData: 'static + std::fmt::Debug + Default + FromDependencies,
+    SvUpdater: 'static + StateVarUpdater<T, RequiredData>,
 {
+    /// Convert an object that implements `StateVarUpdater<T, RequiredData>` into a `StateVar<T>`
     fn into_state_var(self) -> StateVar<T> {
         let default_value = self.default_value();
 
@@ -186,8 +203,8 @@ where
     }
 }
 
-pub trait DependenciesToData<D> {
-    fn to_data(&self, queries_used: &[usize]) -> D;
+pub trait DependenciesToData<RequiredData> {
+    fn to_data(&self, queries_used: &[usize]) -> RequiredData;
 }
 
 pub trait FromDependencies {
@@ -197,12 +214,14 @@ pub trait FromDependencies {
     ) -> Self;
 }
 
-impl<D> DependenciesToData<D> for Vec<DependenciesCreatedForDataQuery>
+impl<RequiredData> DependenciesToData<RequiredData> for Vec<DependenciesCreatedForDataQuery>
 where
-    D: FromDependencies,
+    RequiredData: FromDependencies,
 {
-    fn to_data(&self, queries_used: &[usize]) -> D {
-        D::from_dependencies(self, queries_used)
+    /// Convert a vector of `DependenciesCreatedForDataQuery` into an object of type `RequiredData`,
+    /// where `RequiredData` is a type that has implemented `FromDependencies`
+    fn to_data(&self, queries_used: &[usize]) -> RequiredData {
+        RequiredData::from_dependencies(self, queries_used)
     }
 }
 
