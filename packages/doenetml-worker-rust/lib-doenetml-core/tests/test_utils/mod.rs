@@ -1,7 +1,7 @@
 //! This file contains utilities for testing DoenetMLCore.
 use doenetml_core::dast::{DastRoot, FlatDastRoot};
 use serde_json;
-pub use serde_json::{json, Value};
+pub use serde_json::Value;
 use std::process::Command;
 use std::str;
 

@@ -1,7 +1,7 @@
 //! A `ComponentBuilder` turns DAST components into fully hydrated components that are ready for use in Core.
 //! Unlike DAST, which is schema agnostic, components represent element types that are actually implemented in DoenetML.
 
-use std::{collections::HashMap, str::FromStr};
+use std::{collections::HashMap, iter, str::FromStr};
 
 use anyhow::anyhow;
 use itertools::Itertools;
@@ -9,7 +9,7 @@ use itertools::Itertools;
 use crate::{
     components::{prelude::ComponentState, ComponentAttributes, ComponentNode},
     dast::{
-        flat_dast::{NormalizedNode, NormalizedRoot, Source},
+        flat_dast::{Index, NormalizedNode, NormalizedRoot, Source},
         macro_resolve::RefResolution,
     },
     ExtendStateVar, Extending, StateVarShadowingPair,
@@ -36,106 +36,7 @@ impl ComponentBuilder {
         }
     }
 
-    /// Creates all `components` but sets all their `extending` fields to `None`.
-    /// This is an intermediate step that needs to be done before resolving references in `extending`.
-    fn from_normalized_root_without_extending(normalized_root: &NormalizedRoot) -> Self {
-        let components = normalized_root
-            .nodes
-            .iter()
-            .enumerate()
-            .map(|(idx, node)| match node {
-                NormalizedNode::Element(elm) => {
-                    let mut component = ComponentEnum::from_str(&elm.name).unwrap_or_else(|_| {
-                        // If we didn't find a match, then create a component of type external
-                        ComponentEnum::_External(_External {
-                            name: elm.name.clone(),
-                            ..Default::default()
-                        })
-                    });
-
-                    if let Some(Source::Macro(ref_resolution)) = &elm.extending {
-                        // Some components specify that when they are referenced with the `$foo` syntax,
-                        // a different component should be created in their place. E.g., `<textInput name="i" />$i`
-                        // should become `<textInput name="i" /><text extend="$i` />`.
-                        // This information is stored in `ref_transmutes_to()`.
-                        if ref_resolution.unresolved_path.is_none() {
-                            if let Some(name) = component.ref_transmutes_to() {
-                                // It is forbidden to expand to an invalid component type, so we do not
-                                // have a fallback to `_External` here.
-                                component = ComponentEnum::from_str(name).unwrap();
-                            }
-                        } else {
-                            // If there is a remaining path, we may need to further mutate the component.
-                            // For example,  `<textInput name="i" />$i.value`
-                            // should become `<textInput name="i" /><text extend="$i.value" />`
-                            // rather than   `<textInput name="i" /><textInput extend="$i.value" />`
-                            let path = ref_resolution.unresolved_path.as_ref().unwrap();
-                            if path.len() == 1 && path[0].index.is_empty() {
-                                let path_part = &path[0];
-                                // XXX: this needs to be redone with a queue because the component should already be computed.
-                                let referent = ComponentEnum::from_str(
-                                    match &normalized_root.nodes[ref_resolution.node_idx] {
-                                        NormalizedNode::Element(elm) => &elm.name,
-                                        _ => unreachable!(),
-                                    },
-                                )
-                                .unwrap();
-                                let referent_sv_idx = referent
-                                    .get_public_state_variable_index_from_name_case_insensitive(
-                                        &path_part.name,
-                                    );
-                                if let Some(referent_sv_idx) = referent_sv_idx {
-                                    let new_component_type = referent
-                                        .get_state_variable(referent_sv_idx)
-                                        .unwrap()
-                                        .preferred_component_type();
-                                    if new_component_type != component.get_component_type() {
-                                        component =
-                                            ComponentEnum::from_str(new_component_type).unwrap();
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    // XXX: we temporarily fill each required attribute with an empty vector.
-                    // This will be removed when typed attributes are integrated.
-                    let attributes: HashMap<&'static str, _> = HashMap::from_iter(
-                        component
-                            .get_attribute_names()
-                            .iter()
-                            .map(|&name| (name, Vec::new())),
-                    );
-
-                    component.initialize(
-                        elm.idx,
-                        elm.parent,
-                        None,
-                        HashMap::new(),
-                        elm.position.clone(),
-                    );
-                    component.get_extending();
-                    // The referenced children may not yet be created as components, but by the end of the loop
-                    // they should all be created with the exact same indices as the `normalized_flat_dast` indices.
-                    component.set_children(elm.children.clone());
-                    component.set_attribute_children(attributes);
-                    // Small sanity check. We are assuming the component indices and the `normalized_flat_dast` indices are the same.
-                    assert_eq!(idx, elm.idx, "Index misalignment while creating components");
-                    component
-                }
-                NormalizedNode::Error(e) => {
-                    let mut error = _Error::new();
-                    error.initialize(e.idx, e.parent, None, HashMap::new(), e.position.clone());
-                    // Small sanity check. We are assuming the component indices and the `normalized_flat_dast` indices are the same.
-                    assert_eq!(idx, e.idx, "Index misalignment while creating components");
-                    ComponentEnum::_Error(error)
-                }
-            })
-            .collect();
-
-        Self { components }
-    }
-
+    /// Given a `NormalizedRoot`, create a `ComponentBuilder` that contains reified components.
     pub fn from_normalized_root(normalized_root: &NormalizedRoot) -> Self {
         let mut builder = Self::from_normalized_root_without_extending(normalized_root);
         for idx in 0..builder.components.len() {
@@ -167,6 +68,61 @@ impl ComponentBuilder {
             }
         }
         builder
+    }
+
+    /// Creates all `components` but sets all their `extending` fields to `None`.
+    /// This is an intermediate step that needs to be done before resolving references in `extending`.
+    fn from_normalized_root_without_extending(normalized_root: &NormalizedRoot) -> Self {
+        // We are going to create components possibly out of order. We will track which components are created
+        // and which are in the process of being created.
+        let mut components: Vec<Option<ComponentEnum>> = iter::repeat_with(|| None)
+            .take(normalized_root.nodes.len())
+            .collect();
+        #[derive(Clone, Copy, Debug, PartialEq)]
+        enum Status {
+            /// No component has been created at this index.
+            Empty,
+            /// A component has been created at this index.
+            Created,
+            /// A component is in the process of being created at this index.
+            Creating,
+        }
+        let mut component_status: Vec<Status> = iter::repeat(Status::Empty)
+            .take(normalized_root.nodes.len())
+            .collect();
+
+        // Creating the nodes lowest-index first should lead to less queueing than the other way around.
+        let mut queue: Vec<usize> = Vec::from_iter((0..components.len()).rev());
+
+        while let Some(idx) = queue.pop() {
+            if component_status[idx] == Status::Created {
+                // No need to remake an element.
+                continue;
+            }
+            if component_status[idx] == Status::Creating {
+                // If we are trying to create a component that is already in the process of being created,
+                // then we have a circular dependency.
+                panic!("Circular dependency detected while creating components");
+            }
+
+            component_status[idx] = Status::Creating;
+            let node = &normalized_root.nodes[idx];
+            match Self::create_component(node, &components) {
+                Ok(component) => {
+                    components[idx] = Some(component);
+                    component_status[idx] = Status::Created;
+                }
+                Err(dependency_idx) => {
+                    // If we have a dependency that needs to be created first, then we need to queue this node again.
+                    queue.push(idx);
+                    queue.push(dependency_idx);
+                }
+            }
+        }
+
+        // Every component should now be created, so this unwrap should be safe.
+        let components = components.into_iter().map(|c| c.unwrap()).collect();
+        Self { components }
     }
 
     /// DoenetML coerces the type of `extending` to allow users to be sloppy with types.
@@ -291,6 +247,103 @@ impl ComponentBuilder {
                 referent.get_component_type()
             ))
         }
+    }
+
+    /// Create a component from `node`.
+    ///  - `node` - The node to create a component from.
+    ///  - `components` - An array of already created components. When there is an `extending` field, the algorithm for deciding
+    ///    what component to create is complicated and depends on other existing components.
+    ///
+    /// Returns:
+    ///  - `Ok(component)` - The component created from `node`.
+    ///  - `Err(idx)` - The index of a component that must be created before the component for `node` is created.
+    fn create_component(
+        node: &NormalizedNode,
+        components: &[Option<ComponentEnum>],
+    ) -> Result<ComponentEnum, Index> {
+        let ret = match node {
+            NormalizedNode::Element(elm) => {
+                let mut component = ComponentEnum::from_str(&elm.name).unwrap_or_else(|_| {
+                    // If we didn't find a match, then create a component of type external
+                    ComponentEnum::_External(_External {
+                        name: elm.name.clone(),
+                        ..Default::default()
+                    })
+                });
+
+                if let Some(Source::Macro(ref_resolution)) = &elm.extending {
+                    // Some components specify that when they are referenced with the `$foo` syntax,
+                    // a different component should be created in their place. E.g., `<textInput name="i" />$i`
+                    // should become `<textInput name="i" /><text extend="$i` />`.
+                    // This information is stored in `ref_transmutes_to()`.
+                    if ref_resolution.unresolved_path.is_none() {
+                        if let Some(name) = component.ref_transmutes_to() {
+                            // It is forbidden to expand to an invalid component type, so we do not
+                            // have a fallback to `_External` here.
+                            component = ComponentEnum::from_str(name).unwrap();
+                        }
+                    } else {
+                        // If there is a remaining path, we may need to further mutate the component.
+                        // For example,  `<textInput name="i" />$i.value`
+                        // should become `<textInput name="i" /><text extend="$i.value" />`
+                        // rather than   `<textInput name="i" /><textInput extend="$i.value" />`
+                        let path = ref_resolution.unresolved_path.as_ref().unwrap();
+                        if path.len() == 1 && path[0].index.is_empty() {
+                            let path_part = &path[0];
+                            let referent = components[ref_resolution.node_idx].as_ref();
+                            if referent.is_none() {
+                                // We need information from this component, so it must be created first.
+                                return Err(ref_resolution.node_idx);
+                            }
+                            let referent = referent.unwrap();
+                            let referent_sv_idx = referent
+                                .get_public_state_variable_index_from_name_case_insensitive(
+                                    &path_part.name,
+                                );
+                            if let Some(referent_sv_idx) = referent_sv_idx {
+                                let new_component_type = referent
+                                    .get_state_variable(referent_sv_idx)
+                                    .unwrap()
+                                    .preferred_component_type();
+                                if new_component_type != component.get_component_type() {
+                                    component =
+                                        ComponentEnum::from_str(new_component_type).unwrap();
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // XXX: we temporarily fill each required attribute with an empty vector.
+                // This will be removed when typed attributes are integrated.
+                let attributes: HashMap<&'static str, _> = HashMap::from_iter(
+                    component
+                        .get_attribute_names()
+                        .iter()
+                        .map(|&name| (name, Vec::new())),
+                );
+
+                component.initialize(
+                    elm.idx,
+                    elm.parent,
+                    None,
+                    HashMap::new(),
+                    elm.position.clone(),
+                );
+                component.get_extending();
+                // The referenced children may not yet be created as components, but by the end of the loop
+                // they should all be created with the exact same indices as the `normalized_flat_dast` indices.
+                component.set_children(elm.children.clone());
+                component.set_attribute_children(attributes);
+                component
+            }
+            NormalizedNode::Error(e) => {
+                let mut error = _Error::new();
+                error.initialize(e.idx, e.parent, None, HashMap::new(), e.position.clone());
+                ComponentEnum::_Error(error)
+            }
+        };
+        Ok(ret)
     }
 }
 
