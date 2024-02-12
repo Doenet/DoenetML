@@ -89,8 +89,8 @@ pub struct ComponentCommonData {
 
     pub attribute_types: HashMap<AttributeName, AttributeType>,
 
-    /// The vector of all the attribute children that have been created for this attribute.
-    pub attribute_children: HashMap<AttributeName, Vec<UntaggedContent>>,
+    /// The the attributes that have been created for this component.
+    pub attributes: HashMap<AttributeName, Vec<UntaggedContent>>,
 
     /// Any remaining attributes that appeared in the DoenetML
     /// but where not recognized component
@@ -147,16 +147,10 @@ pub trait ComponentNode: ComponentState {
 
     /// Set the hash map containing for each attribute the vector of
     /// indices of all child component nodes and the literal string children.
-    fn set_attributes(
-        &mut self,
-        attribute_children: HashMap<AttributeName, Vec<UntaggedContent>>,
-    );
+    fn set_attributes(&mut self, attributes: HashMap<AttributeName, Vec<UntaggedContent>>);
 
     /// Get the vector of all the attribute children that have been created for this attribute.
-    fn get_attribute(
-        &self,
-        attribute: AttributeName,
-    ) -> Option<&Vec<UntaggedContent>>;
+    fn get_attribute(&self, attribute: AttributeName) -> Option<&Vec<UntaggedContent>>;
 
     /// Get the hash map of all attributes that have not been recognized by its parent component.
     fn get_unrecognized_attributes(&self) -> &HashMap<String, FlatAttribute>;

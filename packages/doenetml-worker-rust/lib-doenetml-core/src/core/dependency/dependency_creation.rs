@@ -14,7 +14,7 @@ use crate::{
 use super::{
     dependency_creation_utils::{
         create_dependency_from_extend_source_if_matches_profile,
-        get_attribute_children_with_parent_falling_back_to_extend_source,
+        get_attributes_with_parent_falling_back_to_extend_source,
         get_children_with_parent_including_from_extend_source, get_component_extend_source_origin,
     },
     DataQuery, DependenciesCreatedForDataQuery, Dependency, DependencySource,
@@ -353,8 +353,8 @@ pub fn create_dependencies_from_data_query_initialize_essential(
             // that match a profile from match_profiles.
             // The dependency for each child will be a view of the matching state variable.
 
-            let (attribute_children, parent_idx) =
-                get_attribute_children_with_parent_falling_back_to_extend_source(
+            let (attributes, parent_idx) =
+                get_attributes_with_parent_falling_back_to_extend_source(
                     components,
                     component_idx,
                     attribute_name,
@@ -371,7 +371,7 @@ pub fn create_dependencies_from_data_query_initialize_essential(
             // Use it to generate the index for the EssentialDataOrigin so it points to the right string child
             let mut essential_data_index = 0;
 
-            let mut dependencies: Vec<_> = attribute_children
+            let mut dependencies: Vec<_> = attributes
                 .iter()
                 .filter_map(|child| {
                     match child {

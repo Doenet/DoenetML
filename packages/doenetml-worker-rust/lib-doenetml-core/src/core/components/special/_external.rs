@@ -63,18 +63,12 @@ impl ComponentNode for _External {
         self.common.position = position;
     }
 
-    fn set_attributes(
-        &mut self,
-        attribute_children: HashMap<AttributeName, Vec<UntaggedContent>>,
-    ) {
-        self.common.attribute_children = attribute_children;
+    fn set_attributes(&mut self, attributes: HashMap<AttributeName, Vec<UntaggedContent>>) {
+        self.common.attributes = attributes;
     }
 
-    fn get_attribute(
-        &self,
-        attribute: AttributeName,
-    ) -> Option<&Vec<UntaggedContent>> {
-        self.common.attribute_children.get(attribute)
+    fn get_attribute(&self, attribute: AttributeName) -> Option<&Vec<UntaggedContent>> {
+        self.common.attributes.get(attribute)
     }
 
     fn get_unrecognized_attributes(&self) -> &HashMap<String, FlatAttribute> {

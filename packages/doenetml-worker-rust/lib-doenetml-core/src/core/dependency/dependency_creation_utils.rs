@@ -115,23 +115,21 @@ pub fn get_component_extend_source_origin(
 /// Returns an option of a tuple with components
 /// - a vector of the attribute children found
 /// - the index of the parent where those attribute children were found.
-pub fn get_attribute_children_with_parent_falling_back_to_extend_source(
+pub fn get_attributes_with_parent_falling_back_to_extend_source(
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
     component_idx: ComponentIdx,
     attribute: AttributeName,
 ) -> Option<(Vec<UntaggedContent>, ComponentIdx)> {
     let component = components[component_idx].borrow();
 
-    component
-        .get_attribute(attribute)
-        .and_then(|attribute_children| {
-            if attribute_children.is_empty() {
-                if let Some(&Extending::Component(source_idx)) = component.get_extending() {
-                    return get_attribute_children_with_parent_falling_back_to_extend_source(
-                        components, source_idx, attribute,
-                    );
-                }
+    component.get_attribute(attribute).and_then(|attributes| {
+        if attributes.is_empty() {
+            if let Some(&Extending::Component(source_idx)) = component.get_extending() {
+                return get_attributes_with_parent_falling_back_to_extend_source(
+                    components, source_idx, attribute,
+                );
             }
-            Some((attribute_children.clone(), component_idx))
-        })
+        }
+        Some((attributes.clone(), component_idx))
+    })
 }

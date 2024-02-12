@@ -69,7 +69,7 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                         self.common.parent = parent;
                         self.common.extending = extending;
                         self.common.position = position;
-                        self.common.unrecognized_attributes = attributes;
+                        self.common.unrecognized_attributes = unrecognized_attributes;
                     }
 
                     fn get_extending(&self) -> Option<&Extending> {
@@ -94,16 +94,16 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
 
                     fn set_attributes(
                         &mut self,
-                        attribute_children: HashMap<AttributeName, Vec<UntaggedContent>>,
+                        attributes: HashMap<AttributeName, Vec<UntaggedContent>>,
                     ) {
-                        self.common.attribute_children = attribute_children;
+                        self.common.attributes = attributes;
                     }
 
                     fn get_attribute(
                         &self,
                         attribute: AttributeName,
                     ) -> Option<&Vec<UntaggedContent>> {
-                        self.common.attribute_children.get(attribute)
+                        self.common.attributes.get(attribute)
                     }
 
                     fn get_unrecognized_attributes(&self) -> &HashMap<String, FlatAttribute> {
