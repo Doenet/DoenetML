@@ -123,7 +123,7 @@ pub fn get_attribute_children_with_parent_falling_back_to_extend_source(
     let component = components[component_idx].borrow();
 
     component
-        .get_attribute_children_for_attribute(attribute)
+        .get_attribute(attribute)
         .and_then(|attribute_children| {
             if attribute_children.is_empty() {
                 if let Some(&Extending::Component(source_idx)) = component.get_extending() {

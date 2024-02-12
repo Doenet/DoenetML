@@ -27,10 +27,6 @@ impl ComponentNode for _External {
     fn set_children(&mut self, children: Vec<UntaggedContent>) {
         self.common.children = children;
     }
-    fn replace_children(&mut self, new_children: Vec<UntaggedContent>) -> Vec<UntaggedContent> {
-        std::mem::replace(&mut self.common.children, new_children)
-    }
-
     fn initialize(
         &mut self,
         idx: ComponentIdx,
@@ -58,12 +54,6 @@ impl ComponentNode for _External {
     fn get_component_type(&self) -> &str {
         &self.name
     }
-    fn get_descendant_matches(&self, name: &str) -> Option<&Vec<ComponentIdx>> {
-        self.common.descendant_names.get(name)
-    }
-    fn set_descendant_names(&mut self, descendant_names: HashMap<String, Vec<ComponentIdx>>) {
-        self.common.descendant_names = descendant_names;
-    }
 
     fn get_position(&self) -> Option<&DastPosition> {
         self.common.position.as_ref()
@@ -73,14 +63,14 @@ impl ComponentNode for _External {
         self.common.position = position;
     }
 
-    fn set_attribute_children(
+    fn set_attributes(
         &mut self,
         attribute_children: HashMap<AttributeName, Vec<UntaggedContent>>,
     ) {
         self.common.attribute_children = attribute_children;
     }
 
-    fn get_attribute_children_for_attribute(
+    fn get_attribute(
         &self,
         attribute: AttributeName,
     ) -> Option<&Vec<UntaggedContent>> {
@@ -89,10 +79,6 @@ impl ComponentNode for _External {
 
     fn get_unrecognized_attributes(&self) -> &HashMap<String, FlatAttribute> {
         &self.common.unrecognized_attributes
-    }
-
-    fn get_unrecognized_attributes_mut(&mut self) -> &mut HashMap<String, FlatAttribute> {
-        &mut self.common.unrecognized_attributes
     }
 
     fn get_is_in_render_tree(&self) -> bool {

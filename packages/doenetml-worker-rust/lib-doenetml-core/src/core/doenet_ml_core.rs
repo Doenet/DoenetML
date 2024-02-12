@@ -141,9 +141,6 @@ pub struct CoreProcessingState {
 pub struct DoenetMLRoot {
     pub children: Vec<UntaggedContent>,
 
-    // map of descendant names to their indices
-    pub descendant_names: HashMap<String, Vec<ComponentIdx>>,
-
     pub position: Option<DastPosition>,
 }
 
@@ -229,7 +226,6 @@ impl DoenetMLCore {
         // add root node
         let root = DoenetMLRoot {
             children: flat_root.children,
-            descendant_names: HashMap::new(),
             position: None,
         };
 

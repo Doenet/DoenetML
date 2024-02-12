@@ -77,23 +77,12 @@ pub struct ComponentCommonData {
     /// The index of this component's parent
     pub parent: Option<ComponentIdx>,
 
-    /// The vector of this component's children,
-    /// where components are specified by their index and strings contain their literal values.
-    ///
-    /// Macros remain in this vector only if they couldn't be expanded.
-    /// TODO: implement function macros so they don't stay in this vector
+    /// A component's children specified as either a literal string or a reference to another component.
     pub children: Vec<UntaggedContent>,
 
     /// If this component is extending another component or state variable,
     /// then the `extending` field gives the source that it is extending.
     pub extending: Option<Extending>,
-
-    /// A map of descendant names to their indices.
-    ///
-    /// In particular, if a name appears exactly once (i.e., the vector is length 1),
-    /// then a macro referencing that name can be expanded into a component the extends
-    /// that descendant
-    pub descendant_names: HashMap<String, Vec<ComponentIdx>>,
 
     /// The position of the component in the original DoenetML string
     pub position: Option<DastPosition>,
@@ -127,9 +116,6 @@ pub trait ComponentNode: ComponentState {
     fn get_children(&self) -> &Vec<UntaggedContent>;
     /// Set the vector containing the indices of all child component nodes and the literal string children.
     fn set_children(&mut self, children: Vec<UntaggedContent>);
-    /// Replace with new values the vector containing the indices of all child component nodes and the literal string children.
-    fn replace_children(&mut self, new_children: Vec<UntaggedContent>) -> Vec<UntaggedContent>;
-
     /// Set component's index, parent, extending, and position in the original DoenetML string.
     ///
     /// This is a separate step from creation because we create it using EnumString's from_str,
@@ -153,12 +139,6 @@ pub trait ComponentNode: ComponentState {
     /// converted to camel case.
     fn get_component_type(&self) -> &str;
 
-    /// Get a vector of all the descendants of this component with name matching the `name` argument.
-    fn get_descendant_matches(&self, name: &str) -> Option<&Vec<ComponentIdx>>;
-
-    /// Set the information used to calculate `get_descendant_names()`.
-    fn set_descendant_names(&mut self, descendant_names: HashMap<String, Vec<ComponentIdx>>);
-
     /// Get the position of this component in the original DoenetML string
     fn get_position(&self) -> Option<&DastPosition>;
 
@@ -167,28 +147,19 @@ pub trait ComponentNode: ComponentState {
 
     /// Set the hash map containing for each attribute the vector of
     /// indices of all child component nodes and the literal string children.
-    fn set_attribute_children(
+    fn set_attributes(
         &mut self,
         attribute_children: HashMap<AttributeName, Vec<UntaggedContent>>,
     );
 
     /// Get the vector of all the attribute children that have been created for this attribute.
-    fn get_attribute_children_for_attribute(
+    fn get_attribute(
         &self,
         attribute: AttributeName,
     ) -> Option<&Vec<UntaggedContent>>;
 
-    /// Get the hash map of all attributes that have not yet been evaluated to create attribute children.
-    ///
-    /// The hash map initially contains all attributes received from the dast,
-    /// but then attributes that are defined for the component are removed.
+    /// Get the hash map of all attributes that have not been recognized by its parent component.
     fn get_unrecognized_attributes(&self) -> &HashMap<String, FlatAttribute>;
-
-    /// Get a mutable reference to the hash map of all attributes that have not yet been evaluated to create attribute children.
-    ///
-    /// The hash map initially contains all attributes received from the dast,
-    /// but then attributes that are defined for the component are removed.
-    fn get_unrecognized_attributes_mut(&mut self) -> &mut HashMap<String, FlatAttribute>;
 
     /// Get whether or not this component is to be rendered, i.e.,
     /// whether or not it is in the tree of rendered components.
