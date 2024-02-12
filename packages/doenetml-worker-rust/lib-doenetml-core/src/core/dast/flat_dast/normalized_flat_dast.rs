@@ -3,7 +3,7 @@
 
 use serde::Serialize;
 
-use super::{FlatElement, FlatError, FlatNode, Index, UntaggedContent};
+use super::{FlatElement, FlatError, FlatNode, FlatRoot, Index, UntaggedContent};
 
 /// Objects that can be stored in the main `nodes` array of a `NormalizedRoot`.
 #[derive(Clone, Debug, Serialize)]
@@ -87,6 +87,16 @@ impl NormalizedRoot {
         Self {
             children: Vec::new(),
             nodes: Vec::new(),
+        }
+    }
+    pub fn from_flat_root(flat_root: &FlatRoot) -> Self {
+        Self {
+            children: flat_root.children.clone(),
+            nodes: flat_root
+                .nodes
+                .iter()
+                .map(NormalizedNode::from_flat_node)
+                .collect(),
         }
     }
 }

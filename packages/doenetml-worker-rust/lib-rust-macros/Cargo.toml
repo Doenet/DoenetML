@@ -14,3 +14,4 @@ proc-macro2 = { workspace = true }
 syn = { workspace = true }
 convert_case = { workspace = true }
 regex = { workspace = true }
+darling = "0.20.5"

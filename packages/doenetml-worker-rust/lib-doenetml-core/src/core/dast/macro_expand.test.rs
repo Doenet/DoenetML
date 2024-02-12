@@ -44,8 +44,10 @@ fn macros_get_expanded_to_their_referents() {
                     "attributes": [],
                     "idx": 2,
                     "extending": {
-                      "node_idx": 1,
-                      "unresolved_path": null
+                      "Macro": {
+                        "node_idx": 1,
+                        "unresolved_path": null
+                      }
                     }
                   }
                 ]
@@ -117,14 +119,16 @@ fn leftover_path_parts_are_kept() {
                     "attributes": [],
                     "idx": 2,
                     "extending": {
-                      "node_idx": 1,
-                      "unresolved_path": [
-                        {
-                          "index": [],
-                          "name": "x",
-                          "type": "pathPart"
-                        }
-                      ]
+                      "Macro": {
+                        "node_idx": 1,
+                        "unresolved_path": [
+                          {
+                            "index": [],
+                            "name": "x",
+                            "type": "pathPart"
+                          }
+                        ]
+                      }
                     }
                   }
                 ]
@@ -175,7 +179,7 @@ fn macros_in_attributes_are_expanded() {
                     "children": [],
                     "attributes": [],
                     "idx": 3,
-                    "extending": { "node_idx": 1, "unresolved_path": null }
+                    "extending": { "Macro": { "node_idx": 1, "unresolved_path": null } }
                   }
                 ]
             }
@@ -228,7 +232,7 @@ fn can_expand_an_extend_attribute_to_a_node_ref() {
                 "children": [],
                 "attributes": [{ "name": "foo", "parent": 2, "children": ["bar"] }],
                 "idx": 2,
-                "extending": { "node_idx": 1, "unresolved_path": null }
+                "extending": { "Attribute": { "node_idx": 1, "unresolved_path": null } }
               },
               // Note, this element is left over from the original `$p` macro. However, it is
               // no longer referenced anywhere.
@@ -239,7 +243,7 @@ fn can_expand_an_extend_attribute_to_a_node_ref() {
                 "children": [],
                 "attributes": [],
                 "idx": 3,
-                "extending": { "node_idx": 1, "unresolved_path": null }
+                "extending": { "Macro": { "node_idx": 1, "unresolved_path": null } }
               }
             ]
           }

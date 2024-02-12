@@ -3,14 +3,10 @@ use std::{cell::RefCell, collections::HashMap, rc::Rc};
 #[cfg(feature = "web")]
 use wasm_bindgen::prelude::*;
 
-use super::components::component_creation::{
-    create_component_children, replace_macro_referents_of_children_evaluate_attributes,
-};
-
 use super::components::{ComponentActions, ComponentEnum};
 use super::dast::{
-    DastFunctionMacro, DastMacro, DastRoot, DastWarning, FlatDastElement, FlatDastElementContent,
-    FlatDastElementUpdate, FlatDastRoot, Position as DastPosition,
+    DastRoot, DastWarning, FlatDastElement, FlatDastElementContent, FlatDastElementUpdate,
+    FlatDastRoot, Position as DastPosition,
 };
 
 use super::state::essential_state::{EssentialDataOrigin, EssentialStateVar};
@@ -22,7 +18,10 @@ use super::state::state_var_updates::process_state_variable_update_request;
 use super::state::Freshness;
 
 use crate::components::actions::{Action, UpdateFromAction};
+use crate::components::component_builder::ComponentBuilder;
 use crate::components::prelude::{ComponentState, DependenciesCreatedForDataQuery, StateVarIdx};
+use crate::dast::flat_dast::{FlatRoot, NormalizedRoot, UntaggedContent};
+use crate::dast::macro_expand::Expander;
 use crate::dast::{get_flat_dast_update, to_flat_dast};
 use crate::state::StateVarPointer;
 #[allow(unused)]
@@ -140,10 +139,7 @@ pub struct CoreProcessingState {
 
 #[derive(Debug)]
 pub struct DoenetMLRoot {
-    pub children: Vec<ComponentPointerTextOrMacro>,
-
-    // map of descendant names to their indices
-    pub descendant_names: HashMap<String, Vec<ComponentIdx>>,
+    pub children: Vec<UntaggedContent>,
 
     pub position: Option<DastPosition>,
 }
@@ -157,15 +153,9 @@ impl DoenetMLRoot {
         let children: Vec<FlatDastElementContent> = self
             .children
             .iter()
-            .filter_map(|child| match child {
-                ComponentPointerTextOrMacro::Component(comp_idx) => {
-                    Some(FlatDastElementContent::Element(*comp_idx))
-                }
-                ComponentPointerTextOrMacro::Text(s) => {
-                    Some(FlatDastElementContent::Text(s.to_string()))
-                }
-                ComponentPointerTextOrMacro::Macro(_the_macro) => None,
-                ComponentPointerTextOrMacro::FunctionMacro(_function_macro) => None,
+            .map(|child| match child {
+                UntaggedContent::Ref(comp_idx) => FlatDastElementContent::Element(*comp_idx),
+                UntaggedContent::Text(s) => FlatDastElementContent::Text(s.to_string()),
             })
             .collect();
 
@@ -178,53 +168,40 @@ impl DoenetMLRoot {
     }
 }
 
-/// Information specifying a component, string or macro, used for component children or attributes.
-/// - For a component, we just store its index.
-/// - For a string, store that string
-///
-/// TODO: can we eliminate macros eventually since they should be converted to components and strings?
-#[derive(Debug, Clone)]
-pub enum ComponentPointerTextOrMacro {
-    Component(ComponentIdx),
-    Text(String),
-    Macro(DastMacro),
-    FunctionMacro(DastFunctionMacro),
-}
-
 /// Information of the source that a component is extending, which is currently
 /// either another component or a state variable.
 #[derive(Debug, Clone)]
-pub enum ExtendSource {
+pub enum Extending {
     /// The component is extending another entire component, given by the component index
     Component(ComponentIdx),
     // TODO: what about array state variables?
     /// The component is extending the state variable of another component
-    StateVar(ExtendStateVariableDescription),
+    StateVar(ExtendStateVar),
 }
 
 /// Description of the shadowing of state variables
 /// when a component extends the state variable of another component
 #[derive(Debug, Clone)]
-pub struct ExtendStateVariableDescription {
+pub struct ExtendStateVar {
     /// the component being extended
     pub component_idx: ComponentIdx,
 
     /// the matching of which state variables are shadowing which state variables
-    pub state_variable_matching: Vec<StateVariableShadowingMatch>,
+    pub state_variable_matching: Vec<StateVarShadowingPair>,
 }
 
 /// Description of which state variable is shadowing
 /// another state variable when extending a component
 #[derive(Debug, Clone)]
-pub struct StateVariableShadowingMatch {
+pub struct StateVarShadowingPair {
     /// The state variable with this index in the extending component
     /// will match (shadow) the state variable
     /// from the component being extended
-    pub shadowing_state_var_idx: StateVarIdx,
+    pub dest_idx: StateVarIdx,
 
     /// The state variable with this index in the component being extended
     /// will be shadowed
-    pub shadowed_state_var_idx: StateVarIdx,
+    pub source_idx: StateVarIdx,
 }
 
 impl DoenetMLCore {
@@ -234,20 +211,23 @@ impl DoenetMLCore {
         _flags_json: &str,
         existing_essential_data: Option<Vec<HashMap<EssentialDataOrigin, EssentialStateVar>>>,
     ) -> Self {
-        let mut components: Vec<Rc<RefCell<ComponentEnum>>> = Vec::new();
         let warnings: Vec<DastWarning> = Vec::new();
 
-        let (children, descendant_names) =
-            create_component_children(&mut components, &dast_root.children, None);
+        let mut flat_root = FlatRoot::from_dast(&dast_root);
+        Expander::expand(&mut flat_root);
+        flat_root.compactify();
+        let normalized_root = NormalizedRoot::from_flat_root(&flat_root);
+        let components = ComponentBuilder::from_normalized_root(&normalized_root)
+            .components
+            .into_iter()
+            .map(|c| Rc::new(RefCell::new(c)))
+            .collect::<Vec<_>>();
 
         // add root node
         let root = DoenetMLRoot {
-            children,
-            descendant_names,
-            position: dast_root.position.clone(),
+            children: flat_root.children,
+            position: None,
         };
-
-        replace_macro_referents_of_children_evaluate_attributes(&mut components, 0);
 
         let essential_data = existing_essential_data
             .unwrap_or_else(|| (0..components.len()).map(|_| HashMap::new()).collect());

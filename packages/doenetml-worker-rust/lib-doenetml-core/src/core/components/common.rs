@@ -4,11 +4,12 @@ use enum_dispatch::enum_dispatch;
 use strum_macros::EnumString;
 
 use crate::attribute::{AttributeName, AttributeType};
+use crate::dast::flat_dast::FlatAttribute;
 use serde::{Deserialize, Serialize};
 
-use crate::dast::{DastAttribute, Position as DastPosition};
+use crate::dast::Position as DastPosition;
 use crate::state::{ComponentState, StateVarIdx, StateVarValue};
-use crate::{ComponentIdx, ComponentPointerTextOrMacro, ExtendSource};
+use crate::{ComponentIdx, Extending};
 
 use doenetml_derive::RenderedState;
 
@@ -21,6 +22,7 @@ use super::doenet::p::*;
 use super::doenet::section::*;
 use super::doenet::text::*;
 use super::doenet::text_input::*;
+use super::prelude::UntaggedContent;
 
 /// A enum that can contain a component of any possible component type.
 ///
@@ -37,6 +39,10 @@ use super::doenet::text_input::*;
     ComponentActions
 )]
 #[strum(ascii_case_insensitive)]
+// Components vary in size. It is unclear if we want to `Box` all of them,
+// or accept a size-inefficient data structure for simplicity.
+// Revisit when we have more components.
+#[allow(clippy::large_enum_variant)]
 pub enum ComponentEnum {
     Text(Text),
     TextInput(TextInput),
@@ -71,35 +77,24 @@ pub struct ComponentCommonData {
     /// The index of this component's parent
     pub parent: Option<ComponentIdx>,
 
-    /// The vector of this component's children,
-    /// where components are specified by their index and strings contain their literal values.
-    ///
-    /// Macros remain in this vector only if they couldn't be expanded.
-    /// TODO: implement function macros so they don't stay in this vector
-    pub children: Vec<ComponentPointerTextOrMacro>,
+    /// A component's children specified as either a literal string or a reference to another component.
+    pub children: Vec<UntaggedContent>,
 
     /// If this component is extending another component or state variable,
     /// then the `extending` field gives the source that it is extending.
-    pub extending: Option<ExtendSource>,
-
-    /// A map of descendant names to their indices.
-    ///
-    /// In particular, if a name appears exactly once (i.e., the vector is length 1),
-    /// then a macro referencing that name can be expanded into a component the extends
-    /// that descendant
-    pub descendant_names: HashMap<String, Vec<ComponentIdx>>,
+    pub extending: Option<Extending>,
 
     /// The position of the component in the original DoenetML string
     pub position: Option<DastPosition>,
 
     pub attribute_types: HashMap<AttributeName, AttributeType>,
 
-    /// The vector of all the attribute children that have been created for this attribute.
-    pub attribute_children: HashMap<AttributeName, Vec<ComponentPointerTextOrMacro>>,
+    /// The the attributes that have been created for this component.
+    pub attributes: HashMap<AttributeName, Vec<UntaggedContent>>,
 
     /// Any remaining attributes that appeared in the DoenetML
-    /// but where not defined in the component
-    pub unevaluated_attributes: HashMap<String, DastAttribute>,
+    /// but where not recognized component
+    pub unrecognized_attributes: HashMap<String, FlatAttribute>,
 
     /// Whether or not this component is to be rendered, i.e.,
     /// whether or not it is in the tree of rendered components.
@@ -118,15 +113,9 @@ pub trait ComponentNode: ComponentState {
     /// Get the index of the parent node
     fn get_parent(&self) -> Option<ComponentIdx>;
     /// Get the vector containing the indices of all child component nodes and the literal string children.
-    fn get_children(&self) -> &Vec<ComponentPointerTextOrMacro>;
+    fn get_children(&self) -> &Vec<UntaggedContent>;
     /// Set the vector containing the indices of all child component nodes and the literal string children.
-    fn set_children(&mut self, children: Vec<ComponentPointerTextOrMacro>);
-    /// Replace with new values the vector containing the indices of all child component nodes and the literal string children.
-    fn replace_children(
-        &mut self,
-        new_children: Vec<ComponentPointerTextOrMacro>,
-    ) -> Vec<ComponentPointerTextOrMacro>;
-
+    fn set_children(&mut self, children: Vec<UntaggedContent>);
     /// Set component's index, parent, extending, and position in the original DoenetML string.
     ///
     /// This is a separate step from creation because we create it using EnumString's from_str,
@@ -135,24 +124,20 @@ pub trait ComponentNode: ComponentState {
         &mut self,
         idx: ComponentIdx,
         parent: Option<ComponentIdx>,
-        extending: Option<ExtendSource>,
-        attributes: HashMap<String, DastAttribute>,
+        extending: Option<Extending>,
+        unrecognized_attributes: HashMap<String, FlatAttribute>,
         position: Option<DastPosition>,
     );
 
-    /// Get the extend source of this component,
-    /// indicating any component or state variable that this component extends.
-    fn get_extending(&self) -> Option<&ExtendSource>;
+    /// Get a reference to the component/state variable that this component extends.
+    fn get_extending(&self) -> Option<&Extending>;
+
+    /// Set a reference to the component/state variable that this component extends.
+    fn set_extending(&mut self, extending: Option<Extending>);
 
     /// Get the component type, which is the name of the component's struct
     /// converted to camel case.
     fn get_component_type(&self) -> &str;
-
-    /// Get a vector of all the descendants of this component with name matching the `name` argument.
-    fn get_descendant_matches(&self, name: &str) -> Option<&Vec<ComponentIdx>>;
-
-    /// Set the information used to calculate `get_descendant_names()`.
-    fn set_descendant_names(&mut self, descendant_names: HashMap<String, Vec<ComponentIdx>>);
 
     /// Get the position of this component in the original DoenetML string
     fn get_position(&self) -> Option<&DastPosition>;
@@ -162,28 +147,13 @@ pub trait ComponentNode: ComponentState {
 
     /// Set the hash map containing for each attribute the vector of
     /// indices of all child component nodes and the literal string children.
-    fn set_attribute_children(
-        &mut self,
-        attribute_children: HashMap<AttributeName, Vec<ComponentPointerTextOrMacro>>,
-    );
+    fn set_attributes(&mut self, attributes: HashMap<AttributeName, Vec<UntaggedContent>>);
 
     /// Get the vector of all the attribute children that have been created for this attribute.
-    fn get_attribute_children_for_attribute(
-        &self,
-        attribute: AttributeName,
-    ) -> Option<&Vec<ComponentPointerTextOrMacro>>;
+    fn get_attribute(&self, attribute: AttributeName) -> Option<&Vec<UntaggedContent>>;
 
-    /// Get the hash map of all attributes that have not yet been evaluated to create attribute children.
-    ///
-    /// The hash map initially contains all attributes received from the dast,
-    /// but then attributes that are defined for the component are removed.
-    fn get_unevaluated_attributes(&self) -> &HashMap<String, DastAttribute>;
-
-    /// Get a mutable reference to the hash map of all attributes that have not yet been evaluated to create attribute children.
-    ///
-    /// The hash map initially contains all attributes received from the dast,
-    /// but then attributes that are defined for the component are removed.
-    fn get_unevaluated_attributes_mut(&mut self) -> &mut HashMap<String, DastAttribute>;
+    /// Get the hash map of all attributes that have not been recognized by its parent component.
+    fn get_unrecognized_attributes(&self) -> &HashMap<String, FlatAttribute>;
 
     /// Get whether or not this component is to be rendered, i.e.,
     /// whether or not it is in the tree of rendered components.
@@ -196,6 +166,38 @@ pub trait ComponentNode: ComponentState {
     ///
     /// Used to determine if its rendered state variables need to be freshened and set to the renderer.
     fn set_is_in_render_tree(&mut self, is_in_render_tree: bool);
+
+    /// The name of the component that a direct reference should transmute to.
+    /// For example in `<textInput name="i"/>$i`, the `$i` should be rendered as a `<text extend="$i"/>`
+    /// rather than a `<textInput extend="$i"/>`. In this case `self.ref_transmutes_to()` should return `Some("Text")`.
+    ///
+    /// If `None` is returned, no transmutation will occur.
+    fn ref_transmutes_to(&self) -> Option<&'static str> {
+        None
+    }
+
+    /// When this component has `extend="$ref"`, depending on the different
+    /// `ComponentProfiles` `$ref` may present itself as, the component might want
+    /// to set different state variable values. This function returns a vector of
+    /// possible pairings of the `ComponentProfile` that `$ref` may provide and
+    /// the index of the state variable that should be set if `$ref` provides that
+    /// `ComponentProfile`.
+    fn accepted_profiles(&self) -> Vec<(ComponentProfile, StateVarIdx)> {
+        vec![]
+    }
+
+    /// A vector of the possible profiles this component provides along with the
+    /// index of the state variable that you should refer to if you want data satisfying
+    /// that profile.
+    fn provided_profiles(&self) -> Vec<(ComponentProfile, StateVarIdx)> {
+        self.get_component_profile_state_variable_indices()
+            .into_iter()
+            .map(|sv_idx| {
+                let state_var = self.get_state_variable(sv_idx).unwrap();
+                (state_var.get_matching_component_profile(), sv_idx)
+            })
+            .collect()
+    }
 }
 
 /// Specifies the children that will be sent to the renderer.
@@ -207,7 +209,7 @@ pub trait ComponentNode: ComponentState {
 #[enum_dispatch]
 pub trait RenderedChildren {
     /// Return the children that will be used in the flat dast sent to the renderer.
-    fn get_rendered_children(&self) -> &Vec<ComponentPointerTextOrMacro>;
+    fn get_rendered_children(&self) -> &Vec<UntaggedContent>;
 }
 
 /// The ComponentAttributes trait can be derived for a component,

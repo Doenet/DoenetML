@@ -1,6 +1,34 @@
 <textInput prefill="hi" name="ti" />
-The value: $ti.value
+The value: $ti.immediateValue
+
+"<text extend="$ti.immediateValue"> world</text>"
+"<text extend="$ti.value"> world</text>"
+
 <!--
+
+<text name="t">hello</text> ___
+
+"<text extend="$t"> world</text>"
+
+<textInput name="ti" />
+aaa $ti bbb
+
+"<text extend="$ti.immediateValue"> world</text>"
+
+<p name="p">
+dsaf
+  $ti
+</p>
+
+-->
+
+
+<!--
+ "<text extend="<textInput _remaining_path="immediateValue"/>"> world</text>"
+ 
+
+
+ 
 
 <p>Use this to <m>a < b</m>test DoenetML</p>
 <p>A second paragraph! <text>with text</text></p>

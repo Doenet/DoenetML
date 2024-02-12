@@ -21,6 +21,55 @@ pub enum UntaggedContent {
 }
 
 #[derive(Clone, Debug, Serialize)]
+pub enum Source<T> {
+    Attribute(T),
+    Macro(T),
+}
+
+impl<T> Source<T> {
+    /// Recast `self` as `Self::Attribute`.
+    pub fn as_attribute(self) -> Self {
+        match self {
+            Source::Attribute(_) => self,
+            Source::Macro(m) => Source::Attribute(m),
+        }
+    }
+}
+
+impl Source<RefResolution> {
+    pub fn idx(&self) -> Index {
+        match self {
+            Source::Attribute(a) => a.node_idx,
+            Source::Macro(m) => m.node_idx,
+        }
+    }
+
+    /// Set the `node_idx` of the wrapped `RefResolution`.
+    pub fn set_idx(&mut self, idx: Index) {
+        match self {
+            Source::Attribute(a) => a.node_idx = idx,
+            Source::Macro(m) => m.node_idx = idx,
+        }
+    }
+
+    /// Unwraps the `RefResolution` from `self`.
+    pub fn get_resolution(&self) -> &RefResolution {
+        match self {
+            Source::Attribute(a) => a,
+            Source::Macro(m) => m,
+        }
+    }
+
+    /// Similar to `get_resolution`, but consumes `self` and returns the `RefResolution`.
+    pub fn take_resolution(self) -> RefResolution {
+        match self {
+            Source::Attribute(a) => a,
+            Source::Macro(m) => m,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Serialize)]
 pub struct FlatElement {
     pub name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -32,7 +81,7 @@ pub struct FlatElement {
     pub idx: Index,
     /// Information about the referent that this element extends (e.g., as specified by the `extend` attribute).
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub extending: Option<RefResolution>,
+    pub extending: Option<Source<RefResolution>>,
 }
 
 #[derive(Clone, Debug, Serialize)]

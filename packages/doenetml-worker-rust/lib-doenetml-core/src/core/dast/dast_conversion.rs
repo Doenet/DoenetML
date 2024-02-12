@@ -1,13 +1,16 @@
-use std::{cell::RefCell, rc::Rc};
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use crate::{
     components::{
         prelude::ComponentState, ComponentActions, ComponentEnum, ComponentNode, RenderedChildren,
     },
-    ComponentIdx, ComponentPointerTextOrMacro, ExtendSource,
+    ComponentIdx, Extending,
 };
 
-use super::{ElementData, FlatDastElement, FlatDastElementContent, FlatDastElementUpdate};
+use super::{
+    flat_dast::UntaggedContent, ElementData, FlatDastElement, FlatDastElementContent,
+    FlatDastElementUpdate,
+};
 
 /// Return the flat dast element sent to the renderer.
 pub fn to_flat_dast(
@@ -20,7 +23,7 @@ pub fn to_flat_dast(
 
         // if extending a source that is a component,
         // add children from that source first
-        children = if let Some(ExtendSource::Component(source_idx)) = component.get_extending() {
+        children = if let Some(Extending::Component(source_idx)) = component.get_extending() {
             let source_dast = to_flat_dast(*source_idx, components);
 
             source_dast.children
@@ -33,22 +36,14 @@ pub fn to_flat_dast(
             component
                 .get_rendered_children()
                 .iter()
-                .filter_map(|child| match child {
-                    ComponentPointerTextOrMacro::Component(comp_idx) => {
-                        Some(FlatDastElementContent::Element(*comp_idx))
-                    }
-                    ComponentPointerTextOrMacro::Text(s) => {
-                        Some(FlatDastElementContent::Text(s.to_string()))
-                    }
-                    ComponentPointerTextOrMacro::Macro(_the_macro) => None,
-                    ComponentPointerTextOrMacro::FunctionMacro(_function_macro) => None,
+                .map(|child| match child {
+                    UntaggedContent::Ref(comp_idx) => FlatDastElementContent::Element(*comp_idx),
+                    UntaggedContent::Text(s) => FlatDastElementContent::Text(s.to_string()),
                 }),
         );
     }
 
     let mut component = components[component_idx].borrow_mut();
-
-    let attributes = component.get_unevaluated_attributes().clone();
 
     let rendered_state = if component.get_is_in_render_tree() {
         component.return_rendered_state()
@@ -58,7 +53,9 @@ pub fn to_flat_dast(
 
     FlatDastElement {
         name: component.get_component_type().to_string(),
-        attributes,
+        // TODO: We should return some version of component.get_unrecognized_attributes()
+        // However, those attributes might not be expandable if they contain an expanded macro.
+        attributes: HashMap::new(),
         children,
         data: ElementData {
             id: component.get_idx(),

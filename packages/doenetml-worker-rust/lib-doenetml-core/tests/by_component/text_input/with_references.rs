@@ -86,12 +86,12 @@ fn references_to_value_and_immediate_value_respond_to_actions() {
     let dast_root = dast_root_no_position(r#"$ti.immediateValue $ti.value <textInput name="ti"/>"#);
     let mut core = DoenetMLCore::new(dast_root, "", "", None);
 
-    // the text input will be index 1, as the document tag will be index 0.
-    let text_input_idx = 1;
+    // the document tag will be index 0, so other indices are shifted by one.
+    let text_input_idx = 3;
 
     // referencing components will be created right after the text input
-    let immediate_value_reference_idx = 2;
-    let value_reference_idx = 3;
+    let immediate_value_reference_idx = 1;
+    let value_reference_idx = 2;
 
     // confirm that the references were expanded into texts
     assert_eq!(
@@ -143,7 +143,6 @@ fn references_to_value_and_immediate_value_respond_to_actions() {
 }
 
 /// A plain reference to a text input expands into a text mirroring `value`
-#[ignore = "feature not yet implemented"]
 #[test]
 fn plain_reference_to_text_input_expands_into_text() {
     let dast_root = dast_root_no_position(r#"<textInput name="ti"/> $ti"#);

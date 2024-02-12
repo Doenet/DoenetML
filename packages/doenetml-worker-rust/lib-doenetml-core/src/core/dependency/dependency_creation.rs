@@ -2,19 +2,19 @@ use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use crate::{
     components::{
-        prelude::{ComponentState, StateVarIdx, StateVarValue},
+        prelude::{ComponentState, StateVarIdx, StateVarValue, UntaggedContent},
         ComponentEnum, ComponentNode, ComponentProfile,
     },
     state::essential_state::{
         create_essential_data_for, EssentialDataOrigin, EssentialStateVar, InitialEssentialData,
     },
-    ComponentIdx, ComponentPointerTextOrMacro,
+    ComponentIdx,
 };
 
 use super::{
     dependency_creation_utils::{
         create_dependency_from_extend_source_if_matches_profile,
-        get_attribute_children_with_parent_falling_back_to_extend_source,
+        get_attributes_with_parent_falling_back_to_extend_source,
         get_children_with_parent_including_from_extend_source, get_component_extend_source_origin,
     },
     DataQuery, DependenciesCreatedForDataQuery, Dependency, DependencySource,
@@ -180,7 +180,7 @@ pub fn create_dependencies_from_data_query_initialize_essential(
 
             for child_info in children_info.iter() {
                 match child_info {
-                    (ComponentPointerTextOrMacro::Component(child_idx), parent_idx) => {
+                    (UntaggedContent::Ref(child_idx), parent_idx) => {
                         let child = components[*child_idx].borrow();
 
                         // Iterate through all the child's component profile state variables
@@ -216,7 +216,7 @@ pub fn create_dependencies_from_data_query_initialize_essential(
                             });
                         }
                     }
-                    (ComponentPointerTextOrMacro::Text(string_value), parent_idx) => {
+                    (UntaggedContent::Text(string_value), parent_idx) => {
                         // Text children are just strings, and they just match the String or LiteralString profiles
                         if match_profiles.contains(&ComponentProfile::String)
                             || match_profiles.contains(&ComponentProfile::LiteralString)
@@ -227,7 +227,6 @@ pub fn create_dependencies_from_data_query_initialize_essential(
                             });
                         }
                     }
-                    _ => (),
                 }
             }
 
@@ -354,8 +353,8 @@ pub fn create_dependencies_from_data_query_initialize_essential(
             // that match a profile from match_profiles.
             // The dependency for each child will be a view of the matching state variable.
 
-            let (attribute_children, parent_idx) =
-                get_attribute_children_with_parent_falling_back_to_extend_source(
+            let (attributes, parent_idx) =
+                get_attributes_with_parent_falling_back_to_extend_source(
                     components,
                     component_idx,
                     attribute_name,
@@ -372,11 +371,11 @@ pub fn create_dependencies_from_data_query_initialize_essential(
             // Use it to generate the index for the EssentialDataOrigin so it points to the right string child
             let mut essential_data_index = 0;
 
-            let mut dependencies: Vec<_> = attribute_children
+            let mut dependencies: Vec<_> = attributes
                 .iter()
                 .filter_map(|child| {
                     match child {
-                        ComponentPointerTextOrMacro::Component(child_idx) => {
+                        UntaggedContent::Ref(child_idx) => {
                             let child_comp = components[*child_idx].borrow();
 
                             child_comp
@@ -399,7 +398,7 @@ pub fn create_dependencies_from_data_query_initialize_essential(
                                     }
                                 })
                         }
-                        ComponentPointerTextOrMacro::Text(string_value) => {
+                        UntaggedContent::Text(string_value) => {
                             // Text children are just strings, and they just match the String or LiteralString profiles
                             if match_profiles.contains(&ComponentProfile::String)
                                 || match_profiles.contains(&ComponentProfile::LiteralString)
@@ -441,7 +440,6 @@ pub fn create_dependencies_from_data_query_initialize_essential(
                                 None
                             }
                         }
-                        _ => None,
                     }
                 })
                 .collect();

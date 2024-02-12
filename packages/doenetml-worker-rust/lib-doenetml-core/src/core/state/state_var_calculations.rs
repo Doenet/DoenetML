@@ -1,13 +1,13 @@
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use crate::{
-    components::{ComponentEnum, ComponentNode, RenderedChildren},
+    components::{prelude::UntaggedContent, ComponentEnum, ComponentNode, RenderedChildren},
     dependency::{
         create_dependencies_from_data_query_initialize_essential, DataQuery, DependencySource,
     },
     state::essential_state::{EssentialDataOrigin, EssentialStateDescription, EssentialStateVar},
     state::{Freshness, StateVarValue},
-    ComponentIdx, ComponentPointerTextOrMacro, CoreProcessingState, DependencyGraph, ExtendSource,
+    ComponentIdx, CoreProcessingState, DependencyGraph, Extending,
 };
 
 use super::{ComponentState, StateVarPointer};
@@ -111,8 +111,7 @@ fn get_non_string_rendered_children_including_from_extend(
 ) -> Vec<ComponentIdx> {
     let component = components[component_idx].borrow();
 
-    let mut children = if let Some(&ExtendSource::Component(source_idx)) = component.get_extending()
-    {
+    let mut children = if let Some(&Extending::Component(source_idx)) = component.get_extending() {
         get_non_string_rendered_children_including_from_extend(source_idx, components)
     } else {
         Vec::new()
@@ -123,7 +122,7 @@ fn get_non_string_rendered_children_including_from_extend(
             .get_rendered_children()
             .iter()
             .filter_map(|child| match child {
-                &ComponentPointerTextOrMacro::Component(comp_idx) => Some(comp_idx),
+                &UntaggedContent::Ref(comp_idx) => Some(comp_idx),
                 _ => None,
             }),
     );

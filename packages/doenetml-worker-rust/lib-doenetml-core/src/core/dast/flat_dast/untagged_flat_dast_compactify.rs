@@ -53,11 +53,19 @@ impl FlatNode {
                             *idx = ref_index_map[*idx];
                         }
                     }
+                    // Fix the attribute parent ref
+                    attr.parent = attr.parent.map(|idx| ref_index_map[idx]);
                 }
-                if let Some(parent) = &mut elm.parent {
-                    *parent = ref_index_map[*parent];
-                }
+                // Fix the element parent ref
+                elm.parent = elm.parent.map(|idx| ref_index_map[idx]);
+                // Fix the element's internal idx
                 elm.idx = ref_index_map[elm.idx];
+
+                // An element may have a special `extending` property that also needs fixing.
+                if let Some(extending) = &mut elm.extending {
+                    let new_idx = ref_index_map[extending.idx()];
+                    extending.set_idx(new_idx);
+                }
             }
             FlatNode::FunctionMacro(function_macro) => {
                 if let Some(inputs) = &mut function_macro.input {
@@ -149,3 +157,7 @@ impl FlatRoot {
         });
     }
 }
+
+#[cfg(test)]
+#[path = "untagged_flat_dast_compactify.test.rs"]
+mod test;

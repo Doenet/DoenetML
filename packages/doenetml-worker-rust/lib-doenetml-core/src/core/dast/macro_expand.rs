@@ -3,7 +3,7 @@ use std::{collections::HashMap, mem};
 use anyhow::anyhow;
 
 use super::{
-    flat_dast::{FlatElement, FlatError, FlatNode, FlatRoot, Index, UntaggedContent},
+    flat_dast::{FlatElement, FlatError, FlatNode, FlatRoot, Index, Source, UntaggedContent},
     macro_resolve::{RefResolution, Resolver},
     DastElement, DastElementContent, DastError,
 };
@@ -58,7 +58,7 @@ impl Expander {
                                 children: Vec::new(),
                                 name,
                                 position: macro_.position.clone(),
-                                extending: Some(ref_resolution),
+                                extending: Some(Source::Macro(ref_resolution)),
                             })
                         }
                         Err(err) => FlatNode::Error(FlatError {
@@ -82,7 +82,7 @@ impl Expander {
                                 children: Vec::new(),
                                 name: "evaluate".to_string(),
                                 position: function_macro.position.clone(),
-                                extending: Some(ref_resolution),
+                                extending: Some(Source::Macro(ref_resolution)),
                             };
                             // An `<evaluate />` node's children are the inputs to the function.
                             // They take the form of an ordered list of `<li />` nodes.
@@ -193,7 +193,7 @@ impl Expander {
             //  3. Multiple elements are present
             let mut is_invalid_attr = false;
             let mut num_element_children = 0;
-            let extend_referent: Option<RefResolution> = extend
+            let extend_referent: Option<Source<RefResolution>> = extend
                 .children
                 .iter()
                 .flat_map(|child| match child {
@@ -229,7 +229,7 @@ impl Expander {
                 flat_root.nodes[i] = node;
                 continue;
             }
-            element.extending = extend_referent;
+            element.extending = extend_referent.map(|source| source.as_attribute());
 
             // We successfully consumed the `extend` attribute, so remove the `extend` attribute.
             element
