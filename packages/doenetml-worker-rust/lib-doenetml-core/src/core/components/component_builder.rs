@@ -79,46 +79,30 @@ impl ComponentBuilder {
         let mut components: Vec<Option<ComponentEnum>> = iter::repeat_with(|| None)
             .take(normalized_root.nodes.len())
             .collect();
-        #[derive(Clone, Copy, Debug)]
-        enum Status {
-            /// No component has been created at this index.
-            Empty,
-            /// A component is in the process of being created at this index.
-            Creating,
-            /// A component has been created at this index.
-            Created,
-        }
-        let mut component_status: Vec<Status> = iter::repeat(Status::Empty)
-            .take(normalized_root.nodes.len())
-            .collect();
 
         // Creating the nodes lowest-index first should lead to less queueing than the other way around.
         let mut queue: Vec<usize> = Vec::from_iter((0..components.len()).rev());
 
         while let Some(idx) = queue.pop() {
+            // In the worst case scenario, every node gets queued twice. If we do more than that, there
+            // must be a circular dependency.
+            if queue.len() > 2 * components.len() {
+                panic!("Circular dependency while expanding nodes");
+            }
+
             if components[idx].is_some() {
                 // No need to remake a component.
                 continue;
             }
-            if matches!(component_status[idx], Status::Creating) {
-                // If we are trying to create a component that is already in the process of being created,
-                // then we have a circular dependency.
-                panic!("Circular dependency detected while creating components");
-            }
 
-            component_status[idx] = Status::Creating;
             let node = &normalized_root.nodes[idx];
             match Self::create_component(node, &components) {
                 Ok(component) => {
                     components[idx] = Some(component);
-                    // Logically, we don't need to set the status to `Created` since we received a component,
-                    // but it may help with debugging.
-                    component_status[idx] = Status::Created;
                 }
                 Err(dependency_idx) => {
                     // If we have a dependency that needs to be created first, then we need to queue this node again.
                     queue.push(idx);
-                    component_status[idx] = Status::Empty;
                     queue.push(dependency_idx);
                 }
             }
