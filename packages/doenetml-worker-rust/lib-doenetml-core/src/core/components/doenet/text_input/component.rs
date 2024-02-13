@@ -12,13 +12,13 @@ use super::TextInputState;
 #[derive(Debug, AttributeStateVar)]
 pub enum TextInputAttribute {
     /// Whether the `<textInput>` should be hidden.
-    #[component_attribute(state_var = BooleanStateVar, default = false, explicit_type = bool)]
+    #[attribute(state_var = BooleanStateVar, default = false)]
     Hide,
     /// Whether the `<textInput>` should be editable.
-    #[component_attribute(state_var = BooleanStateVar, default = false, explicit_type = bool)]
+    #[attribute(state_var = BooleanStateVar, default = false)]
     Disabled,
     /// The content that should prefill the `<textInput>`, giving it a default value before a user has interacted with the input.
-    #[component_attribute(state_var = StringStateVar, default = "\"\"", explicit_type = String)]
+    #[attribute(state_var = StringStateVar, default = String::new())]
     Prefill,
 }
 

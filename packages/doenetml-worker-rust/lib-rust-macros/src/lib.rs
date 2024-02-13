@@ -22,7 +22,29 @@ mod state_var_methods;
 mod util;
 
 /// Use on the Enum that lists the attributes of your component.
-#[proc_macro_derive(AttributeStateVar, attributes(component_attribute))]
+/// Every variant should be annotated with a `#[attribute(...)]` annotation.
+///
+/// The options available to `attribute(...)` are:
+///  - `state_var` - The state var that will be created for this attribute. The state var **must**
+///    have a `new_from_attribute(attr_name, default_value)` method.
+/// - `default` - The default value for the attribute.
+/// - `explicit_type` (optional) - The type of the state var that will be created for the attribute.
+///    For example, if you expect a `StateVar<bool>` to be created, then `explicit_type=bool`.
+///    This can be inferred if the value of `state_var` is a commonly-recognized state var type.
+///
+/// Example:
+/// ```rust
+/// #[derive(Debug, AttributeStateVar)]
+/// pub enum MyComponentAttributes {
+///   #[attribute(state_var = BooleanStateVar, default = false)]
+///   Foo,
+///   #[attribute(state_var = CustomStateVar, default = Vec::new(), explicit_type = Vec<String>)]
+///   Bar,
+/// }
+/// ```
+///
+/// Note: Enum variants are specified in PascalCase, but attribute names are always converted to camelCase.
+#[proc_macro_derive(AttributeStateVar, attributes(attribute))]
 pub fn attribute_state_var_derive_wrapper(input: TokenStream) -> TokenStream {
     attribute_state_var_derive(input)
 }
