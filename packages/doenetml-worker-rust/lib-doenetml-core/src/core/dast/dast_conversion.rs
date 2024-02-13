@@ -60,7 +60,7 @@ pub fn to_flat_dast(
     FlatDastElement {
         name: component.get_component_type().to_string(),
         // TODO: We should return some version of component.get_unrecognized_attributes()
-        // However, those attributes might not be expandable if they contain an expanded macro.
+        // However, those attributes might not be expandable if they contain an expanded refs.
         attributes: HashMap::new(),
         children,
         data: ElementData {

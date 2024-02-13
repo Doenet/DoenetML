@@ -4,7 +4,7 @@ use super::*;
 use crate::test_utils::*;
 
 #[test]
-fn macros_get_expanded_to_their_referents() {
+fn refs_get_expanded_to_their_referents() {
     let dast_root = dast_root_no_position(r#"<point name="p" />$p"#);
     let mut flat_root = FlatRoot::from_dast(&dast_root);
     Expander::expand(&mut flat_root);
@@ -44,7 +44,7 @@ fn macros_get_expanded_to_their_referents() {
                     "attributes": [],
                     "idx": 2,
                     "extending": {
-                      "Macro": {
+                      "Ref": {
                         "node_idx": 1,
                         "unresolved_path": null
                       }
@@ -119,7 +119,7 @@ fn leftover_path_parts_are_kept() {
                     "attributes": [],
                     "idx": 2,
                     "extending": {
-                      "Macro": {
+                      "Ref": {
                         "node_idx": 1,
                         "unresolved_path": [
                           {
@@ -138,7 +138,7 @@ fn leftover_path_parts_are_kept() {
 }
 
 #[test]
-fn macros_in_attributes_are_expanded() {
+fn refs_in_attributes_are_expanded() {
     let dast_root = dast_root_no_position(r#"<point name="p" /><a foo="$p" />"#);
     let mut flat_root = FlatRoot::from_dast(&dast_root);
     Expander::expand(&mut flat_root);
@@ -179,7 +179,7 @@ fn macros_in_attributes_are_expanded() {
                     "children": [],
                     "attributes": [],
                     "idx": 3,
-                    "extending": { "Macro": { "node_idx": 1, "unresolved_path": null } }
+                    "extending": { "Ref": { "node_idx": 1, "unresolved_path": null } }
                   }
                 ]
             }
@@ -188,7 +188,7 @@ fn macros_in_attributes_are_expanded() {
 }
 
 #[test]
-fn can_expand_function_macros() {
+fn can_expand_function_refs() {
     let dast_root = dast_root_no_position(r#"<point name="p"/><function name="f" />$$f(1,2, $p)"#);
     let mut flat_root = FlatRoot::from_dast(&dast_root);
     Expander::expand(&mut flat_root);
@@ -234,7 +234,7 @@ fn can_expand_an_extend_attribute_to_a_node_ref() {
                 "idx": 2,
                 "extending": { "Attribute": { "node_idx": 1, "unresolved_path": null } }
               },
-              // Note, this element is left over from the original `$p` macro. However, it is
+              // Note, this element is left over from the original `$p` ref. However, it is
               // no longer referenced anywhere.
               {
                 "type": "Element",
@@ -243,7 +243,7 @@ fn can_expand_an_extend_attribute_to_a_node_ref() {
                 "children": [],
                 "attributes": [],
                 "idx": 3,
-                "extending": { "Macro": { "node_idx": 1, "unresolved_path": null } }
+                "extending": { "Ref": { "node_idx": 1, "unresolved_path": null } }
               }
             ]
           }

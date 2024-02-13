@@ -18,8 +18,8 @@ impl FlatNode {
                         })
                     })),
             ),
-            FlatNode::FunctionMacro(function_macro) => {
-                if let Some(inputs) = &function_macro.input {
+            FlatNode::FunctionRef(function_ref) => {
+                if let Some(inputs) = &function_ref.input {
                     inputs
                         .iter()
                         .flat_map(|inputs| {
@@ -67,8 +67,8 @@ impl FlatNode {
                     extending.set_idx(new_idx);
                 }
             }
-            FlatNode::FunctionMacro(function_macro) => {
-                if let Some(inputs) = &mut function_macro.input {
+            FlatNode::FunctionRef(function_ref) => {
+                if let Some(inputs) = &mut function_ref.input {
                     for inputs in inputs.iter_mut() {
                         for child in inputs.iter_mut() {
                             if let UntaggedContent::Ref(idx) = child {
@@ -77,16 +77,16 @@ impl FlatNode {
                         }
                     }
                 }
-                if let Some(parent) = &mut function_macro.parent {
+                if let Some(parent) = &mut function_ref.parent {
                     *parent = ref_index_map[*parent];
                 }
-                function_macro.idx = ref_index_map[function_macro.idx];
+                function_ref.idx = ref_index_map[function_ref.idx];
             }
-            FlatNode::Macro(macro_) => {
-                if let Some(parent) = &mut macro_.parent {
+            FlatNode::Ref(ref_) => {
+                if let Some(parent) = &mut ref_.parent {
                     *parent = ref_index_map[*parent];
                 }
-                macro_.idx = ref_index_map[macro_.idx];
+                ref_.idx = ref_index_map[ref_.idx];
             }
             FlatNode::Error(err) => {
                 if let Some(parent) = &mut err.parent {

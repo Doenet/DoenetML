@@ -21,7 +21,7 @@ use crate::components::actions::{Action, UpdateFromAction};
 use crate::components::component_builder::ComponentBuilder;
 use crate::components::prelude::{ComponentState, DependenciesCreatedForDataQuery, StateVarIdx};
 use crate::dast::flat_dast::{FlatRoot, NormalizedRoot, UntaggedContent};
-use crate::dast::macro_expand::Expander;
+use crate::dast::ref_expand::Expander;
 use crate::dast::{get_flat_dast_update, to_flat_dast};
 use crate::state::StateVarPointer;
 #[allow(unused)]
@@ -36,7 +36,7 @@ pub struct DoenetMLCore {
     /// The root of the dast defining the document structure.
     ///
     /// **TODO**: is there a reason to keep the original dast around?
-    /// (This dast is currently not modified when macros are replaced or other interactions.)
+    /// (This dast is currently not modified when refs are expanded or other interactions.)
     pub dast_root: DastRoot,
 
     /// The root node of the document

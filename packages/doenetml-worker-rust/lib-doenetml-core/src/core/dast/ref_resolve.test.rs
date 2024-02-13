@@ -1,6 +1,6 @@
 use super::*;
 use crate::{
-    dast::{DastIndex, DastText, DastTextMacroContent},
+    dast::{DastIndex, DastText, DastTextRefContent},
     test_utils::*,
 };
 use test_helpers::*;
@@ -121,7 +121,7 @@ fn resolution_stops_at_path_index() {
     );
 
     let index = vec![DastIndex {
-        value: vec![DastTextMacroContent::Text(DastText {
+        value: vec![DastTextRefContent::Text(DastText {
             value: "2".into(),
             position: None,
             data: None,
@@ -179,7 +179,7 @@ fn resolution_matches_largest_possible_when_index_present() {
     let resolver = Resolver::from_flat_root(&flat_root);
 
     let index = vec![DastIndex {
-        value: vec![DastTextMacroContent::Text(DastText {
+        value: vec![DastTextRefContent::Text(DastText {
             value: "2".into(),
             position: None,
             data: None,
@@ -215,13 +215,13 @@ fn resolution_matches_largest_possible_when_index_present() {
 }
 
 #[test]
-fn can_resolve_name_at_macro_origin() {
+fn can_resolve_name_at_ref_origin() {
     let dast_root = dast_root_no_position(r#"<a name="x" />$b"#);
     let flat_root = FlatRoot::from_dast(&dast_root);
     let a_idx = find(&flat_root, "a").unwrap();
 
     let resolver = Resolver::from_flat_root(&flat_root);
-    // The macro `$b` should be right after the `a` node
+    // The ref `$b` should be right after the `a` node
     let b_idx = a_idx + 1;
     let referent = resolver.search_parents("x", b_idx);
     assert_eq!(referent, Ok(a_idx));

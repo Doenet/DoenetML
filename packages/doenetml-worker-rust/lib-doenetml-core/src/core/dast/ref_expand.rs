@@ -4,11 +4,11 @@ use anyhow::anyhow;
 
 use super::{
     flat_dast::{FlatElement, FlatError, FlatNode, FlatRoot, Index, Source, UntaggedContent},
-    macro_resolve::{RefResolution, Resolver},
+    ref_resolve::{RefResolution, Resolver},
     DastElement, DastElementContent, DastError,
 };
 
-/// An `Expander` replaces all macros with their `DastElement`-equivalent forms. For example
+/// An `Expander` replaces all refs with their `DastElement`-equivalent forms. For example
 /// ```xml
 /// <point name="p" />
 /// $p
@@ -23,28 +23,28 @@ use super::{
 pub struct Expander {}
 
 impl Expander {
-    /// Expand all macros and function macros into their "xml" form. After expansion,
+    /// Expand all refs and function refs into their "xml" form. After expansion,
     /// the resulting tree may not be serializable as XML since element attributes may contain
     /// other elements.
     pub fn expand(flat_root: &mut FlatRoot) {
         let resolver = Resolver::from_flat_root(flat_root);
-        Expander::expand_macros(flat_root, &resolver);
+        Expander::expand_refs(flat_root, &resolver);
         Expander::consume_extend_attributes(flat_root);
     }
 
-    /// Expand all macros and function macros into their "xml" form.
-    fn expand_macros(flat_root: &mut FlatRoot, resolver: &Resolver) {
+    /// Expand all refs and function refs into their "xml" form.
+    fn expand_refs(flat_root: &mut FlatRoot, resolver: &Resolver) {
         for idx in 0..flat_root.nodes.len() {
             // The original `nodes[idx]` node is being completely replaced, so we are free to take its value,
             // which will prevent the borrow checker from complaining if we mutate `flat_root` during processing.
             flat_root.nodes[idx] = match mem::take(&mut flat_root.nodes[idx]) {
-                FlatNode::Macro(macro_) => {
-                    // A macro $f get's replace with <foo extend="f" /> where `foo` is the tag name of the referent.
-                    // e.g. <point name="p" />$p becomes <point name="p" /><point extend="p" />
-                    // Expanding a macro is can be done with a single replacement.
+                FlatNode::Ref(ref_) => {
+                    // A ref `$f`` get's replace with `<foo extend="f" />`` where `foo` is the tag name of the referent.
+                    // e.g. `<point name="p" />$p`` becomes `<point name="p" /><point extend="p" />``
+                    // Expanding a ref is can be done with a single replacement.
 
                     //flat_root.nodes[idx] = resolved
-                    match resolver.resolve(&macro_.path, macro_.idx) {
+                    match resolver.resolve(&ref_.path, ref_.idx) {
                         Ok(ref_resolution) => {
                             // Get the tag name of the referent
                             let name = match &flat_root.nodes[ref_resolution.node_idx] {
@@ -52,41 +52,40 @@ impl Expander {
                                 _ => panic!("Expected an element"),
                             };
                             FlatNode::Element(FlatElement {
-                                idx: macro_.idx,
-                                parent: macro_.parent,
+                                idx: ref_.idx,
+                                parent: ref_.parent,
                                 attributes: Vec::new(),
                                 children: Vec::new(),
                                 name,
-                                position: macro_.position.clone(),
-                                extending: Some(Source::Macro(ref_resolution)),
+                                position: ref_.position.clone(),
+                                extending: Some(Source::Ref(ref_resolution)),
                             })
                         }
                         Err(err) => FlatNode::Error(FlatError {
-                            idx: macro_.idx,
-                            parent: macro_.parent,
-                            message: format!("Macro resolution error: {}", err),
-                            position: macro_.position.clone(),
+                            idx: ref_.idx,
+                            parent: ref_.parent,
+                            message: format!("Ref resolution error: {}", err),
+                            position: ref_.position.clone(),
                         }),
                     }
                 }
-                FlatNode::FunctionMacro(function_macro) => {
+                FlatNode::FunctionRef(function_ref) => {
                     // A function ref `$$f(x)` becomes `<evaluate extend="f"><ol><li>x</li></ol></evaluate>`
                     // This involves creating multiple new nodes and setting them as children of the `evaluate` node.
-                    let resolved = match resolver.resolve(&function_macro.path, function_macro.idx)
-                    {
+                    let resolved = match resolver.resolve(&function_ref.path, function_ref.idx) {
                         Ok(ref_resolution) => {
                             let mut evaluate_node = FlatElement {
-                                idx: function_macro.idx,
-                                parent: function_macro.parent,
+                                idx: function_ref.idx,
+                                parent: function_ref.parent,
                                 attributes: Vec::new(),
                                 children: Vec::new(),
                                 name: "evaluate".to_string(),
-                                position: function_macro.position.clone(),
-                                extending: Some(Source::Macro(ref_resolution)),
+                                position: function_ref.position.clone(),
+                                extending: Some(Source::Ref(ref_resolution)),
                             };
                             // An `<evaluate />` node's children are the inputs to the function.
                             // They take the form of an ordered list of `<li />` nodes.
-                            if let Some(inputs) = &function_macro.input {
+                            if let Some(inputs) = &function_ref.input {
                                 // We create the children of `evaluate_node` in two steps. First we create the `<ol />` node
                                 // with the correct number of `<li />` children. Then we set the `<li />` children to be the
                                 // inputs to the function.
@@ -97,7 +96,7 @@ impl Expander {
                                         .iter()
                                         .map(|_| DastElementContent::element_with_name("li"))
                                         .collect(),
-                                    position: function_macro.position.clone(),
+                                    position: function_ref.position.clone(),
                                     data: None,
                                 };
                                 // Insert the `ol` into `flat_root`
@@ -132,10 +131,10 @@ impl Expander {
                             FlatNode::Element(evaluate_node)
                         }
                         Err(err) => FlatNode::Error(FlatError {
-                            idx: function_macro.idx,
-                            parent: function_macro.parent,
-                            message: format!("Macro resolution error: {}", err),
-                            position: function_macro.position.clone(),
+                            idx: function_ref.idx,
+                            parent: function_ref.parent,
+                            message: format!("Ref resolution error: {}", err),
+                            position: function_ref.position.clone(),
                         }),
                     };
 
@@ -147,7 +146,7 @@ impl Expander {
     }
 
     /// Remove all `extend` attributes from the `FlatRoot` and replace them with the index of their referent.
-    /// This should be called _after_ all macros have been expanded into element form.
+    /// This should be called _after_ all refs have been expanded into element form.
     fn consume_extend_attributes(flat_root: &mut FlatRoot) {
         for i in 0..flat_root.nodes.len() {
             // Skip any cases we don't need to consider.
@@ -183,7 +182,7 @@ impl Expander {
                 // Should be safe because we already verified we have an `extend` attribute
                 .unwrap();
 
-            // All macros should be expanded by now, so we look for a unique child with `extending`
+            // All refs should be expanded by now, so we look for a unique child with `extending`
             // This would arise because `extend="$f"` is replaced with `<foo _extending="f" />` where `_extending`
             // is a special, internal attribute.
 
@@ -251,5 +250,5 @@ fn lookup_idx(untagged: &UntaggedContent) -> Result<Index, anyhow::Error> {
 }
 
 #[cfg(test)]
-#[path = "macro_expand.test.rs"]
+#[path = "ref_expand.test.rs"]
 mod test;
