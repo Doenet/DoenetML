@@ -1,4 +1,4 @@
-use std::{cell::RefCell, collections::HashMap, rc::Rc};
+use std::{cell::RefCell, collections::HashMap, ops::Deref, rc::Rc};
 
 use crate::{
     components::{
@@ -51,6 +51,12 @@ pub fn to_flat_dast(
         None
     };
 
+    let message = if let ComponentEnum::_Error(error) = component.deref() {
+        Some(error.message.clone())
+    } else {
+        None
+    };
+
     FlatDastElement {
         name: component.get_component_type().to_string(),
         // TODO: We should return some version of component.get_unrecognized_attributes()
@@ -61,7 +67,7 @@ pub fn to_flat_dast(
             id: component.get_idx(),
             action_names: Some(component.get_action_names()),
             state: rendered_state,
-            ..Default::default()
+            message,
         },
         position: component.get_position().cloned(),
     }
