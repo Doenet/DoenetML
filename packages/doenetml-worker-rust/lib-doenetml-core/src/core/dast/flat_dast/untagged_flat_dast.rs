@@ -5,7 +5,7 @@
 use serde::Serialize;
 
 use super::{
-    super::{macro_resolve::RefResolution, PathPart, Position},
+    super::{ref_resolve::RefResolution, PathPart, Position},
     normalized_flat_dast::{NormalizedNode, NormalizedRoot},
 };
 

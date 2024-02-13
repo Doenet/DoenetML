@@ -230,5 +230,5 @@ impl Resolver {
 }
 
 #[cfg(test)]
-#[path = "macro_resolve.test.rs"]
+#[path = "ref_resolve.test.rs"]
 mod test;

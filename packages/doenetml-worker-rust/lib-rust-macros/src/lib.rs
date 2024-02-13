@@ -126,7 +126,7 @@ pub fn into_state_var_enum_refs_derive_wrapper(input: TokenStream) -> TokenStrea
 /// - #\[is_public\]
 ///
 ///   Designate that the state variable is public, in the sense that it can be
-///   referenced by a macro in the document.
+///   accessed by a ref in the document.
 ///
 /// - #\[component_profile_state_variable\]
 ///

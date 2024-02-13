@@ -194,7 +194,7 @@ pub struct DastFunctionRef {
     pub position: Option<Position>,
 }
 
-/// A part of a macro path
+/// A part of a ref path
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(tag = "type")]
 #[serde(rename = "pathPart")]
@@ -207,7 +207,7 @@ pub struct PathPart {
     pub position: Option<Position>,
 }
 
-/// An index into a macro path
+/// An index into a ref path
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(tag = "type")]
 #[serde(rename = "index")]

@@ -4,7 +4,7 @@ use anyhow::anyhow;
 
 use super::{
     flat_dast::{FlatElement, FlatError, FlatNode, FlatRoot, Index, Source, UntaggedContent},
-    macro_resolve::{RefResolution, Resolver},
+    ref_resolve::{RefResolution, Resolver},
     DastElement, DastElementContent, DastError,
 };
 
@@ -251,5 +251,5 @@ fn lookup_idx(untagged: &UntaggedContent) -> Result<Index, anyhow::Error> {
 }
 
 #[cfg(test)]
-#[path = "macro_expand.test.rs"]
+#[path = "ref_expand.test.rs"]
 mod test;

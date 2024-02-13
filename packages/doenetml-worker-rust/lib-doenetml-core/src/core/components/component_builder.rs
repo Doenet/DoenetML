@@ -10,7 +10,7 @@ use crate::{
     components::{prelude::ComponentState, ComponentAttributes, ComponentNode},
     dast::{
         flat_dast::{Index, NormalizedNode, NormalizedRoot, Source},
-        macro_resolve::RefResolution,
+        ref_resolve::RefResolution,
     },
     utils::KeyValueIgnoreCase,
     ExtendStateVar, Extending, StateVarShadowingPair,

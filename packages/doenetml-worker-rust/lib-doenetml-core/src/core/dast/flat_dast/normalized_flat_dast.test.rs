@@ -1,7 +1,7 @@
 use assert_json_diff::assert_json_eq;
 
 use crate::{
-    dast::{flat_dast::FlatRoot, macro_expand::Expander},
+    dast::{flat_dast::FlatRoot, ref_expand::Expander},
     test_utils::*,
 };
 
