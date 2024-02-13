@@ -4,7 +4,7 @@ use crate::dast::{
 };
 
 use super::{
-    FlatAttribute, FlatElement, FlatError, FlatFunctionRef, FlatRef, FlatNode, FlatRoot, Index,
+    FlatAttribute, FlatElement, FlatError, FlatFunctionRef, FlatNode, FlatRef, FlatRoot, Index,
     ParentIterator, UntaggedContent,
 };
 
@@ -89,9 +89,7 @@ impl FlatRoot {
                 UntaggedContent::Ref(self.set_error(err, idx, parent))
             }
             DastElementContent::Text(txt) => UntaggedContent::Text(txt.value.clone()),
-            DastElementContent::Ref(ref_) => {
-                UntaggedContent::Ref(self.set_ref(ref_, idx, parent))
-            }
+            DastElementContent::Ref(ref_) => UntaggedContent::Ref(self.set_ref(ref_, idx, parent)),
             DastElementContent::FunctionRef(function_ref) => {
                 self.set_function_ref(function_ref, idx, parent);
                 let ret = UntaggedContent::Ref(idx);

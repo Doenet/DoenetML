@@ -72,8 +72,7 @@ impl Expander {
                 FlatNode::FunctionRef(function_ref) => {
                     // A function ref `$$f(x)` becomes `<evaluate extend="f"><ol><li>x</li></ol></evaluate>`
                     // This involves creating multiple new nodes and setting them as children of the `evaluate` node.
-                    let resolved = match resolver.resolve(&function_ref.path, function_ref.idx)
-                    {
+                    let resolved = match resolver.resolve(&function_ref.path, function_ref.idx) {
                         Ok(ref_resolution) => {
                             let mut evaluate_node = FlatElement {
                                 idx: function_ref.idx,
