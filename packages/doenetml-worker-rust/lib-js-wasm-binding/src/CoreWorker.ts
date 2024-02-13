@@ -140,6 +140,13 @@ export class CoreWorker {
 
         resolve();
     }
+
+    /**
+     * XXX: Temporary function for testing javascript <-> wasm round trip
+     */
+    roundTripJs() {
+        return this.doenetCore!.round_trip_js();
+    }
 }
 
 function promiseWithResolver() {

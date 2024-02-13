@@ -17,7 +17,7 @@ web-logging = ['doenetml-core/web']
 # internal dependency
 doenetml-core = { path = "../lib-doenetml-core", features = ["web"] }
 js-sys = { workspace = true }
-web-sys = { workspace = true }
+web-sys = { workspace = true, features = ["Window", "WorkerGlobalScope"] }
 wasm-bindgen = { workspace = true }
 # The `console_error_panic_hook` crate provides better debugging of panics by
 # logging them with `console.error`. This is great for development, but requires
