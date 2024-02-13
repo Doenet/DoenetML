@@ -25,6 +25,12 @@ impl<T: Default + Clone> Default for StateVarMutableView<T> {
     }
 }
 
+impl<T: Default + Clone + std::fmt::Display> std::fmt::Display for StateVarMutableView<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.inner.borrow().fmt(f)
+    }
+}
+
 impl<T: Default + Clone> StateVarMutableView<T> {
     /// Create a new unresolved StateVarMutableView
     pub fn new() -> Self {
