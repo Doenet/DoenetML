@@ -121,8 +121,8 @@ pub trait StateVarUpdaterWithCache<T: Default + Clone>: std::fmt::Debug {
 /// for the `updater` field of a `StateVar<T>`.
 ///
 /// To create a `StateVarUpdaterWithCacheStruct` one needs:
-/// - SvUpdater: an object that implements StateVarUpdater<T, RequiredData>
-/// - RequiredData: a structure that stores all the required data to calculate the state variable.
+/// - `SvUpdater`: an object that implements `StateVarUpdater<T, RequiredData>`
+/// - `RequiredData`: a structure that stores all the required data to calculate the state variable.
 ///   It must implement `FromDependencies` so that it can be from the dependencies
 ///   returned from a data query.
 #[derive(Debug)]
@@ -134,9 +134,9 @@ pub struct StateVarUpdaterWithCacheStruct<SvUpdater, RequiredData: Default> {
 
 /// An implementation of `StateVarUpdaterWithCache<T>`
 /// requires that we specify:
-/// - T: the type of `StateVar<T>`
-/// - SvUpdater: an object that implements StateVarUpdater<T, RequiredData>
-/// - RequiredData: a structure that stores all the required data to calculate the state variable.
+/// - `T`: the type of `StateVar<T>`
+/// - `SvUpdater`: an object that implements `StateVarUpdater<T, RequiredData>`
+/// - `RequiredData`: a structure that stores all the required data to calculate the state variable.
 ///   It must implement `FromDependencies` so that it can be from the dependencies
 ///   returned from a data query.
 impl<T, SvUpdater, RequiredData> StateVarUpdaterWithCache<T>
