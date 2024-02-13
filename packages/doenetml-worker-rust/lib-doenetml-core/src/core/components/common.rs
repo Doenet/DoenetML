@@ -8,7 +8,7 @@ use crate::dast::flat_dast::FlatAttribute;
 use serde::{Deserialize, Serialize};
 
 use crate::dast::Position as DastPosition;
-use crate::state::{ComponentState, StateVarIdx, StateVarValue};
+use crate::state::{ComponentState, StateVar, StateVarIdx, StateVarValue};
 use crate::{ComponentIdx, Extending};
 
 use doenetml_derive::RenderedState;
@@ -223,6 +223,42 @@ pub trait ComponentAttributes: ComponentNode {
         // If so, should provide a mechanism for including default state variables depending on them.
         vec![]
     }
+}
+
+/// Trait that creates state variables from attribute variants.
+/// For example, if implemented on the enum `Attrs`
+///
+/// ```rust
+/// enum Attrs {
+///   Prefill,
+///   Disabled,
+/// }
+/// ```
+/// one can call `Attrs::Prefill.state_var()` to get a state variable that will query the `"prefill"`
+/// attribute of a component.
+///
+/// An implementation might look like
+/// ```rust
+/// impl AttributeStateVar<String> for Attrs {
+///   fn state_var(&self) -> StateVar<String> {
+///     match self {
+///       Attrs::Prefill => StringStateVar::new_from_attribute("prefill", "").into_state_var(),
+///       _ => panic!("This attribute does not have a string state variable."),
+///     }
+///   }
+/// }
+/// impl AttributeStateVar<bool> for Attrs {
+///   fn state_var(&self) -> StateVar<bool> {
+///     match self {
+///       Attrs::Disabled => BooleanStateVar::new_from_attribute("disabled", false).into_state_var(),
+///       _ => panic!("This attribute does not have a boolean state variable."),
+///     }
+///   }
+/// }
+/// ```
+pub trait AttributeStateVar<T: Default + Clone> {
+    /// Get a state variable whose value is determined by the attribute.
+    fn state_var(&self) -> StateVar<T>;
 }
 
 /// The ComponentActions trait can be derived for a component,

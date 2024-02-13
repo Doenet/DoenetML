@@ -2,19 +2,23 @@ use serde::{Deserialize, Serialize};
 use strum::VariantNames;
 use strum_macros::EnumVariantNames;
 
-use crate::components::prelude::*;
+use crate::{
+    components::prelude::*,
+    general_state_var::{BooleanStateVar, StringStateVar},
+};
 
 use super::TextInputState;
 
-#[derive(Debug, Deserialize, EnumVariantNames)]
-#[serde(rename_all = "camelCase")]
-#[strum(serialize_all = "camelCase")]
+#[derive(Debug, AttributeStateVar)]
 pub enum TextInputAttribute {
     /// Whether the `<textInput>` should be hidden.
+    #[component_attribute(state_var = BooleanStateVar, default = false, explicit_type = bool)]
     Hide,
     /// Whether the `<textInput>` should be editable.
+    #[component_attribute(state_var = BooleanStateVar, default = false, explicit_type = bool)]
     Disabled,
     /// The content that should prefill the `<textInput>`, giving it a default value before a user has interacted with the input.
+    #[component_attribute(state_var = StringStateVar, default = "\"\"", explicit_type = String)]
     Prefill,
 }
 
@@ -35,7 +39,6 @@ pub enum TextInputAction {
     UpdateImmediateValue(ActionBody<TextInputActionArgs>),
     UpdateValue,
 }
-
 /// Definition of the `<textInput>` DoenetML component
 #[derive(Debug, Default, ComponentNode, ComponentState, RenderedChildren)]
 #[no_rendered_children]

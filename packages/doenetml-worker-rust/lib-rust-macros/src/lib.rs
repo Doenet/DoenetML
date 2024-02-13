@@ -1,5 +1,6 @@
 extern crate proc_macro2;
 
+use component_attributes::attribute_state_var_derive;
 use component_node::{
     component_actions_derive, component_attributes_derive, component_node_derive,
     rendered_children_derive, rendered_state_derive,
@@ -14,10 +15,17 @@ use state_var_methods::{
     state_var_mutable_view_methods_derive, state_var_read_only_view_methods_derive,
 };
 
+mod component_attributes;
 mod component_node;
 mod component_state_methods;
 mod state_var_methods;
 mod util;
+
+/// Use on the Enum that lists the attributes of your component.
+#[proc_macro_derive(AttributeStateVar, attributes(component_attribute))]
+pub fn attribute_state_var_derive_wrapper(input: TokenStream) -> TokenStream {
+    attribute_state_var_derive(input)
+}
 
 /// Derive functions needed to be initialized as a component.
 ///

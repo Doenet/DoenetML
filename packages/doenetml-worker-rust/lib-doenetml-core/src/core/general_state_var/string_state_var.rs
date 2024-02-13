@@ -56,14 +56,14 @@ impl StringStateVar {
     /// basing the calculation on the attribute children that match the `String` profile.
     ///
     /// If there are no matching attribute children, the state variable will be initialized with `default_value`.
-    pub fn new_from_attribute(attr_name: AttributeName, default_value: String) -> Self {
+    pub fn new_from_attribute<S: Into<String>>(attr_name: AttributeName, default_value: S) -> Self {
         StringStateVar {
             data_query: DataQuery::AttributeChild {
                 attribute_name: attr_name,
                 match_profiles: vec![ComponentProfile::String],
                 always_return_value: true,
             },
-            default_value,
+            default_value: default_value.into(),
         }
     }
 }
