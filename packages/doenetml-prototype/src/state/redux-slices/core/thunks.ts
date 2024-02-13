@@ -19,6 +19,8 @@ export function createWrappedCoreWorker() {
 }
 
 export const workerCache: { worker: Comlink.Remote<CoreWorker> }[] = [];
+// XXX: temporary for debugging
+(window as any).wc = workerCache;
 
 export const coreThunks = {
     /**

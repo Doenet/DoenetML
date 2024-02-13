@@ -65,6 +65,13 @@ impl ComponentBuilder {
                         message: format!("Error while extending: {}", err),
                         ..Default::default()
                     });
+                    builder.components[idx].initialize(
+                        elm.idx,
+                        elm.parent,
+                        None,
+                        HashMap::new(),
+                        elm.position.clone(),
+                    );
                 }
             }
         }
@@ -332,6 +339,7 @@ impl ComponentBuilder {
             }
             NormalizedNode::Error(e) => {
                 let mut error = _Error::new();
+                error.message = e.message.clone();
                 error.initialize(e.idx, e.parent, None, HashMap::new(), e.position.clone());
                 ComponentEnum::_Error(error)
             }
