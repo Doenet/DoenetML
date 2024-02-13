@@ -33,7 +33,7 @@ mod util;
 ///    This can be inferred if the value of `state_var` is a commonly-recognized state var type.
 ///
 /// Example:
-/// ```rust
+/// ```ignore
 /// #[derive(Debug, AttributeStateVar)]
 /// pub enum MyComponentAttributes {
 ///   #[attribute(state_var = BooleanStateVar, default = false)]
