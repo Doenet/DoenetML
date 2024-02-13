@@ -10,7 +10,7 @@ use darling::{ast, util, FromDeriveInput, FromVariant};
 
 /// Struct for saving information about variants of the enum. This contains everything we need to
 /// generate code like
-/// ```rust
+/// ```ignore
 /// TextInputAttribute::Hide => BooleanStateVar::new_from_attribute("hide", false).into_state_var(),
 /// ```
 #[derive(Debug)]
@@ -23,7 +23,7 @@ struct VariantImpl {
 
 impl VariantImpl {
     /// Create a match case for this variant that looks like
-    /// ```rust
+    /// ```ignore
     /// TextInputAttribute::Hide => BooleanStateVar::new_from_attribute("hide", false).into_state_var(),
     /// ```
     fn to_match_case(&self, enum_name: &Ident) -> proc_macro2::TokenStream {

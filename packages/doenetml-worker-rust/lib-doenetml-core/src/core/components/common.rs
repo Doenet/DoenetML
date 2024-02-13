@@ -238,7 +238,7 @@ pub trait ComponentAttributes: ComponentNode {
 /// attribute of a component.
 ///
 /// An implementation might look like
-/// ```rust
+/// ```ignore
 /// impl AttributeStateVar<String> for Attrs {
 ///   fn state_var(&self) -> StateVar<String> {
 ///     match self {
