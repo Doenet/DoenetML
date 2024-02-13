@@ -1,7 +1,7 @@
 /**
  * Ensures that `globalThis` is defined. Code from
  * https://mathiasbynens.be/notes/globalthis
- * 
+ *
  * Note: This polyfill is used because currently not all browsers support `globalThis`. It can
  * be removed when there is sufficient browser support.
  */

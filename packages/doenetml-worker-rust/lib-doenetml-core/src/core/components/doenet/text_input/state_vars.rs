@@ -6,8 +6,10 @@ pub use value::ValueStateVar;
 
 use crate::{
     components::prelude::*,
-    general_state_var::{BooleanStateVar, IndependentStateVar, StringStateVar},
+    general_state_var::{IndependentStateVar, StringStateVar},
 };
+
+use super::TextInputAttribute;
 
 /// The state variables that underlie the `<textInput>` component.
 #[derive(Debug, ComponentState)]
@@ -84,9 +86,9 @@ impl TextInputState {
             immediate_value: ImmediateValueStateVar::new().into_state_var(),
             sync_immediate_value: IndependentStateVar::new(true).into_state_var(),
             value_from_children: StringStateVar::new_from_children("".to_string()).into_state_var(),
-            prefill: StringStateVar::new_from_attribute("prefill", "".to_string()).into_state_var(),
-            hidden: BooleanStateVar::new_from_attribute("hidden", false).into_state_var(),
-            disabled: BooleanStateVar::new_from_attribute("disabled", false).into_state_var(),
+            prefill: TextInputAttribute::Prefill.state_var(),
+            hidden: TextInputAttribute::Hide.state_var(),
+            disabled: TextInputAttribute::Disabled.state_var(),
         }
     }
 }

@@ -3,8 +3,8 @@
 
 // These imports are required for the derive macros to work correctly
 pub use doenetml_derive::{
-    add_dependency_data, ComponentActions, ComponentAttributes, ComponentNode, ComponentState,
-    RenderedChildren, StateVariableDataQueries, StateVariableDependencies,
+    add_dependency_data, AttributeStateVar, ComponentActions, ComponentAttributes, ComponentNode,
+    ComponentState, RenderedChildren, StateVariableDataQueries, StateVariableDependencies,
 };
 pub use std::collections::HashMap;
 
@@ -20,7 +20,8 @@ pub use crate::utils::KeyValueIgnoreCase;
 pub use crate::{ComponentIdx, Extending};
 
 pub use crate::components::{
-    ComponentActions, ComponentAttributes, ComponentCommonData, ComponentNode, RenderedChildren,
+    AttributeStateVar, ComponentActions, ComponentAttributes, ComponentCommonData, ComponentNode,
+    RenderedChildren,
 };
 
 // These imports are commonly used in components

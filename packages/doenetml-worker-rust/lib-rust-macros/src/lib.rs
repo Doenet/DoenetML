@@ -1,5 +1,6 @@
 extern crate proc_macro2;
 
+use component_attributes::attribute_state_var_derive;
 use component_node::{
     component_actions_derive, component_attributes_derive, component_node_derive,
     rendered_children_derive, rendered_state_derive,
@@ -14,10 +15,39 @@ use state_var_methods::{
     state_var_mutable_view_methods_derive, state_var_read_only_view_methods_derive,
 };
 
+mod component_attributes;
 mod component_node;
 mod component_state_methods;
 mod state_var_methods;
 mod util;
+
+/// Use on the Enum that lists the attributes of your component.
+/// Every variant should be annotated with a `#[attribute(...)]` annotation.
+///
+/// The options available to `attribute(...)` are:
+///  - `state_var` - The state var that will be created for this attribute. The state var **must**
+///    have a `new_from_attribute(attr_name, default_value)` method.
+/// - `default` - The default value for the attribute.
+/// - `explicit_type` (optional) - The type of the state var that will be created for the attribute.
+///    For example, if you expect a `StateVar<bool>` to be created, then `explicit_type=bool`.
+///    This can be inferred if the value of `state_var` is a commonly-recognized state var type.
+///
+/// Example:
+/// ```ignore
+/// #[derive(Debug, AttributeStateVar)]
+/// pub enum MyComponentAttributes {
+///   #[attribute(state_var = BooleanStateVar, default = false)]
+///   Foo,
+///   #[attribute(state_var = CustomStateVar, default = Vec::new(), explicit_type = Vec<String>)]
+///   Bar,
+/// }
+/// ```
+///
+/// Note: Enum variants are specified in PascalCase, but attribute names are always converted to camelCase.
+#[proc_macro_derive(AttributeStateVar, attributes(attribute))]
+pub fn attribute_state_var_derive_wrapper(input: TokenStream) -> TokenStream {
+    attribute_state_var_derive(input)
+}
 
 /// Derive functions needed to be initialized as a component.
 ///
