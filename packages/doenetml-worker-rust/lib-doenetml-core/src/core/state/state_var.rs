@@ -34,7 +34,6 @@ pub enum Freshness {
 }
 
 /// `StateVar<T>` is the base data structure for the value of a state variable.
-#[derive(Debug)]
 pub struct StateVar<T: Default + Clone> {
     /// The current value of the state variable
     /// in a structure that allows the value to be mutated
@@ -63,6 +62,17 @@ pub struct StateVar<T: Default + Clone> {
     /// because, for efficiency, we will store values for calculations
     /// in a typed form (without enums) directly on the state variable structure.
     all_data: Vec<StateVarViewEnum>,
+}
+
+impl<T: Default + Clone + std::fmt::Display> std::fmt::Display for StateVar<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.value.fmt(f)
+    }
+}
+impl<T: Default + Clone + std::fmt::Display> std::fmt::Debug for StateVar<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.value)
+    }
 }
 
 /// The value of a state variable along with its meta data.
@@ -96,6 +106,17 @@ struct StateVarInner<T: Default + Clone> {
     /// Used to compare with another counter to determine if the variable has been changed
     /// since the other counter was last set.
     change_counter: u32,
+}
+
+impl<T: Default + Clone + std::fmt::Display> std::fmt::Display for StateVarInner<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self.freshness {
+            Freshness::Fresh => write!(f, "{}", self.value),
+            Freshness::Resolved => write!(f, "Resolved"),
+            Freshness::Stale => write!(f, "Stale"),
+            Freshness::Unresolved => write!(f, "Unresolved"),
+        }
+    }
 }
 
 impl<T: Default + Clone> StateVarInner<T> {
