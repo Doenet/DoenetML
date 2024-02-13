@@ -29,8 +29,8 @@ pub struct DastRoot {
 pub enum DastElementContent {
     Element(DastElement),
     Text(DastText),
-    Macro(DastMacro),
-    FunctionMacro(DastFunctionMacro),
+    Ref(DastRef),
+    FunctionRef(DastFunctionRef),
     Error(DastError),
 }
 
@@ -44,10 +44,10 @@ impl DastElementContent {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(untagged)]
 #[cfg_attr(feature = "web", derive(Tsify))]
-pub enum DastTextMacroContent {
+pub enum DastTextRefContent {
     Text(DastText),
-    Macro(DastMacro),
-    FunctionMacro(DastFunctionMacro),
+    Ref(DastRef),
+    FunctionRef(DastFunctionRef),
 }
 
 /// An element node
@@ -136,7 +136,7 @@ pub struct TextData {}
 #[cfg_attr(feature = "web", derive(Tsify))]
 pub struct DastAttribute {
     pub name: String,
-    pub children: Vec<DastTextMacroContent>,
+    pub children: Vec<DastTextRefContent>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub position: Option<Position>,
@@ -145,7 +145,7 @@ pub struct DastAttribute {
 impl DastAttribute {
     pub fn get_string_value(&self) -> Result<String, NoValueFound> {
         if self.children.len() == 1 {
-            if let DastTextMacroContent::Text(name_text) = &self.children[0] {
+            if let DastTextRefContent::Text(name_text) = &self.children[0] {
                 // have string attribute
                 return Ok(name_text.value.clone());
             }
@@ -158,7 +158,7 @@ impl DastAttribute {
         if self.children.is_empty() {
             return Ok("true".to_string());
         } else if self.children.len() == 1 {
-            if let DastTextMacroContent::Text(name_text) = &self.children[0] {
+            if let DastTextRefContent::Text(name_text) = &self.children[0] {
                 // have string attribute
                 return Ok(name_text.value.clone());
             }
@@ -168,12 +168,12 @@ impl DastAttribute {
     }
 }
 
-/// A macro (i.e., a macro that starts with `$`)
+/// A ref (i.e., starts with `$`)
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(tag = "type")]
 #[serde(rename = "macro")]
 #[cfg_attr(feature = "web", derive(Tsify))]
-pub struct DastMacro {
+pub struct DastRef {
     pub path: Vec<PathPart>,
     pub attributes: HashMap<String, DastAttribute>,
 
@@ -181,12 +181,12 @@ pub struct DastMacro {
     pub position: Option<Position>,
 }
 
-/// A function macro (i.e., a macro that starts with `$$`)
+/// A function ref (i.e., starts with `$$`)
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(tag = "type")]
 #[serde(rename = "function")]
 #[cfg_attr(feature = "web", derive(Tsify))]
-pub struct DastFunctionMacro {
+pub struct DastFunctionRef {
     pub path: Vec<PathPart>,
     pub input: Option<Vec<Vec<DastElementContent>>>,
 
@@ -213,7 +213,7 @@ pub struct PathPart {
 #[serde(rename = "index")]
 #[cfg_attr(feature = "web", derive(Tsify))]
 pub struct DastIndex {
-    pub value: Vec<DastTextMacroContent>,
+    pub value: Vec<DastTextRefContent>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub position: Option<Position>,

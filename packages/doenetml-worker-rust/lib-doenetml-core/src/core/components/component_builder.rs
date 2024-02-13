@@ -266,7 +266,7 @@ impl ComponentBuilder {
                     })
                 });
 
-                if let Some(Source::Macro(ref_resolution)) = &elm.extending {
+                if let Some(Source::Ref(ref_resolution)) = &elm.extending {
                     // Some components specify that when they are referenced with the `$foo` syntax,
                     // a different component should be created in their place. E.g., `<textInput name="i" />$i`
                     // should become `<textInput name="i" /><text extend="$i` />`.

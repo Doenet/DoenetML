@@ -1,5 +1,5 @@
 //! UntaggedFlatDast is part of the DAST normalization process where the DAST is flattened and all
-//! element/macro/etc. nodes are replaced with untagged references to their location in the nodes list.
+//! element/ref/etc. nodes are replaced with untagged references to their location in the nodes list.
 //! UntaggedFlatDast allows elements to change type without having to find all places where they are referenced.
 
 use serde::Serialize;
@@ -23,7 +23,7 @@ pub enum UntaggedContent {
 #[derive(Clone, Debug, Serialize)]
 pub enum Source<T> {
     Attribute(T),
-    Macro(T),
+    Ref(T),
 }
 
 impl<T> Source<T> {
@@ -31,7 +31,7 @@ impl<T> Source<T> {
     pub fn as_attribute(self) -> Self {
         match self {
             Source::Attribute(_) => self,
-            Source::Macro(m) => Source::Attribute(m),
+            Source::Ref(m) => Source::Attribute(m),
         }
     }
 }
@@ -40,7 +40,7 @@ impl Source<RefResolution> {
     pub fn idx(&self) -> Index {
         match self {
             Source::Attribute(a) => a.node_idx,
-            Source::Macro(m) => m.node_idx,
+            Source::Ref(m) => m.node_idx,
         }
     }
 
@@ -48,7 +48,7 @@ impl Source<RefResolution> {
     pub fn set_idx(&mut self, idx: Index) {
         match self {
             Source::Attribute(a) => a.node_idx = idx,
-            Source::Macro(m) => m.node_idx = idx,
+            Source::Ref(m) => m.node_idx = idx,
         }
     }
 
@@ -56,7 +56,7 @@ impl Source<RefResolution> {
     pub fn get_resolution(&self) -> &RefResolution {
         match self {
             Source::Attribute(a) => a,
-            Source::Macro(m) => m,
+            Source::Ref(m) => m,
         }
     }
 
@@ -64,7 +64,7 @@ impl Source<RefResolution> {
     pub fn take_resolution(self) -> RefResolution {
         match self {
             Source::Attribute(a) => a,
-            Source::Macro(m) => m,
+            Source::Ref(m) => m,
         }
     }
 }
@@ -116,7 +116,7 @@ impl FlatError {
 }
 
 #[derive(Clone, Debug, Serialize)]
-pub struct FlatMacro {
+pub struct FlatRef {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub parent: Option<Index>,
     pub path: Vec<PathPart>,
@@ -126,7 +126,7 @@ pub struct FlatMacro {
 }
 
 #[derive(Clone, Debug, Serialize)]
-pub struct FlatFunctionMacro {
+pub struct FlatFunctionRef {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub parent: Option<Index>,
     pub path: Vec<PathPart>,
@@ -142,8 +142,8 @@ pub struct FlatFunctionMacro {
 pub enum FlatNode {
     Element(FlatElement),
     Error(FlatError),
-    FunctionMacro(FlatFunctionMacro),
-    Macro(FlatMacro),
+    FunctionRef(FlatFunctionRef),
+    Ref(FlatRef),
 }
 
 impl Default for FlatNode {
@@ -163,8 +163,8 @@ impl FlatNode {
         match self {
             FlatNode::Element(e) => e.idx,
             FlatNode::Error(e) => e.idx,
-            FlatNode::FunctionMacro(e) => e.idx,
-            FlatNode::Macro(e) => e.idx,
+            FlatNode::FunctionRef(e) => e.idx,
+            FlatNode::Ref(e) => e.idx,
         }
     }
 
@@ -173,8 +173,8 @@ impl FlatNode {
         match self {
             FlatNode::Element(e) => e.idx = idx,
             FlatNode::Error(e) => e.idx = idx,
-            FlatNode::FunctionMacro(e) => e.idx = idx,
-            FlatNode::Macro(e) => e.idx = idx,
+            FlatNode::FunctionRef(e) => e.idx = idx,
+            FlatNode::Ref(e) => e.idx = idx,
         }
     }
 
@@ -183,8 +183,8 @@ impl FlatNode {
         match self {
             FlatNode::Element(e) => e.parent,
             FlatNode::Error(e) => e.parent,
-            FlatNode::FunctionMacro(e) => e.parent,
-            FlatNode::Macro(e) => e.parent,
+            FlatNode::FunctionRef(e) => e.parent,
+            FlatNode::Ref(e) => e.parent,
         }
     }
 
@@ -193,13 +193,13 @@ impl FlatNode {
         match self {
             FlatNode::Element(e) => e.parent = parent,
             FlatNode::Error(e) => e.parent = parent,
-            FlatNode::FunctionMacro(e) => e.parent = parent,
-            FlatNode::Macro(e) => e.parent = parent,
+            FlatNode::FunctionRef(e) => e.parent = parent,
+            FlatNode::Ref(e) => e.parent = parent,
         }
     }
 }
 
-/// Untagged version of a Flattened DAST. All elements/errors/macros/function macros are stored in
+/// Untagged version of a Flattened DAST. All elements/errors/refs/function refs are stored in
 /// the `nodes` vec. All children of all elements/attributes are vectors of text or references to
 /// positions in the `nodes` vec.
 ///

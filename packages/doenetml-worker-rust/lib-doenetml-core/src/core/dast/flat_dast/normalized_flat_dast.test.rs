@@ -6,7 +6,7 @@ use crate::{
 };
 
 #[test]
-fn can_create_normalized_dast_after_expanding_macros() {
+fn can_create_normalized_dast_after_expanding_refs() {
     let dast_root = dast_root_no_position(
         r#"<point name="p"/><function name="f" />$$f(1,2, $p)<foo bar="$p"/>"#,
     );
@@ -64,7 +64,7 @@ fn can_create_normalized_dast_after_expanding_macros() {
                 "attributes": [],
                 "idx": 3,
                 "extending": {
-                  "Macro": {
+                  "Ref": {
                     "node_idx": 2,
                     "unresolved_path": null
                   }
@@ -78,7 +78,7 @@ fn can_create_normalized_dast_after_expanding_macros() {
                 "attributes": [],
                 "idx": 4,
                 "extending": {
-                  "Macro": {
+                  "Ref": {
                     "node_idx": 1,
                     "unresolved_path": null
                   }
@@ -106,7 +106,7 @@ fn can_create_normalized_dast_after_expanding_macros() {
                 "attributes": [],
                 "idx": 6,
                 "extending": {
-                  "Macro": {
+                  "Ref": {
                     "node_idx": 1,
                     "unresolved_path": null
                   }

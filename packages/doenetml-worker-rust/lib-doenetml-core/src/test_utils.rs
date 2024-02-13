@@ -119,9 +119,9 @@ impl FlatRoot {
                             }
                         }
                         FlatNode::Error(err) => format!("<_error message=\"{}\"/>", err.message),
-                        FlatNode::Macro(_macro_) => "[MACRO PRINTING NOT IMPLEMENTED]".to_string(),
-                        FlatNode::FunctionMacro(_function_macro) => {
-                            "[FUNCTION MACRO PRINTING NOT IMPLEMENTED]".to_string()
+                        FlatNode::Ref(_) => "[REF PRINTING NOT IMPLEMENTED]".to_string(),
+                        FlatNode::FunctionRef(_) => {
+                            "[FUNCTION REF PRINTING NOT IMPLEMENTED]".to_string()
                         }
                     }
                 }
