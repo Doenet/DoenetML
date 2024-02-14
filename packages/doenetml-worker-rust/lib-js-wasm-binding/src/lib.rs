@@ -98,6 +98,7 @@ impl PublicDoenetMLCore {
         })
     }
 
+    /// Temporary function for testing
     pub fn round_trip_js(&self) -> Result<String, String> {
         let source = r#"
           let exp = MathExpressions.parse("2*(x+y)");
@@ -105,7 +106,7 @@ impl PublicDoenetMLCore {
           exp2;
         "#;
 
-        self.core.as_ref().unwrap().eval_js(source)
+        DoenetMLCore::eval_js(source)
     }
 }
 
