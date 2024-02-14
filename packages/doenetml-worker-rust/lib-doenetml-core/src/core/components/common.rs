@@ -19,6 +19,7 @@ use super::_external::*;
 use super::actions::UpdateFromAction;
 use super::doenet::boolean::*;
 use super::doenet::document::*;
+use super::doenet::math::*;
 use super::doenet::p::*;
 use super::doenet::section::*;
 use super::doenet::text::*;
@@ -47,6 +48,7 @@ use super::prelude::UntaggedContent;
 pub enum ComponentEnum {
     Text(Text),
     TextInput(TextInput),
+    Math(Math),
     Boolean(Boolean),
     Section(Section),
     Document(Document),

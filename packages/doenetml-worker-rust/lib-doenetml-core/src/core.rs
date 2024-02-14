@@ -5,7 +5,7 @@ pub mod dependency;
 mod doenet_ml_core;
 
 // Because of the use of #[enum_dispatch], the `state` module must be declared before the `general_state_var` module.
-pub mod math;
+pub mod math_via_wasm;
 pub mod state;
 
 // Because of the use of #[enum_dispatch], the `state` module must be declared before the `general_state_var` module.

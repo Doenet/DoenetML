@@ -12,7 +12,7 @@ use doenetml_derive::{
 
 use crate::{
     components::{
-        doenet::{boolean::Boolean, text::Text},
+        doenet::{boolean::Boolean, math::Math, text::Text},
         ComponentProfile,
     },
     dependency::{DataQuery, DependenciesCreatedForDataQuery, DependencyValueUpdateRequest},
@@ -104,7 +104,7 @@ impl<'a> StateVarEnumRef<'a> {
             StateVarEnumRef::Integer(_) => unimplemented!("Have not yet created number component"),
             StateVarEnumRef::String(_) => Text::get_component_type(),
             StateVarEnumRef::Boolean(_) => Boolean::get_component_type(),
-            StateVarEnumRef::Math(_) => unimplemented!("Have not yet created math component"),
+            StateVarEnumRef::Math(_) => Math::get_component_type(),
         }
     }
 }

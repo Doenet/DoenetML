@@ -36,7 +36,7 @@ impl DoenetMLCore {
     ///   i.e., one of these symbols followed by arguments in parentheses
     ///   will be interpreted as apply that function to the arguments (rather than multiplication)
     #[cfg(not(feature = "testing"))]
-    pub fn parse_text_into_math<'a, TXT: AsRef<str>, FnSymbol: AsRef<str>>(
+    pub fn parse_text_into_math<TXT: AsRef<str>, FnSymbol: AsRef<str>>(
         text: TXT,
         split_symbols: bool,
         function_symbols: &[FnSymbol],
@@ -56,7 +56,7 @@ impl DoenetMLCore {
         Ok(result.into())
     }
     #[cfg(feature = "testing")]
-    pub fn parse_text_into_math<'a, TXT: AsRef<str>, FnSymbol: AsRef<str>>(
+    pub fn parse_text_into_math<TXT: AsRef<str>, FnSymbol: AsRef<str>>(
         _text: TXT,
         _split_symbols: bool,
         _function_symbols: &[FnSymbol],
@@ -77,7 +77,7 @@ impl DoenetMLCore {
     ///   i.e., one of these symbols followed by arguments in parentheses
     ///   will be interpreted as apply that function to the arguments (rather than multiplication)
     #[cfg(not(feature = "testing"))]
-    pub fn parse_latex_into_math<'a, TXT: AsRef<str>, FnSymbol: AsRef<str>>(
+    pub fn parse_latex_into_math<TXT: AsRef<str>, FnSymbol: AsRef<str>>(
         latex: TXT,
         split_symbols: bool,
         function_symbols: &[FnSymbol],
@@ -97,7 +97,7 @@ impl DoenetMLCore {
         Ok(result.into())
     }
     #[cfg(feature = "testing")]
-    pub fn parse_latex_into_math<'a, TXT: AsRef<str>, FnSymbol: AsRef<str>>(
+    pub fn parse_latex_into_math<TXT: AsRef<str>, FnSymbol: AsRef<str>>(
         _latex: TXT,
         _split_symbols: bool,
         _function_symbols: &[FnSymbol],

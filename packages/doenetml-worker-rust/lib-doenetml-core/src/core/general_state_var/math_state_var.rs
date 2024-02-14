@@ -44,8 +44,8 @@ impl MathStateVar {
         }
     }
 
-    /// Creates a string state var that calculates its value from the component's children
-    /// matching the `String`  profile.
+    /// Creates a math state var that calculates its value from the component's children
+    /// matching the `LiteralString` and `Math` profiles.
     ///
     /// If there are no matching children, the state variable will be initialized with `default_value`.
     pub fn new_from_children(
@@ -56,7 +56,7 @@ impl MathStateVar {
     ) -> Self {
         MathStateVar {
             data_query: DataQuery::Child {
-                match_profiles: vec![ComponentProfile::String],
+                match_profiles: vec![ComponentProfile::LiteralString, ComponentProfile::Math],
                 exclude_if_prefer_profiles: vec![],
                 always_return_value: true,
             },
@@ -67,8 +67,8 @@ impl MathStateVar {
         }
     }
 
-    /// Creates a string state var that calculates its value from the attribute given by `attr_name`,
-    /// basing the calculation on the attribute children that match the `String` profile.
+    /// Creates a math state var that calculates its value from the attribute given by `attr_name`,
+    /// basing the calculation on the attribute children that match the `LiteralString` and `Math` profiles.
     ///
     /// If there are no matching attribute children, the state variable will be initialized with `default_value`.
     pub fn new_from_attribute<S: Into<MathExpr>>(
@@ -81,7 +81,7 @@ impl MathStateVar {
         MathStateVar {
             data_query: DataQuery::AttributeChild {
                 attribute_name: attr_name,
-                match_profiles: vec![ComponentProfile::String],
+                match_profiles: vec![ComponentProfile::LiteralString, ComponentProfile::Math],
                 always_return_value: true,
             },
             parser,
@@ -154,7 +154,7 @@ impl StateVarUpdater<MathExpr, RequiredData> for MathStateVar {
                     MathOrString::Math(boolean_value) => {
                         boolean_value.queue_update(requested_value);
                     }
-                    MathOrString::String(string_value) => {
+                    MathOrString::String(_string_value) => {
                         return Err(InvertError::CouldNotUpdate);
                     }
                 }

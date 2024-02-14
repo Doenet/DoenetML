@@ -18,6 +18,12 @@ impl Default for MathExpr {
     }
 }
 
+impl std::fmt::Display for MathExpr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.to_latex(ToLatexParams::default()))
+    }
+}
+
 impl serde::Serialize for MathExpr {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -37,7 +43,7 @@ impl MathExpr {
     /// - `function_symbols`: a list of the symbols that will be treated as a function,
     ///   i.e., one of these symbols followed by arguments in parentheses
     ///   will be interpreted as apply that function to the arguments (rather than multiplication)
-    pub fn from_text<'a, TXT: AsRef<str>, FnSymbol: AsRef<str>>(
+    pub fn from_text<TXT: AsRef<str>, FnSymbol: AsRef<str>>(
         text: TXT,
         split_symbols: bool,
         function_symbols: &[FnSymbol],
@@ -62,7 +68,7 @@ impl MathExpr {
     /// - `function_symbols`: a list of the symbols that will be treated as a function,
     ///   i.e., one of these symbols followed by arguments in parentheses
     ///   will be interpreted as apply that function to the arguments (rather than multiplication)
-    pub fn from_latex<'a, TXT: AsRef<str>, FnSymbol: AsRef<str>>(
+    pub fn from_latex<TXT: AsRef<str>, FnSymbol: AsRef<str>>(
         latex: TXT,
         split_symbols: bool,
         function_symbols: &[FnSymbol],
