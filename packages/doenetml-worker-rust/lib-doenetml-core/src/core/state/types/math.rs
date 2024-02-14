@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use strum_macros::Display;
 
 use crate::DoenetMLCore;
 
@@ -77,18 +78,8 @@ impl Math {
     /// this many total digits displayed
     /// - `show_blanks`: if true, then display any blanks in the mathematical expression
     /// as a long underscore
-    pub fn to_latex(
-        &self,
-        pad_to_decimals: Option<i32>,
-        pad_to_digits: Option<i32>,
-        show_blanks: Option<bool>,
-    ) -> String {
-        match DoenetMLCore::to_latex(
-            &self.math_object,
-            pad_to_decimals,
-            pad_to_digits,
-            show_blanks,
-        ) {
+    pub fn to_latex(&self, params: ToLatexParams) -> String {
+        match DoenetMLCore::to_latex(&self.math_object, params) {
             Ok(res) => res,
             Err(_) => "\u{ff3f}".to_owned(),
         }
@@ -101,6 +92,15 @@ impl Math {
     pub fn substitute(&self, substitutions: &HashMap<String, MathOrPrimitive>) -> Math {
         let math_object = match DoenetMLCore::substitute_into_math(&self.math_object, substitutions)
         {
+            Ok(res) => res,
+            Err(_) => "\u{ff3f}".to_owned(),
+        };
+
+        Math { math_object }
+    }
+
+    pub fn normalize(&self, params: NormalizeParams) -> Math {
+        let math_object = match DoenetMLCore::normalize_math(&self.math_object, params) {
             Ok(res) => res,
             Err(_) => "\u{ff3f}".to_owned(),
         };
@@ -185,4 +185,29 @@ pub enum MathOrPrimitive {
     Number(f64),
     Integer(i64),
     String(String),
+}
+
+#[derive(Debug, Default)]
+pub struct ToLatexParams {
+    pub pad_to_decimals: Option<i32>,
+    pub pad_to_digits: Option<i32>,
+    pub show_blanks: Option<bool>,
+}
+
+#[derive(Debug, Display, Default)]
+#[strum(serialize_all = "camelCase")]
+pub enum MathSimplify {
+    #[default]
+    None,
+    NumbersPreserveOrder,
+    Numbers,
+    Full,
+}
+
+#[derive(Debug, Default)]
+pub struct NormalizeParams {
+    pub simplify: MathSimplify,
+    pub expand: bool,
+    pub create_vectors: bool,
+    pub create_intervals: bool,
 }

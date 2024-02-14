@@ -2,8 +2,9 @@ import {
     evalWithMathExpressionsInScope,
     parseTextIntoMath,
     parseLatexIntoMath,
-    substituteIntoMath,
     toLatex,
+    substituteIntoMath,
+    normalizeMath,
 } from "./eval-math";
 import { globalThis } from "./global-this";
 
@@ -16,8 +17,9 @@ declare global {
             evalWithMathExpressionsInScope: typeof evalWithMathExpressionsInScope;
             parseTextIntoMath: typeof parseTextIntoMath;
             parseLatexIntoMath: typeof parseLatexIntoMath;
-            substituteIntoMath: typeof substituteIntoMath;
             toLatex: typeof toLatex;
+            substituteIntoMath: typeof substituteIntoMath;
+            normalizeMath: typeof normalizeMath;
         };
     }
 }
@@ -27,6 +29,7 @@ globalThis.__forDoenetWorker = {
     evalWithMathExpressionsInScope,
     parseTextIntoMath,
     parseLatexIntoMath,
-    substituteIntoMath,
     toLatex,
+    substituteIntoMath,
+    normalizeMath,
 };

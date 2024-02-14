@@ -11,7 +11,7 @@ use web_sys::js_sys::Number;
 
 use std::collections::HashMap;
 
-use crate::state::types::math::MathOrPrimitive;
+use crate::state::types::math::{MathOrPrimitive, NormalizeParams, ToLatexParams};
 use crate::DoenetMLCore;
 
 impl DoenetMLCore {
@@ -121,17 +121,12 @@ impl DoenetMLCore {
     /// - `show_blanks`: if true, then display any blanks in the mathematical expression
     /// as a long underscore
     #[cfg(feature = "web")]
-    pub fn to_latex(
-        math_object: &str,
-        pad_to_decimals: Option<i32>,
-        pad_to_digits: Option<i32>,
-        show_blanks: Option<bool>,
-    ) -> Result<String, String> {
+    pub fn to_latex(math_object: &str, params: ToLatexParams) -> Result<String, String> {
         let result: JsString = toLatex(
             JsString::from(math_object),
-            pad_to_decimals.map(Number::from),
-            pad_to_digits.map(Number::from),
-            show_blanks.map(Boolean::from),
+            params.pad_to_decimals.map(Number::from),
+            params.pad_to_digits.map(Number::from),
+            params.show_blanks.map(Boolean::from),
         )
         .map_err(|e| format!("{:?}", e))?;
         Ok(result.into())
@@ -172,6 +167,36 @@ impl DoenetMLCore {
                 .to_string(),
         )
     }
+
+    #[cfg(feature = "web")]
+    pub fn normalize_math(math_object: &str, params: NormalizeParams) -> Result<String, String> {
+        use crate::utils::log;
+
+        log!("simplify to string: {}", params.simplify.to_string());
+        log!(
+            "simplify to string: {}",
+            params.simplify.to_string().to_lowercase()
+        );
+        let result: JsString = normalizeMath(
+            JsString::from(math_object),
+            JsString::from(params.simplify.to_string().to_lowercase()), // TODO: remove .to_lowercase()
+            Boolean::from(params.expand),
+            Boolean::from(params.create_vectors),
+            Boolean::from(params.create_intervals),
+        )
+        .map_err(|e| format!("{:?}", e))?;
+        Ok(result.into())
+    }
+    #[cfg(not(feature = "web"))]
+    pub fn normalize_math(
+        math_object: &str,
+        simplify: MathSimplify,
+        expand: bool,
+        create_vectors: bool,
+        create_intervals: bool,
+    ) -> Result<String, String> {
+        Err("normalize_math is only available when compiled with the `web` feature".to_string())
+    }
 }
 
 #[cfg(feature = "web")]
@@ -206,5 +231,14 @@ extern "C" {
     pub fn substituteIntoMath(
         mathObject: JsString,
         substitutions: JsValue,
+    ) -> Result<JsString, JsValue>;
+
+    #[wasm_bindgen(js_namespace = __forDoenetWorker, catch)]
+    pub fn normalizeMath(
+        mathObject: JsString,
+        simplify: JsString,
+        expand: Boolean,
+        createVectors: Boolean,
+        createIntervals: Boolean,
     ) -> Result<JsString, JsValue>;
 }

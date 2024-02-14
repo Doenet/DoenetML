@@ -4,6 +4,7 @@ import { globalThis } from "./global-this";
 import {
     serializedComponentsReplacer,
     serializedComponentsReviver,
+    normalizeMathExpression,
 } from "@doenet/utils";
 import { getLatexToMathConverter, getTextToMathConverter } from "./math";
 
@@ -88,14 +89,14 @@ export function parseLatexIntoMath(
  * Return a LaTeX string that corresponds to a mathematical expression.
  */
 export function toLatex(
-    math_object: string,
+    mathObject: string,
     padToDecimals?: number,
     padToDigits?: number,
     showBlanks?: boolean,
 ) {
-    let math_expr = JSON.parse(math_object, serializedComponentsReviver);
+    let mathExpr = JSON.parse(mathObject, serializedComponentsReviver);
 
-    return math_expr.toLatex({
+    return mathExpr.toLatex({
         padToDecimals,
         padToDigits,
         showBlanks,
@@ -106,15 +107,42 @@ export function toLatex(
  * Create a new mathematical expression formed by substituting variables with new expressions
  */
 export function substituteIntoMath(
-    math_object: string,
+    mathObject: string,
     substitutions: Map<string, any>,
 ) {
-    let math_expr = JSON.parse(math_object, serializedComponentsReviver);
+    let mathExpr = JSON.parse(mathObject, serializedComponentsReviver);
 
     // math-expressions substitute expects an object, not a Map
     let subs_object = Object.fromEntries(substitutions.entries());
 
-    let new_expr = math_expr.substitute(subs_object);
+    let newExpr = mathExpr.substitute(subs_object);
 
-    return JSON.stringify(new_expr, serializedComponentsReplacer);
+    return JSON.stringify(newExpr, serializedComponentsReplacer);
+}
+
+enum Simplify {
+    None = "none",
+    NumbersPreserveOrder = "numberspreserveorder", // TODO: modify to use "numbersPreserveOrder"
+    Numbers = "numbers",
+    Full = "full",
+}
+
+export function normalizeMath(
+    mathObject: string,
+    simplify: Simplify,
+    expand: boolean,
+    createVectors: boolean,
+    createIntervals: boolean,
+) {
+    let mathExpr = JSON.parse(mathObject, serializedComponentsReviver);
+
+    let newExpr = normalizeMathExpression({
+        value: mathExpr,
+        simplify,
+        expand,
+        createVectors,
+        createIntervals,
+    });
+
+    return JSON.stringify(newExpr, serializedComponentsReplacer);
 }
