@@ -44,7 +44,7 @@ impl DoenetMLCore {
         let js_function_symbols = JsValue::from(
             function_symbols
                 .as_ref()
-                .into_iter()
+                .iter()
                 .map(|x| JsValue::from_str(x))
                 .collect::<Array>(),
         );
@@ -86,7 +86,7 @@ impl DoenetMLCore {
         let js_function_symbols = JsValue::from(
             function_symbols
                 .as_ref()
-                .into_iter()
+                .iter()
                 .map(|x| JsValue::from_str(x))
                 .collect::<Array>(),
         );
