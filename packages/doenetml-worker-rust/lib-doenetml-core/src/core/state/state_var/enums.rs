@@ -11,9 +11,12 @@ use doenetml_derive::{
 };
 
 use crate::{
-    components::doenet::{boolean::Boolean, text::Text},
-    components::ComponentProfile,
+    components::{
+        doenet::{boolean::Boolean, text::Text},
+        ComponentProfile,
+    },
     dependency::{DataQuery, DependenciesCreatedForDataQuery, DependencyValueUpdateRequest},
+    state::types::math::MathExpr,
 };
 
 use super::{Freshness, InvertError, StateVar, StateVarMutableView, StateVarView, TryFromState};
@@ -30,6 +33,7 @@ pub enum StateVarEnumRef<'a> {
     Integer(&'a StateVar<i64>),
     String(&'a StateVar<String>),
     Boolean(&'a StateVar<bool>),
+    Math(&'a StateVar<MathExpr>),
 }
 
 #[derive(StateVarMethods, StateVarMethodsMut)]
@@ -38,6 +42,7 @@ pub enum StateVarEnumRefMut<'a> {
     Integer(&'a mut StateVar<i64>),
     String(&'a mut StateVar<String>),
     Boolean(&'a mut StateVar<bool>),
+    Math(&'a mut StateVar<MathExpr>),
 }
 
 /// An mutable enum view of the value of the state variable.
@@ -48,6 +53,7 @@ pub enum StateVarMutableViewEnum {
     Integer(StateVarMutableView<i64>),
     String(StateVarMutableView<String>),
     Boolean(StateVarMutableView<bool>),
+    Math(StateVarMutableView<MathExpr>),
 }
 
 /// An read-only enum view of the value of the state variable.
@@ -58,6 +64,7 @@ pub enum StateVarViewEnum {
     Integer(StateVarView<i64>),
     String(StateVarView<String>),
     Boolean(StateVarView<bool>),
+    Math(StateVarView<MathExpr>),
 }
 
 /// This can contain the value of a state variable of any type,
@@ -80,6 +87,7 @@ pub enum StateVarValue {
     Number(f64),
     Integer(i64),
     Boolean(bool),
+    Math(MathExpr),
 }
 
 impl<'a> StateVarEnumRef<'a> {
@@ -96,6 +104,7 @@ impl<'a> StateVarEnumRef<'a> {
             StateVarEnumRef::Integer(_) => unimplemented!("Have not yet created number component"),
             StateVarEnumRef::String(_) => Text::get_component_type(),
             StateVarEnumRef::Boolean(_) => Boolean::get_component_type(),
+            StateVarEnumRef::Math(_) => unimplemented!("Have not yet created math component"),
         }
     }
 }

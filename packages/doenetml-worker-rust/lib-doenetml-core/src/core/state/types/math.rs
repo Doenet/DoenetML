@@ -3,13 +3,22 @@ use strum_macros::Display;
 
 use crate::DoenetMLCore;
 
+const BLANK_MATH_OBJECT: &str = "{\"objectType\":\"math-expression\",\"tree\":\"\u{ff3f}\"}";
 /// A mathematical expression represented as a serialized `math-expressions` object.
-#[derive(Debug, Clone)]
-pub struct Math {
+#[derive(Debug, Clone, PartialEq, serde::Deserialize)]
+pub struct MathExpr {
     pub math_object: String,
 }
 
-impl serde::Serialize for Math {
+impl Default for MathExpr {
+    fn default() -> Self {
+        MathExpr {
+            math_object: BLANK_MATH_OBJECT.to_string(),
+        }
+    }
+}
+
+impl serde::Serialize for MathExpr {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
@@ -18,7 +27,7 @@ impl serde::Serialize for Math {
     }
 }
 
-impl Math {
+impl MathExpr {
     /// Create a `Math` by parsing the string `text` using the `math-expressions` text parser.
     ///
     /// Parameters:
@@ -38,10 +47,10 @@ impl Math {
         let math_object =
             match DoenetMLCore::parse_text_into_math(s, split_symbols, function_symbols) {
                 Ok(res) => res,
-                Err(_) => "\u{ff3f}".to_owned(),
+                Err(_) => BLANK_MATH_OBJECT.to_owned(),
             };
 
-        Math { math_object }
+        MathExpr { math_object }
     }
 
     /// Create a `Math` by parsing the string `latex` using the `math-expressions` latex parser.
@@ -63,10 +72,10 @@ impl Math {
         let math_object =
             match DoenetMLCore::parse_latex_into_math(s, split_symbols, function_symbols) {
                 Ok(res) => res,
-                Err(_) => "\u{ff3f}".to_owned(),
+                Err(_) => BLANK_MATH_OBJECT.to_owned(),
             };
 
-        Math { math_object }
+        MathExpr { math_object }
     }
 
     /// Return a LaTeX string that corresponds to the mathematical expression.
@@ -74,7 +83,7 @@ impl Math {
     pub fn to_latex(&self, params: ToLatexParams) -> String {
         match DoenetMLCore::to_latex(&self.math_object, params) {
             Ok(res) => res,
-            Err(_) => "\u{ff3f}".to_owned(),
+            Err(_) => BLANK_MATH_OBJECT.to_owned(),
         }
     }
 
@@ -82,28 +91,28 @@ impl Math {
     ///
     /// Parameters:
     /// - `substitutions`: a `HashMap` mapping variables to new expressions
-    pub fn substitute(&self, substitutions: &HashMap<String, MathOrPrimitive>) -> Math {
+    pub fn substitute(&self, substitutions: &HashMap<String, MathOrPrimitive>) -> MathExpr {
         let math_object = match DoenetMLCore::substitute_into_math(&self.math_object, substitutions)
         {
             Ok(res) => res,
-            Err(_) => "\u{ff3f}".to_owned(),
+            Err(_) => BLANK_MATH_OBJECT.to_owned(),
         };
 
-        Math { math_object }
+        MathExpr { math_object }
     }
 
     /// Normalize a mathematical expression as specified in `params`.
-    pub fn normalize(&self, params: NormalizeParams) -> Math {
+    pub fn normalize(&self, params: NormalizeParams) -> MathExpr {
         let math_object = match DoenetMLCore::normalize_math(&self.math_object, params) {
             Ok(res) => res,
-            Err(_) => "\u{ff3f}".to_owned(),
+            Err(_) => BLANK_MATH_OBJECT.to_owned(),
         };
 
-        Math { math_object }
+        MathExpr { math_object }
     }
 
     /// Create a new mathematical expression by adding `term` to the current expression.
-    pub fn add(&self, term: MathOrPrimitive) -> Math {
+    pub fn add(&self, term: MathOrPrimitive) -> MathExpr {
         let term = serde_json::to_string(&term).unwrap();
 
         let js_source = format!(
@@ -113,14 +122,14 @@ impl Math {
 
         let math_object = match DoenetMLCore::eval_js(&js_source) {
             Ok(res) => res,
-            Err(_) => "\u{ff3f}".to_owned(),
+            Err(_) => BLANK_MATH_OBJECT.to_owned(),
         };
 
-        Math { math_object }
+        MathExpr { math_object }
     }
 
     /// Create a new mathematical expression by subtracting `term` to the current expression.
-    pub fn subtract(&self, term: MathOrPrimitive) -> Math {
+    pub fn subtract(&self, term: MathOrPrimitive) -> MathExpr {
         let term = serde_json::to_string(&term).unwrap();
 
         let js_source = format!(
@@ -130,14 +139,14 @@ impl Math {
 
         let math_object = match DoenetMLCore::eval_js(&js_source) {
             Ok(res) => res,
-            Err(_) => "\u{ff3f}".to_owned(),
+            Err(_) => BLANK_MATH_OBJECT.to_owned(),
         };
 
-        Math { math_object }
+        MathExpr { math_object }
     }
 
     /// Create a new mathematical expression by multiplying the current expression by `term`.
-    pub fn multiply(&self, factor: MathOrPrimitive) -> Math {
+    pub fn multiply(&self, factor: MathOrPrimitive) -> MathExpr {
         let factor = serde_json::to_string(&factor).unwrap();
 
         let js_source = format!(
@@ -147,14 +156,14 @@ impl Math {
 
         let math_object = match DoenetMLCore::eval_js(&js_source) {
             Ok(res) => res,
-            Err(_) => "\u{ff3f}".to_owned(),
+            Err(_) => BLANK_MATH_OBJECT.to_owned(),
         };
 
-        Math { math_object }
+        MathExpr { math_object }
     }
 
     /// Create a new mathematical expression by dividing the current expression by `term`.
-    pub fn divide(&self, factor: MathOrPrimitive) -> Math {
+    pub fn divide(&self, factor: MathOrPrimitive) -> MathExpr {
         let factor = serde_json::to_string(&factor).unwrap();
 
         let js_source = format!(
@@ -164,10 +173,10 @@ impl Math {
 
         let math_object = match DoenetMLCore::eval_js(&js_source) {
             Ok(res) => res,
-            Err(_) => "\u{ff3f}".to_owned(),
+            Err(_) => BLANK_MATH_OBJECT.to_owned(),
         };
 
-        Math { math_object }
+        MathExpr { math_object }
     }
 }
 
@@ -175,7 +184,7 @@ impl Math {
 #[derive(Debug, serde::Serialize)]
 #[serde(untagged)]
 pub enum MathOrPrimitive {
-    Math(Math),
+    Math(MathExpr),
     Number(f64),
     Integer(i64),
     String(String),

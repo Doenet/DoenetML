@@ -5,6 +5,7 @@ use strum_macros::EnumString;
 
 use crate::attribute::{AttributeName, AttributeType};
 use crate::dast::flat_dast::FlatAttribute;
+use crate::state::types::math::MathExpr;
 use serde::{Deserialize, Serialize};
 
 use crate::dast::Position as DastPosition;
@@ -305,6 +306,8 @@ pub enum ComponentProfile {
     LiteralString,
     /// Matches Number state variables
     Number,
+    /// Matches Math state variables
+    Math,
     /// Matches Integer state variables
     Integer,
     /// Matches Boolean state variables
@@ -320,6 +323,7 @@ impl ComponentProfile {
             ComponentProfile::Boolean => StateVarValue::Boolean(bool::default()),
             ComponentProfile::Integer => StateVarValue::Integer(i64::default()),
             ComponentProfile::Number => StateVarValue::Number(f64::default()),
+            ComponentProfile::Math => StateVarValue::Math(MathExpr::default()),
             ComponentProfile::LiteralString | ComponentProfile::String => {
                 StateVarValue::String(String::default())
             }
