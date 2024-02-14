@@ -1,12 +1,12 @@
-#[cfg(feature = "web")]
+#[cfg(not(feature = "testing"))]
 use wasm_bindgen::prelude::*;
-#[cfg(feature = "web")]
+#[cfg(not(feature = "testing"))]
 use web_sys::js_sys::Array;
-#[cfg(feature = "web")]
+#[cfg(not(feature = "testing"))]
 use web_sys::js_sys::Boolean;
-#[cfg(feature = "web")]
+#[cfg(not(feature = "testing"))]
 use web_sys::js_sys::JsString;
-#[cfg(feature = "web")]
+#[cfg(not(feature = "testing"))]
 use web_sys::js_sys::Number;
 
 use std::collections::HashMap;
@@ -15,14 +15,14 @@ use crate::state::types::math_expr::{MathOrPrimitive, NormalizeParams, ToLatexPa
 use crate::DoenetMLCore;
 
 impl DoenetMLCore {
-    #[cfg(feature = "web")]
+    #[cfg(not(feature = "testing"))]
     pub fn eval_js(source: &str) -> Result<String, String> {
         let result: JsString = evalWithMathExpressionsInScope(JsString::from(source))
             .map_err(|e| format!("{:?}", e))?;
         Ok(result.into())
     }
-    #[cfg(not(feature = "web"))]
-    pub fn eval_js(source: &str) -> Result<String, String> {
+    #[cfg(feature = "testing")]
+    pub fn eval_js(_source: &str) -> Result<String, String> {
         Err("eval_js is only available when compiled with the `web` feature".to_string())
     }
 
@@ -35,7 +35,7 @@ impl DoenetMLCore {
     /// - `function_symbols`: a list of the symbols that will be treated as a function,
     ///   i.e., one of these symbols followed by arguments in parentheses
     ///   will be interpreted as apply that function to the arguments (rather than multiplication)
-    #[cfg(feature = "web")]
+    #[cfg(not(feature = "testing"))]
     pub fn parse_text_into_math<'a, TXT: AsRef<str>, FnSymbol: AsRef<str>>(
         text: TXT,
         split_symbols: bool,
@@ -55,11 +55,11 @@ impl DoenetMLCore {
         .map_err(|e| format!("{:?}", e))?;
         Ok(result.into())
     }
-    #[cfg(not(feature = "web"))]
-    pub fn parse_text_into_math<'a, TXT: AsRef<str>, FnSymbols: AsRef<[&'a str]>>(
-        text: TXT,
-        split_symbols: bool,
-        function_symbols: FnSymbols,
+    #[cfg(feature = "testing")]
+    pub fn parse_text_into_math<'a, TXT: AsRef<str>, FnSymbol: AsRef<str>>(
+        _text: TXT,
+        _split_symbols: bool,
+        _function_symbols: &[FnSymbol],
     ) -> Result<String, String> {
         Err(
             "parse_text_into_math is only available when compiled with the `web` feature"
@@ -67,7 +67,6 @@ impl DoenetMLCore {
         )
     }
 
-    #[cfg(feature = "web")]
     /// Parsing a string into math using the `math-expressions` latex parser.
     ///
     /// Parameters:
@@ -77,6 +76,7 @@ impl DoenetMLCore {
     /// - `function_symbols`: a list of the symbols that will be treated as a function,
     ///   i.e., one of these symbols followed by arguments in parentheses
     ///   will be interpreted as apply that function to the arguments (rather than multiplication)
+    #[cfg(not(feature = "testing"))]
     pub fn parse_latex_into_math<'a, TXT: AsRef<str>, FnSymbol: AsRef<str>>(
         latex: TXT,
         split_symbols: bool,
@@ -96,11 +96,11 @@ impl DoenetMLCore {
         .map_err(|e| format!("{:?}", e))?;
         Ok(result.into())
     }
-    #[cfg(not(feature = "web"))]
+    #[cfg(feature = "testing")]
     pub fn parse_latex_into_math<'a, TXT: AsRef<str>, FnSymbol: AsRef<str>>(
-        latex: TXT,
-        split_symbols: bool,
-        function_symbols: &[FnSymbol],
+        _latex: TXT,
+        _split_symbols: bool,
+        _function_symbols: &[FnSymbol],
     ) -> Result<String, String> {
         Err(
             "parse_latex_into_math is only available when compiled with the `web` feature"
@@ -110,7 +110,7 @@ impl DoenetMLCore {
 
     /// Return a LaTeX string that corresponds to the mathematical expression `math_object`.
     /// The behavior is controlled by `params`.
-    #[cfg(feature = "web")]
+    #[cfg(not(feature = "testing"))]
     pub fn to_latex(math_object: &str, params: ToLatexParams) -> Result<String, String> {
         let result: JsString = toLatex(
             JsString::from(math_object),
@@ -121,13 +121,8 @@ impl DoenetMLCore {
         .map_err(|e| format!("{:?}", e))?;
         Ok(result.into())
     }
-    #[cfg(not(feature = "web"))]
-    pub fn to_latex(
-        math_object: &str,
-        pad_to_decimals: Option<i32>,
-        pad_to_digits: Option<i32>,
-        show_blanks: Option<bool>,
-    ) -> Result<String, String> {
+    #[cfg(feature = "testing")]
+    pub fn to_latex(_math_object: &str, _params: ToLatexParams) -> Result<String, String> {
         Err("to_latex is only available when compiled with the `web` feature".to_string())
     }
 
@@ -136,7 +131,7 @@ impl DoenetMLCore {
     /// Parameters:
     /// - `math_object`: a serialized `math-expressions` object
     /// - `substitutions`: a `HashMap` mapping variables to new expressions
-    #[cfg(feature = "web")]
+    #[cfg(not(feature = "testing"))]
     pub fn substitute_into_math(
         math_object: &str,
         substitutions: &HashMap<String, MathOrPrimitive>,
@@ -147,10 +142,10 @@ impl DoenetMLCore {
             .map_err(|e| format!("{:?}", e))?;
         Ok(result.into())
     }
-    #[cfg(not(feature = "web"))]
+    #[cfg(feature = "testing")]
     pub fn substitute_into_math(
-        math_object: &str,
-        substitutions: HashMap<String, MathOrPrimitive>,
+        _math_object: &str,
+        _substitutions: &HashMap<String, MathOrPrimitive>,
     ) -> Result<String, String> {
         Err(
             "substitute_into_math is only available when compiled with the `web` feature"
@@ -159,7 +154,7 @@ impl DoenetMLCore {
     }
 
     /// Return a normalize mathematical expression from `math_object` as specified in `params`.
-    #[cfg(feature = "web")]
+    #[cfg(not(feature = "testing"))]
     pub fn normalize_math(math_object: &str, params: NormalizeParams) -> Result<String, String> {
         use crate::utils::log;
 
@@ -178,19 +173,13 @@ impl DoenetMLCore {
         .map_err(|e| format!("{:?}", e))?;
         Ok(result.into())
     }
-    #[cfg(not(feature = "web"))]
-    pub fn normalize_math(
-        math_object: &str,
-        simplify: MathSimplify,
-        expand: bool,
-        create_vectors: bool,
-        create_intervals: bool,
-    ) -> Result<String, String> {
+    #[cfg(feature = "testing")]
+    pub fn normalize_math(_math_object: &str, _params: NormalizeParams) -> Result<String, String> {
         Err("normalize_math is only available when compiled with the `web` feature".to_string())
     }
 }
 
-#[cfg(feature = "web")]
+#[cfg(not(feature = "testing"))]
 #[wasm_bindgen]
 extern "C" {
     #[wasm_bindgen(js_namespace = __forDoenetWorker, catch)]
