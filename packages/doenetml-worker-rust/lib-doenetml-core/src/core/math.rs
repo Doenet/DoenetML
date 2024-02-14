@@ -110,23 +110,15 @@ impl DoenetMLCore {
         )
     }
 
-    /// Return a LaTeX string that corresponds to a mathematical expression.
-    ///
-    /// Parameters:
-    /// - `math_object`: a serialized `math-expressions` object
-    /// - `pad_to_decimals`: if present, then pad numbers with zeros so they have at least
-    /// this many decimal places after the decimal point displayed
-    /// - `pad_to_digits`: if present, then pad numbers zeros so they have at least
-    /// this many total digits displayed
-    /// - `show_blanks`: if true, then display any blanks in the mathematical expression
-    /// as a long underscore
+    /// Return a LaTeX string that corresponds to the mathematical expression `math_object`.
+    /// The behavior is controlled by `params`.
     #[cfg(feature = "web")]
     pub fn to_latex(math_object: &str, params: ToLatexParams) -> Result<String, String> {
         let result: JsString = toLatex(
             JsString::from(math_object),
             params.pad_to_decimals.map(Number::from),
             params.pad_to_digits.map(Number::from),
-            params.show_blanks.map(Boolean::from),
+            Boolean::from(params.show_blanks),
         )
         .map_err(|e| format!("{:?}", e))?;
         Ok(result.into())
@@ -168,6 +160,7 @@ impl DoenetMLCore {
         )
     }
 
+    /// Return a normalize mathematical expression from `math_object` as specified in `params`.
     #[cfg(feature = "web")]
     pub fn normalize_math(math_object: &str, params: NormalizeParams) -> Result<String, String> {
         use crate::utils::log;
@@ -224,7 +217,7 @@ extern "C" {
         mathObject: JsString,
         padToDecimals: Option<Number>,
         padToDigits: Option<Number>,
-        showBlanks: Option<Boolean>,
+        showBlanks: Boolean,
     ) -> Result<JsString, JsValue>;
 
     #[wasm_bindgen(js_namespace = __forDoenetWorker, catch)]

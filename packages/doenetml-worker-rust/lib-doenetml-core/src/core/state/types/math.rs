@@ -70,14 +70,7 @@ impl Math {
     }
 
     /// Return a LaTeX string that corresponds to the mathematical expression.
-    ///
-    /// Parameters:
-    /// - `pad_to_decimals`: if present, then pad numbers with zeros so they have at least
-    /// this many decimal places after the decimal point displayed
-    /// - `pad_to_digits`: if present, then pad numbers zeros so they have at least
-    /// this many total digits displayed
-    /// - `show_blanks`: if true, then display any blanks in the mathematical expression
-    /// as a long underscore
+    /// The behavior is controlled by `params`.
     pub fn to_latex(&self, params: ToLatexParams) -> String {
         match DoenetMLCore::to_latex(&self.math_object, params) {
             Ok(res) => res,
@@ -99,6 +92,7 @@ impl Math {
         Math { math_object }
     }
 
+    /// Normalize a mathematical expression as specified in `params`.
     pub fn normalize(&self, params: NormalizeParams) -> Math {
         let math_object = match DoenetMLCore::normalize_math(&self.math_object, params) {
             Ok(res) => res,
@@ -187,27 +181,70 @@ pub enum MathOrPrimitive {
     String(String),
 }
 
-#[derive(Debug, Default)]
+/// Parameters for creating a latex string from a `Math`:
+#[derive(Debug)]
 pub struct ToLatexParams {
+    /// If present, then pad numbers with zeros so they have at least
+    /// this many decimal places after the decimal point displayed.
     pub pad_to_decimals: Option<i32>,
+    /// If present, then pad numbers with zeros so they have at least
+    /// this many total digits displayed.
     pub pad_to_digits: Option<i32>,
-    pub show_blanks: Option<bool>,
+    /// If true, then display any blanks in the mathematical expression
+    /// as a long underscore.
+    pub show_blanks: bool,
 }
 
+impl Default for ToLatexParams {
+    fn default() -> Self {
+        ToLatexParams {
+            pad_to_decimals: None,
+            pad_to_digits: None,
+            show_blanks: true,
+        }
+    }
+}
+/// Levels of simplification of mathematical expressions.
 #[derive(Debug, Display, Default)]
 #[strum(serialize_all = "camelCase")]
 pub enum MathSimplify {
+    /// No simplification is performed.
     #[default]
     None,
+    /// Simplify numbers, such as simplify `1+1` to 2,
+    /// except do not change the order between numerical and non-numerical operands.
+    /// Do not alter non-numerical expressions.
     NumbersPreserveOrder,
+    /// Simplify numbers, such as simplify `1+1` to 2,
+    /// Do not alter non-numerical expressions.
     Numbers,
+    /// Simplify the mathematical expression using the currently
+    /// implemented features. These features are limited and subject to change.
+    /// For example, simplification of ratio expressions is essentially non-existent.
     Full,
 }
 
+/// Parameters for normalizing a mathematical expression
 #[derive(Debug, Default)]
 pub struct NormalizeParams {
+    /// We currently support four options for `simplify`:
+    /// - `MathSimplify::None`: no simplification
+    /// - `MathSimplify::NumbersPreserveOrder`: simplify numbers, such as simplify `1+1` to 2,
+    ///   except do not change the order between numerical and non-numerical operands.
+    ///   Do not alter non-numerical expressions.
+    /// - `MathSimplify::Numbers`: simplify numbers, such as simplify `1+1` to 2,
+    ///   Do not alter non-numerical expressions.
+    /// - `MathSimplify::Full`: simplify the mathematical expression using the currently
+    ///   implemented features. These features are limited and subject to change.
+    ///   For example, simplification of ratio expressions is essentially non-existent.
     pub simplify: MathSimplify,
+    /// If true, expand out multiplication over addition/subtraction.
     pub expand: bool,
+    /// If true, create vectors out of tuples (that haven't previously been turned into intervals).
     pub create_vectors: bool,
+    /// If true, create closed intervals out of arrays and open intervals out of tuples
+    /// (that haven't previously been turned into vectors).
+    /// If both `create_vectors` and `create_intervals` are `true`,
+    /// `create_vectors` is applied first so that only arrays will be affected by `create_intervals`.
     pub create_intervals: bool,
 }
