@@ -37,10 +37,10 @@ impl MathExpr {
     /// - `function_symbols`: a list of the symbols that will be treated as a function,
     ///   i.e., one of these symbols followed by arguments in parentheses
     ///   will be interpreted as apply that function to the arguments (rather than multiplication)
-    pub fn from_text<'a, TXT: AsRef<str>, FnSymbols: AsRef<[&'a str]>>(
+    pub fn from_text<'a, TXT: AsRef<str>, FnSymbol: AsRef<str>>(
         text: TXT,
         split_symbols: bool,
-        function_symbols: FnSymbols,
+        function_symbols: &[FnSymbol],
     ) -> Self {
         let s = text.as_ref();
 
@@ -62,10 +62,10 @@ impl MathExpr {
     /// - `function_symbols`: a list of the symbols that will be treated as a function,
     ///   i.e., one of these symbols followed by arguments in parentheses
     ///   will be interpreted as apply that function to the arguments (rather than multiplication)
-    pub fn from_latex<'a, TXT: AsRef<str>, FnSymbols: AsRef<[&'a str]>>(
+    pub fn from_latex<'a, TXT: AsRef<str>, FnSymbol: AsRef<str>>(
         latex: TXT,
         split_symbols: bool,
-        function_symbols: FnSymbols,
+        function_symbols: &[FnSymbol],
     ) -> Self {
         let s = latex.as_ref();
 
@@ -256,4 +256,12 @@ pub struct NormalizeParams {
     /// If both `create_vectors` and `create_intervals` are `true`,
     /// `create_vectors` is applied first so that only arrays will be affected by `create_intervals`.
     pub create_intervals: bool,
+}
+
+/// We can parse a string into a mathematical expression with either a text or a latex parser
+#[derive(Debug, Default)]
+pub enum MathParser {
+    #[default]
+    Text,
+    Latex,
 }

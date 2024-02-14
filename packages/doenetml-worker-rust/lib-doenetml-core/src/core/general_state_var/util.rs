@@ -1,7 +1,8 @@
 use enum_dispatch::enum_dispatch;
 
-use crate::components::prelude::{
-    QueryUpdateRequests, StateVarView, StateVarViewEnum, TryFromState,
+use crate::{
+    components::prelude::{QueryUpdateRequests, StateVarView, StateVarViewEnum, TryFromState},
+    state::types::math_expr::MathExpr,
 };
 
 /// Convert string to boolean
@@ -45,6 +46,33 @@ impl TryFromState<StateVarViewEnum> for BooleanOrString {
                 string_sv.create_new_read_only_view(),
             )),
             _ => Err("BooleanOrString can only be a boolean or string state variable"),
+        }
+    }
+}
+
+/// A math or string state var view
+#[derive(Debug)]
+#[enum_dispatch(QueryUpdateRequests)]
+pub enum MathOrString {
+    Math(StateVarView<MathExpr>),
+    String(StateVarView<String>),
+}
+
+// We implement TryFromState
+// because all RequiredData must implement this trait.
+// (Needed to create the RequiredData from the information sent the state variable)
+impl TryFromState<StateVarViewEnum> for MathOrString {
+    type Error = &'static str;
+
+    fn try_from_state(value: &StateVarViewEnum) -> Result<Self, Self::Error> {
+        match value {
+            StateVarViewEnum::Math(math_sv) => {
+                Ok(MathOrString::Math(math_sv.create_new_read_only_view()))
+            }
+            StateVarViewEnum::String(string_sv) => {
+                Ok(MathOrString::String(string_sv.create_new_read_only_view()))
+            }
+            _ => Err("MathOrString can only be a math or string state variable"),
         }
     }
 }

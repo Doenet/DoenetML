@@ -16,7 +16,7 @@ use crate::{
         ComponentProfile,
     },
     dependency::{DataQuery, DependenciesCreatedForDataQuery, DependencyValueUpdateRequest},
-    state::types::math::MathExpr,
+    state::types::math_expr::MathExpr,
 };
 
 use super::{Freshness, InvertError, StateVar, StateVarMutableView, StateVarView, TryFromState};

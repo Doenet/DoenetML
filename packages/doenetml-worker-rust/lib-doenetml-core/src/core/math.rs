@@ -11,7 +11,7 @@ use web_sys::js_sys::Number;
 
 use std::collections::HashMap;
 
-use crate::state::types::math::{MathOrPrimitive, NormalizeParams, ToLatexParams};
+use crate::state::types::math_expr::{MathOrPrimitive, NormalizeParams, ToLatexParams};
 use crate::DoenetMLCore;
 
 impl DoenetMLCore {
@@ -36,16 +36,15 @@ impl DoenetMLCore {
     ///   i.e., one of these symbols followed by arguments in parentheses
     ///   will be interpreted as apply that function to the arguments (rather than multiplication)
     #[cfg(feature = "web")]
-    pub fn parse_text_into_math<'a, TXT: AsRef<str>, FnSymbols: AsRef<[&'a str]>>(
+    pub fn parse_text_into_math<'a, TXT: AsRef<str>, FnSymbol: AsRef<str>>(
         text: TXT,
         split_symbols: bool,
-        function_symbols: FnSymbols,
+        function_symbols: &[FnSymbol],
     ) -> Result<String, String> {
         let js_function_symbols = JsValue::from(
             function_symbols
-                .as_ref()
                 .iter()
-                .map(|x| JsValue::from_str(x))
+                .map(|x| JsValue::from_str(x.as_ref()))
                 .collect::<Array>(),
         );
         let result: JsString = parseTextIntoMath(
@@ -78,16 +77,15 @@ impl DoenetMLCore {
     /// - `function_symbols`: a list of the symbols that will be treated as a function,
     ///   i.e., one of these symbols followed by arguments in parentheses
     ///   will be interpreted as apply that function to the arguments (rather than multiplication)
-    pub fn parse_latex_into_math<'a, TXT: AsRef<str>, FnSymbols: AsRef<[&'a str]>>(
+    pub fn parse_latex_into_math<'a, TXT: AsRef<str>, FnSymbol: AsRef<str>>(
         latex: TXT,
         split_symbols: bool,
-        function_symbols: FnSymbols,
+        function_symbols: &[FnSymbol],
     ) -> Result<String, String> {
         let js_function_symbols = JsValue::from(
             function_symbols
-                .as_ref()
                 .iter()
-                .map(|x| JsValue::from_str(x))
+                .map(|x| JsValue::from_str(x.as_ref()))
                 .collect::<Array>(),
         );
         let result: JsString = parseLatexIntoMath(
@@ -99,10 +97,10 @@ impl DoenetMLCore {
         Ok(result.into())
     }
     #[cfg(not(feature = "web"))]
-    pub fn parse_latex_into_math<'a, TXT: AsRef<str>, FnSymbols: AsRef<[&'a str]>>(
+    pub fn parse_latex_into_math<'a, TXT: AsRef<str>, FnSymbol: AsRef<str>>(
         latex: TXT,
         split_symbols: bool,
-        function_symbols: FnSymbols,
+        function_symbols: &[FnSymbol],
     ) -> Result<String, String> {
         Err(
             "parse_latex_into_math is only available when compiled with the `web` feature"

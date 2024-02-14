@@ -5,7 +5,7 @@ use strum_macros::EnumString;
 
 use crate::attribute::{AttributeName, AttributeType};
 use crate::dast::flat_dast::FlatAttribute;
-use crate::state::types::math::MathExpr;
+use crate::state::types::math_expr::MathExpr;
 use serde::{Deserialize, Serialize};
 
 use crate::dast::Position as DastPosition;
