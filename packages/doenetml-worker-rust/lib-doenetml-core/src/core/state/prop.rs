@@ -78,7 +78,7 @@ impl<T: Default + Clone + std::fmt::Display> std::fmt::Debug for Prop<T> {
 /// The value of a prop along with its meta data.
 ///
 /// Since PropInner (via PropViewMut and PropView)
-/// is also used for essential data, we keep extra fields,
+/// is also used for state data, we keep extra fields,
 /// off this structure and put them only in Prop.
 #[derive(Debug)]
 struct PropInner<T: Default + Clone> {

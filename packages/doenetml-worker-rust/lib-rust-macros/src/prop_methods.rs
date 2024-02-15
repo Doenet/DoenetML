@@ -445,7 +445,7 @@ pub fn prop_mutable_view_methods_derive(input: TokenStream) -> TokenStream {
                 impl PropViewMutEnum {
                     /// Creates a new mutable view of a prop
                     ///
-                    /// Intended for creating essential data, as it creates a PropViewMutEnum
+                    /// Intended for creating state data, as it creates a PropViewMutEnum
                     /// that is disconnected from any PropEnum.
                     ///
                     /// The type of prop created is determined by the type of `prop_val`.
@@ -521,7 +521,7 @@ pub fn prop_mutable_view_methods_derive(input: TokenStream) -> TokenStream {
                     /// Set the value of this prop to the value of the requested value
                     /// currently set for the variable.
                     ///
-                    /// This function should only be called on essential data,
+                    /// This function should only be called on state data,
                     /// as other variables should be calculated from their dependencies.
                     pub fn set_value_to_requested_value(&self) {
                         match self {

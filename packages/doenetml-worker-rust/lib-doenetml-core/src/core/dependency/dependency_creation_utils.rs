@@ -93,8 +93,8 @@ pub fn get_children_with_parent_including_from_extend_source(
 /// return the component index of that extend source,
 /// except recurse until the component index of the original source is found.
 ///
-/// When we store essential data, we store it with this original source index,
-/// allowing copies to share the same essential data as the source.
+/// When we store state data, we store it with this original source index,
+/// allowing copies to share the same state data as the source.
 pub fn get_component_extend_source_origin(
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
     component_idx: ComponentIdx,

@@ -9,10 +9,10 @@ use super::dast::{
     FlatDastRoot, Position as DastPosition,
 };
 
-use super::state::essential_state::{EssentialDataOrigin, EssentialProp};
 use super::state::prop_calculations::{
     freshen_all_stale_renderer_states, get_prop_value, resolve_prop, PropUpdateRequest,
 };
+use super::state::prop_state::{StateProp, StatePropDataOrigin};
 use super::state::prop_updates::process_prop_update_request;
 use super::state::Freshness;
 
@@ -49,25 +49,25 @@ pub struct DoenetMLCore {
     pub components: Vec<Rc<RefCell<ComponentEnum>>>,
 
     /// A DAG whose vertices are the props (and attributes?)
-    /// of every component, and whose endpoint vertices are essential data.
+    /// of every component, and whose endpoint vertices are state data.
     pub dependency_graph: DependencyGraph,
 
     /// Endpoints of the dependency graph.
     /// Every update instruction will lead to these.
     ///
-    /// The essential data are the only data needed to construct the document state
+    /// The state data are the only data needed to construct the document state
     /// as all other props are calculated from them.
-    /// When saving state to a database, only essential data needs to be saved.
+    /// When saving state to a database, only state data needs to be saved.
     ///
     /// Data structure:
     /// - The vector index is the *ComponentIdx* of the component,
     /// defined by the order in *components*.
-    /// - The hash map key *EssentialDataOrigin* specifies how the component created the essential data.
-    /// - The hash map value *EssentialProp* is a *PropViewMutEnum*
+    /// - The hash map key *StatePropDataOrigin* specifies how the component created the state data.
+    /// - The hash map value *StatePropProp* is a *PropViewMutEnum*
     ///   that stores the value.
-    ///   (Note, unlike for props, *EssentialProp* is not attached to any *Prop*,
+    ///   (Note, unlike for props, *StateProp* is not attached to any *Prop*,
     ///   as it doesn't need *PropUpdater*.)
-    pub essential_data: Vec<HashMap<EssentialDataOrigin, EssentialProp>>,
+    pub state_data: Vec<HashMap<StatePropDataOrigin, StateProp>>,
 
     pub processing_state: CoreProcessingState,
 
@@ -84,7 +84,7 @@ pub struct DependencyGraph {
     /// **The Dependency Graph**
     ///
     /// A DAG whose vertices are the props (and attributes?)
-    /// of every component, and whose endpoint vertices are essential data.
+    /// of every component, and whose endpoint vertices are state data.
     ///
     /// Used for
     /// - producing values when determining a prop
@@ -100,7 +100,7 @@ pub struct DependencyGraph {
     ///   that matched that DataQuery.
     pub dependencies: Vec<Vec<Vec<DependenciesCreatedForDataQuery>>>,
 
-    /// The inverse of the dependency graph *dependencies* (along with *dependent_on_essential*).
+    /// The inverse of the dependency graph *dependencies* (along with *dependent_on_state*).
     /// It specifies the props that are dependent on each prop.
     ///
     /// Structure of the nested vectors:
@@ -113,15 +113,15 @@ pub struct DependencyGraph {
     pub dependent_on_prop: Vec<Vec<Vec<PropPointer>>>,
 
     /// The inverse of the dependency graph *dependencies* (along with *dependent_on_prop*).
-    /// It specifies the props that are dependent on each piece of essential data.
+    /// It specifies the props that are dependent on each piece of state data.
     ///
     /// Data structure:
     /// - The vector index is the *ComponentIdx* of the component,
     /// defined by the order in *components*.
-    /// - The hash map key *EssentialDataOrigin* specifies how the component created the essential data.
+    /// - The hash map key *StatePropDataOrigin* specifies how the component created the state data.
     /// - The hash map value vector is the list of component/prop combinations
-    /// that are dependent on this piece of essential data.
-    pub dependent_on_essential: Vec<HashMap<EssentialDataOrigin, Vec<PropPointer>>>,
+    /// that are dependent on this piece of state data.
+    pub dependent_on_state: Vec<HashMap<StatePropDataOrigin, Vec<PropPointer>>>,
 }
 
 #[derive(Debug)]
@@ -208,7 +208,7 @@ impl DoenetMLCore {
         dast_root: DastRoot,
         source: &str,
         _flags_json: &str,
-        existing_essential_data: Option<Vec<HashMap<EssentialDataOrigin, EssentialProp>>>,
+        existing_state_data: Option<Vec<HashMap<StatePropDataOrigin, StateProp>>>,
     ) -> Self {
         let warnings: Vec<DastWarning> = Vec::new();
 
@@ -228,12 +228,12 @@ impl DoenetMLCore {
             position: None,
         };
 
-        let essential_data = existing_essential_data
+        let state_data = existing_state_data
             .unwrap_or_else(|| (0..components.len()).map(|_| HashMap::new()).collect());
 
         let mut dependencies = Vec::with_capacity(components.len());
         let mut dependent_on_prop = Vec::with_capacity(components.len());
-        let mut dependent_on_essential = Vec::with_capacity(components.len());
+        let mut dependent_on_state = Vec::with_capacity(components.len());
 
         for comp in &components {
             // create vector of length num of prop defs, where each entry is zero-length vector
@@ -241,7 +241,7 @@ impl DoenetMLCore {
             dependencies.push((0..num_inner_prop_defs).map(|_| vec![]).collect());
             dependent_on_prop.push(vec![Vec::new(); num_inner_prop_defs]);
 
-            dependent_on_essential.push(HashMap::new());
+            dependent_on_state.push(HashMap::new());
         }
 
         // Initialize with the document element being stale.
@@ -256,9 +256,9 @@ impl DoenetMLCore {
             dependency_graph: DependencyGraph {
                 dependencies,
                 dependent_on_prop,
-                dependent_on_essential,
+                dependent_on_state,
             },
-            essential_data,
+            state_data,
             processing_state: CoreProcessingState {
                 stale_renderers,
                 freshen_stack: Vec::new(),
@@ -279,7 +279,7 @@ impl DoenetMLCore {
             &mut self.processing_state,
             &self.components,
             &mut self.dependency_graph,
-            &mut self.essential_data,
+            &mut self.state_data,
         )
     }
 
@@ -313,7 +313,7 @@ impl DoenetMLCore {
                 },
                 &self.components,
                 &mut self.dependency_graph,
-                &mut self.essential_data,
+                &mut self.state_data,
                 &mut self.processing_state.freshen_stack,
             )
         };
@@ -356,18 +356,18 @@ impl DoenetMLCore {
                         prop_ptr,
                         &self.components,
                         &mut self.dependency_graph,
-                        &mut self.essential_data,
+                        &mut self.state_data,
                     );
                 }
 
                 // Recurse in the inverse direction along to dependency graph
-                // to infer how to set the leaves (essential props)
+                // to infer how to set the leaves (state props)
                 // to attempt to set the prop to its requested value.
                 process_prop_update_request(
                     PropUpdateRequest::SetProp(prop_ptr),
                     &self.components,
                     &mut self.dependency_graph,
-                    &mut self.essential_data,
+                    &mut self.state_data,
                     &mut self.processing_state,
                 );
             }
@@ -421,7 +421,7 @@ impl DoenetMLCore {
             },
             &self.components,
             &mut self.dependency_graph,
-            &mut self.essential_data,
+            &mut self.state_data,
             &mut self.processing_state.freshen_stack,
         )
     }

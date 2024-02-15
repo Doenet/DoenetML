@@ -6,7 +6,7 @@ use crate::{
         prelude::{PropIdx, TryFromState, TryToState},
         ComponentProfile,
     },
-    state::{essential_state::EssentialDataOrigin, PropPointer},
+    state::{prop_state::StatePropDataOrigin, PropPointer},
     state::{PropName, PropViewEnum},
     ComponentIdx,
 };
@@ -83,9 +83,9 @@ pub enum DependencySource {
         component_idx: ComponentIdx,
         prop_idx: PropIdx,
     },
-    Essential {
+    State {
         component_idx: ComponentIdx,
-        origin: EssentialDataOrigin,
+        origin: StatePropDataOrigin,
         // value_type: &'static str,
     },
 }
@@ -102,8 +102,8 @@ impl TryFrom<&DependencySource> for PropPointer {
                 component_idx: *component_idx,
                 prop_idx: *prop_idx,
             }),
-            DependencySource::Essential { .. } => {
-                Err("Cannot convert essential dependency source to a prop pointer.")
+            DependencySource::State { .. } => {
+                Err("Cannot convert state dependency source to a prop pointer.")
             }
         }
     }

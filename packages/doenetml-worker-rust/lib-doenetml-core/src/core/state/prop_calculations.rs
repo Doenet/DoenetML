@@ -3,9 +3,9 @@ use std::{cell::RefCell, collections::HashMap, rc::Rc};
 use crate::{
     components::{prelude::UntaggedContent, ComponentEnum, ComponentNode, RenderedChildren},
     dependency::{
-        create_dependencies_from_data_query_initialize_essential, DataQuery, DependencySource,
+        create_dependencies_from_data_query_initialize_state, DataQuery, DependencySource,
     },
-    state::essential_state::{EssentialDataOrigin, EssentialProp, EssentialStateDescription},
+    state::prop_state::{StateProp, StatePropDataOrigin, StatePropDescription},
     state::{Freshness, PropValue},
     ComponentIdx, CoreProcessingState, DependencyGraph, Extending,
 };
@@ -18,14 +18,14 @@ pub fn get_prop_value(
     original_prop_ptr: PropPointer,
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
     dependency_graph: &mut DependencyGraph,
-    essential_data: &mut Vec<HashMap<EssentialDataOrigin, EssentialProp>>,
+    state_data: &mut Vec<HashMap<StatePropDataOrigin, StateProp>>,
     freshen_stack: &mut Vec<PropPointer>,
 ) -> PropValue {
     freshen_prop(
         original_prop_ptr,
         components,
         dependency_graph,
-        essential_data,
+        state_data,
         freshen_stack,
     );
 
@@ -39,7 +39,7 @@ pub fn get_prop_value(
 /// Internal structure used to track changes
 #[derive(Debug, Clone)]
 pub enum PropUpdateRequest {
-    SetEssentialValue(EssentialStateDescription),
+    SetStateValue(StatePropDescription),
     SetProp(PropPointer),
 }
 
@@ -51,7 +51,7 @@ pub fn freshen_all_stale_renderer_states(
     processing_state: &mut CoreProcessingState,
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
     dependency_graph: &mut DependencyGraph,
-    essential_data: &mut Vec<HashMap<EssentialDataOrigin, EssentialProp>>,
+    state_data: &mut Vec<HashMap<StatePropDataOrigin, StateProp>>,
 ) -> Vec<usize> {
     let stale_renderers = &mut processing_state.stale_renderers;
 
@@ -90,7 +90,7 @@ pub fn freshen_all_stale_renderer_states(
                 prop_ptr,
                 components,
                 dependency_graph,
-                essential_data,
+                state_data,
                 &mut processing_state.freshen_stack,
             );
         }
@@ -138,7 +138,7 @@ pub fn freshen_prop(
     original_prop_ptr: PropPointer,
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
     dependency_graph: &mut DependencyGraph,
-    essential_data: &mut Vec<HashMap<EssentialDataOrigin, EssentialProp>>,
+    state_data: &mut Vec<HashMap<StatePropDataOrigin, StateProp>>,
     freshen_stack: &mut Vec<PropPointer>,
 ) {
     // This function currently implements recursion through an iterative method,
@@ -161,12 +161,7 @@ pub fn freshen_prop(
     match original_freshness {
         Freshness::Fresh => return,
         Freshness::Unresolved => {
-            resolve_prop(
-                original_prop_ptr,
-                components,
-                dependency_graph,
-                essential_data,
-            );
+            resolve_prop(original_prop_ptr, components, dependency_graph, state_data);
         }
         Freshness::Stale | Freshness::Resolved => (),
     };
@@ -211,7 +206,7 @@ pub fn freshen_prop(
                 // If can create a prop_ptr from dep.source,
                 // it means it is a DependencySource::Prop,
                 // so we need to check if that prop is fresh.
-                // (There is nothing to do for DependencySource::Essential.)
+                // (There is nothing to do for DependencySource::State.)
                 if let Ok(dep_prop_ptr) = PropPointer::try_from(&dep.source) {
                     match dep.value.get_freshness() {
                         // No need to recurse if the prop of the dependency is already fresh
@@ -279,7 +274,7 @@ pub fn resolve_prop(
     original_prop_ptr: PropPointer,
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
     dependency_graph: &mut DependencyGraph,
-    essential_data: &mut Vec<HashMap<EssentialDataOrigin, EssentialProp>>,
+    state_data: &mut Vec<HashMap<StatePropDataOrigin, StateProp>>,
 ) {
     // Since resolving props won't recurse with repeated actions,
     // will go ahead and allocate the stack locally, for simplicity.
@@ -309,16 +304,16 @@ pub fn resolve_prop(
         let mut dependencies_for_prop = Vec::with_capacity(data_queries.len());
 
         for query in data_queries.iter() {
-            let instruct_dependencies = create_dependencies_from_data_query_initialize_essential(
+            let instruct_dependencies = create_dependencies_from_data_query_initialize_state(
                 components,
                 component_idx,
                 prop_idx,
                 query,
-                essential_data,
+                state_data,
             );
 
             // add these dependencies to the inverse graph:
-            // dependent_on_prop or dependent_on_essential.
+            // dependent_on_prop or dependent_on_state.
             for dep in instruct_dependencies.iter() {
                 match &dep.source {
                     DependencySource::Prop {
@@ -331,11 +326,11 @@ pub fn resolve_prop(
                             prop_idx,
                         });
                     }
-                    DependencySource::Essential {
+                    DependencySource::State {
                         component_idx: inner_comp_idx,
                         origin,
                     } => {
-                        let vec_dep = dependency_graph.dependent_on_essential[*inner_comp_idx]
+                        let vec_dep = dependency_graph.dependent_on_state[*inner_comp_idx]
                             .entry(origin.clone())
                             .or_default();
                         vec_dep.push(PropPointer {

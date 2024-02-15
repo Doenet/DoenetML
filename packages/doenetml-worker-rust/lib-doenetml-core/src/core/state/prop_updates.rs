@@ -3,8 +3,8 @@ use std::{cell::RefCell, collections::HashMap, rc::Rc};
 use crate::{
     components::{ComponentEnum, ComponentNode},
     dependency::{DependenciesCreatedForDataQuery, DependencySource, DependencyValueUpdateRequest},
-    state::essential_state::{EssentialDataOrigin, EssentialProp, EssentialStateDescription},
     state::prop_calculations::PropUpdateRequest,
+    state::prop_state::{StateProp, StatePropDataOrigin, StatePropDescription},
     state::Freshness,
     ComponentIdx, CoreProcessingState, DependencyGraph,
 };
@@ -15,14 +15,14 @@ use super::{ComponentState, PropPointer};
 /// the requested update of the prop described in initial_update_request.
 /// The requested value must already be set on that prop itself.
 ///
-/// When we reach the leaves (essential props), set them to their requested values
+/// When we reach the leaves (state props), set them to their requested values
 /// and then mark all their dependencies as stale
 #[allow(clippy::ptr_arg)]
 pub fn process_prop_update_request(
     initial_update_request: PropUpdateRequest,
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
     dependency_graph: &mut DependencyGraph,
-    essential_data: &mut Vec<HashMap<EssentialDataOrigin, EssentialProp>>,
+    state_data: &mut Vec<HashMap<StatePropDataOrigin, StateProp>>,
     processing_state: &mut CoreProcessingState,
 ) {
     // This function currently implements recursion through an iterative method,
@@ -38,21 +38,19 @@ pub fn process_prop_update_request(
         // log!("Process update request: {:?}", update_request);
 
         match update_request {
-            PropUpdateRequest::SetEssentialValue(essential_state) => {
+            PropUpdateRequest::SetStateValue(state) => {
                 // We reached a leaf of the dependency graph.
                 // Set it to its requested value (which has been set in a previous step),
                 // and then recursively mark all its dependencies as stale.
 
-                let essential_var = essential_data[essential_state.component_idx]
-                    .get_mut(&essential_state.origin)
+                let state_prop = state_data[state.component_idx]
+                    .get_mut(&state.origin)
                     .unwrap();
 
-                essential_var.set_value_to_requested_value();
+                state_prop.set_value_to_requested_value();
 
-                // log_debug!("Updated essential data {:?}", core.essential_data);
-
-                mark_stale_essential_datum_dependencies(
-                    &essential_state,
+                mark_stale_state_datum_dependencies(
+                    &state,
                     components,
                     dependency_graph,
                     &mut processing_state.stale_renderers,
@@ -67,7 +65,7 @@ pub fn process_prop_update_request(
                 // that will lead to its requested value.
 
                 // The vector dep_update_requests will contain just the identities
-                // of the props or essential data that we need to recurse to.
+                // of the props or state data that we need to recurse to.
                 let mut dep_update_requests = invert_including_shadow(
                     prop_ptr,
                     components,
@@ -139,21 +137,19 @@ fn mark_stale_prop_and_dependencies(
     }
 }
 
-/// Mark stale all the props that depend on essential_state.
+/// Mark stale all the props that depend on state_prop.
 #[allow(clippy::ptr_arg)]
-fn mark_stale_essential_datum_dependencies(
-    essential_state: &EssentialStateDescription,
+fn mark_stale_state_datum_dependencies(
+    state_prop: &StatePropDescription,
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
     dependency_graph: &mut DependencyGraph,
     stale_renderers: &mut Vec<ComponentIdx>,
     mark_stale_stack: &mut Vec<PropPointer>,
 ) {
-    let component_idx = essential_state.component_idx;
-
-    // log!("Marking stale essential {}:{:?}", component_name, origin);
+    let component_idx = state_prop.component_idx;
 
     if let Some(vec_deps) =
-        dependency_graph.dependent_on_essential[component_idx].get(&essential_state.origin)
+        dependency_graph.dependent_on_state[component_idx].get(&state_prop.origin)
     {
         vec_deps.iter().for_each(|prop_ptr| {
             mark_stale_prop_and_dependencies(
@@ -173,8 +169,8 @@ fn mark_stale_essential_datum_dependencies(
 /// If *is_direct_change_from_action* is true, then the desired value for the prop
 /// was specified directly from the action itself.
 ///
-/// Returns a vector specifying which props or essential data have been requested to change.
-/// The actual requested values will be added directly to the props or essential data.
+/// Returns a vector specifying which props or state data have been requested to change.
+/// The actual requested values will be added directly to the props or state data.
 fn invert_including_shadow(
     prop_ptr: PropPointer,
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
@@ -233,15 +229,13 @@ fn convert_dependency_updates_requested_to_prop_update_requests(
         let dependency = &instruct_dependencies[dependency_idx];
 
         match &dependency.source {
-            DependencySource::Essential {
+            DependencySource::State {
                 component_idx,
                 origin,
-            } => update_requests.push(PropUpdateRequest::SetEssentialValue(
-                EssentialStateDescription {
-                    component_idx: *component_idx,
-                    origin: origin.clone(),
-                },
-            )),
+            } => update_requests.push(PropUpdateRequest::SetStateValue(StatePropDescription {
+                component_idx: *component_idx,
+                origin: origin.clone(),
+            })),
             DependencySource::Prop {
                 component_idx,
                 prop_idx,
