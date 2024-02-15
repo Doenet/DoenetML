@@ -2,12 +2,10 @@ use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use crate::{
     components::{
-        prelude::{ComponentState, StateVarIdx, StateVarValue, UntaggedContent},
+        prelude::{ComponentState, PropIdx, PropValue, UntaggedContent},
         ComponentEnum, ComponentNode, ComponentProfile,
     },
-    state::essential_state::{
-        create_essential_data_for, EssentialDataOrigin, EssentialStateVar, InitialEssentialData,
-    },
+    state::prop_state::{create_state_data_for, InitialStateData, StateProp, StatePropDataOrigin},
     ComponentIdx,
 };
 
@@ -23,13 +21,13 @@ use super::{
 /// Create the dependencies specified by the data query
 /// by finding elements in the document that match.
 ///
-/// If an data query asks for essential data, create it and add it to *essential_data*.
-pub fn create_dependencies_from_data_query_initialize_essential(
+/// If an data query asks for state data, create it and add it to *state_data*.
+pub fn create_dependencies_from_data_query_initialize_state(
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
     component_idx: ComponentIdx,
-    state_var_idx: StateVarIdx,
+    prop_idx: PropIdx,
     query: &DataQuery,
-    essential_data: &mut Vec<HashMap<EssentialDataOrigin, EssentialStateVar>>,
+    state_data: &mut Vec<HashMap<StatePropDataOrigin, StateProp>>,
 ) -> DependenciesCreatedForDataQuery {
     match query {
         DataQuery::PreliminaryValue => {
@@ -37,67 +35,67 @@ pub fn create_dependencies_from_data_query_initialize_essential(
             // is shared with the extend source of any other components that extend from it.
             let source_idx = get_component_extend_source_origin(components, component_idx);
 
-            let essential_origin = EssentialDataOrigin::StateVarPreliminaryValue(state_var_idx);
+            let state_origin = StatePropDataOrigin::PropPreliminaryValue(prop_idx);
 
-            let essential_data_view =
-                if let Some(current_view) = essential_data[source_idx].get(&essential_origin) {
+            let state_data_view =
+                if let Some(current_view) = state_data[source_idx].get(&state_origin) {
                     current_view.create_new_read_only_view()
                 } else {
-                    // Use the default value for the state variable and set came_from_default to true
+                    // Use the default value for the prop and set came_from_default to true
                     let initial_data = components[component_idx]
                         .borrow()
-                        .get_state_variable(state_var_idx)
+                        .get_prop(prop_idx)
                         .unwrap()
                         .default();
 
-                    let initial_data = InitialEssentialData::Single {
+                    let initial_data = InitialStateData::Single {
                         value: initial_data,
                         came_from_default: true,
                     };
 
-                    let new_view = create_essential_data_for(
+                    let new_view = create_state_data_for(
                         source_idx,
-                        essential_origin.clone(),
+                        state_origin.clone(),
                         initial_data,
-                        essential_data,
+                        state_data,
                     );
 
                     new_view.create_new_read_only_view()
                 };
 
             DependenciesCreatedForDataQuery(vec![Dependency {
-                source: DependencySource::Essential {
+                source: DependencySource::State {
                     component_idx: source_idx,
-                    origin: essential_origin,
+                    origin: state_origin,
                 },
-                value: essential_data_view,
+                value: state_data_view,
             }])
         }
 
-        DataQuery::StateVar {
+        DataQuery::Prop {
             component_idx: comp_idx,
-            state_var_idx: sv_idx,
+            prop_idx,
         } => {
-            // Create a dependency that references the value of sv_idx from comp_idx
+            // Create a dependency that references the value of prop_idx from comp_idx
 
             let comp_idx = comp_idx.unwrap_or(component_idx);
 
             let comp = components[comp_idx].borrow();
 
             DependenciesCreatedForDataQuery(vec![Dependency {
-                source: DependencySource::StateVar {
+                source: DependencySource::Prop {
                     component_idx: comp_idx,
-                    state_var_idx: *sv_idx,
+                    prop_idx: *prop_idx,
                 },
                 value: comp
-                    .get_state_variable(*sv_idx)
+                    .get_prop(*prop_idx)
                     .unwrap()
                     .create_new_read_only_view(),
             }])
         }
 
-        DataQuery::Parent { state_var_name } => {
-            // Create a dependency that references the value of state_var_name
+        DataQuery::Parent { prop_name } => {
+            // Create a dependency that references the value of prop_name
             // from the parent of this component
 
             let component = components[component_idx].borrow();
@@ -107,17 +105,17 @@ pub fn create_dependencies_from_data_query_initialize_essential(
 
             let parent = components[parent_idx].borrow();
 
-            let sv_idx = parent
-                .get_state_variable_index_from_name(state_var_name)
-                .unwrap_or_else(|| panic!("Invalid state variable 2: {}", state_var_name));
+            let prop_idx = parent
+                .get_prop_index_from_name(prop_name)
+                .unwrap_or_else(|| panic!("Invalid prop 2: {}", prop_name));
 
             DependenciesCreatedForDataQuery(vec![Dependency {
-                source: DependencySource::StateVar {
+                source: DependencySource::Prop {
                     component_idx: parent_idx,
-                    state_var_idx: sv_idx,
+                    prop_idx,
                 },
                 value: parent
-                    .get_state_variable(sv_idx)
+                    .get_prop(prop_idx)
                     .unwrap()
                     .create_new_read_only_view(),
             }])
@@ -132,7 +130,7 @@ pub fn create_dependencies_from_data_query_initialize_essential(
 
             // Create a dependency from all children
             // that match a profile from match_profiles before matching exclude_if_prefer_profiles.
-            // The dependency for each child will be a view of the matching state variable.
+            // The dependency for each child will be a view of the matching prop.
 
             /// Local enum to keep track of what children were found
             /// before creating dependencies from this enum in the end.
@@ -141,7 +139,7 @@ pub fn create_dependencies_from_data_query_initialize_essential(
             /// However, the intermediate step will be needed when we parse math expressions
             /// from children, so leave it in for now.
             enum RelevantChild<'a> {
-                StateVar {
+                Prop {
                     dependency: Dependency,
                     _parent: ComponentIdx,
                 },
@@ -154,18 +152,18 @@ pub fn create_dependencies_from_data_query_initialize_essential(
             let mut relevant_children: Vec<RelevantChild> = Vec::new();
 
             // We address two possible extend sources
-            // 1. If there is a state variable extend source extending this state variable,
-            //    and that state variable matches `match_profiles`, then the first dependency
-            //    will be that state variable.
+            // 1. If there is a prop extend source extending this prop,
+            //    and that prop matches `match_profiles`, then the first dependency
+            //    will be that prop.
             // 2. If, instead, there is a component extend source, then include the children
             //    from the extend source in the list of children (starting with extend source children)
 
             let mut dependencies = Vec::new();
 
-            // First check if there is a matching a state variable extend source
+            // First check if there is a matching a prop extend source
             match create_dependency_from_extend_source_if_matches_profile(
                 components[component_idx].borrow().get_extending(),
-                state_var_idx,
+                prop_idx,
                 match_profiles,
                 components,
             ) {
@@ -183,35 +181,35 @@ pub fn create_dependencies_from_data_query_initialize_essential(
                     (UntaggedContent::Ref(child_idx), parent_idx) => {
                         let child = components[*child_idx].borrow();
 
-                        // Iterate through all the child's component profile state variables
+                        // Iterate through all the child's component profile props
                         // to see if one matches matches_profile before one matches exclude_if_prefer_profiles.
 
-                        let mut child_matches_with_sv = None;
+                        let mut child_matches_with_prop = None;
 
-                        for sv_idx in child.get_component_profile_state_variable_indices() {
-                            let child_sv = child.get_state_variable(sv_idx).unwrap();
-                            let child_profile = child_sv.get_matching_component_profile();
+                        for prop_idx in child.get_component_profile_prop_indices() {
+                            let child_prop = child.get_prop(prop_idx).unwrap();
+                            let child_profile = child_prop.get_matching_component_profile();
 
                             if match_profiles.contains(&child_profile) {
-                                child_matches_with_sv =
-                                    Some((child_sv.create_new_read_only_view(), sv_idx));
+                                child_matches_with_prop =
+                                    Some((child_prop.create_new_read_only_view(), prop_idx));
                                 break;
                             } else if exclude_if_prefer_profiles.contains(&child_profile) {
                                 break;
                             }
                         }
 
-                        if let Some((state_var_view, sv_idx)) = child_matches_with_sv {
-                            let state_var_dep = Dependency {
-                                source: DependencySource::StateVar {
+                        if let Some((prop_view, prop_idx)) = child_matches_with_prop {
+                            let prop_dep = Dependency {
+                                source: DependencySource::Prop {
                                     component_idx: *child_idx,
-                                    state_var_idx: sv_idx,
+                                    prop_idx,
                                 },
-                                value: state_var_view,
+                                value: prop_view,
                             };
 
-                            relevant_children.push(RelevantChild::StateVar {
-                                dependency: state_var_dep,
+                            relevant_children.push(RelevantChild::Prop {
+                                dependency: prop_dep,
                                 _parent: *parent_idx,
                             });
                         }
@@ -231,54 +229,54 @@ pub fn create_dependencies_from_data_query_initialize_essential(
             }
 
             // Stores how many string children added per parent.
-            // Use it to generate the index for the EssentialDataOrigin so it points to the right string child
-            let mut essential_data_numbering: HashMap<ComponentIdx, usize> = HashMap::new();
+            // Use it to generate the index for the StatePropDataOrigin so it points to the right string child
+            let mut state_data_numbering: HashMap<ComponentIdx, usize> = HashMap::new();
 
             for relevant_child in relevant_children {
                 match relevant_child {
-                    RelevantChild::StateVar {
+                    RelevantChild::Prop {
                         dependency: child_dep,
                         ..
                     } => {
                         dependencies.push(child_dep);
                     }
 
-                    // For string children, we create an essential datum for them
+                    // For string children, we create an state prop datum for them
                     // so that they can be added to the dependency graph.
                     RelevantChild::String {
                         value: string_value,
                         parent: actual_parent_idx,
                     } => {
-                        let index = essential_data_numbering
+                        let index = state_data_numbering
                             .entry(actual_parent_idx)
                             .or_insert(0_usize);
 
-                        let essential_origin = EssentialDataOrigin::StringChild(*index);
+                        let state_origin = StatePropDataOrigin::StringChild(*index);
 
-                        let essential_data_view = if let Some(current_view) =
-                            essential_data[actual_parent_idx].get(&essential_origin)
+                        let state_data_view = if let Some(current_view) =
+                            state_data[actual_parent_idx].get(&state_origin)
                         {
                             current_view.create_new_read_only_view()
                         } else {
-                            let value = StateVarValue::String(string_value.clone());
-                            let new_view = create_essential_data_for(
+                            let value = PropValue::String(string_value.clone());
+                            let new_view = create_state_data_for(
                                 actual_parent_idx,
-                                essential_origin.clone(),
-                                InitialEssentialData::Single {
+                                state_origin.clone(),
+                                InitialStateData::Single {
                                     value,
                                     came_from_default: false,
                                 },
-                                essential_data,
+                                state_data,
                             );
                             new_view.create_new_read_only_view()
                         };
 
                         dependencies.push(Dependency {
-                            source: DependencySource::Essential {
+                            source: DependencySource::State {
                                 component_idx: actual_parent_idx,
-                                origin: essential_origin,
+                                origin: state_origin,
                             },
-                            value: essential_data_view,
+                            value: state_data_view,
                         });
 
                         *index += 1;
@@ -288,54 +286,53 @@ pub fn create_dependencies_from_data_query_initialize_essential(
 
             if always_return_value && dependencies.is_empty() {
                 // Found no matching children.
-                // Create an essential dependency with the default_value for the state variable
+                // Create a state prop dependency with the default_value for the prop
 
-                // For the essential data origin, recurse to extend source components
-                // in order to share the essential data with the extend source.
+                // For the state prop data origin, recurse to extend source components
+                // in order to share the state data with the extend source.
                 let source_idx = get_component_extend_source_origin(components, component_idx);
-                let essential_origin = EssentialDataOrigin::ChildSubstitute(state_var_idx);
+                let state_origin = StatePropDataOrigin::ChildSubstitute(prop_idx);
 
-                let essential_data_view = if let Some(current_view) =
-                    essential_data[source_idx].get(&essential_origin)
+                let state_data_view = if let Some(current_view) =
+                    state_data[source_idx].get(&state_origin)
                 {
                     current_view.create_new_read_only_view()
                 } else {
                     let source_comp = components[source_idx].borrow();
-                    let source_state_var = source_comp.get_state_variable(state_var_idx).unwrap();
+                    let source_prop = source_comp.get_prop(prop_idx).unwrap();
 
-                    // If the state variable of state_var_idx is in match_profiles,
-                    // then create a variable of the same type with the state variable's default value.
-                    // Note: the type of essential variable created, below,
+                    // If the prop of prop_idx is in match_profiles,
+                    // then create a variable of the same type with the prop's default value.
+                    // Note: the type of the state prop created, below,
                     // depends on the type of the initial value.
-                    let initial_data = if match_profiles
-                        .contains(&source_state_var.get_matching_component_profile())
-                    {
-                        source_state_var.default()
-                    } else {
-                        // Since the state variable wasn't in match_profiles,
-                        // create a state variable of the type from the first match_profile
-                        // and use the default value associated with that type
-                        match_profiles[0].default()
-                    };
+                    let initial_data =
+                        if match_profiles.contains(&source_prop.get_matching_component_profile()) {
+                            source_prop.default()
+                        } else {
+                            // Since the prop wasn't in match_profiles,
+                            // create a prop of the type from the first match_profile
+                            // and use the default value associated with that type
+                            match_profiles[0].default()
+                        };
 
-                    let new_view = create_essential_data_for(
+                    let new_view = create_state_data_for(
                         source_idx,
-                        essential_origin.clone(),
-                        InitialEssentialData::Single {
+                        state_origin.clone(),
+                        InitialStateData::Single {
                             value: initial_data,
                             came_from_default: true,
                         },
-                        essential_data,
+                        state_data,
                     );
                     new_view.create_new_read_only_view()
                 };
 
                 dependencies.push(Dependency {
-                    source: DependencySource::Essential {
+                    source: DependencySource::State {
                         component_idx: source_idx,
-                        origin: essential_origin,
+                        origin: state_origin,
                     },
-                    value: essential_data_view,
+                    value: state_data_view,
                 });
             }
 
@@ -351,7 +348,7 @@ pub fn create_dependencies_from_data_query_initialize_essential(
 
             // Create a dependency from all attribute children
             // that match a profile from match_profiles.
-            // The dependency for each child will be a view of the matching state variable.
+            // The dependency for each child will be a view of the matching prop.
 
             let (attributes, parent_idx) =
                 get_attributes_with_parent_falling_back_to_extend_source(
@@ -368,8 +365,8 @@ pub fn create_dependencies_from_data_query_initialize_essential(
                 });
 
             // Stores how many string children added.
-            // Use it to generate the index for the EssentialDataOrigin so it points to the right string child
-            let mut essential_data_index = 0;
+            // Use it to generate the index for the StatePropDataOrigin so it points to the right string child
+            let mut state_data_index = 0;
 
             let mut dependencies: Vec<_> = attributes
                 .iter()
@@ -379,19 +376,19 @@ pub fn create_dependencies_from_data_query_initialize_essential(
                             let child_comp = components[*child_idx].borrow();
 
                             child_comp
-                                .get_component_profile_state_variable_indices()
+                                .get_component_profile_prop_indices()
                                 .into_iter()
-                                .find_map(|sv_idx| {
-                                    let child_sv = child_comp.get_state_variable(sv_idx).unwrap();
-                                    let child_profile = child_sv.get_matching_component_profile();
+                                .find_map(|prop_idx| {
+                                    let child_prop = child_comp.get_prop(prop_idx).unwrap();
+                                    let child_profile = child_prop.get_matching_component_profile();
 
                                     if match_profiles.contains(&child_profile) {
                                         Some(Dependency {
-                                            source: DependencySource::StateVar {
+                                            source: DependencySource::Prop {
                                                 component_idx: *child_idx,
-                                                state_var_idx: sv_idx,
+                                                prop_idx,
                                             },
-                                            value: child_sv.create_new_read_only_view(),
+                                            value: child_prop.create_new_read_only_view(),
                                         })
                                     } else {
                                         None
@@ -403,38 +400,38 @@ pub fn create_dependencies_from_data_query_initialize_essential(
                             if match_profiles.contains(&ComponentProfile::String)
                                 || match_profiles.contains(&ComponentProfile::LiteralString)
                             {
-                                let essential_origin = EssentialDataOrigin::AttributeChild(
+                                let state_origin = StatePropDataOrigin::AttributeChild(
                                     attribute_name,
-                                    essential_data_index,
+                                    state_data_index,
                                 );
-                                essential_data_index += 1;
+                                state_data_index += 1;
 
-                                // Essential data is from parent_idx, so it will be shared with the extend_source
+                                // State data is from parent_idx, so it will be shared with the extend_source
                                 // if the children came from an extend_source
-                                let essential_data_view = if let Some(current_view) =
-                                    essential_data[parent_idx].get(&essential_origin)
+                                let state_data_view = if let Some(current_view) =
+                                    state_data[parent_idx].get(&state_origin)
                                 {
                                     current_view.create_new_read_only_view()
                                 } else {
-                                    let value = StateVarValue::String(string_value.clone());
-                                    let new_view = create_essential_data_for(
+                                    let value = PropValue::String(string_value.clone());
+                                    let new_view = create_state_data_for(
                                         parent_idx,
-                                        essential_origin.clone(),
-                                        InitialEssentialData::Single {
+                                        state_origin.clone(),
+                                        InitialStateData::Single {
                                             value,
                                             came_from_default: false,
                                         },
-                                        essential_data,
+                                        state_data,
                                     );
                                     new_view.create_new_read_only_view()
                                 };
 
                                 Some(Dependency {
-                                    source: DependencySource::Essential {
+                                    source: DependencySource::State {
                                         component_idx: parent_idx,
-                                        origin: essential_origin,
+                                        origin: state_origin,
                                     },
-                                    value: essential_data_view,
+                                    value: state_data_view,
                                 })
                             } else {
                                 None
@@ -448,53 +445,52 @@ pub fn create_dependencies_from_data_query_initialize_essential(
                 // Found no matching attribute children.
                 // This means that the component and any component extend sources do not have any attribute children.
 
-                // For the essential data origin, recurse to extend source components
-                // in order to share the essential data with the extend source.
+                // For the state data origin, recurse to extend source components
+                // in order to share the state data with the extend source.
                 let source_idx = get_component_extend_source_origin(components, component_idx);
-                let essential_origin =
-                    EssentialDataOrigin::AttributeChildSubstitute(attribute_name, state_var_idx);
+                let state_origin =
+                    StatePropDataOrigin::AttributeChildSubstitute(attribute_name, prop_idx);
 
-                let essential_data_view = if let Some(current_view) =
-                    essential_data[source_idx].get(&essential_origin)
+                let state_data_view = if let Some(current_view) =
+                    state_data[source_idx].get(&state_origin)
                 {
                     current_view.create_new_read_only_view()
                 } else {
                     let source_comp = components[source_idx].borrow();
-                    let source_state_var = source_comp.get_state_variable(state_var_idx).unwrap();
+                    let source_prop = source_comp.get_prop(prop_idx).unwrap();
 
-                    // If the state variable of state_var_idx is in match_profiles,
-                    // then create a variable of the same type with the state variable's default value.
-                    // Note: the type of essential variable created, below,
+                    // If the prop of prop_idx is in match_profiles,
+                    // then create a variable of the same type with the prop's default value.
+                    // Note: the type of state variable created, below,
                     // depends on the type of the initial value.
-                    let initial_data = if match_profiles
-                        .contains(&source_state_var.get_matching_component_profile())
-                    {
-                        source_state_var.default()
-                    } else {
-                        // Since the state variable wasn't in match_profiles,
-                        // create a state variable of the type from the first match_profile
-                        // and use the default value associated with that type
-                        match_profiles[0].default()
-                    };
+                    let initial_data =
+                        if match_profiles.contains(&source_prop.get_matching_component_profile()) {
+                            source_prop.default()
+                        } else {
+                            // Since the prop wasn't in match_profiles,
+                            // create a prop of the type from the first match_profile
+                            // and use the default value associated with that type
+                            match_profiles[0].default()
+                        };
 
-                    let new_view = create_essential_data_for(
+                    let new_view = create_state_data_for(
                         source_idx,
-                        essential_origin.clone(),
-                        InitialEssentialData::Single {
+                        state_origin.clone(),
+                        InitialStateData::Single {
                             value: initial_data,
                             came_from_default: true,
                         },
-                        essential_data,
+                        state_data,
                     );
                     new_view.create_new_read_only_view()
                 };
 
                 dependencies.push(Dependency {
-                    source: DependencySource::Essential {
+                    source: DependencySource::State {
                         component_idx: source_idx,
-                        origin: essential_origin,
+                        origin: state_origin,
                     },
-                    value: essential_data_view,
+                    value: state_data_view,
                 });
             }
 

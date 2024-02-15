@@ -1,7 +1,7 @@
 //! Refs use a `path`, which consists of _names_ separated by dots (e.g. `a.b.c`), possibly followed by
-//! state variable names separated by dots (e.g. `a.b.c.x.y.z`). A `Resolver` searches for a matching node
+//! prop names separated by dots (e.g. `a.b.c.x.y.z`). A `Resolver` searches for a matching node
 //! from a given starting position. Because a `Resolver` does not know whether part of a path corresponds to a
-//! name or state variable name, the longest valid partial match is used and unmatched portions of a `path` are
+//! name or prop name, the longest valid partial match is used and unmatched portions of a `path` are
 //! preserved for future use.
 
 use std::{collections::HashMap, iter, mem};
@@ -120,7 +120,7 @@ impl Resolver {
                 }
             } else {
                 // If we cannot find an appropriate child, the remaining path parts might be
-                // state variable references. Return them and consider `current_idx` the match.
+                // prop references. Return them and consider `current_idx` the match.
                 let remaining_path: Vec<PathPart> =
                     iter::once(part.clone()).chain(path.cloned()).collect();
                 return Ok(RefResolution {

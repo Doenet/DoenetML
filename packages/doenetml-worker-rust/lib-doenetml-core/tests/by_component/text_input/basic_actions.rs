@@ -16,7 +16,7 @@ fn value_and_immediate_value_respond_to_actions() {
     assert_eq!(get_value(text_input_idx, &mut core), "");
 
     // The UpdateImmediateValue action (which should be in response to typing characters)
-    // should only update the immediate_value state variable
+    // should only update the immediate_value prop
     let type_word_action = update_immediate_value_action(String::from("hello"), text_input_idx);
 
     let _ = core.dispatch_action(type_word_action);
@@ -49,7 +49,7 @@ fn value_and_immediate_value_with_prefill_respond_to_actions() {
     assert_eq!(get_value(text_input_idx, &mut core), "hello");
 
     // The UpdateImmediateValue action (which should be in response to typing characters)
-    // should only update the immediate_value state variable
+    // should only update the immediate_value prop
     let type_word_action = update_immediate_value_action(String::from("bye"), text_input_idx);
 
     let _ = core.dispatch_action(type_word_action);
@@ -82,7 +82,7 @@ fn value_and_immediate_value_with_string_child_respond_to_actions() {
     assert_eq!(get_value(text_input_idx, &mut core), "hello");
 
     // The UpdateImmediateValue action (which should be in response to typing characters)
-    // should only update the immediate_value state variable
+    // should only update the immediate_value prop
     let type_word_action = update_immediate_value_action(String::from("bye"), text_input_idx);
 
     let _ = core.dispatch_action(type_word_action);
@@ -115,7 +115,7 @@ fn value_and_immediate_value_with_text_child_respond_to_actions() {
     assert_eq!(get_value(text_input_idx, &mut core), "hello");
 
     // The UpdateImmediateValue action (which should be in response to typing characters)
-    // should only update the immediate_value state variable
+    // should only update the immediate_value prop
     let type_word_action = update_immediate_value_action(String::from("bye"), text_input_idx);
 
     let _ = core.dispatch_action(type_word_action);
@@ -224,7 +224,7 @@ fn text_input_child_supersedes_prefill() {
     assert_eq!(get_value(text_input_idx, &mut core), "hello");
 
     // The UpdateImmediateValue action (which should be in response to typing characters)
-    // should only update the immediate_value state variable
+    // should only update the immediate_value prop
     let type_word_action = update_immediate_value_action(String::from("bye"), text_input_idx);
 
     let _ = core.dispatch_action(type_word_action);

@@ -4,38 +4,38 @@ use std::{
     rc::Rc,
 };
 
-use super::{Freshness, QueryUpdateRequests, StateVarInner};
+use super::{Freshness, PropInner, QueryUpdateRequests};
 
-/// A mutable view of a state variable.
+/// A mutable view of a prop.
 /// It includes methods that allow one to view and change the variable.
 #[derive(Debug)]
-pub struct StateVarMutableView<T: Default + Clone> {
+pub struct PropViewMut<T: Default + Clone> {
     /// Structure containing the value of the variable its meta data.
     /// Since inner is in an `Rc<RefCell>`, it is shared with other views and could be changed by them.
-    inner: Rc<RefCell<StateVarInner<T>>>,
+    inner: Rc<RefCell<PropInner<T>>>,
 
     /// A change counter that can be compared to the change counter of inner
-    /// in order to determine if the state variable has changed since last viewed.
+    /// in order to determine if the prop has changed since last viewed.
     change_counter_when_last_viewed: u32,
 }
 
-impl<T: Default + Clone> Default for StateVarMutableView<T> {
+impl<T: Default + Clone> Default for PropViewMut<T> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<T: Default + Clone + std::fmt::Display> std::fmt::Display for StateVarMutableView<T> {
+impl<T: Default + Clone + std::fmt::Display> std::fmt::Display for PropViewMut<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.inner.borrow().fmt(f)
     }
 }
 
-impl<T: Default + Clone> StateVarMutableView<T> {
-    /// Create a new unresolved StateVarMutableView
+impl<T: Default + Clone> PropViewMut<T> {
+    /// Create a new unresolved PropViewMut
     pub fn new() -> Self {
-        StateVarMutableView {
-            inner: Rc::new(RefCell::new(StateVarInner {
+        PropViewMut {
+            inner: Rc::new(RefCell::new(PropInner {
                 value: T::default(),
                 freshness: Freshness::Unresolved,
                 requested_value: T::default(),
@@ -46,10 +46,10 @@ impl<T: Default + Clone> StateVarMutableView<T> {
         }
     }
 
-    /// Create a new fresh StateVarMutableView with supplied value
+    /// Create a new fresh PropViewMut with supplied value
     pub fn new_with_value(val: T, came_from_default: bool) -> Self {
-        StateVarMutableView {
-            inner: Rc::new(RefCell::new(StateVarInner {
+        PropViewMut {
+            inner: Rc::new(RefCell::new(PropInner {
                 value: val,
                 freshness: Freshness::Fresh,
                 requested_value: T::default(),
@@ -60,16 +60,16 @@ impl<T: Default + Clone> StateVarMutableView<T> {
         }
     }
 
-    /// Create a new read-only view to this state variable
-    pub fn create_new_read_only_view(&self) -> StateVarView<T> {
-        StateVarView {
+    /// Create a new read-only view to this prop
+    pub fn create_new_read_only_view(&self) -> PropView<T> {
+        PropView {
             inner: self.inner.clone(),
             change_counter_when_last_viewed: 0,
             update_has_been_queued: false,
         }
     }
 
-    /// Determine if the state variable has changed
+    /// Determine if the prop has changed
     /// since we last called `get_value_record_viewed`.
     ///
     /// Note: calls to `get` are ignored when determining when last viewed.
@@ -80,12 +80,12 @@ impl<T: Default + Clone> StateVarMutableView<T> {
     /// If the variable is fresh, get a reference to its current value
     /// and record the fact that we viewed the value.
     ///
-    /// Panics: if the state variable is not fresh.
+    /// Panics: if the prop is not fresh.
     pub fn get_value_record_viewed(&mut self) -> impl Deref<Target = T> + '_ {
-        let inner: Ref<'_, StateVarInner<T>> = self.inner.borrow();
+        let inner: Ref<'_, PropInner<T>> = self.inner.borrow();
 
-        // We record the fact that the state variable was viewed
-        // by recording the current value of the state variable's counter
+        // We record the fact that the prop was viewed
+        // by recording the current value of the prop's counter
         self.change_counter_when_last_viewed = inner.get_change_counter();
 
         Ref::map(inner, |v| v.get())
@@ -93,7 +93,7 @@ impl<T: Default + Clone> StateVarMutableView<T> {
 
     /// If the variable is fresh, get a reference to its current value.
     ///
-    /// Panics: if the state variable is not fresh.
+    /// Panics: if the prop is not fresh.
     pub fn get(&self) -> impl Deref<Target = T> + '_ {
         Ref::map(self.inner.borrow(), |v| v.get())
     }
@@ -102,13 +102,13 @@ impl<T: Default + Clone> StateVarMutableView<T> {
     pub fn record_viewed(&mut self) {
         let inner = self.inner.borrow();
 
-        // We record the fact that the state variable was viewed
-        // by recording the current value of the state variable's counter
+        // We record the fact that the prop was viewed
+        // by recording the current value of the prop's counter
         self.change_counter_when_last_viewed = inner.get_change_counter();
     }
 
-    /// Attempts to retrieve a reference to the last value (fresh or not) of the state variable.
-    /// If the state variable is unresolved, returns None.
+    /// Attempts to retrieve a reference to the last value (fresh or not) of the prop.
+    /// If the prop is unresolved, returns None.
     pub fn try_get_last_value(&self) -> Option<impl Deref<Target = T> + '_> {
         // Note: slower than it seems necessary due to two borrows.
         // Another option is to use the ref_filter_map crate or see if there will eventually be a way
@@ -123,28 +123,28 @@ impl<T: Default + Clone> StateVarMutableView<T> {
         }
     }
 
-    /// Set the value of the state variable to the supplied value,
+    /// Set the value of the prop to the supplied value,
     /// set `came_from_default` to `false`, and mark it fresh
     pub fn set_value(&self, new_val: T) {
         self.inner.borrow_mut().set_value(new_val);
     }
 
-    /// Set the value of the state variable to `new_val`,
+    /// Set the value of the prop to `new_val`,
     /// mark it as Fresh, and set `came_from_default` to `true`.
     pub fn set_value_from_default(&self, new_val: T) {
         self.inner.borrow_mut().set_value_from_default(new_val);
     }
 
-    /// If the state variable is Stale, mark it as Fresh
+    /// If the prop is Stale, mark it as Fresh
     /// so that the value it had before `mark_stale` was called
     /// will be its fresh value again.
     ///
-    /// Panics: if the state variable is Unresolved.
+    /// Panics: if the prop is Unresolved.
     pub fn mark_fresh(&self) {
         self.inner.borrow_mut().mark_fresh();
     }
 
-    /// Return if the value of this state variable was set from its default value
+    /// Return if the value of this prop was set from its default value
     pub fn came_from_default(&self) -> bool {
         self.inner.borrow().came_from_default()
     }
@@ -174,7 +174,7 @@ impl<T: Default + Clone> StateVarMutableView<T> {
         Ref::map(self.inner.borrow(), |v| v.get_requested_value())
     }
 
-    /// Set the value of the state variable to the current value of its `requested_value` field.
+    /// Set the value of the prop to the current value of its `requested_value` field.
     ///
     /// Equivalent to calling `get_requested_value()` and then calling `set_value()` with that value,
     /// except more efficient due to only one borrow of the inner value.
@@ -185,16 +185,16 @@ impl<T: Default + Clone> StateVarMutableView<T> {
     }
 }
 
-/// A read-only view of a state variable.
+/// A read-only view of a prop.
 /// Includes methods to view its value and queue updates that set the requested value for this variable.
 #[derive(Debug)]
-pub struct StateVarView<T: Default + Clone> {
+pub struct PropView<T: Default + Clone> {
     /// Structure containing the value of the variable its meta data.
     /// Since inner is in an `Rc<RefCell>`, it is shared with other views and could be changed by them.
-    inner: Rc<RefCell<StateVarInner<T>>>,
+    inner: Rc<RefCell<PropInner<T>>>,
 
     /// a change counter that can be compared to the change counter of inner
-    /// in order to determine if the state variable has changed since last viewed
+    /// in order to determine if the prop has changed since last viewed
     change_counter_when_last_viewed: u32,
 
     ///
@@ -202,8 +202,8 @@ pub struct StateVarView<T: Default + Clone> {
     // pub register_update_request: Option<RegisterUpdateRequest<'a>>,
 }
 
-impl<T: Default + Clone> StateVarView<T> {
-    /// Determine if the state variable has changed
+impl<T: Default + Clone> PropView<T> {
+    /// Determine if the prop has changed
     /// since we last called `get_value_record_viewed`.
     ///
     /// Note: calls to `get` are ignored when determining when last viewed.
@@ -214,7 +214,7 @@ impl<T: Default + Clone> StateVarView<T> {
     /// If the variable is fresh, get a reference to its current value
     /// and record the fact that we viewed the value.
     ///
-    /// Panics: if the state variable is not fresh.
+    /// Panics: if the prop is not fresh.
     pub fn get_value_record_viewed(&mut self) -> impl Deref<Target = T> + '_ {
         let inner = self.inner.borrow();
         self.change_counter_when_last_viewed = inner.get_change_counter();
@@ -223,7 +223,7 @@ impl<T: Default + Clone> StateVarView<T> {
 
     /// If the variable is fresh, get a reference to its current value.
     ///
-    /// Panics: if the state variable is not fresh.
+    /// Panics: if the prop is not fresh.
     pub fn get(&self) -> impl Deref<Target = T> + '_ {
         Ref::map(self.inner.borrow(), |v| v.get())
     }
@@ -234,8 +234,8 @@ impl<T: Default + Clone> StateVarView<T> {
         self.change_counter_when_last_viewed = inner.get_change_counter();
     }
 
-    /// Attempts to retrieve a reference to the last value (fresh or not) of the state variable.
-    /// If the state variable is unresolved, returns None.
+    /// Attempts to retrieve a reference to the last value (fresh or not) of the prop.
+    /// If the prop is unresolved, returns None.
     pub fn try_get_last_value(&self) -> Option<impl Deref<Target = T> + '_> {
         // Note: slower than it seems necessary due to two borrows.
         // Another option is to use the ref_filter_map crate or see if there will eventually be a way
@@ -255,14 +255,14 @@ impl<T: Default + Clone> StateVarView<T> {
         self.inner.borrow().freshness
     }
 
-    /// Return if the value of this state variable was set from its default value
+    /// Return if the value of this prop was set from its default value
     pub fn came_from_default(&self) -> bool {
         self.inner.borrow().came_from_default()
     }
 
-    /// Create a new read-only view to this state variable
-    pub fn create_new_read_only_view(&self) -> StateVarView<T> {
-        StateVarView {
+    /// Create a new read-only view to this prop
+    pub fn create_new_read_only_view(&self) -> PropView<T> {
+        PropView {
             inner: self.inner.clone(),
             change_counter_when_last_viewed: 0,
             update_has_been_queued: false,
@@ -273,7 +273,7 @@ impl<T: Default + Clone> StateVarView<T> {
     /// attempt to set its value to the `requested_value` argument.
     ///
     /// To send all queued updates to core, call `queued_updates()`
-    /// on the `data` structure that contains this state variable
+    /// on the `data` structure that contains this prop
     /// and pass the result as the return of the `invert()` function.
     ///
     /// A call to `queue_update` will never fail. However, the queued update may
@@ -291,10 +291,10 @@ impl<T: Default + Clone> StateVarView<T> {
     }
 }
 
-impl<T: Default + Clone> Default for StateVarView<T> {
+impl<T: Default + Clone> Default for PropView<T> {
     fn default() -> Self {
-        StateVarView {
-            inner: Rc::new(RefCell::new(StateVarInner {
+        PropView {
+            inner: Rc::new(RefCell::new(PropInner {
                 value: T::default(),
                 freshness: Freshness::Unresolved,
                 requested_value: T::default(),
@@ -307,13 +307,13 @@ impl<T: Default + Clone> Default for StateVarView<T> {
     }
 }
 
-impl<T: Default + Clone> Clone for StateVarView<T> {
+impl<T: Default + Clone> Clone for PropView<T> {
     fn clone(&self) -> Self {
         self.create_new_read_only_view()
     }
 }
 
-impl<T: Default + Clone> QueryUpdateRequests for StateVarView<T> {
+impl<T: Default + Clone> QueryUpdateRequests for PropView<T> {
     /// Reset 'update_has_been_queued` to false
     fn clear_queued_updates(&mut self) {
         self.update_has_been_queued = false;

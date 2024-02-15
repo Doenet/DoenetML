@@ -1,33 +1,33 @@
 mod immediate_value;
 mod value;
 
-pub use immediate_value::ImmediateValueStateVar;
-pub use value::ValueStateVar;
+pub use immediate_value::ImmediateValueProp;
+pub use value::ValueProp;
 
 use crate::{
     components::prelude::*,
-    general_state_var::{IndependentStateVar, StringStateVar},
+    general_prop::{IndependentProp, StringProp},
 };
 
 use super::TextInputAttribute;
 
-/// The state variables that underlie the `<textInput>` component.
+/// The props that underlie the `<textInput>` component.
 #[derive(Debug, ComponentState)]
 pub struct TextInputState {
     /// The value of the `<textInput>` component.
     ///
     /// It is updated when a user presses Enter or blurs away from the input box.
-    /// (See the `immediate_value` state variable for the current value of the input box.)
+    /// (See the `immediate_value` prop for the current value of the input box.)
     ///
     /// It is marked `is_public` so that it can be referenced in DoenetML via `.value`.
     ///
     ///
-    /// It is marked as a component profile state variable,
-    /// which means this state variable will be used if a parent of a `<textInput>` component
+    /// It is marked as a component profile prop,
+    /// which means this prop will be used if a parent of a `<textInput>` component
     /// queries for children with the `Text` component profile.
     #[is_public]
-    #[component_profile_state_variable]
-    value: StateVar<String>,
+    #[component_profile_prop]
+    value: Prop<String>,
 
     /// The current value of the text inside the input box of the `<textInput>` component.
     ///
@@ -39,24 +39,24 @@ pub struct TextInputState {
     /// It is marked `is_public` so that it can be referenced in DoenetML via `.immediateValue`.
     #[for_renderer]
     #[is_public]
-    immediate_value: StateVar<String>,
+    immediate_value: Prop<String>,
 
     // TODO: there are subtleties for why needed `sync_immediate_value` to get the proper behavior of `<textInput>`.
     // Will figure these out again as write a test for making sure it works correctly.
     // Also, it's behavior may change if we replace `value_from_children` with children.
-    sync_immediate_value: StateVar<bool>,
+    sync_immediate_value: Prop<bool>,
 
     /// The string value computed from any children to the textInput.
-    /// If the textInput has children, then this state variable will not be marked `came_from_default`,
-    /// and the `value` and `immediate_value` state variable will use these children,
+    /// If the textInput has children, then this prop will not be marked `came_from_default`,
+    /// and the `value` and `immediate_value` prop will use these children,
     /// rather than their preliminary value variable when calculating.
-    value_from_children: StateVar<String>,
+    value_from_children: Prop<String>,
 
     /// The content that should prefill the `<textInput>`, giving it a default value before a user has interacted with the input.
     ///
     /// It is ignored if `value_from_children` is specified.
     #[is_public]
-    prefill: StateVar<String>,
+    prefill: Prop<String>,
 
     /// A variable that determines whether or not a text input should be sent to the renderer (i.e., appear in the render tree).
     ///
@@ -64,7 +64,7 @@ pub struct TextInputState {
     ///
     /// It is marked `is_public` so that it can be referenced in DoenetML via `.hidden`.
     #[is_public]
-    hidden: StateVar<bool>,
+    hidden: Prop<bool>,
 
     /// A variable that determines whether or not a text input can be interacted with.
     ///
@@ -76,19 +76,19 @@ pub struct TextInputState {
     /// It is marked `is_public` so that it can be referenced in DoenetML via `.disabled`.
     #[for_renderer]
     #[is_public]
-    disabled: StateVar<bool>,
+    disabled: Prop<bool>,
 }
 
 impl TextInputState {
     fn new() -> Self {
         TextInputState {
-            value: ValueStateVar::new().into_state_var(),
-            immediate_value: ImmediateValueStateVar::new().into_state_var(),
-            sync_immediate_value: IndependentStateVar::new(true).into_state_var(),
-            value_from_children: StringStateVar::new_from_children("".to_string()).into_state_var(),
-            prefill: TextInputAttribute::Prefill.state_var(),
-            hidden: TextInputAttribute::Hide.state_var(),
-            disabled: TextInputAttribute::Disabled.state_var(),
+            value: ValueProp::new().into_prop(),
+            immediate_value: ImmediateValueProp::new().into_prop(),
+            sync_immediate_value: IndependentProp::new(true).into_prop(),
+            value_from_children: StringProp::new_from_children("".to_string()).into_prop(),
+            prefill: TextInputAttribute::Prefill.prop(),
+            hidden: TextInputAttribute::Hide.prop(),
+            disabled: TextInputAttribute::Disabled.prop(),
         }
     }
 }

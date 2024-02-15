@@ -4,21 +4,21 @@ use strum_macros::EnumVariantNames;
 
 use crate::{
     components::prelude::*,
-    general_state_var::{BooleanStateVar, StringStateVar},
+    general_prop::{BooleanProp, StringProp},
 };
 
 use super::TextInputState;
 
-#[derive(Debug, AttributeStateVar)]
+#[derive(Debug, AttributeProp)]
 pub enum TextInputAttribute {
     /// Whether the `<textInput>` should be hidden.
-    #[attribute(state_var = BooleanStateVar, default = false)]
+    #[attribute(prop = BooleanProp, default = false)]
     Hide,
     /// Whether the `<textInput>` should be editable.
-    #[attribute(state_var = BooleanStateVar, default = false)]
+    #[attribute(prop = BooleanProp, default = false)]
     Disabled,
     /// The content that should prefill the `<textInput>`, giving it a default value before a user has interacted with the input.
-    #[attribute(state_var = StringStateVar, default = String::new())]
+    #[attribute(prop = StringProp, default = String::new())]
     Prefill,
 }
 
@@ -47,7 +47,7 @@ pub struct TextInput {
     /// The common component data needed to derive the `ComponentNode` trait
     pub common: ComponentCommonData,
 
-    /// The state variables that underlie the `<textInput>` component.
+    /// The props that underlie the `<textInput>` component.
     pub state: TextInputState,
 }
 
@@ -68,7 +68,7 @@ impl ComponentActions for TextInput {
     fn on_action(
         &self,
         action: ActionsEnum,
-        resolve_and_retrieve_state_var: &mut dyn FnMut(StateVarIdx) -> StateVarValue,
+        resolve_and_retrieve_prop: &mut dyn FnMut(PropIdx) -> PropValue,
     ) -> Result<Vec<UpdateFromAction>, String> {
         // The type of `action` should have already been verified, so an
         // error here is a programming logic error, not an API error.
@@ -81,9 +81,8 @@ impl ComponentActions for TextInput {
             ]),
 
             TextInputAction::UpdateValue => {
-                let new_val = resolve_and_retrieve_state_var(
-                    TextInputState::get_immediate_value_state_variable_index(),
-                );
+                let new_val =
+                    resolve_and_retrieve_prop(TextInputState::get_immediate_value_prop_index());
 
                 Ok(vec![TextInputState::update_value_from_action(
                     new_val.try_into().unwrap(),

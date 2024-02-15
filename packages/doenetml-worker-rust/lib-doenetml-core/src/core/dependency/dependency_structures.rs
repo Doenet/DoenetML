@@ -3,11 +3,11 @@ use std::ops::Deref;
 use crate::{
     attribute::AttributeName,
     components::{
-        prelude::{StateVarIdx, TryFromState, TryToState},
+        prelude::{PropIdx, TryFromState, TryToState},
         ComponentProfile,
     },
-    state::{essential_state::EssentialDataOrigin, StateVarPointer},
-    state::{StateVarName, StateVarViewEnum},
+    state::{prop_state::StatePropDataOrigin, PropPointer},
+    state::{PropName, PropViewEnum},
     ComponentIdx,
 };
 
@@ -28,26 +28,26 @@ pub enum DataQuery {
 
         /// If true, then the data query will return a single variable if no matching children found.
         ///
-        /// If the type of the requesting state variable matches a `ComponentProfile` from `match_profiles`,
-        /// then this single variable returned will match the type of the requesting state variable
-        /// and will be initialized with the state variable's default value.
+        /// If the type of the requesting prop matches a `ComponentProfile` from `match_profiles`,
+        /// then this single variable returned will match the type of the requesting prop
+        /// and will be initialized with the prop's default value.
         ///
-        /// If the type of the requesting state variable does not match
+        /// If the type of the requesting prop does not match
         /// a `ComponentProfile` from `match_profiles`,
         /// then this single variable returned will be of the type of the first entry in `match_profiles`
         /// and will be initialized to the default value of that type.
         always_return_value: bool,
     },
-    /// Query for a particular state variable of a component
-    StateVar {
-        /// If None, state variable is from the component making the query.
+    /// Query for a particular prop of a component
+    Prop {
+        /// If None, prop is from the component making the query.
         component_idx: Option<ComponentIdx>,
 
-        /// The state variable from component_idx or component making the query.
-        state_var_idx: StateVarIdx,
+        /// The prop from component_idx or component making the query.
+        prop_idx: PropIdx,
     },
-    /// Query for a state variable from a parent
-    Parent { state_var_name: StateVarName },
+    /// Query for a prop from a parent
+    Parent { prop_name: PropName },
     /// Query for all children of an attribute that match the prescribed `ComponentProfile`
     AttributeChild {
         /// The name of the attribute whose children will be matched.
@@ -59,18 +59,18 @@ pub enum DataQuery {
 
         /// If true, then the data query will return a single variable if no matching children found.
         ///
-        /// If the type of the requesting state variable matches a `ComponentProfile` from `match_profiles`,
-        /// then this single variable returned will match the type of the requesting state variable
-        /// and will be initialized with the state variable's default value.
+        /// If the type of the requesting prop matches a `ComponentProfile` from `match_profiles`,
+        /// then this single variable returned will match the type of the requesting prop
+        /// and will be initialized with the prop's default value.
         ///
-        /// If the type of the requesting state variable does not match
+        /// If the type of the requesting prop does not match
         /// a `ComponentProfile` from `match_profiles`,
         /// then this single variable returned will be of the type of the first entry in `match_profiles`
         /// and will be initialized to the default value of that type.
         always_return_value: bool,
     },
     #[default]
-    /// Will be initialized with the default value of this state variable
+    /// Will be initialized with the default value of this prop
     /// and will accept any change when inverting.
     PreliminaryValue,
 }
@@ -78,32 +78,32 @@ pub enum DataQuery {
 // TODO: determine what the structure of DependencySource should be
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum DependencySource {
-    StateVar {
+    Prop {
         // component_type: ComponentType,
         component_idx: ComponentIdx,
-        state_var_idx: StateVarIdx,
+        prop_idx: PropIdx,
     },
-    Essential {
+    State {
         component_idx: ComponentIdx,
-        origin: EssentialDataOrigin,
+        origin: StatePropDataOrigin,
         // value_type: &'static str,
     },
 }
 
-impl TryFrom<&DependencySource> for StateVarPointer {
+impl TryFrom<&DependencySource> for PropPointer {
     type Error = &'static str;
 
     fn try_from(ds: &DependencySource) -> Result<Self, Self::Error> {
         match ds {
-            DependencySource::StateVar {
+            DependencySource::Prop {
                 component_idx,
-                state_var_idx,
-            } => Ok(StateVarPointer {
+                prop_idx,
+            } => Ok(PropPointer {
                 component_idx: *component_idx,
-                state_var_idx: *state_var_idx,
+                prop_idx: *prop_idx,
             }),
-            DependencySource::Essential { .. } => {
-                Err("Cannot convert essential dependency source to a state variable pointer.")
+            DependencySource::State { .. } => {
+                Err("Cannot convert state dependency source to a prop pointer.")
             }
         }
     }
@@ -113,7 +113,7 @@ impl TryFrom<&DependencySource> for StateVarPointer {
 #[derive(Debug, Clone)]
 pub struct Dependency {
     pub source: DependencySource,
-    pub value: StateVarViewEnum,
+    pub value: PropViewEnum,
 }
 
 /// The vector of dependencies that were created for a `DataQuery`
@@ -129,10 +129,10 @@ impl Deref for DependenciesCreatedForDataQuery {
 
 /// Information on which update were requested so that we can recurse
 /// and call *invert*
-/// on the state variables of those dependencies.
+/// on the props of those dependencies.
 ///
 /// The actual requested values for those dependencies were stored
-/// in the *requested_value* field of their state variables.
+/// in the *requested_value* field of their props.
 #[derive(Debug, PartialEq)]
 pub struct DependencyValueUpdateRequest {
     pub data_query_idx: usize,
@@ -141,7 +141,7 @@ pub struct DependencyValueUpdateRequest {
 
 impl<T> TryFromState<DependenciesCreatedForDataQuery> for T
 where
-    T: TryFromState<StateVarViewEnum>,
+    T: TryFromState<PropViewEnum>,
 {
     type Error = T::Error;
 
@@ -156,7 +156,7 @@ where
 
 impl<T> TryFromState<DependenciesCreatedForDataQuery> for Option<T>
 where
-    T: TryFromState<StateVarViewEnum>,
+    T: TryFromState<PropViewEnum>,
 {
     type Error = T::Error;
 
@@ -174,7 +174,7 @@ where
 
 impl<T> TryFromState<DependenciesCreatedForDataQuery> for Vec<T>
 where
-    T: TryFromState<StateVarViewEnum>,
+    T: TryFromState<PropViewEnum>,
 {
     type Error = T::Error;
 
