@@ -1,10 +1,10 @@
 use crate::dast::{
-    DastElement, DastElementContent, DastError, DastFunctionMacro, DastMacro, DastRoot,
-    DastTextMacroContent,
+    DastElement, DastElementContent, DastError, DastFunctionRef, DastRef, DastRoot,
+    DastTextRefContent,
 };
 
 use super::{
-    FlatAttribute, FlatElement, FlatError, FlatFunctionMacro, FlatMacro, FlatNode, FlatRoot, Index,
+    FlatAttribute, FlatElement, FlatError, FlatFunctionRef, FlatNode, FlatRef, FlatRoot, Index,
     ParentIterator, UntaggedContent,
 };
 
@@ -61,14 +61,14 @@ impl FlatRoot {
                             .children
                             .iter()
                             .map(|child| match child {
-                                DastTextMacroContent::Text(txt) => {
+                                DastTextRefContent::Text(txt) => {
                                     DastElementContent::Text(txt.clone())
                                 }
-                                DastTextMacroContent::Macro(macro_) => {
-                                    DastElementContent::Macro(macro_.clone())
+                                DastTextRefContent::Ref(ref_) => {
+                                    DastElementContent::Ref(ref_.clone())
                                 }
-                                DastTextMacroContent::FunctionMacro(function_macro) => {
-                                    DastElementContent::FunctionMacro(function_macro.clone())
+                                DastTextRefContent::FunctionRef(function_ref) => {
+                                    DastElementContent::FunctionRef(function_ref.clone())
                                 }
                             })
                             .map(|child| self.merge_content(&child, Some(idx)))
@@ -89,13 +89,11 @@ impl FlatRoot {
                 UntaggedContent::Ref(self.set_error(err, idx, parent))
             }
             DastElementContent::Text(txt) => UntaggedContent::Text(txt.value.clone()),
-            DastElementContent::Macro(macro_) => {
-                UntaggedContent::Ref(self.set_macro(macro_, idx, parent))
-            }
-            DastElementContent::FunctionMacro(function_macro) => {
-                self.set_function_macro(function_macro, idx, parent);
+            DastElementContent::Ref(ref_) => UntaggedContent::Ref(self.set_ref(ref_, idx, parent)),
+            DastElementContent::FunctionRef(function_ref) => {
+                self.set_function_ref(function_ref, idx, parent);
                 let ret = UntaggedContent::Ref(idx);
-                if let Some(input) = function_macro.input.as_ref() {
+                if let Some(input) = function_ref.input.as_ref() {
                     let input: Vec<Vec<UntaggedContent>> = input
                         .iter()
                         .map(|arg| {
@@ -105,7 +103,7 @@ impl FlatRoot {
                         })
                         .collect();
 
-                    self.set_function_macro_input(idx, input);
+                    self.set_function_ref_input(idx, input);
                 }
                 ret
             }
@@ -162,13 +160,13 @@ impl FlatRoot {
         }
     }
 
-    /// Set the input of a function macro node.
-    fn set_function_macro_input(&mut self, idx: usize, args: Vec<Vec<UntaggedContent>>) {
+    /// Set the input of a function ref node.
+    fn set_function_ref_input(&mut self, idx: usize, args: Vec<Vec<UntaggedContent>>) {
         match &mut self.nodes[idx] {
-            FlatNode::FunctionMacro(func_macro) => {
-                func_macro.input = Some(args);
+            FlatNode::FunctionRef(func_ref) => {
+                func_ref.input = Some(args);
             }
-            _ => panic!("set_function_macro_args called on non-function-macro node"),
+            _ => panic!("set_function_ref_args called on non-function-ref node"),
         }
     }
 
@@ -199,9 +197,9 @@ impl FlatRoot {
         idx
     }
 
-    /// Set the node at `idx` to be the specified macro.
-    fn set_macro(&mut self, node: &DastMacro, idx: Index, parent: Option<Index>) -> usize {
-        self.nodes[idx] = FlatNode::Macro(FlatMacro {
+    /// Set the node at `idx` to be the specified ref.
+    fn set_ref(&mut self, node: &DastRef, idx: Index, parent: Option<Index>) -> usize {
+        self.nodes[idx] = FlatNode::Ref(FlatRef {
             path: node.path.clone(),
             position: node.position.clone(),
             parent,
@@ -210,14 +208,14 @@ impl FlatRoot {
         idx
     }
 
-    /// Set the node at `idx` to be the specified function macro.
-    fn set_function_macro(
+    /// Set the node at `idx` to be the specified function ref.
+    fn set_function_ref(
         &mut self,
-        node: &DastFunctionMacro,
+        node: &DastFunctionRef,
         idx: Index,
         parent: Option<Index>,
     ) -> usize {
-        self.nodes[idx] = FlatNode::FunctionMacro(FlatFunctionMacro {
+        self.nodes[idx] = FlatNode::FunctionRef(FlatFunctionRef {
             path: node.path.clone(),
             input: None,
             position: node.position.clone(),

@@ -132,13 +132,13 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                 }) = &options.when_extending
                 {
                     let local_get_index_function_name =
-                        format!("local_get_{}_state_variable_index", store_in);
+                        format!("local_get_{}_prop_index", store_in);
                     let local_get_index_function_identity =
                         Ident::new(&local_get_index_function_name, Span::call_site());
                     let match_profile_identity = Ident::new(match_profile, Span::call_site());
 
                     component_node_impl_body.extend(quote! {
-                        fn accepted_profiles(&self) -> Vec<(ComponentProfile, StateVarIdx)> {
+                        fn accepted_profiles(&self) -> Vec<(ComponentProfile, PropIdx)> {
                             vec![(ComponentProfile::#match_profile_identity, self.state.#local_get_index_function_identity())]
                         }
                     });
@@ -255,14 +255,13 @@ pub fn rendered_state_derive(input: TokenStream) -> TokenStream {
 
             for variant in variants {
                 let variant_ident = &variant.ident;
-                let state_variables_name = format!("{}State", variant_ident);
-                let rendered_state_variables_name = format!("Rendered{}", state_variables_name);
-                let state_variables_identity = Ident::new(&state_variables_name, Span::call_site());
-                let rendered_state_variables_identity =
-                    Ident::new(&rendered_state_variables_name, Span::call_site());
+                let props_name = format!("{}State", variant_ident);
+                let rendered_props_name = format!("Rendered{}", props_name);
+                let props_identity = Ident::new(&props_name, Span::call_site());
+                let rendered_props_identity = Ident::new(&rendered_props_name, Span::call_site());
 
                 rendered_state_arms.push(quote! {
-                    #state_variables_identity(#rendered_state_variables_identity),
+                    #props_identity(#rendered_props_identity),
                 })
             }
 

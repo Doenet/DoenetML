@@ -35,7 +35,7 @@ fn can_flatten_dast_root() {
                     "idx": 1
                   },
                   {
-                    "type": "Macro",
+                    "type": "Ref",
                     "parent": 1,
                     "path": [
                       { "type": "pathPart", "name": "x", "index": [] },
@@ -45,7 +45,7 @@ fn can_flatten_dast_root() {
                     "idx": 2
                   },
                   {
-                    "type": "FunctionMacro",
+                    "type": "FunctionRef",
                     "parent": 0,
                     "path": [{ "type": "pathPart", "name": "f", "index": [] }],
                     "input": [[4]],

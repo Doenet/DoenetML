@@ -1,5 +1,5 @@
 use crate::components::prelude::*;
-use crate::general_state_var::{BooleanStateVar, BooleanToStringStateVar, StateVarAlias};
+use crate::general_prop::{BooleanProp, BooleanToStringProp, PropAlias};
 
 /// Definition of the `<boolean>` DoenetML component
 #[derive(
@@ -17,11 +17,11 @@ pub struct Boolean {
     /// The common component data needed to derive the `ComponentNode` trait
     pub common: ComponentCommonData,
 
-    /// The state variables that underlie the `<boolean>` component.
+    /// The props that underlie the `<boolean>` component.
     pub state: BooleanState,
 }
 
-/// The state variables that underlie the `<boolean>` component.
+/// The props that underlie the `<boolean>` component.
 #[derive(Debug, ComponentState)]
 pub struct BooleanState {
     /// The value of the `<boolean>` component.
@@ -30,40 +30,38 @@ pub struct BooleanState {
     ///
     /// It is marked `for_renderer` to send this value to the renderer of the `<boolean>` component.
     ///
-    /// It is marked as a component profile state variable,
-    /// which means this state variable will be used if a parent of a `<boolean>` component
+    /// It is marked as a component profile prop,
+    /// which means this prop will be used if a parent of a `<boolean>` component
     /// queries for children with the `Boolean` component profile.
     #[is_public]
     #[for_renderer]
-    #[component_profile_state_variable]
-    value: StateVar<bool>,
+    #[component_profile_prop]
+    value: Prop<bool>,
 
-    /// An alias to the `value` state variable.
+    /// An alias to the `value` prop.
     ///
     /// It is marked `is_public` so that it can be referenced in DoenetML via `.boolean`.
     #[is_public]
-    boolean: StateVar<bool>,
+    boolean: Prop<bool>,
 
     /// A conversion of the boolean value into a string.
     ///
     /// It is marked `is_public` so that it can be referenced in DoenetML via `.text`.
     ///
-    /// It is marked as a component profile state variable,
-    /// which means this state variable will be used if a parent of a `<boolean>` component
+    /// It is marked as a component profile prop,
+    /// which means this prop will be used if a parent of a `<boolean>` component
     /// queries for children with the `Text` component profile.
     #[is_public]
-    #[component_profile_state_variable]
-    text: StateVar<String>,
+    #[component_profile_prop]
+    text: Prop<String>,
 }
 
 impl BooleanState {
     fn new() -> Self {
         BooleanState {
-            value: BooleanStateVar::new_from_children(false).into_state_var(),
-            boolean: StateVarAlias::new(BooleanState::get_value_state_variable_index())
-                .into_state_var(),
-            text: BooleanToStringStateVar::new(BooleanState::get_value_state_variable_index())
-                .into_state_var(),
+            value: BooleanProp::new_from_children(false).into_prop(),
+            boolean: PropAlias::new(BooleanState::get_value_prop_index()).into_prop(),
+            text: BooleanToStringProp::new(BooleanState::get_value_prop_index()).into_prop(),
         }
     }
 }

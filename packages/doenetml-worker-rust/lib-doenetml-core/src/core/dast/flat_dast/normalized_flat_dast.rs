@@ -1,5 +1,5 @@
 //! `NormalizedFlatDast`` is a variant of a flat DAST where only `Text`, `Element`, and `Error` children are allowed.
-//! To get to normalized form, all macros and function macros must be expanded.
+//! To get to normalized form, all refs and function refs must be expanded.
 
 use serde::Serialize;
 
@@ -70,7 +70,7 @@ impl NormalizedNode {
     }
 }
 
-/// Untagged version of a Flattened DAST. All elements/errors/macros/function macros are stored in
+/// Untagged version of a Flattened DAST. All elements/errors/refs/function refs are stored in
 /// the `nodes` vec. All children of all elements/attributes are vectors of text or references to
 /// positions in the `nodes` vec.
 ///

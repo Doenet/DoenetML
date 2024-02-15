@@ -1,7 +1,7 @@
 use assert_json_diff::assert_json_eq;
 
 use super::*;
-use crate::{dast::macro_expand::Expander, test_utils::*};
+use crate::{dast::ref_expand::Expander, test_utils::*};
 
 #[test]
 fn can_compactify() {

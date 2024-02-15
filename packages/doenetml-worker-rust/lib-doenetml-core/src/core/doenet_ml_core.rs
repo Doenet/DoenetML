@@ -9,21 +9,20 @@ use super::dast::{
     FlatDastRoot, Position as DastPosition,
 };
 
-use super::state::essential_state::{EssentialDataOrigin, EssentialStateVar};
-use super::state::state_var_calculations::{
-    freshen_all_stale_renderer_states, get_state_var_value, resolve_state_var,
-    StateVariableUpdateRequest,
+use super::state::prop_calculations::{
+    freshen_all_stale_renderer_states, get_prop_value, resolve_prop, PropUpdateRequest,
 };
-use super::state::state_var_updates::process_state_variable_update_request;
+use super::state::prop_state::{StateProp, StatePropDataOrigin};
+use super::state::prop_updates::process_prop_update_request;
 use super::state::Freshness;
 
 use crate::components::actions::{Action, UpdateFromAction};
 use crate::components::component_builder::ComponentBuilder;
-use crate::components::prelude::{ComponentState, DependenciesCreatedForDataQuery, StateVarIdx};
+use crate::components::prelude::{ComponentState, DependenciesCreatedForDataQuery, PropIdx};
 use crate::dast::flat_dast::{FlatRoot, NormalizedRoot, UntaggedContent};
-use crate::dast::macro_expand::Expander;
+use crate::dast::ref_expand::Expander;
 use crate::dast::{get_flat_dast_update, to_flat_dast};
-use crate::state::StateVarPointer;
+use crate::state::PropPointer;
 #[allow(unused)]
 use crate::utils::{log, log_debug, log_json};
 
@@ -36,7 +35,7 @@ pub struct DoenetMLCore {
     /// The root of the dast defining the document structure.
     ///
     /// **TODO**: is there a reason to keep the original dast around?
-    /// (This dast is currently not modified when macros are replaced or other interactions.)
+    /// (This dast is currently not modified when refs are expanded or other interactions.)
     pub dast_root: DastRoot,
 
     /// The root node of the document
@@ -49,26 +48,26 @@ pub struct DoenetMLCore {
     /// Each component is identified by its *ComponentIdx*, which is its index in this vector.
     pub components: Vec<Rc<RefCell<ComponentEnum>>>,
 
-    /// A DAG whose vertices are the state variables (and attributes?)
-    /// of every component, and whose endpoint vertices are essential data.
+    /// A DAG whose vertices are the props (and attributes?)
+    /// of every component, and whose endpoint vertices are state data.
     pub dependency_graph: DependencyGraph,
 
     /// Endpoints of the dependency graph.
     /// Every update instruction will lead to these.
     ///
-    /// The essential data are the only data needed to construct the document state
-    /// as all other state variables are calculated from them.
-    /// When saving state to a database, only essential data needs to be saved.
+    /// The state data are the only data needed to construct the document state
+    /// as all other props are calculated from them.
+    /// When saving state to a database, only state data needs to be saved.
     ///
     /// Data structure:
     /// - The vector index is the *ComponentIdx* of the component,
     /// defined by the order in *components*.
-    /// - The hash map key *EssentialDataOrigin* specifies how the component created the essential data.
-    /// - The hash map value *EssentialStateVariable* is a *StateVarMutableViewEnum*
+    /// - The hash map key *StatePropDataOrigin* specifies how the component created the state data.
+    /// - The hash map value *StatePropProp* is a *PropViewMutEnum*
     ///   that stores the value.
-    ///   (Note, unlike for state variables, *EssentialStateVariable* is not attached to any *StateVar*,
-    ///   as it doesn't need *StateVarUpdater*.)
-    pub essential_data: Vec<HashMap<EssentialDataOrigin, EssentialStateVar>>,
+    ///   (Note, unlike for props, *StateProp* is not attached to any *Prop*,
+    ///   as it doesn't need *PropUpdater*.)
+    pub state_data: Vec<HashMap<StatePropDataOrigin, StateProp>>,
 
     pub processing_state: CoreProcessingState,
 
@@ -84,57 +83,57 @@ pub struct DoenetMLCore {
 pub struct DependencyGraph {
     /// **The Dependency Graph**
     ///
-    /// A DAG whose vertices are the state variables (and attributes?)
-    /// of every component, and whose endpoint vertices are essential data.
+    /// A DAG whose vertices are the props (and attributes?)
+    /// of every component, and whose endpoint vertices are state data.
     ///
     /// Used for
-    /// - producing values when determining a state variable
-    /// - tracking when a change affects other state variables
+    /// - producing values when determining a prop
+    /// - tracking when a change affects other props
     ///
     /// Structure of the nested vectors:
     /// - The first index is the *ComponentIdx* of the component,
     /// defined by the order in *components*.
-    /// - The second index is the *StateVarIdx*,
-    /// defined by the order in which state variables are defined for the component.
-    /// - The third index is the index of the *DataQuery* for the state variable.
+    /// - The second index is the *PropIdx*,
+    /// defined by the order in which props are defined for the component.
+    /// - The third index is the index of the *DataQuery* for the prop.
     /// - The inner DependenciesCreatedForDataQuery is the vector of dependencies
     ///   that matched that DataQuery.
     pub dependencies: Vec<Vec<Vec<DependenciesCreatedForDataQuery>>>,
 
-    /// The inverse of the dependency graph *dependencies* (along with *dependent_on_essential*).
-    /// It specifies the state variables that are dependent on each state variable.
+    /// The inverse of the dependency graph *dependencies* (along with *dependent_on_state*).
+    /// It specifies the props that are dependent on each prop.
     ///
     /// Structure of the nested vectors:
     /// - The first index is the *ComponentIdx* of the component,
     /// defined by the order in *components*.
-    /// - The second index is the *StateVarIdx*,
-    /// defined by the order in which state variables are defined for the component.
-    /// - The inner vector is the list of component/state variable combinations
-    /// that are dependent on this state variable.
-    pub dependent_on_state_var: Vec<Vec<Vec<StateVarPointer>>>,
+    /// - The second index is the *PropIdx*,
+    /// defined by the order in which props are defined for the component.
+    /// - The inner vector is the list of component/prop combinations
+    /// that are dependent on this prop.
+    pub dependent_on_prop: Vec<Vec<Vec<PropPointer>>>,
 
-    /// The inverse of the dependency graph *dependencies* (along with *dependent_on_state_var*).
-    /// It specifies the state variables that are dependent on each piece of essential data.
+    /// The inverse of the dependency graph *dependencies* (along with *dependent_on_prop*).
+    /// It specifies the props that are dependent on each piece of state data.
     ///
     /// Data structure:
     /// - The vector index is the *ComponentIdx* of the component,
     /// defined by the order in *components*.
-    /// - The hash map key *EssentialDataOrigin* specifies how the component created the essential data.
-    /// - The hash map value vector is the list of component/state variable combinations
-    /// that are dependent on this piece of essential data.
-    pub dependent_on_essential: Vec<HashMap<EssentialDataOrigin, Vec<StateVarPointer>>>,
+    /// - The hash map key *StatePropDataOrigin* specifies how the component created the state data.
+    /// - The hash map value vector is the list of component/prop combinations
+    /// that are dependent on this piece of state data.
+    pub dependent_on_state: Vec<HashMap<StatePropDataOrigin, Vec<PropPointer>>>,
 }
 
 #[derive(Debug)]
 pub struct CoreProcessingState {
-    /// List of the rendered components that have stale `for_renderer` state variables.
+    /// List of the rendered components that have stale `for_renderer` props.
     pub stale_renderers: Vec<ComponentIdx>,
 
     // To prevent unnecessary reallocations of temporary vectors, like stacks,
     // we store them on the DoenetMLCore struct so that they will stay allocated.
-    pub freshen_stack: Vec<StateVarPointer>,
-    pub mark_stale_stack: Vec<StateVarPointer>,
-    pub update_stack: Vec<StateVariableUpdateRequest>,
+    pub freshen_stack: Vec<PropPointer>,
+    pub mark_stale_stack: Vec<PropPointer>,
+    pub update_stack: Vec<PropUpdateRequest>,
 }
 
 #[derive(Debug)]
@@ -169,39 +168,39 @@ impl DoenetMLRoot {
 }
 
 /// Information of the source that a component is extending, which is currently
-/// either another component or a state variable.
+/// either another component or a prop.
 #[derive(Debug, Clone)]
 pub enum Extending {
     /// The component is extending another entire component, given by the component index
     Component(ComponentIdx),
-    // TODO: what about array state variables?
-    /// The component is extending the state variable of another component
-    StateVar(ExtendStateVar),
+    // TODO: what about array props?
+    /// The component is extending the prop of another component
+    Prop(ExtendProp),
 }
 
-/// Description of the shadowing of state variables
-/// when a component extends the state variable of another component
+/// Description of the shadowing of props
+/// when a component extends the prop of another component
 #[derive(Debug, Clone)]
-pub struct ExtendStateVar {
+pub struct ExtendProp {
     /// the component being extended
     pub component_idx: ComponentIdx,
 
-    /// the matching of which state variables are shadowing which state variables
-    pub state_variable_matching: Vec<StateVarShadowingPair>,
+    /// the matching of which props are shadowing which props
+    pub prop_matching: Vec<PropLink>,
 }
 
-/// Description of which state variable is shadowing
-/// another state variable when extending a component
+/// Description of which prop is shadowing
+/// another prop when extending a component
 #[derive(Debug, Clone)]
-pub struct StateVarShadowingPair {
-    /// The state variable with this index in the extending component
-    /// will match (shadow) the state variable
+pub struct PropLink {
+    /// The prop with this index in the extending component
+    /// will match (shadow) the prop
     /// from the component being extended
-    pub dest_idx: StateVarIdx,
+    pub dest_idx: PropIdx,
 
-    /// The state variable with this index in the component being extended
+    /// The prop with this index in the component being extended
     /// will be shadowed
-    pub source_idx: StateVarIdx,
+    pub source_idx: PropIdx,
 }
 
 impl DoenetMLCore {
@@ -209,7 +208,7 @@ impl DoenetMLCore {
         dast_root: DastRoot,
         source: &str,
         _flags_json: &str,
-        existing_essential_data: Option<Vec<HashMap<EssentialDataOrigin, EssentialStateVar>>>,
+        existing_state_data: Option<Vec<HashMap<StatePropDataOrigin, StateProp>>>,
     ) -> Self {
         let warnings: Vec<DastWarning> = Vec::new();
 
@@ -229,20 +228,20 @@ impl DoenetMLCore {
             position: None,
         };
 
-        let essential_data = existing_essential_data
+        let state_data = existing_state_data
             .unwrap_or_else(|| (0..components.len()).map(|_| HashMap::new()).collect());
 
         let mut dependencies = Vec::with_capacity(components.len());
-        let mut dependent_on_state_var = Vec::with_capacity(components.len());
-        let mut dependent_on_essential = Vec::with_capacity(components.len());
+        let mut dependent_on_prop = Vec::with_capacity(components.len());
+        let mut dependent_on_state = Vec::with_capacity(components.len());
 
         for comp in &components {
-            // create vector of length num of state var defs, where each entry is zero-length vector
-            let num_inner_state_var_defs = comp.borrow().get_num_state_variables();
-            dependencies.push((0..num_inner_state_var_defs).map(|_| vec![]).collect());
-            dependent_on_state_var.push(vec![Vec::new(); num_inner_state_var_defs]);
+            // create vector of length num of prop defs, where each entry is zero-length vector
+            let num_inner_prop_defs = comp.borrow().get_num_props();
+            dependencies.push((0..num_inner_prop_defs).map(|_| vec![]).collect());
+            dependent_on_prop.push(vec![Vec::new(); num_inner_prop_defs]);
 
-            dependent_on_essential.push(HashMap::new());
+            dependent_on_state.push(HashMap::new());
         }
 
         // Initialize with the document element being stale.
@@ -256,10 +255,10 @@ impl DoenetMLCore {
             components,
             dependency_graph: DependencyGraph {
                 dependencies,
-                dependent_on_state_var,
-                dependent_on_essential,
+                dependent_on_prop,
+                dependent_on_state,
             },
-            essential_data,
+            state_data,
             processing_state: CoreProcessingState {
                 stale_renderers,
                 freshen_stack: Vec::new(),
@@ -271,7 +270,7 @@ impl DoenetMLCore {
         }
     }
 
-    /// Freshen all the state variables for a component in *stale_renderers*
+    /// Freshen all the props for a component in *stale_renderers*
     /// and recurse to rendered children.
     ///
     /// Returns a vector of the indices of the components reached.
@@ -280,95 +279,95 @@ impl DoenetMLCore {
             &mut self.processing_state,
             &self.components,
             &mut self.dependency_graph,
-            &mut self.essential_data,
+            &mut self.state_data,
         )
     }
 
     /// Run the action specified by the `action` json and return any changes to the output flat dast.
     ///
     /// The behavior of an action is defined by each component type. Based on the arguments
-    /// to the action, it will request that certain state variables have new values.
+    /// to the action, it will request that certain props have new values.
     ///
     /// The `action` json should be an object with these fields
     /// - `component_idx`: the index of the component originating the action
     /// - `action_name`: the name of the action
     /// - `args`: an object containing data that will be interpreted by the action implementation.
-    ///   The values of each field must be quantities that can be converted into `StateVarValue`
-    ///   or a vector of `StateVarValue`.
+    ///   The values of each field must be quantities that can be converted into `PropValue`
+    ///   or a vector of `PropValue`.
     pub fn dispatch_action(
         &mut self,
         action: Action,
     ) -> Result<HashMap<ComponentIdx, FlatDastElementUpdate>, String> {
         let component_idx = action.component_idx;
 
-        // We allow actions to resolve and get the value of any state variable from the component.
+        // We allow actions to resolve and get the value of any prop from the component.
         // To accomplish this, we pass in a function closure that will
-        // - take a state variable index,
-        // - freshen the state variable, if needed, and
-        // - return the state variable's value
-        let mut state_var_resolver = |state_var_idx: StateVarIdx| {
-            get_state_var_value(
-                StateVarPointer {
+        // - take a prop index,
+        // - freshen the prop, if needed, and
+        // - return the prop's value
+        let mut prop_resolver = |prop_idx: PropIdx| {
+            get_prop_value(
+                PropPointer {
                     component_idx,
-                    state_var_idx,
+                    prop_idx,
                 },
                 &self.components,
                 &mut self.dependency_graph,
-                &mut self.essential_data,
+                &mut self.state_data,
                 &mut self.processing_state.freshen_stack,
             )
         };
 
         {
             // A call to on_action from a component processes the arguments and returns a vector
-            // of component state variables with requested new values
-            let state_vars_to_update = self.components[component_idx]
+            // of component props with requested new values
+            let props_to_update = self.components[component_idx]
                 .borrow()
-                .on_action(action.action, &mut state_var_resolver)?;
+                .on_action(action.action, &mut prop_resolver)?;
 
-            for UpdateFromAction(state_var_idx, requested_value) in state_vars_to_update {
+            for UpdateFromAction(prop_idx, requested_value) in props_to_update {
                 let freshness;
 
                 {
                     let component = self.components[component_idx].borrow();
-                    let state_variable = &component.get_state_variable(state_var_idx).unwrap();
+                    let prop = &component.get_prop(prop_idx).unwrap();
 
-                    // Record the requested value directly on the state variable.
-                    // Later calls from within process_state_variable_update_request
-                    // will call invert on the state variable
+                    // Record the requested value directly on the prop.
+                    // Later calls from within process_prop_update_request
+                    // will call invert on the prop
                     // which will look up this requested value.
-                    state_variable.set_requested_value(requested_value);
+                    prop.set_requested_value(requested_value);
 
-                    freshness = state_variable.get_freshness();
+                    freshness = prop.get_freshness();
                 }
 
-                // Since the requested value is stored in the state variable,
-                // now we just need to keep track of which state variable we are seeking to update.
-                let state_var_ptr = StateVarPointer {
+                // Since the requested value is stored in the prop,
+                // now we just need to keep track of which prop we are seeking to update.
+                let prop_ptr = PropPointer {
                     component_idx,
-                    state_var_idx,
+                    prop_idx,
                 };
 
-                // If state variable is unresolved, then resolve it.
-                // This could occur only once, but actions are free to seek to modify any state variable,
+                // If prop is unresolved, then resolve it.
+                // This could occur only once, but actions are free to seek to modify any prop,
                 // even if it hasn't been accessed before.
                 if freshness == Freshness::Unresolved {
-                    resolve_state_var(
-                        state_var_ptr,
+                    resolve_prop(
+                        prop_ptr,
                         &self.components,
                         &mut self.dependency_graph,
-                        &mut self.essential_data,
+                        &mut self.state_data,
                     );
                 }
 
                 // Recurse in the inverse direction along to dependency graph
-                // to infer how to set the leaves (essential state variables)
-                // to attempt to set the state variable to its requested value.
-                process_state_variable_update_request(
-                    StateVariableUpdateRequest::SetStateVar(state_var_ptr),
+                // to infer how to set the leaves (state props)
+                // to attempt to set the prop to its requested value.
+                process_prop_update_request(
+                    PropUpdateRequest::SetProp(prop_ptr),
                     &self.components,
                     &mut self.dependency_graph,
-                    &mut self.essential_data,
+                    &mut self.state_data,
                     &mut self.processing_state,
                 );
             }
@@ -392,7 +391,7 @@ impl DoenetMLCore {
         self.root.to_flat_dast(elements, self.warnings.to_vec())
     }
 
-    /// Output updates for any elements with changed rendered state variables
+    /// Output updates for any elements with changed rendered props
     pub fn get_flat_dast_updates(&mut self) -> HashMap<ComponentIdx, FlatDastElementUpdate> {
         let components_changed = self.freshen_renderer_state();
 
@@ -405,24 +404,24 @@ impl DoenetMLCore {
         flat_dast_updates
     }
 
-    /// Convenience function to freshen and evaluate a state variable from tests.
+    /// Convenience function to freshen and evaluate a prop from tests.
     ///
     /// Intended for use in integration tests.
     /// Not generally useful as it requires a mutable reference to all of core,
     /// which doesn't play well with the borrow checker.
-    pub fn get_state_var_value(
+    pub fn get_prop_value(
         &mut self,
         component_idx: ComponentIdx,
-        state_var_idx: StateVarIdx,
-    ) -> crate::components::prelude::StateVarValue {
-        get_state_var_value(
-            StateVarPointer {
+        prop_idx: PropIdx,
+    ) -> crate::components::prelude::PropValue {
+        get_prop_value(
+            PropPointer {
                 component_idx,
-                state_var_idx,
+                prop_idx,
             },
             &self.components,
             &mut self.dependency_graph,
-            &mut self.essential_data,
+            &mut self.state_data,
             &mut self.processing_state.freshen_stack,
         )
     }

@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    state::{StateVarIdx, StateVarValue},
+    state::{PropIdx, PropValue},
     ComponentIdx,
 };
 
@@ -25,4 +25,4 @@ pub struct Action {
     pub action: ActionsEnum,
 }
 
-pub struct UpdateFromAction(pub StateVarIdx, pub StateVarValue);
+pub struct UpdateFromAction(pub PropIdx, pub PropValue);
