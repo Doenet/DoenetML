@@ -21,14 +21,14 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
                     .map(|f| f.ident.as_ref().unwrap().clone())
                     .collect::<Vec<_>>();
 
-                // Determine if struct represents a component or represents state variables.
+                // Determine if struct represents a component or represents props.
                 // If a component, then we implement the trait by calling each function on the state.
-                // If state variables, then determine the trait functions from the fields.
+                // If props, then determine the trait functions from the fields.
                 //
                 // TODO: better condition to determine if is component struct.
                 // For now, we just check if there are fields named "common" and "state".
                 // Could check the type of common to make sure it is CommonData
-                // or check if each field is a state variable.
+                // or check if each field is a prop.
                 let is_component_struct = field_identities.iter().any(|ident| *ident == "common")
                     && field_identities.iter().any(|ident| *ident == "state");
 
@@ -77,7 +77,7 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
                                 self.state.check_if_prop_is_for_renderer(prop_idx)
                             }
 
-                            /// Return object will the values of all the rendered state variables
+                            /// Return object will the values of all the rendered props
                             fn return_rendered_state(&mut self) -> Option<RenderedState> {
                                 self.state.return_rendered_state()
                             }
@@ -115,42 +115,42 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
                     let rendered_props_identity =
                         Ident::new(&renderer_props_name, Span::call_site());
 
-                    for (sv_idx, field_identity) in field_identities.iter().enumerate() {
+                    for (prop_idx, field_identity) in field_identities.iter().enumerate() {
                         get_prop_arms.push(quote! {
-                            #sv_idx => Some((&self.#field_identity).into()),
+                            #prop_idx => Some((&self.#field_identity).into()),
                         });
                         get_prop_mut_arms.push(quote! {
-                            #sv_idx => Some((&mut self.#field_identity).into()),
+                            #prop_idx => Some((&mut self.#field_identity).into()),
                         });
 
                         let field_camel_case = field_identity.to_string().to_case(Case::Camel);
                         get_prop_index_from_name_arms.push(quote! {
-                            #field_camel_case => Some(#sv_idx),
+                            #field_camel_case => Some(#prop_idx),
                         });
 
                         // get_prop_index_from_name_case_insensitive_arms.push(quote! {
-                        //     x if x.eq_ignore_ascii_case(#field_camel_case) => Some(#sv_idx),
+                        //     x if x.eq_ignore_ascii_case(#field_camel_case) => Some(#prop_idx),
                         // });
 
-                        if has_attribute(&named[sv_idx].attrs, "is_public") {
+                        if has_attribute(&named[prop_idx].attrs, "is_public") {
                             get_public_prop_index_from_name_case_insensitive_arms.push(quote! {
-                                x if x.eq_ignore_ascii_case(#field_camel_case) => Some(#sv_idx),
+                                x if x.eq_ignore_ascii_case(#field_camel_case) => Some(#prop_idx),
                             });
                         }
 
-                        if has_attribute(&named[sv_idx].attrs, "component_profile_prop") {
+                        if has_attribute(&named[prop_idx].attrs, "component_profile_prop") {
                             get_component_profile_prop_indices_items.push(quote! {
-                                #sv_idx,
+                                #prop_idx,
                             });
                         }
 
-                        if has_attribute(&named[sv_idx].attrs, "for_renderer") {
+                        if has_attribute(&named[prop_idx].attrs, "for_renderer") {
                             get_for_renderer_prop_indices_items.push(quote! {
-                                #sv_idx,
+                                #prop_idx,
                             });
 
                             check_if_prop_is_for_renderer_arms.push(quote! {
-                                #sv_idx => true,
+                                #prop_idx => true,
                             });
 
                             return_rendered_state_items.push(quote! {
@@ -164,12 +164,12 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
                                 }
                             });
 
-                            let sv_type =
-                                find_type_from_prop_with_generics(&named[sv_idx].ty).unwrap();
+                            let prop_type =
+                                find_type_from_prop_with_generics(&named[prop_idx].ty).unwrap();
 
                             rendered_props_struct_statements.push(quote! {
                                 #[serde(skip_serializing_if = "Option::is_none")]
-                                pub #field_identity: Option<#sv_type>,
+                                pub #field_identity: Option<#prop_type>,
                             })
                         }
 
@@ -183,13 +183,13 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
                             Ident::new(&local_get_index_function_name, Span::call_site());
 
                         get_prop_index_functions.push(quote! {
-                            /// Get a state variable index
-                            /// of the specified state variable
+                            /// Get a prop index
+                            /// of the specified prop
                             pub const fn #get_index_function_identity() -> PropIdx {
-                                #sv_idx
+                                #prop_idx
                             }
                             pub const fn #local_get_index_function_identity(&self) -> PropIdx {
-                                #sv_idx
+                                #prop_idx
                             }
                         });
 
@@ -200,11 +200,11 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
 
                         get_value_data_queries_functions.push(quote! {
                             /// Get a `DataQuery` that requests the value
-                            /// of the specified state variable
+                            /// of the specified prop
                             pub const fn #get_queries_function_identity() -> DataQuery {
                                 DataQuery::Prop {
                                     component_idx: None,
-                                    prop_idx: #sv_idx,
+                                    prop_idx: #prop_idx,
                                 }
                             }
                         });
@@ -213,11 +213,11 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
                             format!("update_{}_from_action", field_identity);
                         let update_from_action_function_identity =
                             Ident::new(&update_from_action_function_name, Span::call_site());
-                        let val_type = &field_types[sv_idx];
+                        let val_type = &field_types[prop_idx];
 
                         update_from_action_functions.push(quote! {
                             pub fn #update_from_action_function_identity(val: #val_type) -> UpdateFromAction {
-                                UpdateFromAction(#sv_idx, val.clone().try_into().unwrap())
+                                UpdateFromAction(#prop_idx, val.clone().try_into().unwrap())
                             }
                         });
                     }
@@ -306,7 +306,7 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
 
                         }
 
-                        /// Structure containing the values of a component's state variables
+                        /// Structure containing the values of a component's props
                         /// that were designated `for_renderer`.
                         ///
                         /// Each field is an Option so that partial data can be sent

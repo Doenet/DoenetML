@@ -3,7 +3,7 @@ use crate::utils::test_utils::create_prop_dependency;
 use super::*;
 use setup_functions::*;
 
-/// check that an independent state variable
+/// check that an independent prop
 /// gives the correct data query that requests preliminary value
 #[test]
 fn independent_prop_gives_correct_data_queries() {
@@ -18,7 +18,7 @@ fn independent_prop_gives_correct_data_queries() {
     assert_eq!(queries, vec![DataQuery::PreliminaryValue,]);
 }
 
-/// For an independent boolean state variable,
+/// For an independent boolean prop,
 /// its value should be the same as its preliminary value,
 /// and its came_from_default should be the same as the preliminary value's came_from_default
 #[test]
@@ -30,21 +30,21 @@ fn calculate_independent_boolean_prop() {
     assert_eq!(*prop.get(), false);
     assert_eq!(prop.came_from_default(), true);
 
-    // changing preliminary value to be true, results in state variable being true
+    // changing preliminary value to be true, results in prop being true
     preliminary_value_var.set_value(true);
     prop.calculate_and_mark_fresh();
     assert_eq!(*prop.get(), true);
     assert_eq!(prop.came_from_default(), false);
 }
 
-/// Calling invert on a boolean independent state variable
+/// Calling invert on a boolean independent prop
 /// causes the preliminary value to receive that requested value
 #[test]
 fn invert_independent_boolean_prop() {
     let (mut prop, mut prop_view, preliminary_value_var) =
         set_up_boolean_independent_prop(true, false);
 
-    // on the state variable view, record that we request the value be false
+    // on the prop view, record that we request the value be false
     prop_view.queue_update(false);
 
     let invert_result = prop.invert(false).unwrap();
@@ -62,7 +62,7 @@ fn invert_independent_boolean_prop() {
     assert_eq!(*preliminary_value_var.get_requested_value(), false);
 }
 
-/// For an independent string state variable,
+/// For an independent string prop,
 /// its value should be the same as its preliminary value
 /// and its came_from_default should be the same as the preliminary value's came_from_default
 #[test]
@@ -75,21 +75,21 @@ fn calculate_independent_string_prop() {
     assert_eq!(*prop.get(), "hello");
     assert_eq!(prop.came_from_default(), true);
 
-    // changing preliminary value to be false, results in state variable being false
+    // changing preliminary value to be false, results in prop being false
     preliminary_value_var.set_value(String::from("bye"));
     prop.calculate_and_mark_fresh();
     assert_eq!(*prop.get(), "bye");
     assert_eq!(prop.came_from_default(), false);
 }
 
-/// Calling invert on a string independent state variable
+/// Calling invert on a string independent prop
 /// causes the preliminary value to receive that requested value
 #[test]
 fn invert_independent_string_prop() {
     let (mut prop, mut prop_view, preliminary_value_var) =
         set_up_string_independent_prop(String::from("hello"), false);
 
-    // on the state variable view, record that we request the value be "bye"
+    // on the prop view, record that we request the value be "bye"
     prop_view.queue_update(String::from("bye"));
 
     let invert_result = prop.invert(false).unwrap();
@@ -111,7 +111,7 @@ mod setup_functions {
 
     use super::*;
 
-    /// Utility function to set up independent boolean state variable and its preliminary value dependency
+    /// Utility function to set up independent boolean prop and its preliminary value dependency
     pub fn set_up_boolean_independent_prop(
         initial_value: bool,
         came_from_default: bool,
@@ -136,7 +136,7 @@ mod setup_functions {
         (prop, prop_view, preliminary_value_var)
     }
 
-    /// Utility function to set up independent string state variable and its preliminary value dependency
+    /// Utility function to set up independent string prop and its preliminary value dependency
     pub fn set_up_string_independent_prop(
         initial_value: String,
         came_from_default: bool,

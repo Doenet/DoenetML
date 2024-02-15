@@ -12,10 +12,10 @@ use crate::{
 use super::{ComponentState, PropPointer};
 
 /// Recurse in the inverse direction along the dependency graph to attempt to satisfy
-/// the requested update of the state variable described in initial_update_request.
-/// The requested value must already be set on that state variable itself.
+/// the requested update of the prop described in initial_update_request.
+/// The requested value must already be set on that prop itself.
 ///
-/// When we reach the leaves (essential state variables), set them to their requested values
+/// When we reach the leaves (essential props), set them to their requested values
 /// and then mark all their dependencies as stale
 #[allow(clippy::ptr_arg)]
 pub fn process_prop_update_request(
@@ -61,13 +61,13 @@ pub fn process_prop_update_request(
             }
 
             PropUpdateRequest::SetProp(prop_ptr) => {
-                // The requested value for the state variable of prop_ptr
+                // The requested value for the prop of prop_ptr
                 // has already been set in a previous step.
                 // Now, we need to calculate the requested values of its dependencies
                 // that will lead to its requested value.
 
                 // The vector dep_update_requests will contain just the identities
-                // of the state variables or essential data that we need to recurse to.
+                // of the props or essential data that we need to recurse to.
                 let mut dep_update_requests = invert_including_shadow(
                     prop_ptr,
                     components,
@@ -86,10 +86,10 @@ pub fn process_prop_update_request(
     }
 }
 
-/// Mark the state variable in original_prop_ptr stale
+/// Mark the prop in original_prop_ptr stale
 /// and then recurse to its dependencies.
 ///
-/// Also, if a state variable has the for_renderer parameter set,
+/// Also, if a prop has the for_renderer parameter set,
 /// then record the component in stale_renderers.
 #[allow(clippy::ptr_arg)]
 fn mark_stale_prop_and_dependencies(
@@ -126,20 +126,20 @@ fn mark_stale_prop_and_dependencies(
 
             for PropPointer {
                 component_idx: new_comp_idx,
-                prop_idx: new_sv_idx,
+                prop_idx: new_prop_idx,
             } in states_depending_on_me.iter()
             {
-                // Recurse by adding the state variables to the stack
+                // Recurse by adding the props to the stack
                 mark_stale_stack.push(PropPointer {
                     component_idx: *new_comp_idx,
-                    prop_idx: *new_sv_idx,
+                    prop_idx: *new_prop_idx,
                 });
             }
         }
     }
 }
 
-/// Mark stale all the state variables that depend on essential_state.
+/// Mark stale all the props that depend on essential_state.
 #[allow(clippy::ptr_arg)]
 fn mark_stale_essential_datum_dependencies(
     essential_state: &EssentialStateDescription,
@@ -167,14 +167,14 @@ fn mark_stale_essential_datum_dependencies(
     }
 }
 
-/// Determine what state variables must be changed to attempt to create the desired value
-/// that has been saved to the state variable specified by *prop_ptr*.
+/// Determine what props must be changed to attempt to create the desired value
+/// that has been saved to the prop specified by *prop_ptr*.
 ///
-/// If *is_direct_change_from_action* is true, then the desired value for the state variable
+/// If *is_direct_change_from_action* is true, then the desired value for the prop
 /// was specified directly from the action itself.
 ///
-/// Returns a vector specifying which state variables or essential data have been requested to change.
-/// The actual requested values will be added directly to the state variables or essential data.
+/// Returns a vector specifying which props or essential data have been requested to change.
+/// The actual requested values will be added directly to the props or essential data.
 fn invert_including_shadow(
     prop_ptr: PropPointer,
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
@@ -201,7 +201,7 @@ fn invert_including_shadow(
 }
 
 /// Convert the dependency update results of `invert()`
-/// into state variable update requests by determining the state variables
+/// into prop update requests by determining the props
 /// referenced by the dependencies.
 #[allow(clippy::ptr_arg)]
 fn convert_dependency_updates_requested_to_prop_update_requests(

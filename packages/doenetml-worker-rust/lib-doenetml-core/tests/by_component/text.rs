@@ -3,7 +3,7 @@ use super::*;
 use test_helpers::*;
 
 #[test]
-fn text_sv_is_alias_of_value() {
+fn text_prop_is_alias_of_value() {
     let dast_root = dast_root_no_position(r#"<text>hello</text>"#);
     let mut core = DoenetMLCore::new(dast_root, "", "", None);
 

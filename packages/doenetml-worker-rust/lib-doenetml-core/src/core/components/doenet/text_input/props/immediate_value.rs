@@ -2,7 +2,7 @@ use crate::components::prelude::*;
 
 use super::TextInputState;
 
-/// A struct of all data required to compute the value of this state variable.
+/// A struct of all data required to compute the value of this prop.
 #[add_dependency_data]
 #[derive(Debug, Default, PropDependencies, PropDataQueries)]
 pub struct RequiredData {

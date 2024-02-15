@@ -1,11 +1,11 @@
 use crate::components::prelude::*;
 
-/// A string state variable that calculates its value by concatenating all string dependencies.
+/// A string prop that calculates its value by concatenating all string dependencies.
 ///
-/// If the state variable has a single dependency,
+/// If the prop has a single dependency,
 /// then it propagates the `came_from_default` attribute.
 ///
-/// The string state variable can be created via the constructors:
+/// The string prop can be created via the constructors:
 /// - `new(data_query)`: base the value on an arbitrary data query
 /// - `new_from_children(default_value)`: base the value on the component's `Text` children,
 ///   falling back to `default_value` if there are no matching children.
@@ -14,13 +14,13 @@ use crate::components::prelude::*;
 ///   falling back to `default_value` if there are no matching children.
 #[derive(Debug, Default)]
 pub struct StringProp {
-    /// The data query that indicates how the dependencies of this state variable will be created.
+    /// The data query that indicates how the dependencies of this prop will be created.
     data_query: DataQuery,
 
     default_value: String,
 }
 
-/// The data required to compute the value of this state variable.
+/// The data required to compute the value of this prop.
 #[add_dependency_data]
 #[derive(Debug, Default, PropDependencies, PropDataQueries)]
 pub struct RequiredData {
@@ -29,7 +29,7 @@ pub struct RequiredData {
 }
 
 impl StringProp {
-    /// Creates a string state var that calculates its value from the given data query.
+    /// Creates a string prop that calculates its value from the given data query.
     pub fn new(data_query: DataQuery) -> Self {
         StringProp {
             data_query,
@@ -37,10 +37,10 @@ impl StringProp {
         }
     }
 
-    /// Creates a string state var that calculates its value from the component's children
+    /// Creates a string prop that calculates its value from the component's children
     /// matching the `String`  profile.
     ///
-    /// If there are no matching children, the state variable will be initialized with `default_value`.
+    /// If there are no matching children, the prop will be initialized with `default_value`.
     pub fn new_from_children(default_value: String) -> Self {
         StringProp {
             data_query: DataQuery::Child {
@@ -52,10 +52,10 @@ impl StringProp {
         }
     }
 
-    /// Creates a string state var that calculates its value from the attribute given by `attr_name`,
+    /// Creates a string prop that calculates its value from the attribute given by `attr_name`,
     /// basing the calculation on the attribute children that match the `String` profile.
     ///
-    /// If there are no matching attribute children, the state variable will be initialized with `default_value`.
+    /// If there are no matching attribute children, the prop will be initialized with `default_value`.
     pub fn new_from_attribute<S: Into<String>>(attr_name: AttributeName, default_value: S) -> Self {
         StringProp {
             data_query: DataQuery::AttributeChild {
@@ -98,7 +98,7 @@ impl PropUpdater<String, RequiredData> for StringProp {
         }
     }
 
-    /// If the state variable is determined by a single string variable,
+    /// If the prop is determined by a single string variable,
     /// then request that variable take on the requested value for this variable.
     fn invert(
         &self,

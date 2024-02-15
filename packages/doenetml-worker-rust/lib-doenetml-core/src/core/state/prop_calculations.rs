@@ -12,7 +12,7 @@ use crate::{
 
 use super::{ComponentState, PropPointer};
 
-/// Freshen the state variable specified by original_prop_ptr,
+/// Freshen the prop specified by original_prop_ptr,
 /// then get its fresh value
 pub fn get_prop_value(
     original_prop_ptr: PropPointer,
@@ -43,7 +43,7 @@ pub enum PropUpdateRequest {
     SetProp(PropPointer),
 }
 
-/// Freshen all the state variables for a component that are designated as rendered
+/// Freshen all the props for a component that are designated as rendered
 /// and recurse to rendered children.
 ///
 /// Returns a vector of the indices of the components reached.
@@ -130,10 +130,10 @@ fn get_non_string_rendered_children_including_from_extend(
     children
 }
 
-/// If the state variable specified by original_prop_ptr is stale or unresolved,
+/// If the prop specified by original_prop_ptr is stale or unresolved,
 /// then freshen the variable, resolving its dependencies if necessary.
 ///
-/// If the state variable was not fresh, then recurse to its dependencies to freshen them.
+/// If the prop was not fresh, then recurse to its dependencies to freshen them.
 pub fn freshen_prop(
     original_prop_ptr: PropPointer,
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
@@ -156,7 +156,7 @@ pub fn freshen_prop(
         .unwrap()
         .get_freshness();
 
-    // If the current state variable is fresh, there's nothing to do.
+    // If the current prop is fresh, there's nothing to do.
     // If it is unresolved, resolve it
     match original_freshness {
         Freshness::Fresh => return,
@@ -171,7 +171,7 @@ pub fn freshen_prop(
         Freshness::Stale | Freshness::Resolved => (),
     };
 
-    // At this point, the state variable is stale or resolved.
+    // At this point, the prop is stale or resolved.
 
     freshen_stack.push(original_prop_ptr);
 
@@ -183,12 +183,12 @@ pub fn freshen_prop(
             .get_freshness();
 
         // If we have cycles in the graph, it's possible that this
-        // state variable was reached from another path and already freshened.
+        // prop was reached from another path and already freshened.
         // Skip it in that case.
         match current_freshness {
             Freshness::Fresh => continue,
             Freshness::Unresolved => {
-                panic!("Should not have an unresolved state variable here!")
+                panic!("Should not have an unresolved prop here!")
             }
             Freshness::Stale | Freshness::Resolved => (),
         };
@@ -198,7 +198,7 @@ pub fn freshen_prop(
 
         // If we find a stale or resolved dependency
         // (i.e., not fresh, as we shouldn't have unresolved)
-        // then we aren't ready to freshen this state variable.
+        // then we aren't ready to freshen this prop.
         // In this case, we will put prop_ptr on the stack
         // followed by its stale/resolved dependencies,
         // and skip the calculation/freshen step at the end.
@@ -210,11 +210,11 @@ pub fn freshen_prop(
             for dep in deps.iter() {
                 // If can create a prop_ptr from dep.source,
                 // it means it is a DependencySource::Prop,
-                // so we need to check if that state variable is fresh.
+                // so we need to check if that prop is fresh.
                 // (There is nothing to do for DependencySource::Essential.)
                 if let Ok(dep_prop_ptr) = PropPointer::try_from(&dep.source) {
                     match dep.value.get_freshness() {
-                        // No need to recurse if the state var of the dependency is already fresh
+                        // No need to recurse if the prop of the dependency is already fresh
                         // so don't do anything to just continue the inner loop
                         Freshness::Fresh => (),
                         Freshness::Stale | Freshness::Resolved => {
@@ -233,7 +233,7 @@ pub fn freshen_prop(
                             freshen_stack.push(dep_prop_ptr);
                         }
                         Freshness::Unresolved => {
-                            panic!("How did a stale state variable depend on an unresolved state variable?")
+                            panic!("How did a stale prop depend on an unresolved prop?")
                         }
                     };
                 };
@@ -242,7 +242,7 @@ pub fn freshen_prop(
 
         // At this point, we have gone through all the dependencies.
         // We have two possibilities.
-        // 1. The state variable prop_ptr is ready to freshen
+        // 1. The prop prop_ptr is ready to freshen
         //    because all its dependencies are fresh.
         //    In this case we calculate its value to freshen it.
         // 2. We found a stale or resolved dependency of prop_ptr
@@ -281,7 +281,7 @@ pub fn resolve_prop(
     dependency_graph: &mut DependencyGraph,
     essential_data: &mut Vec<HashMap<EssentialDataOrigin, EssentialProp>>,
 ) {
-    // Since resolving state variables won't recurse with repeated actions,
+    // Since resolving props won't recurse with repeated actions,
     // will go ahead and allocate the stack locally, for simplicity.
     let mut resolve_stack = Vec::new();
     resolve_stack.push(original_prop_ptr);
@@ -299,7 +299,7 @@ pub fn resolve_prop(
             let current_freshness = prop.get_freshness();
 
             if current_freshness != Freshness::Unresolved {
-                // nothing to do if the state variable is already resolved
+                // nothing to do if the prop is already resolved
                 continue;
             }
 
@@ -323,10 +323,10 @@ pub fn resolve_prop(
                 match &dep.source {
                     DependencySource::Prop {
                         component_idx: inner_comp_idx,
-                        prop_idx: inner_sv_idx,
+                        prop_idx: inner_prop_idx,
                     } => {
                         let vec_dep = &mut dependency_graph.dependent_on_prop[*inner_comp_idx];
-                        vec_dep[*inner_sv_idx].push(PropPointer {
+                        vec_dep[*inner_prop_idx].push(PropPointer {
                             component_idx,
                             prop_idx,
                         });
@@ -349,12 +349,12 @@ pub fn resolve_prop(
             for dep in instruct_dependencies.iter() {
                 if let DependencySource::Prop {
                     component_idx: comp_idx_inner,
-                    prop_idx: sv_idx_inner,
+                    prop_idx: prop_idx_inner,
                 } = &dep.source
                 {
                     let new_prop_ptr = PropPointer {
                         component_idx: *comp_idx_inner,
-                        prop_idx: *sv_idx_inner,
+                        prop_idx: *prop_idx_inner,
                     };
 
                     let new_current_freshness = dep.value.get_freshness();

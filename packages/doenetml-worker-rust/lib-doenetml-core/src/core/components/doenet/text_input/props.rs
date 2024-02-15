@@ -11,19 +11,19 @@ use crate::{
 
 use super::TextInputAttribute;
 
-/// The state variables that underlie the `<textInput>` component.
+/// The props that underlie the `<textInput>` component.
 #[derive(Debug, ComponentState)]
 pub struct TextInputState {
     /// The value of the `<textInput>` component.
     ///
     /// It is updated when a user presses Enter or blurs away from the input box.
-    /// (See the `immediate_value` state variable for the current value of the input box.)
+    /// (See the `immediate_value` prop for the current value of the input box.)
     ///
     /// It is marked `is_public` so that it can be referenced in DoenetML via `.value`.
     ///
     ///
-    /// It is marked as a component profile state variable,
-    /// which means this state variable will be used if a parent of a `<textInput>` component
+    /// It is marked as a component profile prop,
+    /// which means this prop will be used if a parent of a `<textInput>` component
     /// queries for children with the `Text` component profile.
     #[is_public]
     #[component_profile_prop]
@@ -47,8 +47,8 @@ pub struct TextInputState {
     sync_immediate_value: Prop<bool>,
 
     /// The string value computed from any children to the textInput.
-    /// If the textInput has children, then this state variable will not be marked `came_from_default`,
-    /// and the `value` and `immediate_value` state variable will use these children,
+    /// If the textInput has children, then this prop will not be marked `came_from_default`,
+    /// and the `value` and `immediate_value` prop will use these children,
     /// rather than their preliminary value variable when calculating.
     value_from_children: Prop<String>,
 

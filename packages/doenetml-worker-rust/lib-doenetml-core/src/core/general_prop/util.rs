@@ -20,7 +20,7 @@ pub fn string_attr_to_boolean(s: &str) -> bool {
     s.eq_ignore_ascii_case("true") || (s.is_empty())
 }
 
-/// A boolean or string state var view
+/// A boolean or string prop view
 #[derive(Debug)]
 #[enum_dispatch(QueryUpdateRequests)]
 pub enum BooleanOrString {
@@ -30,19 +30,19 @@ pub enum BooleanOrString {
 
 // We implement TryFromState
 // because all RequiredData must implement this trait.
-// (Needed to create the RequiredData from the information sent the state variable)
+// (Needed to create the RequiredData from the information sent the prop)
 impl TryFromState<PropViewEnum> for BooleanOrString {
     type Error = &'static str;
 
     fn try_from_state(value: &PropViewEnum) -> Result<Self, Self::Error> {
         match value {
-            PropViewEnum::Boolean(boolean_sv) => Ok(BooleanOrString::Boolean(
-                boolean_sv.create_new_read_only_view(),
+            PropViewEnum::Boolean(boolean_prop) => Ok(BooleanOrString::Boolean(
+                boolean_prop.create_new_read_only_view(),
             )),
-            PropViewEnum::String(string_sv) => Ok(BooleanOrString::String(
-                string_sv.create_new_read_only_view(),
+            PropViewEnum::String(string_prop) => Ok(BooleanOrString::String(
+                string_prop.create_new_read_only_view(),
             )),
-            _ => Err("BooleanOrString can only be a boolean or string state variable"),
+            _ => Err("BooleanOrString can only be a boolean or string prop"),
         }
     }
 }

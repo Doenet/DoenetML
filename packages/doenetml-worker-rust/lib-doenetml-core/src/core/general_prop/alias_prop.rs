@@ -1,6 +1,6 @@
 use crate::components::prelude::*;
 
-/// A struct of all data required to compute the value of this state variable.
+/// A struct of all data required to compute the value of this prop.
 #[add_dependency_data]
 #[derive(Debug, Default, PropDependencies, PropDataQueries)]
 pub struct RequiredData<T>
@@ -10,13 +10,13 @@ where
     aliased_value: PropView<T>,
 }
 
-/// A state variable that aliases another state variable from the same component.
+/// A prop that aliases another prop from the same component.
 ///
-/// The state variable takes on the value of this other state variable,
+/// The prop takes on the value of this other prop,
 /// and when inverting, requests that the value of this other variable be changed.
 ///
 /// Constructor:
-/// - `new(aliased_prop_idx)`: create a state variable that aliases
+/// - `new(aliased_prop_idx)`: create a prop that aliases
 ///   the variable with the index `aliased_prop_idx`.
 #[derive(Debug, Default)]
 pub struct PropAlias {
@@ -24,7 +24,7 @@ pub struct PropAlias {
 }
 
 impl PropAlias {
-    /// Create a state variable that aliases
+    /// Create a prop that aliases
     /// the variable with the index `aliased_prop_idx`.
     pub fn new(aliased_prop_idx: PropIdx) -> Self {
         PropAlias { aliased_prop_idx }

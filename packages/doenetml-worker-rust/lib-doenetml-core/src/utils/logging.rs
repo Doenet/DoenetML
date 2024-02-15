@@ -25,7 +25,7 @@ macro_rules! log_json {
             #[cfg(feature = "web")]
             web_sys::console::log_2(
                 &$label.into(),
-                &wasm_bindgen::JsValue::from_serde(&$a).unwrap(),
+                &wasm_bindgen::Jpropalue::from_serde(&$a).unwrap(),
             );
         }
     };

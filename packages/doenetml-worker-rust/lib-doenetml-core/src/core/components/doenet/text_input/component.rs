@@ -47,7 +47,7 @@ pub struct TextInput {
     /// The common component data needed to derive the `ComponentNode` trait
     pub common: ComponentCommonData,
 
-    /// The state variables that underlie the `<textInput>` component.
+    /// The props that underlie the `<textInput>` component.
     pub state: TextInputState,
 }
 

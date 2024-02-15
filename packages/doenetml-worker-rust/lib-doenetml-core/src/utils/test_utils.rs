@@ -3,7 +3,7 @@ use crate::{
     dependency::DependencySource,
 };
 
-/// Create a mutable view of a state variable along with a read only view
+/// Create a mutable view of a prop along with a read only view
 pub fn create_prop_views<T: Default + Clone>(
     value: T,
     came_from_default: bool,

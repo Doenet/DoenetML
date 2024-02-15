@@ -35,74 +35,74 @@ pub fn prop_methods_derive(input: TokenStream) -> TokenStream {
                 let variant_ident = &variant.ident;
 
                 prop_mark_stale_arms.push(quote! {
-                    #enum_ident::#variant_ident(sv) => {
-                        sv.mark_stale()
+                    #enum_ident::#variant_ident(prop) => {
+                        prop.mark_stale()
                     },
                 });
 
                 prop_set_as_resolved_arms.push(quote! {
-                    #enum_ident::#variant_ident(sv) => {
-                        sv.set_as_resolved()
+                    #enum_ident::#variant_ident(prop) => {
+                        prop.set_as_resolved()
                     },
                 });
 
                 prop_get_freshness_arms.push(quote! {
-                    #enum_ident::#variant_ident(sv) => {
-                        sv.get_freshness()
+                    #enum_ident::#variant_ident(prop) => {
+                        prop.get_freshness()
                     },
                 });
 
                 prop_get_mark_fresh_arms.push(quote! {
-                    #enum_ident::#variant_ident(sv) => {
-                        sv.mark_fresh()
+                    #enum_ident::#variant_ident(prop) => {
+                        prop.mark_fresh()
                     },
                 });
 
                 prop_came_from_default_arms.push(quote! {
-                    #enum_ident::#variant_ident(sv) => {
-                        sv.came_from_default()
+                    #enum_ident::#variant_ident(prop) => {
+                        prop.came_from_default()
                     },
                 });
 
                 prop_create_read_only_view_arms.push(quote! {
-                    #enum_ident::#variant_ident(sv) => {
-                        PropViewEnum::#variant_ident(sv.create_new_read_only_view())
+                    #enum_ident::#variant_ident(prop) => {
+                        PropViewEnum::#variant_ident(prop.create_new_read_only_view())
                     },
                 });
 
                 prop_get_arms.push(quote! {
-                    #enum_ident::#variant_ident(sv) => {
+                    #enum_ident::#variant_ident(prop) => {
                         // TODO: need .clone()?
-                        PropValue::#variant_ident(sv.get().clone())
+                        PropValue::#variant_ident(prop.get().clone())
                     },
                 });
 
                 prop_request_change_value_to_arms.push(quote! {
-                    #enum_ident::#variant_ident(sv) => {
-                        sv.set_requested_value(requested_val.try_into().unwrap())
+                    #enum_ident::#variant_ident(prop) => {
+                        prop.set_requested_value(requested_val.try_into().unwrap())
                     },
                 });
 
                 prop_check_if_any_dependency_changed_since_last_viewed_arms.push(quote! {
-                    #enum_ident::#variant_ident(sv) => {
-                        sv.check_if_any_dependency_changed_since_last_viewed()
+                    #enum_ident::#variant_ident(prop) => {
+                        prop.check_if_any_dependency_changed_since_last_viewed()
                     },
                 });
 
                 prop_calculate_and_mark_fresh_arms.push(quote! {
-                    #enum_ident::#variant_ident(sv) => {
-                        sv.calculate_and_mark_fresh()
+                    #enum_ident::#variant_ident(prop) => {
+                        prop.calculate_and_mark_fresh()
                     },
                 });
 
                 prop_default_arms.push(quote! {
-                    #enum_ident::#variant_ident(sv) => {
-                        PropValue::#variant_ident(sv.default())
+                    #enum_ident::#variant_ident(prop) => {
+                        PropValue::#variant_ident(prop.default())
                     },
                 });
 
                 get_matching_component_profile_arms.push(quote! {
-                    #enum_ident::#variant_ident(_sv) => {
+                    #enum_ident::#variant_ident(_prop) => {
                         ComponentProfile::#variant_ident
                     },
                 })
@@ -111,18 +111,18 @@ pub fn prop_methods_derive(input: TokenStream) -> TokenStream {
             quote! {
 
                 impl #generics #enum_ident #generics {
-                    /// If the state variable is Fresh, set its freshness to Stale.
+                    /// If the prop is Fresh, set its freshness to Stale.
                     ///
-                    /// Panics: if the state variable is Unresolved or Resolved.
+                    /// Panics: if the prop is Unresolved or Resolved.
                     pub fn mark_stale(&self) {
                         match self {
                             #(#prop_mark_stale_arms)*
                         }
                     }
 
-                    /// If the state variable is Unresolved, set its freshness to Resolved.
+                    /// If the prop is Unresolved, set its freshness to Resolved.
                     ///
-                    /// Panics: if the state variable is Fresh or Stale.
+                    /// Panics: if the prop is Fresh or Stale.
                     pub fn set_as_resolved(&self) {
                         match self {
                             #(#prop_set_as_resolved_arms)*
@@ -132,13 +132,13 @@ pub fn prop_methods_derive(input: TokenStream) -> TokenStream {
                     /// Return the current freshness of the variable
                     ///
                     /// Possible values
-                    /// - Fresh: the state variable value has been calculated and can be accessed with `get()`.
+                    /// - Fresh: the prop value has been calculated and can be accessed with `get()`.
                     ///   Calls to `set_as_resolved()` will panic.
-                    /// - Stale: a dependency value has changed so that the state variable value needs to be recalculated.
+                    /// - Stale: a dependency value has changed so that the prop value needs to be recalculated.
                     ///   Calls to `get()` and `set_as_resolved()` will panic.
-                    /// - Unresolved: the dependencies for the state variable have not yet been calculated.
+                    /// - Unresolved: the dependencies for the prop have not yet been calculated.
                     ///   Calls to `get()`, `mark_fresh()`, or `mark_stale()` will panic.
-                    /// - Resolved: the dependencies for the state variable have been created,
+                    /// - Resolved: the dependencies for the prop have been created,
                     ///   but the value has never been calculated.
                     ///   Calls to `get()`, `mark_fresh()`, or `mark_stale()` will panic.
                     pub fn get_freshness(&self) -> Freshness {
@@ -147,25 +147,25 @@ pub fn prop_methods_derive(input: TokenStream) -> TokenStream {
                         }
                     }
 
-                    /// If the state variable is Stale, mark it as Fresh
+                    /// If the prop is Stale, mark it as Fresh
                     /// so that the value it had before `mark_stale` was called
                     /// will be its fresh value again.
                     ///
-                    /// Panics: if the state variable is Unresolved.
+                    /// Panics: if the prop is Unresolved.
                     pub fn mark_fresh(&self) {
                         match self {
                             #(#prop_get_mark_fresh_arms)*
                         }
                     }
 
-                    /// Returns whether or not the value of this state variable was set using its default value.
+                    /// Returns whether or not the value of this prop was set using its default value.
                     pub fn came_from_default(&self) -> bool {
                         match self {
                             #(#prop_came_from_default_arms)*
                         }
                     }
 
-                    /// Create a new read-only view of the value of this state variable.
+                    /// Create a new read-only view of the value of this prop.
                     ///
                     /// Each view will access the same value (and freshness)
                     /// but each view separately tracks whether or not it has changed
@@ -176,16 +176,16 @@ pub fn prop_methods_derive(input: TokenStream) -> TokenStream {
                         }
                     }
 
-                    /// Get the value of the state variable, assuming it is fresh
+                    /// Get the value of the prop, assuming it is fresh
                     ///
-                    /// Panics if the state variable is not fresh.
+                    /// Panics if the prop is not fresh.
                     pub fn get(&self) -> PropValue {
                         match self {
                             #(#prop_get_arms)*
                         }
                     }
 
-                    /// Records on the state variable the requested value of the state variable.
+                    /// Records on the prop the requested value of the prop.
                     /// This requested value will be used in a future call to
                     /// `invert()`.
                     ///
@@ -196,10 +196,10 @@ pub fn prop_methods_derive(input: TokenStream) -> TokenStream {
                         }
                     }
 
-                    /// Check if any of the dependencies of the state variable has changed
+                    /// Check if any of the dependencies of the prop has changed
                     /// since the last call to `record_all_dependencies_viewed()`.
                     ///
-                    /// This function doesn't check if the values of the state variables
+                    /// This function doesn't check if the values of the props
                     /// have actually changed to a new value. It only checks if a call
                     /// to `set_value()` has occurred.
                     pub fn check_if_any_dependency_changed_since_last_viewed(&self) -> bool {
@@ -208,15 +208,15 @@ pub fn prop_methods_derive(input: TokenStream) -> TokenStream {
                         }
                     }
 
-                    /// Calculate the value of the state variable from the fresh values of the dependencies,
-                    /// marking the state variable as fresh.
+                    /// Calculate the value of the prop from the fresh values of the dependencies,
+                    /// marking the prop as fresh.
                     ///
-                    /// Panics if any of the state variables of the dependencies are not fresh.
+                    /// Panics if any of the props of the dependencies are not fresh.
                     ///
-                    /// Uses the dependencies that were saved to the state variable
+                    /// Uses the dependencies that were saved to the prop
                     /// with a call to `save_dependencies()`.
                     ///
-                    /// The value is stored in the state variable and can be retrieved by calling
+                    /// The value is stored in the prop and can be retrieved by calling
                     /// `get()`.
                     pub fn calculate_and_mark_fresh(&self) {
                         match self {
@@ -225,10 +225,10 @@ pub fn prop_methods_derive(input: TokenStream) -> TokenStream {
                     }
 
                     /// Returns the value of the `default_value` parameter
-                    /// specified when the state variable was defined.
+                    /// specified when the prop was defined.
                     ///
                     /// If no `default_value` parameter was specified,
-                    /// this function will return the default value for the type of state variable.
+                    /// this function will return the default value for the type of prop.
                     pub fn default(&self) -> PropValue {
                         match self {
                             #(#prop_default_arms)*
@@ -273,26 +273,26 @@ pub fn prop_methods_mut_derive(input: TokenStream) -> TokenStream {
                 let variant_ident = &variant.ident;
 
                 prop_record_all_dependencies_viewed_arms.push(quote! {
-                    #enum_ident::#variant_ident(sv) => {
-                        sv.record_all_dependencies_viewed()
+                    #enum_ident::#variant_ident(prop) => {
+                        prop.record_all_dependencies_viewed()
                     },
                 });
 
                 prop_return_data_queries_arms.push(quote! {
-                    #enum_ident::#variant_ident(sv) => {
-                        sv.return_data_queries()
+                    #enum_ident::#variant_ident(prop) => {
+                        prop.return_data_queries()
                     },
                 });
 
                 prop_save_dependencies_arms.push(quote! {
-                    #enum_ident::#variant_ident(sv) => {
-                        sv.save_dependencies(dependencies)
+                    #enum_ident::#variant_ident(prop) => {
+                        prop.save_dependencies(dependencies)
                     },
                 });
 
                 prop_invert_arms.push(quote! {
-                    #enum_ident::#variant_ident(sv) => {
-                        sv.invert(is_direct_change_from_action)
+                    #enum_ident::#variant_ident(prop) => {
+                        prop.invert(is_direct_change_from_action)
                     },
                 });
             }
@@ -300,7 +300,7 @@ pub fn prop_methods_mut_derive(input: TokenStream) -> TokenStream {
             quote! {
 
                 impl #generics #enum_ident #generics {
-                    /// Record the fact that all dependencies for the state variable have been viewed.
+                    /// Record the fact that all dependencies for the prop have been viewed.
                     /// Future calls to `check_if_any_dependency_changed_since_last_viewed()`
                     /// will then determine if a dependency has changed since that moment.
                     pub fn record_all_dependencies_viewed(&mut self) {
@@ -317,13 +317,13 @@ pub fn prop_methods_mut_derive(input: TokenStream) -> TokenStream {
                         }
                     }
 
-                    /// Set the dependencies for the state variable based on the `dependencies` argument.
+                    /// Set the dependencies for the prop based on the `dependencies` argument.
                     ///
                     /// The dependencies passed into this function should be calculated from
                     /// the data queries returned by a previous call to
                     /// `return_data_queries()` as well as the document structure.
                     ///
-                    /// The dependencies are saved to the state variable and will be used
+                    /// The dependencies are saved to the prop and will be used
                     /// in calls to `calculate_and_mark_fresh()`
                     /// and `invert()`.
                     pub fn save_dependencies(&mut self, dependencies: &Vec<DependenciesCreatedForDataQuery>) {
@@ -332,19 +332,19 @@ pub fn prop_methods_mut_derive(input: TokenStream) -> TokenStream {
                         }
                     }
 
-                    /// Assuming that the requested value for this state variable has already been set,
+                    /// Assuming that the requested value for this prop has already been set,
                     /// calculate the desired values of the dependencies
                     /// that will lead to that requested value being calculated from those dependencies.
                     ///
-                    /// These desired dependency values will be stored directly on the dependent state variables.
+                    /// These desired dependency values will be stored directly on the dependent props.
                     ///
                     /// Returns: a result that is either
                     /// - a vector containing just the identities specifying which dependencies have requested new values, or
-                    /// - an Err if the state variable is unable to change to the requested value.
+                    /// - an Err if the prop is unable to change to the requested value.
                     ///
                     /// The `is_direct_change_from_action` argument is true if the requested value
                     /// came directly from an action of the renderer
-                    /// (as opposed to coming from another state variable that depends on this variable).
+                    /// (as opposed to coming from another prop that depends on this variable).
                     pub fn invert(
                         &mut self,
                         is_direct_change_from_action: bool,
@@ -397,45 +397,45 @@ pub fn prop_mutable_view_methods_derive(input: TokenStream) -> TokenStream {
                 });
 
                 prop_mutable_view_mark_stale_arms.push(quote! {
-                    PropViewMutEnum::#variant_ident(sv) => {
-                        sv.mark_stale()
+                    PropViewMutEnum::#variant_ident(prop) => {
+                        prop.mark_stale()
                     },
                 });
 
                 prop_mutable_view_set_as_resolved_arms.push(quote! {
-                    PropViewMutEnum::#variant_ident(sv) => {
-                        sv.set_as_resolved()
+                    PropViewMutEnum::#variant_ident(prop) => {
+                        prop.set_as_resolved()
                     },
                 });
 
                 prop_mutable_view_get_freshness_arms.push(quote! {
-                    PropViewMutEnum::#variant_ident(sv) => {
-                        sv.get_freshness()
+                    PropViewMutEnum::#variant_ident(prop) => {
+                        prop.get_freshness()
                     },
                 });
 
                 prop_mutable_view_came_from_default_arms.push(quote! {
-                    PropViewMutEnum::#variant_ident(sv) => {
-                        sv.came_from_default()
+                    PropViewMutEnum::#variant_ident(prop) => {
+                        prop.came_from_default()
                     },
                 });
 
                 prop_mutable_view_create_read_only_view_arms.push(quote! {
-                    PropViewMutEnum::#variant_ident(sv) => {
-                        PropViewEnum::#variant_ident(sv.create_new_read_only_view())
+                    PropViewMutEnum::#variant_ident(prop) => {
+                        PropViewEnum::#variant_ident(prop.create_new_read_only_view())
                     },
                 });
 
                 prop_mutable_view_get_arms.push(quote! {
-                    PropViewMutEnum::#variant_ident(sv) => {
+                    PropViewMutEnum::#variant_ident(prop) => {
                         // TODO: need .clone()?
-                        PropValue::#variant_ident(sv.get().clone())
+                        PropValue::#variant_ident(prop.get().clone())
                     },
                 });
 
                 prop_mutable_view_set_value_to_requested_value_arms.push(quote! {
-                    PropViewMutEnum::#variant_ident(sv) => {
-                        sv.set_value_to_requested_value()
+                    PropViewMutEnum::#variant_ident(prop) => {
+                        prop.set_value_to_requested_value()
                     },
                 });
             }
@@ -443,30 +443,30 @@ pub fn prop_mutable_view_methods_derive(input: TokenStream) -> TokenStream {
             quote! {
 
                 impl PropViewMutEnum {
-                    /// Creates a new mutable view of a state variable
+                    /// Creates a new mutable view of a prop
                     ///
                     /// Intended for creating essential data, as it creates a PropViewMutEnum
                     /// that is disconnected from any PropEnum.
                     ///
-                    /// The type of state variable created is determined by the type of `sv_val`.
-                    pub fn new_with_value(sv_val: PropValue, came_from_default: bool) -> Self {
-                        match sv_val {
+                    /// The type of prop created is determined by the type of `prop_val`.
+                    pub fn new_with_value(prop_val: PropValue, came_from_default: bool) -> Self {
+                        match prop_val {
                             #(#prop_mutable_view_new_with_value_arms)*
                         }
                     }
 
-                    /// If the state variable is Fresh, set its freshness to Stale.
+                    /// If the prop is Fresh, set its freshness to Stale.
                     ///
-                    /// Panics: if the state variable is Unresolved.
+                    /// Panics: if the prop is Unresolved.
                     pub fn mark_stale(&mut self) {
                         match self {
                             #(#prop_mutable_view_mark_stale_arms)*
                         };
                     }
 
-                    /// If the state variable is Unresolved, set its freshness to Resolved.
+                    /// If the prop is Unresolved, set its freshness to Resolved.
                     ///
-                    /// Panics: if the state variable is Fresh or Stale.
+                    /// Panics: if the prop is Fresh or Stale.
                     pub fn set_as_resolved(&self) {
                         match self {
                             #(#prop_mutable_view_set_as_resolved_arms)*
@@ -476,13 +476,13 @@ pub fn prop_mutable_view_methods_derive(input: TokenStream) -> TokenStream {
                     /// Return the current freshness of the variable
                     ///
                     /// Possible values
-                    /// - Fresh: the state variable value has been calculated and can be accessed with `get()`.
+                    /// - Fresh: the prop value has been calculated and can be accessed with `get()`.
                     ///   Calls to `set_as_resolved()` will panic.
-                    /// - Stale: a dependency value has changed so that the state variable value needs to be recalculated.
+                    /// - Stale: a dependency value has changed so that the prop value needs to be recalculated.
                     ///   Calls to `get()` and `set_as_resolved()` will panic.
-                    /// - Unresolved: the dependencies for the state variable have not yet been calculated.
+                    /// - Unresolved: the dependencies for the prop have not yet been calculated.
                     ///   Calls to `get()`, `mark_fresh()`, or `mark_stale()` will panic.
-                    /// - Resolved: the dependencies for the state variable have been created,
+                    /// - Resolved: the dependencies for the prop have been created,
                     ///   but the value has never been calculated.
                     ///   Calls to `get()`, `mark_fresh()`, or `mark_stale()` will panic.
                     pub fn get_freshness(&self) -> Freshness {
@@ -491,14 +491,14 @@ pub fn prop_mutable_view_methods_derive(input: TokenStream) -> TokenStream {
                         }
                     }
 
-                    /// Returns whether or not the value of this state variable was set using its default value.
+                    /// Returns whether or not the value of this prop was set using its default value.
                     pub fn came_from_default(&self) -> bool {
                         match self {
                             #(#prop_mutable_view_came_from_default_arms)*
                         }
                     }
 
-                    /// Create a new read-only view of the value of this state variable.
+                    /// Create a new read-only view of the value of this prop.
                     ///
                     /// Each view will access the same value (and freshness)
                     /// but each view separately tracks whether or not it has changed
@@ -509,16 +509,16 @@ pub fn prop_mutable_view_methods_derive(input: TokenStream) -> TokenStream {
                         }
                     }
 
-                    /// Get the value of the state variable, assuming it is fresh
+                    /// Get the value of the prop, assuming it is fresh
                     ///
-                    /// Panics if the state variable is not fresh.
+                    /// Panics if the prop is not fresh.
                     pub fn get(&self) -> PropValue {
                         match self {
                             #(#prop_mutable_view_get_arms)*
                         }
                     }
 
-                    /// Set the value of this state variable to the value of the requested value
+                    /// Set the value of this prop to the value of the requested value
                     /// currently set for the variable.
                     ///
                     /// This function should only be called on essential data,
@@ -562,39 +562,39 @@ pub fn prop_read_only_view_methods_derive(input: TokenStream) -> TokenStream {
                 let variant_ident = &variant.ident;
 
                 prop_read_only_view_get_freshness_arms.push(quote! {
-                    PropViewEnum::#variant_ident(sv) => {
-                        sv.get_freshness()
+                    PropViewEnum::#variant_ident(prop) => {
+                        prop.get_freshness()
                     },
                 });
 
                 prop_read_only_view_came_from_default_arms.push(quote! {
-                    PropViewEnum::#variant_ident(sv) => {
-                        sv.came_from_default()
+                    PropViewEnum::#variant_ident(prop) => {
+                        prop.came_from_default()
                     },
                 });
 
                 prop_read_only_view_get_arms.push(quote! {
-                    PropViewEnum::#variant_ident(sv) => {
+                    PropViewEnum::#variant_ident(prop) => {
                         // TODO: need .clone()?
-                        PropValue::#variant_ident(sv.get().clone())
+                        PropValue::#variant_ident(prop.get().clone())
                     },
                 });
 
                 prop_read_only_view_create_new_read_only_view_arms.push(quote! {
-                    PropViewEnum::#variant_ident(sv) => {
-                        PropViewEnum::#variant_ident(sv.create_new_read_only_view())
+                    PropViewEnum::#variant_ident(prop) => {
+                        PropViewEnum::#variant_ident(prop.create_new_read_only_view())
                     },
                 });
 
                 prop_read_only_view_check_if_changed_since_last_viewed_arms.push(quote! {
-                    PropViewEnum::#variant_ident(sv) => {
-                        sv.check_if_changed_since_last_viewed()
+                    PropViewEnum::#variant_ident(prop) => {
+                        prop.check_if_changed_since_last_viewed()
                     },
                 });
 
                 prop_read_only_view_record_viewed_arms.push(quote! {
-                    PropViewEnum::#variant_ident(sv) => {
-                        sv.record_viewed()
+                    PropViewEnum::#variant_ident(prop) => {
+                        prop.record_viewed()
                     },
                 });
             }
@@ -606,10 +606,10 @@ pub fn prop_read_only_view_methods_derive(input: TokenStream) -> TokenStream {
                     /// Return the current freshness of the variable
                     ///
                     /// Possible values
-                    /// - Fresh: the state variable value has been calculated and can be accessed with `get()`.
-                    /// - Stale: a dependency value has changed so that the state variable value needs to be recalculated.
+                    /// - Fresh: the prop value has been calculated and can be accessed with `get()`.
+                    /// - Stale: a dependency value has changed so that the prop value needs to be recalculated.
                     ///   Calls to `get()` will panic.
-                    /// - Unresolved: the dependencies for the state variable have not yet been calculated.
+                    /// - Unresolved: the dependencies for the prop have not yet been calculated.
                     ///   Calls to `get()`, `mark_fresh()`, or `mark_stale()` will panic.
                     pub fn get_freshness(&self) -> Freshness {
                         match self {
@@ -617,23 +617,23 @@ pub fn prop_read_only_view_methods_derive(input: TokenStream) -> TokenStream {
                         }
                     }
 
-                    /// Returns whether or not the value of this state variable was set using its default value.
+                    /// Returns whether or not the value of this prop was set using its default value.
                     pub fn came_from_default(&self) -> bool {
                         match self {
                             #(#prop_read_only_view_came_from_default_arms)*
                         }
                     }
 
-                    /// Get the value of the state variable, assuming it is fresh
+                    /// Get the value of the prop, assuming it is fresh
                     ///
-                    /// Panics if the state variable is not fresh.
+                    /// Panics if the prop is not fresh.
                     pub fn get(&self) -> PropValue {
                         match self {
                             #(#prop_read_only_view_get_arms)*
                         }
                     }
 
-                    /// Create a new read-only view of the value of this state variable.
+                    /// Create a new read-only view of the value of this prop.
                     ///
                     /// Each view will access the same value (and freshness)
                     /// but each view separately tracks whether or not it has changed
@@ -644,9 +644,9 @@ pub fn prop_read_only_view_methods_derive(input: TokenStream) -> TokenStream {
                         }
                     }
 
-                    /// Check if the state variable has changed since `record_viewed()` on this view was last called.
+                    /// Check if the prop has changed since `record_viewed()` on this view was last called.
                     ///
-                    /// This function doesn't check if the values of the state variables
+                    /// This function doesn't check if the values of the props
                     /// have actually changed to a new value. It only checks if a call
                     /// to `set_value()` has occurred.
                     pub fn check_if_changed_since_last_viewed(&self) -> bool {
@@ -655,9 +655,9 @@ pub fn prop_read_only_view_methods_derive(input: TokenStream) -> TokenStream {
                         }
                     }
 
-                    /// Record the fact that this view of the state variable has been viewed.
+                    /// Record the fact that this view of the prop has been viewed.
                     /// Future calls to `check_if_changed_since_last_viewed()`
-                    /// will then determine if the state variable has changed since that moment.
+                    /// will then determine if the prop has changed since that moment.
                     pub fn record_viewed(&mut self) {
                         match self {
                             #(#prop_read_only_view_record_viewed_arms)*
@@ -677,7 +677,7 @@ pub fn prop_read_only_view_methods_derive(input: TokenStream) -> TokenStream {
 /// Implement methods to create PropEnumRef and PropEnumRefMut from Prop<T>
 ///
 /// For simplicity, created this macro so that it needs to be derived
-/// from an enum where each variant is just state variable type,
+/// from an enum where each variant is just prop type,
 /// so we derive it off `PropValue`.
 pub fn into_prop_enum_refs_derive(input: TokenStream) -> TokenStream {
     let ast: syn::DeriveInput = syn::parse(input).unwrap();
@@ -698,13 +698,13 @@ pub fn into_prop_enum_refs_derive(input: TokenStream) -> TokenStream {
                     if let Some(prop_type) = find_type_from_prop(&unnamed[0].ty) {
                         impl_from_prop_to_prop_enum_refs_variants.push(quote! {
                             impl<'a> From<&'a Prop<#prop_type>> for PropEnumRef<'a> {
-                                fn from(sv_ref: &'a Prop<#prop_type>) -> Self {
-                                    PropEnumRef::#variant_ident(sv_ref)
+                                fn from(prop_ref: &'a Prop<#prop_type>) -> Self {
+                                    PropEnumRef::#variant_ident(prop_ref)
                                 }
                             }
                             impl<'a> From<&'a mut Prop<#prop_type>> for PropEnumRefMut<'a> {
-                                fn from(sv_ref: &'a mut Prop<#prop_type>) -> Self {
-                                    PropEnumRefMut::#variant_ident(sv_ref)
+                                fn from(prop_ref: &'a mut Prop<#prop_type>) -> Self {
+                                    PropEnumRefMut::#variant_ident(prop_ref)
                                 }
                             }
                         });
@@ -715,8 +715,8 @@ pub fn into_prop_enum_refs_derive(input: TokenStream) -> TokenStream {
                                 type Error = &'static str;
                                 fn try_from_state(value: &PropViewEnum) -> Result<Self, Self::Error> {
                                     match value {
-                                        PropViewEnum::#variant_ident(ref sv_ref) => {
-                                            Result::Ok(sv_ref.create_new_read_only_view())
+                                        PropViewEnum::#variant_ident(ref prop_ref) => {
+                                            Result::Ok(prop_ref.create_new_read_only_view())
                                         }
                                         _ => Result::Err(
                                             "Incompatible type to be converted to PropView<T>",

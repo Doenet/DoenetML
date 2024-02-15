@@ -15,12 +15,12 @@ use darling::{ast, util, FromDeriveInput, FromVariant};
 struct ComponentAttributeVariant {
     /// The name of the attribute (before it is turned into camelCase)
     ident: Ident,
-    /// The state var that should be used to create the data query for this attribute
+    /// The prop that should be used to create the data query for this attribute
     prop: Option<Ident>,
     /// The default value for the attribute
     default: Option<syn::Expr>,
     /// The explicit type for the attribute. This can be auto-computed if using one of the standard
-    /// state var types.
+    /// prop types.
     explicit_type: Option<Ident>,
 }
 
@@ -69,7 +69,7 @@ pub fn attribute_prop_derive(input: TokenStream) -> TokenStream {
         match (&variant.prop, &variant.default, &variant.explicit_type) {
             (Some(prop), None, _) => {
                 panic!(
-                    "You must provide a `default = ...` for the state var `{}`.",
+                    "You must provide a `default = ...` for the prop `{}`.",
                     prop
                 )
             }
@@ -143,7 +143,7 @@ fn lookup_type(prop: &Ident, explicit_type: &Option<Ident>) -> TokenStream2 {
         .unwrap_or_else(|| match prop_name.as_str() {
             "BooleanProp" => quote! {bool},
             "StringProp" => quote! {String},
-            _ => panic!("Cannot automatically infer `default_type` from a state var of `{}`. Please specify `default_type`", prop),
+            _ => panic!("Cannot automatically infer `default_type` from a prop of `{}`. Please specify `default_type`", prop),
         })
 }
 

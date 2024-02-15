@@ -35,7 +35,7 @@ pub fn has_attribute(attrs: &[Attribute], attr_name: &str) -> bool {
 }
 
 // TODO: no longer need this as we've changed component_profile_prop.
-// However, we could use this pattern to specify an integer to order these state variables.
+// However, we could use this pattern to specify an integer to order these props.
 
 // pub fn return_identities_if_have_attribute(attrs: &[Attribute], attr_name: &str) -> Vec<Ident> {
 //     let mut identities = Vec::new();

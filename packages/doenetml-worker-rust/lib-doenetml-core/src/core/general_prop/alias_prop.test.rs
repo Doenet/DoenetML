@@ -3,7 +3,7 @@ use crate::utils::test_utils::create_prop_dependency;
 use super::*;
 use setup_functions::*;
 
-/// check that a state variable alias
+/// check that a prop alias
 /// gives the correct data query that requests original value
 #[test]
 fn prop_alias_gives_correct_data_queries() {
@@ -30,7 +30,7 @@ fn prop_alias_gives_correct_data_queries() {
     );
 }
 
-/// For a boolean state variable alias,
+/// For a boolean prop alias,
 /// its value should be the same as the original value,
 /// and its came_from_default should be the same as the original value's came_from_default
 #[test]
@@ -42,20 +42,20 @@ fn calculate_boolean_prop_alias() {
     assert_eq!(*prop.get(), false);
     assert_eq!(prop.came_from_default(), true);
 
-    // changing original value to be true, results in state variable being true
+    // changing original value to be true, results in prop being true
     alias_var.set_value(true);
     prop.calculate_and_mark_fresh();
     assert_eq!(*prop.get(), true);
     assert_eq!(prop.came_from_default(), false);
 }
 
-/// Calling invert on a boolean state variable alias
+/// Calling invert on a boolean prop alias
 /// causes the original value to receive that requested value
 #[test]
 fn invert_boolean_prop_alias() {
     let (mut prop, mut prop_view, alias_var) = set_up_boolean_prop_alias(true, false);
 
-    // on the state variable view, record that we request the value be false
+    // on the prop view, record that we request the value be false
     prop_view.queue_update(false);
 
     let invert_result = prop.invert(false).unwrap();
@@ -73,7 +73,7 @@ fn invert_boolean_prop_alias() {
     assert_eq!(*alias_var.get_requested_value(), false);
 }
 
-/// For a string state variable alias,
+/// For a string prop alias,
 /// its value should be the same as its original value,
 /// and its came_from_default should be the same as the original value's came_from_default
 #[test]
@@ -85,21 +85,21 @@ fn calculate_string_prop_alias() {
     assert_eq!(*prop.get(), "hello");
     assert_eq!(prop.came_from_default(), true);
 
-    // changing original value to be false, results in state variable being false
+    // changing original value to be false, results in prop being false
     alias_var.set_value(String::from("bye"));
     prop.calculate_and_mark_fresh();
     assert_eq!(*prop.get(), "bye");
     assert_eq!(prop.came_from_default(), false);
 }
 
-/// Calling invert on a string state variable alias
+/// Calling invert on a string prop alias
 /// causes the original value to receive that requested value
 #[test]
 fn invert_string_prop_alias() {
     let (mut prop, mut prop_view, alias_var) =
         set_up_string_prop_alias(String::from("hello"), false);
 
-    // on the state variable view, record that we request the value be "bye"
+    // on the prop view, record that we request the value be "bye"
     prop_view.queue_update(String::from("bye"));
 
     let invert_result = prop.invert(false).unwrap();
@@ -121,7 +121,7 @@ mod setup_functions {
 
     use super::*;
 
-    /// Utility function to set up a boolean state variable alias and its original dependency
+    /// Utility function to set up a boolean prop alias and its original dependency
     pub fn set_up_boolean_prop_alias(
         initial_value: bool,
         came_from_default: bool,
@@ -143,7 +143,7 @@ mod setup_functions {
         (prop, prop_view, alias_var)
     }
 
-    /// Utility function to set up a string state variable alias and its original dependency
+    /// Utility function to set up a string prop alias and its original dependency
     pub fn set_up_string_prop_alias(
         initial_value: String,
         came_from_default: bool,

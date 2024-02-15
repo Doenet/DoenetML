@@ -3,7 +3,7 @@ use super::*;
 use test_helpers::*;
 
 #[test]
-fn boolean_sv_is_alias_of_value() {
+fn boolean_prop_is_alias_of_value() {
     let dast_root = dast_root_no_position(r#"<boolean>true</boolean>"#);
     let mut core = DoenetMLCore::new(dast_root, "", "", None);
 
@@ -17,7 +17,7 @@ fn boolean_sv_is_alias_of_value() {
 }
 
 #[test]
-fn text_sv_converts_value() {
+fn text_prop_converts_value() {
     let dast_root = dast_root_no_position(r#"<boolean>true</boolean>"#);
     let mut core = DoenetMLCore::new(dast_root, "", "", None);
 

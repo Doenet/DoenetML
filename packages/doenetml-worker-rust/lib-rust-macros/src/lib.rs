@@ -25,12 +25,12 @@ mod util;
 /// Every variant should be annotated with a `#[attribute(...)]` annotation.
 ///
 /// The options available to `attribute(...)` are:
-///  - `prop` - The state var that will be created for this attribute. The state var **must**
+///  - `prop` - The prop that will be created for this attribute. The prop **must**
 ///    have a `new_from_attribute(attr_name, default_value)` method.
 /// - `default` - The default value for the attribute.
-/// - `explicit_type` (optional) - The type of the state var that will be created for the attribute.
+/// - `explicit_type` (optional) - The type of the prop that will be created for the attribute.
 ///    For example, if you expect a `Prop<bool>` to be created, then `explicit_type=bool`.
-///    This can be inferred if the value of `prop` is a commonly-recognized state var type.
+///    This can be inferred if the value of `prop` is a commonly-recognized prop type.
 ///
 /// Example:
 /// ```ignore
@@ -109,36 +109,36 @@ pub fn into_prop_enum_refs_derive_wrapper(input: TokenStream) -> TokenStream {
 /// Derives an implementation of the `ComponentState` trait and auxillary functions.
 ///
 /// The derive macro is designed to be applied to the struct defining the DoenetML component itself
-/// as well as the struct defining the component's state variables.
+/// as well as the struct defining the component's props.
 ///
 /// The macro assumes that the component struct has a field `state` that contains
-/// the component state variables struct.
+/// the component props struct.
 ///
-/// The macro assumes all fields of the component state variables struct are state variables `Prop<T>`.
+/// The macro assumes all fields of the component props struct are props `Prop<T>`.
 ///
-/// The following attributes specify properties of state variables in the component state variables structure.
+/// The following attributes specify properties of props in the component props structure.
 /// - #\[for_renderer\]
 ///
-///   Designate the state variable as one that will be sent to the renderer.
-///   If `for_renderer` is set, the value of the state variable will be added to the `RenderedState`
+///   Designate the prop as one that will be sent to the renderer.
+///   If `for_renderer` is set, the value of the prop will be added to the `RenderedState`
 ///   structure for the component that is sent to the renderer
 ///
 /// - #\[is_public\]
 ///
-///   Designate that the state variable is public, in the sense that it can be
+///   Designate that the prop is public, in the sense that it can be
 ///   accessed by a ref in the document.
 ///
 /// - #\[component_profile_prop\]
 ///
-///   Designate that the state variable can be used to satisfy the [`ComponentProfile`]
-///   that corresponds to the state variable's type.
+///   Designate that the prop can be used to satisfy the [`ComponentProfile`]
+///   that corresponds to the prop's type.
 ///
 ///   If a parent has a `Child` or `AttributeChild` data query, it will request
-///   a particular profile type, and this state variable could be returned.
+///   a particular profile type, and this prop could be returned.
 ///
 ///   Currently, the `component_profile props` does not have a mechanism for specifying
-///   priority in case more than one state variable matches what a parent is requesting.
-///   If there is more than one match, the state variable that appears first in the ordering of
+///   priority in case more than one prop matches what a parent is requesting.
+///   If there is more than one match, the prop that appears first in the ordering of
 ///   the fields of the struct will be selected.
 #[proc_macro_derive(
     ComponentState,
@@ -159,7 +159,7 @@ pub fn component_state_derive_wrapper(input: TokenStream) -> TokenStream {
 ///
 /// The field types prepend `Rendered` to the variant names. These structures
 /// are created by the `ComponentState` macro applied
-/// to the components state variable struct.
+/// to the components prop struct.
 ///
 /// For example, the component type `Text` has a `TextState` struct,
 /// and the `ComponentState` macro creates the `RenderedTextState` struct.

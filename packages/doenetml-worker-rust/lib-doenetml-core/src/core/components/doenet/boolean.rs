@@ -17,11 +17,11 @@ pub struct Boolean {
     /// The common component data needed to derive the `ComponentNode` trait
     pub common: ComponentCommonData,
 
-    /// The state variables that underlie the `<boolean>` component.
+    /// The props that underlie the `<boolean>` component.
     pub state: BooleanState,
 }
 
-/// The state variables that underlie the `<boolean>` component.
+/// The props that underlie the `<boolean>` component.
 #[derive(Debug, ComponentState)]
 pub struct BooleanState {
     /// The value of the `<boolean>` component.
@@ -30,15 +30,15 @@ pub struct BooleanState {
     ///
     /// It is marked `for_renderer` to send this value to the renderer of the `<boolean>` component.
     ///
-    /// It is marked as a component profile state variable,
-    /// which means this state variable will be used if a parent of a `<boolean>` component
+    /// It is marked as a component profile prop,
+    /// which means this prop will be used if a parent of a `<boolean>` component
     /// queries for children with the `Boolean` component profile.
     #[is_public]
     #[for_renderer]
     #[component_profile_prop]
     value: Prop<bool>,
 
-    /// An alias to the `value` state variable.
+    /// An alias to the `value` prop.
     ///
     /// It is marked `is_public` so that it can be referenced in DoenetML via `.boolean`.
     #[is_public]
@@ -48,8 +48,8 @@ pub struct BooleanState {
     ///
     /// It is marked `is_public` so that it can be referenced in DoenetML via `.text`.
     ///
-    /// It is marked as a component profile state variable,
-    /// which means this state variable will be used if a parent of a `<boolean>` component
+    /// It is marked as a component profile prop,
+    /// which means this prop will be used if a parent of a `<boolean>` component
     /// queries for children with the `Text` component profile.
     #[is_public]
     #[component_profile_prop]

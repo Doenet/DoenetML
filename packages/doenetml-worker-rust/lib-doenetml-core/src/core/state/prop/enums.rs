@@ -18,7 +18,7 @@ use crate::{
 use super::{Freshness, InvertError, Prop, PropView, PropViewMut, TryFromState};
 
 ///////////////////////////////////////////////////////////////////////
-// State variable enum views that allow one to refer to state variables
+// prop enum views that allow one to refer to props
 // without specifying type.
 // Particularly useful for having vectors of mixed type
 ///////////////////////////////////////////////////////////////////////
@@ -39,7 +39,7 @@ pub enum PropEnumRefMut<'a> {
     Boolean(&'a mut Prop<bool>),
 }
 
-/// An mutable enum view of the value of the state variable.
+/// An mutable enum view of the value of the prop.
 /// It includes methods that allow one to view and change the variable.
 #[derive(PropViewMutMethods, derive_more::From)]
 pub enum PropViewMutEnum {
@@ -49,7 +49,7 @@ pub enum PropViewMutEnum {
     Boolean(PropViewMut<bool>),
 }
 
-/// An read-only enum view of the value of the state variable.
+/// An read-only enum view of the value of the prop.
 /// It includes methods that allow one to view the variable.
 #[derive(Clone, PropViewMethods, derive_more::From)]
 pub enum PropViewEnum {
@@ -59,7 +59,7 @@ pub enum PropViewEnum {
     Boolean(PropView<bool>),
 }
 
-/// This can contain the value of a state variable of any type,
+/// This can contain the value of a prop of any type,
 /// which is useful for function parameters.
 #[derive(
     Debug,
@@ -82,13 +82,13 @@ pub enum PropValue {
 }
 
 impl<'a> PropEnumRef<'a> {
-    /// If creating a component from a reference to this state variable
-    /// then create a component of the given type with the given state variable
-    /// shadowing the original state variable.
+    /// If creating a component from a reference to this prop
+    /// then create a component of the given type with the given prop
+    /// shadowing the original prop.
     ///
     /// TODO: presumably, there should be a way to override this default.
     ///
-    /// Returns: a tuple of (component type, state variable name)
+    /// Returns: a tuple of (component type, prop name)
     pub fn preferred_component_type(&self) -> &'static str {
         match self {
             PropEnumRef::Number(_) => unimplemented!("Have not yet created number component"),

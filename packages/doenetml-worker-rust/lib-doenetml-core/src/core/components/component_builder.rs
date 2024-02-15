@@ -133,7 +133,7 @@ impl ComponentBuilder {
     ///
     /// This coercion is based on _component profiles_ based on the following algorithm:
     ///  1. If the component tag name matches the referent's tag name, no coercion is done.
-    ///  2. If the tag names differ, a search is done for a state variable on the referent that matches the preferred profile
+    ///  2. If the tag names differ, a search is done for a prop on the referent that matches the preferred profile
     ///     of the component.
     fn determine_extending(
         ref_resolution: &RefResolution,
@@ -158,37 +158,37 @@ impl ComponentBuilder {
         // Handle the case where there is a remaining path
         if let Some(unresolved_path) = &ref_resolution.unresolved_path {
             if unresolved_path.len() != 1 {
-                return Err(anyhow!("Nested state variables not implemented yet"));
+                return Err(anyhow!("Nested props not implemented yet"));
             }
             if !unresolved_path[0].index.is_empty() {
                 return Err(anyhow!("Path indices not yet supported"));
             }
-            let referenced_sv_name = &unresolved_path[0].name;
-            // Look to see if there is a state variable with a matching name on `referent`
-            let referent_sv_idx =
-                referent.get_public_prop_index_from_name_case_insensitive(referenced_sv_name);
-            if referent_sv_idx.is_none() {
+            let referenced_prop_name = &unresolved_path[0].name;
+            // Look to see if there is a prop with a matching name on `referent`
+            let referent_prop_idx =
+                referent.get_public_prop_index_from_name_case_insensitive(referenced_prop_name);
+            if referent_prop_idx.is_none() {
                 return Err(anyhow!(
-                    "State variable {} not found on component {}",
-                    referenced_sv_name,
+                    "prop {} not found on component {}",
+                    referenced_prop_name,
                     referent.get_component_type()
                 ));
             }
-            let referent_sv_idx = referent_sv_idx.unwrap();
-            // We found a public state variable that matched the remaining path.
-            let referent_sv = &referent.get_prop(referent_sv_idx).unwrap();
+            let referent_prop_idx = referent_prop_idx.unwrap();
+            // We found a public prop that matched the remaining path.
+            let referent_prop = &referent.get_prop(referent_prop_idx).unwrap();
 
             // This is the profile that the referent says it can provide.
-            let referent_sv_profile = referent_sv.get_matching_component_profile();
+            let referent_prop_profile = referent_prop.get_matching_component_profile();
 
             let extending = component.accepted_profiles().into_iter().find_map(
-                |(profile, component_sv_idx)| {
-                    if profile == referent_sv_profile {
+                |(profile, component_prop_idx)| {
+                    if profile == referent_prop_profile {
                         Some(Extending::Prop(ExtendProp {
                             component_idx: referent.get_idx(),
                             prop_matching: vec![PropLink {
-                                dest_idx: component_sv_idx,
-                                source_idx: referent_sv_idx,
+                                dest_idx: component_prop_idx,
+                                source_idx: referent_prop_idx,
                             }],
                         }))
                     } else {
@@ -199,19 +199,19 @@ impl ComponentBuilder {
             if extending.is_some() {
                 return Ok(extending);
             } else {
-                return Err(anyhow!("No matching state variable profile found"));
+                return Err(anyhow!("No matching prop profile found"));
             }
         }
         // If we're here, there is no remaining path.
 
         // If we are extending a component of the same name, then this is a "component extension",
-        // which is treated differently than extending by a state variable.
+        // which is treated differently than extending by a prop.
         if component.get_component_type() == referent.get_component_type() {
             return Ok(Some(Extending::Component(referent.get_idx())));
         }
 
-        // In this case, we know the referent, but we do not know what the _source_ state variable
-        // is on `referent` and what the _dest_ state variable is `component`. We do this by searching
+        // In this case, we know the referent, but we do not know what the _source_ prop
+        // is on `referent` and what the _dest_ prop is `component`. We do this by searching
         // through the profiles `referent` provides and the profiles `component` accepts and look for a match.
 
         let extending = component
@@ -219,13 +219,16 @@ impl ComponentBuilder {
             .into_iter()
             .cartesian_product(referent.provided_profiles())
             .find_map(
-                |((component_profile, component_sv_idx), (referent_profile, referent_sv_idx))| {
+                |(
+                    (component_profile, component_prop_idx),
+                    (referent_profile, referent_prop_idx),
+                )| {
                     if component_profile == referent_profile {
                         Some(Extending::Prop(ExtendProp {
                             component_idx: referent.get_idx(),
                             prop_matching: vec![PropLink {
-                                dest_idx: component_sv_idx,
-                                source_idx: referent_sv_idx,
+                                dest_idx: component_prop_idx,
+                                source_idx: referent_prop_idx,
                             }],
                         }))
                     } else {
@@ -291,11 +294,11 @@ impl ComponentBuilder {
                                 return Err(ref_resolution.node_idx);
                             }
                             let referent = referent.unwrap();
-                            let referent_sv_idx = referent
+                            let referent_prop_idx = referent
                                 .get_public_prop_index_from_name_case_insensitive(&path_part.name);
-                            if let Some(referent_sv_idx) = referent_sv_idx {
+                            if let Some(referent_prop_idx) = referent_prop_idx {
                                 let new_component_type = referent
-                                    .get_prop(referent_sv_idx)
+                                    .get_prop(referent_prop_idx)
                                     .unwrap()
                                     .preferred_component_type();
                                 if new_component_type != component.get_component_type() {

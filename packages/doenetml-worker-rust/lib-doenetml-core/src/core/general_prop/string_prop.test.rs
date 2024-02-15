@@ -3,11 +3,11 @@ use crate::utils::test_utils::create_prop_dependency;
 use super::*;
 use setup_functions::*;
 
-/// check that a string state variable created from children
+/// check that a string prop created from children
 /// gives the correct data query that requests string children
 #[test]
 fn string_prop_from_children_gives_correct_data_queries() {
-    // create a string state variable requesting children
+    // create a string prop requesting children
     let mut prop = StringProp::new_from_children(String::from("")).into_prop();
 
     let queries = prop.return_data_queries();
@@ -22,12 +22,12 @@ fn string_prop_from_children_gives_correct_data_queries() {
     );
 }
 
-/// If a string state variable is based on a single string child,
+/// If a string prop is based on a single string child,
 /// its value should be the same as the string child's value,
 /// and its came_from_default should be the same as the string child's came_from_default
 #[test]
 fn string_prop_calculated_from_single_string_child() {
-    // create a string state variable with one string child
+    // create a string prop with one string child
     let (prop, _prop_view, child_var) =
         set_up_string_prop_with_string_child(String::from("hello"), true);
 
@@ -36,22 +36,22 @@ fn string_prop_calculated_from_single_string_child() {
     assert_eq!(*prop.get(), "hello");
     assert_eq!(prop.came_from_default(), true);
 
-    // changing child to be "bye", results in state variable being "bye"
+    // changing child to be "bye", results in prop being "bye"
     child_var.set_value(String::from("bye"));
     prop.calculate_and_mark_fresh();
     assert_eq!(*prop.get(), "bye");
     assert_eq!(prop.came_from_default(), false);
 }
 
-/// Calling invert on a string state variable with a single string child
+/// Calling invert on a string prop with a single string child
 /// causes the child to receive that requested value
 #[test]
 fn invert_string_prop_that_has_a_single_string_child() {
-    // create a string state variable with one string child
+    // create a string prop with one string child
     let (mut prop, mut prop_view, child_var) =
         set_up_string_prop_with_string_child(String::from("hello"), false);
 
-    // on the state variable view, record that we request the value be "bye"
+    // on the prop view, record that we request the value be "bye"
     prop_view.queue_update(String::from("bye"));
 
     let invert_result = prop.invert(false).unwrap();
@@ -69,11 +69,11 @@ fn invert_string_prop_that_has_a_single_string_child() {
     assert_eq!(*child_var.get_requested_value(), "bye");
 }
 
-/// If a string state variable is based on a two string children,
+/// If a string prop is based on a two string children,
 /// its value should is based on concatenating those strings
 #[test]
 fn string_prop_calculated_from_two_string_children() {
-    // create a string state variable with two string children
+    // create a string prop with two string children
     let (prop, _prop_view, child_var_1, child_var_2) = set_up_string_prop_with_two_string_children(
         String::from("Hello"),
         String::from(" World"),
@@ -91,10 +91,10 @@ fn string_prop_calculated_from_two_string_children() {
     assert_eq!(*prop.get(), "Bye Earth");
 }
 
-/// Cannot invert a string state variable with a two string children
+/// Cannot invert a string prop with a two string children
 #[test]
 fn cannot_invert_string_prop_that_has_two_string_children() {
-    // create a string state variable with two string children
+    // create a string prop with two string children
     let (mut prop, mut prop_view, _child_var_1, _child_var_2) =
         set_up_string_prop_with_two_string_children(
             String::from("Hello"),
@@ -102,7 +102,7 @@ fn cannot_invert_string_prop_that_has_two_string_children() {
             false,
         );
 
-    // on the state variable view, record that we request the value be false
+    // on the prop view, record that we request the value be false
     prop_view.queue_update(String::from("Bye Earth"));
 
     let invert_result = prop.invert(false);
@@ -110,11 +110,11 @@ fn cannot_invert_string_prop_that_has_two_string_children() {
     assert!(invert_result.is_err());
 }
 
-/// check that a string state variable created from an attribute
+/// check that a string prop created from an attribute
 /// gives the correct data query that requests string children from that attribute
 #[test]
 fn string_prop_from_attribute_gives_correct_data_queries() {
-    // create a string state variable from attribute
+    // create a string prop from attribute
     let mut prop = StringProp::new_from_attribute("my_attr", String::from("")).into_prop();
 
     let queries = prop.return_data_queries();
@@ -133,7 +133,7 @@ mod setup_functions {
 
     use super::*;
 
-    /// Utility function to set up string state variable that depends on one string child variable
+    /// Utility function to set up string prop that depends on one string child variable
     pub fn set_up_string_prop_with_string_child(
         initial_value: String,
         came_from_default: bool,
@@ -156,7 +156,7 @@ mod setup_functions {
         (prop, prop_view, child_var)
     }
 
-    /// Utility function to set up string state variable that depends on two string child variables
+    /// Utility function to set up string prop that depends on two string child variables
     pub fn set_up_string_prop_with_two_string_children(
         initial_value_1: String,
         initial_value_2: String,

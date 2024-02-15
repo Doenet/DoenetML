@@ -20,7 +20,7 @@ fn text_input_reference_child_is_changed_when_update_value() {
     assert_eq!(get_text_value(text_idx, &mut core), "hello");
 
     // The UpdateImmediateValue action (which should be in response to typing characters)
-    // should only update the immediate_value state variable
+    // should only update the immediate_value prop
     let type_word_action = update_immediate_value_action(String::from("bye"), text_input_idx);
 
     let _ = core.dispatch_action(type_word_action);
@@ -60,7 +60,7 @@ fn text_input_reference_prefill_is_not_changed_when_update_value() {
     assert_eq!(get_text_value(text_idx, &mut core), "hello");
 
     // The UpdateImmediateValue action (which should be in response to typing characters)
-    // should only update the immediate_value state variable
+    // should only update the immediate_value prop
     let type_word_action = update_immediate_value_action(String::from("bye"), text_input_idx);
 
     let _ = core.dispatch_action(type_word_action);
@@ -114,7 +114,7 @@ fn references_to_value_and_immediate_value_respond_to_actions() {
     assert_eq!(get_text_value(value_reference_idx, &mut core), "");
 
     // The UpdateImmediateValue action (which should be in response to typing characters)
-    // should only update the immediate_value state variable
+    // should only update the immediate_value prop
     let type_word_action = update_immediate_value_action(String::from("hello"), text_input_idx);
 
     let _ = core.dispatch_action(type_word_action);
@@ -165,7 +165,7 @@ fn plain_reference_to_text_input_expands_into_text() {
     assert_eq!(get_text_value(reference_idx, &mut core), "");
 
     // The UpdateImmediateValue action (which should be in response to typing characters)
-    // should only update the immediate_value state variable
+    // should only update the immediate_value prop
     let type_word_action = update_immediate_value_action(String::from("hello"), text_input_idx);
 
     let _ = core.dispatch_action(type_word_action);

@@ -2,16 +2,16 @@ use crate::components::prelude::*;
 
 use super::util::{string_attr_to_boolean, string_to_boolean, BooleanOrString};
 
-/// A boolean state variable that calculates its value from dependencies.
+/// A boolean prop that calculates its value from dependencies.
 ///
 /// The current version is in a preliminary form, where the only valid options are
 /// - a single boolean dependency
 /// - string dependencies (that are concatenated to see if they spell out "true")
 ///
-/// If the state variable has a single boolean dependency,
+/// If the prop has a single boolean dependency,
 /// then it propagates the `came_from_default` attribute.
 ///
-/// The boolean state variable can be created via the constructors:
+/// The boolean prop can be created via the constructors:
 /// - `new(data_query)`: base the value on an arbitrary data query
 /// - `new_from_children(default_value)`: base the value on the component's `Boolean` and `Text` children,
 ///   falling back to `default_value` if there are no matching children.
@@ -20,7 +20,7 @@ use super::util::{string_attr_to_boolean, string_to_boolean, BooleanOrString};
 ///   falling back to `default_value` if there are no matching children.
 #[derive(Debug, Default)]
 pub struct BooleanProp {
-    /// The data query that indicates how the dependencies of this state variable will be created.
+    /// The data query that indicates how the dependencies of this prop will be created.
     data_query: DataQuery,
 
     default_value: bool,
@@ -36,7 +36,7 @@ pub struct RequiredData {
     booleans_and_strings: Vec<BooleanOrString>,
 }
 impl BooleanProp {
-    /// Creates a boolean state var that calculates its value from the given data query.
+    /// Creates a boolean prop that calculates its value from the given data query.
     pub fn new(data_query: DataQuery) -> Self {
         BooleanProp {
             data_query,
@@ -44,10 +44,10 @@ impl BooleanProp {
         }
     }
 
-    /// Creates a boolean state var that calculates its value from the component's children
+    /// Creates a boolean prop that calculates its value from the component's children
     /// matching the `String` or `Boolean` profile.
     ///
-    /// If there are no matching children, the state variable will be initialized with `default_value`.
+    /// If there are no matching children, the prop will be initialized with `default_value`.
     pub fn new_from_children(default_value: bool) -> Self {
         BooleanProp {
             data_query: DataQuery::Child {
@@ -60,10 +60,10 @@ impl BooleanProp {
         }
     }
 
-    /// Creates a boolean state var that calculates its value from the attribute given by `attr_name`,
+    /// Creates a boolean prop that calculates its value from the attribute given by `attr_name`,
     /// basing the calculation on the attribute children that match the `String` or `Boolean` profile.
     ///
-    /// If there are no matching attribute children, the state variable will be initialized with `default_value`.
+    /// If there are no matching attribute children, the prop will be initialized with `default_value`.
     pub fn new_from_attribute(attr_name: AttributeName, default_value: bool) -> Self {
         BooleanProp {
             data_query: DataQuery::AttributeChild {

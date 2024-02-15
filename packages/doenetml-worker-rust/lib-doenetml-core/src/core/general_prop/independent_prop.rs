@@ -1,6 +1,6 @@
 use crate::components::prelude::*;
 
-/// A struct of all data required to compute the value of this state variable.
+/// A struct of all data required to compute the value of this prop.
 #[add_dependency_data]
 #[derive(Debug, Default, PropDependencies, PropDataQueries)]
 pub struct RequiredData<T>
@@ -10,20 +10,20 @@ where
     preliminary_value: PropView<T>,
 }
 
-/// A state variable that doesn't depend on outside data.
+/// A prop that doesn't depend on outside data.
 ///
-/// The state variable will be initialized to its `default_value`,
+/// The prop will be initialized to its `default_value`,
 /// and when inverting, will change to match the requested value.
 ///
 /// Constructor:
-/// - `new(default_value)`: create an independent state variable with the given default value.
+/// - `new(default_value)`: create an independent prop with the given default value.
 #[derive(Debug, Default)]
 pub struct IndependentProp<T: Default + Clone> {
     default_value: T,
 }
 
 impl<T: Default + Clone> IndependentProp<T> {
-    /// Create an independent state variable with the given default value.
+    /// Create an independent prop with the given default value.
     pub fn new(default_value: T) -> Self {
         IndependentProp { default_value }
     }

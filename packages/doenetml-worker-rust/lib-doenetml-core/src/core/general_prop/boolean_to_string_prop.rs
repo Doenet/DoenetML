@@ -2,17 +2,17 @@ use crate::components::prelude::*;
 
 use super::util::string_to_boolean;
 
-/// A string state variable converts a boolean into a string
+/// A string prop converts a boolean into a string
 ///
 /// Constructor:
-/// - `new(boolean_prop_idx)`: create a state variable converts
+/// - `new(boolean_prop_idx)`: create a prop converts
 ///   the boolean variable with the index `boolean_prop_idx`.
 #[derive(Debug, Default)]
 pub struct BooleanToStringProp {
     boolean_prop_idx: PropIdx,
 }
 
-/// The data required to compute the value of this state variable.
+/// The data required to compute the value of this prop.
 #[add_dependency_data]
 #[derive(Debug, Default, PropDependencies, PropDataQueries)]
 pub struct RequiredData {
@@ -20,7 +20,7 @@ pub struct RequiredData {
 }
 
 impl BooleanToStringProp {
-    /// Creates a string state var by converting the boolean state variable of `boolean_prop_idx`
+    /// Creates a string prop by converting the boolean prop of `boolean_prop_idx`
     pub fn new(boolean_prop_idx: PropIdx) -> Self {
         BooleanToStringProp { boolean_prop_idx }
     }

@@ -20,7 +20,7 @@ fn text_input_referencing_boolean() {
     assert_eq!(get_boolean_value(boolean_idx, &mut core), true);
 
     // The UpdateImmediateValue action (which should be in response to typing characters)
-    // should only update the immediate_value state variable
+    // should only update the immediate_value prop
     let type_word_action = update_immediate_value_action(String::from("bye"), text_input_idx);
 
     let _ = core.dispatch_action(type_word_action);

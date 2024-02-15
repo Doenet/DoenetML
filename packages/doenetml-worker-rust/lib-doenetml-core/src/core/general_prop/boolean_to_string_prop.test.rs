@@ -1,7 +1,7 @@
 use super::*;
 use setup_functions::*;
 
-/// check that a boolean-to_string state variable
+/// check that a boolean-to_string prop
 /// gives the correct data query that requests original value
 #[test]
 fn boolean_to_string_prop_gives_correct_data_queries() {
@@ -25,7 +25,7 @@ fn calculate_boolean_to_string_prop() {
     assert_eq!(*prop.get(), "false");
     assert_eq!(prop.came_from_default(), false);
 
-    // changing original value to be true, results in state variable being "true"
+    // changing original value to be true, results in prop being "true"
     boolean_var.set_value(true);
     prop.calculate_and_mark_fresh();
     assert_eq!(*prop.get(), "true");
@@ -36,7 +36,7 @@ fn calculate_boolean_to_string_prop() {
 fn invert_boolean_to_string_prop() {
     let (mut prop, mut prop_view, boolean_var) = set_up_boolean_to_string_prop(true, false);
 
-    // on the state variable view, record that we request the value be "true"
+    // on the prop view, record that we request the value be "true"
     prop_view.queue_update("true".into());
     let invert_result = prop.invert(false).unwrap();
 
@@ -52,7 +52,7 @@ fn invert_boolean_to_string_prop() {
     // the original variable has recorded that it has been requested to be true
     assert_eq!(*boolean_var.get_requested_value(), true);
 
-    // on the state variable view, record that we request the value be "false"
+    // on the prop view, record that we request the value be "false"
     prop_view.queue_update("false".into());
     let invert_result = prop.invert(false).unwrap();
 
@@ -73,7 +73,7 @@ fn invert_boolean_to_string_prop() {
 fn inverting_boolean_to_string_is_case_insensitive() {
     let (mut prop, mut prop_view, boolean_var) = set_up_boolean_to_string_prop(true, false);
 
-    // on the state variable view, record that we request the value be "TrUE"
+    // on the prop view, record that we request the value be "TrUE"
     prop_view.queue_update("TrUE".into());
     let invert_result = prop.invert(false).unwrap();
 
@@ -89,7 +89,7 @@ fn inverting_boolean_to_string_is_case_insensitive() {
     // the original variable has recorded that it has been requested to be true
     assert_eq!(*boolean_var.get_requested_value(), true);
 
-    // on the state variable view, record that we request the value be "FalSe"
+    // on the prop view, record that we request the value be "FalSe"
     prop_view.queue_update("FalSe".into());
     let invert_result = prop.invert(false).unwrap();
 
@@ -112,7 +112,7 @@ mod setup_functions {
 
     use super::*;
 
-    /// Utility function to set up a boolean-to-string state variable and its original dependency
+    /// Utility function to set up a boolean-to-string prop and its original dependency
     pub fn set_up_boolean_to_string_prop(
         initial_value: bool,
         came_from_default: bool,

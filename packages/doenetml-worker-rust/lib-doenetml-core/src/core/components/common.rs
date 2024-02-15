@@ -80,7 +80,7 @@ pub struct ComponentCommonData {
     /// A component's children specified as either a literal string or a reference to another component.
     pub children: Vec<UntaggedContent>,
 
-    /// If this component is extending another component or state variable,
+    /// If this component is extending another component or prop,
     /// then the `extending` field gives the source that it is extending.
     pub extending: Option<Extending>,
 
@@ -99,13 +99,13 @@ pub struct ComponentCommonData {
     /// Whether or not this component is to be rendered, i.e.,
     /// whether or not it is in the tree of rendered components.
     ///
-    /// Used to determine if its rendered state variables need to be freshened and set to the renderer.
+    /// Used to determine if its rendered props need to be freshened and set to the renderer.
     pub is_in_render_tree: bool,
 }
 
 /// The Component trait specifies methods that will, in general, be implemented by deriving them.
 /// It depends on the ComponentState trait, which will be derived
-/// for each component type based on its state variable structure.
+/// for each component type based on its prop structure.
 #[enum_dispatch]
 pub trait ComponentNode: ComponentState {
     /// Get the index of the component, which is its index in the `components` vector of `DoenetMLCore`.
@@ -129,10 +129,10 @@ pub trait ComponentNode: ComponentState {
         position: Option<DastPosition>,
     );
 
-    /// Get a reference to the component/state variable that this component extends.
+    /// Get a reference to the component/prop that this component extends.
     fn get_extending(&self) -> Option<&Extending>;
 
-    /// Set a reference to the component/state variable that this component extends.
+    /// Set a reference to the component/prop that this component extends.
     fn set_extending(&mut self, extending: Option<Extending>);
 
     /// Get the component type, which is the name of the component's struct
@@ -158,13 +158,13 @@ pub trait ComponentNode: ComponentState {
     /// Get whether or not this component is to be rendered, i.e.,
     /// whether or not it is in the tree of rendered components.
     ///
-    /// Used to determine if its rendered state variables need to be freshened and set to the renderer.
+    /// Used to determine if its rendered props need to be freshened and set to the renderer.
     fn get_is_in_render_tree(&self) -> bool;
 
     /// Set whether or not this component is to be rendered, i.e.,
     /// whether or not it is in the tree of rendered components.
     ///
-    /// Used to determine if its rendered state variables need to be freshened and set to the renderer.
+    /// Used to determine if its rendered props need to be freshened and set to the renderer.
     fn set_is_in_render_tree(&mut self, is_in_render_tree: bool);
 
     /// The name of the component that a direct reference should transmute to.
@@ -178,23 +178,23 @@ pub trait ComponentNode: ComponentState {
 
     /// When this component has `extend="$ref"`, depending on the different
     /// `ComponentProfiles` `$ref` may present itself as, the component might want
-    /// to set different state variable values. This function returns a vector of
+    /// to set different prop values. This function returns a vector of
     /// possible pairings of the `ComponentProfile` that `$ref` may provide and
-    /// the index of the state variable that should be set if `$ref` provides that
+    /// the index of the prop that should be set if `$ref` provides that
     /// `ComponentProfile`.
     fn accepted_profiles(&self) -> Vec<(ComponentProfile, PropIdx)> {
         vec![]
     }
 
     /// A vector of the possible profiles this component provides along with the
-    /// index of the state variable that you should refer to if you want data satisfying
+    /// index of the prop that you should refer to if you want data satisfying
     /// that profile.
     fn provided_profiles(&self) -> Vec<(ComponentProfile, PropIdx)> {
         self.get_component_profile_prop_indices()
             .into_iter()
-            .map(|sv_idx| {
-                let prop = self.get_prop(sv_idx).unwrap();
-                (prop.get_matching_component_profile(), sv_idx)
+            .map(|prop_idx| {
+                let prop = self.get_prop(prop_idx).unwrap();
+                (prop.get_matching_component_profile(), prop_idx)
             })
             .collect()
     }
@@ -220,12 +220,12 @@ pub trait ComponentAttributes: ComponentNode {
     /// Return a list of the attribute names that the component will accept
     fn get_attribute_names(&self) -> Vec<AttributeName> {
         // TODO: add default attribute names, like hide and disabled?
-        // If so, should provide a mechanism for including default state variables depending on them.
+        // If so, should provide a mechanism for including default props depending on them.
         vec![]
     }
 }
 
-/// Trait that creates state variables from attribute variants.
+/// Trait that creates props from attribute variants.
 /// For example, if implemented on the enum `Attrs`
 ///
 /// ```rust
@@ -234,7 +234,7 @@ pub trait ComponentAttributes: ComponentNode {
 ///   Disabled,
 /// }
 /// ```
-/// one can call `Attrs::Prefill.prop()` to get a state variable that will query the `"prefill"`
+/// one can call `Attrs::Prefill.prop()` to get a prop that will query the `"prefill"`
 /// attribute of a component.
 ///
 /// An implementation might look like
@@ -243,7 +243,7 @@ pub trait ComponentAttributes: ComponentNode {
 ///   fn prop(&self) -> Prop<String> {
 ///     match self {
 ///       Attrs::Prefill => StringProp::new_from_attribute("prefill", "").into_prop(),
-///       _ => panic!("This attribute does not have a string state variable."),
+///       _ => panic!("This attribute does not have a string prop."),
 ///     }
 ///   }
 /// }
@@ -251,13 +251,13 @@ pub trait ComponentAttributes: ComponentNode {
 ///   fn prop(&self) -> Prop<bool> {
 ///     match self {
 ///       Attrs::Disabled => BooleanProp::new_from_attribute("disabled", false).into_prop(),
-///       _ => panic!("This attribute does not have a boolean state variable."),
+///       _ => panic!("This attribute does not have a boolean prop."),
 ///     }
 ///   }
 /// }
 /// ```
 pub trait AttributeProp<T: Default + Clone> {
-    /// Get a state variable whose value is determined by the attribute.
+    /// Get a prop whose value is determined by the attribute.
     fn prop(&self) -> Prop<T>;
 }
 
@@ -275,7 +275,7 @@ pub trait ComponentActions: ComponentNode {
     /// The function called when a renderer calls an action on this component.
     /// Given an `action_name` that is in the vector returned by `get_action_names()`,
     /// the function processes the `args` to return a vector where each component
-    /// specifies a state variable index and its desired value.
+    /// specifies a prop index and its desired value.
     ///
     /// Panics: if `action_name` is not in the vector returned by `get_action_names()`.
     #[allow(unused)]
@@ -293,27 +293,27 @@ pub trait ComponentActions: ComponentNode {
 }
 
 /// A `ComponentProfile` is used in a `DataQuery` specifying children or attribute children.
-/// A component profile will match children that have a state variable of the corresponding type
+/// A component profile will match children that have a prop of the corresponding type
 /// that has been designated with `#[component_profile_prop]`.
-/// When a state variable from a child is matched, the value of that state variable is returned.
+/// When a prop from a child is matched, the value of that prop is returned.
 #[derive(Debug, Clone, PartialEq)]
 pub enum ComponentProfile {
-    /// Matches String state variables as well as literal string children
+    /// Matches String props as well as literal string children
     String,
-    /// Matches literal string children. Use if wish to exclude String state variables.
-    /// Use the `String` variant to also match string state variables.
+    /// Matches literal string children. Use if wish to exclude String props.
+    /// Use the `String` variant to also match string props.
     LiteralString,
-    /// Matches Number state variables
+    /// Matches Number props
     Number,
-    /// Matches Integer state variables
+    /// Matches Integer props
     Integer,
-    /// Matches Boolean state variables
+    /// Matches Boolean props
     Boolean,
 }
 
 // TODO: implement with macro?
 impl ComponentProfile {
-    /// Return the default value that is associated with the type of state variable
+    /// Return the default value that is associated with the type of prop
     /// represented by the component profile.
     pub fn default(&self) -> PropValue {
         match self {
