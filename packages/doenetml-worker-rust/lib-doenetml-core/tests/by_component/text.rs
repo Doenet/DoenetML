@@ -20,19 +20,19 @@ mod test_helpers {
 
     use super::*;
 
-    const VALUE_IDX: StateVarIdx = TextState::get_value_state_variable_index();
-    const TEXT_IDX: StateVarIdx = TextState::get_text_state_variable_index();
+    const VALUE_IDX: PropIdx = TextState::get_value_prop_index();
+    const TEXT_IDX: PropIdx = TextState::get_text_prop_index();
 
     /// Resolves `value` from a `<text>` component and returns its value as a `String`
     pub fn get_value_prop(component_idx: ComponentIdx, core: &mut DoenetMLCore) -> String {
-        core.get_state_var_value(component_idx, VALUE_IDX)
+        core.get_prop_value(component_idx, VALUE_IDX)
             .try_into()
             .unwrap()
     }
 
     /// Resolves `text` from a `<text>` component and returns its value as a `String`
     pub fn get_text_prop(component_idx: ComponentIdx, core: &mut DoenetMLCore) -> String {
-        core.get_state_var_value(component_idx, TEXT_IDX)
+        core.get_prop_value(component_idx, TEXT_IDX)
             .try_into()
             .unwrap()
     }

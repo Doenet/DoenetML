@@ -4,25 +4,25 @@ use super::TextInputState;
 
 /// A struct of all data required to compute the value of this state variable.
 #[add_dependency_data]
-#[derive(Debug, Default, StateVariableDependencies, StateVariableDataQueries)]
+#[derive(Debug, Default, PropDependencies, PropDataQueries)]
 pub struct RequiredData {
-    preliminary_value: StateVarView<String>,
-    immediate_value: StateVarView<String>,
-    sync_immediate_value: StateVarView<bool>,
-    value_from_children: StateVarView<String>,
-    prefill: StateVarView<String>,
+    preliminary_value: PropView<String>,
+    immediate_value: PropView<String>,
+    sync_immediate_value: PropView<bool>,
+    value_from_children: PropView<String>,
+    prefill: PropView<String>,
 }
 
 #[derive(Debug, Default)]
-pub struct ValueStateVar {}
+pub struct ValueProp {}
 
-impl ValueStateVar {
+impl ValueProp {
     pub fn new() -> Self {
-        ValueStateVar {}
+        ValueProp {}
     }
 }
 
-impl StateVarUpdater<String, RequiredData> for ValueStateVar {
+impl PropUpdater<String, RequiredData> for ValueProp {
     fn return_data_queries(&self) -> Vec<Option<DataQuery>> {
         RequiredDataQueries {
             preliminary_value: Some(DataQuery::PreliminaryValue),
@@ -34,7 +34,7 @@ impl StateVarUpdater<String, RequiredData> for ValueStateVar {
         .into()
     }
 
-    fn calculate<'a>(&self, data: &'a RequiredData) -> StateVarCalcResult<'a, String> {
+    fn calculate<'a>(&self, data: &'a RequiredData) -> PropCalcResult<'a, String> {
         let value = if *data.sync_immediate_value.get() {
             data.immediate_value.get().clone()
         } else if data.value_from_children.came_from_default() {
@@ -47,16 +47,16 @@ impl StateVarUpdater<String, RequiredData> for ValueStateVar {
             data.value_from_children.get().clone()
         };
 
-        StateVarCalcResult::Calculated(value)
+        PropCalcResult::Calculated(value)
     }
 
     fn invert(
         &self,
         data: &mut RequiredData,
-        state_var: &StateVarView<String>,
+        prop: &PropView<String>,
         _is_direct_change_from_action: bool,
     ) -> Result<Vec<DependencyValueUpdateRequest>, InvertError> {
-        let requested_value = state_var.get_requested_value();
+        let requested_value = prop.get_requested_value();
 
         if data.value_from_children.came_from_default() {
             data.preliminary_value.queue_update(requested_value.clone());

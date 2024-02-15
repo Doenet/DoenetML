@@ -1,8 +1,8 @@
 pub mod component_state;
 pub mod essential_state;
-pub mod state_var;
-pub mod state_var_calculations;
-pub mod state_var_updates;
+pub mod prop;
+pub mod prop_calculations;
+pub mod prop_updates;
 
 pub use component_state::*;
-pub use state_var::*;
+pub use prop::*;

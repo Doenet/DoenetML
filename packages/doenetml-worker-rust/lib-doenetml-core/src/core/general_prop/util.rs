@@ -1,8 +1,6 @@
 use enum_dispatch::enum_dispatch;
 
-use crate::components::prelude::{
-    QueryUpdateRequests, StateVarView, StateVarViewEnum, TryFromState,
-};
+use crate::components::prelude::{PropView, PropViewEnum, QueryUpdateRequests, TryFromState};
 
 /// Convert string to boolean
 ///
@@ -26,22 +24,22 @@ pub fn string_attr_to_boolean(s: &str) -> bool {
 #[derive(Debug)]
 #[enum_dispatch(QueryUpdateRequests)]
 pub enum BooleanOrString {
-    Boolean(StateVarView<bool>),
-    String(StateVarView<String>),
+    Boolean(PropView<bool>),
+    String(PropView<String>),
 }
 
 // We implement TryFromState
 // because all RequiredData must implement this trait.
 // (Needed to create the RequiredData from the information sent the state variable)
-impl TryFromState<StateVarViewEnum> for BooleanOrString {
+impl TryFromState<PropViewEnum> for BooleanOrString {
     type Error = &'static str;
 
-    fn try_from_state(value: &StateVarViewEnum) -> Result<Self, Self::Error> {
+    fn try_from_state(value: &PropViewEnum) -> Result<Self, Self::Error> {
         match value {
-            StateVarViewEnum::Boolean(boolean_sv) => Ok(BooleanOrString::Boolean(
+            PropViewEnum::Boolean(boolean_sv) => Ok(BooleanOrString::Boolean(
                 boolean_sv.create_new_read_only_view(),
             )),
-            StateVarViewEnum::String(string_sv) => Ok(BooleanOrString::String(
+            PropViewEnum::String(string_sv) => Ok(BooleanOrString::String(
                 string_sv.create_new_read_only_view(),
             )),
             _ => Err("BooleanOrString can only be a boolean or string state variable"),

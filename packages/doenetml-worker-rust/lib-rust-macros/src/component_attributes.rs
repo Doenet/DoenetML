@@ -16,7 +16,7 @@ struct ComponentAttributeVariant {
     /// The name of the attribute (before it is turned into camelCase)
     ident: Ident,
     /// The state var that should be used to create the data query for this attribute
-    state_var: Option<Ident>,
+    prop: Option<Ident>,
     /// The default value for the attribute
     default: Option<syn::Expr>,
     /// The explicit type for the attribute. This can be auto-computed if using one of the standard
@@ -32,8 +32,8 @@ struct ComponentAttribute {
     data: ast::Data<ComponentAttributeVariant, util::Ignored>,
 }
 
-/// Derive the `AttributeStateVar` trait for an enum. This will also derive `VariantNames` from the `strum` crate.
-pub fn attribute_state_var_derive(input: TokenStream) -> TokenStream {
+/// Derive the `AttributeProp` trait for an enum. This will also derive `VariantNames` from the `strum` crate.
+pub fn attribute_prop_derive(input: TokenStream) -> TokenStream {
     // Parse the input tokens into a syntax tree
     let input = parse_macro_input!(input as DeriveInput);
     let parsed = ComponentAttribute::from_derive_input(&input);
@@ -60,21 +60,21 @@ pub fn attribute_state_var_derive(input: TokenStream) -> TokenStream {
         }
     };
 
-    // Implementing `AttributeStateVar` is complicated because it is a generic trait.
-    // We need an implementation for each `StateVar<T>` that will be produced.
+    // Implementing `AttributeProp` is complicated because it is a generic trait.
+    // We need an implementation for each `Prop<T>` that will be produced.
     // We group all variants of each type together in a HashMap.
     let mut variant_impls: HashMap<String, Vec<VariantImpl>> = HashMap::new();
 
     for (name, &variant) in attr_names.iter().zip(enum_variants.iter()) {
-        match (&variant.state_var, &variant.default, &variant.explicit_type) {
-            (Some(state_var), None, _) => {
+        match (&variant.prop, &variant.default, &variant.explicit_type) {
+            (Some(prop), None, _) => {
                 panic!(
                     "You must provide a `default = ...` for the state var `{}`.",
-                    state_var
+                    prop
                 )
             }
-            (Some(state_var), Some(default), explicit_type) => {
-                let explicit_type = lookup_type(state_var, explicit_type);
+            (Some(prop), Some(default), explicit_type) => {
+                let explicit_type = lookup_type(prop, explicit_type);
                 // This will be something like `bool` or `String`
                 let explicit_type_name = explicit_type.to_string();
 
@@ -83,14 +83,14 @@ pub fn attribute_state_var_derive(input: TokenStream) -> TokenStream {
                     variant_name: variant.ident.to_string(),
                     attr_name: name.to_string(),
                     default: default.clone(),
-                    state_var: state_var.clone(),
+                    prop: prop.clone(),
                 })
             }
             _ => {}
         }
     }
 
-    // Implement `AttributeStateVar<T>` for each type `T` that we have.
+    // Implement `AttributeProp<T>` for each type `T` that we have.
     for (explicit_type, impls) in &variant_impls {
         let explicit_type = format_ident!("{}", explicit_type);
 
@@ -100,12 +100,12 @@ pub fn attribute_state_var_derive(input: TokenStream) -> TokenStream {
             .collect::<TokenStream2>();
 
         let panic_message = format!(
-            "Can only generate `StateVar<{}> for this variant.",
+            "Can only generate `Prop<{}> for this variant.",
             explicit_type
         );
 
         let doc_string = format!(
-            "Generate a `StateVar<{}>` for the following variants: {}.\nCalling this function on any other variant will error.",
+            "Generate a `Prop<{}>` for the following variants: {}.\nCalling this function on any other variant will error.",
             explicit_type,
             impls
                 .iter()
@@ -115,9 +115,9 @@ pub fn attribute_state_var_derive(input: TokenStream) -> TokenStream {
         );
 
         ret.extend(quote! {
-            impl AttributeStateVar<#explicit_type> for #enum_name {
+            impl AttributeProp<#explicit_type> for #enum_name {
                 #[doc = #doc_string]
-                fn state_var(&self) -> StateVar<#explicit_type> {
+                fn prop(&self) -> Prop<#explicit_type> {
                     match self {
                         #match_arms
                         // The only way to end up here is via a component-developer error
@@ -131,39 +131,39 @@ pub fn attribute_state_var_derive(input: TokenStream) -> TokenStream {
     ret.into()
 }
 
-/// Looks up the type based on the `state_var` and `explicit_type` attributes. If `explicit_type` is
-/// Some, it is always used. Otherwise an attempted lookup is made based on the `state_var` attribute.
-fn lookup_type(state_var: &Ident, explicit_type: &Option<Ident>) -> TokenStream2 {
-    let state_var_name = state_var.to_string();
+/// Looks up the type based on the `prop` and `explicit_type` attributes. If `explicit_type` is
+/// Some, it is always used. Otherwise an attempted lookup is made based on the `prop` attribute.
+fn lookup_type(prop: &Ident, explicit_type: &Option<Ident>) -> TokenStream2 {
+    let prop_name = prop.to_string();
     explicit_type
         .as_ref()
         .map(|v| {
             quote! {#v}
         })
-        .unwrap_or_else(|| match state_var_name.as_str() {
-            "BooleanStateVar" => quote! {bool},
-            "StringStateVar" => quote! {String},
-            _ => panic!("Cannot automatically infer `default_type` from a state var of `{}`. Please specify `default_type`", state_var),
+        .unwrap_or_else(|| match prop_name.as_str() {
+            "BooleanProp" => quote! {bool},
+            "StringProp" => quote! {String},
+            _ => panic!("Cannot automatically infer `default_type` from a state var of `{}`. Please specify `default_type`", prop),
         })
 }
 
 /// Struct for saving information about variants of the enum. This contains everything we need to
 /// generate code like
 /// ```ignore
-/// TextInputAttribute::Hide => BooleanStateVar::new_from_attribute("hide", false).into_state_var(),
+/// TextInputAttribute::Hide => BooleanProp::new_from_attribute("hide", false).into_prop(),
 /// ```
 #[derive(Debug)]
 struct VariantImpl {
     variant_name: String,
     attr_name: String,
     default: syn::Expr,
-    state_var: Ident,
+    prop: Ident,
 }
 
 impl VariantImpl {
     /// Create a match arm for this variant that looks like
     /// ```ignore
-    /// TextInputAttribute::Hide => BooleanStateVar::new_from_attribute("hide", false).into_state_var(),
+    /// TextInputAttribute::Hide => BooleanProp::new_from_attribute("hide", false).into_prop(),
     /// ```
     fn match_arm(&self, enum_name: &Ident) -> proc_macro2::TokenStream {
         let variant_name = {
@@ -171,12 +171,12 @@ impl VariantImpl {
             let end = format_ident!("{}", &self.variant_name);
             quote! { #start::#end }
         };
-        let state_var = &self.state_var;
+        let prop = &self.prop;
         let default = &self.default;
         let attr_name = &self.attr_name;
 
         quote! {
-            #variant_name => #state_var::new_from_attribute(#attr_name, #default).into_state_var(),
+            #variant_name => #prop::new_from_attribute(#attr_name, #default).into_prop(),
         }
     }
 }

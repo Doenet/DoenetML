@@ -3,11 +3,11 @@ use std::ops::Deref;
 use crate::{
     attribute::AttributeName,
     components::{
-        prelude::{StateVarIdx, TryFromState, TryToState},
+        prelude::{PropIdx, TryFromState, TryToState},
         ComponentProfile,
     },
-    state::{essential_state::EssentialDataOrigin, StateVarPointer},
-    state::{StateVarName, StateVarViewEnum},
+    state::{essential_state::EssentialDataOrigin, PropPointer},
+    state::{PropName, PropViewEnum},
     ComponentIdx,
 };
 
@@ -39,15 +39,15 @@ pub enum DataQuery {
         always_return_value: bool,
     },
     /// Query for a particular state variable of a component
-    StateVar {
+    Prop {
         /// If None, state variable is from the component making the query.
         component_idx: Option<ComponentIdx>,
 
         /// The state variable from component_idx or component making the query.
-        state_var_idx: StateVarIdx,
+        prop_idx: PropIdx,
     },
     /// Query for a state variable from a parent
-    Parent { state_var_name: StateVarName },
+    Parent { prop_name: PropName },
     /// Query for all children of an attribute that match the prescribed `ComponentProfile`
     AttributeChild {
         /// The name of the attribute whose children will be matched.
@@ -78,10 +78,10 @@ pub enum DataQuery {
 // TODO: determine what the structure of DependencySource should be
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum DependencySource {
-    StateVar {
+    Prop {
         // component_type: ComponentType,
         component_idx: ComponentIdx,
-        state_var_idx: StateVarIdx,
+        prop_idx: PropIdx,
     },
     Essential {
         component_idx: ComponentIdx,
@@ -90,17 +90,17 @@ pub enum DependencySource {
     },
 }
 
-impl TryFrom<&DependencySource> for StateVarPointer {
+impl TryFrom<&DependencySource> for PropPointer {
     type Error = &'static str;
 
     fn try_from(ds: &DependencySource) -> Result<Self, Self::Error> {
         match ds {
-            DependencySource::StateVar {
+            DependencySource::Prop {
                 component_idx,
-                state_var_idx,
-            } => Ok(StateVarPointer {
+                prop_idx,
+            } => Ok(PropPointer {
                 component_idx: *component_idx,
-                state_var_idx: *state_var_idx,
+                prop_idx: *prop_idx,
             }),
             DependencySource::Essential { .. } => {
                 Err("Cannot convert essential dependency source to a state variable pointer.")
@@ -113,7 +113,7 @@ impl TryFrom<&DependencySource> for StateVarPointer {
 #[derive(Debug, Clone)]
 pub struct Dependency {
     pub source: DependencySource,
-    pub value: StateVarViewEnum,
+    pub value: PropViewEnum,
 }
 
 /// The vector of dependencies that were created for a `DataQuery`
@@ -141,7 +141,7 @@ pub struct DependencyValueUpdateRequest {
 
 impl<T> TryFromState<DependenciesCreatedForDataQuery> for T
 where
-    T: TryFromState<StateVarViewEnum>,
+    T: TryFromState<PropViewEnum>,
 {
     type Error = T::Error;
 
@@ -156,7 +156,7 @@ where
 
 impl<T> TryFromState<DependenciesCreatedForDataQuery> for Option<T>
 where
-    T: TryFromState<StateVarViewEnum>,
+    T: TryFromState<PropViewEnum>,
 {
     type Error = T::Error;
 
@@ -174,7 +174,7 @@ where
 
 impl<T> TryFromState<DependenciesCreatedForDataQuery> for Vec<T>
 where
-    T: TryFromState<StateVarViewEnum>,
+    T: TryFromState<PropViewEnum>,
 {
     type Error = T::Error;
 

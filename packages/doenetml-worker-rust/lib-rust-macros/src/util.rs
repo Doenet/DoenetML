@@ -1,7 +1,7 @@
 use proc_macro2::Ident;
 use syn::{self, Attribute, GenericArgument, Meta, PathArguments, Type, TypePath};
 
-pub fn find_type_from_state_var(ty: &Type) -> Option<&Ident> {
+pub fn find_type_from_prop(ty: &Type) -> Option<&Ident> {
     if let Type::Path(type_path) = ty {
         let seg: &syn::PathSegment = &type_path.path.segments[0];
 
@@ -10,7 +10,7 @@ pub fn find_type_from_state_var(ty: &Type) -> Option<&Ident> {
     None
 }
 
-pub fn find_type_from_state_var_with_generics(ty: &Type) -> Option<&Ident> {
+pub fn find_type_from_prop_with_generics(ty: &Type) -> Option<&Ident> {
     if let Type::Path(type_path) = ty {
         let seg = &type_path.path.segments[0];
 
@@ -34,7 +34,7 @@ pub fn has_attribute(attrs: &[Attribute], attr_name: &str) -> bool {
     false
 }
 
-// TODO: no longer need this as we've changed component_profile_state_variable.
+// TODO: no longer need this as we've changed component_profile_prop.
 // However, we could use this pattern to specify an integer to order these state variables.
 
 // pub fn return_identities_if_have_attribute(attrs: &[Attribute], attr_name: &str) -> Vec<Ident> {

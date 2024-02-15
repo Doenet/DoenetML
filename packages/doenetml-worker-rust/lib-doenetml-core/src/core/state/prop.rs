@@ -14,10 +14,10 @@ use crate::components::prelude::{
     DataQuery, DependenciesCreatedForDataQuery, DependencyValueUpdateRequest,
 };
 
-pub use super::StateVarIdx;
+pub use super::PropIdx;
 
 /// The name (snake_case) of a state variable    
-pub type StateVarName = &'static str;
+pub type PropName = &'static str;
 
 /// The possible values of the freshness of a state variable.
 /// - `Fresh`: the state variable value has been calculated from given base variable values
@@ -33,24 +33,24 @@ pub enum Freshness {
     Resolved,
 }
 
-/// `StateVar<T>` is the base data structure for the value of a state variable.
-pub struct StateVar<T: Default + Clone> {
+/// `Prop<T>` is the base data structure for the value of a prop.
+pub struct Prop<T: Default + Clone> {
     /// The current value of the state variable
     /// in a structure that allows the value to be mutated
     /// and also holds meta data about the variable
-    value: StateVarMutableView<T>,
+    value: PropViewMut<T>,
 
     /// A reference to the same value of the state variable
     /// in a structure that does not allow the value to be mutated.
     /// It is just a cached copy of the result of calling
     /// `.create_new_read_only_view()` on `.value`, saved here for efficiency.
     /// Sent to functions to give them read only access to the variable.
-    immutable_view_of_value: StateVarView<T>,
+    immutable_view_of_value: PropView<T>,
 
     /// Trait object that exposes the interface used "update" a state var.
     /// That is, it specifies how the state variable is calculated from its dependencies
     /// or how to modify its dependencies to give it a new requested value.
-    updater: Box<dyn StateVarUpdaterWithCache<T>>,
+    updater: Box<dyn PropUpdaterWithCache<T>>,
 
     /// Value if don't have dependencies that determine the value
     default_value: T,
@@ -61,15 +61,15 @@ pub struct StateVar<T: Default + Clone> {
     /// It isn't actually used to calculate the state variable value,
     /// because, for efficiency, we will store values for calculations
     /// in a typed form (without enums) directly on the state variable structure.
-    all_data: Vec<StateVarViewEnum>,
+    all_data: Vec<PropViewEnum>,
 }
 
-impl<T: Default + Clone + std::fmt::Display> std::fmt::Display for StateVar<T> {
+impl<T: Default + Clone + std::fmt::Display> std::fmt::Display for Prop<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.value.fmt(f)
     }
 }
-impl<T: Default + Clone + std::fmt::Display> std::fmt::Debug for StateVar<T> {
+impl<T: Default + Clone + std::fmt::Display> std::fmt::Debug for Prop<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.value)
     }
@@ -77,11 +77,11 @@ impl<T: Default + Clone + std::fmt::Display> std::fmt::Debug for StateVar<T> {
 
 /// The value of a state variable along with its meta data.
 ///
-/// Since StateVarInner (via StateVarMutableView and StateVarView)
+/// Since PropInner (via PropViewMut and PropView)
 /// is also used for essential data, we keep extra fields,
-/// off this structure and put them only in StateVar.
+/// off this structure and put them only in Prop.
 #[derive(Debug)]
-struct StateVarInner<T: Default + Clone> {
+struct PropInner<T: Default + Clone> {
     /// The value of the state variable.
     /// It can be viewed by all views but changed only by mutable views.
     value: T,
@@ -108,7 +108,7 @@ struct StateVarInner<T: Default + Clone> {
     change_counter: u32,
 }
 
-impl<T: Default + Clone + std::fmt::Display> std::fmt::Display for StateVarInner<T> {
+impl<T: Default + Clone + std::fmt::Display> std::fmt::Display for PropInner<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self.freshness {
             Freshness::Fresh => write!(f, "{}", self.value),
@@ -119,7 +119,7 @@ impl<T: Default + Clone + std::fmt::Display> std::fmt::Display for StateVarInner
     }
 }
 
-impl<T: Default + Clone> StateVarInner<T> {
+impl<T: Default + Clone> PropInner<T> {
     /// Retrieves a reference to the value of the state variable if the variable is fresh.
     ///
     /// Panics: if the state variable is not fresh.
@@ -220,11 +220,11 @@ impl<T: Default + Clone> StateVarInner<T> {
     }
 }
 
-impl<T: Default + Clone> StateVar<T> {
+impl<T: Default + Clone> Prop<T> {
     /// Create a new state variable with the supplied interface
-    pub fn new(updater: Box<dyn StateVarUpdaterWithCache<T>>, default_value: T) -> Self {
-        let value = StateVarMutableView::new();
-        StateVar {
+    pub fn new(updater: Box<dyn PropUpdaterWithCache<T>>, default_value: T) -> Self {
+        let value = PropViewMut::new();
+        Prop {
             immutable_view_of_value: value.create_new_read_only_view(),
             value,
             updater,
@@ -234,7 +234,7 @@ impl<T: Default + Clone> StateVar<T> {
     }
 
     /// Create a new read-only view to this state variable
-    pub fn create_new_read_only_view(&self) -> StateVarView<T> {
+    pub fn create_new_read_only_view(&self) -> PropView<T> {
         self.value.create_new_read_only_view()
     }
 
@@ -337,14 +337,13 @@ impl<T: Default + Clone> StateVar<T> {
     /// and then call mark_fresh
     pub fn calculate_and_mark_fresh(&self) {
         match self.updater.calculate() {
-            StateVarCalcResult::Calculated(val) => self.value.set_value(val),
-            StateVarCalcResult::FromDefault(val) => self.value.set_value_from_default(val),
-            StateVarCalcResult::From(state_var_view) => {
-                if state_var_view.came_from_default() {
-                    self.value
-                        .set_value_from_default(state_var_view.get().clone())
+            PropCalcResult::Calculated(val) => self.value.set_value(val),
+            PropCalcResult::FromDefault(val) => self.value.set_value_from_default(val),
+            PropCalcResult::From(prop_view) => {
+                if prop_view.came_from_default() {
+                    self.value.set_value_from_default(prop_view.get().clone())
                 } else {
-                    self.value.set_value(state_var_view.get().clone())
+                    self.value.set_value(prop_view.get().clone())
                 }
             }
         };
@@ -370,7 +369,7 @@ impl<T: Default + Clone> StateVar<T> {
     pub fn record_all_dependencies_viewed(&mut self) {
         self.all_data
             .iter_mut()
-            .for_each(|state_var| state_var.record_viewed())
+            .for_each(|prop| prop.record_viewed())
     }
 
     /// Check if a dependency has changed since we last called `record_all_dependencies_viewed`.
@@ -383,7 +382,7 @@ impl<T: Default + Clone> StateVar<T> {
         } else {
             self.all_data
                 .iter()
-                .any(|state_var| state_var.check_if_changed_since_last_viewed())
+                .any(|prop| prop.check_if_changed_since_last_viewed())
         }
     }
 }

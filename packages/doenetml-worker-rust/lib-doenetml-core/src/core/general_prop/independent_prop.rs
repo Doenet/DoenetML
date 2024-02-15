@@ -2,12 +2,12 @@ use crate::components::prelude::*;
 
 /// A struct of all data required to compute the value of this state variable.
 #[add_dependency_data]
-#[derive(Debug, Default, StateVariableDependencies, StateVariableDataQueries)]
+#[derive(Debug, Default, PropDependencies, PropDataQueries)]
 pub struct RequiredData<T>
 where
     T: Default + Clone,
 {
-    preliminary_value: StateVarView<T>,
+    preliminary_value: PropView<T>,
 }
 
 /// A state variable that doesn't depend on outside data.
@@ -18,22 +18,22 @@ where
 /// Constructor:
 /// - `new(default_value)`: create an independent state variable with the given default value.
 #[derive(Debug, Default)]
-pub struct IndependentStateVar<T: Default + Clone> {
+pub struct IndependentProp<T: Default + Clone> {
     default_value: T,
 }
 
-impl<T: Default + Clone> IndependentStateVar<T> {
+impl<T: Default + Clone> IndependentProp<T> {
     /// Create an independent state variable with the given default value.
     pub fn new(default_value: T) -> Self {
-        IndependentStateVar { default_value }
+        IndependentProp { default_value }
     }
 }
 
-impl<T> StateVarUpdater<T, RequiredData<T>> for IndependentStateVar<T>
+impl<T> PropUpdater<T, RequiredData<T>> for IndependentProp<T>
 where
     T: Default + Clone + std::fmt::Debug,
-    StateVarView<T>: TryFromState<StateVarViewEnum>,
-    <StateVarView<T> as TryFromState<StateVarViewEnum>>::Error: std::fmt::Debug,
+    PropView<T>: TryFromState<PropViewEnum>,
+    <PropView<T> as TryFromState<PropViewEnum>>::Error: std::fmt::Debug,
 {
     fn default_value(&self) -> T {
         self.default_value.clone()
@@ -46,24 +46,24 @@ where
         .into()
     }
 
-    fn calculate<'a>(&self, data: &'a RequiredData<T>) -> StateVarCalcResult<'a, T> {
+    fn calculate<'a>(&self, data: &'a RequiredData<T>) -> PropCalcResult<'a, T> {
         // take on the value from `preliminary_value`, propagating `came_from_default`.
-        StateVarCalcResult::From(&data.preliminary_value)
+        PropCalcResult::From(&data.preliminary_value)
     }
 
     fn invert(
         &self,
         data: &mut RequiredData<T>,
-        state_var: &StateVarView<T>,
+        prop: &PropView<T>,
         _is_direct_change_from_action: bool,
     ) -> Result<Vec<DependencyValueUpdateRequest>, InvertError> {
         data.preliminary_value
-            .queue_update(state_var.get_requested_value().clone());
+            .queue_update(prop.get_requested_value().clone());
 
         Ok(data.queued_updates())
     }
 }
 
 #[cfg(test)]
-#[path = "independent_state_var.test.rs"]
+#[path = "independent_prop.test.rs"]
 mod tests;

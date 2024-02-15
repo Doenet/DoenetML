@@ -13,7 +13,7 @@ use crate::{
         ref_resolve::RefResolution,
     },
     utils::KeyValueIgnoreCase,
-    ExtendStateVar, Extending, StateVarShadowingPair,
+    ExtendProp, Extending, PropLink,
 };
 
 use super::{ComponentEnum, _error::_Error, _external::_External};
@@ -165,8 +165,8 @@ impl ComponentBuilder {
             }
             let referenced_sv_name = &unresolved_path[0].name;
             // Look to see if there is a state variable with a matching name on `referent`
-            let referent_sv_idx = referent
-                .get_public_state_variable_index_from_name_case_insensitive(referenced_sv_name);
+            let referent_sv_idx =
+                referent.get_public_prop_index_from_name_case_insensitive(referenced_sv_name);
             if referent_sv_idx.is_none() {
                 return Err(anyhow!(
                     "State variable {} not found on component {}",
@@ -176,7 +176,7 @@ impl ComponentBuilder {
             }
             let referent_sv_idx = referent_sv_idx.unwrap();
             // We found a public state variable that matched the remaining path.
-            let referent_sv = &referent.get_state_variable(referent_sv_idx).unwrap();
+            let referent_sv = &referent.get_prop(referent_sv_idx).unwrap();
 
             // This is the profile that the referent says it can provide.
             let referent_sv_profile = referent_sv.get_matching_component_profile();
@@ -184,9 +184,9 @@ impl ComponentBuilder {
             let extending = component.accepted_profiles().into_iter().find_map(
                 |(profile, component_sv_idx)| {
                     if profile == referent_sv_profile {
-                        Some(Extending::StateVar(ExtendStateVar {
+                        Some(Extending::Prop(ExtendProp {
                             component_idx: referent.get_idx(),
-                            state_variable_matching: vec![StateVarShadowingPair {
+                            prop_matching: vec![PropLink {
                                 dest_idx: component_sv_idx,
                                 source_idx: referent_sv_idx,
                             }],
@@ -221,9 +221,9 @@ impl ComponentBuilder {
             .find_map(
                 |((component_profile, component_sv_idx), (referent_profile, referent_sv_idx))| {
                     if component_profile == referent_profile {
-                        Some(Extending::StateVar(ExtendStateVar {
+                        Some(Extending::Prop(ExtendProp {
                             component_idx: referent.get_idx(),
-                            state_variable_matching: vec![StateVarShadowingPair {
+                            prop_matching: vec![PropLink {
                                 dest_idx: component_sv_idx,
                                 source_idx: referent_sv_idx,
                             }],
@@ -292,12 +292,10 @@ impl ComponentBuilder {
                             }
                             let referent = referent.unwrap();
                             let referent_sv_idx = referent
-                                .get_public_state_variable_index_from_name_case_insensitive(
-                                    &path_part.name,
-                                );
+                                .get_public_prop_index_from_name_case_insensitive(&path_part.name);
                             if let Some(referent_sv_idx) = referent_sv_idx {
                                 let new_component_type = referent
-                                    .get_state_variable(referent_sv_idx)
+                                    .get_prop(referent_sv_idx)
                                     .unwrap()
                                     .preferred_component_type();
                                 if new_component_type != component.get_component_type() {

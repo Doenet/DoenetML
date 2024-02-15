@@ -11,30 +11,30 @@ use crate::{
 
 use super::{Dependency, DependencySource};
 
-/// Create a Dependency on a state variable if we can find a StateVariableShadowingMatch
-/// from `extending` where `state_var_idx` is the shadowing state variable
+/// Create a Dependency on a state variable if we can find a PropShadowingMatch
+/// from `extending` where `prop_idx` is the shadowing state variable
 /// and the shadowed stat variable matches a profile from `match_profiles`.
 pub fn create_dependency_from_extend_source_if_matches_profile(
     extending: Option<&Extending>,
-    state_var_idx: usize,
+    prop_idx: usize,
     match_profiles: &[ComponentProfile],
     components: &[Rc<RefCell<ComponentEnum>>],
 ) -> Option<Dependency> {
-    // If extending from a `state_var`,
-    // then check to see if it has a shadowing match where `state_var_idx` is the shadowing state var.
+    // If extending from a `prop`,
+    // then check to see if it has a shadowing match where `prop_idx` is the shadowing state var.
     // If so then check if the state variable matches a `ComponentProfile`,
     // creating a `Dependency` if found.
 
     extending.and_then(|extend_source| match extend_source {
-        Extending::StateVar(description) => description
-            .state_variable_matching
+        Extending::Prop(description) => description
+            .prop_matching
             .iter()
-            .find(|state_var_match| {
-                // We look for a state variable match where shadowing_idx is state_var_idx.
-                state_var_match.dest_idx == state_var_idx
+            .find(|prop_match| {
+                // We look for a state variable match where shadowing_idx is prop_idx.
+                prop_match.dest_idx == prop_idx
             })
             .and_then(|var_match| {
-                // We found a match to state_var_idx.
+                // We found a match to prop_idx.
                 // Next, check if this match is of the correct type
                 // by determining the `ComponentProfile` of the state variable
                 // and checking if it matches `match_profiles`.
@@ -45,18 +45,16 @@ pub fn create_dependency_from_extend_source_if_matches_profile(
                 // We assume if an `Extending` was created, it should be used if it matches.
 
                 let source_component = components[description.component_idx].borrow();
-                let source_state_var = source_component
-                    .get_state_variable(var_match.source_idx)
-                    .unwrap();
+                let source_prop = source_component.get_prop(var_match.source_idx).unwrap();
 
-                let sv_profile = source_state_var.get_matching_component_profile();
+                let sv_profile = source_prop.get_matching_component_profile();
 
                 match_profiles.contains(&sv_profile).then(|| Dependency {
-                    source: DependencySource::StateVar {
+                    source: DependencySource::Prop {
                         component_idx: description.component_idx,
-                        state_var_idx: var_match.source_idx,
+                        prop_idx: var_match.source_idx,
                     },
-                    value: source_state_var.create_new_read_only_view(),
+                    value: source_prop.create_new_read_only_view(),
                 })
             }),
         _ => None,

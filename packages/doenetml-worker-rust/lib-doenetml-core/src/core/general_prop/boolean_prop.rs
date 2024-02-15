@@ -19,7 +19,7 @@ use super::util::{string_attr_to_boolean, string_to_boolean, BooleanOrString};
 ///   The calculation will use the `Boolean` and `Text` children of the attribute,
 ///   falling back to `default_value` if there are no matching children.
 #[derive(Debug, Default)]
-pub struct BooleanStateVar {
+pub struct BooleanProp {
     /// The data query that indicates how the dependencies of this state variable will be created.
     data_query: DataQuery,
 
@@ -30,15 +30,15 @@ pub struct BooleanStateVar {
 
 /// The values of the dependencies created from the data queries
 #[add_dependency_data]
-#[derive(Debug, Default, StateVariableDependencies, StateVariableDataQueries)]
+#[derive(Debug, Default, PropDependencies, PropDataQueries)]
 pub struct RequiredData {
     /// A vector of the boolean or string values of the dependencies coming from the data_query
     booleans_and_strings: Vec<BooleanOrString>,
 }
-impl BooleanStateVar {
+impl BooleanProp {
     /// Creates a boolean state var that calculates its value from the given data query.
     pub fn new(data_query: DataQuery) -> Self {
-        BooleanStateVar {
+        BooleanProp {
             data_query,
             ..Default::default()
         }
@@ -49,7 +49,7 @@ impl BooleanStateVar {
     ///
     /// If there are no matching children, the state variable will be initialized with `default_value`.
     pub fn new_from_children(default_value: bool) -> Self {
-        BooleanStateVar {
+        BooleanProp {
             data_query: DataQuery::Child {
                 match_profiles: vec![ComponentProfile::String, ComponentProfile::Boolean],
                 exclude_if_prefer_profiles: vec![],
@@ -65,7 +65,7 @@ impl BooleanStateVar {
     ///
     /// If there are no matching attribute children, the state variable will be initialized with `default_value`.
     pub fn new_from_attribute(attr_name: AttributeName, default_value: bool) -> Self {
-        BooleanStateVar {
+        BooleanProp {
             data_query: DataQuery::AttributeChild {
                 attribute_name: attr_name,
                 match_profiles: vec![ComponentProfile::String, ComponentProfile::Boolean],
@@ -77,7 +77,7 @@ impl BooleanStateVar {
     }
 }
 
-impl StateVarUpdater<bool, RequiredData> for BooleanStateVar {
+impl PropUpdater<bool, RequiredData> for BooleanProp {
     fn default_value(&self) -> bool {
         self.default_value
     }
@@ -90,20 +90,20 @@ impl StateVarUpdater<bool, RequiredData> for BooleanStateVar {
     }
 
     #[allow(clippy::needless_return)]
-    fn calculate<'a>(&self, data: &'a RequiredData) -> StateVarCalcResult<'a, bool> {
+    fn calculate<'a>(&self, data: &'a RequiredData) -> PropCalcResult<'a, bool> {
         match data.booleans_and_strings.len() {
             0 => {
-                return StateVarCalcResult::Calculated(false);
+                return PropCalcResult::Calculated(false);
             }
             1 => {
                 match &data.booleans_and_strings[0] {
                     BooleanOrString::Boolean(boolean_value) => {
                         // If we are basing it on a single variable that came from default,
                         // then we propagate came_from_default as well as the value.
-                        return StateVarCalcResult::From(boolean_value);
+                        return PropCalcResult::From(boolean_value);
                     }
                     BooleanOrString::String(string_value) => {
-                        return StateVarCalcResult::Calculated(if self.from_attribute {
+                        return PropCalcResult::Calculated(if self.from_attribute {
                             string_attr_to_boolean(&string_value.get())
                         } else {
                             string_to_boolean(&string_value.get())
@@ -118,7 +118,7 @@ impl StateVarUpdater<bool, RequiredData> for BooleanStateVar {
                     .any(|dep_value| matches!(dep_value, BooleanOrString::Boolean(_)))
                 {
                     // invalid combination. Haven't implemented boolean dependency with others
-                    return StateVarCalcResult::Calculated(false);
+                    return PropCalcResult::Calculated(false);
                 } else {
                     // Have multiple string variables. Concatenate the string values into a single string
 
@@ -128,7 +128,7 @@ impl StateVarUpdater<bool, RequiredData> for BooleanStateVar {
                         BooleanOrString::String(string_value) => string_value.get().to_string(),
                     }));
 
-                    return StateVarCalcResult::Calculated(if self.from_attribute {
+                    return PropCalcResult::Calculated(if self.from_attribute {
                         string_attr_to_boolean(&value)
                     } else {
                         string_to_boolean(&value)
@@ -142,13 +142,13 @@ impl StateVarUpdater<bool, RequiredData> for BooleanStateVar {
     fn invert(
         &self,
         data: &mut RequiredData,
-        state_var: &StateVarView<bool>,
+        prop: &PropView<bool>,
         _is_direct_change_from_action: bool,
     ) -> Result<Vec<DependencyValueUpdateRequest>, InvertError> {
         match data.booleans_and_strings.len() {
             1 => {
                 // based on a single value, so we can invert
-                let requested_value = *state_var.get_requested_value();
+                let requested_value = *prop.get_requested_value();
                 match &mut data.booleans_and_strings[0] {
                     BooleanOrString::Boolean(boolean_value) => {
                         boolean_value.queue_update(requested_value);
@@ -166,5 +166,5 @@ impl StateVarUpdater<bool, RequiredData> for BooleanStateVar {
 }
 
 #[cfg(test)]
-#[path = "boolean_state_var.test.rs"]
+#[path = "boolean_prop.test.rs"]
 mod tests;

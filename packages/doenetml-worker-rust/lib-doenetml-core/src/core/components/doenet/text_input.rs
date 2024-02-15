@@ -1,5 +1,5 @@
 mod component;
-mod state_vars;
+mod props;
 
 pub use component::*;
-pub use state_vars::*;
+pub use props::*;

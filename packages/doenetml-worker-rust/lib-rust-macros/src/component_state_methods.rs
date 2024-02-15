@@ -4,7 +4,7 @@ use proc_macro2::{Ident, Span};
 use quote::quote;
 use syn::{self, parse::Parser, FieldsNamed};
 
-use crate::util::{find_type_from_state_var_with_generics, has_attribute};
+use crate::util::{find_type_from_prop_with_generics, has_attribute};
 
 pub fn component_state_derive(input: TokenStream) -> TokenStream {
     let ast: syn::DeriveInput = syn::parse(input).unwrap();
@@ -35,46 +35,46 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
                 if is_component_struct {
                     quote! {
                         impl ComponentState for #structure_identity {
-                            fn get_num_state_variables(&self) -> StateVarIdx {
-                                self.state.get_num_state_variables()
+                            fn get_num_props(&self) -> PropIdx {
+                                self.state.get_num_props()
                             }
 
-                            fn get_state_variable(&self, state_var_idx: StateVarIdx) -> Option<StateVarEnumRef> {
-                                self.state.get_state_variable(state_var_idx)
+                            fn get_prop(&self, prop_idx: PropIdx) -> Option<PropEnumRef> {
+                                self.state.get_prop(prop_idx)
                             }
 
-                            fn get_state_variable_mut(&mut self, state_var_idx: StateVarIdx) -> Option<StateVarEnumRefMut> {
-                                self.state.get_state_variable_mut(state_var_idx)
+                            fn get_prop_mut(&mut self, prop_idx: PropIdx) -> Option<PropEnumRefMut> {
+                                self.state.get_prop_mut(prop_idx)
                             }
 
-                            fn get_state_variable_index_from_name(&self, name: &str) -> Option<StateVarIdx> {
-                                self.state.get_state_variable_index_from_name(name)
+                            fn get_prop_index_from_name(&self, name: &str) -> Option<PropIdx> {
+                                self.state.get_prop_index_from_name(name)
                             }
 
-                            // fn get_state_variable_index_from_name_case_insensitive(
+                            // fn get_prop_index_from_name_case_insensitive(
                             //     &self,
                             //     name: &str,
-                            // ) -> Option<StateVarIdx> {
-                            //     self.state.get_state_variable_index_from_name_case_insensitive(name)
+                            // ) -> Option<PropIdx> {
+                            //     self.state.get_prop_index_from_name_case_insensitive(name)
                             // }
 
-                            fn get_component_profile_state_variable_indices(&self) -> Vec<StateVarIdx> {
-                                self.state.get_component_profile_state_variable_indices()
+                            fn get_component_profile_prop_indices(&self) -> Vec<PropIdx> {
+                                self.state.get_component_profile_prop_indices()
                             }
 
-                            fn get_public_state_variable_index_from_name_case_insensitive(
+                            fn get_public_prop_index_from_name_case_insensitive(
                                 &self,
                                 name: &str,
-                            ) -> Option<StateVarIdx> {
-                                self.state.get_public_state_variable_index_from_name_case_insensitive(name)
+                            ) -> Option<PropIdx> {
+                                self.state.get_public_prop_index_from_name_case_insensitive(name)
                             }
 
-                            fn get_for_renderer_state_variable_indices(&self) -> Vec<StateVarIdx> {
-                                self.state.get_for_renderer_state_variable_indices()
+                            fn get_for_renderer_prop_indices(&self) -> Vec<PropIdx> {
+                                self.state.get_for_renderer_prop_indices()
                             }
 
-                            fn check_if_state_variable_is_for_renderer(&self, state_var_idx: StateVarIdx) -> bool {
-                                self.state.check_if_state_variable_is_for_renderer(state_var_idx)
+                            fn check_if_prop_is_for_renderer(&self, prop_idx: PropIdx) -> bool {
+                                self.state.check_if_prop_is_for_renderer(prop_idx)
                             }
 
                             /// Return object will the values of all the rendered state variables
@@ -90,69 +90,66 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
                 } else {
                     let field_types = named
                         .iter()
-                        .map(|f| find_type_from_state_var_with_generics(&f.ty).unwrap())
+                        .map(|f| find_type_from_prop_with_generics(&f.ty).unwrap())
                         .collect::<Vec<_>>();
 
-                    let num_state_var = field_identities.len();
+                    let num_prop = field_identities.len();
 
-                    let mut get_state_variable_arms = Vec::new();
-                    let mut get_state_variable_mut_arms = Vec::new();
-                    let mut get_state_variable_index_from_name_arms = Vec::new();
-                    // let mut get_state_variable_index_from_name_case_insensitive_arms = Vec::new();
-                    let mut get_public_state_variable_index_from_name_case_insensitive_arms =
-                        Vec::new();
-                    let mut get_component_profile_state_variable_indices_items = Vec::new();
-                    let mut get_for_renderer_state_variable_indices_items = Vec::new();
-                    let mut check_if_state_variable_is_for_renderer_arms = Vec::new();
+                    let mut get_prop_arms = Vec::new();
+                    let mut get_prop_mut_arms = Vec::new();
+                    let mut get_prop_index_from_name_arms = Vec::new();
+                    // let mut get_prop_index_from_name_case_insensitive_arms = Vec::new();
+                    let mut get_public_prop_index_from_name_case_insensitive_arms = Vec::new();
+                    let mut get_component_profile_prop_indices_items = Vec::new();
+                    let mut get_for_renderer_prop_indices_items = Vec::new();
+                    let mut check_if_prop_is_for_renderer_arms = Vec::new();
                     let mut return_rendered_state_items = Vec::new();
                     let mut return_rendered_state_update_statements = Vec::new();
-                    let mut rendered_state_variables_struct_statements = Vec::new();
+                    let mut rendered_props_struct_statements = Vec::new();
 
-                    let mut get_state_variable_index_functions = Vec::new();
+                    let mut get_prop_index_functions = Vec::new();
                     let mut get_value_data_queries_functions = Vec::new();
                     let mut update_from_action_functions = Vec::new();
 
-                    let renderer_state_variables_name = format!("Rendered{}", structure_identity);
-                    let rendered_state_variables_identity =
-                        Ident::new(&renderer_state_variables_name, Span::call_site());
+                    let renderer_props_name = format!("Rendered{}", structure_identity);
+                    let rendered_props_identity =
+                        Ident::new(&renderer_props_name, Span::call_site());
 
                     for (sv_idx, field_identity) in field_identities.iter().enumerate() {
-                        get_state_variable_arms.push(quote! {
+                        get_prop_arms.push(quote! {
                             #sv_idx => Some((&self.#field_identity).into()),
                         });
-                        get_state_variable_mut_arms.push(quote! {
+                        get_prop_mut_arms.push(quote! {
                             #sv_idx => Some((&mut self.#field_identity).into()),
                         });
 
                         let field_camel_case = field_identity.to_string().to_case(Case::Camel);
-                        get_state_variable_index_from_name_arms.push(quote! {
+                        get_prop_index_from_name_arms.push(quote! {
                             #field_camel_case => Some(#sv_idx),
                         });
 
-                        // get_state_variable_index_from_name_case_insensitive_arms.push(quote! {
+                        // get_prop_index_from_name_case_insensitive_arms.push(quote! {
                         //     x if x.eq_ignore_ascii_case(#field_camel_case) => Some(#sv_idx),
                         // });
 
                         if has_attribute(&named[sv_idx].attrs, "is_public") {
-                            get_public_state_variable_index_from_name_case_insensitive_arms.push(
-                                quote! {
-                                    x if x.eq_ignore_ascii_case(#field_camel_case) => Some(#sv_idx),
-                                },
-                            );
+                            get_public_prop_index_from_name_case_insensitive_arms.push(quote! {
+                                x if x.eq_ignore_ascii_case(#field_camel_case) => Some(#sv_idx),
+                            });
                         }
 
-                        if has_attribute(&named[sv_idx].attrs, "component_profile_state_variable") {
-                            get_component_profile_state_variable_indices_items.push(quote! {
+                        if has_attribute(&named[sv_idx].attrs, "component_profile_prop") {
+                            get_component_profile_prop_indices_items.push(quote! {
                                 #sv_idx,
                             });
                         }
 
                         if has_attribute(&named[sv_idx].attrs, "for_renderer") {
-                            get_for_renderer_state_variable_indices_items.push(quote! {
+                            get_for_renderer_prop_indices_items.push(quote! {
                                 #sv_idx,
                             });
 
-                            check_if_state_variable_is_for_renderer_arms.push(quote! {
+                            check_if_prop_is_for_renderer_arms.push(quote! {
                                 #sv_idx => true,
                             });
 
@@ -168,31 +165,30 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
                             });
 
                             let sv_type =
-                                find_type_from_state_var_with_generics(&named[sv_idx].ty).unwrap();
+                                find_type_from_prop_with_generics(&named[sv_idx].ty).unwrap();
 
-                            rendered_state_variables_struct_statements.push(quote! {
+                            rendered_props_struct_statements.push(quote! {
                                 #[serde(skip_serializing_if = "Option::is_none")]
                                 pub #field_identity: Option<#sv_type>,
                             })
                         }
 
-                        let get_index_function_name =
-                            format!("get_{}_state_variable_index", field_identity);
+                        let get_index_function_name = format!("get_{}_prop_index", field_identity);
                         let get_index_function_identity =
                             Ident::new(&get_index_function_name, Span::call_site());
 
                         let local_get_index_function_name =
-                            format!("local_get_{}_state_variable_index", field_identity);
+                            format!("local_get_{}_prop_index", field_identity);
                         let local_get_index_function_identity =
                             Ident::new(&local_get_index_function_name, Span::call_site());
 
-                        get_state_variable_index_functions.push(quote! {
+                        get_prop_index_functions.push(quote! {
                             /// Get a state variable index
                             /// of the specified state variable
-                            pub const fn #get_index_function_identity() -> StateVarIdx {
+                            pub const fn #get_index_function_identity() -> PropIdx {
                                 #sv_idx
                             }
-                            pub const fn #local_get_index_function_identity(&self) -> StateVarIdx {
+                            pub const fn #local_get_index_function_identity(&self) -> PropIdx {
                                 #sv_idx
                             }
                         });
@@ -206,9 +202,9 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
                             /// Get a `DataQuery` that requests the value
                             /// of the specified state variable
                             pub const fn #get_queries_function_identity() -> DataQuery {
-                                DataQuery::StateVar {
+                                DataQuery::Prop {
                                     component_idx: None,
-                                    state_var_idx: #sv_idx,
+                                    prop_idx: #sv_idx,
                                 }
                             }
                         });
@@ -229,79 +225,79 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
                     quote! {
                         impl ComponentState for #structure_identity {
 
-                            fn get_num_state_variables(&self) -> StateVarIdx {
-                                #num_state_var
+                            fn get_num_props(&self) -> PropIdx {
+                                #num_prop
                             }
 
-                            fn get_state_variable(&self, state_var_idx: StateVarIdx) -> Option<StateVarEnumRef> {
-                                match state_var_idx {
-                                    #(#get_state_variable_arms)*
+                            fn get_prop(&self, prop_idx: PropIdx) -> Option<PropEnumRef> {
+                                match prop_idx {
+                                    #(#get_prop_arms)*
                                     _ => None,
                                 }
                             }
 
 
-                            fn get_state_variable_mut(&mut self, state_var_idx: StateVarIdx) -> Option<StateVarEnumRefMut> {
-                                match state_var_idx {
-                                    #(#get_state_variable_mut_arms)*
+                            fn get_prop_mut(&mut self, prop_idx: PropIdx) -> Option<PropEnumRefMut> {
+                                match prop_idx {
+                                    #(#get_prop_mut_arms)*
                                     _ => None,
                                 }
                             }
 
-                            fn get_state_variable_index_from_name(&self, name: &str) -> Option<StateVarIdx> {
+                            fn get_prop_index_from_name(&self, name: &str) -> Option<PropIdx> {
                                 match name {
-                                    #(#get_state_variable_index_from_name_arms)*
+                                    #(#get_prop_index_from_name_arms)*
                                     _ => None,
                                 }
                             }
 
-                            // fn get_state_variable_index_from_name_case_insensitive(
+                            // fn get_prop_index_from_name_case_insensitive(
                             //     &self,
                             //     name: &str,
-                            // ) -> Option<StateVarIdx> {
+                            // ) -> Option<PropIdx> {
                             //     match name {
-                            //         #(#get_state_variable_index_from_name_case_insensitive_arms)*
+                            //         #(#get_prop_index_from_name_case_insensitive_arms)*
                             //         _ => None,
                             //     }
                             // }
 
-                            fn get_public_state_variable_index_from_name_case_insensitive(
+                            fn get_public_prop_index_from_name_case_insensitive(
                                 &self,
                                 name: &str,
-                            ) -> Option<StateVarIdx> {
+                            ) -> Option<PropIdx> {
                                 match name {
-                                    #(#get_public_state_variable_index_from_name_case_insensitive_arms)*
+                                    #(#get_public_prop_index_from_name_case_insensitive_arms)*
                                     _ => None,
                                 }
                             }
 
-                            fn get_component_profile_state_variable_indices(&self) -> Vec<StateVarIdx> {
+                            fn get_component_profile_prop_indices(&self) -> Vec<PropIdx> {
                                 vec![
-                                    #(#get_component_profile_state_variable_indices_items)*
+                                    #(#get_component_profile_prop_indices_items)*
                                 ]
                             }
 
-                            fn get_for_renderer_state_variable_indices(&self) -> Vec<StateVarIdx> {
+                            fn get_for_renderer_prop_indices(&self) -> Vec<PropIdx> {
                                 vec![
-                                    #(#get_for_renderer_state_variable_indices_items)*
+                                    #(#get_for_renderer_prop_indices_items)*
                                 ]
                             }
 
-                            fn check_if_state_variable_is_for_renderer(&self, state_var_idx: StateVarIdx) -> bool {
-                                match state_var_idx {
-                                    #(#check_if_state_variable_is_for_renderer_arms)*
+                            fn check_if_prop_is_for_renderer(&self, prop_idx: PropIdx) -> bool {
+                                match prop_idx {
+                                    #(#check_if_prop_is_for_renderer_arms)*
                                     _ => false,
                                 }
                             }
 
                             fn return_rendered_state(&mut self) -> Option<RenderedState> {
-                                Some(RenderedState::#structure_identity(#rendered_state_variables_identity {
+                                Some(RenderedState::#structure_identity(#rendered_props_identity {
                                     #(#return_rendered_state_items)*
                                 }))
                             }
 
                             fn return_rendered_state_update(&mut self) -> Option<RenderedState> {
-                                let mut updated_variables = #rendered_state_variables_identity::default();
+                                let mut updated_variables = #rendered_props_identity::default();
 
                                 #(#return_rendered_state_update_statements)*
 
@@ -317,14 +313,14 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
                         /// when the values of just some variables were updated.
                         #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Default)]
                         #[serde(rename_all = "camelCase")]
-                        pub struct #rendered_state_variables_identity {
-                            #(#rendered_state_variables_struct_statements)*
+                        pub struct #rendered_props_identity {
+                            #(#rendered_props_struct_statements)*
                         }
 
 
                         impl #structure_identity {
 
-                            #(#get_state_variable_index_functions)*
+                            #(#get_prop_index_functions)*
 
                             #(#get_value_data_queries_functions)*
 
@@ -341,7 +337,7 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
     output.into()
 }
 
-pub fn state_variable_dependencies_derive(input: TokenStream) -> TokenStream {
+pub fn prop_dependencies_derive(input: TokenStream) -> TokenStream {
     let ast: syn::DeriveInput = syn::parse(input).unwrap();
     let structure_identity = &ast.ident;
     let data = &ast.data;
@@ -413,13 +409,13 @@ pub fn state_variable_dependencies_derive(input: TokenStream) -> TokenStream {
                 }
 
                 // if we have a generic,
-                // we also need to restrict to those with a StateVarView that we can try_into a StateVarViewEnum
+                // we also need to restrict to those with a PropView that we can try_into a PropViewEnum
                 // with an error that implements Debug
                 let where_clause = generics.where_clause.as_ref().map(|wc| {
                     quote!(
                         #wc
-                        StateVarView #generics: TryFromState<StateVarViewEnum>,
-                        <StateVarView #generics as TryFromState<StateVarViewEnum>>::Error: std::fmt::Debug,
+                        PropView #generics: TryFromState<PropViewEnum>,
+                        <PropView #generics as TryFromState<PropViewEnum>>::Error: std::fmt::Debug,
                     )
                 });
 
@@ -479,7 +475,7 @@ pub fn state_variable_dependencies_derive(input: TokenStream) -> TokenStream {
     output.into()
 }
 
-pub fn state_variable_data_queries_derive(input: TokenStream) -> TokenStream {
+pub fn prop_data_queries_derive(input: TokenStream) -> TokenStream {
     let ast: syn::DeriveInput = syn::parse(input).unwrap();
     let structure_identity = &ast.ident;
     let data = &ast.data;

@@ -3,13 +3,13 @@ use std::{cell::RefCell, collections::HashMap, rc::Rc};
 use crate::{
     components::{ComponentEnum, ComponentNode},
     dependency::{DependenciesCreatedForDataQuery, DependencySource, DependencyValueUpdateRequest},
-    state::essential_state::{EssentialDataOrigin, EssentialStateDescription, EssentialStateVar},
-    state::state_var_calculations::StateVariableUpdateRequest,
+    state::essential_state::{EssentialDataOrigin, EssentialProp, EssentialStateDescription},
+    state::prop_calculations::PropUpdateRequest,
     state::Freshness,
     ComponentIdx, CoreProcessingState, DependencyGraph,
 };
 
-use super::{ComponentState, StateVarPointer};
+use super::{ComponentState, PropPointer};
 
 /// Recurse in the inverse direction along the dependency graph to attempt to satisfy
 /// the requested update of the state variable described in initial_update_request.
@@ -18,16 +18,16 @@ use super::{ComponentState, StateVarPointer};
 /// When we reach the leaves (essential state variables), set them to their requested values
 /// and then mark all their dependencies as stale
 #[allow(clippy::ptr_arg)]
-pub fn process_state_variable_update_request(
-    initial_update_request: StateVariableUpdateRequest,
+pub fn process_prop_update_request(
+    initial_update_request: PropUpdateRequest,
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
     dependency_graph: &mut DependencyGraph,
-    essential_data: &mut Vec<HashMap<EssentialDataOrigin, EssentialStateVar>>,
+    essential_data: &mut Vec<HashMap<EssentialDataOrigin, EssentialProp>>,
     processing_state: &mut CoreProcessingState,
 ) {
     // This function currently implements recursion through an iterative method,
     // using a stack on the heap.
-    // See comment in freshen_state_var for the motivation.
+    // See comment in freshen_prop for the motivation.
 
     let update_stack = &mut processing_state.update_stack;
     update_stack.push(initial_update_request);
@@ -38,7 +38,7 @@ pub fn process_state_variable_update_request(
         // log!("Process update request: {:?}", update_request);
 
         match update_request {
-            StateVariableUpdateRequest::SetEssentialValue(essential_state) => {
+            PropUpdateRequest::SetEssentialValue(essential_state) => {
                 // We reached a leaf of the dependency graph.
                 // Set it to its requested value (which has been set in a previous step),
                 // and then recursively mark all its dependencies as stale.
@@ -60,8 +60,8 @@ pub fn process_state_variable_update_request(
                 );
             }
 
-            StateVariableUpdateRequest::SetStateVar(state_var_ptr) => {
-                // The requested value for the state variable of state_var_ptr
+            PropUpdateRequest::SetProp(prop_ptr) => {
+                // The requested value for the state variable of prop_ptr
                 // has already been set in a previous step.
                 // Now, we need to calculate the requested values of its dependencies
                 // that will lead to its requested value.
@@ -69,7 +69,7 @@ pub fn process_state_variable_update_request(
                 // The vector dep_update_requests will contain just the identities
                 // of the state variables or essential data that we need to recurse to.
                 let mut dep_update_requests = invert_including_shadow(
-                    state_var_ptr,
+                    prop_ptr,
                     components,
                     &dependency_graph.dependencies,
                     is_direct_change_from_action,
@@ -86,53 +86,53 @@ pub fn process_state_variable_update_request(
     }
 }
 
-/// Mark the state variable in original_state_var_ptr stale
+/// Mark the state variable in original_prop_ptr stale
 /// and then recurse to its dependencies.
 ///
 /// Also, if a state variable has the for_renderer parameter set,
 /// then record the component in stale_renderers.
 #[allow(clippy::ptr_arg)]
-fn mark_stale_state_var_and_dependencies(
-    original_state_var_ptr: StateVarPointer,
+fn mark_stale_prop_and_dependencies(
+    original_prop_ptr: PropPointer,
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
-    dependent_on_state_var: &mut Vec<Vec<Vec<StateVarPointer>>>,
+    dependent_on_prop: &mut Vec<Vec<Vec<PropPointer>>>,
     stale_renderers: &mut Vec<ComponentIdx>,
-    mark_stale_stack: &mut Vec<StateVarPointer>,
+    mark_stale_stack: &mut Vec<PropPointer>,
 ) {
     // This function currently implements recursion through an iterative method,
     // using a stack on the heap.
-    // See comment in freshen_state_var for the motivation.
+    // See comment in freshen_prop for the motivation.
 
-    mark_stale_stack.push(original_state_var_ptr);
+    mark_stale_stack.push(original_prop_ptr);
 
-    while let Some(StateVarPointer {
+    while let Some(PropPointer {
         component_idx,
-        state_var_idx,
+        prop_idx,
     }) = mark_stale_stack.pop()
     {
         let component = components[component_idx].borrow();
-        let state_var = &component.get_state_variable(state_var_idx).unwrap();
+        let prop = &component.get_prop(prop_idx).unwrap();
 
-        if state_var.get_freshness() == Freshness::Fresh {
-            state_var.mark_stale();
+        if prop.get_freshness() == Freshness::Fresh {
+            prop.mark_stale();
 
-            if component.check_if_state_variable_is_for_renderer(state_var_idx)
+            if component.check_if_prop_is_for_renderer(prop_idx)
                 && component.get_is_in_render_tree()
             {
                 stale_renderers.push(component_idx);
             }
 
-            let states_depending_on_me = &dependent_on_state_var[component_idx][state_var_idx];
+            let states_depending_on_me = &dependent_on_prop[component_idx][prop_idx];
 
-            for StateVarPointer {
+            for PropPointer {
                 component_idx: new_comp_idx,
-                state_var_idx: new_sv_idx,
+                prop_idx: new_sv_idx,
             } in states_depending_on_me.iter()
             {
                 // Recurse by adding the state variables to the stack
-                mark_stale_stack.push(StateVarPointer {
+                mark_stale_stack.push(PropPointer {
                     component_idx: *new_comp_idx,
-                    state_var_idx: *new_sv_idx,
+                    prop_idx: *new_sv_idx,
                 });
             }
         }
@@ -146,7 +146,7 @@ fn mark_stale_essential_datum_dependencies(
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
     dependency_graph: &mut DependencyGraph,
     stale_renderers: &mut Vec<ComponentIdx>,
-    mark_stale_stack: &mut Vec<StateVarPointer>,
+    mark_stale_stack: &mut Vec<PropPointer>,
 ) {
     let component_idx = essential_state.component_idx;
 
@@ -155,11 +155,11 @@ fn mark_stale_essential_datum_dependencies(
     if let Some(vec_deps) =
         dependency_graph.dependent_on_essential[component_idx].get(&essential_state.origin)
     {
-        vec_deps.iter().for_each(|state_var_ptr| {
-            mark_stale_state_var_and_dependencies(
-                *state_var_ptr,
+        vec_deps.iter().for_each(|prop_ptr| {
+            mark_stale_prop_and_dependencies(
+                *prop_ptr,
                 components,
-                &mut dependency_graph.dependent_on_state_var,
+                &mut dependency_graph.dependent_on_prop,
                 stale_renderers,
                 mark_stale_stack,
             );
@@ -168,7 +168,7 @@ fn mark_stale_essential_datum_dependencies(
 }
 
 /// Determine what state variables must be changed to attempt to create the desired value
-/// that has been saved to the state variable specified by *state_var_ptr*.
+/// that has been saved to the state variable specified by *prop_ptr*.
 ///
 /// If *is_direct_change_from_action* is true, then the desired value for the state variable
 /// was specified directly from the action itself.
@@ -176,22 +176,22 @@ fn mark_stale_essential_datum_dependencies(
 /// Returns a vector specifying which state variables or essential data have been requested to change.
 /// The actual requested values will be added directly to the state variables or essential data.
 fn invert_including_shadow(
-    state_var_ptr: StateVarPointer,
+    prop_ptr: PropPointer,
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
     dependencies: &Vec<Vec<Vec<DependenciesCreatedForDataQuery>>>,
     is_direct_change_from_action: bool,
-) -> Vec<StateVariableUpdateRequest> {
-    let component_idx = state_var_ptr.component_idx;
-    let state_var_idx = state_var_ptr.state_var_idx;
+) -> Vec<PropUpdateRequest> {
+    let component_idx = prop_ptr.component_idx;
+    let prop_idx = prop_ptr.prop_idx;
     let mut component = components[component_idx].borrow_mut();
-    let state_variable = &mut component.get_state_variable_mut(state_var_idx).unwrap();
+    let prop = &mut component.get_prop_mut(prop_idx).unwrap();
 
-    let requests = state_variable.invert(is_direct_change_from_action);
+    let requests = prop.invert(is_direct_change_from_action);
 
     requests
         .map(|req| {
-            convert_dependency_updates_requested_to_state_variable_update_requests(
-                state_var_ptr,
+            convert_dependency_updates_requested_to_prop_update_requests(
+                prop_ptr,
                 req,
                 components,
                 dependencies,
@@ -204,16 +204,16 @@ fn invert_including_shadow(
 /// into state variable update requests by determining the state variables
 /// referenced by the dependencies.
 #[allow(clippy::ptr_arg)]
-fn convert_dependency_updates_requested_to_state_variable_update_requests(
-    state_var_ptr: StateVarPointer,
+fn convert_dependency_updates_requested_to_prop_update_requests(
+    prop_ptr: PropPointer,
     requests: Vec<DependencyValueUpdateRequest>,
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
     dependencies: &Vec<Vec<Vec<DependenciesCreatedForDataQuery>>>,
-) -> Vec<StateVariableUpdateRequest> {
-    let component_idx = state_var_ptr.component_idx;
-    let state_var_idx = state_var_ptr.state_var_idx;
+) -> Vec<PropUpdateRequest> {
+    let component_idx = prop_ptr.component_idx;
+    let prop_idx = prop_ptr.prop_idx;
 
-    let my_dependencies = &dependencies[state_var_ptr.component_idx][state_var_ptr.state_var_idx];
+    let my_dependencies = &dependencies[prop_ptr.component_idx][prop_ptr.prop_idx];
 
     let mut update_requests = Vec::new();
 
@@ -226,7 +226,7 @@ fn convert_dependency_updates_requested_to_state_variable_update_requests(
             panic!(
                 "{}:{} has too few data queries to determine dependencies",
                 components[component_idx].borrow().get_component_type(),
-                state_var_idx
+                prop_idx
             )
         });
 
@@ -236,23 +236,23 @@ fn convert_dependency_updates_requested_to_state_variable_update_requests(
             DependencySource::Essential {
                 component_idx,
                 origin,
-            } => update_requests.push(StateVariableUpdateRequest::SetEssentialValue(
+            } => update_requests.push(PropUpdateRequest::SetEssentialValue(
                 EssentialStateDescription {
                     component_idx: *component_idx,
                     origin: origin.clone(),
                 },
             )),
-            DependencySource::StateVar {
+            DependencySource::Prop {
                 component_idx,
-                state_var_idx,
+                prop_idx,
             } => {
                 // TODO: receiving multiple dependencies because of multiple instances
 
-                let state_var_ptr = StateVarPointer {
+                let prop_ptr = PropPointer {
                     component_idx: *component_idx,
-                    state_var_idx: *state_var_idx,
+                    prop_idx: *prop_idx,
                 };
-                update_requests.push(StateVariableUpdateRequest::SetStateVar(state_var_ptr));
+                update_requests.push(PropUpdateRequest::SetProp(prop_ptr));
             }
         }
     }

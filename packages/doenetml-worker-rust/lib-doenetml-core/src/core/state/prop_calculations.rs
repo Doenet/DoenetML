@@ -5,42 +5,42 @@ use crate::{
     dependency::{
         create_dependencies_from_data_query_initialize_essential, DataQuery, DependencySource,
     },
-    state::essential_state::{EssentialDataOrigin, EssentialStateDescription, EssentialStateVar},
-    state::{Freshness, StateVarValue},
+    state::essential_state::{EssentialDataOrigin, EssentialProp, EssentialStateDescription},
+    state::{Freshness, PropValue},
     ComponentIdx, CoreProcessingState, DependencyGraph, Extending,
 };
 
-use super::{ComponentState, StateVarPointer};
+use super::{ComponentState, PropPointer};
 
-/// Freshen the state variable specified by original_state_var_ptr,
+/// Freshen the state variable specified by original_prop_ptr,
 /// then get its fresh value
-pub fn get_state_var_value(
-    original_state_var_ptr: StateVarPointer,
+pub fn get_prop_value(
+    original_prop_ptr: PropPointer,
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
     dependency_graph: &mut DependencyGraph,
-    essential_data: &mut Vec<HashMap<EssentialDataOrigin, EssentialStateVar>>,
-    freshen_stack: &mut Vec<StateVarPointer>,
-) -> StateVarValue {
-    freshen_state_var(
-        original_state_var_ptr,
+    essential_data: &mut Vec<HashMap<EssentialDataOrigin, EssentialProp>>,
+    freshen_stack: &mut Vec<PropPointer>,
+) -> PropValue {
+    freshen_prop(
+        original_prop_ptr,
         components,
         dependency_graph,
         essential_data,
         freshen_stack,
     );
 
-    components[original_state_var_ptr.component_idx]
+    components[original_prop_ptr.component_idx]
         .borrow()
-        .get_state_variable(original_state_var_ptr.state_var_idx)
+        .get_prop(original_prop_ptr.prop_idx)
         .unwrap()
         .get()
 }
 
 /// Internal structure used to track changes
 #[derive(Debug, Clone)]
-pub enum StateVariableUpdateRequest {
+pub enum PropUpdateRequest {
     SetEssentialValue(EssentialStateDescription),
-    SetStateVar(StateVarPointer),
+    SetProp(PropPointer),
 }
 
 /// Freshen all the state variables for a component that are designated as rendered
@@ -51,7 +51,7 @@ pub fn freshen_all_stale_renderer_states(
     processing_state: &mut CoreProcessingState,
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
     dependency_graph: &mut DependencyGraph,
-    essential_data: &mut Vec<HashMap<EssentialDataOrigin, EssentialStateVar>>,
+    essential_data: &mut Vec<HashMap<EssentialDataOrigin, EssentialProp>>,
 ) -> Vec<usize> {
     let stale_renderers = &mut processing_state.stale_renderers;
 
@@ -77,17 +77,17 @@ pub fn freshen_all_stale_renderer_states(
             .borrow_mut()
             .set_is_in_render_tree(true);
 
-        let rendered_state_var_indices = components[*component_idx]
+        let rendered_prop_indices = components[*component_idx]
             .borrow()
-            .get_for_renderer_state_variable_indices();
+            .get_for_renderer_prop_indices();
 
-        for state_var_idx in rendered_state_var_indices {
-            let state_var_ptr = StateVarPointer {
+        for prop_idx in rendered_prop_indices {
+            let prop_ptr = PropPointer {
                 component_idx: *component_idx,
-                state_var_idx,
+                prop_idx,
             };
-            freshen_state_var(
-                state_var_ptr,
+            freshen_prop(
+                prop_ptr,
                 components,
                 dependency_graph,
                 essential_data,
@@ -130,16 +130,16 @@ fn get_non_string_rendered_children_including_from_extend(
     children
 }
 
-/// If the state variable specified by original_state_var_ptr is stale or unresolved,
+/// If the state variable specified by original_prop_ptr is stale or unresolved,
 /// then freshen the variable, resolving its dependencies if necessary.
 ///
 /// If the state variable was not fresh, then recurse to its dependencies to freshen them.
-pub fn freshen_state_var(
-    original_state_var_ptr: StateVarPointer,
+pub fn freshen_prop(
+    original_prop_ptr: PropPointer,
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
     dependency_graph: &mut DependencyGraph,
-    essential_data: &mut Vec<HashMap<EssentialDataOrigin, EssentialStateVar>>,
-    freshen_stack: &mut Vec<StateVarPointer>,
+    essential_data: &mut Vec<HashMap<EssentialDataOrigin, EssentialProp>>,
+    freshen_stack: &mut Vec<PropPointer>,
 ) {
     // This function currently implements recursion through an iterative method,
     // using a stack on the heap.
@@ -150,9 +150,9 @@ pub fn freshen_state_var(
     // with thousands of levels in the dependency graph, and it wasn't clear what
     // size WASM stack would be appropriate.
 
-    let original_freshness = components[original_state_var_ptr.component_idx]
+    let original_freshness = components[original_prop_ptr.component_idx]
         .borrow()
-        .get_state_variable(original_state_var_ptr.state_var_idx)
+        .get_prop(original_prop_ptr.prop_idx)
         .unwrap()
         .get_freshness();
 
@@ -161,8 +161,8 @@ pub fn freshen_state_var(
     match original_freshness {
         Freshness::Fresh => return,
         Freshness::Unresolved => {
-            resolve_state_var(
-                original_state_var_ptr,
+            resolve_prop(
+                original_prop_ptr,
                 components,
                 dependency_graph,
                 essential_data,
@@ -173,12 +173,12 @@ pub fn freshen_state_var(
 
     // At this point, the state variable is stale or resolved.
 
-    freshen_stack.push(original_state_var_ptr);
+    freshen_stack.push(original_prop_ptr);
 
-    while let Some(state_var_ptr) = freshen_stack.pop() {
-        let current_freshness = components[state_var_ptr.component_idx]
+    while let Some(prop_ptr) = freshen_stack.pop() {
+        let current_freshness = components[prop_ptr.component_idx]
             .borrow()
-            .get_state_variable(state_var_ptr.state_var_idx)
+            .get_prop(prop_ptr.prop_idx)
             .unwrap()
             .get_freshness();
 
@@ -193,44 +193,44 @@ pub fn freshen_state_var(
             Freshness::Stale | Freshness::Resolved => (),
         };
 
-        let dependencies_for_state_var = &dependency_graph.dependencies
-            [state_var_ptr.component_idx][state_var_ptr.state_var_idx];
+        let dependencies_for_prop =
+            &dependency_graph.dependencies[prop_ptr.component_idx][prop_ptr.prop_idx];
 
         // If we find a stale or resolved dependency
         // (i.e., not fresh, as we shouldn't have unresolved)
         // then we aren't ready to freshen this state variable.
-        // In this case, we will put state_var_ptr on the stack
+        // In this case, we will put prop_ptr on the stack
         // followed by its stale/resolved dependencies,
         // and skip the calculation/freshen step at the end.
         // (The calculation/freshen step will occur when it comes off the stack
         // next time, as at that point, its dependencies will all be fresh.)
-        let mut state_var_ptr_is_ready_to_freshen = true;
+        let mut prop_ptr_is_ready_to_freshen = true;
 
-        for deps in dependencies_for_state_var.iter() {
+        for deps in dependencies_for_prop.iter() {
             for dep in deps.iter() {
-                // If can create a state_var_ptr from dep.source,
-                // it means it is a DependencySource::StateVar,
+                // If can create a prop_ptr from dep.source,
+                // it means it is a DependencySource::Prop,
                 // so we need to check if that state variable is fresh.
                 // (There is nothing to do for DependencySource::Essential.)
-                if let Ok(dep_state_var_ptr) = StateVarPointer::try_from(&dep.source) {
+                if let Ok(dep_prop_ptr) = PropPointer::try_from(&dep.source) {
                     match dep.value.get_freshness() {
                         // No need to recurse if the state var of the dependency is already fresh
                         // so don't do anything to just continue the inner loop
                         Freshness::Fresh => (),
                         Freshness::Stale | Freshness::Resolved => {
                             // If this is the first time we found a stale/resolved dependency,
-                            // this means we have not yet put state_var_ptr on the stack,
+                            // this means we have not yet put prop_ptr on the stack,
                             // so we do that now.
-                            if state_var_ptr_is_ready_to_freshen {
-                                freshen_stack.push(state_var_ptr);
-                                state_var_ptr_is_ready_to_freshen = false;
+                            if prop_ptr_is_ready_to_freshen {
+                                freshen_stack.push(prop_ptr);
+                                prop_ptr_is_ready_to_freshen = false;
                             }
 
-                            // Before we can freshen state_var_ptr,
-                            // we have to freshen dep_state_var_ptr.
+                            // Before we can freshen prop_ptr,
+                            // we have to freshen dep_prop_ptr.
                             // We put that on the stack (which will be after where
-                            // state_var_ptr is on the stack).
-                            freshen_stack.push(dep_state_var_ptr);
+                            // prop_ptr is on the stack).
+                            freshen_stack.push(dep_prop_ptr);
                         }
                         Freshness::Unresolved => {
                             panic!("How did a stale state variable depend on an unresolved state variable?")
@@ -242,93 +242,93 @@ pub fn freshen_state_var(
 
         // At this point, we have gone through all the dependencies.
         // We have two possibilities.
-        // 1. The state variable state_var_ptr is ready to freshen
+        // 1. The state variable prop_ptr is ready to freshen
         //    because all its dependencies are fresh.
         //    In this case we calculate its value to freshen it.
-        // 2. We found a stale or resolved dependency of state_var_ptr
+        // 2. We found a stale or resolved dependency of prop_ptr
         //    so it is not ready to freshen.
-        //    In this case, we have already put state_var_ptr
-        //    and each stale/resolved dep_state_var_ptr on the stack.
+        //    In this case, we have already put prop_ptr
+        //    and each stale/resolved dep_prop_ptr on the stack.
         //    There is nothing to do now.
-        //    We'll calculate and freshen state_var_ptr next time it comes off the stack.
+        //    We'll calculate and freshen prop_ptr next time it comes off the stack.
 
-        if state_var_ptr_is_ready_to_freshen {
-            // All the dependencies of state_var_ptr are fresh.
+        if prop_ptr_is_ready_to_freshen {
+            // All the dependencies of prop_ptr are fresh.
             // We calculate its value if a dependency has changed,
             // else restore its previous value.
 
-            let component_idx = state_var_ptr.component_idx;
-            let state_var_idx = state_var_ptr.state_var_idx;
+            let component_idx = prop_ptr.component_idx;
+            let prop_idx = prop_ptr.prop_idx;
 
             let mut comp = components[component_idx].borrow_mut();
-            let state_var = &mut comp.get_state_variable_mut(state_var_idx).unwrap();
+            let prop = &mut comp.get_prop_mut(prop_idx).unwrap();
 
             // Check if any dependency has changed since we last called record_all_dependencies_viewed.
-            if state_var.check_if_any_dependency_changed_since_last_viewed() {
-                state_var.calculate_and_mark_fresh();
-                state_var.record_all_dependencies_viewed();
+            if prop.check_if_any_dependency_changed_since_last_viewed() {
+                prop.calculate_and_mark_fresh();
+                prop.record_all_dependencies_viewed();
             } else {
-                state_var.mark_fresh();
+                prop.mark_fresh();
             }
         }
     }
 }
 
 #[allow(clippy::ptr_arg)]
-pub fn resolve_state_var(
-    original_state_var_ptr: StateVarPointer,
+pub fn resolve_prop(
+    original_prop_ptr: PropPointer,
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
     dependency_graph: &mut DependencyGraph,
-    essential_data: &mut Vec<HashMap<EssentialDataOrigin, EssentialStateVar>>,
+    essential_data: &mut Vec<HashMap<EssentialDataOrigin, EssentialProp>>,
 ) {
     // Since resolving state variables won't recurse with repeated actions,
     // will go ahead and allocate the stack locally, for simplicity.
     let mut resolve_stack = Vec::new();
-    resolve_stack.push(original_state_var_ptr);
+    resolve_stack.push(original_prop_ptr);
 
-    while let Some(state_var_ptr) = resolve_stack.pop() {
-        let component_idx = state_var_ptr.component_idx;
-        let state_var_idx = state_var_ptr.state_var_idx;
+    while let Some(prop_ptr) = resolve_stack.pop() {
+        let component_idx = prop_ptr.component_idx;
+        let prop_idx = prop_ptr.prop_idx;
 
         let data_queries: Vec<DataQuery>;
 
         {
             let mut component = components[component_idx].borrow_mut();
-            let state_var = &mut component.get_state_variable_mut(state_var_idx).unwrap();
+            let prop = &mut component.get_prop_mut(prop_idx).unwrap();
 
-            let current_freshness = state_var.get_freshness();
+            let current_freshness = prop.get_freshness();
 
             if current_freshness != Freshness::Unresolved {
                 // nothing to do if the state variable is already resolved
                 continue;
             }
 
-            data_queries = state_var.return_data_queries();
+            data_queries = prop.return_data_queries();
         }
 
-        let mut dependencies_for_state_var = Vec::with_capacity(data_queries.len());
+        let mut dependencies_for_prop = Vec::with_capacity(data_queries.len());
 
         for query in data_queries.iter() {
             let instruct_dependencies = create_dependencies_from_data_query_initialize_essential(
                 components,
                 component_idx,
-                state_var_idx,
+                prop_idx,
                 query,
                 essential_data,
             );
 
             // add these dependencies to the inverse graph:
-            // dependent_on_state_var or dependent_on_essential.
+            // dependent_on_prop or dependent_on_essential.
             for dep in instruct_dependencies.iter() {
                 match &dep.source {
-                    DependencySource::StateVar {
+                    DependencySource::Prop {
                         component_idx: inner_comp_idx,
-                        state_var_idx: inner_sv_idx,
+                        prop_idx: inner_sv_idx,
                     } => {
-                        let vec_dep = &mut dependency_graph.dependent_on_state_var[*inner_comp_idx];
-                        vec_dep[*inner_sv_idx].push(StateVarPointer {
+                        let vec_dep = &mut dependency_graph.dependent_on_prop[*inner_comp_idx];
+                        vec_dep[*inner_sv_idx].push(PropPointer {
                             component_idx,
-                            state_var_idx,
+                            prop_idx,
                         });
                     }
                     DependencySource::Essential {
@@ -338,52 +338,52 @@ pub fn resolve_state_var(
                         let vec_dep = dependency_graph.dependent_on_essential[*inner_comp_idx]
                             .entry(origin.clone())
                             .or_default();
-                        vec_dep.push(StateVarPointer {
+                        vec_dep.push(PropPointer {
                             component_idx,
-                            state_var_idx,
+                            prop_idx,
                         });
                     }
                 }
             }
 
             for dep in instruct_dependencies.iter() {
-                if let DependencySource::StateVar {
+                if let DependencySource::Prop {
                     component_idx: comp_idx_inner,
-                    state_var_idx: sv_idx_inner,
+                    prop_idx: sv_idx_inner,
                 } = &dep.source
                 {
-                    let new_state_var_ptr = StateVarPointer {
+                    let new_prop_ptr = PropPointer {
                         component_idx: *comp_idx_inner,
-                        state_var_idx: *sv_idx_inner,
+                        prop_idx: *sv_idx_inner,
                     };
 
                     let new_current_freshness = dep.value.get_freshness();
 
                     if new_current_freshness == Freshness::Unresolved {
                         // recurse to any unresolved dependencies
-                        resolve_stack.push(new_state_var_ptr);
+                        resolve_stack.push(new_prop_ptr);
                     }
                 }
             }
 
-            dependencies_for_state_var.push(instruct_dependencies);
+            dependencies_for_prop.push(instruct_dependencies);
         }
 
         {
             let mut component = components[component_idx].borrow_mut();
-            let state_var = &mut component.get_state_variable_mut(state_var_idx).unwrap();
+            let prop = &mut component.get_prop_mut(prop_idx).unwrap();
 
-            state_var.save_dependencies(&dependencies_for_state_var);
+            prop.save_dependencies(&dependencies_for_prop);
 
             let dependencies_for_component = &mut dependency_graph.dependencies[component_idx];
 
-            dependencies_for_component[state_var_idx] = dependencies_for_state_var;
+            dependencies_for_component[prop_idx] = dependencies_for_prop;
         }
 
         {
             components[component_idx]
                 .borrow()
-                .get_state_variable(state_var_idx)
+                .get_prop(prop_idx)
                 .unwrap()
                 .set_as_resolved();
         }

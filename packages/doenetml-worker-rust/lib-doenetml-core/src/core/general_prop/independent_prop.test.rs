@@ -1,4 +1,4 @@
-use crate::utils::test_utils::create_state_var_dependency;
+use crate::utils::test_utils::create_prop_dependency;
 
 use super::*;
 use setup_functions::*;
@@ -6,16 +6,15 @@ use setup_functions::*;
 /// check that an independent state variable
 /// gives the correct data query that requests preliminary value
 #[test]
-fn independent_state_var_gives_correct_data_queries() {
+fn independent_prop_gives_correct_data_queries() {
     // boolean
-    let mut state_var: StateVar<bool> = IndependentStateVar::new(false).into_state_var();
-    let queries = state_var.return_data_queries();
+    let mut prop: Prop<bool> = IndependentProp::new(false).into_prop();
+    let queries = prop.return_data_queries();
     assert_eq!(queries, vec![DataQuery::PreliminaryValue,]);
 
     // String
-    let mut state_var: StateVar<String> =
-        IndependentStateVar::new(String::from("")).into_state_var();
-    let queries = state_var.return_data_queries();
+    let mut prop: Prop<String> = IndependentProp::new(String::from("")).into_prop();
+    let queries = prop.return_data_queries();
     assert_eq!(queries, vec![DataQuery::PreliminaryValue,]);
 }
 
@@ -23,33 +22,32 @@ fn independent_state_var_gives_correct_data_queries() {
 /// its value should be the same as its preliminary value,
 /// and its came_from_default should be the same as the preliminary value's came_from_default
 #[test]
-fn calculate_independent_boolean_state_var() {
-    let (state_var, _state_var_view, preliminary_value_var) =
-        set_up_boolean_independent_state_var(false, true);
+fn calculate_independent_boolean_prop() {
+    let (prop, _prop_view, preliminary_value_var) = set_up_boolean_independent_prop(false, true);
 
     // we initialize preliminary value to be false, so should get false
-    state_var.calculate_and_mark_fresh();
-    assert_eq!(*state_var.get(), false);
-    assert_eq!(state_var.came_from_default(), true);
+    prop.calculate_and_mark_fresh();
+    assert_eq!(*prop.get(), false);
+    assert_eq!(prop.came_from_default(), true);
 
     // changing preliminary value to be true, results in state variable being true
     preliminary_value_var.set_value(true);
-    state_var.calculate_and_mark_fresh();
-    assert_eq!(*state_var.get(), true);
-    assert_eq!(state_var.came_from_default(), false);
+    prop.calculate_and_mark_fresh();
+    assert_eq!(*prop.get(), true);
+    assert_eq!(prop.came_from_default(), false);
 }
 
 /// Calling invert on a boolean independent state variable
 /// causes the preliminary value to receive that requested value
 #[test]
-fn invert_independent_boolean_state_var() {
-    let (mut state_var, mut state_var_view, preliminary_value_var) =
-        set_up_boolean_independent_state_var(true, false);
+fn invert_independent_boolean_prop() {
+    let (mut prop, mut prop_view, preliminary_value_var) =
+        set_up_boolean_independent_prop(true, false);
 
     // on the state variable view, record that we request the value be false
-    state_var_view.queue_update(false);
+    prop_view.queue_update(false);
 
-    let invert_result = state_var.invert(false).unwrap();
+    let invert_result = prop.invert(false).unwrap();
 
     // we should get a request informing core that we need to change the variable
     assert_eq!(
@@ -68,33 +66,33 @@ fn invert_independent_boolean_state_var() {
 /// its value should be the same as its preliminary value
 /// and its came_from_default should be the same as the preliminary value's came_from_default
 #[test]
-fn calculate_independent_string_state_var() {
-    let (state_var, _state_var_view, preliminary_value_var) =
-        set_up_string_independent_state_var(String::from("hello"), true);
+fn calculate_independent_string_prop() {
+    let (prop, _prop_view, preliminary_value_var) =
+        set_up_string_independent_prop(String::from("hello"), true);
 
     // we initialize preliminary value to be true, so should get true
-    state_var.calculate_and_mark_fresh();
-    assert_eq!(*state_var.get(), "hello");
-    assert_eq!(state_var.came_from_default(), true);
+    prop.calculate_and_mark_fresh();
+    assert_eq!(*prop.get(), "hello");
+    assert_eq!(prop.came_from_default(), true);
 
     // changing preliminary value to be false, results in state variable being false
     preliminary_value_var.set_value(String::from("bye"));
-    state_var.calculate_and_mark_fresh();
-    assert_eq!(*state_var.get(), "bye");
-    assert_eq!(state_var.came_from_default(), false);
+    prop.calculate_and_mark_fresh();
+    assert_eq!(*prop.get(), "bye");
+    assert_eq!(prop.came_from_default(), false);
 }
 
 /// Calling invert on a string independent state variable
 /// causes the preliminary value to receive that requested value
 #[test]
-fn invert_independent_string_state_var() {
-    let (mut state_var, mut state_var_view, preliminary_value_var) =
-        set_up_string_independent_state_var(String::from("hello"), false);
+fn invert_independent_string_prop() {
+    let (mut prop, mut prop_view, preliminary_value_var) =
+        set_up_string_independent_prop(String::from("hello"), false);
 
     // on the state variable view, record that we request the value be "bye"
-    state_var_view.queue_update(String::from("bye"));
+    prop_view.queue_update(String::from("bye"));
 
-    let invert_result = state_var.invert(false).unwrap();
+    let invert_result = prop.invert(false).unwrap();
 
     // we should get a request informing core that we need to change the variable
     assert_eq!(
@@ -114,62 +112,52 @@ mod setup_functions {
     use super::*;
 
     /// Utility function to set up independent boolean state variable and its preliminary value dependency
-    pub fn set_up_boolean_independent_state_var(
+    pub fn set_up_boolean_independent_prop(
         initial_value: bool,
         came_from_default: bool,
-    ) -> (
-        StateVar<bool>,
-        StateVarView<bool>,
-        StateVarMutableView<bool>,
-    ) {
-        let mut state_var: StateVar<bool> =
-            IndependentStateVar::new(initial_value).into_state_var();
-        let state_var_view = state_var.create_new_read_only_view();
+    ) -> (Prop<bool>, PropView<bool>, PropViewMut<bool>) {
+        let mut prop: Prop<bool> = IndependentProp::new(initial_value).into_prop();
+        let prop_view = prop.create_new_read_only_view();
 
         // need to return data queries since side effect is saving the required data
-        state_var.return_data_queries();
+        prop.return_data_queries();
 
-        // Note: the default_value specified in the creation of state_var above
+        // Note: the default_value specified in the creation of prop above
         // isn't used at this level of testing, so we supply it directly here to match
         let (preliminary_value_dependency, preliminary_value_var) =
-            create_state_var_dependency(initial_value, came_from_default);
+            create_prop_dependency(initial_value, came_from_default);
 
         let dependencies_created_for_data_queries = vec![DependenciesCreatedForDataQuery(vec![
             preliminary_value_dependency,
         ])];
 
-        state_var.save_dependencies(&dependencies_created_for_data_queries);
+        prop.save_dependencies(&dependencies_created_for_data_queries);
 
-        (state_var, state_var_view, preliminary_value_var)
+        (prop, prop_view, preliminary_value_var)
     }
 
     /// Utility function to set up independent string state variable and its preliminary value dependency
-    pub fn set_up_string_independent_state_var(
+    pub fn set_up_string_independent_prop(
         initial_value: String,
         came_from_default: bool,
-    ) -> (
-        StateVar<String>,
-        StateVarView<String>,
-        StateVarMutableView<String>,
-    ) {
-        let mut state_var: StateVar<String> =
-            IndependentStateVar::new(initial_value.clone()).into_state_var();
-        let state_var_view = state_var.create_new_read_only_view();
+    ) -> (Prop<String>, PropView<String>, PropViewMut<String>) {
+        let mut prop: Prop<String> = IndependentProp::new(initial_value.clone()).into_prop();
+        let prop_view = prop.create_new_read_only_view();
 
         // need to return data queries since side effect is saving the required data
-        state_var.return_data_queries();
+        prop.return_data_queries();
 
-        // Note: the default_value specified in the creation of state_var above
+        // Note: the default_value specified in the creation of prop above
         // isn't used at this level of testing, so we supply it directly here to match
         let (preliminary_value_dependency, preliminary_value_var) =
-            create_state_var_dependency(initial_value, came_from_default);
+            create_prop_dependency(initial_value, came_from_default);
 
         let dependencies_created_for_data_queries = vec![DependenciesCreatedForDataQuery(vec![
             preliminary_value_dependency,
         ])];
 
-        state_var.save_dependencies(&dependencies_created_for_data_queries);
+        prop.save_dependencies(&dependencies_created_for_data_queries);
 
-        (state_var, state_var_view, preliminary_value_var)
+        (prop, prop_view, preliminary_value_var)
     }
 }

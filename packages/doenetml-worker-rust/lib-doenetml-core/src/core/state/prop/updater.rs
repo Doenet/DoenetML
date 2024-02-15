@@ -1,6 +1,6 @@
 use enum_dispatch::enum_dispatch;
 
-use state::StateVar;
+use state::Prop;
 use thiserror::Error;
 
 use crate::{
@@ -8,17 +8,17 @@ use crate::{
     state,
 };
 
-use super::StateVarView;
+use super::PropView;
 
 /// The possible results of a call to `calculate`:
 /// - Calculated(T): the value was calculated to be T
 /// - FromDefault(T): the value T was determined from the default value
-/// - From(&StateVarView<T>): set both `value` and `came_from_default` from `StateVarView<T>`
+/// - From(&PropView<T>): set both `value` and `came_from_default` from `PropView<T>`
 #[derive(Debug)]
-pub enum StateVarCalcResult<'a, T: Default + Clone> {
+pub enum PropCalcResult<'a, T: Default + Clone> {
     Calculated(T),
     FromDefault(T),
-    From(&'a StateVarView<T>),
+    From(&'a PropView<T>),
 }
 
 #[derive(Debug, Error)]
@@ -31,7 +31,7 @@ pub enum InvertError {
 
 /// Methods used when updating a state variable's dependencies, including querying for its
 /// dependencies and calculating the value from its dependencies.
-pub trait StateVarUpdater<T: Default + Clone, RequiredData>: std::fmt::Debug {
+pub trait PropUpdater<T: Default + Clone, RequiredData>: std::fmt::Debug {
     /// The default value that core will use to assign the value of this state variable.
     ///
     /// Used only when the state variable doesn't depend on other values
@@ -47,7 +47,7 @@ pub trait StateVarUpdater<T: Default + Clone, RequiredData>: std::fmt::Debug {
 
     /// Calculate the value of the state variable from the passed in `data`.
     /// Results of this function will be cached, so local caching is not needed.
-    fn calculate<'a>(&self, data: &'a RequiredData) -> StateVarCalcResult<'a, T>;
+    fn calculate<'a>(&self, data: &'a RequiredData) -> PropCalcResult<'a, T>;
 
     /// All state variables know how to calculate their value given their dependencies.
     /// Sometimes a state variable is requested to take on a particular value. If the
@@ -67,7 +67,7 @@ pub trait StateVarUpdater<T: Default + Clone, RequiredData>: std::fmt::Debug {
     fn invert(
         &self,
         data: &mut RequiredData,
-        state_var: &StateVarView<T>,
+        prop: &PropView<T>,
         is_direct_change_from_action: bool,
     ) -> Result<Vec<DependencyValueUpdateRequest>, InvertError> {
         Err(InvertError::NotImplemented)
@@ -76,7 +76,7 @@ pub trait StateVarUpdater<T: Default + Clone, RequiredData>: std::fmt::Debug {
 
 /// Methods used when updating a state variable's dependencies, including querying for its
 /// dependencies and calculating the value from its dependencies.
-pub trait StateVarUpdaterWithCache<T: Default + Clone>: std::fmt::Debug {
+pub trait PropUpdaterWithCache<T: Default + Clone>: std::fmt::Debug {
     /// Returns the data queries needed to calculate the dependencies
     /// for this state variable. These queries may be based on structure of the document,
     /// e.g., the children, attributes, or other state variables
@@ -91,7 +91,7 @@ pub trait StateVarUpdaterWithCache<T: Default + Clone>: std::fmt::Debug {
 
     /// Calculate the value of the state variable from the currently cached query results.
     /// Results of this function will be cached, so local caching is not needed.
-    fn calculate(&self) -> StateVarCalcResult<T>;
+    fn calculate(&self) -> PropCalcResult<T>;
 
     /// All state variables know how to calculate their value given their dependencies.
     /// Sometimes a state variable is requested to take on a particular value. If the
@@ -110,46 +110,46 @@ pub trait StateVarUpdaterWithCache<T: Default + Clone>: std::fmt::Debug {
     #[allow(unused)]
     fn invert(
         &mut self,
-        state_var: &StateVarView<T>,
+        prop: &PropView<T>,
         is_direct_change_from_action: bool,
     ) -> Result<Vec<DependencyValueUpdateRequest>, InvertError> {
         Err(InvertError::NotImplemented)
     }
 }
 
-/// The structure we will use to create `StateVarUpdaterWithCache<T>` trait objects
-/// for the `updater` field of a `StateVar<T>`.
+/// The structure we will use to create `PropUpdaterWithCache<T>` trait objects
+/// for the `updater` field of a `Prop<T>`.
 ///
-/// To create a `StateVarUpdaterWithCacheStruct` one needs:
-/// - `SvUpdater`: an object that implements `StateVarUpdater<T, RequiredData>`
+/// To create a `PropUpdaterWithCacheStruct` one needs:
+/// - `SvUpdater`: an object that implements `PropUpdater<T, RequiredData>`
 /// - `RequiredData`: a structure that stores all the required data to calculate the state variable.
 ///   It must implement `FromDependencies` so that it can be from the dependencies
 ///   returned from a data query.
 #[derive(Debug)]
-pub struct StateVarUpdaterWithCacheStruct<SvUpdater, RequiredData: Default> {
-    state_var_updater: SvUpdater,
+pub struct PropUpdaterWithCacheStruct<SvUpdater, RequiredData: Default> {
+    prop_updater: SvUpdater,
     cache: RequiredData,
     queries_used: Vec<usize>,
 }
 
-/// An implementation of `StateVarUpdaterWithCache<T>`
+/// An implementation of `PropUpdaterWithCache<T>`
 /// requires that we specify:
-/// - `T`: the type of `StateVar<T>`
-/// - `SvUpdater`: an object that implements `StateVarUpdater<T, RequiredData>`
+/// - `T`: the type of `Prop<T>`
+/// - `SvUpdater`: an object that implements `PropUpdater<T, RequiredData>`
 /// - `RequiredData`: a structure that stores all the required data to calculate the state variable.
 ///   It must implement `FromDependencies` so that it can be from the dependencies
 ///   returned from a data query.
-impl<T, SvUpdater, RequiredData> StateVarUpdaterWithCache<T>
-    for StateVarUpdaterWithCacheStruct<SvUpdater, RequiredData>
+impl<T, SvUpdater, RequiredData> PropUpdaterWithCache<T>
+    for PropUpdaterWithCacheStruct<SvUpdater, RequiredData>
 where
-    SvUpdater: StateVarUpdater<T, RequiredData>,
+    SvUpdater: PropUpdater<T, RequiredData>,
     T: Default + Clone,
     RequiredData: std::fmt::Debug + Default + FromDependencies,
 {
     fn return_data_queries(&mut self) -> Vec<DataQuery> {
         self.queries_used = Vec::new();
 
-        self.state_var_updater
+        self.prop_updater
             .return_data_queries()
             .into_iter()
             .enumerate()
@@ -166,40 +166,40 @@ where
         self.cache = dependencies.to_data(&self.queries_used);
     }
 
-    fn calculate(&self) -> StateVarCalcResult<T> {
-        self.state_var_updater.calculate(&self.cache)
+    fn calculate(&self) -> PropCalcResult<T> {
+        self.prop_updater.calculate(&self.cache)
     }
 
     fn invert(
         &mut self,
-        state_var: &StateVarView<T>,
+        prop: &PropView<T>,
         is_direct_change_from_action: bool,
     ) -> Result<Vec<DependencyValueUpdateRequest>, InvertError> {
-        self.state_var_updater
-            .invert(&mut self.cache, state_var, is_direct_change_from_action)
+        self.prop_updater
+            .invert(&mut self.cache, prop, is_direct_change_from_action)
     }
 }
 
-pub trait IntoStateVar<T: Default + Clone, RequiredData: Default> {
-    fn into_state_var(self) -> StateVar<T>;
+pub trait IntoProp<T: Default + Clone, RequiredData: Default> {
+    fn into_prop(self) -> Prop<T>;
 }
 
-impl<T, RequiredData, SvUpdater> IntoStateVar<T, RequiredData> for SvUpdater
+impl<T, RequiredData, SvUpdater> IntoProp<T, RequiredData> for SvUpdater
 where
     T: Default + Clone,
     RequiredData: 'static + std::fmt::Debug + Default + FromDependencies,
-    SvUpdater: 'static + StateVarUpdater<T, RequiredData>,
+    SvUpdater: 'static + PropUpdater<T, RequiredData>,
 {
-    /// Convert an object that implements `StateVarUpdater<T, RequiredData>` into a `StateVar<T>`
-    fn into_state_var(self) -> StateVar<T> {
+    /// Convert an object that implements `PropUpdater<T, RequiredData>` into a `Prop<T>`
+    fn into_prop(self) -> Prop<T> {
         let default_value = self.default_value();
 
-        let updater_with_cache = StateVarUpdaterWithCacheStruct {
-            state_var_updater: self,
+        let updater_with_cache = PropUpdaterWithCacheStruct {
+            prop_updater: self,
             cache: Default::default(),
             queries_used: Default::default(),
         };
-        StateVar::new(Box::new(updater_with_cache), default_value)
+        Prop::new(Box::new(updater_with_cache), default_value)
     }
 }
 

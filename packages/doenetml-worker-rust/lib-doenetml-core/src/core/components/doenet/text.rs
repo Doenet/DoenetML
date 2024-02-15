@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::components::prelude::*;
-use crate::general_state_var::{StateVarAlias, StringStateVar};
+use crate::general_prop::{PropAlias, StringProp};
 
 /// Definition of the `<text>` DoenetML component
 #[derive(
@@ -37,21 +37,21 @@ pub struct TextState {
     /// queries for children with the `Text` component profile.
     #[is_public]
     #[for_renderer]
-    #[component_profile_state_variable]
-    value: StateVar<String>,
+    #[component_profile_prop]
+    value: Prop<String>,
 
     /// An alias to the `value` state variable.
     ///
     /// It is marked public so that it can be referenced in DoenetML via `.text`.
     #[is_public]
-    text: StateVar<String>,
+    text: Prop<String>,
 }
 
 impl TextState {
     fn new() -> Self {
         TextState {
-            value: StringStateVar::new_from_children("".to_string()).into_state_var(),
-            text: StateVarAlias::new(TextState::get_value_state_variable_index()).into_state_var(),
+            value: StringProp::new_from_children("".to_string()).into_prop(),
+            text: PropAlias::new(TextState::get_value_prop_index()).into_prop(),
         }
     }
 }

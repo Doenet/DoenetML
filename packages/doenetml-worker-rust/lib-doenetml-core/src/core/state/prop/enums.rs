@@ -6,8 +6,7 @@ use tsify::Tsify;
 use wasm_bindgen::prelude::*;
 
 use doenetml_derive::{
-    FromStateVarIntoStateVarEnumRefs, StateVarMethods, StateVarMethodsMut,
-    StateVarMutableViewMethods, StateVarViewMethods,
+    FromPropIntoPropEnumRefs, PropMethods, PropMethodsMut, PropViewMethods, PropViewMutMethods,
 };
 
 use crate::{
@@ -16,7 +15,7 @@ use crate::{
     dependency::{DataQuery, DependenciesCreatedForDataQuery, DependencyValueUpdateRequest},
 };
 
-use super::{Freshness, InvertError, StateVar, StateVarMutableView, StateVarView, TryFromState};
+use super::{Freshness, InvertError, Prop, PropView, PropViewMut, TryFromState};
 
 ///////////////////////////////////////////////////////////////////////
 // State variable enum views that allow one to refer to state variables
@@ -24,40 +23,40 @@ use super::{Freshness, InvertError, StateVar, StateVarMutableView, StateVarView,
 // Particularly useful for having vectors of mixed type
 ///////////////////////////////////////////////////////////////////////
 
-#[derive(StateVarMethods)]
-pub enum StateVarEnumRef<'a> {
-    Number(&'a StateVar<f64>),
-    Integer(&'a StateVar<i64>),
-    String(&'a StateVar<String>),
-    Boolean(&'a StateVar<bool>),
+#[derive(PropMethods)]
+pub enum PropEnumRef<'a> {
+    Number(&'a Prop<f64>),
+    Integer(&'a Prop<i64>),
+    String(&'a Prop<String>),
+    Boolean(&'a Prop<bool>),
 }
 
-#[derive(StateVarMethods, StateVarMethodsMut)]
-pub enum StateVarEnumRefMut<'a> {
-    Number(&'a mut StateVar<f64>),
-    Integer(&'a mut StateVar<i64>),
-    String(&'a mut StateVar<String>),
-    Boolean(&'a mut StateVar<bool>),
+#[derive(PropMethods, PropMethodsMut)]
+pub enum PropEnumRefMut<'a> {
+    Number(&'a mut Prop<f64>),
+    Integer(&'a mut Prop<i64>),
+    String(&'a mut Prop<String>),
+    Boolean(&'a mut Prop<bool>),
 }
 
 /// An mutable enum view of the value of the state variable.
 /// It includes methods that allow one to view and change the variable.
-#[derive(StateVarMutableViewMethods, derive_more::From)]
-pub enum StateVarMutableViewEnum {
-    Number(StateVarMutableView<f64>),
-    Integer(StateVarMutableView<i64>),
-    String(StateVarMutableView<String>),
-    Boolean(StateVarMutableView<bool>),
+#[derive(PropViewMutMethods, derive_more::From)]
+pub enum PropViewMutEnum {
+    Number(PropViewMut<f64>),
+    Integer(PropViewMut<i64>),
+    String(PropViewMut<String>),
+    Boolean(PropViewMut<bool>),
 }
 
 /// An read-only enum view of the value of the state variable.
 /// It includes methods that allow one to view the variable.
-#[derive(Clone, StateVarViewMethods, derive_more::From)]
-pub enum StateVarViewEnum {
-    Number(StateVarView<f64>),
-    Integer(StateVarView<i64>),
-    String(StateVarView<String>),
-    Boolean(StateVarView<bool>),
+#[derive(Clone, PropViewMethods, derive_more::From)]
+pub enum PropViewEnum {
+    Number(PropView<f64>),
+    Integer(PropView<i64>),
+    String(PropView<String>),
+    Boolean(PropView<bool>),
 }
 
 /// This can contain the value of a state variable of any type,
@@ -70,19 +69,19 @@ pub enum StateVarViewEnum {
     serde::Deserialize,
     derive_more::TryInto,
     derive_more::From,
-    FromStateVarIntoStateVarEnumRefs,
+    FromPropIntoPropEnumRefs,
 )]
 #[serde(untagged)]
 #[cfg_attr(feature = "web", derive(Tsify))]
 #[cfg_attr(feature = "web", tsify(from_wasm_abi))]
-pub enum StateVarValue {
+pub enum PropValue {
     String(String),
     Number(f64),
     Integer(i64),
     Boolean(bool),
 }
 
-impl<'a> StateVarEnumRef<'a> {
+impl<'a> PropEnumRef<'a> {
     /// If creating a component from a reference to this state variable
     /// then create a component of the given type with the given state variable
     /// shadowing the original state variable.
@@ -92,15 +91,15 @@ impl<'a> StateVarEnumRef<'a> {
     /// Returns: a tuple of (component type, state variable name)
     pub fn preferred_component_type(&self) -> &'static str {
         match self {
-            StateVarEnumRef::Number(_) => unimplemented!("Have not yet created number component"),
-            StateVarEnumRef::Integer(_) => unimplemented!("Have not yet created number component"),
-            StateVarEnumRef::String(_) => Text::get_component_type(),
-            StateVarEnumRef::Boolean(_) => Boolean::get_component_type(),
+            PropEnumRef::Number(_) => unimplemented!("Have not yet created number component"),
+            PropEnumRef::Integer(_) => unimplemented!("Have not yet created number component"),
+            PropEnumRef::String(_) => Text::get_component_type(),
+            PropEnumRef::Boolean(_) => Boolean::get_component_type(),
         }
     }
 }
 
-impl fmt::Debug for StateVarMutableViewEnum {
+impl fmt::Debug for PropViewMutEnum {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.get_freshness() {
             Freshness::Fresh => self.get().fmt(f),
@@ -111,7 +110,7 @@ impl fmt::Debug for StateVarMutableViewEnum {
     }
 }
 
-impl fmt::Debug for StateVarViewEnum {
+impl fmt::Debug for PropViewEnum {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.get_freshness() {
             Freshness::Fresh => self.get().fmt(f),

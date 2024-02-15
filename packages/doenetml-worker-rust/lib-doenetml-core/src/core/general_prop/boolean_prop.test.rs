@@ -1,4 +1,4 @@
-use crate::utils::test_utils::create_state_var_dependency;
+use crate::utils::test_utils::create_prop_dependency;
 
 use super::*;
 use setup_functions::*;
@@ -6,11 +6,11 @@ use setup_functions::*;
 /// check that a boolean state variable created from children
 /// gives the correct data query that requests string and boolean children
 #[test]
-fn boolean_state_var_from_children_gives_correct_data_queries() {
+fn boolean_prop_from_children_gives_correct_data_queries() {
     // create a boolean state variable requesting children
-    let mut state_var = BooleanStateVar::new_from_children(false).into_state_var();
+    let mut prop = BooleanProp::new_from_children(false).into_prop();
 
-    let queries = state_var.return_data_queries();
+    let queries = prop.return_data_queries();
 
     assert_eq!(
         queries,
@@ -26,34 +26,33 @@ fn boolean_state_var_from_children_gives_correct_data_queries() {
 /// its value should be the same as the boolean child's value,
 /// and its came_from_default should be the same as the boolean child's came_from_default
 #[test]
-fn boolean_state_var_calculated_from_single_boolean_child() {
+fn boolean_prop_calculated_from_single_boolean_child() {
     // create a boolean state variable with one boolean child
-    let (state_var, _state_var_view, child_var) = set_up_boolean_state_var_with_child(false, true);
+    let (prop, _prop_view, child_var) = set_up_boolean_prop_with_child(false, true);
 
     // we initialize child to be false, so should get false
-    state_var.calculate_and_mark_fresh();
-    assert_eq!(*state_var.get(), false);
-    assert_eq!(state_var.came_from_default(), true);
+    prop.calculate_and_mark_fresh();
+    assert_eq!(*prop.get(), false);
+    assert_eq!(prop.came_from_default(), true);
 
     // changing child to be true, results in state variable being true
     child_var.set_value(true);
-    state_var.calculate_and_mark_fresh();
-    assert_eq!(*state_var.get(), true);
-    assert_eq!(state_var.came_from_default(), false);
+    prop.calculate_and_mark_fresh();
+    assert_eq!(*prop.get(), true);
+    assert_eq!(prop.came_from_default(), false);
 }
 
 /// Calling invert on a boolean state variable with a single boolean child
 /// causes the child to receive that requested value
 #[test]
-fn invert_boolean_state_var_that_has_a_single_boolean_child() {
+fn invert_boolean_prop_that_has_a_single_boolean_child() {
     // create a boolean state variable with one boolean child
-    let (mut state_var, mut state_var_view, child_var) =
-        set_up_boolean_state_var_with_child(true, false);
+    let (mut prop, mut prop_view, child_var) = set_up_boolean_prop_with_child(true, false);
 
     // on the state variable view, record that we request the value be false
-    state_var_view.queue_update(false);
+    prop_view.queue_update(false);
 
-    let invert_result = state_var.invert(false).unwrap();
+    let invert_result = prop.invert(false).unwrap();
 
     // we should get a request informing core that we need to change the variable
     assert_eq!(
@@ -72,71 +71,68 @@ fn invert_boolean_state_var_that_has_a_single_boolean_child() {
 /// its value should is based on converting that string to a boolean
 /// and its `came_from_default` should be `false`.
 #[test]
-fn boolean_state_var_calculated_from_single_string_child() {
+fn boolean_prop_calculated_from_single_string_child() {
     // create a boolean state variable with one string child
-    let (state_var, _state_var_view, child_var) =
-        set_up_boolean_state_var_with_child(String::from("true"), true);
+    let (prop, _prop_view, child_var) = set_up_boolean_prop_with_child(String::from("true"), true);
 
     // the initial value of "true" leads to true
-    state_var.calculate_and_mark_fresh();
-    assert_eq!(*state_var.get(), true);
-    assert_eq!(state_var.came_from_default(), false);
+    prop.calculate_and_mark_fresh();
+    assert_eq!(*prop.get(), true);
+    assert_eq!(prop.came_from_default(), false);
 
     // the value of "false" leads to false
     child_var.set_value(String::from("false"));
-    state_var.calculate_and_mark_fresh();
-    assert_eq!(*state_var.get(), false);
-    assert_eq!(state_var.came_from_default(), false);
+    prop.calculate_and_mark_fresh();
+    assert_eq!(*prop.get(), false);
+    assert_eq!(prop.came_from_default(), false);
 
     // the value of "t" still leads to false
     child_var.set_value(String::from("t"));
-    state_var.calculate_and_mark_fresh();
-    assert_eq!(*state_var.get(), false);
-    assert_eq!(state_var.came_from_default(), false);
+    prop.calculate_and_mark_fresh();
+    assert_eq!(*prop.get(), false);
+    assert_eq!(prop.came_from_default(), false);
 }
 
 /// A boolean state variable based on a single blank string child is false
 #[test]
-fn boolean_state_var_calculated_from_a_blank_string_child_is_false() {
+fn boolean_prop_calculated_from_a_blank_string_child_is_false() {
     // create a boolean state variable with one string child
-    let (state_var, _state_var_view, _child_var) =
-        set_up_boolean_state_var_with_child(String::from(""), false);
+    let (prop, _prop_view, _child_var) = set_up_boolean_prop_with_child(String::from(""), false);
 
     // the initial value of "" leads to false
-    state_var.calculate_and_mark_fresh();
-    assert_eq!(*state_var.get(), false);
+    prop.calculate_and_mark_fresh();
+    assert_eq!(*prop.get(), false);
 }
 
 /// A boolean state variable based on a string child is calculated
 /// in a case-insensitive manner
 #[test]
-fn boolean_state_var_calculated_from_string_child_in_case_insensitive_way() {
+fn boolean_prop_calculated_from_string_child_in_case_insensitive_way() {
     // create a boolean state variable with one string child
-    let (state_var, _state_var_view, child_var) =
-        set_up_boolean_state_var_with_child(String::from("TruE"), false);
+    let (prop, _prop_view, child_var) = set_up_boolean_prop_with_child(String::from("TruE"), false);
 
     // the initial value of "TruE" leads to true
-    state_var.calculate_and_mark_fresh();
-    assert_eq!(*state_var.get(), true);
+    prop.calculate_and_mark_fresh();
+    assert_eq!(*prop.get(), true);
 
     // the value of "T" leads to false
     child_var.set_value(String::from("T"));
-    state_var.calculate_and_mark_fresh();
-    assert_eq!(*state_var.get(), false);
+    prop.calculate_and_mark_fresh();
+    assert_eq!(*prop.get(), false);
 }
 
 /// Calling invert on a boolean state variable with a single boolean child
 /// causes the child to receive that requested value
 #[test]
-fn invert_boolean_state_var_that_has_a_single_string_child() {
+fn invert_boolean_prop_that_has_a_single_string_child() {
     // create a boolean state variable with one string child
-    let (mut state_var, mut state_var_view, child_var) =
-        set_up_boolean_state_var_with_child(String::from("true"), false);
+    let (mut prop, mut prop_view, child_var) =
+        set_up_boolean_prop_with_child(String::from("true"), false);
 
     // on the state variable view, record that we request the value be false
-    state_var_view.queue_update(false);
+    prop_view.queue_update(false);
 
-    let invert_result = state_var.invert(false).unwrap();
+    let invert_result = prop.invert(false).unwrap();
 
     // we should get a request informing core that we need to change the variable
     assert_eq!(
@@ -154,39 +150,39 @@ fn invert_boolean_state_var_that_has_a_single_string_child() {
 /// If a boolean state variable is based on a two string children,
 /// its value should is based on concatenating those strings and then converting to a boolean
 #[test]
-fn boolean_state_var_calculated_from_two_string_children() {
+fn boolean_prop_calculated_from_two_string_children() {
     // create a boolean state variable with two string children
-    let (state_var, _state_var_view, child_var_1, child_var_2) =
-        set_up_boolean_state_var_with_two_children(String::from("Tr"), String::from("Ue"), false);
+    let (prop, _prop_view, child_var_1, child_var_2) =
+        set_up_boolean_prop_with_two_children(String::from("Tr"), String::from("Ue"), false);
 
     // the initial value of "TrUe" leads to true
-    state_var.calculate_and_mark_fresh();
-    assert_eq!(*state_var.get(), true);
+    prop.calculate_and_mark_fresh();
+    assert_eq!(*prop.get(), true);
 
     // switching order leads to false
     child_var_1.set_value(String::from("ue"));
     child_var_2.set_value(String::from("tr"));
-    state_var.calculate_and_mark_fresh();
-    assert_eq!(*state_var.get(), false);
+    prop.calculate_and_mark_fresh();
+    assert_eq!(*prop.get(), false);
 
     // another combination that spells out "true"
     child_var_1.set_value(String::from("tru"));
     child_var_2.set_value(String::from("e"));
-    state_var.calculate_and_mark_fresh();
-    assert_eq!(*state_var.get(), true);
+    prop.calculate_and_mark_fresh();
+    assert_eq!(*prop.get(), true);
 }
 
 /// Cannot invert a boolean state variable with a two boolean children
 #[test]
-fn cannot_invert_boolean_state_var_that_has_two_string_children() {
+fn cannot_invert_boolean_prop_that_has_two_string_children() {
     // create a boolean state variable with two string children
-    let (mut state_var, mut state_var_view, _child_var_1, _child_var_2) =
-        set_up_boolean_state_var_with_two_children(String::from("tr"), String::from("ue"), false);
+    let (mut prop, mut prop_view, _child_var_1, _child_var_2) =
+        set_up_boolean_prop_with_two_children(String::from("tr"), String::from("ue"), false);
 
     // on the state variable view, record that we request the value be false
-    state_var_view.queue_update(false);
+    prop_view.queue_update(false);
 
-    let invert_result = state_var.invert(false);
+    let invert_result = prop.invert(false);
 
     assert!(invert_result.is_err());
 }
@@ -194,11 +190,11 @@ fn cannot_invert_boolean_state_var_that_has_two_string_children() {
 /// check that a boolean state variable created from an attribute
 /// gives the correct data query that requests string and boolean children from that attribute
 #[test]
-fn boolean_state_var_from_attribute_gives_correct_data_queries() {
+fn boolean_prop_from_attribute_gives_correct_data_queries() {
     // create a boolean state variable from attribute
-    let mut state_var = BooleanStateVar::new_from_attribute("my_attr", true).into_state_var();
+    let mut prop = BooleanProp::new_from_attribute("my_attr", true).into_prop();
 
-    let queries = state_var.return_data_queries();
+    let queries = prop.return_data_queries();
 
     assert_eq!(
         queries,
@@ -214,38 +210,38 @@ fn boolean_state_var_from_attribute_gives_correct_data_queries() {
 /// its value should be the same as the boolean child's value
 /// and its came_from_default should be the same as the boolean child's came_from_default
 #[test]
-fn boolean_state_var_calculated_from_single_boolean_attribute_child() {
+fn boolean_prop_calculated_from_single_boolean_attribute_child() {
     // create a boolean state variable with one boolean attribute child
-    let (state_var, _state_var_view, child_var) =
-        set_up_boolean_state_var_with_attribute_child("my_attr", false, true);
+    let (prop, _prop_view, child_var) =
+        set_up_boolean_prop_with_attribute_child("my_attr", false, true);
 
     // we initialize child to be false, so should get false
-    state_var.calculate_and_mark_fresh();
-    assert_eq!(*state_var.get(), false);
-    assert_eq!(state_var.came_from_default(), true);
+    prop.calculate_and_mark_fresh();
+    assert_eq!(*prop.get(), false);
+    assert_eq!(prop.came_from_default(), true);
 
     // changing child to be true, results in state variable being true
     child_var.set_value(true);
-    state_var.calculate_and_mark_fresh();
-    assert_eq!(*state_var.get(), true);
-    assert_eq!(state_var.came_from_default(), false);
+    prop.calculate_and_mark_fresh();
+    assert_eq!(*prop.get(), true);
+    assert_eq!(prop.came_from_default(), false);
 }
 
 /// A boolean state variable based on a single blank string attribute child is true
 #[test]
-fn boolean_state_var_calculated_from_a_blank_string_attribute_child_is_true() {
+fn boolean_prop_calculated_from_a_blank_string_attribute_child_is_true() {
     // create a boolean state variable with one string attribute child
-    let (state_var, _state_var_view, child_var) =
-        set_up_boolean_state_var_with_attribute_child("my_attr", String::from(""), false);
+    let (prop, _prop_view, child_var) =
+        set_up_boolean_prop_with_attribute_child("my_attr", String::from(""), false);
 
     // the initial value of "" leads to false
-    state_var.calculate_and_mark_fresh();
-    assert_eq!(*state_var.get(), true);
+    prop.calculate_and_mark_fresh();
+    assert_eq!(*prop.get(), true);
 
     // changing child to be " ", results in state variable being false
     child_var.set_value(String::from(" "));
-    state_var.calculate_and_mark_fresh();
-    assert_eq!(*state_var.get(), false);
+    prop.calculate_and_mark_fresh();
+    assert_eq!(*prop.get(), false);
 }
 
 mod setup_functions {
@@ -253,102 +249,94 @@ mod setup_functions {
     use super::*;
 
     /// Utility function to set up boolean state variable that depends on one child variable
-    pub fn set_up_boolean_state_var_with_child<T>(
+    pub fn set_up_boolean_prop_with_child<T>(
         initial_value: T,
         came_from_default: bool,
-    ) -> (StateVar<bool>, StateVarView<bool>, StateVarMutableView<T>)
+    ) -> (Prop<bool>, PropView<bool>, PropViewMut<T>)
     where
         T: Default + Clone,
-        StateVarView<T>: TryFromState<StateVarViewEnum>,
-        StateVarViewEnum: From<StateVarView<T>>,
+        PropView<T>: TryFromState<PropViewEnum>,
+        PropViewEnum: From<PropView<T>>,
     {
-        let mut state_var: StateVar<bool> =
-            BooleanStateVar::new_from_children(false).into_state_var();
-        let state_var_view = state_var.create_new_read_only_view();
+        let mut prop: Prop<bool> = BooleanProp::new_from_children(false).into_prop();
+        let prop_view = prop.create_new_read_only_view();
 
         // need to return data queries since side effect is saving the required data
-        state_var.return_data_queries();
+        prop.return_data_queries();
 
         // fulfill data query with one child of type T
         let (child_dependency, child_var) =
-            create_state_var_dependency(initial_value, came_from_default);
+            create_prop_dependency(initial_value, came_from_default);
 
         let dependencies_created_for_data_queries =
             vec![DependenciesCreatedForDataQuery(vec![child_dependency])];
 
-        state_var.save_dependencies(&dependencies_created_for_data_queries);
+        prop.save_dependencies(&dependencies_created_for_data_queries);
 
-        (state_var, state_var_view, child_var)
+        (prop, prop_view, child_var)
     }
 
     /// Utility function to set up boolean state variable that depends on two child variables
-    pub fn set_up_boolean_state_var_with_two_children<T>(
+    pub fn set_up_boolean_prop_with_two_children<T>(
         initial_value_1: T,
         initial_value_2: T,
         came_from_default: bool,
-    ) -> (
-        StateVar<bool>,
-        StateVarView<bool>,
-        StateVarMutableView<T>,
-        StateVarMutableView<T>,
-    )
+    ) -> (Prop<bool>, PropView<bool>, PropViewMut<T>, PropViewMut<T>)
     where
         T: Default + Clone,
-        StateVarView<T>: TryFromState<StateVarViewEnum>,
-        StateVarViewEnum: From<StateVarView<T>>,
+        PropView<T>: TryFromState<PropViewEnum>,
+        PropViewEnum: From<PropView<T>>,
     {
-        let mut state_var: StateVar<bool> =
-            BooleanStateVar::new_from_children(false).into_state_var();
-        let state_var_view = state_var.create_new_read_only_view();
+        let mut prop: Prop<bool> = BooleanProp::new_from_children(false).into_prop();
+        let prop_view = prop.create_new_read_only_view();
 
         // need to return data queries since side effect is saving the required data
-        state_var.return_data_queries();
+        prop.return_data_queries();
 
         // fulfill data query with two children of type T
         let (child_dependency_1, child_var_1) =
-            create_state_var_dependency(initial_value_1, came_from_default);
+            create_prop_dependency(initial_value_1, came_from_default);
 
         // fulfill data query with two children of type T
         let (child_dependency_2, child_var_2) =
-            create_state_var_dependency(initial_value_2, came_from_default);
+            create_prop_dependency(initial_value_2, came_from_default);
 
         let dependencies_created_for_data_queries = vec![DependenciesCreatedForDataQuery(vec![
             child_dependency_1,
             child_dependency_2,
         ])];
 
-        state_var.save_dependencies(&dependencies_created_for_data_queries);
+        prop.save_dependencies(&dependencies_created_for_data_queries);
 
-        (state_var, state_var_view, child_var_1, child_var_2)
+        (prop, prop_view, child_var_1, child_var_2)
     }
 
     /// Utility function to set up boolean state variable that depends on one attribute child variable
-    pub fn set_up_boolean_state_var_with_attribute_child<T>(
+    pub fn set_up_boolean_prop_with_attribute_child<T>(
         attr_name: AttributeName,
         initial_value: T,
         came_from_default: bool,
-    ) -> (StateVar<bool>, StateVarView<bool>, StateVarMutableView<T>)
+    ) -> (Prop<bool>, PropView<bool>, PropViewMut<T>)
     where
         T: Default + Clone,
-        StateVarView<T>: TryFromState<StateVarViewEnum>,
-        StateVarViewEnum: From<StateVarView<T>>,
+        PropView<T>: TryFromState<PropViewEnum>,
+        PropViewEnum: From<PropView<T>>,
     {
-        let mut state_var: StateVar<bool> =
-            BooleanStateVar::new_from_attribute(attr_name, false).into_state_var();
-        let state_var_view = state_var.create_new_read_only_view();
+        let mut prop: Prop<bool> = BooleanProp::new_from_attribute(attr_name, false).into_prop();
+        let prop_view = prop.create_new_read_only_view();
 
         // need to return data queries since side effect is saving the required data
-        state_var.return_data_queries();
+        prop.return_data_queries();
 
         // fulfill data query with one child of type T
         let (child_dependency, child_var) =
-            create_state_var_dependency(initial_value, came_from_default);
+            create_prop_dependency(initial_value, came_from_default);
 
         let dependencies_created_for_data_queries =
             vec![DependenciesCreatedForDataQuery(vec![child_dependency])];
 
-        state_var.save_dependencies(&dependencies_created_for_data_queries);
+        prop.save_dependencies(&dependencies_created_for_data_queries);
 
-        (state_var, state_var_view, child_var)
+        (prop, prop_view, child_var)
     }
 }

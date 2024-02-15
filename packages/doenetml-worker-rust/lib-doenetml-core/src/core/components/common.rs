@@ -8,7 +8,7 @@ use crate::dast::flat_dast::FlatAttribute;
 use serde::{Deserialize, Serialize};
 
 use crate::dast::Position as DastPosition;
-use crate::state::{ComponentState, StateVar, StateVarIdx, StateVarValue};
+use crate::state::{ComponentState, Prop, PropIdx, PropValue};
 use crate::{ComponentIdx, Extending};
 
 use doenetml_derive::RenderedState;
@@ -182,19 +182,19 @@ pub trait ComponentNode: ComponentState {
     /// possible pairings of the `ComponentProfile` that `$ref` may provide and
     /// the index of the state variable that should be set if `$ref` provides that
     /// `ComponentProfile`.
-    fn accepted_profiles(&self) -> Vec<(ComponentProfile, StateVarIdx)> {
+    fn accepted_profiles(&self) -> Vec<(ComponentProfile, PropIdx)> {
         vec![]
     }
 
     /// A vector of the possible profiles this component provides along with the
     /// index of the state variable that you should refer to if you want data satisfying
     /// that profile.
-    fn provided_profiles(&self) -> Vec<(ComponentProfile, StateVarIdx)> {
-        self.get_component_profile_state_variable_indices()
+    fn provided_profiles(&self) -> Vec<(ComponentProfile, PropIdx)> {
+        self.get_component_profile_prop_indices()
             .into_iter()
             .map(|sv_idx| {
-                let state_var = self.get_state_variable(sv_idx).unwrap();
-                (state_var.get_matching_component_profile(), sv_idx)
+                let prop = self.get_prop(sv_idx).unwrap();
+                (prop.get_matching_component_profile(), sv_idx)
             })
             .collect()
     }
@@ -234,31 +234,31 @@ pub trait ComponentAttributes: ComponentNode {
 ///   Disabled,
 /// }
 /// ```
-/// one can call `Attrs::Prefill.state_var()` to get a state variable that will query the `"prefill"`
+/// one can call `Attrs::Prefill.prop()` to get a state variable that will query the `"prefill"`
 /// attribute of a component.
 ///
 /// An implementation might look like
 /// ```ignore
-/// impl AttributeStateVar<String> for Attrs {
-///   fn state_var(&self) -> StateVar<String> {
+/// impl AttributeProp<String> for Attrs {
+///   fn prop(&self) -> Prop<String> {
 ///     match self {
-///       Attrs::Prefill => StringStateVar::new_from_attribute("prefill", "").into_state_var(),
+///       Attrs::Prefill => StringProp::new_from_attribute("prefill", "").into_prop(),
 ///       _ => panic!("This attribute does not have a string state variable."),
 ///     }
 ///   }
 /// }
-/// impl AttributeStateVar<bool> for Attrs {
-///   fn state_var(&self) -> StateVar<bool> {
+/// impl AttributeProp<bool> for Attrs {
+///   fn prop(&self) -> Prop<bool> {
 ///     match self {
-///       Attrs::Disabled => BooleanStateVar::new_from_attribute("disabled", false).into_state_var(),
+///       Attrs::Disabled => BooleanProp::new_from_attribute("disabled", false).into_prop(),
 ///       _ => panic!("This attribute does not have a boolean state variable."),
 ///     }
 ///   }
 /// }
 /// ```
-pub trait AttributeStateVar<T: Default + Clone> {
+pub trait AttributeProp<T: Default + Clone> {
     /// Get a state variable whose value is determined by the attribute.
-    fn state_var(&self) -> StateVar<T>;
+    fn prop(&self) -> Prop<T>;
 }
 
 /// The ComponentActions trait can be derived for a component,
@@ -282,7 +282,7 @@ pub trait ComponentActions: ComponentNode {
     fn on_action(
         &self,
         action: ActionsEnum,
-        resolve_and_retrieve_state_var: &mut dyn FnMut(StateVarIdx) -> StateVarValue,
+        resolve_and_retrieve_prop: &mut dyn FnMut(PropIdx) -> PropValue,
     ) -> Result<Vec<UpdateFromAction>, String> {
         Err(format!(
             "Unknown action '{:?}' called on {}",
@@ -294,7 +294,7 @@ pub trait ComponentActions: ComponentNode {
 
 /// A `ComponentProfile` is used in a `DataQuery` specifying children or attribute children.
 /// A component profile will match children that have a state variable of the corresponding type
-/// that has been designated with `#[component_profile_state_variable]`.
+/// that has been designated with `#[component_profile_prop]`.
 /// When a state variable from a child is matched, the value of that state variable is returned.
 #[derive(Debug, Clone, PartialEq)]
 pub enum ComponentProfile {
@@ -315,13 +315,13 @@ pub enum ComponentProfile {
 impl ComponentProfile {
     /// Return the default value that is associated with the type of state variable
     /// represented by the component profile.
-    pub fn default(&self) -> StateVarValue {
+    pub fn default(&self) -> PropValue {
         match self {
-            ComponentProfile::Boolean => StateVarValue::Boolean(bool::default()),
-            ComponentProfile::Integer => StateVarValue::Integer(i64::default()),
-            ComponentProfile::Number => StateVarValue::Number(f64::default()),
+            ComponentProfile::Boolean => PropValue::Boolean(bool::default()),
+            ComponentProfile::Integer => PropValue::Integer(i64::default()),
+            ComponentProfile::Number => PropValue::Number(f64::default()),
             ComponentProfile::LiteralString | ComponentProfile::String => {
-                StateVarValue::String(String::default())
+                PropValue::String(String::default())
             }
         }
     }
