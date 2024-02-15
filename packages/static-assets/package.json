@@ -21,7 +21,7 @@
     "scripts": {
         "test": "echo \"No tests \"",
         "build": "wireit",
-        "build:schema": "vite-node ./scripts/generate-schema.ts && vite-node ./scripts/generate-entity-map.ts"
+        "build:assets": "vite-node ./scripts/generate-schema.ts && vite-node ./scripts/generate-entity-map.ts && vite-node ./scripts/generate-math-assets.ts"
     },
     "wireit": {
         "build": {

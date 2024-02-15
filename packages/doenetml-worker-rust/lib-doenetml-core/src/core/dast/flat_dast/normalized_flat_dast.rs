@@ -1,4 +1,4 @@
-//! `NormalizedFlatDast`` is a variant of a flat DAST where only `Text`, `Element`, and `Error` children are allowed.
+//! `NormalizedFlatDast` is a variant of a flat DAST where only `Text`, `Element`, and `Error` children are allowed.
 //! To get to normalized form, all refs and function refs must be expanded.
 
 use serde::Serialize;

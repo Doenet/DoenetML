@@ -19,8 +19,8 @@ import {
     returnRoundingAttributeComponentShadowing,
 } from "../utils/rounding";
 import {
-    getTextToMathConverter,
-    getLatexToMathConverter,
+    textToMathFactory,
+    latexToMathFactory,
     roundForDisplay,
     mergeListsWithOtherContainers,
     superSubscriptsToUnicode,
@@ -920,7 +920,7 @@ export default class MathComponent extends InlineComponent {
                 desiredStateVariableValues,
                 stateValues,
             }) {
-                let fromText = getTextToMathConverter({
+                let fromText = textToMathFactory({
                     functionSymbols: await stateValues.functionSymbols,
                     splitSymbols: await stateValues.splitSymbols,
                     parseScientificNotation:
@@ -1853,7 +1853,7 @@ function calculateExpressionWithCodes({ dependencyValues, changes }) {
         expressionWithCodes = me.fromAst("\uFF3F"); // long underscore
     } else {
         if (dependencyValues.format === "text") {
-            let fromText = getTextToMathConverter({
+            let fromText = textToMathFactory({
                 functionSymbols,
                 splitSymbols: dependencyValues.splitSymbols,
                 parseScientificNotation:
@@ -1868,7 +1868,7 @@ function calculateExpressionWithCodes({ dependencyValues, changes }) {
                 );
             }
         } else if (dependencyValues.format === "latex") {
-            let fromLatex = getLatexToMathConverter({
+            let fromLatex = latexToMathFactory({
                 functionSymbols,
                 splitSymbols: dependencyValues.splitSymbols,
                 parseScientificNotation:

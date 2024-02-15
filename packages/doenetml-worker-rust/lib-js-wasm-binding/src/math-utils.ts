@@ -1,194 +1,27 @@
 // @ts-ignore
 import me from "math-expressions";
 
-import { vectorOperators } from "@doenet/utils";
+import { mathAssets } from "@doenet/static-assets";
 
-export var appliedFunctionSymbolsDefault = [
-    "abs",
-    "exp",
-    "log",
-    "ln",
-    "log10",
-    "sign",
-    "sqrt",
-    "erf",
-    "cos",
-    "cosh",
-    "acos",
-    "acosh",
-    "arccos",
-    "arccosh",
-    "cot",
-    "coth",
-    "acot",
-    "acoth",
-    "arccot",
-    "arccoth",
-    "csc",
-    "csch",
-    "acsc",
-    "acsch",
-    "arccsc",
-    "arccsch",
-    "sec",
-    "sech",
-    "asec",
-    "asech",
-    "arcsec",
-    "arcsech",
-    "sin",
-    "sinh",
-    "asin",
-    "asinh",
-    "arcsin",
-    "arcsinh",
-    "tan",
-    "tanh",
-    "atan",
-    "atan2",
-    "atanh",
-    "arctan",
-    "arctanh",
-    "arg",
-    "min",
-    "max",
-    "mean",
-    "median",
-    "floor",
-    "ceil",
-    "round",
-    "sum",
-    "prod",
-    "variance",
-    "std",
-    "count",
-    "mod",
-    "re",
-    "im",
-    "det",
-    "trace",
-    "nPr",
-    "nCr",
-];
+/*************************************************************
+ * These functions were copied over from DoenetML version 0.6.
+ * They should be reworked to fix several issues.
+ * See https://github.com/Doenet/DoenetML/issues/127
+ *************************************************************/
 
-export var appliedFunctionSymbolsDefaultLatex = [
-    "abs",
-    "exp",
-    "log",
-    "ln",
-    "log10",
-    "sign",
-    "sqrt",
-    "erf",
-    "cos",
-    "cosh",
-    "acos",
-    "acosh",
-    "arccos",
-    "arccosh",
-    "cot",
-    "coth",
-    "acot",
-    "acoth",
-    "arccot",
-    "arccoth",
-    "csc",
-    "csch",
-    "acsc",
-    "acsch",
-    "arccsc",
-    "arccsch",
-    "sec",
-    "sech",
-    "asec",
-    "asech",
-    "arcsec",
-    "arcsech",
-    "sin",
-    "sinh",
-    "asin",
-    "asinh",
-    "arcsin",
-    "arcsinh",
-    "tan",
-    "tanh",
-    "atan",
-    "atan2",
-    "atanh",
-    "arctan",
-    "arctanh",
-    "arg",
-    "min",
-    "max",
-    "mean",
-    "median",
-    "floor",
-    "ceil",
-    "round",
-    "sum",
-    "prod",
-    "variance",
-    "std",
-    "count",
-    "mod",
-    "Re",
-    "Im",
-    "det",
-    "trace",
-    "nPr",
-    "nCr",
-];
+export var appliedFunctionSymbolsDefault =
+    mathAssets.appliedFunctionSymbolsDefault;
 
-let allowedLatexSymbols = [
-    "alpha",
-    "beta",
-    "gamma",
-    "Gamma",
-    "delta",
-    "Delta",
-    "epsilon",
-    "zeta",
-    "eta",
-    "theta",
-    "Theta",
-    "iota",
-    "kappa",
-    "lambda",
-    "Lambda",
-    "mu",
-    "nu",
-    "xi",
-    "Xi",
-    "pi",
-    "Pi",
-    "rho",
-    "sigma",
-    "Sigma",
-    "tau",
-    "Tau",
-    "upsilon",
-    "Upsilon",
-    "phi",
-    "Phi",
-    "chi",
-    "psi",
-    "Psi",
-    "omega",
-    "Omega",
-    "partial",
-    "varnothing",
-    "emptyset",
-    "angle",
-    "circ",
-    "$",
-    "%",
-];
+export var appliedFunctionSymbolsDefaultLatex =
+    mathAssets.appliedFunctionSymbolsDefaultLatex;
+
+let allowedLatexSymbols = mathAssets.allowedLatexSymbols;
 
 export var textToAst = new me.converters.textToAstObj({
     appliedFunctionSymbols: appliedFunctionSymbolsDefault,
 });
 
-export function getTextToMathConverter({
+export function textToMathFactory({
     functionSymbols,
     appliedFunctionSymbols = appliedFunctionSymbolsDefault,
     splitSymbols = true,
@@ -215,7 +48,7 @@ export var latexToAst = new me.converters.latexToAstObj({
     allowedLatexSymbols,
 });
 
-export function getLatexToMathConverter({
+export function latexToMathFactory({
     functionSymbols,
     appliedFunctionSymbols = appliedFunctionSymbolsDefaultLatex,
     splitSymbols = true,
@@ -226,93 +59,33 @@ export function getLatexToMathConverter({
     splitSymbols?: boolean;
     parseScientificNotation?: boolean;
 } = {}) {
-    if (splitSymbols) {
-        return (x: string) =>
-            me.fromAst(
-                new me.converters.latexToAstObj({
-                    appliedFunctionSymbols,
-                    functionSymbols,
-                    allowedLatexSymbols,
-                    parseScientificNotation,
-                }).convert(
-                    wrapWordIncludingNumberWithVar(x, parseScientificNotation),
-                ),
-            );
-    } else {
-        return (x: string) =>
-            me.fromAst(
-                new me.converters.latexToAstObj({
-                    appliedFunctionSymbols,
-                    functionSymbols,
-                    allowedLatexSymbols,
-                    parseScientificNotation,
-                }).convert(wrapWordWithVar(x, parseScientificNotation)),
-            );
-    }
+    let wrapper = splitSymbols
+        ? wrapWordIncludingNumberWithOperatorName
+        : wrapWordWithOperatorName;
+
+    return (x: string) =>
+        me.fromAst(
+            new me.converters.latexToAstObj({
+                appliedFunctionSymbols,
+                functionSymbols,
+                allowedLatexSymbols,
+                parseScientificNotation,
+            }).convert(wrapper(x, parseScientificNotation)),
+        );
 }
 
 export function normalizeLatexString(
     latexString: string,
     { unionFromU = false } = {},
 ) {
-    let substitutions = [
-        ["\u03B1", "\\alpha "], // 'α'
-        ["\u03B2", "\\beta "], // 'β'
-        ["\u03D0", "\\beta "], // 'ϐ'
-        ["\u0393", "\\Gamma "], // 'Γ'
-        ["\u03B3", "\\gamma "], // 'γ'
-        ["\u0394", "\\Delta "], // 'Δ'
-        ["\u03B4", "\\delta "], // 'δ'
-        ["\u03B5", "\\epsilon "], // 'ε' should this be varepsilon?
-        ["\u03F5", "\\epsilon "], // 'ϵ'
-        ["\u03B6", "\\zeta "], // 'ζ'
-        ["\u03B7", "\\eta "], // 'η'
-        ["\u0398", "\\Theta "], // 'Θ'
-        ["\u03F4", "\\Theta "], // 'ϴ'
-        ["\u03B8", "\\theta "], // 'θ'
-        ["\u1DBF", "\\theta "], // 'ᶿ'
-        ["\u03D1", "\\theta "], // 'ϑ'
-        ["\u03B9", "\\iota "], // 'ι'
-        ["\u03BA", "\\kappa "], // 'κ'
-        ["\u039B", "\\Lambda "], // 'Λ'
-        ["\u03BB", "\\lambda "], // 'λ'
-        ["\u03BC", "\\mu "], // 'μ'
-        ["\u00B5", "\\mu "], // 'µ' should this be micro?
-        ["\u03BD", "\\nu "], // 'ν'
-        ["\u039E", "\\Xi "], // 'Ξ'
-        ["\u03BE", "\\xi "], // 'ξ'
-        ["\u03A0", "\\Pi "], // 'Π'
-        ["\u03C0", "\\pi "], // 'π'
-        ["\u03D6", "\\pi "], // 'ϖ' should this be varpi?
-        ["\u03C1", "\\rho "], // 'ρ'
-        ["\u03F1", "\\rho "], // 'ϱ' should this be varrho?
-        ["\u03A3", "\\Sigma "], // 'Σ'
-        ["\u03C3", "\\sigma "], // 'σ'
-        ["\u03C2", "\\sigma "], // 'ς' should this be varsigma?
-        ["\u03C4", "\\tau "], // 'τ'
-        ["\u03A5", "\\Upsilon "], // 'Υ'
-        ["\u03C5", "\\upsilon "], // 'υ'
-        ["\u03A6", "\\Phi "], // 'Φ'
-        ["\u03C6", "\\phi "], // 'φ' should this be varphi?
-        ["\u03D5", "\\phi "], // 'ϕ'
-        ["\u03A8", "\\Psi "], // 'Ψ'
-        ["\u03C8", "\\psi "], // 'ψ'
-        ["\u03A9", "\\Omega "], // 'Ω'
-        ["\u03C9", "\\omega "], // 'ω'
-        ["\u2212", "-"], // minus sign
-        ["\u22C5", " \\cdot "], // dot operator
-        ["\u00B7", " \\cdot "], // middle dot
-        ["\u222A", " \\cup "], // ∪
-        ["\u2229", " \\cap "], // ∩
-        ["\u221E", " \\infty "], // ∞
-        ["\u2205", " \\emptyset "], // ∅
-        ["\u2032", "'"], // ′
-    ];
+    let substitutions = mathAssets.latexSubstitutions;
 
-    for (let sub of substitutions) {
-        latexString = latexString.replace(new RegExp(sub[0], "g"), sub[1]);
-    }
+    let re = new RegExp(Object.keys(substitutions).join("|"), "g");
+    latexString = latexString.replace(re, function (matched) {
+        return substitutions[matched];
+    });
 
+    // TODO: figure out what this regex is supposed to match and then annotate with some examples.
     let startLdotsMatch = latexString.match(
         /^(\\ )*(\\ldots|\.(\\ )*\.(\\ )*\.)(\\ )*(.*)$/,
     );
@@ -351,9 +124,13 @@ export function normalizeLatexString(
     return latexString;
 }
 
-function wrapWordWithVar(string: string, parseScientificNotation: boolean) {
-    // wrap words that aren't already in a \operatorname with a \operatorname
-
+/**
+ * wrap words that aren't already in a \operatorname with a \operatorname
+ */
+function wrapWordWithOperatorName(
+    string: string,
+    parseScientificNotation: boolean,
+) {
     let newString = "";
 
     let regex = /\\operatorname\s*{[^{}]*}/;
@@ -361,7 +138,7 @@ function wrapWordWithVar(string: string, parseScientificNotation: boolean) {
     while (match && match.index !== undefined) {
         let beginMatch = match.index;
         let endMatch = beginMatch + match[0].length;
-        newString += wrapWordWithVarSub(
+        newString += wrapWordWithOperatorNameSub(
             string.substring(0, beginMatch),
             parseScientificNotation,
         );
@@ -369,12 +146,15 @@ function wrapWordWithVar(string: string, parseScientificNotation: boolean) {
         string = string.substring(endMatch);
         match = string.match(regex);
     }
-    newString += wrapWordWithVarSub(string, parseScientificNotation);
+    newString += wrapWordWithOperatorNameSub(string, parseScientificNotation);
 
     return newString;
 }
 
-function wrapWordWithVarSub(string: string, parseScientificNotation: boolean) {
+function wrapWordWithOperatorNameSub(
+    string: string,
+    parseScientificNotation: boolean,
+) {
     let newString = "";
 
     const regex = /([^a-zA-Z0-9]?)([a-zA-Z][a-zA-Z0-9]+)([^a-zA-Z0-9]?)/;
@@ -431,7 +211,10 @@ function wrapWordWithVarSub(string: string, parseScientificNotation: boolean) {
     return newString;
 }
 
-function wrapWordIncludingNumberWithVar(
+/**
+ * wrap words that include a number in them and that aren't already in a \operatorname with a \operatorname
+ */
+function wrapWordIncludingNumberWithOperatorName(
     string: string,
     parseScientificNotation: boolean,
 ) {
@@ -442,7 +225,7 @@ function wrapWordIncludingNumberWithVar(
     while (match && match.index !== undefined) {
         let beginMatch = match.index;
         let endMatch = beginMatch + match[0].length;
-        newString += wrapWordIncludingNumberWithVarSub(
+        newString += wrapWordIncludingNumberWithOperatorNameSub(
             string.substring(0, beginMatch),
             parseScientificNotation,
         );
@@ -450,7 +233,7 @@ function wrapWordIncludingNumberWithVar(
         string = string.substring(endMatch);
         match = string.match(regex);
     }
-    newString += wrapWordIncludingNumberWithVarSub(
+    newString += wrapWordIncludingNumberWithOperatorNameSub(
         string,
         parseScientificNotation,
     );
@@ -458,7 +241,7 @@ function wrapWordIncludingNumberWithVar(
     return newString;
 }
 
-function wrapWordIncludingNumberWithVarSub(
+function wrapWordIncludingNumberWithOperatorNameSub(
     string: string,
     parseScientificNotation: boolean,
 ) {

@@ -1,6 +1,6 @@
-//! UntaggedFlatDast is part of the DAST normalization process where the DAST is flattened and all
+//! `UntaggedFlatDast` is part of the DAST normalization process where the DAST is flattened and all
 //! element/ref/etc. nodes are replaced with untagged references to their location in the nodes list.
-//! UntaggedFlatDast allows elements to change type without having to find all places where they are referenced.
+//! `UntaggedFlatDast` allows elements to change type without having to find all places where they are referenced.
 
 use serde::Serialize;
 

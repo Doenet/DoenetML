@@ -6,7 +6,7 @@ import {
     serializedComponentsReviver,
     normalizeMathExpression,
 } from "@doenet/utils";
-import { getLatexToMathConverter, getTextToMathConverter } from "./math";
+import { latexToMathFactory, textToMathFactory } from "./math-utils";
 
 /**
  * Evaluate the Javascript source code with `MathExpressions` and `window` in scope.
@@ -43,7 +43,7 @@ export function parseTextIntoMath(
     functionSymbols: string[],
     parseScientificNotation: boolean,
 ) {
-    let fromText = getTextToMathConverter({
+    let fromText = textToMathFactory({
         splitSymbols: splitSymbols,
         parseScientificNotation: parseScientificNotation,
         functionSymbols,
@@ -53,7 +53,7 @@ export function parseTextIntoMath(
         expression = fromText(text);
     } catch (e) {
         expression = me.fromAst("\uFF3F"); // long underscore
-        console.log("Invalid value for a math of text format: " + text);
+        console.warn("Invalid value for a math of text format: " + text);
     }
 
     return JSON.stringify(expression, serializedComponentsReplacer);
@@ -69,7 +69,7 @@ export function parseLatexIntoMath(
     functionSymbols: string[],
     parseScientificNotation: boolean,
 ) {
-    let fromLatex = getLatexToMathConverter({
+    let fromLatex = latexToMathFactory({
         splitSymbols: splitSymbols,
         parseScientificNotation: parseScientificNotation,
         functionSymbols,
@@ -79,7 +79,7 @@ export function parseLatexIntoMath(
         expression = fromLatex(latex);
     } catch (e) {
         expression = me.fromAst("\uFF3F"); // long underscore
-        console.log("Invalid value for a math of latex format: " + latex);
+        console.warn("Invalid value for a math of latex format: " + latex);
     }
 
     return JSON.stringify(expression, serializedComponentsReplacer);

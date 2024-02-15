@@ -3,7 +3,7 @@ mod latex;
 pub use latex::LatexValueProp;
 
 use crate::components::prelude::*;
-use crate::general_prop::{MathProp, PropAlias};
+use crate::general_prop::MathProp;
 use crate::state::types::math_expr::{MathExpr, MathParser};
 
 /// The state variables that underlie the `<math>` component.
@@ -22,12 +22,6 @@ pub struct MathState {
     #[component_profile_prop]
     value: Prop<MathExpr>,
 
-    /// An alias to the `value` state variable.
-    ///
-    /// It is marked `is_public` so that it can be referenced in DoenetML via `.math`.
-    #[is_public]
-    math: Prop<MathExpr>,
-
     #[is_public]
     #[for_renderer]
     latex: Prop<String>,
@@ -38,7 +32,6 @@ impl MathState {
         MathState {
             value: MathProp::new_from_children(MathExpr::default(), MathParser::Text, true, vec![])
                 .into_prop(),
-            math: PropAlias::new(MathState::get_value_prop_index()).into_prop(),
             latex: LatexValueProp::new().into_prop(),
         }
     }

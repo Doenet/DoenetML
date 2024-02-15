@@ -1,7 +1,10 @@
 use std::collections::HashMap;
 use strum_macros::Display;
 
-use crate::DoenetMLCore;
+use crate::math_via_wasm::{
+    eval_js, math_to_latex, normalize_math, parse_latex_into_math, parse_text_into_math,
+    substitute_into_math,
+};
 
 const BLANK_MATH_OBJECT: &str = "{\"objectType\":\"math-expression\",\"tree\":\"\u{ff3f}\"}";
 /// A mathematical expression represented as a serialized `math-expressions` object.
@@ -43,6 +46,12 @@ impl MathExpr {
     /// - `function_symbols`: a list of the symbols that will be treated as a function,
     ///   i.e., one of these symbols followed by arguments in parentheses
     ///   will be interpreted as apply that function to the arguments (rather than multiplication)
+    ///
+    /// Examples:
+    /// - `MathExpr::from_text("xy", true, &["f"])` is `x` times `y`.
+    /// - `MathExpr::from_text("xy", false, &["f"])` is the multi-character symbol `xy`.
+    /// - `MathExpr::from_text("g(x)", true, &["f", "g"])` is the function `g` evaluated at `x`.
+    /// - `MathExpr::from_text("g(x)", true, &["f"])` is `g` times `x`.
     pub fn from_text<TXT: AsRef<str>, FnSymbol: AsRef<str>>(
         text: TXT,
         split_symbols: bool,
@@ -50,11 +59,10 @@ impl MathExpr {
     ) -> Self {
         let s = text.as_ref();
 
-        let math_object =
-            match DoenetMLCore::parse_text_into_math(s, split_symbols, function_symbols) {
-                Ok(res) => res,
-                Err(_) => BLANK_MATH_OBJECT.to_owned(),
-            };
+        let math_object = match parse_text_into_math(s, split_symbols, function_symbols) {
+            Ok(res) => res,
+            Err(_) => BLANK_MATH_OBJECT.to_owned(),
+        };
 
         MathExpr { math_object }
     }
@@ -68,6 +76,12 @@ impl MathExpr {
     /// - `function_symbols`: a list of the symbols that will be treated as a function,
     ///   i.e., one of these symbols followed by arguments in parentheses
     ///   will be interpreted as apply that function to the arguments (rather than multiplication)
+    ///
+    /// Examples:
+    /// - `MathExpr::from_latex(r#"\frac{xy}{z}"#, true, &["g"])` is `x` times `y` divided by `z`.
+    /// - `MathExpr::from_latex(r#"\frac{xy}{z}"#, false, &["g"])` is the multi-character symbol `xy` divided by `z`.
+    /// - `MathExpr::from_latex("g(x)", true, &["f", "g"])` is the function `g` evaluated at `x`.
+    /// - `MathExpr::from_latex("g(x)", true, &["f"])` is `g` times `x`.
     pub fn from_latex<TXT: AsRef<str>, FnSymbol: AsRef<str>>(
         latex: TXT,
         split_symbols: bool,
@@ -75,19 +89,58 @@ impl MathExpr {
     ) -> Self {
         let s = latex.as_ref();
 
-        let math_object =
-            match DoenetMLCore::parse_latex_into_math(s, split_symbols, function_symbols) {
-                Ok(res) => res,
-                Err(_) => BLANK_MATH_OBJECT.to_owned(),
-            };
+        let math_object = match parse_latex_into_math(s, split_symbols, function_symbols) {
+            Ok(res) => res,
+            Err(_) => BLANK_MATH_OBJECT.to_owned(),
+        };
 
         MathExpr { math_object }
     }
 
     /// Return a LaTeX string that corresponds to the mathematical expression.
     /// The behavior is controlled by `params`.
+    ///
+    /// Examples:
+    ///
+    /// ```no_run
+    /// # use doenetml_core::state::types::math_expr::{MathExpr, ToLatexParams};
+    /// let expr = MathExpr::from_text("123 / 0.05", true, &["f"]);
+    ///
+    /// assert_eq!(
+    ///     expr.to_latex(ToLatexParams::default()),
+    ///     r#"\frac{123}{0.05}"#
+    /// );
+    ///
+    /// let pad_three_decimals = ToLatexParams {
+    ///     pad_to_decimals: Some(3),
+    ///     ..Default::default()
+    /// };
+    /// assert_eq!(
+    ///     expr.to_latex(pad_three_decimals),
+    ///     r#"\frac{123.000}{0.050}"#
+    /// );
+    ///
+    /// let pad_four_digits = ToLatexParams {
+    ///     pad_to_digits: Some(4),
+    ///     ..Default::default()
+    /// };
+    /// assert_eq!(expr.to_latex(pad_four_digits), r#"\frac{123.0}{0.05000}"#);
+    ///
+    /// let expr_with_blanks = MathExpr::from_text("x + ()", true, &["f"]);
+    ///
+    /// assert_eq!(
+    ///     expr_with_blanks.to_latex(ToLatexParams::default()),
+    ///     "x + \u{FF3F}"
+    /// );
+    ///
+    /// let hide_blanks = ToLatexParams {
+    ///     show_blanks: false,
+    ///     ..Default::default()
+    /// };
+    /// assert_eq!(expr_with_blanks.to_latex(hide_blanks), "x + ");
+    /// ```
     pub fn to_latex(&self, params: ToLatexParams) -> String {
-        match DoenetMLCore::to_latex(&self.math_object, params) {
+        match math_to_latex(&self.math_object, params) {
             Ok(res) => res,
             Err(_) => BLANK_MATH_OBJECT.to_owned(),
         }
@@ -97,9 +150,22 @@ impl MathExpr {
     ///
     /// Parameters:
     /// - `substitutions`: a `HashMap` mapping variables to new expressions
+    ///
+    /// Example:
+    ///
+    /// ```no_run
+    /// # use doenetml_core::state::types::math_expr::{MathExpr, MathOrPrimitive, ToLatexParams};
+    /// # use std::collections::HashMap;
+    /// let expr1 = MathExpr::from_text("x+y", true, &["f"]);
+    ///
+    /// let substitutions =
+    ///     HashMap::from([("y".to_string(), MathOrPrimitive::String("z".to_string()))]);
+    /// let expr2 = expr1.substitute(&substitutions);
+    ///
+    /// assert_eq!(expr2.to_latex(ToLatexParams::default()), "x + z");
+    /// ```
     pub fn substitute(&self, substitutions: &HashMap<String, MathOrPrimitive>) -> MathExpr {
-        let math_object = match DoenetMLCore::substitute_into_math(&self.math_object, substitutions)
-        {
+        let math_object = match substitute_into_math(&self.math_object, substitutions) {
             Ok(res) => res,
             Err(_) => BLANK_MATH_OBJECT.to_owned(),
         };
@@ -108,8 +174,28 @@ impl MathExpr {
     }
 
     /// Normalize a mathematical expression as specified in `params`.
+    ///
+    /// Example:
+    ///
+    /// ```no_run
+    /// # use doenetml_core::state::types::math_expr::{MathExpr, MathSimplify, NormalizeParams, ToLatexParams};
+    /// let expr = MathExpr::from_text("(x+x+1)(2y+1-y)", true, &["f"]);
+    ///
+    /// let lp = ToLatexParams::default();
+    ///
+    /// let simplify_expand = NormalizeParams {
+    ///     simplify: MathSimplify::Full,
+    ///     expand: true,
+    ///     ..Default::default()
+    /// };
+    ///
+    /// assert_eq!(
+    ///     expr.normalize(simplify_expand).to_latex(lp),
+    ///     "2 x y + 2 x + y + 1"
+    /// );
+    /// ```
     pub fn normalize(&self, params: NormalizeParams) -> MathExpr {
-        let math_object = match DoenetMLCore::normalize_math(&self.math_object, params) {
+        let math_object = match normalize_math(&self.math_object, params) {
             Ok(res) => res,
             Err(_) => BLANK_MATH_OBJECT.to_owned(),
         };
@@ -126,7 +212,7 @@ impl MathExpr {
             self.math_object, term
         );
 
-        let math_object = match DoenetMLCore::eval_js(&js_source) {
+        let math_object = match eval_js(&js_source) {
             Ok(res) => res,
             Err(_) => BLANK_MATH_OBJECT.to_owned(),
         };
@@ -143,7 +229,7 @@ impl MathExpr {
             self.math_object, term
         );
 
-        let math_object = match DoenetMLCore::eval_js(&js_source) {
+        let math_object = match eval_js(&js_source) {
             Ok(res) => res,
             Err(_) => BLANK_MATH_OBJECT.to_owned(),
         };
@@ -160,7 +246,7 @@ impl MathExpr {
             self.math_object, factor
         );
 
-        let math_object = match DoenetMLCore::eval_js(&js_source) {
+        let math_object = match eval_js(&js_source) {
             Ok(res) => res,
             Err(_) => BLANK_MATH_OBJECT.to_owned(),
         };
@@ -177,7 +263,7 @@ impl MathExpr {
             self.math_object, factor
         );
 
-        let math_object = match DoenetMLCore::eval_js(&js_source) {
+        let math_object = match eval_js(&js_source) {
             Ok(res) => res,
             Err(_) => BLANK_MATH_OBJECT.to_owned(),
         };
@@ -197,14 +283,14 @@ pub enum MathOrPrimitive {
 }
 
 /// Parameters for creating a latex string from a `Math`:
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct ToLatexParams {
     /// If present, then pad numbers with zeros so they have at least
     /// this many decimal places after the decimal point displayed.
-    pub pad_to_decimals: Option<i32>,
+    pub pad_to_decimals: Option<u32>,
     /// If present, then pad numbers with zeros so they have at least
     /// this many total digits displayed.
-    pub pad_to_digits: Option<i32>,
+    pub pad_to_digits: Option<u32>,
     /// If true, then display any blanks in the mathematical expression
     /// as a long underscore.
     pub show_blanks: bool,
@@ -220,27 +306,81 @@ impl Default for ToLatexParams {
     }
 }
 /// Levels of simplification of mathematical expressions.
-#[derive(Debug, Display, Default)]
+///
+/// Examples:
+///
+/// ```no_run
+/// # use doenetml_core::state::types::math_expr::{MathExpr, MathSimplify, NormalizeParams, ToLatexParams};
+/// let expr = MathExpr::from_text("1+x+x+2+3", true, &["f"]);
+///
+/// let lp = ToLatexParams::default();
+///
+/// let simplify_full = NormalizeParams {
+///     simplify: MathSimplify::Full,
+///     ..Default::default()
+/// };
+///
+/// assert_eq!(expr.normalize(simplify_full).to_latex(lp), "2 x + 6");
+///
+/// let simplify_numbers = NormalizeParams {
+///     simplify: MathSimplify::Numbers,
+///     ..Default::default()
+/// };
+///
+/// assert_eq!(expr.normalize(simplify_numbers).to_latex(lp), "x + x + 6");
+///
+/// let simplify_numbers_preserve_order = NormalizeParams {
+///     simplify: MathSimplify::NumbersPreserveOrder,
+///     ..Default::default()
+/// };
+///
+/// assert_eq!(
+///     expr.normalize(simplify_numbers_preserve_order).to_latex(lp),
+///     "1 + x + x + 5"
+/// );
+/// ```
+#[derive(Debug, Display, Default, Clone, Copy)]
 #[strum(serialize_all = "camelCase")]
 pub enum MathSimplify {
     /// No simplification is performed.
-    #[default]
     None,
-    /// Simplify numbers, such as simplify `1+1` to 2,
-    /// except do not change the order between numerical and non-numerical operands.
-    /// Do not alter non-numerical expressions.
+    /// Simplify numbers within the expression, such as simplify `1+1` to 2,
+    /// except do not change the order between numerical and non-numerical operands (such as a variable).
     NumbersPreserveOrder,
-    /// Simplify numbers, such as simplify `1+1` to 2,
-    /// Do not alter non-numerical expressions.
+    /// Simplify numbers within the expression, such as simplify `1+1` to 2,
     Numbers,
     /// Simplify the mathematical expression using the currently
     /// implemented features. These features are limited and subject to change.
     /// For example, simplification of ratio expressions is essentially non-existent.
+    #[default]
     Full,
 }
 
 /// Parameters for normalizing a mathematical expression
-#[derive(Debug, Default)]
+///  
+/// Example:
+///
+/// ```no_run
+/// # use doenetml_core::state::types::math_expr::{MathExpr, MathSimplify, NormalizeParams, ToLatexParams};
+/// let expr = MathExpr::from_text("(x+x+1)(2y+1-y)", true, &["f"]);
+///
+/// let lp = ToLatexParams::default();
+///
+/// let simplify_expand = NormalizeParams {
+///     simplify: MathSimplify::Full,
+///     expand: true,
+///     ..Default::default()
+/// };
+///
+/// assert_eq!(
+///     expr.normalize(simplify_expand).to_latex(lp),
+///     "2 x y + 2 x + y + 1"
+/// );
+/// ```
+
+// TODO: add examples with createVectors and createIntervals
+// once have a way to demonstrate their effect
+#[derive(Debug, Default, Clone, Copy)]
 pub struct NormalizeParams {
     /// We currently support four options for `simplify`:
     /// - `MathSimplify::None`: no simplification
