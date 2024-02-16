@@ -35,7 +35,7 @@ pub fn create_dependencies_from_data_query_initialize_state(
             // is shared with the extend source of any other components that is extending from it.
             let source_idx = get_component_extend_source_origin(components, component_idx);
 
-            let state_origin = StatePropDataOrigin::PropPreliminaryValue(prop_idx);
+            let state_origin = StatePropDataOrigin::State(prop_idx);
 
             let state_data_view =
                 if let Some(current_view) = state_data[source_idx].get(&state_origin) {
@@ -400,7 +400,7 @@ pub fn create_dependencies_from_data_query_initialize_state(
                             if match_profiles.contains(&ComponentProfile::String)
                                 || match_profiles.contains(&ComponentProfile::LiteralString)
                             {
-                                let state_origin = StatePropDataOrigin::AttributeChild(
+                                let state_origin = StatePropDataOrigin::Attribute(
                                     attribute_name,
                                     state_data_index,
                                 );
@@ -449,7 +449,7 @@ pub fn create_dependencies_from_data_query_initialize_state(
                 // in order to share the state data with the extend source.
                 let source_idx = get_component_extend_source_origin(components, component_idx);
                 let state_origin =
-                    StatePropDataOrigin::AttributeChildSubstitute(attribute_name, prop_idx);
+                    StatePropDataOrigin::AttributeSubstitute(attribute_name, prop_idx);
 
                 let state_data_view = if let Some(current_view) =
                     state_data[source_idx].get(&state_origin)
