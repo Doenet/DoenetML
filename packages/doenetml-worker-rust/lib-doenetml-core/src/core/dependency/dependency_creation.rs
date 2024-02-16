@@ -31,8 +31,8 @@ pub fn create_dependencies_from_data_query_initialize_state(
 ) -> DependenciesCreatedForDataQuery {
     match query {
         DataQuery::State => {
-            // We recurse to extend source components so that this preliminary value data
-            // is shared with the extend source of any other components that extend from it.
+            // We recurse to extend source components so that this state data
+            // is shared with the extend source of any other components that is extending from it.
             let source_idx = get_component_extend_source_origin(components, component_idx);
 
             let state_origin = StatePropDataOrigin::PropPreliminaryValue(prop_idx);
