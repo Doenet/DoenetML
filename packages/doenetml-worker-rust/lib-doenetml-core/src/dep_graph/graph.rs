@@ -5,7 +5,7 @@ use std::{collections::HashMap, fmt::Debug, hash::Hash};
 ///
 /// Example using `HashMap` as the `Indexable` type:
 /// ```rust
-/// # use doenetml_core::graph::graph::Graph;
+/// # use doenetml_core::dep_graph::graph::Graph;
 /// use std::collections::HashMap;
 /// // Make a graph
 /// // a -> b -> c
