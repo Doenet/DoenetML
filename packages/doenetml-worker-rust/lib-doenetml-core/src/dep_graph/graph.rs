@@ -1,9 +1,9 @@
 use std::{collections::HashMap, fmt::Debug, hash::Hash};
 
-/// An abstract graph. The speed of lookups is determined by the `Indexable` type,
+/// An abstract graph. The speed of lookups is determined by the `Taggable` type,
 /// which is used to map `Node -> usize` for lookups in the internal data structures.
 ///
-/// Example using `HashMap` as the `Indexable` type:
+/// Example using `HashMap` as the `Taggable` type:
 /// ```rust
 /// # use doenetml_core::dep_graph::graph::Graph;
 /// use std::collections::HashMap;
@@ -21,7 +21,7 @@ use std::{collections::HashMap, fmt::Debug, hash::Hash};
 /// ```
 #[derive(Debug)]
 pub struct Graph<Node: Clone + Eq + Hash + Debug, Index: Taggable<Node, usize>> {
-    /// An `Indexable` that allows for looking up the index of a node in the graph.
+    /// An `Taggable` that allows for looking up the index of a node in the graph.
     /// I.e., used for `Node -> usize` lookups.
     index: Index,
     /// The nodes in the graph. Internally nodes are represented as `usize`. But `Graph` stores nodes
