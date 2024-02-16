@@ -38,7 +38,7 @@ pub fn process_prop_update_request(
         // log!("Process update request: {:?}", update_request);
 
         match update_request {
-            PropUpdateRequest::SetStateValue(state) => {
+            PropUpdateRequest::SetState(state) => {
                 // We reached a leaf of the dependency graph.
                 // Set it to its requested value (which has been set in a previous step),
                 // and then recursively mark all its dependencies as stale.
@@ -232,7 +232,7 @@ fn convert_dependency_updates_requested_to_prop_update_requests(
             DependencySource::State {
                 component_idx,
                 origin,
-            } => update_requests.push(PropUpdateRequest::SetStateValue(StatePropDescription {
+            } => update_requests.push(PropUpdateRequest::SetState(StatePropDescription {
                 component_idx: *component_idx,
                 origin: origin.clone(),
             })),

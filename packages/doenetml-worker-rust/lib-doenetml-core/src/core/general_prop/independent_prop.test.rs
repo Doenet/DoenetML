@@ -10,12 +10,12 @@ fn independent_prop_gives_correct_data_queries() {
     // boolean
     let mut prop: Prop<bool> = IndependentProp::new(false).into_prop();
     let queries = prop.return_data_queries();
-    assert_eq!(queries, vec![DataQuery::PreliminaryValue,]);
+    assert_eq!(queries, vec![DataQuery::State,]);
 
     // String
     let mut prop: Prop<String> = IndependentProp::new(String::from("")).into_prop();
     let queries = prop.return_data_queries();
-    assert_eq!(queries, vec![DataQuery::PreliminaryValue,]);
+    assert_eq!(queries, vec![DataQuery::State,]);
 }
 
 /// For an independent boolean prop,

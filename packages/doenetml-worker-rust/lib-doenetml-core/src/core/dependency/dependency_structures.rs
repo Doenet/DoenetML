@@ -49,7 +49,7 @@ pub enum DataQuery {
     /// Query for a prop from a parent
     Parent { prop_name: PropName },
     /// Query for all children of an attribute that match the prescribed `ComponentProfile`
-    AttributeChild {
+    Attribute {
         /// The name of the attribute whose children will be matched.
         attribute_name: AttributeName,
 
@@ -72,7 +72,7 @@ pub enum DataQuery {
     #[default]
     /// Will be initialized with the default value of this prop
     /// and will accept any change when inverting.
-    PreliminaryValue,
+    State,
 }
 
 // TODO: determine what the structure of DependencySource should be

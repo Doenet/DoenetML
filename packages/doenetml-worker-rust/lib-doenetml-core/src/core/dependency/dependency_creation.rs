@@ -30,7 +30,7 @@ pub fn create_dependencies_from_data_query_initialize_state(
     state_data: &mut Vec<HashMap<StatePropDataOrigin, StateProp>>,
 ) -> DependenciesCreatedForDataQuery {
     match query {
-        DataQuery::PreliminaryValue => {
+        DataQuery::State => {
             // We recurse to extend source components so that this preliminary value data
             // is shared with the extend source of any other components that extend from it.
             let source_idx = get_component_extend_source_origin(components, component_idx);
@@ -339,7 +339,7 @@ pub fn create_dependencies_from_data_query_initialize_state(
             DependenciesCreatedForDataQuery(dependencies)
         }
 
-        DataQuery::AttributeChild {
+        DataQuery::Attribute {
             attribute_name,
             match_profiles,
             always_return_value,

@@ -1,6 +1,7 @@
 #![allow(clippy::single_match)]
 
 pub mod core;
+pub mod dep_graph;
 pub mod utils;
 
 pub use crate::core::*;

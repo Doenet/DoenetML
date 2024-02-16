@@ -66,7 +66,7 @@ impl BooleanProp {
     /// If there are no matching attribute children, the prop will be initialized with `default_value`.
     pub fn new_from_attribute(attr_name: AttributeName, default_value: bool) -> Self {
         BooleanProp {
-            data_query: DataQuery::AttributeChild {
+            data_query: DataQuery::Attribute {
                 attribute_name: attr_name,
                 match_profiles: vec![ComponentProfile::String, ComponentProfile::Boolean],
                 always_return_value: true,

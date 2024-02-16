@@ -121,7 +121,7 @@ fn string_prop_from_attribute_gives_correct_data_queries() {
 
     assert_eq!(
         queries,
-        vec![DataQuery::AttributeChild {
+        vec![DataQuery::Attribute {
             attribute_name: "my_attr",
             match_profiles: vec![ComponentProfile::String],
             always_return_value: true

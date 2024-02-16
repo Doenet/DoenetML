@@ -39,7 +39,7 @@ pub fn get_prop_value(
 /// Internal structure used to track changes
 #[derive(Debug, Clone)]
 pub enum PropUpdateRequest {
-    SetStateValue(StatePropDescription),
+    SetState(StatePropDescription),
     SetProp(PropPointer),
 }
 
@@ -304,7 +304,7 @@ pub fn resolve_prop(
         let mut dependencies_for_prop = Vec::with_capacity(data_queries.len());
 
         for query in data_queries.iter() {
-            let instruct_dependencies = create_dependencies_from_data_query_initialize_state(
+            let deps = create_dependencies_from_data_query_initialize_state(
                 components,
                 component_idx,
                 prop_idx,
@@ -314,7 +314,7 @@ pub fn resolve_prop(
 
             // add these dependencies to the inverse graph:
             // dependent_on_prop or dependent_on_state.
-            for dep in instruct_dependencies.iter() {
+            for dep in deps.iter() {
                 match &dep.source {
                     DependencySource::Prop {
                         component_idx: inner_comp_idx,
@@ -341,7 +341,7 @@ pub fn resolve_prop(
                 }
             }
 
-            for dep in instruct_dependencies.iter() {
+            for dep in deps.iter() {
                 if let DependencySource::Prop {
                     component_idx: comp_idx_inner,
                     prop_idx: prop_idx_inner,
@@ -361,7 +361,7 @@ pub fn resolve_prop(
                 }
             }
 
-            dependencies_for_prop.push(instruct_dependencies);
+            dependencies_for_prop.push(deps);
         }
 
         {
