@@ -94,7 +94,7 @@ pub fn create_dependencies_from_data_query_initialize_state(
             }])
         }
 
-        DataQuery::Parent { prop_name } => {
+        DataQuery::ParentProp { prop_name } => {
             // Create a dependency that references the value of prop_name
             // from the parent of this component
 
@@ -121,7 +121,7 @@ pub fn create_dependencies_from_data_query_initialize_state(
             }])
         }
 
-        DataQuery::Child {
+        DataQuery::ChildPropProfile {
             match_profiles,
             exclude_if_prefer_profiles,
             always_return_value,

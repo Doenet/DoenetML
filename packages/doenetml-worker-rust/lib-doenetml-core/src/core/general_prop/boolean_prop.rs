@@ -50,7 +50,7 @@ impl BooleanProp {
     /// If there are no matching children, the prop will be initialized with `default_value`.
     pub fn new_from_children(default_value: bool) -> Self {
         BooleanProp {
-            data_query: DataQuery::Child {
+            data_query: DataQuery::ChildPropProfile {
                 match_profiles: vec![ComponentProfile::String, ComponentProfile::Boolean],
                 exclude_if_prefer_profiles: vec![],
                 always_return_value: true,
