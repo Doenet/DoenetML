@@ -15,7 +15,7 @@ use crate::{
 #[derive(Debug, Clone, Default, PartialEq)]
 pub enum DataQuery {
     /// Query for all children that match the prescribed `ComponentProfile`s.
-    Child {
+    ChildPropProfile {
         /// The data query will match child components that have at least one of these profiles
         /// unless the child component has one of the profiles in `exclude_if_prefer_profiles`
         /// ranked higher
@@ -47,9 +47,9 @@ pub enum DataQuery {
         prop_idx: PropIdx,
     },
     /// Query for a prop from a parent
-    Parent { prop_name: PropName },
+    ParentProp { prop_name: PropName },
     /// Query for all children of an attribute that match the prescribed `ComponentProfile`
-    AttributeChild {
+    Attribute {
         /// The name of the attribute whose children will be matched.
         attribute_name: AttributeName,
 
@@ -72,7 +72,7 @@ pub enum DataQuery {
     #[default]
     /// Will be initialized with the default value of this prop
     /// and will accept any change when inverting.
-    PreliminaryValue,
+    State,
 }
 
 // TODO: determine what the structure of DependencySource should be

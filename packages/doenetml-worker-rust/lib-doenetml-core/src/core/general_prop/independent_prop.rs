@@ -41,7 +41,7 @@ where
 
     fn return_data_queries(&self) -> Vec<Option<DataQuery>> {
         RequiredDataQueries {
-            preliminary_value: Some(DataQuery::PreliminaryValue),
+            preliminary_value: Some(DataQuery::State),
         }
         .into()
     }
