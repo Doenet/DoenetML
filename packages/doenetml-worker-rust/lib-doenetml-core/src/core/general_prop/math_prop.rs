@@ -16,7 +16,7 @@ pub struct MathProp {
     parser: MathParser,
 
     // TODO: these should be incoming props
-    split_symbols: bool,
+    split_symbols: DataQuery,
     function_symbols: Vec<String>,
 
     /// A cached value of the expression template used to calculate the final mathematical expression,
@@ -33,6 +33,8 @@ pub struct MathProp {
 pub struct RequiredData {
     /// A vector of the math or string values of the dependencies coming from the data_query
     maths_and_strings: Vec<MathOrString>,
+
+    split_symbols: PropView<bool>,
 }
 
 impl MathProp {
@@ -40,7 +42,7 @@ impl MathProp {
     pub fn new(
         data_query: DataQuery,
         parser: MathParser,
-        split_symbols: bool,
+        split_symbols: DataQuery,
         function_symbols: Vec<String>,
     ) -> Self {
         MathProp {
@@ -59,7 +61,7 @@ impl MathProp {
     pub fn new_from_children(
         default_value: MathExpr,
         parser: MathParser,
-        split_symbols: bool,
+        split_symbols: DataQuery,
         function_symbols: Vec<String>,
     ) -> Self {
         MathProp {
@@ -84,7 +86,7 @@ impl MathProp {
         attr_name: AttributeName,
         default_value: S,
         parser: MathParser,
-        split_symbols: bool,
+        split_symbols: DataQuery,
         function_symbols: Vec<String>,
     ) -> Self {
         MathProp {
@@ -110,6 +112,7 @@ impl PropUpdater<MathExpr, RequiredData> for MathProp {
     fn return_data_queries(&self) -> Vec<Option<DataQuery>> {
         RequiredDataQueries {
             maths_and_strings: Some(self.data_query.clone()),
+            split_symbols: Some(self.split_symbols.clone()),
         }
         .into()
     }
@@ -125,18 +128,20 @@ impl PropUpdater<MathExpr, RequiredData> for MathProp {
                         math_value.prop_calc_result_from()
                     }
                     MathOrString::String(string_value) => {
-                        if string_value.changed_since_last_viewed() {
+                        if string_value.changed_since_last_viewed()
+                            || data.split_symbols.changed_since_last_viewed()
+                        {
                             // If we are basing a math on a single string value,
                             // then parse that string into a math expression.
                             let math_expr = match self.parser {
                                 MathParser::Text => MathExpr::from_text(
                                     string_value.get_value_record_viewed().clone(),
-                                    self.split_symbols,
+                                    *data.split_symbols.get_value_record_viewed(),
                                     &self.function_symbols,
                                 ),
                                 MathParser::Latex => MathExpr::from_latex(
                                     string_value.get_value_record_viewed().clone(),
-                                    self.split_symbols,
+                                    *data.split_symbols.get_value_record_viewed(),
                                     &self.function_symbols,
                                 ),
                             };
@@ -177,17 +182,16 @@ impl PropUpdater<MathExpr, RequiredData> for MathProp {
                     })
                     .any(|view| view.changed_since_last_viewed());
 
-                if self.expression_template_cache.is_none() || string_changed {
-                    // Either this is the first time through or a string child has changed.
+                if string_changed || data.split_symbols.changed_since_last_viewed() {
+                    // Either a string child has changed or split_symbols change (the latter catches the first time calculate is called).
                     // We need to recalculate the parsed template.
-                    // Note: we can't just check if a string changed, as there may be no string components.
 
                     // Create the expression template from concatenating all values
                     // while substituting codes for the math values
                     let (expression_template, math_codes) = calc_expression_template(
                         &mut data.maths_and_strings,
                         self.parser,
-                        self.split_symbols,
+                        *data.split_symbols.get_value_record_viewed(),
                         &self.function_symbols,
                     );
 

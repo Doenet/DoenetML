@@ -24,7 +24,7 @@ impl LatexValueProp {
 impl PropUpdater<String, RequiredData> for LatexValueProp {
     fn return_data_queries(&self) -> Vec<Option<DataQuery>> {
         RequiredDataQueries {
-            value: Some(MathState::get_value_data_queries()),
+            value: Some(MathState::get_value_data_query()),
         }
         .into()
     }

@@ -108,7 +108,7 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
                     let mut rendered_props_struct_statements = Vec::new();
 
                     let mut get_prop_index_functions = Vec::new();
-                    let mut get_value_data_queries_functions = Vec::new();
+                    let mut get_value_data_query_functions = Vec::new();
                     let mut update_from_action_functions = Vec::new();
 
                     let renderer_props_name = format!("Rendered{}", structure_identity);
@@ -193,15 +193,14 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
                             }
                         });
 
-                        let get_queries_function_name =
-                            format!("get_{}_data_queries", field_identity);
-                        let get_queries_function_identity =
-                            Ident::new(&get_queries_function_name, Span::call_site());
+                        let get_query_function_name = format!("get_{}_data_query", field_identity);
+                        let get_query_function_identity =
+                            Ident::new(&get_query_function_name, Span::call_site());
 
-                        get_value_data_queries_functions.push(quote! {
+                        get_value_data_query_functions.push(quote! {
                             /// Get a `DataQuery` that requests the value
                             /// of the specified prop
-                            pub const fn #get_queries_function_identity() -> DataQuery {
+                            pub const fn #get_query_function_identity() -> DataQuery {
                                 DataQuery::Prop {
                                     component_idx: None,
                                     prop_idx: #prop_idx,
@@ -322,7 +321,7 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
 
                             #(#get_prop_index_functions)*
 
-                            #(#get_value_data_queries_functions)*
+                            #(#get_value_data_query_functions)*
 
                             #(#update_from_action_functions)*
                         }

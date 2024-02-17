@@ -6,6 +6,8 @@ use crate::components::prelude::*;
 use crate::general_prop::MathProp;
 use crate::state::types::math_expr::{MathExpr, MathParser};
 
+use super::MathAttribute;
+
 /// The state variables that underlie the `<math>` component.
 #[derive(Debug, ComponentState)]
 pub struct MathState {
@@ -25,14 +27,23 @@ pub struct MathState {
     #[is_public]
     #[for_renderer]
     latex: Prop<String>,
+
+    #[is_public]
+    split_symbols: Prop<bool>,
 }
 
 impl MathState {
     fn new() -> Self {
         MathState {
-            value: MathProp::new_from_children(MathExpr::default(), MathParser::Text, true, vec![])
-                .into_prop(),
+            value: MathProp::new_from_children(
+                MathExpr::default(),
+                MathParser::Text,
+                MathState::get_split_symbols_data_query(),
+                vec![],
+            )
+            .into_prop(),
             latex: LatexValueProp::new().into_prop(),
+            split_symbols: MathAttribute::SplitSymbols.prop(),
         }
     }
 }
