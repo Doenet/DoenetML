@@ -3,37 +3,39 @@ use crate::{
     state::types::math_expr::{MathExpr, ToLatexParams},
 };
 
-use super::MathState;
-
 /// A struct of all data required to compute the value of this state variable.
 #[add_dependency_data]
 #[derive(Debug, Default, PropDependencies, PropDataQueries)]
 pub struct RequiredData {
-    value: PropView<MathExpr>,
+    math_expression: PropView<MathExpr>,
 }
 
 #[derive(Debug, Default)]
-pub struct LatexValueProp {}
+pub struct LatexProp {
+    /// Data query that should return the math expression to be converted to Latex
+    math_expression: DataQuery,
+}
 
-impl LatexValueProp {
-    pub fn new() -> Self {
-        LatexValueProp {}
+impl LatexProp {
+    pub fn new(math_expression: DataQuery) -> Self {
+        LatexProp { math_expression }
     }
 }
 
-impl PropUpdater<String, RequiredData> for LatexValueProp {
+impl PropUpdater<String, RequiredData> for LatexProp {
     fn return_data_queries(&self) -> Vec<Option<DataQuery>> {
         RequiredDataQueries {
-            value: Some(MathState::get_value_data_query()),
+            math_expression: Some(self.math_expression.clone()),
         }
         .into()
     }
 
     fn calculate(&mut self, data: &mut RequiredData) -> PropCalcResult<String> {
-        if data.value.changed_since_last_viewed() {
+        if data.math_expression.changed_since_last_viewed() {
             PropCalcResult::Calculated(
-                data.value
+                data.math_expression
                     .get_value_record_viewed()
+                    // TODO: add support for specifying latex parameters
                     .to_latex(ToLatexParams::default()),
             )
         } else {

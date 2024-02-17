@@ -12,19 +12,27 @@ pub struct MathProp {
 
     default_value: MathExpr,
 
-    // TODO: document what these fields mean
+    // TODO: this should be based on a data query for a prop/attribute once we implement enum props or attributes
+    /// A enum determining whether we should use the latex or text parser.
     parser: MathParser,
 
-    // TODO: these should be incoming props
+    /// Data query that should return a `PropView<bool>`.
+    ///
+    /// If `true`, we split multi-character symbols into the product of the characters
+    /// when parsing the string to a math expression
     split_symbols: DataQuery,
+
+    // TODO: this should be based on a data query for a prop/attribute once we implement array props or attributes
+    /// A vector of the symbols that should be treated as functions if they are followed by parentheses.  
     function_symbols: Vec<String>,
 
     /// A cached value of the expression template used to calculate the final mathematical expression,
     /// saved here in order to prevent the need for its recalculation if only math values change
     expression_template_cache: Option<MathExpr>,
 
-    /// The codes that are embedded int the expression template that represent the math values
-    math_codes: Vec<String>,
+    /// The codes that are embedded int the expression template that represent the math values,
+    /// saved here as a companion to `expression_template_cache`.
+    math_codes_cache: Vec<String>,
 }
 
 /// The data required to compute the value of this state variable.
@@ -34,6 +42,8 @@ pub struct RequiredData {
     /// A vector of the math or string values of the dependencies coming from the data_query
     maths_and_strings: Vec<MathOrString>,
 
+    /// If `true`, we split multi-character symbols into the product of the characters
+    /// when parsing the string to a math expression
     split_symbols: PropView<bool>,
 }
 
@@ -54,10 +64,10 @@ impl MathProp {
         }
     }
 
-    /// Creates a math state var that calculates its value from the component's children
+    /// Creates a math prop that calculates its value from the component's children
     /// matching the `String` and `Math` profiles.
     ///
-    /// If there are no matching children, the state variable will be initialized with `default_value`.
+    /// If there are no matching children, the prop will be initialized with `default_value`.
     pub fn new_from_children(
         default_value: MathExpr,
         parser: MathParser,
@@ -78,10 +88,10 @@ impl MathProp {
         }
     }
 
-    /// Creates a math state var that calculates its value from the attribute given by `attr_name`,
+    /// Creates a math prop that calculates its value from the attribute given by `attr_name`,
     /// basing the calculation on the attribute children that match the `String` and `Math` profiles.
     ///
-    /// If there are no matching attribute children, the state variable will be initialized with `default_value`.
+    /// If there are no matching attribute children, the prop will be initialized with `default_value`.
     pub fn new_from_attribute<S: Into<MathExpr>>(
         attr_name: AttributeName,
         default_value: S,
@@ -155,14 +165,15 @@ impl PropUpdater<MathExpr, RequiredData> for MathProp {
             _ => {
                 // Now we have the more complicated case where that math expression is based on multiple components.
                 //
-                // Overall strategy: create a "parsed template" by concatenating all values
-                // and replacing all maths by with a unique code
-                // (typically m1, m2, etc., unless "m" appears in a string).
-                // We cache that expression_template, along with the codes used, onto self,
+                // Overall strategy: create a "expression template" by concatenating all values
+                // while replacing all maths by with a unique code
+                // (typically m1, m2, etc., unless "m" appears in a string)
+                // and parsing the resulting string into a math expression.
+                // We cache that expression template, along with the codes used, onto `self``,
                 // so that we don't have to recalculate it unless a string changes
-                // (or a parameter that controls parsing is changed, but we haven't implemented that yet).
+                // or a parameter that controls parsing is changed.
                 //
-                // Then, we substitute the values of the math components for their codes in the expression_template.
+                // The final step is to substitute the values of the math components for their codes into the expression_template.
 
                 let string_changed = data
                     .maths_and_strings
@@ -184,7 +195,7 @@ impl PropUpdater<MathExpr, RequiredData> for MathProp {
 
                 if string_changed || data.split_symbols.changed_since_last_viewed() {
                     // Either a string child has changed or split_symbols change (the latter catches the first time calculate is called).
-                    // We need to recalculate the parsed template.
+                    // We need to recalculate the expression template.
 
                     // Create the expression template from concatenating all values
                     // while substituting codes for the math values
@@ -198,7 +209,7 @@ impl PropUpdater<MathExpr, RequiredData> for MathProp {
                     // save the expression template and codes
                     // so that we can avoid parsing the strings if only a math value changes
                     self.expression_template_cache = Some(expression_template);
-                    self.math_codes = math_codes;
+                    self.math_codes_cache = math_codes;
                 }
 
                 if string_changed || math_changed {
@@ -216,7 +227,7 @@ impl PropUpdater<MathExpr, RequiredData> for MathProp {
                             .enumerate()
                             .map(|(idx, math_prop)| {
                                 (
-                                    self.math_codes[idx].clone(),
+                                    self.math_codes_cache[idx].clone(),
                                     MathOrPrimitive::Math(
                                         math_prop.get_value_record_viewed().clone(),
                                     ),
@@ -261,6 +272,7 @@ impl PropUpdater<MathExpr, RequiredData> for MathProp {
 
                 Ok(data.queued_updates())
             }
+            // TODO: implement `invert` for the case with multiple values
             _ => Err(InvertError::CouldNotUpdate),
         }
     }
@@ -301,8 +313,7 @@ fn calc_expression_template(
     let code_prefix = {
         let mut code_prefix = String::from('m');
         string_children.iter().for_each(|str_prop| {
-            let val = str_prop.get();
-            while val.contains(&code_prefix) {
+            while str_prop.get().contains(&code_prefix) {
                 code_prefix.push('m');
             }
         });
@@ -341,7 +352,6 @@ fn create_template_string(
 ) -> (String, Vec<String>) {
     let mut template_string = String::new();
     let mut math_idx = 0;
-
     let mut math_codes = Vec::new();
 
     template_string.extend(maths_and_strings.iter_mut().map(|prop| {
