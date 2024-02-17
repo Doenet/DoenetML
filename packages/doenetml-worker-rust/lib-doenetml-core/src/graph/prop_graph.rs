@@ -5,7 +5,7 @@ use crate::{
     Extending,
 };
 
-use super::graph::{Graph, Taggable};
+use super::directed_graph::{DirectedGraph, Taggable};
 
 pub struct Components<'a> {
     components: &'a Vec<Rc<RefCell<ComponentEnum>>>,
@@ -26,7 +26,7 @@ impl<'a> Components<'a> {
 }
 
 pub struct PropGraph {
-    pub graph: Graph<PropPointer, PropLookup<usize>>,
+    pub graph: DirectedGraph<PropPointer, PropLookup<usize>>,
 }
 impl Default for PropGraph {
     fn default() -> Self {
@@ -37,7 +37,7 @@ impl Default for PropGraph {
 impl PropGraph {
     pub fn new() -> Self {
         Self {
-            graph: Graph::new(),
+            graph: DirectedGraph::new(),
         }
     }
     //    pub fn resolve_prop(
@@ -71,7 +71,7 @@ impl PropGraph {
 }
 
 /// Pointer to a prop on a specific component.
-#[derive(PartialEq, Eq, Clone, Copy, Hash)]
+#[derive(PartialEq, Eq, Clone, Copy)]
 pub struct PropPointer {
     pub component_idx: usize,
     pub prop_idx: usize,
@@ -109,10 +109,11 @@ impl<T> PropLookup<T> {
 }
 
 impl<T: Clone> Taggable<PropPointer, T> for PropLookup<T> {
-    fn get_tag(&self, node: PropPointer) -> &T {
-        self.component_props[node.component_idx][node.prop_idx]
-            .as_ref()
-            .unwrap()
+    fn get_tag(&self, node: &PropPointer) -> Option<&T> {
+        self.component_props
+            .get(node.component_idx)
+            .and_then(|props| props.get(node.prop_idx))
+            .and_then(|prop| prop.as_ref())
     }
 
     fn set_tag(&mut self, node: PropPointer, tag: T) {
@@ -141,7 +142,7 @@ mod test {
         let prop_pointer = PropPointer::new(2, 3);
         prop_lookup.set_tag(prop_pointer, 0);
 
-        assert_eq!(*prop_lookup.get_tag(prop_pointer), 0);
+        assert_eq!(*prop_lookup.get_tag(&prop_pointer).unwrap(), 0);
     }
 
     #[test]
@@ -151,20 +152,20 @@ mod test {
         let c = PropPointer::new(2, 0);
         let d = PropPointer::new(2, 1);
         let e = PropPointer::new(2, 2);
-        let mut graph = Graph::<PropPointer, PropLookup<_>>::new();
+        let mut graph = DirectedGraph::<PropPointer, PropLookup<_>>::new();
         graph.add_node(a);
         graph.add_node(b);
         graph.add_node(c);
         graph.add_node(d);
         graph.add_node(e);
-        graph.add_edge(a, b);
-        graph.add_edge(a, c);
-        graph.add_edge(c, d);
-        graph.add_edge(c, e);
-        graph.add_edge(d, e);
+        graph.add_edge(&a, &b);
+        graph.add_edge(&a, &c);
+        graph.add_edge(&c, &d);
+        graph.add_edge(&c, &e);
+        graph.add_edge(&d, &e);
 
         assert_eq!(
-            graph.walk_descendants(a).collect::<Vec<_>>(),
+            graph.walk_descendants(&a).collect::<Vec<_>>(),
             vec![&b, &c, &d, &e]
         );
     }

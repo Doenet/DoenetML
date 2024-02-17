@@ -5,39 +5,45 @@ use std::{collections::HashMap, fmt::Debug, hash::Hash};
 ///
 /// Example using `HashMap` as the `Taggable` type:
 /// ```rust
-/// # use doenetml_core::dep_graph::graph::Graph;
+/// # use doenetml_core::graph::directed_graph::DirectedGraph;
 /// use std::collections::HashMap;
 /// // Make a graph
 /// // a -> b -> c
 /// // a -> c
-/// let mut graph = Graph::<String, HashMap<_, _>>::new();
+/// let mut graph = DirectedGraph::<String, HashMap<_, _>>::new();
 /// graph.add_node("a".into());
 /// graph.add_node("b".into());
 /// graph.add_node("c".into());
-/// graph.add_edge("a".into(), "b".into());
-/// graph.add_edge("a".into(), "c".into());
-/// graph.add_edge("b".into(), "c".into());
-/// assert_eq!(graph.walk_descendants("a".into()).collect::<Vec<_>>(), vec!["b", "c"]);
+/// graph.add_edge(&"a".into(), &"b".into());
+/// graph.add_edge(&"a".into(), &"c".into());
+/// graph.add_edge(&"b".into(), &"c".into());
+/// assert_eq!(graph.walk_descendants(&"a".into()).collect::<Vec<_>>(), vec!["b", "c"]);
 /// ```
 #[derive(Debug)]
-pub struct Graph<Node: Clone + Eq + Hash + Debug, Index: Taggable<Node, usize>> {
-    /// An `Taggable` that allows for looking up the index of a node in the graph.
+pub struct DirectedGraph<Node: Clone + Eq + Debug, IndexLookup: Taggable<Node, usize>> {
+    /// A `Taggable` that allows for looking up the index of a node in the graph.
     /// I.e., used for `Node -> usize` lookups.
-    index: Index,
+    index_lookup: IndexLookup,
     /// The nodes in the graph. Internally nodes are represented as `usize`. But `Graph` stores nodes
     /// for the users to make its internal structure opaque.
     nodes: Vec<Node>,
-    /// Directed edges between nodes.
+    /// Directed edges between nodes. `edges[i]` is a list of all node indices that node `i` has an edge to.
+    /// The edges are not sorted, so `edges[i][j]` represents the `j`th-added edge from node `i` to node `edges[i][j]`.
     edges: Vec<Vec<usize>>,
     /// Reverse directed version of every edge.
     reverse_edges: Vec<Vec<usize>>,
 }
 
-impl<Node: Clone + Eq + Hash + Debug, Index: Taggable<Node, usize>> Graph<Node, Index> {
+impl<Node: Clone + Eq + Debug, IndexLookup: Taggable<Node, usize>>
+    DirectedGraph<Node, IndexLookup>
+{
     /// Add a node to the graph.
     pub fn add_node(&mut self, node: Node) {
+        if self.index_lookup.get_tag(&node).is_some() {
+            return;
+        }
         let index = self.nodes.len();
-        self.index.set_tag(node.clone(), index);
+        self.index_lookup.set_tag(node.clone(), index);
         // There should always be the same number of elements in the `nodes`, `edges`, and `reverse_edges`
         // vectors.
         self.nodes.push(node);
@@ -45,45 +51,49 @@ impl<Node: Clone + Eq + Hash + Debug, Index: Taggable<Node, usize>> Graph<Node, 
         self.reverse_edges.push(Vec::new());
     }
     /// Set an edge between two nodes.
-    pub fn add_edge(&mut self, from: Node, to: Node) {
-        let &from_index = self.index.get_tag(from);
-        let &to_index = self.index.get_tag(to);
+    /// The `from` and `to` nodes must already be in the graph.
+    pub fn add_edge(&mut self, from: &Node, to: &Node) {
+        let &from_index = self.index_lookup.get_tag(from).unwrap();
+        let &to_index = self.index_lookup.get_tag(to).unwrap();
         self.edges[from_index].push(to_index);
         self.reverse_edges[to_index].push(from_index);
     }
     /// Walk through all nodes that have `node` as an ancestor. Nodes are walked in _topological_ order.
     /// Panics if a cycle is detected.
-    pub fn walk_descendants(&self, node: Node) -> DescendantTopologicalIterator<Node> {
-        let &start_index = self.index.get_tag(node);
+    pub fn walk_descendants(&self, node: &Node) -> DescendantTopologicalIterator<Node> {
+        let &start_index = self.index_lookup.get_tag(node).unwrap();
         DescendantTopologicalIterator::new(&self.nodes, &self.edges, start_index)
     }
     /// Walk through all nodes that have `node` as a descendant. Nodes are walked in _topological_ order.
     /// Panics if a cycle is detected.
-    pub fn walk_ancestors(&self, node: Node) -> DescendantTopologicalIterator<Node> {
-        let &start_index = self.index.get_tag(node);
+    pub fn walk_ancestors(&self, node: &Node) -> DescendantTopologicalIterator<Node> {
+        let &start_index = self.index_lookup.get_tag(node).unwrap();
         DescendantTopologicalIterator::new(&self.nodes, &self.reverse_edges, start_index)
     }
 
     /// Iterate through all nodes that have `node` as an ancestor. This iterator is meant to be fast.
-    /// The order of the nodes is not guaranteed, and the same node may be yielded multiple times.
-    pub fn descendants_quick(&self, node: Node) -> DescendantIterator<Node> {
-        let &start_index = self.index.get_tag(node);
+    /// The order of the nodes is not guaranteed, and the same node may be yielded multiple times (e.g., if
+    /// the graph is not a tree).
+    pub fn descendants_quick(&self, node: &Node) -> DescendantIterator<Node> {
+        let &start_index = self.index_lookup.get_tag(node).unwrap();
         DescendantIterator::new(&self.nodes, &self.edges, start_index)
     }
 }
 
-impl<Node: Clone + Eq + Hash + Debug, Index: Taggable<Node, usize> + Default> Default
-    for Graph<Node, Index>
+impl<Node: Clone + Eq + Debug, IndexLookup: Taggable<Node, usize> + Default> Default
+    for DirectedGraph<Node, IndexLookup>
 {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<Node: Clone + Eq + Hash + Debug, Index: Taggable<Node, usize> + Default> Graph<Node, Index> {
+impl<Node: Clone + Eq + Debug, IndexLookup: Taggable<Node, usize> + Default>
+    DirectedGraph<Node, IndexLookup>
+{
     pub fn new() -> Self {
-        Graph {
-            index: Index::default(),
+        DirectedGraph {
+            index_lookup: IndexLookup::default(),
             nodes: Vec::new(),
             edges: Vec::new(),
             reverse_edges: Vec::new(),
@@ -100,16 +110,16 @@ pub mod iterators {
     /// may yield the same node multiple times.
     pub struct DescendantIterator<'a, Node> {
         nodes: &'a [Node],
-        graph: &'a [Vec<usize>],
+        edges: &'a [Vec<usize>],
         remaining_indices: Vec<usize>,
         num_visited: usize,
     }
     impl<'a, Node> DescendantIterator<'a, Node> {
-        pub fn new(nodes: &'a [Node], graph: &'a [Vec<usize>], start_index: usize) -> Self {
-            let remaining_indices = graph[start_index].clone();
+        pub fn new(nodes: &'a [Node], edges: &'a [Vec<usize>], start_index: usize) -> Self {
+            let remaining_indices = edges[start_index].clone();
             Self {
                 nodes,
-                graph,
+                edges,
                 remaining_indices,
                 num_visited: 0,
             }
@@ -120,7 +130,7 @@ pub mod iterators {
         fn next(&mut self) -> Option<Self::Item> {
             let index = self.remaining_indices.pop()?;
             // Add all children of the node to `remaining_indices`
-            self.remaining_indices.extend(self.graph[index].iter());
+            self.remaining_indices.extend(self.edges[index].iter());
 
             // We may return the same node multiple times,
             // so this check is not _correct_. It should be `#nodes^2` (assuming
@@ -219,14 +229,14 @@ pub mod iterators {
 /// but may be optimized for faster lookup.
 pub trait Taggable<Node, T> {
     /// Get the index of `node`
-    fn get_tag(&self, node: Node) -> &T;
+    fn get_tag(&self, node: &Node) -> Option<&T>;
     /// Set the index of `node` to `index`
     fn set_tag(&mut self, node: Node, tag: T);
 }
 
 impl<Node: Clone + Eq + Hash, T> Taggable<Node, T> for HashMap<Node, T> {
-    fn get_tag(&self, node: Node) -> &T {
-        self.get(&node).unwrap()
+    fn get_tag(&self, node: &Node) -> Option<&T> {
+        self.get(node)
     }
 
     fn set_tag(&mut self, node: Node, tag: T) {
@@ -244,8 +254,8 @@ mod test {
         indexable.set_tag("test".into(), 0);
         indexable.set_tag("test2".into(), 1);
 
-        assert_eq!(*indexable.get_tag("test".into()), 0);
-        assert_eq!(*indexable.get_tag("test2".into()), 1);
+        assert_eq!(*indexable.get_tag(&"test".into()).unwrap(), 0);
+        assert_eq!(*indexable.get_tag(&"test2".into()).unwrap(), 1);
     }
 
     #[test]
@@ -254,29 +264,29 @@ mod test {
         // a -> b
         // a -> c -> e
         // c -> d -> e
-        let mut graph = Graph::<String, HashMap<_, _>>::new();
+        let mut graph = DirectedGraph::<String, HashMap<_, _>>::new();
         graph.add_node("a".into());
         graph.add_node("b".into());
         graph.add_node("c".into());
         graph.add_node("d".into());
         graph.add_node("e".into());
-        graph.add_edge("a".into(), "b".into());
-        graph.add_edge("a".into(), "c".into());
-        graph.add_edge("c".into(), "d".into());
-        graph.add_edge("c".into(), "e".into());
-        graph.add_edge("d".into(), "e".into());
+        graph.add_edge(&"a".into(), &"b".into());
+        graph.add_edge(&"a".into(), &"c".into());
+        graph.add_edge(&"c".into(), &"d".into());
+        graph.add_edge(&"c".into(), &"e".into());
+        graph.add_edge(&"d".into(), &"e".into());
         assert_eq!(
-            graph.walk_descendants("a".into()).collect::<Vec<_>>(),
+            graph.walk_descendants(&"a".into()).collect::<Vec<_>>(),
             vec!["b", "c", "d", "e"]
         );
 
         assert_eq!(
-            graph.walk_descendants("d".into()).collect::<Vec<_>>(),
+            graph.walk_descendants(&"d".into()).collect::<Vec<_>>(),
             vec!["e"]
         );
 
         assert_eq!(
-            graph.walk_descendants("e".into()).collect::<Vec<_>>(),
+            graph.walk_descendants(&"e".into()).collect::<Vec<_>>(),
             Vec::<&String>::new()
         );
     }
@@ -287,19 +297,19 @@ mod test {
         // a -> b
         // a -> c -> e
         // c -> d -> e
-        let mut graph = Graph::<String, HashMap<_, _>>::new();
+        let mut graph = DirectedGraph::<String, HashMap<_, _>>::new();
         graph.add_node("a".into());
         graph.add_node("b".into());
         graph.add_node("c".into());
         graph.add_node("d".into());
         graph.add_node("e".into());
-        graph.add_edge("a".into(), "b".into());
-        graph.add_edge("a".into(), "c".into());
-        graph.add_edge("c".into(), "d".into());
-        graph.add_edge("c".into(), "e".into());
-        graph.add_edge("d".into(), "e".into());
+        graph.add_edge(&"a".into(), &"b".into());
+        graph.add_edge(&"a".into(), &"c".into());
+        graph.add_edge(&"c".into(), &"d".into());
+        graph.add_edge(&"c".into(), &"e".into());
+        graph.add_edge(&"d".into(), &"e".into());
         assert_eq!(
-            graph.descendants_quick("a".into()).collect::<Vec<_>>(),
+            graph.descendants_quick(&"a".into()).collect::<Vec<_>>(),
             // Repeated nodes are allowed for the `_quick` iterator
             vec!["c", "e", "d", "e", "b"]
         );
