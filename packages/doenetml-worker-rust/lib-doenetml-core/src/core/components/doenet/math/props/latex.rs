@@ -29,9 +29,15 @@ impl PropUpdater<String, RequiredData> for LatexValueProp {
         .into()
     }
 
-    fn calculate<'a>(&self, data: &'a RequiredData) -> PropCalcResult<'a, String> {
-        let value = data.value.get().to_latex(ToLatexParams::default());
-
-        PropCalcResult::Calculated(value)
+    fn calculate(&mut self, data: &mut RequiredData) -> PropCalcResult<String> {
+        if data.value.changed_since_last_viewed() {
+            PropCalcResult::Calculated(
+                data.value
+                    .get_value_record_viewed()
+                    .to_latex(ToLatexParams::default()),
+            )
+        } else {
+            PropCalcResult::NoChange
+        }
     }
 }

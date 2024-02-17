@@ -187,7 +187,7 @@ impl<T: Default + Clone> PropInner<T> {
     /// so that the value it had before `mark_stale` was called
     /// will be its fresh value again.
     ///
-    /// Panics: if the prop is Unresolved.
+    /// Panics: if the prop is Unresolved or Resolved.
     pub fn mark_fresh(&mut self) {
         match self.freshness {
             Freshness::Stale => {
@@ -195,7 +195,7 @@ impl<T: Default + Clone> PropInner<T> {
             }
             Freshness::Fresh => (),
             Freshness::Unresolved | Freshness::Resolved => {
-                panic!("Cannot restore previous value to an unresolved or merely resolved prop");
+                panic!("Cannot mark fresh a prop that is unresolved or merely resolved prop");
             }
         }
     }
@@ -242,8 +242,8 @@ impl<T: Default + Clone> Prop<T> {
     /// since we last called `get_value_record_viewed`.
     ///
     /// Note: calls to `get` are ignored when determining when last viewed.
-    pub fn check_if_changed_since_last_viewed(&self) -> bool {
-        self.value.check_if_changed_since_last_viewed()
+    pub fn changed_since_last_viewed(&self) -> bool {
+        self.value.changed_since_last_viewed()
     }
 
     /// If the variable is fresh, get a reference to its current value
@@ -335,19 +335,30 @@ impl<T: Default + Clone> Prop<T> {
 
     /// Convenience function to call `calculate` on interface
     /// and then call mark_fresh
-    pub fn calculate_and_mark_fresh(&self) {
-        match self.updater.calculate() {
-            PropCalcResult::Calculated(val) => self.value.set_value(val),
-            PropCalcResult::FromDefault(val) => self.value.set_value_from_default(val),
-            PropCalcResult::From(prop_view) => {
-                if prop_view.came_from_default() {
-                    self.value.set_value_from_default(prop_view.get().clone())
-                } else {
-                    self.value.set_value(prop_view.get().clone())
-                }
+    ///
+    /// Return whether or not the value changed
+    pub fn calculate_and_mark_fresh(&mut self) -> bool {
+        let value_changed = match self.updater.calculate() {
+            PropCalcResult::Calculated(val) => {
+                self.value.set_value(val);
+                true
             }
+            PropCalcResult::FromDefault(val) => {
+                self.value.set_value_from_default(val);
+                true
+            }
+            PropCalcResult::From(val, came_from_default) => {
+                if came_from_default {
+                    self.value.set_value_from_default(val);
+                } else {
+                    self.value.set_value(val);
+                }
+                true
+            }
+            PropCalcResult::NoChange => false,
         };
         self.mark_fresh();
+        value_changed
     }
 
     /// Convenience function to call `invert` on interface
@@ -382,7 +393,7 @@ impl<T: Default + Clone> Prop<T> {
         } else {
             self.all_data
                 .iter()
-                .any(|prop| prop.check_if_changed_since_last_viewed())
+                .any(|prop| prop.changed_since_last_viewed())
         }
     }
 }

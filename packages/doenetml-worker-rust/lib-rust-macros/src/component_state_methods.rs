@@ -158,7 +158,7 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
                             });
 
                             return_rendered_state_update_statements.push(quote! {
-                                if self.#field_identity.check_if_changed_since_last_viewed() {
+                                if self.#field_identity.changed_since_last_viewed() {
                                     updated_variables.#field_identity =
                                         Some(self.#field_identity.get_value_record_viewed().clone());
                                 }

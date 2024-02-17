@@ -5,8 +5,10 @@ use crate::{
     dependency::{
         create_dependencies_from_data_query_initialize_state, DataQuery, DependencySource,
     },
-    state::prop_state::{StateProp, StatePropDataOrigin, StatePropDescription},
-    state::{Freshness, PropValue},
+    state::{
+        prop_state::{StateProp, StatePropDataOrigin, StatePropDescription},
+        Freshness, PropValue,
+    },
     ComponentIdx, CoreProcessingState, DependencyGraph, Extending,
 };
 

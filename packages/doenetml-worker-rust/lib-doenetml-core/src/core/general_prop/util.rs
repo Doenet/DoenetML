@@ -50,6 +50,15 @@ impl TryFromState<PropViewEnum> for BooleanOrString {
     }
 }
 
+impl BooleanOrString {
+    pub fn changed_since_last_viewed(&self) -> bool {
+        match self {
+            BooleanOrString::Boolean(boolean_val) => boolean_val.changed_since_last_viewed(),
+            BooleanOrString::String(string_val) => string_val.changed_since_last_viewed(),
+        }
+    }
+}
+
 /// A math or string state var view
 #[derive(Debug)]
 #[enum_dispatch(QueryUpdateRequests)]

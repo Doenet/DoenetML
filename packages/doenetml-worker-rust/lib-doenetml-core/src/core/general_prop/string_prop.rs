@@ -80,20 +80,29 @@ impl PropUpdater<String, RequiredData> for StringProp {
         .into()
     }
 
-    fn calculate<'a>(&self, data: &'a RequiredData) -> PropCalcResult<'a, String> {
+    fn calculate(&mut self, data: &mut RequiredData) -> PropCalcResult<String> {
         match data.strings.len() {
             0 => PropCalcResult::Calculated(String::from("")),
             1 => {
                 // if we are basing it on a single variable that came from default,
                 // then we propagate came_from_default as well as the value.
-                PropCalcResult::From(&data.strings[0])
+                data.strings[0].prop_calc_result_from()
             }
             _ => {
                 // multiple string variables, so concatenate
-                let mut value = String::new();
-                value.extend(data.strings.iter().map(|v| v.get().clone()));
 
-                PropCalcResult::Calculated(value)
+                if data
+                    .strings
+                    .iter()
+                    .any(|view| view.changed_since_last_viewed())
+                {
+                    let mut value = String::new();
+                    value.extend(data.strings.iter().map(|v| v.get().clone()));
+
+                    PropCalcResult::Calculated(value)
+                } else {
+                    PropCalcResult::NoChange
+                }
             }
         }
     }

@@ -37,8 +37,12 @@ impl PropUpdater<String, RequiredData> for BooleanToStringProp {
         .into()
     }
 
-    fn calculate<'a>(&self, data: &'a RequiredData) -> PropCalcResult<'a, String> {
-        PropCalcResult::Calculated(data.boolean.get().to_string())
+    fn calculate(&mut self, data: &mut RequiredData) -> PropCalcResult<String> {
+        if data.boolean.changed_since_last_viewed() {
+            PropCalcResult::Calculated(data.boolean.get_value_record_viewed().to_string())
+        } else {
+            PropCalcResult::NoChange
+        }
     }
 
     /// Convert the requested string value to boolean when inverting

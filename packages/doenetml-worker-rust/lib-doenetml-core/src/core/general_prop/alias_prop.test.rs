@@ -35,7 +35,7 @@ fn prop_alias_gives_correct_data_queries() {
 /// and its came_from_default should be the same as the original value's came_from_default
 #[test]
 fn calculate_boolean_prop_alias() {
-    let (prop, _prop_view, alias_var) = set_up_boolean_prop_alias(false, true);
+    let (mut prop, _prop_view, alias_var) = set_up_boolean_prop_alias(false, true);
 
     // we initialize original value to be false, so should get false
     prop.calculate_and_mark_fresh();
@@ -78,7 +78,7 @@ fn invert_boolean_prop_alias() {
 /// and its came_from_default should be the same as the original value's came_from_default
 #[test]
 fn calculate_string_prop_alias() {
-    let (prop, _prop_view, alias_var) = set_up_string_prop_alias(String::from("hello"), true);
+    let (mut prop, _prop_view, alias_var) = set_up_string_prop_alias(String::from("hello"), true);
 
     // we initialize original value to be true, so should get true
     prop.calculate_and_mark_fresh();

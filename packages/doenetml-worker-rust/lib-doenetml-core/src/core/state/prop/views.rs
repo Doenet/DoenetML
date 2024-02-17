@@ -4,7 +4,7 @@ use std::{
     rc::Rc,
 };
 
-use super::{Freshness, PropInner, QueryUpdateRequests};
+use super::{Freshness, PropCalcResult, PropInner, QueryUpdateRequests};
 
 /// A mutable view of a prop.
 /// It includes methods that allow one to view and change the variable.
@@ -73,7 +73,7 @@ impl<T: Default + Clone> PropViewMut<T> {
     /// since we last called `get_value_record_viewed`.
     ///
     /// Note: calls to `get` are ignored when determining when last viewed.
-    pub fn check_if_changed_since_last_viewed(&self) -> bool {
+    pub fn changed_since_last_viewed(&self) -> bool {
         self.inner.borrow().get_change_counter() != self.change_counter_when_last_viewed
     }
 
@@ -207,7 +207,7 @@ impl<T: Default + Clone> PropView<T> {
     /// since we last called `get_value_record_viewed`.
     ///
     /// Note: calls to `get` are ignored when determining when last viewed.
-    pub fn check_if_changed_since_last_viewed(&self) -> bool {
+    pub fn changed_since_last_viewed(&self) -> bool {
         self.inner.borrow().get_change_counter() != self.change_counter_when_last_viewed
     }
 
@@ -219,6 +219,31 @@ impl<T: Default + Clone> PropView<T> {
         let inner = self.inner.borrow();
         self.change_counter_when_last_viewed = inner.get_change_counter();
         Ref::map(inner, |v| v.get())
+    }
+
+    pub fn prop_calc_result_calculated(&mut self) -> PropCalcResult<T> {
+        if self.changed_since_last_viewed() {
+            PropCalcResult::Calculated(self.get_value_record_viewed().clone())
+        } else {
+            PropCalcResult::NoChange
+        }
+    }
+
+    pub fn prop_calc_result_from_default(&mut self) -> PropCalcResult<T> {
+        if self.changed_since_last_viewed() {
+            PropCalcResult::FromDefault(self.get_value_record_viewed().clone())
+        } else {
+            PropCalcResult::NoChange
+        }
+    }
+
+    pub fn prop_calc_result_from(&mut self) -> PropCalcResult<T> {
+        if self.changed_since_last_viewed() {
+            let val = self.get_value_record_viewed().clone();
+            PropCalcResult::From(val, self.came_from_default())
+        } else {
+            PropCalcResult::NoChange
+        }
     }
 
     /// If the variable is fresh, get a reference to its current value.

@@ -159,7 +159,7 @@ impl MathExpr {
     /// let expr1 = MathExpr::from_text("x+y", true, &["f"]);
     ///
     /// let substitutions =
-    ///     HashMap::from([("y".to_string(), MathOrPrimitive::String("z".to_string()))]);
+    ///     HashMap::from([("y".to_string(), MathOrPrimitive::VariableName("z".to_string()))]);
     /// let expr2 = expr1.substitute(&substitutions);
     ///
     /// assert_eq!(expr2.to_latex(ToLatexParams::default()), "x + z");
@@ -273,13 +273,31 @@ impl MathExpr {
 }
 
 /// An enum of different types of values that can be interpreted as mathematical expressions.
-#[derive(Debug, serde::Serialize)]
-#[serde(untagged)]
+#[derive(Debug)]
 pub enum MathOrPrimitive {
     Math(MathExpr),
     Number(f64),
     Integer(i64),
-    String(String),
+    VariableName(String),
+}
+
+impl serde::Serialize for MathOrPrimitive {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        // Serialize all variants so that, after deserialization on the Javascript side,
+        // one still has to call JSON.parse() to finish the hydration,
+        // given that this last step is required for the Math variant
+        match self {
+            Self::Math(math_expr) => math_expr.serialize(serializer),
+            Self::Number(num) => serializer.serialize_str(&num.to_string()),
+            Self::Integer(num) => serializer.serialize_str(&num.to_string()),
+            Self::VariableName(var_name) => {
+                serializer.serialize_str(&serde_json::to_value(var_name).unwrap().to_string())
+            }
+        }
+    }
 }
 
 /// Parameters for creating a latex string from a `Math`:
@@ -384,11 +402,9 @@ pub enum MathSimplify {
 pub struct NormalizeParams {
     /// We currently support four options for `simplify`:
     /// - `MathSimplify::None`: no simplification
-    /// - `MathSimplify::NumbersPreserveOrder`: simplify numbers, such as simplify `1+1` to 2,
-    ///   except do not change the order between numerical and non-numerical operands.
-    ///   Do not alter non-numerical expressions.
-    /// - `MathSimplify::Numbers`: simplify numbers, such as simplify `1+1` to 2,
-    ///   Do not alter non-numerical expressions.
+    /// - `MathSimplify::NumbersPreserveOrder`: simplify numbers within the expression, such as simplify `1+1` to 2,
+    ///   except do not change the order between numerical and non-numerical operands (such as a variable).
+    /// - `MathSimplify::Numbers`: simplify numbers within the expression, such as simplify `1+1` to 2,
     /// - `MathSimplify::Full`: simplify the mathematical expression using the currently
     ///   implemented features. These features are limited and subject to change.
     ///   For example, simplification of ratio expressions is essentially non-existent.
@@ -405,7 +421,7 @@ pub struct NormalizeParams {
 }
 
 /// We can parse a string into a mathematical expression with either a text or a latex parser
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone, Copy)]
 pub enum MathParser {
     #[default]
     Text,

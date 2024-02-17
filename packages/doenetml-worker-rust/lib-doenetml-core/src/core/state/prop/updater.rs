@@ -11,14 +11,16 @@ use crate::{
 use super::PropView;
 
 /// The possible results of a call to `calculate`:
-/// - Calculated(T): the value was calculated to be T
-/// - FromDefault(T): the value T was determined from the default value
-/// - From(&PropView<T>): set both `value` and `came_from_default` from `PropView<T>`
+/// - `Calculated(val)`: the value was calculated to be `val`
+/// - `FromDefault(val)`: the value `val` was determined from the default value
+/// - `From(val, came_from_default)`: the value is `val`, `came_from_default` it is was from the default value
+/// - `NoChange`: the value did not change, so just mark it as fresh
 #[derive(Debug)]
-pub enum PropCalcResult<'a, T: Default + Clone> {
+pub enum PropCalcResult<T: Default + Clone> {
     Calculated(T),
     FromDefault(T),
-    From(&'a PropView<T>),
+    From(T, bool),
+    NoChange,
 }
 
 #[derive(Debug, Error)]
@@ -47,7 +49,7 @@ pub trait PropUpdater<T: Default + Clone, RequiredData>: std::fmt::Debug {
 
     /// Calculate the value of the prop from the passed in `data`.
     /// Results of this function will be cached, so local caching is not needed.
-    fn calculate<'a>(&self, data: &'a RequiredData) -> PropCalcResult<'a, T>;
+    fn calculate(&mut self, data: &mut RequiredData) -> PropCalcResult<T>;
 
     /// All props know how to calculate their value given their dependencies.
     /// Sometimes a prop is requested to take on a particular value. If the
@@ -91,7 +93,7 @@ pub trait PropUpdaterWithCache<T: Default + Clone>: std::fmt::Debug {
 
     /// Calculate the value of the prop from the currently cached query results.
     /// Results of this function will be cached, so local caching is not needed.
-    fn calculate(&self) -> PropCalcResult<T>;
+    fn calculate(&mut self) -> PropCalcResult<T>;
 
     /// All props know how to calculate their value given their dependencies.
     /// Sometimes a prop is requested to take on a particular value. If the
@@ -166,8 +168,8 @@ where
         self.cache = dependencies.to_data(&self.queries_used);
     }
 
-    fn calculate(&self) -> PropCalcResult<T> {
-        self.prop_updater.calculate(&self.cache)
+    fn calculate(&mut self) -> PropCalcResult<T> {
+        self.prop_updater.calculate(&mut self.cache)
     }
 
     fn invert(

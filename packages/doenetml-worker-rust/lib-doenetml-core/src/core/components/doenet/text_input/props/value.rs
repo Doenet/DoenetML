@@ -34,20 +34,35 @@ impl PropUpdater<String, RequiredData> for ValueProp {
         .into()
     }
 
-    fn calculate<'a>(&self, data: &'a RequiredData) -> PropCalcResult<'a, String> {
-        let value = if *data.sync_immediate_value.get() {
-            data.immediate_value.get().clone()
+    fn calculate(&mut self, data: &mut RequiredData) -> PropCalcResult<String> {
+        // for the value calculation of `textInput`, we work out scenarios where the value didn't change
+        // because calculate will get called whenever immediate_value is changed
+        // even though that often does not influence value
+
+        let sync_immediate_value_changed = data.sync_immediate_value.changed_since_last_viewed();
+        if *data.sync_immediate_value.get_value_record_viewed() {
+            PropCalcResult::Calculated(data.immediate_value.get_value_record_viewed().clone())
         } else if data.value_from_children.came_from_default() {
             if data.preliminary_value.came_from_default() {
-                data.prefill.get().clone()
+                if sync_immediate_value_changed || data.prefill.changed_since_last_viewed() {
+                    PropCalcResult::Calculated(data.prefill.get_value_record_viewed().clone())
+                } else {
+                    PropCalcResult::NoChange
+                }
+            } else if sync_immediate_value_changed
+                || data.preliminary_value.changed_since_last_viewed()
+            {
+                PropCalcResult::Calculated(data.preliminary_value.get_value_record_viewed().clone())
             } else {
-                data.preliminary_value.get().clone()
+                PropCalcResult::NoChange
             }
+        } else if sync_immediate_value_changed
+            || data.value_from_children.changed_since_last_viewed()
+        {
+            PropCalcResult::Calculated(data.value_from_children.get_value_record_viewed().clone())
         } else {
-            data.value_from_children.get().clone()
-        };
-
-        PropCalcResult::Calculated(value)
+            PropCalcResult::NoChange
+        }
     }
 
     fn invert(
@@ -61,12 +76,11 @@ impl PropUpdater<String, RequiredData> for ValueProp {
         if data.value_from_children.came_from_default() {
             data.preliminary_value.queue_update(requested_value.clone());
             data.immediate_value.queue_update(requested_value.clone());
-            data.sync_immediate_value.queue_update(true);
         } else {
             data.value_from_children
                 .queue_update(requested_value.clone());
-            data.sync_immediate_value.queue_update(true);
         }
+        data.sync_immediate_value.queue_update(true);
 
         Ok(data.queued_updates())
     }

@@ -208,7 +208,7 @@ pub fn math_to_latex<MathObj: AsRef<str>>(
 /// let expr1 = parse_text_into_math("x+y", true, &["f"]).unwrap();
 ///
 /// let substitutions =
-///   HashMap::from([("y".to_string(), MathOrPrimitive::String("z".to_string()))]);
+///   HashMap::from([("y".to_string(), MathOrPrimitive::VariableName("z".to_string()))]);
 /// let expr2 = substitute_into_math(expr1, &substitutions).unwrap();
 ///
 /// assert_eq!(
