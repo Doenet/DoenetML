@@ -74,6 +74,7 @@ impl<Node: Clone + Eq + Debug, IndexLookup: Taggable<Node, usize>>
     /// Iterate through all nodes that have `node` as an ancestor. This iterator is meant to be fast.
     /// The order of the nodes is not guaranteed, and the same node may be yielded multiple times (e.g., if
     /// the graph is not a tree).
+    /// Panics if a cycle is detected.
     pub fn descendants_quick(&self, node: &Node) -> DescendantIterator<Node> {
         let &start_index = self.index_lookup.get_tag(node).unwrap();
         DescendantIterator::new(&self.nodes, &self.edges, start_index)
