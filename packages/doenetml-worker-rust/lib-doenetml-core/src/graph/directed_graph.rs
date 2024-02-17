@@ -53,16 +53,16 @@ impl<Node: Clone + Eq + Debug, IndexLookup: Taggable<Node, usize>>
     }
     /// Set an edge between two nodes. If the nodes do not exist, they are added to the graph.
     pub fn add_edge(&mut self, from: &Node, to: &Node) {
-        let from_index = if let Some(idx) = self.index_lookup.get_tag(from) {
-            *idx
-        } else {
-            self.add_node(from.clone())
-        };
-        let to_index = if let Some(idx) = self.index_lookup.get_tag(to) {
-            *idx
-        } else {
-            self.add_node(to.clone())
-        };
+        let from_index = self
+            .index_lookup
+            .get_tag(from)
+            .cloned()
+            .unwrap_or_else(|| self.add_node(from.clone()));
+        let to_index = self
+            .index_lookup
+            .get_tag(to)
+            .cloned()
+            .unwrap_or_else(|| self.add_node(to.clone()));
         self.edges[from_index].push(to_index);
         self.reverse_edges[to_index].push(from_index);
     }
