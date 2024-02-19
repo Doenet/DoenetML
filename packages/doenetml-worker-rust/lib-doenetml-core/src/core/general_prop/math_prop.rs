@@ -1,6 +1,6 @@
 use crate::{
     components::prelude::*,
-    state::types::math_expr::{MathExpr, MathOrPrimitive, MathParser},
+    state::types::math_expr::{MathArg, MathExpr, MathParser},
 };
 
 use super::util::MathOrString;
@@ -228,9 +228,7 @@ impl PropUpdater<MathExpr, RequiredData> for MathProp {
                             .map(|(idx, math_prop)| {
                                 (
                                     self.math_codes_cache[idx].clone(),
-                                    MathOrPrimitive::Math(
-                                        math_prop.get_value_record_viewed().clone(),
-                                    ),
+                                    MathArg::Math(math_prop.get_value_record_viewed().clone()),
                                 )
                             }),
                     );

@@ -221,7 +221,7 @@ impl<T: Default + Clone> PropInner<T> {
 }
 
 impl<T: Default + Clone> Prop<T> {
-    /// Create a new prop with the supplied interface
+    /// Create a new prop with the supplied updater
     pub fn new(updater: Box<dyn PropUpdaterWithCache<T>>, default_value: T) -> Self {
         let value = PropViewMut::new();
         Prop {
@@ -318,12 +318,12 @@ impl<T: Default + Clone> Prop<T> {
         self.value.get_requested_value()
     }
 
-    /// Convenience function to call `return_data_queries` on interface
+    /// Convenience function to call `return_data_queries` on the updater
     pub fn return_data_queries(&mut self) -> Vec<DataQuery> {
         self.updater.return_data_queries()
     }
 
-    /// Call `save_dependencies` on interface
+    /// Call `save_dependencies` on the updater
     /// and save dependencies to `all_data` field
     pub fn save_dependencies(&mut self, dependencies: &Vec<DependenciesCreatedForDataQuery>) {
         self.updater.save_data(dependencies);
@@ -333,7 +333,8 @@ impl<T: Default + Clone> Prop<T> {
             .collect();
     }
 
-    /// Convenience function to call `calculate` on interface
+    /// Call `calculate` on the updater,
+    /// process the result to set the value,
     /// and then call mark_fresh
     ///
     /// Return whether or not the value changed
@@ -361,7 +362,7 @@ impl<T: Default + Clone> Prop<T> {
         value_changed
     }
 
-    /// Convenience function to call `invert` on interface
+    /// Convenience function to call `invert` on updater
     pub fn invert(
         &mut self,
         is_direct_change_from_action: bool,

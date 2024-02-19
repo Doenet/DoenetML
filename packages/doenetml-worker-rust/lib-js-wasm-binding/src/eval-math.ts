@@ -113,7 +113,7 @@ export function substituteIntoMath(
     let mathExpr = JSON.parse(mathObject, serializedComponentsReviver);
 
     // math-expressions substitute expects an object, not a Map
-    let subs_object = {};
+    let subs_object: Record<string, any> = {};
     for (const [key, value] of substitutions.entries()) {
         subs_object[key] = JSON.parse(value, serializedComponentsReviver);
     }

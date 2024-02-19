@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use strum_macros::Display;
+use web_sys::js_sys::JsString;
 
 use crate::math_via_wasm::{
     eval_js, math_to_latex, normalize_math, parse_latex_into_math, parse_text_into_math,
@@ -7,16 +8,46 @@ use crate::math_via_wasm::{
 };
 
 const BLANK_MATH_OBJECT: &str = "{\"objectType\":\"math-expression\",\"tree\":\"\u{ff3f}\"}";
-/// A mathematical expression represented as a serialized `math-expressions` object.
+
+/// A symbolic mathematical expression.
+///
+/// The expression can be created from a text string or a latex string.
+/// Mathematical operations, simplification and other normalizations, and latex output are supported.
+///
+/// `MathExpr` is currently a wrapper on the `math-expressions` Javascript library.
+/// Data on this object is stored a serialized string of the `math-expressions` object,
+/// which is deserialize to perform operations in Javascript and then serialized when sent back to Rust.
+/// This architecture may have performance implications
+/// and may be replaced by a Rust-based symbolic tool in the future.
 #[derive(Debug, Clone, PartialEq, serde::Deserialize)]
 pub struct MathExpr {
-    pub math_object: String,
+    pub math_object: JsMathExpr,
+}
+
+impl MathExpr {
+    /// Produce a string representation of the `MathExpr`
+    /// that will be revived into the `math-expression` object when eval'ed in Javascript.
+    pub fn to_reviver_string(&self) -> String {
+        format!(
+            "JSON.parse({}, serializedComponentsReviver)",
+            serde_json::to_string(&self.math_object.0).unwrap()
+        )
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, serde::Deserialize)]
+pub struct JsMathExpr(pub String);
+
+impl JsMathExpr {
+    pub fn to_js_string(&self) -> JsString {
+        JsString::from(self.0.as_str())
+    }
 }
 
 impl Default for MathExpr {
     fn default() -> Self {
         MathExpr {
-            math_object: BLANK_MATH_OBJECT.to_string(),
+            math_object: JsMathExpr(BLANK_MATH_OBJECT.to_string()),
         }
     }
 }
@@ -32,7 +63,7 @@ impl serde::Serialize for MathExpr {
     where
         S: serde::Serializer,
     {
-        serializer.serialize_str(&self.math_object)
+        serializer.serialize_str(&self.math_object.0)
     }
 }
 
@@ -61,7 +92,7 @@ impl MathExpr {
 
         let math_object = match parse_text_into_math(s, split_symbols, function_symbols) {
             Ok(res) => res,
-            Err(_) => BLANK_MATH_OBJECT.to_owned(),
+            Err(_) => JsMathExpr(BLANK_MATH_OBJECT.to_owned()),
         };
 
         MathExpr { math_object }
@@ -91,7 +122,7 @@ impl MathExpr {
 
         let math_object = match parse_latex_into_math(s, split_symbols, function_symbols) {
             Ok(res) => res,
-            Err(_) => BLANK_MATH_OBJECT.to_owned(),
+            Err(_) => JsMathExpr(BLANK_MATH_OBJECT.to_owned()),
         };
 
         MathExpr { math_object }
@@ -142,7 +173,7 @@ impl MathExpr {
     pub fn to_latex(&self, params: ToLatexParams) -> String {
         match math_to_latex(&self.math_object, params) {
             Ok(res) => res,
-            Err(_) => BLANK_MATH_OBJECT.to_owned(),
+            Err(_) => "\u{FF3f}".to_string(),
         }
     }
 
@@ -154,20 +185,20 @@ impl MathExpr {
     /// Example:
     ///
     /// ```no_run
-    /// # use doenetml_core::state::types::math_expr::{MathExpr, MathOrPrimitive, ToLatexParams};
+    /// # use doenetml_core::state::types::math_expr::{MathExpr, MathArg, ToLatexParams};
     /// # use std::collections::HashMap;
     /// let expr1 = MathExpr::from_text("x+y", true, &["f"]);
     ///
     /// let substitutions =
-    ///     HashMap::from([("y".to_string(), MathOrPrimitive::VariableName("z".to_string()))]);
+    ///     HashMap::from([("y".to_string(), MathArg::Symbol("z".to_string()))]);
     /// let expr2 = expr1.substitute(&substitutions);
     ///
     /// assert_eq!(expr2.to_latex(ToLatexParams::default()), "x + z");
     /// ```
-    pub fn substitute(&self, substitutions: &HashMap<String, MathOrPrimitive>) -> MathExpr {
+    pub fn substitute(&self, substitutions: &HashMap<String, MathArg>) -> MathExpr {
         let math_object = match substitute_into_math(&self.math_object, substitutions) {
             Ok(res) => res,
-            Err(_) => BLANK_MATH_OBJECT.to_owned(),
+            Err(_) => JsMathExpr(BLANK_MATH_OBJECT.to_owned()),
         };
 
         MathExpr { math_object }
@@ -197,91 +228,92 @@ impl MathExpr {
     pub fn normalize(&self, params: NormalizeParams) -> MathExpr {
         let math_object = match normalize_math(&self.math_object, params) {
             Ok(res) => res,
-            Err(_) => BLANK_MATH_OBJECT.to_owned(),
+            Err(_) => JsMathExpr(BLANK_MATH_OBJECT.to_owned()),
         };
 
         MathExpr { math_object }
     }
 
     /// Create a new mathematical expression by adding `term` to the current expression.
-    pub fn add(&self, term: MathOrPrimitive) -> MathExpr {
-        let term = serde_json::to_string(&term).unwrap();
-
+    pub fn add(&self, term: MathArg) -> MathExpr {
         let js_source = format!(
-            r#"JSON.parse('{}', serializedComponentsReviver).add(JSON.parse('{}', serializedComponentsReviver));"#,
-            self.math_object, term
+            r#"{}.add({});"#,
+            self.to_reviver_string(),
+            term.to_reviver_string()
         );
 
-        let math_object = match eval_js(&js_source) {
+        let math_object = JsMathExpr(match eval_js(&js_source) {
             Ok(res) => res,
             Err(_) => BLANK_MATH_OBJECT.to_owned(),
-        };
+        });
 
         MathExpr { math_object }
     }
 
     /// Create a new mathematical expression by subtracting `term` to the current expression.
-    pub fn subtract(&self, term: MathOrPrimitive) -> MathExpr {
-        let term = serde_json::to_string(&term).unwrap();
-
+    pub fn subtract(&self, term: MathArg) -> MathExpr {
         let js_source = format!(
-            r#"JSON.parse('{}', serializedComponentsReviver).subtract(JSON.parse('{}', serializedComponentsReviver));"#,
-            self.math_object, term
+            r#"{}.subtract({});"#,
+            self.to_reviver_string(),
+            term.to_reviver_string()
         );
 
-        let math_object = match eval_js(&js_source) {
+        let math_object = JsMathExpr(match eval_js(&js_source) {
             Ok(res) => res,
             Err(_) => BLANK_MATH_OBJECT.to_owned(),
-        };
+        });
 
         MathExpr { math_object }
     }
 
     /// Create a new mathematical expression by multiplying the current expression by `term`.
-    pub fn multiply(&self, factor: MathOrPrimitive) -> MathExpr {
-        let factor = serde_json::to_string(&factor).unwrap();
-
+    pub fn multiply(&self, factor: MathArg) -> MathExpr {
         let js_source = format!(
-            r#"JSON.parse('{}', serializedComponentsReviver).multiply(JSON.parse('{}', serializedComponentsReviver));"#,
-            self.math_object, factor
+            r#"{}.multiply({});"#,
+            self.to_reviver_string(),
+            factor.to_reviver_string()
         );
 
-        let math_object = match eval_js(&js_source) {
+        let math_object = JsMathExpr(match eval_js(&js_source) {
             Ok(res) => res,
             Err(_) => BLANK_MATH_OBJECT.to_owned(),
-        };
+        });
 
         MathExpr { math_object }
     }
 
     /// Create a new mathematical expression by dividing the current expression by `term`.
-    pub fn divide(&self, factor: MathOrPrimitive) -> MathExpr {
-        let factor = serde_json::to_string(&factor).unwrap();
-
+    pub fn divide(&self, factor: MathArg) -> MathExpr {
         let js_source = format!(
-            r#"JSON.parse('{}', serializedComponentsReviver).divide(JSON.parse('{}', serializedComponentsReviver));"#,
-            self.math_object, factor
+            r#"{}.divide({});"#,
+            self.to_reviver_string(),
+            factor.to_reviver_string()
         );
 
-        let math_object = match eval_js(&js_source) {
+        let math_object = JsMathExpr(match eval_js(&js_source) {
             Ok(res) => res,
             Err(_) => BLANK_MATH_OBJECT.to_owned(),
-        };
+        });
 
         MathExpr { math_object }
     }
 }
 
-/// An enum of different types of values that can be interpreted as mathematical expressions.
+/// An mathematical value that can be used in the arguments of functions exposed on `MathExpr`.
+///
+/// These values will be automatically converted to a `MathExpr` before the functions operate on them,
+/// allowing one to use primitive values like numbers rather than first explicitly creating a `MathExpr`.
+///
+/// For example, if `math_expr` is a `MathExpr`, then `math_expr.add(MathArg::Integer(1))` adds `1`.
 #[derive(Debug)]
-pub enum MathOrPrimitive {
+pub enum MathArg {
     Math(MathExpr),
     Number(f64),
     Integer(i64),
-    VariableName(String),
+    Symbol(String),
 }
 
-impl serde::Serialize for MathOrPrimitive {
+impl serde::Serialize for MathArg {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
@@ -293,10 +325,21 @@ impl serde::Serialize for MathOrPrimitive {
             Self::Math(math_expr) => math_expr.serialize(serializer),
             Self::Number(num) => serializer.serialize_str(&num.to_string()),
             Self::Integer(num) => serializer.serialize_str(&num.to_string()),
-            Self::VariableName(var_name) => {
+            Self::Symbol(var_name) => {
                 serializer.serialize_str(&serde_json::to_value(var_name).unwrap().to_string())
             }
         }
+    }
+}
+
+impl MathArg {
+    /// Produce a string representation of the `MathArg`
+    /// that will be revived into a Javascript object when eval'ed in Javascript.
+    pub fn to_reviver_string(&self) -> String {
+        format!(
+            "JSON.parse({}, serializedComponentsReviver)",
+            serde_json::to_string(&self).unwrap()
+        )
     }
 }
 

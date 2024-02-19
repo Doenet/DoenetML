@@ -12,7 +12,7 @@ use web_sys::js_sys::{Array, Boolean, JsString, Number};
 use anyhow::anyhow;
 use std::collections::HashMap;
 
-use crate::state::types::math_expr::{MathOrPrimitive, NormalizeParams, ToLatexParams};
+use crate::state::types::math_expr::{JsMathExpr, MathArg, NormalizeParams, ToLatexParams};
 
 /// Directly evaluate a javascript string with `MathExpressions` in scope.
 ///
@@ -54,7 +54,7 @@ pub fn parse_text_into_math<Text: AsRef<str>, FnSymbol: AsRef<str>>(
     text: Text,
     split_symbols: bool,
     function_symbols: &[FnSymbol],
-) -> Result<String, anyhow::Error> {
+) -> Result<JsMathExpr, anyhow::Error> {
     let js_function_symbols = JsValue::from(
         function_symbols
             .iter()
@@ -67,14 +67,14 @@ pub fn parse_text_into_math<Text: AsRef<str>, FnSymbol: AsRef<str>>(
         js_function_symbols,
     )
     .map_err(|e| anyhow!("{:?}", e))?;
-    Ok(result.into())
+    Ok(JsMathExpr(result.into()))
 }
 #[cfg(any(feature = "testing", not(feature = "web")))]
 pub fn parse_text_into_math<Text: AsRef<str>, FnSymbol: AsRef<str>>(
     _text: Text,
     _split_symbols: bool,
     _function_symbols: &[FnSymbol],
-) -> Result<String, anyhow::Error> {
+) -> Result<JsMathExpr, anyhow::Error> {
     Err(anyhow!(
         "parse_text_into_math is only available when compiled with the `web` feature".to_string()
     ))
@@ -100,7 +100,7 @@ pub fn parse_latex_into_math<Latex: AsRef<str>, FnSymbol: AsRef<str>>(
     latex: Latex,
     split_symbols: bool,
     function_symbols: &[FnSymbol],
-) -> Result<String, anyhow::Error> {
+) -> Result<JsMathExpr, anyhow::Error> {
     let js_function_symbols = JsValue::from(
         function_symbols
             .iter()
@@ -113,14 +113,14 @@ pub fn parse_latex_into_math<Latex: AsRef<str>, FnSymbol: AsRef<str>>(
         js_function_symbols,
     )
     .map_err(|e| anyhow!("{:?}", e))?;
-    Ok(result.into())
+    Ok(JsMathExpr(result.into()))
 }
 #[cfg(any(feature = "testing", not(feature = "web")))]
 pub fn parse_latex_into_math<Latex: AsRef<str>, FnSymbol: AsRef<str>>(
     _latex: Latex,
     _split_symbols: bool,
     _function_symbols: &[FnSymbol],
-) -> Result<String, anyhow::Error> {
+) -> Result<JsMathExpr, anyhow::Error> {
     Err(anyhow!(
         "parse_latex_into_math is only available when compiled with the `web` feature".to_string()
     ))
@@ -173,12 +173,12 @@ pub fn parse_latex_into_math<Latex: AsRef<str>, FnSymbol: AsRef<str>>(
 /// );
 /// ````
 #[cfg(all(not(feature = "testing"), feature = "web"))]
-pub fn math_to_latex<MathObj: AsRef<str>>(
-    math_object: MathObj,
+pub fn math_to_latex(
+    math_object: &JsMathExpr,
     params: ToLatexParams,
 ) -> Result<String, anyhow::Error> {
     let result: JsString = toLatex(
-        JsString::from(math_object.as_ref()),
+        math_object.to_js_string(),
         params.pad_to_decimals.map(Number::from),
         params.pad_to_digits.map(Number::from),
         Boolean::from(params.show_blanks),
@@ -187,8 +187,8 @@ pub fn math_to_latex<MathObj: AsRef<str>>(
     Ok(result.into())
 }
 #[cfg(any(feature = "testing", not(feature = "web")))]
-pub fn math_to_latex<MathObj: AsRef<str>>(
-    _math_object: MathObj,
+pub fn math_to_latex(
+    _math_object: &JsMathExpr,
     _params: ToLatexParams,
 ) -> Result<String, anyhow::Error> {
     Err(anyhow!(
@@ -208,8 +208,8 @@ pub fn math_to_latex<MathObj: AsRef<str>>(
 /// let expr1 = parse_text_into_math("x+y", true, &["f"]).unwrap();
 ///
 /// let substitutions =
-///   HashMap::from([("y".to_string(), MathOrPrimitive::VariableName("z".to_string()))]);
-/// let expr2 = substitute_into_math(expr1, &substitutions).unwrap();
+///   HashMap::from([("y".to_string(), MathArg::Symbol("z".to_string()))]);
+/// let expr2 = substitute_into_math(&expr1, &substitutions).unwrap();
 ///
 /// assert_eq!(
 ///    math_to_latex(&expr2, ToLatexParams::default()).unwrap(),
@@ -217,21 +217,21 @@ pub fn math_to_latex<MathObj: AsRef<str>>(
 /// );
 /// ```
 #[cfg(all(not(feature = "testing"), feature = "web"))]
-pub fn substitute_into_math<MathObj: AsRef<str>>(
-    math_object: MathObj,
-    substitutions: &HashMap<String, MathOrPrimitive>,
-) -> Result<String, anyhow::Error> {
+pub fn substitute_into_math(
+    math_object: &JsMathExpr,
+    substitutions: &HashMap<String, MathArg>,
+) -> Result<JsMathExpr, anyhow::Error> {
     let substitutions = serde_wasm_bindgen::to_value(&substitutions).unwrap();
 
-    let result: JsString = substituteIntoMath(JsString::from(math_object.as_ref()), substitutions)
+    let result: JsString = substituteIntoMath(math_object.to_js_string(), substitutions)
         .map_err(|e| anyhow!("{:?}", e))?;
-    Ok(result.into())
+    Ok(JsMathExpr(result.into()))
 }
 #[cfg(any(feature = "testing", not(feature = "web")))]
-pub fn substitute_into_math<MathObj: AsRef<str>>(
-    _math_object: MathObj,
-    _substitutions: &HashMap<String, MathOrPrimitive>,
-) -> Result<String, anyhow::Error> {
+pub fn substitute_into_math(
+    _math_object: &JsMathExpr,
+    _substitutions: &HashMap<String, MathArg>,
+) -> Result<JsMathExpr, anyhow::Error> {
     Err(anyhow!(
         "substitute_into_math is only available when compiled with the `web` feature".to_string()
     ))
@@ -258,25 +258,27 @@ pub fn substitute_into_math<MathObj: AsRef<str>>(
 /// );
 /// ```
 #[cfg(all(not(feature = "testing"), feature = "web"))]
-pub fn normalize_math<MathObj: AsRef<str>>(
-    math_object: MathObj,
+pub fn normalize_math(
+    math_object: &JsMathExpr,
     params: NormalizeParams,
-) -> Result<String, anyhow::Error> {
+) -> Result<JsMathExpr, anyhow::Error> {
     let result: JsString = normalizeMath(
-        JsString::from(math_object.as_ref()),
-        JsString::from(params.simplify.to_string().to_lowercase()), // TODO: remove .to_lowercase()
+        math_object.to_js_string(),
+        // TODO: remove .to_lowercase() once normalizeMath isn't sharing code with the Javascript core
+        // that is depending on the simplify variant "numberspreserveorder" being in lowercase.
+        JsString::from(params.simplify.to_string().to_lowercase()),
         Boolean::from(params.expand),
         Boolean::from(params.create_vectors),
         Boolean::from(params.create_intervals),
     )
     .map_err(|e| anyhow!("{:?}", e))?;
-    Ok(result.into())
+    Ok(JsMathExpr(result.into()))
 }
 #[cfg(any(feature = "testing", not(feature = "web")))]
-pub fn normalize_math<MathObj: AsRef<str>>(
-    _math_object: MathObj,
+pub fn normalize_math(
+    _math_object: &JsMathExpr,
     _params: NormalizeParams,
-) -> Result<String, anyhow::Error> {
+) -> Result<JsMathExpr, anyhow::Error> {
     Err(anyhow!(
         "normalize_math is only available when compiled with the `web` feature".to_string()
     ))
