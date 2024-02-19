@@ -75,7 +75,7 @@ impl MathProp {
         function_symbols: Vec<String>,
     ) -> Self {
         MathProp {
-            data_query: DataQuery::Child {
+            data_query: DataQuery::ChildPropProfile {
                 match_profiles: vec![ComponentProfile::String, ComponentProfile::Math],
                 exclude_if_prefer_profiles: vec![],
                 always_return_value: true,
@@ -100,7 +100,7 @@ impl MathProp {
         function_symbols: Vec<String>,
     ) -> Self {
         MathProp {
-            data_query: DataQuery::AttributeChild {
+            data_query: DataQuery::Attribute {
                 attribute_name: attr_name,
                 match_profiles: vec![ComponentProfile::String, ComponentProfile::Math],
                 always_return_value: true,

@@ -25,7 +25,7 @@ impl ValueProp {
 impl PropUpdater<String, RequiredData> for ValueProp {
     fn return_data_queries(&self) -> Vec<Option<DataQuery>> {
         RequiredDataQueries {
-            preliminary_value: Some(DataQuery::PreliminaryValue),
+            preliminary_value: Some(DataQuery::State),
             immediate_value: Some(TextInputState::get_immediate_value_data_query()),
             sync_immediate_value: Some(TextInputState::get_sync_immediate_value_data_query()),
             value_from_children: Some(TextInputState::get_value_from_children_data_query()),
