@@ -30,16 +30,12 @@ impl PropUpdater<String, RequiredData> for LatexProp {
         .into()
     }
 
-    fn calculate(&mut self, data: &mut RequiredData) -> PropCalcResult<String> {
-        if data.math_expression.changed_since_last_viewed() {
-            PropCalcResult::Calculated(
-                data.math_expression
-                    .get_value_record_viewed()
-                    // TODO: add support for specifying latex parameters
-                    .to_latex(ToLatexParams::default()),
-            )
-        } else {
-            PropCalcResult::NoChange
-        }
+    fn calculate(&mut self, data: &RequiredData) -> PropCalcResult<String> {
+        PropCalcResult::Calculated(
+            data.math_expression
+                .get()
+                // TODO: add support for specifying latex parameters
+                .to_latex(ToLatexParams::default()),
+        )
     }
 }

@@ -4,7 +4,7 @@ use std::{
     rc::Rc,
 };
 
-use super::{Freshness, PropCalcResult, PropInner, QueryUpdateRequests};
+use super::{Freshness, PropCalcResult, PropInner, RequiredDataItem};
 
 /// A mutable view of a prop.
 /// It includes methods that allow one to view and change the variable.
@@ -197,9 +197,8 @@ pub struct PropView<T: Default + Clone> {
     /// in order to determine if the prop has changed since last viewed
     change_counter_when_last_viewed: u32,
 
-    ///
+    /// if true, then an update to this prop was queued by a call to `queue_update`.
     update_has_been_queued: bool,
-    // pub register_update_request: Option<RegisterUpdateRequest<'a>>,
 }
 
 impl<T: Default + Clone> PropView<T> {
@@ -221,31 +220,15 @@ impl<T: Default + Clone> PropView<T> {
         Ref::map(inner, |v| v.get())
     }
 
-    pub fn prop_calc_result_calculated(&mut self) -> PropCalcResult<T> {
-        if self.changed_since_last_viewed() {
-            PropCalcResult::Calculated(self.get_value_record_viewed().clone())
+    /// Return a `PropCalcResult` that copies the value of this prop
+    /// and also copies `came_from_default`
+    pub fn prop_calc_result(&self) -> PropCalcResult<T> {
+        if self.came_from_default() {
+            PropCalcResult::FromDefault(self.get().clone())
         } else {
-            PropCalcResult::NoChange
+            PropCalcResult::Calculated(self.get().clone())
         }
     }
-
-    pub fn prop_calc_result_from_default(&mut self) -> PropCalcResult<T> {
-        if self.changed_since_last_viewed() {
-            PropCalcResult::FromDefault(self.get_value_record_viewed().clone())
-        } else {
-            PropCalcResult::NoChange
-        }
-    }
-
-    pub fn prop_calc_result_from(&mut self) -> PropCalcResult<T> {
-        if self.changed_since_last_viewed() {
-            let val = self.get_value_record_viewed().clone();
-            PropCalcResult::From(val, self.came_from_default())
-        } else {
-            PropCalcResult::NoChange
-        }
-    }
-
     /// If the variable is fresh, get a reference to its current value.
     ///
     /// Panics: if the prop is not fresh.
@@ -338,7 +321,7 @@ impl<T: Default + Clone> Clone for PropView<T> {
     }
 }
 
-impl<T: Default + Clone> QueryUpdateRequests for PropView<T> {
+impl<T: Default + Clone> RequiredDataItem for PropView<T> {
     /// Reset 'update_has_been_queued` to false
     fn clear_queued_updates(&mut self) {
         self.update_has_been_queued = false;
@@ -350,5 +333,9 @@ impl<T: Default + Clone> QueryUpdateRequests for PropView<T> {
         } else {
             vec![]
         }
+    }
+
+    fn record_data_viewed(&mut self) {
+        self.record_viewed();
     }
 }

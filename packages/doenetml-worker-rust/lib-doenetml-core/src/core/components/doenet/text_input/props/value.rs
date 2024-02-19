@@ -34,32 +34,32 @@ impl PropUpdater<String, RequiredData> for ValueProp {
         .into()
     }
 
-    fn calculate(&mut self, data: &mut RequiredData) -> PropCalcResult<String> {
+    fn calculate(&mut self, data: &RequiredData) -> PropCalcResult<String> {
         // for the value calculation of `textInput`, we work out scenarios where the value didn't change
         // because calculate will get called whenever immediate_value is changed
         // even though that often does not influence value
 
         let sync_immediate_value_changed = data.sync_immediate_value.changed_since_last_viewed();
-        if *data.sync_immediate_value.get_value_record_viewed() {
-            PropCalcResult::Calculated(data.immediate_value.get_value_record_viewed().clone())
+        if *data.sync_immediate_value.get() {
+            PropCalcResult::Calculated(data.immediate_value.get().clone())
         } else if data.value_from_children.came_from_default() {
             if data.preliminary_value.came_from_default() {
                 if sync_immediate_value_changed || data.prefill.changed_since_last_viewed() {
-                    PropCalcResult::Calculated(data.prefill.get_value_record_viewed().clone())
+                    PropCalcResult::Calculated(data.prefill.get().clone())
                 } else {
                     PropCalcResult::NoChange
                 }
             } else if sync_immediate_value_changed
                 || data.preliminary_value.changed_since_last_viewed()
             {
-                PropCalcResult::Calculated(data.preliminary_value.get_value_record_viewed().clone())
+                PropCalcResult::Calculated(data.preliminary_value.get().clone())
             } else {
                 PropCalcResult::NoChange
             }
         } else if sync_immediate_value_changed
             || data.value_from_children.changed_since_last_viewed()
         {
-            PropCalcResult::Calculated(data.value_from_children.get_value_record_viewed().clone())
+            PropCalcResult::Calculated(data.value_from_children.get().clone())
         } else {
             PropCalcResult::NoChange
         }

@@ -80,13 +80,13 @@ impl PropUpdater<String, RequiredData> for StringProp {
         .into()
     }
 
-    fn calculate(&mut self, data: &mut RequiredData) -> PropCalcResult<String> {
+    fn calculate(&mut self, data: &RequiredData) -> PropCalcResult<String> {
         match data.strings.len() {
             0 => PropCalcResult::Calculated(String::from("")),
             1 => {
                 // if we are basing it on a single variable that came from default,
                 // then we propagate came_from_default as well as the value.
-                data.strings[0].prop_calc_result_from()
+                data.strings[0].prop_calc_result()
             }
             _ => {
                 // multiple string variables, so concatenate

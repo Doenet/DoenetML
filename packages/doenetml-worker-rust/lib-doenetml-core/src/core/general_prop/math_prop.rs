@@ -127,15 +127,15 @@ impl PropUpdater<MathExpr, RequiredData> for MathProp {
         .into()
     }
 
-    fn calculate(&mut self, data: &mut RequiredData) -> PropCalcResult<MathExpr> {
+    fn calculate(&mut self, data: &RequiredData) -> PropCalcResult<MathExpr> {
         match data.maths_and_strings.len() {
             0 => PropCalcResult::Calculated(MathExpr::default()),
             1 => {
-                match &mut data.maths_and_strings[0] {
+                match &data.maths_and_strings[0] {
                     MathOrString::Math(math_value) => {
                         // If we are basing a math on a single math value,
                         // then we just propagate that value (as well as came_from_default)
-                        math_value.prop_calc_result_from()
+                        math_value.prop_calc_result()
                     }
                     MathOrString::String(string_value) => {
                         if string_value.changed_since_last_viewed()
@@ -145,13 +145,13 @@ impl PropUpdater<MathExpr, RequiredData> for MathProp {
                             // then parse that string into a math expression.
                             let math_expr = match self.parser {
                                 MathParser::Text => MathExpr::from_text(
-                                    string_value.get_value_record_viewed().clone(),
-                                    *data.split_symbols.get_value_record_viewed(),
+                                    string_value.get().clone(),
+                                    *data.split_symbols.get(),
                                     &self.function_symbols,
                                 ),
                                 MathParser::Latex => MathExpr::from_latex(
-                                    string_value.get_value_record_viewed().clone(),
-                                    *data.split_symbols.get_value_record_viewed(),
+                                    string_value.get().clone(),
+                                    *data.split_symbols.get(),
                                     &self.function_symbols,
                                 ),
                             };
@@ -200,9 +200,9 @@ impl PropUpdater<MathExpr, RequiredData> for MathProp {
                     // Create the expression template from concatenating all values
                     // while substituting codes for the math values
                     let (expression_template, math_codes) = calc_expression_template(
-                        &mut data.maths_and_strings,
+                        &data.maths_and_strings,
                         self.parser,
-                        *data.split_symbols.get_value_record_viewed(),
+                        *data.split_symbols.get(),
                         &self.function_symbols,
                     );
 
@@ -219,7 +219,7 @@ impl PropUpdater<MathExpr, RequiredData> for MathProp {
                     let mut substitutions = HashMap::new();
                     substitutions.extend(
                         data.maths_and_strings
-                            .iter_mut()
+                            .iter()
                             .filter_map(|prop| match prop {
                                 MathOrString::Math(math_prop) => Some(math_prop),
                                 MathOrString::String(_) => None,
@@ -228,7 +228,7 @@ impl PropUpdater<MathExpr, RequiredData> for MathProp {
                             .map(|(idx, math_prop)| {
                                 (
                                     self.math_codes_cache[idx].clone(),
-                                    MathArg::Math(math_prop.get_value_record_viewed().clone()),
+                                    MathArg::Math(math_prop.get().clone()),
                                 )
                             }),
                     );
@@ -296,7 +296,7 @@ impl PropUpdater<MathExpr, RequiredData> for MathProp {
 /// - the expression template
 /// - the generated codes for each math value
 fn calc_expression_template(
-    maths_and_strings: &mut [MathOrString],
+    maths_and_strings: &[MathOrString],
     parser: MathParser,
     split_symbols: bool,
     function_symbols: &[String],
@@ -344,7 +344,7 @@ fn calc_expression_template(
 /// - the template string that will be parsed into the expression template
 /// - the math codes used to represent each math value
 fn create_template_string(
-    maths_and_strings: &mut [MathOrString],
+    maths_and_strings: &[MathOrString],
     code_prefix: String,
     parser: MathParser,
 ) -> (String, Vec<String>) {
@@ -352,10 +352,10 @@ fn create_template_string(
     let mut math_idx = 0;
     let mut math_codes = Vec::new();
 
-    template_string.extend(maths_and_strings.iter_mut().map(|prop| {
+    template_string.extend(maths_and_strings.iter().map(|prop| {
         match prop {
             MathOrString::String(str_prop) => {
-                format!(" {} ", str_prop.get_value_record_viewed().clone())
+                format!(" {} ", str_prop.get().clone())
             }
             MathOrString::Math(_) => {
                 let code = format!("{}{}", code_prefix, math_idx);

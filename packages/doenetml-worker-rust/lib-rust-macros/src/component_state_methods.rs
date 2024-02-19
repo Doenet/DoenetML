@@ -365,6 +365,7 @@ pub fn prop_dependencies_derive(input: TokenStream) -> TokenStream {
                 let mut data_struct_statements = Vec::new();
                 let mut initialize_data_struct_statements = Vec::new();
                 let mut return_update_requests_statements = Vec::new();
+                let mut record_data_viewed_statements = Vec::new();
 
                 for (data_query_idx, field_identity) in field_identities.iter().enumerate() {
                     if field_identity.to_string().starts_with('_') {
@@ -404,7 +405,11 @@ pub fn prop_dependencies_derive(input: TokenStream) -> TokenStream {
                             // since this query was actually used, we increment the index for dependencies[]
                             shifted_query_idx += 1;
                         }
-                    })
+                    });
+
+                    record_data_viewed_statements.push(quote! {
+                        self.#field_identity.record_data_viewed();
+                    });
                 }
 
                 // if we have a generic,
@@ -440,6 +445,11 @@ pub fn prop_dependencies_derive(input: TokenStream) -> TokenStream {
 
                             data_struct
                         }
+
+                        fn record_data_viewed(&mut self) {
+                            #(#record_data_viewed_statements)*
+                        }
+
                     }
 
                     impl #generics #structure_identity #generics

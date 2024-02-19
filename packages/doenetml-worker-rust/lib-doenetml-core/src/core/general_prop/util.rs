@@ -1,7 +1,7 @@
 use enum_dispatch::enum_dispatch;
 
 use crate::{
-    components::prelude::{PropView, PropViewEnum, QueryUpdateRequests, TryFromState},
+    components::prelude::{PropView, PropViewEnum, RequiredDataItem, TryFromState},
     state::types::math_expr::MathExpr,
 };
 
@@ -25,7 +25,7 @@ pub fn string_attr_to_boolean(s: &str) -> bool {
 
 /// A boolean or string prop view
 #[derive(Debug)]
-#[enum_dispatch(QueryUpdateRequests)]
+#[enum_dispatch(RequiredDataItem)]
 pub enum BooleanOrString {
     Boolean(PropView<bool>),
     String(PropView<String>),
@@ -61,7 +61,7 @@ impl BooleanOrString {
 
 /// A math or string state var view
 #[derive(Debug)]
-#[enum_dispatch(QueryUpdateRequests)]
+#[enum_dispatch(RequiredDataItem)]
 pub enum MathOrString {
     Math(PropView<MathExpr>),
     String(PropView<String>),

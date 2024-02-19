@@ -32,7 +32,7 @@ impl PropUpdater<String, RequiredData> for ImmediateValueProp {
         .into()
     }
 
-    fn calculate(&mut self, data: &mut RequiredData) -> PropCalcResult<String> {
+    fn calculate(&mut self, data: &RequiredData) -> PropCalcResult<String> {
         // for simplicity, we don't work out scenarios where immediate_value didn't change,
         // as it typically does change if one of its dependencies changed
         let immediate_value =

@@ -348,14 +348,6 @@ impl<T: Default + Clone> Prop<T> {
                 self.value.set_value_from_default(val);
                 true
             }
-            PropCalcResult::From(val, came_from_default) => {
-                if came_from_default {
-                    self.value.set_value_from_default(val);
-                } else {
-                    self.value.set_value(val);
-                }
-                true
-            }
             PropCalcResult::NoChange => false,
         };
         self.mark_fresh();

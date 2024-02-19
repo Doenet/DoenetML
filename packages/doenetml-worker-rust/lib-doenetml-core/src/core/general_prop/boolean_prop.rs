@@ -90,22 +90,22 @@ impl PropUpdater<bool, RequiredData> for BooleanProp {
     }
 
     #[allow(clippy::needless_return)]
-    fn calculate(&mut self, data: &mut RequiredData) -> PropCalcResult<bool> {
+    fn calculate(&mut self, data: &RequiredData) -> PropCalcResult<bool> {
         match data.booleans_and_strings.len() {
             0 => PropCalcResult::Calculated(false),
             1 => {
-                match &mut data.booleans_and_strings[0] {
+                match &data.booleans_and_strings[0] {
                     BooleanOrString::Boolean(boolean_value) => {
                         // If we are basing it on a single variable that came from default,
                         // then we propagate came_from_default as well as the value.
-                        boolean_value.prop_calc_result_from()
+                        boolean_value.prop_calc_result()
                     }
                     BooleanOrString::String(string_value) => {
                         if string_value.changed_since_last_viewed() {
                             PropCalcResult::Calculated(if self.from_attribute {
-                                string_attr_to_boolean(&string_value.get_value_record_viewed())
+                                string_attr_to_boolean(&string_value.get())
                             } else {
-                                string_to_boolean(&string_value.get_value_record_viewed())
+                                string_to_boolean(&string_value.get())
                             })
                         } else {
                             PropCalcResult::NoChange
@@ -130,13 +130,9 @@ impl PropUpdater<bool, RequiredData> for BooleanProp {
                         .any(|view| view.changed_since_last_viewed())
                     {
                         let mut value = String::new();
-                        value.extend(data.booleans_and_strings.iter_mut().map(|v| match v {
-                            BooleanOrString::Boolean(boolean_val) => {
-                                boolean_val.get_value_record_viewed().to_string()
-                            }
-                            BooleanOrString::String(string_value) => {
-                                string_value.get_value_record_viewed().to_string()
-                            }
+                        value.extend(data.booleans_and_strings.iter().map(|v| match v {
+                            BooleanOrString::Boolean(boolean_val) => boolean_val.get().to_string(),
+                            BooleanOrString::String(string_value) => string_value.get().to_string(),
                         }));
 
                         PropCalcResult::Calculated(if self.from_attribute {
