@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 use strum_macros::Display;
+
+#[cfg(all(not(feature = "testing"), feature = "web"))]
 use web_sys::js_sys::JsString;
 
 use crate::math_via_wasm::{
@@ -38,6 +40,7 @@ impl MathExpr {
 #[derive(Debug, Clone, PartialEq, serde::Deserialize)]
 pub struct JsMathExpr(pub String);
 
+#[cfg(all(not(feature = "testing"), feature = "web"))]
 impl JsMathExpr {
     pub fn to_js_string(&self) -> JsString {
         JsString::from(self.0.as_str())
