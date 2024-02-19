@@ -130,13 +130,22 @@ impl PropUpdater<MathExpr, RequiredData> for MathProp {
         match data.maths_and_strings.len() {
             0 => PropCalcResult::Calculated(MathExpr::default()),
             1 => {
+                // if the math expression is based just one component,
+                // then either propagate the value of a math
+                // or parse a string into a math
                 match &data.maths_and_strings[0] {
                     MathOrString::Math(math_value) => {
-                        // If we are basing a math on a single math value,
-                        // then we just propagate that value (as well as came_from_default)
-                        math_value.prop_calc_result()
+                        if math_value.changed_since_last_viewed() {
+                            // If we are basing a math on a single math value,
+                            // then we just propagate that value (as well as came_from_default)
+                            math_value.prop_calc_result()
+                        } else {
+                            PropCalcResult::NoChange
+                        }
                     }
                     MathOrString::String(string_value) => {
+                        // TODO: once `function_symbols` is based on data query,
+                        // check if that changed as well
                         if string_value.changed_since_last_viewed()
                             || data.split_symbols.changed_since_last_viewed()
                         {
@@ -168,11 +177,12 @@ impl PropUpdater<MathExpr, RequiredData> for MathProp {
                 // while replacing all maths by with a unique code
                 // (typically m1, m2, etc., unless "m" appears in a string)
                 // and parsing the resulting string into a math expression.
-                // We cache that expression template, along with the codes used, onto `self``,
+                // We cache that expression template, along with the codes used, onto `self`,
                 // so that we don't have to recalculate it unless a string changes
                 // or a parameter that controls parsing is changed.
                 //
-                // The final step is to substitute the values of the math components for their codes into the expression_template.
+                // The final step is to substitute the values of the math components
+                // for their codes into the expression_template.
 
                 let string_changed = data
                     .maths_and_strings
@@ -193,7 +203,8 @@ impl PropUpdater<MathExpr, RequiredData> for MathProp {
                     .any(|view| view.changed_since_last_viewed());
 
                 if string_changed || data.split_symbols.changed_since_last_viewed() {
-                    // Either a string child has changed or split_symbols change (the latter catches the first time calculate is called).
+                    // Either a string child has changed or split_symbols changed
+                    // (the latter condition will catch the first time calculate() is called).
                     // We need to recalculate the expression template.
 
                     // Create the expression template from concatenating all values
@@ -342,6 +353,12 @@ fn calc_expression_template(
 /// Returns a tuple of:
 /// - the template string that will be parsed into the expression template
 /// - the math codes used to represent each math value
+///
+/// Example:
+/// If `maths_and_strings` was derived from `3+<math>x^2</math> + y<math>z</math>`,
+/// and the `code_prefix` was `"m"`,
+/// then the template string (assuming the text `parser`) would become `"3+ m1  + y m2"`
+/// and the codes returned would be the vector of `("m1", "m2")`.
 fn create_template_string(
     maths_and_strings: &[MathOrString],
     code_prefix: String,
