@@ -31,14 +31,13 @@ impl ImmediateValueProp {
 }
 
 impl PropUpdater<String, RequiredData> for ImmediateValueProp {
-    fn return_data_queries(&self) -> Vec<Option<DataQuery>> {
+    fn return_data_queries(&self) -> Vec<DataQuery> {
         RequiredDataQueries {
-            independent_state: Some(DataQuery::State),
-            sync_value_to_immediate_value: Some(
+            independent_state: DataQuery::State,
+            sync_value_to_immediate_value:
                 TextInputState::get_sync_value_to_immediate_value_data_query(),
-            ),
-            value_from_children: Some(TextInputState::get_value_from_children_data_query()),
-            prefill: Some(TextInputState::get_prefill_data_query()),
+            value_from_children: TextInputState::get_value_from_children_data_query(),
+            prefill: TextInputState::get_prefill_data_query(),
         }
         .into()
     }

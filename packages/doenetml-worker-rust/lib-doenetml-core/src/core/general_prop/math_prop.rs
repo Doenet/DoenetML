@@ -174,11 +174,11 @@ impl PropUpdater<MathExpr, RequiredData> for MathProp {
         self.default_value.clone()
     }
 
-    fn return_data_queries(&self) -> Vec<Option<DataQuery>> {
+    fn return_data_queries(&self) -> Vec<DataQuery> {
         RequiredDataQueries {
-            independent_state: Some(DataQuery::State),
-            maths_and_strings: Some(self.data_query.clone()),
-            split_symbols: Some(self.split_symbols.clone()),
+            independent_state: DataQuery::State,
+            maths_and_strings: self.data_query.clone(),
+            split_symbols: self.split_symbols.clone(),
         }
         .into()
     }

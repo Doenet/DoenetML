@@ -37,12 +37,12 @@ where
     PropView<T>: TryFromState<PropViewEnum>,
     <PropView<T> as TryFromState<PropViewEnum>>::Error: std::fmt::Debug,
 {
-    fn return_data_queries(&self) -> Vec<Option<DataQuery>> {
+    fn return_data_queries(&self) -> Vec<DataQuery> {
         RequiredDataQueries {
-            aliased_value: Some(DataQuery::Prop {
+            aliased_value: DataQuery::Prop {
                 component_idx: None,
                 prop_idx: self.aliased_prop_idx,
-            }),
+            },
         }
         .into()
     }

@@ -27,12 +27,12 @@ impl BooleanToStringProp {
 }
 
 impl PropUpdater<String, RequiredData> for BooleanToStringProp {
-    fn return_data_queries(&self) -> Vec<Option<DataQuery>> {
+    fn return_data_queries(&self) -> Vec<DataQuery> {
         RequiredDataQueries {
-            boolean: Some(DataQuery::Prop {
+            boolean: DataQuery::Prop {
                 component_idx: None,
                 prop_idx: self.boolean_prop_idx,
-            }),
+            },
         }
         .into()
     }

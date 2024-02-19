@@ -132,10 +132,10 @@ impl PropUpdater<bool, RequiredData> for BooleanProp {
         self.default_value
     }
 
-    fn return_data_queries(&self) -> Vec<Option<DataQuery>> {
+    fn return_data_queries(&self) -> Vec<DataQuery> {
         RequiredDataQueries {
-            independent_state: Some(DataQuery::State),
-            booleans_and_strings: Some(self.data_query.clone()),
+            independent_state: DataQuery::State,
+            booleans_and_strings: self.data_query.clone(),
         }
         .into()
     }

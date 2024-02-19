@@ -39,9 +39,9 @@ where
         self.default_value.clone()
     }
 
-    fn return_data_queries(&self) -> Vec<Option<DataQuery>> {
+    fn return_data_queries(&self) -> Vec<DataQuery> {
         RequiredDataQueries {
-            preliminary_value: Some(DataQuery::State),
+            preliminary_value: DataQuery::State,
         }
         .into()
     }

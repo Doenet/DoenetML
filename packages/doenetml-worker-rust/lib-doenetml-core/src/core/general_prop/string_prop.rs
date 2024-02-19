@@ -123,10 +123,10 @@ impl PropUpdater<String, RequiredData> for StringProp {
         self.default_value.clone()
     }
 
-    fn return_data_queries(&self) -> Vec<Option<DataQuery>> {
+    fn return_data_queries(&self) -> Vec<DataQuery> {
         RequiredDataQueries {
-            independent_state: Some(DataQuery::State),
-            strings: Some(self.data_query.clone()),
+            independent_state: DataQuery::State,
+            strings: self.data_query.clone(),
         }
         .into()
     }
