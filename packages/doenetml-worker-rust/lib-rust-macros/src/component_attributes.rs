@@ -150,7 +150,7 @@ fn lookup_type(prop: &Ident, explicit_type: &Option<Ident>) -> TokenStream2 {
 /// Struct for saving information about variants of the enum. This contains everything we need to
 /// generate code like
 /// ```ignore
-/// TextInputAttribute::Hide => BooleanProp::new_from_attribute("hide", false).into_prop(),
+/// TextInputAttribute::Hide => BooleanProp::new_from_attribute("hide", false, true).into_prop(),
 /// ```
 #[derive(Debug)]
 struct VariantImpl {
@@ -163,7 +163,7 @@ struct VariantImpl {
 impl VariantImpl {
     /// Create a match arm for this variant that looks like
     /// ```ignore
-    /// TextInputAttribute::Hide => BooleanProp::new_from_attribute("hide", false).into_prop(),
+    /// TextInputAttribute::Hide => BooleanProp::new_from_attribute("hide", false, true).into_prop(),
     /// ```
     fn match_arm(&self, enum_name: &Ident) -> proc_macro2::TokenStream {
         let variant_name = {
@@ -176,7 +176,7 @@ impl VariantImpl {
         let attr_name = &self.attr_name;
 
         quote! {
-            #variant_name => #prop::new_from_attribute(#attr_name, #default).into_prop(),
+            #variant_name => #prop::new_from_attribute(#attr_name, #default, true).into_prop(),
         }
     }
 }

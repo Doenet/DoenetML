@@ -40,6 +40,7 @@ impl MathState {
                 MathState::get_split_symbols_data_query(),
                 // TODO: specify function_symbols via attribute once we implement array attributes and props
                 vec!["f".to_string(), "g".to_string()],
+                true,
             )
             .into_prop(),
             latex: LatexProp::new(MathState::get_value_data_query()).into_prop(),

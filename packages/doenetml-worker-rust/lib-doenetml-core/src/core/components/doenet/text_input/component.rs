@@ -75,10 +75,11 @@ impl ComponentActions for TextInput {
         let action: TextInputAction = action.try_into()?;
 
         match action {
-            TextInputAction::UpdateImmediateValue(ActionBody { args }) => Ok(vec![
-                TextInputState::update_immediate_value_from_action(args.text),
-                TextInputState::update_sync_immediate_value_from_action(false),
-            ]),
+            TextInputAction::UpdateImmediateValue(ActionBody { args }) => {
+                Ok(vec![TextInputState::update_immediate_value_from_action(
+                    args.text,
+                )])
+            }
 
             TextInputAction::UpdateValue => {
                 let new_val =

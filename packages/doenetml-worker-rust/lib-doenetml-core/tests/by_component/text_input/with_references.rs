@@ -40,6 +40,47 @@ fn text_input_reference_child_is_changed_when_update_value() {
     assert_eq!(get_text_value(text_idx, &mut core), "bye");
 }
 
+/// A text component referenced as a child of a text input
+/// will be changed with `UpdateValue`.
+/// This test is checking to make sure the text is changed by the actions
+/// even if it starts blank, i.e., with its default value.
+#[test]
+fn text_input_reference_blank_child_is_changed_when_update_value() {
+    let dast_root = dast_root_no_position(r#"<textInput>$t</textInput><text name="t"/>"#);
+    let mut core = DoenetMLCore::new(dast_root, "", "", None);
+
+    // the text input will be index 1, as the document tag will be index 0.
+    let text_input_idx = 1;
+
+    // the original text will be right after the text input, so index 2
+    let text_idx = 2;
+
+    // both variables are initialized to blank strings
+    assert_eq!(get_immediate_value(text_input_idx, &mut core), "");
+    assert_eq!(get_value(text_input_idx, &mut core), "");
+    assert_eq!(get_text_value(text_idx, &mut core), "");
+
+    // The UpdateImmediateValue action (which should be in response to typing characters)
+    // should only update the immediate_value prop
+    let type_word_action = update_immediate_value_action(String::from("bye"), text_input_idx);
+
+    let _ = core.dispatch_action(type_word_action);
+
+    assert_eq!(get_immediate_value(text_input_idx, &mut core), "bye");
+    assert_eq!(get_value(text_input_idx, &mut core), "");
+    assert_eq!(get_text_value(text_idx, &mut core), "");
+
+    // The UpdateValue action (which should corresponds to pressing enter or blurring)
+    // should update value to match immediate value
+    let press_enter_action = update_value_action(text_input_idx);
+
+    let _ = core.dispatch_action(press_enter_action);
+
+    assert_eq!(get_immediate_value(text_input_idx, &mut core), "bye");
+    assert_eq!(get_value(text_input_idx, &mut core), "bye");
+    assert_eq!(get_text_value(text_idx, &mut core), "bye");
+}
+
 /// A text component referenced as a prefill of a text input
 /// will not be changed with `UpdateValue`
 #[test]
