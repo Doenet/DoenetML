@@ -16,7 +16,6 @@ fn boolean_prop_from_children_gives_correct_data_queries() {
         queries,
         vec![DataQuery::ChildPropProfile {
             match_profiles: vec![ComponentProfile::String, ComponentProfile::Boolean],
-            exclude_if_prefer_profiles: vec![],
             always_return_value: true,
         },]
     );

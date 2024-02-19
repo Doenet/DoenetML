@@ -123,13 +123,12 @@ pub fn create_dependencies_from_data_query_initialize_state(
 
         DataQuery::ChildPropProfile {
             match_profiles,
-            exclude_if_prefer_profiles,
             always_return_value,
         } => {
             let always_return_value = *always_return_value;
 
             // Create a dependency from all children
-            // that match a profile from match_profiles before matching exclude_if_prefer_profiles.
+            // that match a profile from match_profiles.
             // The dependency for each child will be a view of the matching prop.
 
             /// Local enum to keep track of what children were found
@@ -182,22 +181,21 @@ pub fn create_dependencies_from_data_query_initialize_state(
                         let child = components[*child_idx].borrow();
 
                         // Iterate through all the child's component profile props
-                        // to see if one matches matches_profile before one matches exclude_if_prefer_profiles.
+                        // to see if one matches matches_profile.
 
-                        let mut child_matches_with_prop = None;
+                        let child_matches_with_prop = child
+                            .get_component_profile_prop_indices()
+                            .into_iter()
+                            .find_map(|prop_idx| {
+                                let child_prop = child.get_prop(prop_idx).unwrap();
+                                let child_profile = child_prop.get_matching_component_profile();
 
-                        for prop_idx in child.get_component_profile_prop_indices() {
-                            let child_prop = child.get_prop(prop_idx).unwrap();
-                            let child_profile = child_prop.get_matching_component_profile();
-
-                            if match_profiles.contains(&child_profile) {
-                                child_matches_with_prop =
-                                    Some((child_prop.create_new_read_only_view(), prop_idx));
-                                break;
-                            } else if exclude_if_prefer_profiles.contains(&child_profile) {
-                                break;
-                            }
-                        }
+                                if match_profiles.contains(&child_profile) {
+                                    Some((child_prop.create_new_read_only_view(), prop_idx))
+                                } else {
+                                    None
+                                }
+                            });
 
                         if let Some((prop_view, prop_idx)) = child_matches_with_prop {
                             let prop_dep = Dependency {

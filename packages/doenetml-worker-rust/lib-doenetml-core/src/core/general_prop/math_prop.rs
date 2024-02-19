@@ -77,7 +77,6 @@ impl MathProp {
         MathProp {
             data_query: DataQuery::ChildPropProfile {
                 match_profiles: vec![ComponentProfile::String, ComponentProfile::Math],
-                exclude_if_prefer_profiles: vec![],
                 always_return_value: true,
             },
             parser,

@@ -52,7 +52,6 @@ impl BooleanProp {
         BooleanProp {
             data_query: DataQuery::ChildPropProfile {
                 match_profiles: vec![ComponentProfile::String, ComponentProfile::Boolean],
-                exclude_if_prefer_profiles: vec![],
                 always_return_value: true,
             },
             default_value,
