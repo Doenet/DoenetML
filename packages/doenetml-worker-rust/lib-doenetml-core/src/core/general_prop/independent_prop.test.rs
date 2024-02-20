@@ -23,7 +23,7 @@ fn independent_prop_gives_correct_data_queries() {
 /// and its came_from_default should be the same as the preliminary value's came_from_default
 #[test]
 fn calculate_independent_boolean_prop() {
-    let (mut prop, _prop_view, preliminary_value_var) =
+    let (mut prop, _prop_view, independent_state_var) =
         set_up_boolean_independent_prop(false, true);
 
     // we initialize preliminary value to be false, so should get false
@@ -32,7 +32,7 @@ fn calculate_independent_boolean_prop() {
     assert_eq!(prop.came_from_default(), true);
 
     // changing preliminary value to be true, results in prop being true
-    preliminary_value_var.set_value(true);
+    independent_state_var.set_value(true);
     prop.calculate_and_mark_fresh();
     assert_eq!(*prop.get(), true);
     assert_eq!(prop.came_from_default(), false);
@@ -42,7 +42,7 @@ fn calculate_independent_boolean_prop() {
 /// causes the preliminary value to receive that requested value
 #[test]
 fn invert_independent_boolean_prop() {
-    let (mut prop, mut prop_view, preliminary_value_var) =
+    let (mut prop, mut prop_view, independent_state_var) =
         set_up_boolean_independent_prop(true, false);
 
     // on the prop view, record that we request the value be false
@@ -60,7 +60,7 @@ fn invert_independent_boolean_prop() {
     );
 
     // the preliminary value variable has recorded that it has been requested to be false
-    assert_eq!(*preliminary_value_var.get_requested_value(), false);
+    assert_eq!(*independent_state_var.get_requested_value(), false);
 }
 
 /// For an independent string prop,
@@ -68,7 +68,7 @@ fn invert_independent_boolean_prop() {
 /// and its came_from_default should be the same as the preliminary value's came_from_default
 #[test]
 fn calculate_independent_string_prop() {
-    let (mut prop, _prop_view, preliminary_value_var) =
+    let (mut prop, _prop_view, independent_state_var) =
         set_up_string_independent_prop(String::from("hello"), true);
 
     // we initialize preliminary value to be true, so should get true
@@ -77,7 +77,7 @@ fn calculate_independent_string_prop() {
     assert_eq!(prop.came_from_default(), true);
 
     // changing preliminary value to be false, results in prop being false
-    preliminary_value_var.set_value(String::from("bye"));
+    independent_state_var.set_value(String::from("bye"));
     prop.calculate_and_mark_fresh();
     assert_eq!(*prop.get(), "bye");
     assert_eq!(prop.came_from_default(), false);
@@ -87,7 +87,7 @@ fn calculate_independent_string_prop() {
 /// causes the preliminary value to receive that requested value
 #[test]
 fn invert_independent_string_prop() {
-    let (mut prop, mut prop_view, preliminary_value_var) =
+    let (mut prop, mut prop_view, independent_state_var) =
         set_up_string_independent_prop(String::from("hello"), false);
 
     // on the prop view, record that we request the value be "bye"
@@ -105,7 +105,7 @@ fn invert_independent_string_prop() {
     );
 
     // the preliminary value variable has recorded that it has been requested to be false
-    assert_eq!(*preliminary_value_var.get_requested_value(), "bye");
+    assert_eq!(*independent_state_var.get_requested_value(), "bye");
 }
 
 mod setup_functions {
@@ -125,16 +125,16 @@ mod setup_functions {
 
         // Note: the default_value specified in the creation of prop above
         // isn't used at this level of testing, so we supply it directly here to match
-        let (preliminary_value_dependency, preliminary_value_var) =
+        let (independent_state_dependency, independent_state_var) =
             create_prop_dependency(initial_value, came_from_default);
 
         let dependencies_created_for_data_queries = vec![DependenciesCreatedForDataQuery(vec![
-            preliminary_value_dependency,
+            independent_state_dependency,
         ])];
 
         prop.save_dependencies(&dependencies_created_for_data_queries);
 
-        (prop, prop_view, preliminary_value_var)
+        (prop, prop_view, independent_state_var)
     }
 
     /// Utility function to set up independent string prop and its preliminary value dependency
@@ -150,15 +150,15 @@ mod setup_functions {
 
         // Note: the default_value specified in the creation of prop above
         // isn't used at this level of testing, so we supply it directly here to match
-        let (preliminary_value_dependency, preliminary_value_var) =
+        let (independent_state_dependency, independent_state_var) =
             create_prop_dependency(initial_value, came_from_default);
 
         let dependencies_created_for_data_queries = vec![DependenciesCreatedForDataQuery(vec![
-            preliminary_value_dependency,
+            independent_state_dependency,
         ])];
 
         prop.save_dependencies(&dependencies_created_for_data_queries);
 
-        (prop, prop_view, preliminary_value_var)
+        (prop, prop_view, independent_state_var)
     }
 }

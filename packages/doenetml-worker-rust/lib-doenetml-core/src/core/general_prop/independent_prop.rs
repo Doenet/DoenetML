@@ -7,7 +7,9 @@ pub struct RequiredData<T>
 where
     T: Default + Clone,
 {
-    preliminary_value: PropView<T>,
+    /// An independent state variable (that doesn't have any dependencies)
+    /// that will be used to store the value of the independent prop.
+    independent_state: PropView<T>,
 }
 
 /// A prop that doesn't depend on outside data.
@@ -41,14 +43,14 @@ where
 
     fn return_data_queries(&self) -> Vec<DataQuery> {
         RequiredDataQueries {
-            preliminary_value: DataQuery::State,
+            independent_state: DataQuery::State,
         }
         .into()
     }
 
     fn calculate(&mut self, data: &RequiredData<T>) -> PropCalcResult<T> {
-        // take on the value from `preliminary_value`, propagating `came_from_default`.
-        data.preliminary_value.prop_calc_result()
+        // take on the value from `independent_state`, propagating `came_from_default`.
+        data.independent_state.prop_calc_result()
     }
 
     fn invert(
@@ -57,7 +59,7 @@ where
         prop: &PropView<T>,
         _is_direct_change_from_action: bool,
     ) -> Result<Vec<DependencyValueUpdateRequest>, InvertError> {
-        data.preliminary_value
+        data.independent_state
             .queue_update(prop.get_requested_value().clone());
 
         Ok(data.queued_updates())
