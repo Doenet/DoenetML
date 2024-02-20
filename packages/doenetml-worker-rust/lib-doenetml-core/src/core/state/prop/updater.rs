@@ -168,7 +168,7 @@ where
 
     fn calculate(&mut self) -> PropCalcResult<T> {
         let result = self.prop_updater.calculate(&self.cache);
-        self.cache.record_data_viewed();
+        self.cache.mark_data_viewed();
         result
     }
 
@@ -218,7 +218,7 @@ pub trait FromDependencies {
 
     /// Record that all data has been viewed so that future checks for changes
     /// will be based on changes after this moment.
-    fn record_data_viewed(&mut self);
+    fn mark_data_viewed(&mut self);
 }
 
 impl<RequiredData> DependenciesToData<RequiredData> for Vec<DependenciesCreatedForDataQuery>
@@ -242,7 +242,7 @@ pub trait RequiredDataItem {
 
     /// Record that the data of this item has been viewed so that future checks for changes
     /// will be based on changes after this moment.
-    fn record_data_viewed(&mut self);
+    fn mark_data_viewed(&mut self);
 }
 
 impl<T> RequiredDataItem for Option<T>
@@ -262,9 +262,9 @@ where
             .unwrap_or_default()
     }
 
-    fn record_data_viewed(&mut self) {
+    fn mark_data_viewed(&mut self) {
         self.as_mut().map(|val| {
-            val.record_data_viewed();
+            val.mark_data_viewed();
             val
         });
     }
@@ -294,9 +294,9 @@ where
             .collect()
     }
 
-    fn record_data_viewed(&mut self) {
+    fn mark_data_viewed(&mut self) {
         for val in self.iter_mut() {
-            val.record_data_viewed();
+            val.mark_data_viewed();
         }
     }
 }

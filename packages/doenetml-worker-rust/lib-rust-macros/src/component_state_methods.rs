@@ -154,13 +154,13 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
                             });
 
                             return_rendered_state_items.push(quote! {
-                                #field_identity: Some(self.#field_identity.get_value_record_viewed().clone()),
+                                #field_identity: Some(self.#field_identity.get_value_mark_viewed().clone()),
                             });
 
                             return_rendered_state_update_statements.push(quote! {
                                 if self.#field_identity.changed_since_last_viewed() {
                                     updated_variables.#field_identity =
-                                        Some(self.#field_identity.get_value_record_viewed().clone());
+                                        Some(self.#field_identity.get_value_mark_viewed().clone());
                                 }
                             });
 
@@ -365,7 +365,7 @@ pub fn prop_dependencies_derive(input: TokenStream) -> TokenStream {
                 let mut data_struct_statements = Vec::new();
                 let mut initialize_data_struct_statements = Vec::new();
                 let mut return_update_requests_statements = Vec::new();
-                let mut record_data_viewed_statements = Vec::new();
+                let mut mark_data_viewed_statements = Vec::new();
 
                 for (data_query_idx, field_identity) in field_identities.iter().enumerate() {
                     if field_identity.to_string().starts_with('_') {
@@ -407,8 +407,8 @@ pub fn prop_dependencies_derive(input: TokenStream) -> TokenStream {
                         }
                     });
 
-                    record_data_viewed_statements.push(quote! {
-                        self.#field_identity.record_data_viewed();
+                    mark_data_viewed_statements.push(quote! {
+                        self.#field_identity.mark_data_viewed();
                     });
                 }
 
@@ -446,8 +446,8 @@ pub fn prop_dependencies_derive(input: TokenStream) -> TokenStream {
                             data_struct
                         }
 
-                        fn record_data_viewed(&mut self) {
-                            #(#record_data_viewed_statements)*
+                        fn mark_data_viewed(&mut self) {
+                            #(#mark_data_viewed_statements)*
                         }
 
                     }

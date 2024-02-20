@@ -190,7 +190,7 @@ pub fn prop_methods_derive(input: TokenStream) -> TokenStream {
                     }
 
                     /// Check if any of the dependencies of the prop has changed
-                    /// since the last call to `record_all_dependencies_viewed()`.
+                    /// since the last call to `mark_all_dependencies_viewed()`.
                     ///
                     /// This function doesn't check if the values of the props
                     /// have actually changed to a new value. It only checks if a call
@@ -241,7 +241,7 @@ pub fn prop_methods_mut_derive(input: TokenStream) -> TokenStream {
             let variants = &v.variants;
             let enum_ident = name;
 
-            let mut prop_record_all_dependencies_viewed_arms = Vec::new();
+            let mut prop_mark_all_dependencies_viewed_arms = Vec::new();
             let mut prop_return_data_queries_arms = Vec::new();
             let mut prop_save_dependencies_arms = Vec::new();
             let mut prop_calculate_and_mark_fresh_arms = Vec::new();
@@ -250,9 +250,9 @@ pub fn prop_methods_mut_derive(input: TokenStream) -> TokenStream {
             for variant in variants {
                 let variant_ident = &variant.ident;
 
-                prop_record_all_dependencies_viewed_arms.push(quote! {
+                prop_mark_all_dependencies_viewed_arms.push(quote! {
                     #enum_ident::#variant_ident(prop) => {
-                        prop.record_all_dependencies_viewed()
+                        prop.mark_all_dependencies_viewed()
                     },
                 });
 
@@ -287,9 +287,9 @@ pub fn prop_methods_mut_derive(input: TokenStream) -> TokenStream {
                     /// Record the fact that all dependencies for the prop have been viewed.
                     /// Future calls to `check_if_any_dependency_changed_since_last_viewed()`
                     /// will then determine if a dependency has changed since that moment.
-                    pub fn record_all_dependencies_viewed(&mut self) {
+                    pub fn mark_all_dependencies_viewed(&mut self) {
                         match self {
-                            #(#prop_record_all_dependencies_viewed_arms)*
+                            #(#prop_mark_all_dependencies_viewed_arms)*
                         }
                     }
 
@@ -558,7 +558,7 @@ pub fn prop_read_only_view_methods_derive(input: TokenStream) -> TokenStream {
             let mut prop_read_only_view_get_arms = Vec::new();
             let mut prop_read_only_view_create_new_read_only_view_arms = Vec::new();
             let mut prop_read_only_view_changed_since_last_viewed_arms = Vec::new();
-            let mut prop_read_only_view_record_viewed_arms = Vec::new();
+            let mut prop_read_only_view_mark_viewed_arms = Vec::new();
 
             for variant in variants {
                 let variant_ident = &variant.ident;
@@ -594,9 +594,9 @@ pub fn prop_read_only_view_methods_derive(input: TokenStream) -> TokenStream {
                     },
                 });
 
-                prop_read_only_view_record_viewed_arms.push(quote! {
+                prop_read_only_view_mark_viewed_arms.push(quote! {
                     PropViewEnum::#variant_ident(prop) => {
-                        prop.record_viewed()
+                        prop.mark_viewed()
                     },
                 });
             }
@@ -646,7 +646,7 @@ pub fn prop_read_only_view_methods_derive(input: TokenStream) -> TokenStream {
                         }
                     }
 
-                    /// Check if the prop has changed since `record_viewed()` on this view was last called.
+                    /// Check if the prop has changed since `mark_viewed()` on this view was last called.
                     ///
                     /// This function doesn't check if the values of the props
                     /// have actually changed to a new value. It only checks if a call
@@ -660,9 +660,9 @@ pub fn prop_read_only_view_methods_derive(input: TokenStream) -> TokenStream {
                     /// Record the fact that this view of the prop has been viewed.
                     /// Future calls to `changed_since_last_viewed()`
                     /// will then determine if the prop has changed since that moment.
-                    pub fn record_viewed(&mut self) {
+                    pub fn mark_viewed(&mut self) {
                         match self {
-                            #(#prop_read_only_view_record_viewed_arms)*
+                            #(#prop_read_only_view_mark_viewed_arms)*
                         }
                     }
 

@@ -75,13 +75,13 @@ impl TryFromState<PropViewEnum> for MathOrString {
 
     fn try_from_state(value: &PropViewEnum) -> Result<Self, Self::Error> {
         match value {
-            PropViewEnum::Math(math_sv) => {
-                Ok(MathOrString::Math(math_sv.create_new_read_only_view()))
+            PropViewEnum::Math(math_prop) => {
+                Ok(MathOrString::Math(math_prop.create_new_read_only_view()))
             }
-            PropViewEnum::String(string_sv) => {
-                Ok(MathOrString::String(string_sv.create_new_read_only_view()))
-            }
-            _ => Err("MathOrString can only be a math or string state variable"),
+            PropViewEnum::String(string_prop) => Ok(MathOrString::String(
+                string_prop.create_new_read_only_view(),
+            )),
+            _ => Err("MathOrString can only be a math or string prop"),
         }
     }
 }

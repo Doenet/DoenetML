@@ -70,7 +70,7 @@ impl<T: Default + Clone> PropViewMut<T> {
     }
 
     /// Determine if the prop has changed
-    /// since we last called `get_value_record_viewed`.
+    /// since we last called `get_value_mark_viewed`.
     ///
     /// Note: calls to `get` are ignored when determining when last viewed.
     pub fn changed_since_last_viewed(&self) -> bool {
@@ -81,7 +81,7 @@ impl<T: Default + Clone> PropViewMut<T> {
     /// and record the fact that we viewed the value.
     ///
     /// Panics: if the prop is not fresh.
-    pub fn get_value_record_viewed(&mut self) -> impl Deref<Target = T> + '_ {
+    pub fn get_value_mark_viewed(&mut self) -> impl Deref<Target = T> + '_ {
         let inner: Ref<'_, PropInner<T>> = self.inner.borrow();
 
         // We record the fact that the prop was viewed
@@ -99,7 +99,7 @@ impl<T: Default + Clone> PropViewMut<T> {
     }
 
     /// Record the fact that we viewed the value.
-    pub fn record_viewed(&mut self) {
+    pub fn mark_viewed(&mut self) {
         let inner = self.inner.borrow();
 
         // We record the fact that the prop was viewed
@@ -203,7 +203,7 @@ pub struct PropView<T: Default + Clone> {
 
 impl<T: Default + Clone> PropView<T> {
     /// Determine if the prop has changed
-    /// since we last called `get_value_record_viewed`.
+    /// since we last called `get_value_mark_viewed`.
     ///
     /// Note: calls to `get` are ignored when determining when last viewed.
     pub fn changed_since_last_viewed(&self) -> bool {
@@ -214,7 +214,7 @@ impl<T: Default + Clone> PropView<T> {
     /// and record the fact that we viewed the value.
     ///
     /// Panics: if the prop is not fresh.
-    pub fn get_value_record_viewed(&mut self) -> impl Deref<Target = T> + '_ {
+    pub fn get_value_mark_viewed(&mut self) -> impl Deref<Target = T> + '_ {
         let inner = self.inner.borrow();
         self.change_counter_when_last_viewed = inner.get_change_counter();
         Ref::map(inner, |v| v.get())
@@ -237,7 +237,7 @@ impl<T: Default + Clone> PropView<T> {
     }
 
     /// Record the fact that we viewed the value.
-    pub fn record_viewed(&mut self) {
+    pub fn mark_viewed(&mut self) {
         let inner = self.inner.borrow();
         self.change_counter_when_last_viewed = inner.get_change_counter();
     }
@@ -335,7 +335,7 @@ impl<T: Default + Clone> RequiredDataItem for PropView<T> {
         }
     }
 
-    fn record_data_viewed(&mut self) {
-        self.record_viewed();
+    fn mark_data_viewed(&mut self) {
+        self.mark_viewed();
     }
 }

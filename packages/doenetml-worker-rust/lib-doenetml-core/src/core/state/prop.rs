@@ -239,7 +239,7 @@ impl<T: Default + Clone> Prop<T> {
     }
 
     /// Determine if the prop has changed
-    /// since we last called `get_value_record_viewed`.
+    /// since we last called `get_value_mark_viewed`.
     ///
     /// Note: calls to `get` are ignored when determining when last viewed.
     pub fn changed_since_last_viewed(&self) -> bool {
@@ -250,8 +250,8 @@ impl<T: Default + Clone> Prop<T> {
     /// and record the fact that we viewed the value.
     ///
     /// Panics: if the prop is not fresh.
-    pub fn get_value_record_viewed(&mut self) -> impl Deref<Target = T> + '_ {
-        self.value.get_value_record_viewed()
+    pub fn get_value_mark_viewed(&mut self) -> impl Deref<Target = T> + '_ {
+        self.value.get_value_mark_viewed()
     }
 
     /// If the variable is fresh, get a reference to its current value
@@ -263,8 +263,8 @@ impl<T: Default + Clone> Prop<T> {
     }
 
     /// Record the fact that we viewed the value.
-    pub fn record_viewed(&mut self) {
-        self.value.record_viewed()
+    pub fn mark_viewed(&mut self) {
+        self.value.mark_viewed()
     }
 
     /// Set the value of the prop to the supplied value,
@@ -370,13 +370,11 @@ impl<T: Default + Clone> Prop<T> {
 
     /// Record that the fact each of the dependencies in `all_data` were viewed.
     /// Used to determine if any dependency changed since it was last viewed.
-    pub fn record_all_dependencies_viewed(&mut self) {
-        self.all_data
-            .iter_mut()
-            .for_each(|prop| prop.record_viewed())
+    pub fn mark_all_dependencies_viewed(&mut self) {
+        self.all_data.iter_mut().for_each(|prop| prop.mark_viewed())
     }
 
-    /// Check if a dependency has changed since we last called `record_all_dependencies_viewed`.
+    /// Check if a dependency has changed since we last called `mark_all_dependencies_viewed`.
     pub fn check_if_any_dependency_changed_since_last_viewed(&self) -> bool {
         if self.all_data.is_empty() {
             // if there are no dependencies, then report true if prop is Unresolved or Resolved,
