@@ -1,6 +1,7 @@
 export * from "./p";
 export * from "./document";
 export * from "./m";
+export * from "./math";
 export * from "./graph";
 export * from "./section";
 export * from "./problem";

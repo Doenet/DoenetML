@@ -17,14 +17,7 @@ pub enum DataQuery {
     /// Query for all children that match the prescribed `ComponentProfile`s.
     ChildPropProfile {
         /// The data query will match child components that have at least one of these profiles
-        /// unless the child component has one of the profiles in `exclude_if_prefer_profiles`
-        /// ranked higher
         match_profiles: Vec<ComponentProfile>,
-
-        // TODO: can we remove exclude_if_prefer_profiles?
-        /// If a child component has one of these profiles ranked higher
-        /// than any in *match_profiles*, then the child is not matched.
-        exclude_if_prefer_profiles: Vec<ComponentProfile>,
 
         /// If true, then the data query will return a single variable if no matching children found.
         ///
@@ -54,7 +47,6 @@ pub enum DataQuery {
         attribute_name: AttributeName,
 
         /// The data query will match child components that have at least one of these profiles.
-        // TODO: do we need to add exclude_if_prefer_profiles?
         match_profiles: Vec<ComponentProfile>,
 
         /// If true, then the data query will return a single variable if no matching children found.

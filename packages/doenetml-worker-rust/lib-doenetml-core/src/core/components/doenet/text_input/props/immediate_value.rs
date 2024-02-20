@@ -25,14 +25,16 @@ impl PropUpdater<String, RequiredData> for ImmediateValueProp {
     fn return_data_queries(&self) -> Vec<Option<DataQuery>> {
         RequiredDataQueries {
             preliminary_value: Some(DataQuery::State),
-            sync_immediate_value: Some(TextInputState::get_sync_immediate_value_data_queries()),
-            value_from_children: Some(TextInputState::get_value_from_children_data_queries()),
-            prefill: Some(TextInputState::get_prefill_data_queries()),
+            sync_immediate_value: Some(TextInputState::get_sync_immediate_value_data_query()),
+            value_from_children: Some(TextInputState::get_value_from_children_data_query()),
+            prefill: Some(TextInputState::get_prefill_data_query()),
         }
         .into()
     }
 
-    fn calculate<'a>(&self, data: &'a RequiredData) -> PropCalcResult<'a, String> {
+    fn calculate(&mut self, data: &RequiredData) -> PropCalcResult<String> {
+        // for simplicity, we don't work out scenarios where immediate_value didn't change,
+        // as it typically does change if one of its dependencies changed
         let immediate_value =
             if !data.value_from_children.came_from_default() && *data.sync_immediate_value.get() {
                 data.value_from_children.get().clone()

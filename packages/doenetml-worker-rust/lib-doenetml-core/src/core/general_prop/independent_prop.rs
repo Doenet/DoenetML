@@ -46,9 +46,9 @@ where
         .into()
     }
 
-    fn calculate<'a>(&self, data: &'a RequiredData<T>) -> PropCalcResult<'a, T> {
+    fn calculate(&mut self, data: &RequiredData<T>) -> PropCalcResult<T> {
         // take on the value from `preliminary_value`, propagating `came_from_default`.
-        PropCalcResult::From(&data.preliminary_value)
+        data.preliminary_value.prop_calc_result()
     }
 
     fn invert(

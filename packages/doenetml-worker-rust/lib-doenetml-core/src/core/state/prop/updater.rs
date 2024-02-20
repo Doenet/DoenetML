@@ -11,14 +11,14 @@ use crate::{
 use super::PropView;
 
 /// The possible results of a call to `calculate`:
-/// - Calculated(T): the value was calculated to be T
-/// - FromDefault(T): the value T was determined from the default value
-/// - From(&PropView<T>): set both `value` and `came_from_default` from `PropView<T>`
+/// - `Calculated(val)`: the value was calculated to be `val`
+/// - `FromDefault(val)`: the value `val` was determined from the default value
+/// - `NoChange`: the value did not change, so just mark it as fresh
 #[derive(Debug)]
-pub enum PropCalcResult<'a, T: Default + Clone> {
+pub enum PropCalcResult<T: Default + Clone> {
     Calculated(T),
     FromDefault(T),
-    From(&'a PropView<T>),
+    NoChange,
 }
 
 #[derive(Debug, Error)]
@@ -47,7 +47,7 @@ pub trait PropUpdater<T: Default + Clone, RequiredData>: std::fmt::Debug {
 
     /// Calculate the value of the prop from the passed in `data`.
     /// Results of this function will be cached, so local caching is not needed.
-    fn calculate<'a>(&self, data: &'a RequiredData) -> PropCalcResult<'a, T>;
+    fn calculate(&mut self, data: &RequiredData) -> PropCalcResult<T>;
 
     /// All props know how to calculate their value given their dependencies.
     /// Sometimes a prop is requested to take on a particular value. If the
@@ -91,7 +91,7 @@ pub trait PropUpdaterWithCache<T: Default + Clone>: std::fmt::Debug {
 
     /// Calculate the value of the prop from the currently cached query results.
     /// Results of this function will be cached, so local caching is not needed.
-    fn calculate(&self) -> PropCalcResult<T>;
+    fn calculate(&mut self) -> PropCalcResult<T>;
 
     /// All props know how to calculate their value given their dependencies.
     /// Sometimes a prop is requested to take on a particular value. If the
@@ -166,8 +166,10 @@ where
         self.cache = dependencies.to_data(&self.queries_used);
     }
 
-    fn calculate(&self) -> PropCalcResult<T> {
-        self.prop_updater.calculate(&self.cache)
+    fn calculate(&mut self) -> PropCalcResult<T> {
+        let result = self.prop_updater.calculate(&self.cache);
+        self.cache.mark_data_viewed();
+        result
     }
 
     fn invert(
@@ -208,10 +210,15 @@ pub trait DependenciesToData<RequiredData> {
 }
 
 pub trait FromDependencies {
+    /// Create this data from the dependencies that were created for a data query
     fn from_dependencies(
         dependencies: &[DependenciesCreatedForDataQuery],
         queries_used: &[usize],
     ) -> Self;
+
+    /// Record that all data has been viewed so that future checks for changes
+    /// will be based on changes after this moment.
+    fn mark_data_viewed(&mut self);
 }
 
 impl<RequiredData> DependenciesToData<RequiredData> for Vec<DependenciesCreatedForDataQuery>
@@ -226,16 +233,21 @@ where
 }
 
 #[enum_dispatch]
-pub trait QueryUpdateRequests {
+pub trait RequiredDataItem {
     /// Clear variable that tracks whether or not an update has been requested
     fn clear_queued_updates(&mut self);
 
+    /// Return a list of the indices for which an update has been queued
     fn indices_with_queued_updates(&self) -> Vec<usize>;
+
+    /// Record that the data of this item has been viewed so that future checks for changes
+    /// will be based on changes after this moment.
+    fn mark_data_viewed(&mut self);
 }
 
-impl<T> QueryUpdateRequests for Option<T>
+impl<T> RequiredDataItem for Option<T>
 where
-    T: QueryUpdateRequests,
+    T: RequiredDataItem,
 {
     fn clear_queued_updates(&mut self) {
         self.as_mut().map(|val| {
@@ -249,11 +261,18 @@ where
             .map(|val| val.indices_with_queued_updates())
             .unwrap_or_default()
     }
+
+    fn mark_data_viewed(&mut self) {
+        self.as_mut().map(|val| {
+            val.mark_data_viewed();
+            val
+        });
+    }
 }
 
-impl<T> QueryUpdateRequests for Vec<T>
+impl<T> RequiredDataItem for Vec<T>
 where
-    T: QueryUpdateRequests,
+    T: RequiredDataItem,
 {
     fn clear_queued_updates(&mut self) {
         for val in self.iter_mut() {
@@ -262,7 +281,7 @@ where
     }
 
     fn indices_with_queued_updates(&self) -> Vec<usize> {
-        // Note: this algorithm does not correctly handle Vec<Vec<T: QueryUpdateRequests>>
+        // Note: this algorithm does not correctly handle Vec<Vec<T: RequiredDataItem>>
         self.iter()
             .enumerate()
             .filter_map(|(idx, val)| {
@@ -273,5 +292,11 @@ where
                 }
             })
             .collect()
+    }
+
+    fn mark_data_viewed(&mut self) {
+        for val in self.iter_mut() {
+            val.mark_data_viewed();
+        }
     }
 }

@@ -26,28 +26,43 @@ impl PropUpdater<String, RequiredData> for ValueProp {
     fn return_data_queries(&self) -> Vec<Option<DataQuery>> {
         RequiredDataQueries {
             preliminary_value: Some(DataQuery::State),
-            immediate_value: Some(TextInputState::get_immediate_value_data_queries()),
-            sync_immediate_value: Some(TextInputState::get_sync_immediate_value_data_queries()),
-            value_from_children: Some(TextInputState::get_value_from_children_data_queries()),
-            prefill: Some(TextInputState::get_prefill_data_queries()),
+            immediate_value: Some(TextInputState::get_immediate_value_data_query()),
+            sync_immediate_value: Some(TextInputState::get_sync_immediate_value_data_query()),
+            value_from_children: Some(TextInputState::get_value_from_children_data_query()),
+            prefill: Some(TextInputState::get_prefill_data_query()),
         }
         .into()
     }
 
-    fn calculate<'a>(&self, data: &'a RequiredData) -> PropCalcResult<'a, String> {
-        let value = if *data.sync_immediate_value.get() {
-            data.immediate_value.get().clone()
+    fn calculate(&mut self, data: &RequiredData) -> PropCalcResult<String> {
+        // for the value calculation of `textInput`, we work out scenarios where the value didn't change
+        // because calculate will get called whenever immediate_value is changed
+        // even though that often does not influence value
+
+        let sync_immediate_value_changed = data.sync_immediate_value.changed_since_last_viewed();
+        if *data.sync_immediate_value.get() {
+            PropCalcResult::Calculated(data.immediate_value.get().clone())
         } else if data.value_from_children.came_from_default() {
             if data.preliminary_value.came_from_default() {
-                data.prefill.get().clone()
+                if sync_immediate_value_changed || data.prefill.changed_since_last_viewed() {
+                    PropCalcResult::Calculated(data.prefill.get().clone())
+                } else {
+                    PropCalcResult::NoChange
+                }
+            } else if sync_immediate_value_changed
+                || data.preliminary_value.changed_since_last_viewed()
+            {
+                PropCalcResult::Calculated(data.preliminary_value.get().clone())
             } else {
-                data.preliminary_value.get().clone()
+                PropCalcResult::NoChange
             }
+        } else if sync_immediate_value_changed
+            || data.value_from_children.changed_since_last_viewed()
+        {
+            PropCalcResult::Calculated(data.value_from_children.get().clone())
         } else {
-            data.value_from_children.get().clone()
-        };
-
-        PropCalcResult::Calculated(value)
+            PropCalcResult::NoChange
+        }
     }
 
     fn invert(
@@ -61,12 +76,11 @@ impl PropUpdater<String, RequiredData> for ValueProp {
         if data.value_from_children.came_from_default() {
             data.preliminary_value.queue_update(requested_value.clone());
             data.immediate_value.queue_update(requested_value.clone());
-            data.sync_immediate_value.queue_update(true);
         } else {
             data.value_from_children
                 .queue_update(requested_value.clone());
-            data.sync_immediate_value.queue_update(true);
         }
+        data.sync_immediate_value.queue_update(true);
 
         Ok(data.queued_updates())
     }

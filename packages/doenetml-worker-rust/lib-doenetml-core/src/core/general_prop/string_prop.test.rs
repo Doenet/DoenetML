@@ -16,7 +16,6 @@ fn string_prop_from_children_gives_correct_data_queries() {
         queries,
         vec![DataQuery::ChildPropProfile {
             match_profiles: vec![ComponentProfile::String],
-            exclude_if_prefer_profiles: vec![],
             always_return_value: true,
         },]
     );
@@ -28,7 +27,7 @@ fn string_prop_from_children_gives_correct_data_queries() {
 #[test]
 fn string_prop_calculated_from_single_string_child() {
     // create a string prop with one string child
-    let (prop, _prop_view, child_var) =
+    let (mut prop, _prop_view, child_var) =
         set_up_string_prop_with_string_child(String::from("hello"), true);
 
     // we initialize child to be "hello", so should get "hello"
@@ -74,11 +73,12 @@ fn invert_string_prop_that_has_a_single_string_child() {
 #[test]
 fn string_prop_calculated_from_two_string_children() {
     // create a string prop with two string children
-    let (prop, _prop_view, child_var_1, child_var_2) = set_up_string_prop_with_two_string_children(
-        String::from("Hello"),
-        String::from(" World"),
-        false,
-    );
+    let (mut prop, _prop_view, child_var_1, child_var_2) =
+        set_up_string_prop_with_two_string_children(
+            String::from("Hello"),
+            String::from(" World"),
+            false,
+        );
 
     // the initial value of "Hello World"
     prop.calculate_and_mark_fresh();

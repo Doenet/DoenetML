@@ -23,7 +23,8 @@ fn independent_prop_gives_correct_data_queries() {
 /// and its came_from_default should be the same as the preliminary value's came_from_default
 #[test]
 fn calculate_independent_boolean_prop() {
-    let (prop, _prop_view, preliminary_value_var) = set_up_boolean_independent_prop(false, true);
+    let (mut prop, _prop_view, preliminary_value_var) =
+        set_up_boolean_independent_prop(false, true);
 
     // we initialize preliminary value to be false, so should get false
     prop.calculate_and_mark_fresh();
@@ -67,7 +68,7 @@ fn invert_independent_boolean_prop() {
 /// and its came_from_default should be the same as the preliminary value's came_from_default
 #[test]
 fn calculate_independent_string_prop() {
-    let (prop, _prop_view, preliminary_value_var) =
+    let (mut prop, _prop_view, preliminary_value_var) =
         set_up_string_independent_prop(String::from("hello"), true);
 
     // we initialize preliminary value to be true, so should get true

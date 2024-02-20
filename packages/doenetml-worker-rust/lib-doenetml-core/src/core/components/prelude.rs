@@ -13,7 +13,7 @@ pub use crate::dast::flat_dast::UntaggedContent;
 pub use crate::dast::Position as DastPosition;
 pub use crate::dependency::DependenciesCreatedForDataQuery;
 pub use crate::state::{
-    ComponentState, FromDependencies, QueryUpdateRequests, TryFromState, TryToState,
+    ComponentState, FromDependencies, RequiredDataItem, TryFromState, TryToState,
 };
 
 pub use crate::utils::KeyValueIgnoreCase;

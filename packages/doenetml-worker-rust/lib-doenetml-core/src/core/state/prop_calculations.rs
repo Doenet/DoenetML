@@ -5,8 +5,10 @@ use crate::{
     dependency::{
         create_dependencies_from_data_query_initialize_state, DataQuery, DependencySource,
     },
-    state::prop_state::{StateProp, StatePropDataOrigin, StatePropDescription},
-    state::{Freshness, PropValue},
+    state::{
+        prop_state::{StateProp, StatePropDataOrigin, StatePropDescription},
+        Freshness, PropValue,
+    },
     ComponentIdx, CoreProcessingState, DependencyGraph, Extending,
 };
 
@@ -258,10 +260,10 @@ pub fn freshen_prop(
             let mut comp = components[component_idx].borrow_mut();
             let prop = &mut comp.get_prop_mut(prop_idx).unwrap();
 
-            // Check if any dependency has changed since we last called record_all_dependencies_viewed.
+            // Check if any dependency has changed since we last called mark_all_dependencies_viewed.
             if prop.check_if_any_dependency_changed_since_last_viewed() {
                 prop.calculate_and_mark_fresh();
-                prop.record_all_dependencies_viewed();
+                prop.mark_all_dependencies_viewed();
             } else {
                 prop.mark_fresh();
             }

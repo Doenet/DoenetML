@@ -52,7 +52,6 @@ impl BooleanProp {
         BooleanProp {
             data_query: DataQuery::ChildPropProfile {
                 match_profiles: vec![ComponentProfile::String, ComponentProfile::Boolean],
-                exclude_if_prefer_profiles: vec![],
                 always_return_value: true,
             },
             default_value,
@@ -90,24 +89,26 @@ impl PropUpdater<bool, RequiredData> for BooleanProp {
     }
 
     #[allow(clippy::needless_return)]
-    fn calculate<'a>(&self, data: &'a RequiredData) -> PropCalcResult<'a, bool> {
+    fn calculate(&mut self, data: &RequiredData) -> PropCalcResult<bool> {
         match data.booleans_and_strings.len() {
-            0 => {
-                return PropCalcResult::Calculated(false);
-            }
+            0 => PropCalcResult::Calculated(false),
             1 => {
                 match &data.booleans_and_strings[0] {
                     BooleanOrString::Boolean(boolean_value) => {
                         // If we are basing it on a single variable that came from default,
                         // then we propagate came_from_default as well as the value.
-                        return PropCalcResult::From(boolean_value);
+                        boolean_value.prop_calc_result()
                     }
                     BooleanOrString::String(string_value) => {
-                        return PropCalcResult::Calculated(if self.from_attribute {
-                            string_attr_to_boolean(&string_value.get())
+                        if string_value.changed_since_last_viewed() {
+                            PropCalcResult::Calculated(if self.from_attribute {
+                                string_attr_to_boolean(&string_value.get())
+                            } else {
+                                string_to_boolean(&string_value.get())
+                            })
                         } else {
-                            string_to_boolean(&string_value.get())
-                        });
+                            PropCalcResult::NoChange
+                        }
                     }
                 }
             }
@@ -118,21 +119,29 @@ impl PropUpdater<bool, RequiredData> for BooleanProp {
                     .any(|dep_value| matches!(dep_value, BooleanOrString::Boolean(_)))
                 {
                     // invalid combination. Haven't implemented boolean dependency with others
-                    return PropCalcResult::Calculated(false);
+                    PropCalcResult::Calculated(false)
                 } else {
                     // Have multiple string variables. Concatenate the string values into a single string
 
-                    let mut value = String::new();
-                    value.extend(data.booleans_and_strings.iter().map(|v| match v {
-                        BooleanOrString::Boolean(boolean_val) => boolean_val.get().to_string(),
-                        BooleanOrString::String(string_value) => string_value.get().to_string(),
-                    }));
+                    if data
+                        .booleans_and_strings
+                        .iter()
+                        .any(|view| view.changed_since_last_viewed())
+                    {
+                        let mut value = String::new();
+                        value.extend(data.booleans_and_strings.iter().map(|v| match v {
+                            BooleanOrString::Boolean(boolean_val) => boolean_val.get().to_string(),
+                            BooleanOrString::String(string_value) => string_value.get().to_string(),
+                        }));
 
-                    return PropCalcResult::Calculated(if self.from_attribute {
-                        string_attr_to_boolean(&value)
+                        PropCalcResult::Calculated(if self.from_attribute {
+                            string_attr_to_boolean(&value)
+                        } else {
+                            string_to_boolean(&value)
+                        })
                     } else {
-                        string_to_boolean(&value)
-                    });
+                        PropCalcResult::NoChange
+                    }
                 }
             }
         }

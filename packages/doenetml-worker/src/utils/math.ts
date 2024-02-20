@@ -188,7 +188,7 @@ export var textToAst = new me.converters.textToAstObj({
     appliedFunctionSymbols: appliedFunctionSymbolsDefault,
 });
 
-export function getTextToMathConverter({
+export function textToMathFactory({
     functionSymbols,
     appliedFunctionSymbols = appliedFunctionSymbolsDefault,
     splitSymbols = true,
@@ -215,7 +215,7 @@ export var latexToAst = new me.converters.latexToAstObj({
     allowedLatexSymbols,
 });
 
-export function getLatexToMathConverter({
+export function latexToMathFactory({
     functionSymbols,
     appliedFunctionSymbols = appliedFunctionSymbolsDefaultLatex,
     splitSymbols = true,

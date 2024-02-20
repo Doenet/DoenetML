@@ -27,7 +27,6 @@ pub fn prop_methods_derive(input: TokenStream) -> TokenStream {
             let mut prop_get_arms = Vec::new();
             let mut prop_request_change_value_to_arms = Vec::new();
             let mut prop_check_if_any_dependency_changed_since_last_viewed_arms = Vec::new();
-            let mut prop_calculate_and_mark_fresh_arms = Vec::new();
             let mut prop_default_arms = Vec::new();
             let mut get_matching_component_profile_arms = Vec::new();
 
@@ -86,12 +85,6 @@ pub fn prop_methods_derive(input: TokenStream) -> TokenStream {
                 prop_check_if_any_dependency_changed_since_last_viewed_arms.push(quote! {
                     #enum_ident::#variant_ident(prop) => {
                         prop.check_if_any_dependency_changed_since_last_viewed()
-                    },
-                });
-
-                prop_calculate_and_mark_fresh_arms.push(quote! {
-                    #enum_ident::#variant_ident(prop) => {
-                        prop.calculate_and_mark_fresh()
                     },
                 });
 
@@ -197,7 +190,7 @@ pub fn prop_methods_derive(input: TokenStream) -> TokenStream {
                     }
 
                     /// Check if any of the dependencies of the prop has changed
-                    /// since the last call to `record_all_dependencies_viewed()`.
+                    /// since the last call to `mark_all_dependencies_viewed()`.
                     ///
                     /// This function doesn't check if the values of the props
                     /// have actually changed to a new value. It only checks if a call
@@ -205,22 +198,6 @@ pub fn prop_methods_derive(input: TokenStream) -> TokenStream {
                     pub fn check_if_any_dependency_changed_since_last_viewed(&self) -> bool {
                         match self {
                             #(#prop_check_if_any_dependency_changed_since_last_viewed_arms)*
-                        }
-                    }
-
-                    /// Calculate the value of the prop from the fresh values of the dependencies,
-                    /// marking the prop as fresh.
-                    ///
-                    /// Panics if any of the props of the dependencies are not fresh.
-                    ///
-                    /// Uses the dependencies that were saved to the prop
-                    /// with a call to `save_dependencies()`.
-                    ///
-                    /// The value is stored in the prop and can be retrieved by calling
-                    /// `get()`.
-                    pub fn calculate_and_mark_fresh(&self) {
-                        match self {
-                            #(#prop_calculate_and_mark_fresh_arms)*
                         }
                     }
 
@@ -264,17 +241,18 @@ pub fn prop_methods_mut_derive(input: TokenStream) -> TokenStream {
             let variants = &v.variants;
             let enum_ident = name;
 
-            let mut prop_record_all_dependencies_viewed_arms = Vec::new();
+            let mut prop_mark_all_dependencies_viewed_arms = Vec::new();
             let mut prop_return_data_queries_arms = Vec::new();
             let mut prop_save_dependencies_arms = Vec::new();
+            let mut prop_calculate_and_mark_fresh_arms = Vec::new();
             let mut prop_invert_arms = Vec::new();
 
             for variant in variants {
                 let variant_ident = &variant.ident;
 
-                prop_record_all_dependencies_viewed_arms.push(quote! {
+                prop_mark_all_dependencies_viewed_arms.push(quote! {
                     #enum_ident::#variant_ident(prop) => {
-                        prop.record_all_dependencies_viewed()
+                        prop.mark_all_dependencies_viewed()
                     },
                 });
 
@@ -287,6 +265,12 @@ pub fn prop_methods_mut_derive(input: TokenStream) -> TokenStream {
                 prop_save_dependencies_arms.push(quote! {
                     #enum_ident::#variant_ident(prop) => {
                         prop.save_dependencies(dependencies)
+                    },
+                });
+
+                prop_calculate_and_mark_fresh_arms.push(quote! {
+                    #enum_ident::#variant_ident(prop) => {
+                        prop.calculate_and_mark_fresh()
                     },
                 });
 
@@ -303,9 +287,9 @@ pub fn prop_methods_mut_derive(input: TokenStream) -> TokenStream {
                     /// Record the fact that all dependencies for the prop have been viewed.
                     /// Future calls to `check_if_any_dependency_changed_since_last_viewed()`
                     /// will then determine if a dependency has changed since that moment.
-                    pub fn record_all_dependencies_viewed(&mut self) {
+                    pub fn mark_all_dependencies_viewed(&mut self) {
                         match self {
-                            #(#prop_record_all_dependencies_viewed_arms)*
+                            #(#prop_mark_all_dependencies_viewed_arms)*
                         }
                     }
 
@@ -329,6 +313,24 @@ pub fn prop_methods_mut_derive(input: TokenStream) -> TokenStream {
                     pub fn save_dependencies(&mut self, dependencies: &Vec<DependenciesCreatedForDataQuery>) {
                         match self {
                             #(#prop_save_dependencies_arms)*
+                        }
+                    }
+
+                    /// Calculate the value of the prop from the fresh values of the dependencies,
+                    /// marking the prop as fresh.
+                    ///
+                    /// Panics if any of the props of the dependencies are not fresh.
+                    ///
+                    /// Uses the dependencies that were saved to the prop
+                    /// with a call to `save_dependencies()`.
+                    ///
+                    /// The value is stored in the prop and can be retrieved by calling
+                    /// `get()`.
+                    ///
+                    /// Return whether or not the value changed
+                    pub fn calculate_and_mark_fresh(&mut self) -> bool{
+                        match self {
+                            #(#prop_calculate_and_mark_fresh_arms)*
                         }
                     }
 
@@ -555,8 +557,8 @@ pub fn prop_read_only_view_methods_derive(input: TokenStream) -> TokenStream {
             let mut prop_read_only_view_came_from_default_arms = Vec::new();
             let mut prop_read_only_view_get_arms = Vec::new();
             let mut prop_read_only_view_create_new_read_only_view_arms = Vec::new();
-            let mut prop_read_only_view_check_if_changed_since_last_viewed_arms = Vec::new();
-            let mut prop_read_only_view_record_viewed_arms = Vec::new();
+            let mut prop_read_only_view_changed_since_last_viewed_arms = Vec::new();
+            let mut prop_read_only_view_mark_viewed_arms = Vec::new();
 
             for variant in variants {
                 let variant_ident = &variant.ident;
@@ -586,15 +588,15 @@ pub fn prop_read_only_view_methods_derive(input: TokenStream) -> TokenStream {
                     },
                 });
 
-                prop_read_only_view_check_if_changed_since_last_viewed_arms.push(quote! {
+                prop_read_only_view_changed_since_last_viewed_arms.push(quote! {
                     PropViewEnum::#variant_ident(prop) => {
-                        prop.check_if_changed_since_last_viewed()
+                        prop.changed_since_last_viewed()
                     },
                 });
 
-                prop_read_only_view_record_viewed_arms.push(quote! {
+                prop_read_only_view_mark_viewed_arms.push(quote! {
                     PropViewEnum::#variant_ident(prop) => {
-                        prop.record_viewed()
+                        prop.mark_viewed()
                     },
                 });
             }
@@ -644,23 +646,23 @@ pub fn prop_read_only_view_methods_derive(input: TokenStream) -> TokenStream {
                         }
                     }
 
-                    /// Check if the prop has changed since `record_viewed()` on this view was last called.
+                    /// Check if the prop has changed since `mark_viewed()` on this view was last called.
                     ///
                     /// This function doesn't check if the values of the props
                     /// have actually changed to a new value. It only checks if a call
                     /// to `set_value()` has occurred.
-                    pub fn check_if_changed_since_last_viewed(&self) -> bool {
+                    pub fn changed_since_last_viewed(&self) -> bool {
                         match self {
-                            #(#prop_read_only_view_check_if_changed_since_last_viewed_arms)*
+                            #(#prop_read_only_view_changed_since_last_viewed_arms)*
                         }
                     }
 
                     /// Record the fact that this view of the prop has been viewed.
-                    /// Future calls to `check_if_changed_since_last_viewed()`
+                    /// Future calls to `changed_since_last_viewed()`
                     /// will then determine if the prop has changed since that moment.
-                    pub fn record_viewed(&mut self) {
+                    pub fn mark_viewed(&mut self) {
                         match self {
-                            #(#prop_read_only_view_record_viewed_arms)*
+                            #(#prop_read_only_view_mark_viewed_arms)*
                         }
                     }
 
