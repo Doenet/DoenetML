@@ -36,6 +36,14 @@ export function evalWithMathExpressionsInScope(source: string) {
 /**
  * Parse the string `text` into math using the `math-expressions` text parser.
  * Return the `JSON.stringify`ed results.
+ *
+ * Arguments:
+ * @text - the source string
+ * @splitSymbols - if `true`, we split multi-character symbols into the product of the characters
+ * @functionSymbols - a list of the symbols that will be treated as a function,
+ *    i.e., one of these symbols followed by arguments in parentheses
+ *    will be interpreted as apply that function to the arguments (rather than multiplication)
+ * @parseScientificNotation - if `true`, parse expressions such as "1E-10" into scientific notation
  */
 export function parseTextIntoMath(
     text: string,
@@ -62,6 +70,14 @@ export function parseTextIntoMath(
 /**
  * Parse the string `latex` into math using the `math-expressions` latex parser.
  * Return the `JSON.stringify`ed results.
+ *
+ * Arguments:
+ * @latex - the source string
+ * @splitSymbols - if `true`, we split multi-character symbols into the product of the characters
+ * @functionSymbols - a list of the symbols that will be treated as a function,
+ *    i.e., one of these symbols followed by arguments in parentheses
+ *    will be interpreted as apply that function to the arguments (rather than multiplication)
+ * @parseScientificNotation - if `true`, parse expressions such as "1E-10" into scientific notation
  */
 export function parseLatexIntoMath(
     latex: string,
@@ -87,6 +103,15 @@ export function parseLatexIntoMath(
 
 /**
  * Return a LaTeX string that corresponds to a mathematical expression.
+ *
+ * Arguments:
+ * @mathObject - the stringify math expression
+ * @padToDecimals - If present, then pad numbers with zeros so they have at least
+ *    this many decimal places after the decimal point displayed.
+ * @padToDigits - If present, then pad numbers with zeros so they have at least
+ *    this many total digits displayed.
+ * @showBlanks - If `true`, then display any blanks in the mathematical expression
+ *    as a long underscore.
  */
 export function toLatex(
     mathObject: string,
@@ -105,6 +130,10 @@ export function toLatex(
 
 /**
  * Create a new mathematical expression formed by substituting variables with new expressions
+ *
+ * Arguments:
+ * @mathObject - the stringify math expression
+ * @substitutions - a mapping of variable names and the values to substitute for those variables
  */
 export function substituteIntoMath(
     mathObject: string,
@@ -123,16 +152,29 @@ export function substituteIntoMath(
     return JSON.stringify(newExpr, serializedComponentsReplacer);
 }
 
-enum Simplify {
-    None = "none",
-    NumbersPreserveOrder = "numberspreserveorder", // TODO: modify to use "numbersPreserveOrder"
-    Numbers = "numbers",
-    Full = "full",
-}
-
+/**
+ * Return a normalize mathematical expression as specified by the parameters
+ *
+ * Arguments:
+ * @mathObject - the stringify math expression
+ * @simplify - We currently support four options for `simplify`:
+ * - `"none"`: no simplification
+ * - `"numberspreserveorder"`: simplify numbers within the expression, such as simplify `1+1` to 2,
+ *    except do not change the order between numerical and non-numerical operands (such as a variable).
+ * - `"numbers"`: simplify numbers within the expression, such as simplify `1+1` to 2,
+ * - `"full"`: simplify the mathematical expression using the currently
+ *    implemented features. These features are limited and subject to change.
+ *    For example, simplification of ratio expressions is essentially non-existent.
+ * @expand - if `true`, expand out multiplication over addition/subtraction.
+ * @createVectors - if `true`, create vectors out of tuples (that haven't previously been turned into intervals).
+ * @createIntervals - if `true`, create closed intervals out of arrays and open intervals out of tuples
+ *  (that haven't previously been turned into vectors).
+ *  If both `create_vectors` and `create_intervals` are `true`,
+ *  `create_vectors` is applied first so that only arrays will be affected by `create_intervals`.
+ */
 export function normalizeMath(
     mathObject: string,
-    simplify: Simplify,
+    simplify: "none" | "numberspreserveorder" | "numbers" | "full",
     expand: boolean,
     createVectors: boolean,
     createIntervals: boolean,

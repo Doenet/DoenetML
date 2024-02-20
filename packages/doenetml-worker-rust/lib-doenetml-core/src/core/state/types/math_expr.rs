@@ -112,8 +112,8 @@ impl MathExpr {
     ///   will be interpreted as apply that function to the arguments (rather than multiplication)
     ///
     /// Examples:
-    /// - `MathExpr::from_latex(r#"\frac{xy}{z}"#, true, &["g"])` is `x` times `y` divided by `z`.
-    /// - `MathExpr::from_latex(r#"\frac{xy}{z}"#, false, &["g"])` is the multi-character symbol `xy` divided by `z`.
+    /// - `MathExpr::from_latex(r#"\frac{xy}{z}"#, true, &["f"])` is `x` times `y` divided by `z`.
+    /// - `MathExpr::from_latex(r#"\frac{xy}{z}"#, false, &["f"])` is the multi-character symbol `xy` divided by `z`.
     /// - `MathExpr::from_latex("g(x)", true, &["f", "g"])` is the function `g` evaluated at `x`.
     /// - `MathExpr::from_latex("g(x)", true, &["f"])` is `g` times `x`.
     pub fn from_latex<TXT: AsRef<str>, FnSymbol: AsRef<str>>(
@@ -215,8 +215,6 @@ impl MathExpr {
     /// # use doenetml_core::state::types::math_expr::{MathExpr, MathSimplify, NormalizeParams, ToLatexParams};
     /// let expr = MathExpr::from_text("(x+x+1)(2y+1-y)", true, &["f"]);
     ///
-    /// let lp = ToLatexParams::default();
-    ///
     /// let simplify_expand = NormalizeParams {
     ///     simplify: MathSimplify::Full,
     ///     expand: true,
@@ -224,7 +222,7 @@ impl MathExpr {
     /// };
     ///
     /// assert_eq!(
-    ///     expr.normalize(simplify_expand).to_latex(lp),
+    ///     expr.normalize(simplify_expand).to_latex(ToLatexParams::default()),
     ///     "2 x y + 2 x + y + 1"
     /// );
     /// ```
@@ -355,7 +353,7 @@ pub struct ToLatexParams {
     /// If present, then pad numbers with zeros so they have at least
     /// this many total digits displayed.
     pub pad_to_digits: Option<u32>,
-    /// If true, then display any blanks in the mathematical expression
+    /// If `true`, then display any blanks in the mathematical expression
     /// as a long underscore.
     pub show_blanks: bool,
 }
@@ -377,21 +375,19 @@ impl Default for ToLatexParams {
 /// # use doenetml_core::state::types::math_expr::{MathExpr, MathSimplify, NormalizeParams, ToLatexParams};
 /// let expr = MathExpr::from_text("1+x+x+2+3", true, &["f"]);
 ///
-/// let lp = ToLatexParams::default();
-///
 /// let simplify_full = NormalizeParams {
 ///     simplify: MathSimplify::Full,
 ///     ..Default::default()
 /// };
 ///
-/// assert_eq!(expr.normalize(simplify_full).to_latex(lp), "2 x + 6");
+/// assert_eq!(expr.normalize(simplify_full).to_latex(ToLatexParams::default()), "2 x + 6");
 ///
 /// let simplify_numbers = NormalizeParams {
 ///     simplify: MathSimplify::Numbers,
 ///     ..Default::default()
 /// };
 ///
-/// assert_eq!(expr.normalize(simplify_numbers).to_latex(lp), "x + x + 6");
+/// assert_eq!(expr.normalize(simplify_numbers).to_latex(ToLatexParams::default()), "x + x + 6");
 ///
 /// let simplify_numbers_preserve_order = NormalizeParams {
 ///     simplify: MathSimplify::NumbersPreserveOrder,
@@ -399,7 +395,7 @@ impl Default for ToLatexParams {
 /// };
 ///
 /// assert_eq!(
-///     expr.normalize(simplify_numbers_preserve_order).to_latex(lp),
+///     expr.normalize(simplify_numbers_preserve_order).to_latex(ToLatexParams::default()),
 ///     "1 + x + x + 5"
 /// );
 /// ```
@@ -428,8 +424,6 @@ pub enum MathSimplify {
 /// # use doenetml_core::state::types::math_expr::{MathExpr, MathSimplify, NormalizeParams, ToLatexParams};
 /// let expr = MathExpr::from_text("(x+x+1)(2y+1-y)", true, &["f"]);
 ///
-/// let lp = ToLatexParams::default();
-///
 /// let simplify_expand = NormalizeParams {
 ///     simplify: MathSimplify::Full,
 ///     expand: true,
@@ -437,7 +431,7 @@ pub enum MathSimplify {
 /// };
 ///
 /// assert_eq!(
-///     expr.normalize(simplify_expand).to_latex(lp),
+///     expr.normalize(simplify_expand).to_latex(ToLatexParams::default()),
 ///     "2 x y + 2 x + y + 1"
 /// );
 /// ```
@@ -446,20 +440,13 @@ pub enum MathSimplify {
 // once have a way to demonstrate their effect
 #[derive(Debug, Default, Clone, Copy)]
 pub struct NormalizeParams {
-    /// We currently support four options for `simplify`:
-    /// - `MathSimplify::None`: no simplification
-    /// - `MathSimplify::NumbersPreserveOrder`: simplify numbers within the expression, such as simplify `1+1` to 2,
-    ///   except do not change the order between numerical and non-numerical operands (such as a variable).
-    /// - `MathSimplify::Numbers`: simplify numbers within the expression, such as simplify `1+1` to 2,
-    /// - `MathSimplify::Full`: simplify the mathematical expression using the currently
-    ///   implemented features. These features are limited and subject to change.
-    ///   For example, simplification of ratio expressions is essentially non-existent.
+    /// See [`MathSimplify`] for the simplification options supported.
     pub simplify: MathSimplify,
-    /// If true, expand out multiplication over addition/subtraction.
+    /// If `true`, expand out multiplication over addition/subtraction.
     pub expand: bool,
-    /// If true, create vectors out of tuples (that haven't previously been turned into intervals).
+    /// If `true`, create vectors out of tuples (that haven't previously been turned into intervals).
     pub create_vectors: bool,
-    /// If true, create closed intervals out of arrays and open intervals out of tuples
+    /// If `true`, create closed intervals out of arrays and open intervals out of tuples
     /// (that haven't previously been turned into vectors).
     /// If both `create_vectors` and `create_intervals` are `true`,
     /// `create_vectors` is applied first so that only arrays will be affected by `create_intervals`.

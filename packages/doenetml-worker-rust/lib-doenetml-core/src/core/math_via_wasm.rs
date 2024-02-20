@@ -244,8 +244,6 @@ pub fn substitute_into_math(
 /// ```
 /// let expr = parse_text_into_math("(x+x+1)(2y+1-y)", true, &["f"]).unwrap();
 ///
-/// let lp = ToLatexParams::default();
-///
 /// let simplify_expand = NormalizeParams {
 ///     simplify: MathSimplify::Full,
 ///     expand: true,
@@ -253,7 +251,7 @@ pub fn substitute_into_math(
 /// };
 ///
 /// assert_eq!(
-///     math_to_latex(normalize_math(&expr, simplify_expand).unwrap(), lp).unwrap(),
+///     math_to_latex(normalize_math(&expr, simplify_expand).unwrap(), ToLatexParams::default()).unwrap(),
 ///     "2 x y + 2 x + y + 1"
 /// );
 /// ```
