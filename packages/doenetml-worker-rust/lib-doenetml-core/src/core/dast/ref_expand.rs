@@ -2,6 +2,8 @@ use std::{collections::HashMap, mem};
 
 use anyhow::anyhow;
 
+use crate::ComponentIdx;
+
 use super::{
     flat_dast::{FlatElement, FlatError, FlatNode, FlatRoot, Index, Source, UntaggedContent},
     ref_resolve::{RefResolution, Resolver},
@@ -39,8 +41,8 @@ impl Expander {
             // which will prevent the borrow checker from complaining if we mutate `flat_root` during processing.
             flat_root.nodes[idx] = match mem::take(&mut flat_root.nodes[idx]) {
                 FlatNode::Ref(ref_) => {
-                    // A ref `$f`` get's replace with `<foo extend="f" />`` where `foo` is the tag name of the referent.
-                    // e.g. `<point name="p" />$p`` becomes `<point name="p" /><point extend="p" />``
+                    // A ref `$f` gets replaced with `<foo extend="f" />` where `foo` is the tag name of the referent.
+                    // e.g. `<point name="p" />$p` becomes `<point name="p" /><point extend="p" />`
                     // Expanding a ref is can be done with a single replacement.
 
                     //flat_root.nodes[idx] = resolved
@@ -192,7 +194,7 @@ impl Expander {
             //  3. Multiple elements are present
             let mut is_invalid_attr = false;
             let mut num_element_children = 0;
-            let extend_referent: Option<Source<RefResolution>> = extend
+            let extend_referent: Option<(ComponentIdx, Source<RefResolution>)> = extend
                 .children
                 .iter()
                 .flat_map(|child| match child {
@@ -200,7 +202,10 @@ impl Expander {
                         num_element_children += 1;
 
                         match &flat_root.nodes[*idx] {
-                            FlatNode::Element(e) => e.extending.clone(),
+                            FlatNode::Element(e) => match &e.extending {
+                                Some(extending) => Some((*idx, extending.clone())),
+                                None => None,
+                            },
                             _ => None,
                         }
                     }
@@ -228,7 +233,22 @@ impl Expander {
                 flat_root.nodes[i] = node;
                 continue;
             }
-            element.extending = extend_referent.map(|source| source.as_attribute());
+            let (ref_idx, source) = extend_referent.unwrap();
+
+            // If we an extending with an unresolved path, then we add the component (with index `ref_idx`)
+            // that is extending the prop as the first child.
+            // In this way, the first child will be an actual component that we can send to the renderer.
+            //
+            // If we don't have an unresolved path, the component with index `ref_idx`
+            // will become orphaned and removed when we compactify the dast.
+            // In this case, we are extending an entire component, not just a prop,
+            // and that component is already in the dast.
+            // That component will be added as the first child whenever children are requested.
+            if source.get_resolution().unresolved_path.is_some() {
+                element.children.insert(0, UntaggedContent::Ref(ref_idx));
+            }
+
+            element.extending = Some(source.as_attribute());
 
             // We successfully consumed the `extend` attribute, so remove the `extend` attribute.
             element

@@ -175,7 +175,20 @@ pub enum Extending {
     Component(ComponentIdx),
     // TODO: what about array props?
     /// The component is extending the prop of another component
-    Prop(PropPointer),
+    Prop(PropSource),
+}
+
+#[derive(Debug, Clone)]
+pub struct PropSource {
+    /// The prop being extended
+    pub prop_pointer: PropPointer,
+
+    /// If true, the source of the extending was due to a direct reference,
+    /// as opposed to being in an extend attribute.
+    ///
+    /// In this case, we need to add the prop as a child in the `DataQuery::ChildPropProfile`,
+    /// because the prop was not already added to the children.
+    pub from_direct_ref: bool,
 }
 
 impl DoenetMLCore {

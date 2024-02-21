@@ -13,7 +13,7 @@ use crate::{
     },
     state::PropPointer,
     utils::KeyValueIgnoreCase,
-    Extending,
+    Extending, PropSource,
 };
 
 use super::{ComponentEnum, _error::_Error, _external::_External};
@@ -48,15 +48,14 @@ impl ComponentBuilder {
                 NormalizedNode::Element(elm) => elm,
                 _ => unreachable!(),
             };
-            let extending = elm.extending.clone().map(|e| e.take_resolution());
-            if extending.is_none() {
+            if elm.extending.is_none() {
                 continue;
             }
-            let ref_resolution = extending.unwrap();
+            let ref_source = elm.extending.clone().unwrap();
             let component = &builder.components[idx];
-            let referent = &builder.components[ref_resolution.node_idx];
+            let referent = &builder.components[ref_source.idx()];
 
-            match Self::determine_extending(&ref_resolution, component, referent) {
+            match Self::determine_extending(ref_source, component, referent) {
                 Ok(extending) => {
                     builder.components[idx].set_extending(Some(extending));
                 }
@@ -121,22 +120,27 @@ impl ComponentBuilder {
     }
 
     /// DoenetML coerces the type of `extending` to allow users to be sloppy with types.
-    /// For example
+    ///
+    /// The default behavior is to ignore the fact that the type changed,
+    /// and simply copy children and attributes in the same way as when the type didn't change.
+    ///
+    /// For example, with
+    /// ```xml
+    /// <text name="t">x</text><math extend="$t">y</math>
+    /// ```
+    /// the `<math>` extends the `<text>` by taking its child `x` and essentially becoming `<math>xy</math>`.
+    ///
+    /// The `<textInput>` component, however, set the `extend_via_default_prop` flag
+    /// and set its `default_prop` to be its `value` prop. Therefore,
     /// ```xml
     /// <textInput name="i" /><text extend="$i" />
     /// ```
-    /// would be coerced to
+    /// would be coerced to essentially becoming
     /// ```xml
     /// <textInput name="i" /><text extend="$i.value" />
     /// ```
-    /// since `$i.value` is of `Text` type, where `$i` is a `TextInput` type.
-    ///
-    /// This coercion is based on _component profiles_ based on the following algorithm:
-    ///  1. If the component tag name matches the referent's tag name, no coercion is done.
-    ///  2. If the tag names differ, a search is done for a prop on the referent that matches the preferred profile
-    ///     of the component.
     fn determine_extending(
-        ref_resolution: &RefResolution,
+        ref_source: Source<RefResolution>,
         component: &ComponentEnum,
         referent: &ComponentEnum,
     ) -> Result<Extending, anyhow::Error> {
@@ -155,6 +159,16 @@ impl ComponentBuilder {
             _ => {}
         }
 
+        // We need to keep track if the extension was from a direct ref
+        // because the children were already copied to the component if it came from an attribute,
+        // but not if it came from a direct ref.
+        let from_direct_ref = match ref_source {
+            Source::Attribute(..) => false,
+            Source::Ref(..) => true,
+        };
+
+        let ref_resolution = ref_source.take_resolution();
+
         // Handle the case where there is a remaining path
         if let Some(unresolved_path) = &ref_resolution.unresolved_path {
             if unresolved_path.len() != 1 {
@@ -169,9 +183,12 @@ impl ComponentBuilder {
             return match referent
                 .get_public_prop_index_from_name_case_insensitive(referenced_prop_name)
             {
-                Some(referent_prop_idx) => Ok(Extending::Prop(PropPointer {
-                    component_idx: referent.get_idx(),
-                    prop_idx: referent_prop_idx,
+                Some(referent_prop_idx) => Ok(Extending::Prop(PropSource {
+                    prop_pointer: PropPointer {
+                        component_idx: referent.get_idx(),
+                        prop_idx: referent_prop_idx,
+                    },
+                    from_direct_ref,
                 })),
                 None => Err(anyhow!(
                     "prop {} not found on component {}",
@@ -194,9 +211,12 @@ impl ComponentBuilder {
             // Since we are extending a component to a different type via default prop,
             // the component should have specified a default prop
             match referent.get_default_prop() {
-                Some(default_prop) => Ok(Extending::Prop(PropPointer {
-                    component_idx: referent.get_idx(),
-                    prop_idx: default_prop,
+                Some(default_prop) => Ok(Extending::Prop(PropSource {
+                    prop_pointer: PropPointer {
+                        component_idx: referent.get_idx(),
+                        prop_idx: default_prop,
+                    },
+                    from_direct_ref,
                 })),
                 None => Err(anyhow!(
                     "Cannot extend {} via default prop because a default prop was not defined.",

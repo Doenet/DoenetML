@@ -133,27 +133,31 @@ pub fn create_dependencies_from_data_query_initialize_state(
             // The dependency for each child will be a view of the matching prop.
 
             // We address two possible extend sources
-            // 1. If there is a prop extend source extending this prop,
+            // 1. If there is a prop extend source extending this prop that came a direct ref,
             //    and that prop matches `match_profiles`, then the first dependency
             //    will be that prop.
+            //    (If the prop extend came from an extend attribute, then the prop was already added to children.)
             // 2. If, instead, there is a component extend source, then include the children
             //    from the extend source in the list of children (starting with extend source children)
 
             let mut dependencies = Vec::new();
 
             // If extending from a prop that matches a profile. add that prop as a dependency
-            if let Some(Extending::Prop(prop_pointer)) =
+            if let Some(Extending::Prop(prop_source)) =
                 components[component_idx].borrow().get_extending()
             {
-                let referent = components[prop_pointer.component_idx].borrow();
-                let referent_prop = referent.get_prop(prop_pointer.prop_idx).unwrap();
-                let referent_profile = referent_prop.get_matching_component_profile();
+                if prop_source.from_direct_ref {
+                    let prop_pointer = prop_source.prop_pointer;
+                    let referent = components[prop_pointer.component_idx].borrow();
+                    let referent_prop = referent.get_prop(prop_pointer.prop_idx).unwrap();
+                    let referent_profile = referent_prop.get_matching_component_profile();
 
-                if match_profiles.contains(&referent_profile) {
-                    dependencies.push(Dependency {
-                        source: (*prop_pointer).into(),
-                        value: referent_prop.create_new_read_only_view(),
-                    });
+                    if match_profiles.contains(&referent_profile) {
+                        dependencies.push(Dependency {
+                            source: prop_pointer.into(),
+                            value: referent_prop.create_new_read_only_view(),
+                        });
+                    }
                 }
             }
 

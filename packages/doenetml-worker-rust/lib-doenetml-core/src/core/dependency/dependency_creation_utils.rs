@@ -4,7 +4,7 @@ use crate::{
     attribute::AttributeName,
     components::{prelude::UntaggedContent, ComponentEnum, ComponentNode},
     state::PropPointer,
-    ComponentIdx, Extending,
+    ComponentIdx, Extending, PropSource,
 };
 
 /// Return a vector of (child, parent_idx) tuples from the children of a component
@@ -77,13 +77,19 @@ pub fn get_attribute_with_parent_falling_back_to_extend_source(
         .get_attribute(attribute)
         .map(|attribute_components| (attribute_components.clone(), component_idx))
         .or_else(|| match component.get_extending() {
+            // both Component and Prop extending are treated the same way,
+            // as we copy attributes from the source
             Some(&Extending::Component(source_idx)) => {
                 get_attribute_with_parent_falling_back_to_extend_source(
                     components, source_idx, attribute,
                 )
             }
-            Some(&Extending::Prop(PropPointer {
-                component_idx: source_idx,
+            Some(&Extending::Prop(PropSource {
+                prop_pointer:
+                    PropPointer {
+                        component_idx: source_idx,
+                        ..
+                    },
                 ..
             })) => get_attribute_with_parent_falling_back_to_extend_source(
                 components, source_idx, attribute,
