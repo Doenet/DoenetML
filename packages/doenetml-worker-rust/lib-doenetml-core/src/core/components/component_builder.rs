@@ -276,12 +276,13 @@ impl ComponentBuilder {
                         .map(|attr| (attr.name.clone(), attr.clone())),
                 );
 
-                let attributes: HashMap<&'static str, _> =
-                    HashMap::from_iter(component.get_attribute_names().iter().map(|&name| {
+                let attributes: HashMap<&'static str, _> = HashMap::from_iter(
+                    component.get_attribute_names().iter().filter_map(|&name| {
                         unused_attributes
                             .remove_ignore_case(name)
-                            .map_or_else(|| (name, Vec::new()), |v| (name, v.children))
-                    }));
+                            .map(|v| (name, v.children))
+                    }),
+                );
 
                 component.initialize(
                     elm.idx,

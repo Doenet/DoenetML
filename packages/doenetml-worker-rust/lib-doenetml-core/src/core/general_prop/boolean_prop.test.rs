@@ -215,40 +215,40 @@ fn boolean_prop_from_attribute_gives_correct_data_queries() {
     );
 }
 
-/// If a boolean prop is based on a single boolean attribute child,
-/// its value should be the same as the boolean child's value
-/// and its came_from_default should be the same as the boolean child's came_from_default
+/// If a boolean prop is based on a single boolean attribute component,
+/// its value should be the same as the boolean component's value
+/// and its came_from_default should be the same as the boolean component's came_from_default
 #[test]
-fn boolean_prop_calculated_from_single_boolean_attribute_child() {
-    // create a boolean prop with one boolean attribute child
-    let (mut prop, _prop_view, _state_var, child_var) =
-        set_up_boolean_prop_with_attribute_child("my_attr", false, true);
+fn boolean_prop_calculated_from_single_boolean_attribute_component() {
+    // create a boolean prop with one boolean attribute component
+    let (mut prop, _prop_view, _state_var, attribute_var) =
+        set_up_boolean_prop_with_attribute_component("my_attr", false, true);
 
-    // we initialize child to be false, so should get false
+    // we initialize attribute to be false, so should get false
     prop.calculate_and_mark_fresh();
     assert_eq!(*prop.get(), false);
     assert_eq!(prop.came_from_default(), true);
 
-    // changing child to be true, results in prop being true
-    child_var.set_value(true);
+    // changing attribute to be true, results in prop being true
+    attribute_var.set_value(true);
     prop.calculate_and_mark_fresh();
     assert_eq!(*prop.get(), true);
     assert_eq!(prop.came_from_default(), false);
 }
 
-/// A boolean prop based on a single blank string attribute child is true
+/// A boolean prop based on a single blank string attribute component is true
 #[test]
-fn boolean_prop_calculated_from_a_blank_string_attribute_child_is_true() {
-    // create a boolean prop with one string attribute child
-    let (mut prop, _prop_view, _state_var, child_var) =
-        set_up_boolean_prop_with_attribute_child("my_attr", String::from(""), false);
+fn boolean_prop_calculated_from_a_blank_string_attribute_component_is_true() {
+    // create a boolean prop with one string attribute component
+    let (mut prop, _prop_view, _state_var, attribute_var) =
+        set_up_boolean_prop_with_attribute_component("my_attr", String::from(""), false);
 
     // the initial value of "" leads to false
     prop.calculate_and_mark_fresh();
     assert_eq!(*prop.get(), true);
 
-    // changing child to be " ", results in prop being false
-    child_var.set_value(String::from(" "));
+    // changing attribute to be " ", results in prop being false
+    attribute_var.set_value(String::from(" "));
     prop.calculate_and_mark_fresh();
     assert_eq!(*prop.get(), false);
 }
@@ -340,7 +340,7 @@ mod setup_functions {
     }
 
     /// Utility function to set up boolean prop that depends on one attribute child variable
-    pub fn set_up_boolean_prop_with_attribute_child<T>(
+    pub fn set_up_boolean_prop_with_attribute_component<T>(
         attr_name: AttributeName,
         initial_value: T,
         came_from_default: bool,
@@ -364,17 +364,17 @@ mod setup_functions {
         let (state_dependency, state_var) =
             create_prop_dependency::<bool>(false, came_from_default);
 
-        // fulfill data query with one child of type T
-        let (child_dependency, child_var) =
+        // fulfill data query with one component of type T
+        let (attribute_dependency, attribute_var) =
             create_prop_dependency(initial_value, came_from_default);
 
         let dependencies_created_for_data_queries = vec![
             DependenciesCreatedForDataQuery(vec![state_dependency]),
-            DependenciesCreatedForDataQuery(vec![child_dependency]),
+            DependenciesCreatedForDataQuery(vec![attribute_dependency]),
         ];
 
         prop.save_dependencies(&dependencies_created_for_data_queries);
 
-        (prop, prop_view, state_var, child_var)
+        (prop, prop_view, state_var, attribute_var)
     }
 }

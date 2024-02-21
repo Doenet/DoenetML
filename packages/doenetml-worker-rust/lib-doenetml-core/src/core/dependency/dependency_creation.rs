@@ -11,8 +11,9 @@ use crate::{
 
 use super::{
     dependency_creation_utils::{
-        get_attributes_with_parent_falling_back_to_extend_source,
-        get_children_with_parent_including_from_extend_source, get_component_extend_source_origin,
+        get_attribute_with_parent_falling_back_to_extend_source,
+        get_children_with_parent_including_from_extend_source,
+        get_same_type_component_extend_source_origin,
     },
     DataQuery, DependenciesCreatedForDataQuery, Dependency, DependencySource,
 };
@@ -32,7 +33,8 @@ pub fn create_dependencies_from_data_query_initialize_state(
         DataQuery::State => {
             // We recurse to extend source components so that this state data
             // is shared with the extend source of any other components that is extending from it.
-            let source_idx = get_component_extend_source_origin(components, component_idx);
+            let source_idx =
+                get_same_type_component_extend_source_origin(components, component_idx);
 
             let state_origin = StatePropDataOrigin::State(prop_idx);
 
@@ -242,7 +244,8 @@ pub fn create_dependencies_from_data_query_initialize_state(
 
                 // For the state prop data origin, recurse to extend source components
                 // in order to share the state data with the extend source.
-                let source_idx = get_component_extend_source_origin(components, component_idx);
+                let source_idx =
+                    get_same_type_component_extend_source_origin(components, component_idx);
                 let state_origin = StatePropDataOrigin::ChildSubstitute(prop_idx);
 
                 let state_data_view = if let Some(current_view) =
@@ -298,29 +301,23 @@ pub fn create_dependencies_from_data_query_initialize_state(
         } => {
             let always_return_value = *always_return_value;
 
-            // Create a dependency from all attribute children
+            // Create a dependency from all attribute components
             // that match a profile from match_profiles.
             // The dependency for each child will be a view of the matching prop.
 
-            let (attributes, parent_idx) =
-                get_attributes_with_parent_falling_back_to_extend_source(
+            let (attribute_components, parent_idx) =
+                get_attribute_with_parent_falling_back_to_extend_source(
                     components,
                     component_idx,
                     attribute_name,
                 )
-                .unwrap_or_else(|| {
-                    panic!(
-                        "Invalid attribute {} for component of type {}",
-                        attribute_name,
-                        components[component_idx].borrow().get_component_type()
-                    );
-                });
+                .unwrap_or_else(|| (Vec::new(), component_idx));
 
             // Stores how many string children added.
             // Use it to generate the index for the StatePropDataOrigin so it points to the right string child
             let mut state_data_index = 0;
 
-            let mut dependencies: Vec<_> = attributes
+            let mut dependencies: Vec<_> = attribute_components
                 .iter()
                 .filter_map(|child| {
                     match child {
@@ -399,7 +396,8 @@ pub fn create_dependencies_from_data_query_initialize_state(
 
                 // For the state data origin, recurse to extend source components
                 // in order to share the state data with the extend source.
-                let source_idx = get_component_extend_source_origin(components, component_idx);
+                let source_idx =
+                    get_same_type_component_extend_source_origin(components, component_idx);
                 let state_origin =
                     StatePropDataOrigin::AttributeSubstitute(attribute_name, prop_idx);
 

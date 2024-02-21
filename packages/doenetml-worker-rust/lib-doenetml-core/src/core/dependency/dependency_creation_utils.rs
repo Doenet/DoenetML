@@ -3,6 +3,7 @@ use std::{cell::RefCell, rc::Rc};
 use crate::{
     attribute::AttributeName,
     components::{prelude::UntaggedContent, ComponentEnum, ComponentNode},
+    state::PropPointer,
     ComponentIdx, Extending,
 };
 
@@ -35,18 +36,25 @@ pub fn get_children_with_parent_including_from_extend_source(
 }
 
 /// If the component has an extend source of `Component` type,
+/// and the extend source is the same type as the component,
 /// return the component index of that extend source,
 /// except recurse until the component index of the original source is found.
 ///
 /// When we store state data, we store it with this original source index,
 /// allowing copies to share the same state data as the source.
-pub fn get_component_extend_source_origin(
+pub fn get_same_type_component_extend_source_origin(
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
     component_idx: ComponentIdx,
 ) -> ComponentIdx {
-    match &components[component_idx].borrow().get_extending() {
+    let component = components[component_idx].borrow();
+    match &component.get_extending() {
         Some(&Extending::Component(source_idx)) => {
-            get_component_extend_source_origin(components, source_idx)
+            let source = components[source_idx].borrow();
+            if source.get_component_type() == component.get_component_type() {
+                get_same_type_component_extend_source_origin(components, source_idx)
+            } else {
+                component_idx
+            }
         }
         _ => component_idx,
     }
@@ -58,21 +66,28 @@ pub fn get_component_extend_source_origin(
 /// Returns an option of a tuple with components
 /// - a vector of the attribute children found
 /// - the index of the parent where those attribute children were found.
-pub fn get_attributes_with_parent_falling_back_to_extend_source(
+pub fn get_attribute_with_parent_falling_back_to_extend_source(
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
     component_idx: ComponentIdx,
     attribute: AttributeName,
 ) -> Option<(Vec<UntaggedContent>, ComponentIdx)> {
     let component = components[component_idx].borrow();
 
-    component.get_attribute(attribute).and_then(|attributes| {
-        if attributes.is_empty() {
-            if let Some(&Extending::Component(source_idx)) = component.get_extending() {
-                return get_attributes_with_parent_falling_back_to_extend_source(
+    component
+        .get_attribute(attribute)
+        .map(|attribute_components| (attribute_components.clone(), component_idx))
+        .or_else(|| match component.get_extending() {
+            Some(&Extending::Component(source_idx)) => {
+                get_attribute_with_parent_falling_back_to_extend_source(
                     components, source_idx, attribute,
-                );
+                )
             }
-        }
-        Some((attributes.clone(), component_idx))
-    })
+            Some(&Extending::Prop(PropPointer {
+                component_idx: source_idx,
+                ..
+            })) => get_attribute_with_parent_falling_back_to_extend_source(
+                components, source_idx, attribute,
+            ),
+            None => None,
+        })
 }
