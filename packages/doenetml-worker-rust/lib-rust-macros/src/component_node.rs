@@ -19,6 +19,8 @@ pub struct ComponentOptions {
     pub ref_transmutes_to: Option<String>,
 
     pub when_extending: Option<WhenExtending>,
+
+    pub extend_via_default_prop: Option<()>,
 }
 
 #[derive(Debug, Default, FromMeta)]
@@ -124,6 +126,13 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                             Some(#ref_transmute_to)
                         }
                     });
+                }
+                if options.extend_via_default_prop.is_some() {
+                    component_node_impl_body.extend(quote! {
+                        fn extend_via_default_prop(&self) -> bool {
+                            true
+                        }
+                    })
                 }
 
                 if let Some(WhenExtending {

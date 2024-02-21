@@ -4,7 +4,6 @@
 use std::{collections::HashMap, iter, str::FromStr};
 
 use anyhow::anyhow;
-use itertools::Itertools;
 
 use crate::{
     components::{prelude::ComponentState, ComponentAttributes, ComponentNode},
@@ -12,8 +11,9 @@ use crate::{
         flat_dast::{Index, NormalizedNode, NormalizedRoot, Source},
         ref_resolve::RefResolution,
     },
+    state::PropPointer,
     utils::KeyValueIgnoreCase,
-    ExtendProp, Extending, PropLink,
+    Extending,
 };
 
 use super::{ComponentEnum, _error::_Error, _external::_External};
@@ -58,7 +58,7 @@ impl ComponentBuilder {
 
             match Self::determine_extending(&ref_resolution, component, referent) {
                 Ok(extending) => {
-                    builder.components[idx].set_extending(extending);
+                    builder.components[idx].set_extending(Some(extending));
                 }
                 Err(err) => {
                     builder.components[idx] = ComponentEnum::_Error(_Error {
@@ -139,7 +139,7 @@ impl ComponentBuilder {
         ref_resolution: &RefResolution,
         component: &ComponentEnum,
         referent: &ComponentEnum,
-    ) -> Result<Option<Extending>, anyhow::Error> {
+    ) -> Result<Extending, anyhow::Error> {
         // If the referent is an error or external, we're immediately done.
         match referent {
             ComponentEnum::_Error(_) => {
@@ -164,86 +164,45 @@ impl ComponentBuilder {
                 return Err(anyhow!("Path indices not yet supported"));
             }
             let referenced_prop_name = &unresolved_path[0].name;
-            // Look to see if there is a prop with a matching name on `referent`
-            let referent_prop_idx =
-                referent.get_public_prop_index_from_name_case_insensitive(referenced_prop_name);
-            if referent_prop_idx.is_none() {
-                return Err(anyhow!(
+
+            // Look to see if there is a public prop with a matching name on `referent`
+            return match referent
+                .get_public_prop_index_from_name_case_insensitive(referenced_prop_name)
+            {
+                Some(referent_prop_idx) => Ok(Extending::Prop(PropPointer {
+                    component_idx: referent.get_idx(),
+                    prop_idx: referent_prop_idx,
+                })),
+                None => Err(anyhow!(
                     "prop {} not found on component {}",
                     referenced_prop_name,
                     referent.get_component_type()
-                ));
-            }
-            let referent_prop_idx = referent_prop_idx.unwrap();
-            // We found a public prop that matched the remaining path.
-            let referent_prop = &referent.get_prop(referent_prop_idx).unwrap();
-
-            // This is the profile that the referent says it can provide.
-            let referent_prop_profile = referent_prop.get_matching_component_profile();
-
-            let extending = component.accepted_profiles().into_iter().find_map(
-                |(profile, component_prop_idx)| {
-                    if profile == referent_prop_profile {
-                        Some(Extending::Prop(ExtendProp {
-                            component_idx: referent.get_idx(),
-                            prop_matching: vec![PropLink {
-                                dest_idx: component_prop_idx,
-                                source_idx: referent_prop_idx,
-                            }],
-                        }))
-                    } else {
-                        None
-                    }
-                },
-            );
-            if extending.is_some() {
-                return Ok(extending);
-            } else {
-                return Err(anyhow!("No matching prop profile found"));
-            }
+                )),
+            };
         }
         // If we're here, there is no remaining path.
 
-        // If we are extending a component of the same name, then this is a "component extension",
+        // If we are extending a component of the same type,
+        // the component did not specify that it should extend via default prop,
+        // then this is a "component extension",
         // which is treated differently than extending by a prop.
-        if component.get_component_type() == referent.get_component_type() {
-            return Ok(Some(Extending::Component(referent.get_idx())));
-        }
-
-        // In this case, we know the referent, but we do not know what the _source_ prop
-        // is on `referent` and what the _dest_ prop is `component`. We do this by searching
-        // through the profiles `referent` provides and the profiles `component` accepts and look for a match.
-
-        let extending = component
-            .accepted_profiles()
-            .into_iter()
-            .cartesian_product(referent.provided_profiles())
-            .find_map(
-                |(
-                    (component_profile, component_prop_idx),
-                    (referent_profile, referent_prop_idx),
-                )| {
-                    if component_profile == referent_profile {
-                        Some(Extending::Prop(ExtendProp {
-                            component_idx: referent.get_idx(),
-                            prop_matching: vec![PropLink {
-                                dest_idx: component_prop_idx,
-                                source_idx: referent_prop_idx,
-                            }],
-                        }))
-                    } else {
-                        None
-                    }
-                },
-            );
-        if extending.is_some() {
-            Ok(extending)
+        if component.get_component_type() == referent.get_component_type()
+            || !referent.extend_via_default_prop()
+        {
+            Ok(Extending::Component(referent.get_idx()))
         } else {
-            Err(anyhow!(
-                "Cannot do <{} extend='$ref'/> where $ref is type `{}`",
-                component.get_component_type(),
-                referent.get_component_type()
-            ))
+            // Since we are extending a component to a different type via default prop,
+            // the component should have specified a default prop
+            match referent.get_default_prop() {
+                Some(default_prop) => Ok(Extending::Prop(PropPointer {
+                    component_idx: referent.get_idx(),
+                    prop_idx: default_prop,
+                })),
+                None => Err(anyhow!(
+                    "Cannot extend {} via default prop because a default prop was not defined.",
+                    referent.get_component_type()
+                )),
+            }
         }
     }
 

@@ -179,6 +179,10 @@ pub trait ComponentNode: ComponentState {
         None
     }
 
+    fn extend_via_default_prop(&self) -> bool {
+        false
+    }
+
     /// When this component has `extend="$ref"`, depending on the different
     /// `ComponentProfiles` `$ref` may present itself as, the component might want
     /// to set different prop values. This function returns a vector of

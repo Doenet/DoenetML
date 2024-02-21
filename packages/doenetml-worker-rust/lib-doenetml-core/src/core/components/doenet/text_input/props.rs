@@ -27,6 +27,7 @@ pub struct TextInputState {
     /// queries for children with the `Text` component profile.
     #[is_public]
     #[component_profile_prop]
+    #[default_prop]
     value: Prop<String>,
 
     /// The current value of the text inside the input box of the `<textInput>` component.
