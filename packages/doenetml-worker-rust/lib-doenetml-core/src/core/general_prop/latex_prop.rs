@@ -23,9 +23,9 @@ impl LatexProp {
 }
 
 impl PropUpdater<String, RequiredData> for LatexProp {
-    fn return_data_queries(&self) -> Vec<Option<DataQuery>> {
+    fn return_data_queries(&self) -> Vec<DataQuery> {
         RequiredDataQueries {
-            math_expression: Some(self.math_expression.clone()),
+            math_expression: self.math_expression.clone(),
         }
         .into()
     }
