@@ -3,18 +3,27 @@ use crate::components::prelude::*;
 /// A string prop that calculates its value by concatenating all string dependencies.
 ///
 /// If the prop has a single dependency,
-/// then it propagates the `came_from_default` attribute.
+/// then it propagates the `came_from_default` attribute
+/// unless `.dont_propagate_came_from_default()` was added (see below).
 ///
 /// The string prop can be created via the constructors:
-/// - `new(data_query)`: base the value on an arbitrary data query
-/// - `new_from_children(default_value)`: base the value on the component's `Text` children,
+/// - `new_from_children(default_value)`: base the value on the component's `String` children,
 ///   falling back to `default_value` if there are no matching children.
 /// - `new_from_attribute(attr_name, default_value)`: base the value on the component's `attr_name` attribute.
-///   The calculation will use the `Text` children of the attribute,
-///   falling back to `default_value` if there are no matching children.
+///   The calculation will use the `String` components of the attribute,
+///   falling back to `default_value` if there are no matching components.
+///
+/// The string prop can be modified by chaining:
+/// - `.dont_propagate_came_from_default()`: change the behavior so that if this prop ends up having a single dependency,
+///   no longer propagate that dependency's `came_from_default` flag
+///   to this prop's `came_from_default` flag.
+///   Instead this prop's `came_from_default` flag will always be `false` whenever it is based on one or more dependency.
 #[derive(Debug, Default)]
 pub struct StringProp {
     /// The data query that indicates how the dependencies of this prop will be created.
+    ///
+    /// The `always_return_value` attribute of the data query will be assumed to be coordinated with
+    /// the prop's `propagate_came_from_default`, as described with `propagate_came_from_default`.
     data_query: DataQuery,
 
     /// The default value that is initially returned if no dependencies were returned.
@@ -32,6 +41,11 @@ pub struct StringProp {
     /// in the case where a single dependency is returned.
     /// If `false`, then `came_from_default` will be true only if no dependencies were found
     /// and we are returning an independent value that hasn't yet been changed from its default.
+    ///
+    /// The following relationship between `propagate_came_from_default` and the data query's `always_return_value`
+    /// is assumed to be maintained:
+    /// - if `propagate_came_from_default` is `true`, then `always_return_value` must be `true` on the `data_query`.
+    /// - if `propagate_came_from_default` is `false`, then `always_return_value` must be `false` on the `data_query`.
     propagate_came_from_default: bool,
 }
 
@@ -39,7 +53,7 @@ pub struct StringProp {
 #[add_dependency_data]
 #[derive(Debug, Default, PropDependencies, PropDataQueries)]
 pub struct RequiredData {
-    /// An independent state variable (that doesn't have any dependencies)
+    /// An independent piece of data (a [`StateProp`](crate::state::prop_state::StateProp) whose value gets saved)
     /// that is used if `propagate_came_from_default` is false
     /// to store the value when there are no dependencies.
     independent_state: PropView<String>,
@@ -50,35 +64,17 @@ pub struct RequiredData {
 
 impl StringProp {
     /// Creates a string prop that calculates its value from the component's children
-    /// matching the `String`  profile.
+    /// matching the `String` profile.
     ///
     /// If there are no matching children, the prop will be initialized with `default_value`.
-    ///
-    /// The `propagate_came_from_default` argument influences
-    /// the behavior of this prop's `came_from_default` flag when there is only one matching child
-    /// in the following manner:
-    /// - If `propagate_came_from_default` is `true`, then if there is only one matching child,
-    ///   `came_from_default` will match the `came_from_default` of that single child.
-    /// - If `propagate_came_from_default` is `false`, then `came_from_default`
-    ///   will always be `false` if there are any matching children.
-    ///
-    /// Regardless of the `propagate_came_from_default` argument,
-    /// - If there are two or more matching children, `came_from_default` is always `false`.
-    /// - If there are no matching children, then `came_from_default` will initially be true
-    ///   (and the value of the prop itself will be set to `default_value`).
-    ///   As soon as the value is changed (by a call to `invert()`),
-    ///   then `came_from_default` will be set to `false`.
-    pub fn new_from_children<S: Into<String>>(
-        default_value: S,
-        propagate_came_from_default: bool,
-    ) -> Self {
+    pub fn new_from_children<S: Into<String>>(default_value: S) -> Self {
         StringProp {
             data_query: DataQuery::ChildPropProfile {
                 match_profiles: vec![ComponentProfile::String],
-                always_return_value: propagate_came_from_default,
+                always_return_value: true,
             },
             default_value: default_value.into(),
-            propagate_came_from_default,
+            propagate_came_from_default: true,
         }
     }
 
@@ -86,35 +82,56 @@ impl StringProp {
     /// basing the calculation on the attribute components that match the `String` profile.
     ///
     /// If there are no matching attribute components, the prop will be initialized with `default_value`.
-    ///
-    /// The `propagate_came_from_default` argument influences
-    /// the behavior of this prop's `came_from_default` flag when there is only one matching attribute component
-    /// in the following manner:
-    /// - If `propagate_came_from_default` is `true`, then if there is only one matching attribute component,
-    ///   `came_from_default` will match the `came_from_default` of that single attribute component.
-    /// - If `propagate_came_from_default` is `false`, then `came_from_default`
-    ///   will always be `false` if there are any matching attribute components.
-    ///
-    /// Regardless of the `propagate_came_from_default` argument,
-    /// - If there are two or more matching attribute components, `came_from_default` is always `false`.
-    /// - If there are no matching attribute components, then `came_from_default` will initially be true
-    ///   (and the value of the prop itself will be set to `default_value`).
-    ///   As soon as the value is changed (by a call to `invert()`),
-    ///   then `came_from_default` will be set to `false`.
-    pub fn new_from_attribute<S: Into<String>>(
-        attr_name: AttributeName,
-        default_value: S,
-        propagate_came_from_default: bool,
-    ) -> Self {
+    pub fn new_from_attribute<S: Into<String>>(attr_name: AttributeName, default_value: S) -> Self {
         StringProp {
             data_query: DataQuery::Attribute {
                 attribute_name: attr_name,
                 match_profiles: vec![ComponentProfile::String],
-                always_return_value: propagate_came_from_default,
+                always_return_value: true,
             },
             default_value: default_value.into(),
-            propagate_came_from_default,
+            propagate_came_from_default: true,
         }
+    }
+
+    /// Changes the behavior so that this prop no longer propagates the `came_from_default` flag
+    /// when there is only one matching dependency.
+    ///
+    /// The default behavior was that, in the case of only one matching dependency,
+    /// the `came_from_default` of this prop would have matched
+    /// the `came_from_default` of that single dependency.
+    ///
+    /// This behavior is now changed to that the `came_from_default` of this prop
+    /// will always be `false` if there are any matching dependencies.
+    ///
+    /// The following behavior is unaffected:
+    /// - If there are two or more matching dependencies,
+    ///   the `came_from_default` of this prop is always `false`.
+    /// - If there are no matching dependencies,
+    ///   then the `came_from_default` of this prop will initially be `true`
+    ///   (and the value of the prop itself will be set to `default_value`).
+    ///   As soon as the value is changed (by a call to `invert()`),
+    ///   then the `came_from_default` of this prop will be set to `false`.
+    pub fn dont_propagate_came_from_default(mut self) -> Self {
+        // We both set `propagate_came_from_default` flag to false
+        // and set the data queries to return nothing if there were no matches
+        // in order that we can treat the case with no matches differently from the case with a single match.
+        // (Before this change, the data queries returned a single result even if there were no matches,
+        // preventing this case from being distinguished from the case with a single match.)
+
+        self.propagate_came_from_default = false;
+        match &mut self.data_query {
+            DataQuery::ChildPropProfile {
+                always_return_value,
+                ..
+            } => *always_return_value = false,
+            DataQuery::Attribute {
+                always_return_value,
+                ..
+            } => *always_return_value = false,
+            _ => (),
+        }
+        self
     }
 }
 
@@ -135,25 +152,38 @@ impl PropUpdater<String, RequiredData> for StringProp {
         match data.strings.len() {
             0 => {
                 if self.propagate_came_from_default {
-                    // if propagate_came_from_default is true,
-                    // then always_return_value is true on the string data query,
-                    // so we should never reach this
+                    // If `propagate_came_from_default` is true,
+                    // this means we did not call `dont_propagate_came_from_default()`
+                    // so the `always_return_value` flag must still be set to true on the data query,
+                    // forcing them to return at least one value.
+
+                    // If we reached here, then there has been a programming error violating this contract.
                     unreachable!()
                 }
 
-                // If propagate_came_from_default is false and there were no dependencies returned,
-                // then use the independent state, propagating its came_from_default as well as its value.
-                // In this way, came_from_default will be true only if no dependencies were returned.
-                data.independent_state.prop_calc_result()
+                // If we reach here, then we must have called `dont_propagate_came_from_default()`
+                // and there were no dependencies returned from the data query.
+                // This is the one case where we use `independent_state`,
+                // using its `came_from_default` as well as its value.
+                if data.independent_state.came_from_default() {
+                    PropCalcResult::FromDefault(data.independent_state.get().clone())
+                } else {
+                    PropCalcResult::Calculated(data.independent_state.get().clone())
+                }
             }
             1 => {
                 if self.propagate_came_from_default {
-                    // if we are basing it on a single variable and propagating came_from_default,
-                    // then we propagate came_from_default as well as the value.
-                    data.strings[0].prop_calc_result()
+                    // if we are basing it on a single variable and propagating `came_from_default`,
+                    // then we propagate `came_from_default` as well as the value.
+                    if data.strings[0].came_from_default() {
+                        PropCalcResult::FromDefault(data.strings[0].get().clone())
+                    } else {
+                        PropCalcResult::Calculated(data.strings[0].get().clone())
+                    }
                 } else {
-                    // If we are not propagating came_from_default,
-                    // then came_from_default will be false independent of the dependency's came_from_default
+                    // If we are not propagating `came_from_default`,
+                    // then we set `came_from_default` to be false (by specifying `Calculated`)
+                    // independent of the dependency's `came_from_default`
                     PropCalcResult::Calculated(data.strings[0].get().clone())
                 }
             }

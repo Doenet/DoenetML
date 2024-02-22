@@ -50,7 +50,7 @@ pub struct TextState {
 impl TextState {
     fn new() -> Self {
         TextState {
-            value: StringProp::new_from_children("".to_string(), true).into_prop(),
+            value: StringProp::new_from_children("".to_string()).into_prop(),
             text: PropAlias::new(TextState::get_value_prop_index()).into_prop(),
         }
     }

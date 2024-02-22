@@ -8,7 +8,7 @@ use setup_functions::*;
 #[test]
 fn string_prop_from_children_gives_correct_data_queries() {
     // create a string prop requesting children
-    let mut prop = StringProp::new_from_children(String::from(""), true).into_prop();
+    let mut prop = StringProp::new_from_children(String::from("")).into_prop();
 
     let queries = prop.return_data_queries();
 
@@ -118,7 +118,7 @@ fn cannot_invert_string_prop_that_has_two_string_children() {
 #[test]
 fn string_prop_from_attribute_gives_correct_data_queries() {
     // create a string prop from attribute
-    let mut prop = StringProp::new_from_attribute("my_attr", String::from(""), true).into_prop();
+    let mut prop = StringProp::new_from_attribute("my_attr", String::from("")).into_prop();
 
     let queries = prop.return_data_queries();
 
@@ -149,8 +149,7 @@ mod setup_functions {
         PropViewMut<String>,
         PropViewMut<String>,
     ) {
-        let mut prop: Prop<String> =
-            StringProp::new_from_children(String::from(""), true).into_prop();
+        let mut prop: Prop<String> = StringProp::new_from_children(String::from("")).into_prop();
         let prop_view = prop.create_new_read_only_view();
 
         // need to return data queries since side effect is saving the required data
@@ -186,8 +185,7 @@ mod setup_functions {
         PropViewMut<String>,
         PropViewMut<String>,
     ) {
-        let mut prop: Prop<String> =
-            StringProp::new_from_children(String::from(""), true).into_prop();
+        let mut prop: Prop<String> = StringProp::new_from_children(String::from("")).into_prop();
         let prop_view = prop.create_new_read_only_view();
 
         // need to return data queries since side effect is saving the required data

@@ -59,7 +59,7 @@ pub struct BooleanState {
 impl BooleanState {
     fn new() -> Self {
         BooleanState {
-            value: BooleanProp::new_from_children(false, true).into_prop(),
+            value: BooleanProp::new_from_children(false).into_prop(),
             boolean: PropAlias::new(BooleanState::get_value_prop_index()).into_prop(),
             text: BooleanToStringProp::new(BooleanState::get_value_prop_index()).into_prop(),
         }

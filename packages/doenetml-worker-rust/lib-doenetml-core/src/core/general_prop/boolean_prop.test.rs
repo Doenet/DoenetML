@@ -8,7 +8,7 @@ use setup_functions::*;
 #[test]
 fn boolean_prop_from_children_gives_correct_data_queries() {
     // create a boolean prop requesting children
-    let mut prop = BooleanProp::new_from_children(false, true).into_prop();
+    let mut prop = BooleanProp::new_from_children(false).into_prop();
 
     let queries = prop.return_data_queries();
 
@@ -198,7 +198,7 @@ fn cannot_invert_boolean_prop_that_has_two_string_children() {
 #[test]
 fn boolean_prop_from_attribute_gives_correct_data_queries() {
     // create a boolean prop from attribute
-    let mut prop = BooleanProp::new_from_attribute("my_attr", true, true).into_prop();
+    let mut prop = BooleanProp::new_from_attribute("my_attr", true).into_prop();
 
     let queries = prop.return_data_queries();
 
@@ -272,7 +272,7 @@ mod setup_functions {
         PropView<T>: TryFromState<PropViewEnum>,
         PropViewEnum: From<PropView<T>>,
     {
-        let mut prop: Prop<bool> = BooleanProp::new_from_children(false, true).into_prop();
+        let mut prop: Prop<bool> = BooleanProp::new_from_children(false).into_prop();
         let prop_view = prop.create_new_read_only_view();
 
         // need to return data queries since side effect is saving the required data
@@ -312,7 +312,7 @@ mod setup_functions {
         PropView<T>: TryFromState<PropViewEnum>,
         PropViewEnum: From<PropView<T>>,
     {
-        let mut prop: Prop<bool> = BooleanProp::new_from_children(false, true).into_prop();
+        let mut prop: Prop<bool> = BooleanProp::new_from_children(false).into_prop();
         let prop_view = prop.create_new_read_only_view();
 
         // need to return data queries since side effect is saving the required data
@@ -355,8 +355,7 @@ mod setup_functions {
         PropView<T>: TryFromState<PropViewEnum>,
         PropViewEnum: From<PropView<T>>,
     {
-        let mut prop: Prop<bool> =
-            BooleanProp::new_from_attribute(attr_name, false, true).into_prop();
+        let mut prop: Prop<bool> = BooleanProp::new_from_attribute(attr_name, false).into_prop();
         let prop_view = prop.create_new_read_only_view();
 
         // need to return data queries since side effect is saving the required data

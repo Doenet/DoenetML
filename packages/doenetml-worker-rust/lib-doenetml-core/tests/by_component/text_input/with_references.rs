@@ -40,10 +40,13 @@ fn text_input_reference_child_is_changed_when_update_value() {
     assert_eq!(get_text_value(text_idx, &mut core), "bye");
 }
 
-/// A text component referenced as a child of a text input
+/// A text input with a blank text component referenced as a child
 /// will be changed with `UpdateValue`.
-/// This test is checking to make sure the text is changed by the actions
-/// even if it starts blank, i.e., with its default value.
+///
+/// For example, in `<textInput>$t</textInput><text name="t" />`
+/// the text input's value can still change even though it has
+/// a child consisting of an empty text,
+/// and that initially empty text will change to match the new value.
 #[test]
 fn text_input_reference_blank_child_is_changed_when_update_value() {
     let dast_root = dast_root_no_position(r#"<textInput>$t</textInput><text name="t"/>"#);

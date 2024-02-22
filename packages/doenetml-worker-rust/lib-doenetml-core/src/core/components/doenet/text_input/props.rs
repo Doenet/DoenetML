@@ -93,7 +93,9 @@ impl TextInputState {
             // Note: need to pass false for propagate_change_from_default (second argument)
             // so that came_from_default will be false if the text input has any children
             // (even if it just has one child whose came_from_default is true)
-            value_from_children: StringProp::new_from_children("".to_string(), false).into_prop(),
+            value_from_children: StringProp::new_from_children("".to_string())
+                .dont_propagate_came_from_default()
+                .into_prop(),
 
             prefill: TextInputAttribute::Prefill.prop(),
             hidden: TextInputAttribute::Hide.prop(),

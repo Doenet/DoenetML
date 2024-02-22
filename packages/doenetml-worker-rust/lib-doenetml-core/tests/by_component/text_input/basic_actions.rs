@@ -137,10 +137,10 @@ fn value_and_immediate_value_with_text_child_respond_to_actions() {
     assert_eq!(get_text_value(text_idx, &mut core), "bye");
 }
 
-/// The UpdateImmediateValue and UpdateValue actions work the same when have a blank text child,
+/// The UpdateImmediateValue and UpdateValue actions work the same when the text input has a blank text child,
 /// only their initial values are from the child.
-/// This test is checking in particular that the text child is still changed with the actions
-/// even though it starts with its default value.
+/// This test is checking in particular that the text input and the text child are still changed with the actions
+/// even though the text child starts with its default value.
 #[test]
 fn value_and_immediate_value_with_blank_text_child_respond_to_actions() {
     let dast_root = dast_root_no_position(r#"<textInput><text/></textInput>"#);

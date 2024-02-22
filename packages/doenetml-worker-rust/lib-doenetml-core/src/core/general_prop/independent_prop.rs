@@ -7,7 +7,7 @@ pub struct RequiredData<T>
 where
     T: Default + Clone,
 {
-    /// An independent state variable (that doesn't have any dependencies)
+    /// An independent piece of data (a [`StateProp`](crate::state::prop_state::StateProp) whose value gets saved)
     /// that will be used to store the value of the independent prop.
     independent_state: PropView<T>,
 }
@@ -50,7 +50,11 @@ where
 
     fn calculate(&mut self, data: &RequiredData<T>) -> PropCalcResult<T> {
         // take on the value from `independent_state`, propagating `came_from_default`.
-        data.independent_state.prop_calc_result()
+        if data.independent_state.came_from_default() {
+            PropCalcResult::FromDefault(data.independent_state.get().clone())
+        } else {
+            PropCalcResult::Calculated(data.independent_state.get().clone())
+        }
     }
 
     fn invert(
