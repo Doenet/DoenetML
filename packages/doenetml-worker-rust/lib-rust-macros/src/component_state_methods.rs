@@ -108,7 +108,7 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
                     let mut rendered_props_struct_statements = Vec::new();
 
                     let mut get_prop_index_functions = Vec::new();
-                    let mut get_value_data_queries_functions = Vec::new();
+                    let mut get_value_data_query_functions = Vec::new();
                     let mut update_from_action_functions = Vec::new();
 
                     let renderer_props_name = format!("Rendered{}", structure_identity);
@@ -154,13 +154,13 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
                             });
 
                             return_rendered_state_items.push(quote! {
-                                #field_identity: Some(self.#field_identity.get_value_record_viewed().clone()),
+                                #field_identity: Some(self.#field_identity.get_value_mark_viewed().clone()),
                             });
 
                             return_rendered_state_update_statements.push(quote! {
-                                if self.#field_identity.check_if_changed_since_last_viewed() {
+                                if self.#field_identity.changed_since_last_viewed() {
                                     updated_variables.#field_identity =
-                                        Some(self.#field_identity.get_value_record_viewed().clone());
+                                        Some(self.#field_identity.get_value_mark_viewed().clone());
                                 }
                             });
 
@@ -193,15 +193,14 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
                             }
                         });
 
-                        let get_queries_function_name =
-                            format!("get_{}_data_queries", field_identity);
-                        let get_queries_function_identity =
-                            Ident::new(&get_queries_function_name, Span::call_site());
+                        let get_query_function_name = format!("get_{}_data_query", field_identity);
+                        let get_query_function_identity =
+                            Ident::new(&get_query_function_name, Span::call_site());
 
-                        get_value_data_queries_functions.push(quote! {
+                        get_value_data_query_functions.push(quote! {
                             /// Get a `DataQuery` that requests the value
                             /// of the specified prop
-                            pub const fn #get_queries_function_identity() -> DataQuery {
+                            pub const fn #get_query_function_identity() -> DataQuery {
                                 DataQuery::Prop {
                                     component_idx: None,
                                     prop_idx: #prop_idx,
@@ -322,7 +321,7 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
 
                             #(#get_prop_index_functions)*
 
-                            #(#get_value_data_queries_functions)*
+                            #(#get_value_data_query_functions)*
 
                             #(#update_from_action_functions)*
                         }
@@ -366,6 +365,7 @@ pub fn prop_dependencies_derive(input: TokenStream) -> TokenStream {
                 let mut data_struct_statements = Vec::new();
                 let mut initialize_data_struct_statements = Vec::new();
                 let mut return_update_requests_statements = Vec::new();
+                let mut mark_data_viewed_statements = Vec::new();
 
                 for (data_query_idx, field_identity) in field_identities.iter().enumerate() {
                     if field_identity.to_string().starts_with('_') {
@@ -405,7 +405,11 @@ pub fn prop_dependencies_derive(input: TokenStream) -> TokenStream {
                             // since this query was actually used, we increment the index for dependencies[]
                             shifted_query_idx += 1;
                         }
-                    })
+                    });
+
+                    mark_data_viewed_statements.push(quote! {
+                        self.#field_identity.mark_data_viewed();
+                    });
                 }
 
                 // if we have a generic,
@@ -441,6 +445,11 @@ pub fn prop_dependencies_derive(input: TokenStream) -> TokenStream {
 
                             data_struct
                         }
+
+                        fn mark_data_viewed(&mut self) {
+                            #(#mark_data_viewed_statements)*
+                        }
+
                     }
 
                     impl #generics #structure_identity #generics

@@ -4,7 +4,6 @@ extern crate web_sys;
 
 use std::collections::HashMap;
 
-use js_sys::JsString;
 use serde::Serialize;
 use tsify::Tsify;
 use wasm_bindgen::prelude::*;
@@ -97,20 +96,4 @@ impl PublicDoenetMLCore {
             payload: self.core.as_mut().unwrap().dispatch_action(action)?,
         })
     }
-
-    pub fn round_trip_js(&self) -> Result<String, String> {
-        let source = r#"
-          let exp = MathExpressions.parse("2*(x+y)");
-          let exp2 = exp.expand();
-          exp2;
-        "#;
-
-        self.core.as_ref().unwrap().eval_js(source)
-    }
-}
-
-#[wasm_bindgen]
-extern "C" {
-    #[wasm_bindgen(js_namespace = __forDoenetWorker)]
-    pub fn evalWithMathExpressionsInScope(source: JsString) -> JsString;
 }

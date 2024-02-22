@@ -33,6 +33,7 @@ console_error_panic_hook = { workspace = true, optional = true }
 derive_more = { workspace = true }
 itertools = { workspace = true }
 assert-json-diff = "2.0.2"
+serde-wasm-bindgen = { workspace = true }
 
 [dev-dependencies]
 criterion = "0.3.6"

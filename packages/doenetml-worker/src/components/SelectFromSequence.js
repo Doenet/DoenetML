@@ -9,7 +9,7 @@ import { processAssignNames } from "../utils/naming";
 
 import { convertAttributesForComponentType } from "../utils/copy";
 import { returnRoundingAttributes } from "../utils/rounding";
-import { getTextToMathConverter } from "../utils/math";
+import { textToMathFactory } from "../utils/math";
 import {
     checkForExcludedCombination,
     estimateNumberOfDuplicateCombinations,
@@ -414,7 +414,7 @@ export default class SelectFromSequence extends Sequence {
                         return { success: false };
                     }
                 } else {
-                    let fromText = getTextToMathConverter({
+                    let fromText = textToMathFactory({
                         functionSymbols: ["f", "g"],
                     });
                     try {
@@ -463,7 +463,7 @@ export default class SelectFromSequence extends Sequence {
                         return { success: false };
                     }
                 } else {
-                    let fromText = getTextToMathConverter({
+                    let fromText = textToMathFactory({
                         functionSymbols: ["f", "g"],
                     });
                     try {
@@ -510,7 +510,7 @@ export default class SelectFromSequence extends Sequence {
                         return { success: false };
                     }
                 } else {
-                    let fromText = getTextToMathConverter({
+                    let fromText = textToMathFactory({
                         functionSymbols: ["f", "g"],
                     });
                     try {

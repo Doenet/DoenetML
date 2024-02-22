@@ -16,7 +16,6 @@ fn boolean_prop_from_children_gives_correct_data_queries() {
         queries,
         vec![DataQuery::ChildPropProfile {
             match_profiles: vec![ComponentProfile::String, ComponentProfile::Boolean],
-            exclude_if_prefer_profiles: vec![],
             always_return_value: true,
         },]
     );
@@ -28,7 +27,7 @@ fn boolean_prop_from_children_gives_correct_data_queries() {
 #[test]
 fn boolean_prop_calculated_from_single_boolean_child() {
     // create a boolean prop with one boolean child
-    let (prop, _prop_view, child_var) = set_up_boolean_prop_with_child(false, true);
+    let (mut prop, _prop_view, child_var) = set_up_boolean_prop_with_child(false, true);
 
     // we initialize child to be false, so should get false
     prop.calculate_and_mark_fresh();
@@ -73,7 +72,8 @@ fn invert_boolean_prop_that_has_a_single_boolean_child() {
 #[test]
 fn boolean_prop_calculated_from_single_string_child() {
     // create a boolean prop with one string child
-    let (prop, _prop_view, child_var) = set_up_boolean_prop_with_child(String::from("true"), true);
+    let (mut prop, _prop_view, child_var) =
+        set_up_boolean_prop_with_child(String::from("true"), true);
 
     // the initial value of "true" leads to true
     prop.calculate_and_mark_fresh();
@@ -97,7 +97,8 @@ fn boolean_prop_calculated_from_single_string_child() {
 #[test]
 fn boolean_prop_calculated_from_a_blank_string_child_is_false() {
     // create a boolean prop with one string child
-    let (prop, _prop_view, _child_var) = set_up_boolean_prop_with_child(String::from(""), false);
+    let (mut prop, _prop_view, _child_var) =
+        set_up_boolean_prop_with_child(String::from(""), false);
 
     // the initial value of "" leads to false
     prop.calculate_and_mark_fresh();
@@ -109,7 +110,8 @@ fn boolean_prop_calculated_from_a_blank_string_child_is_false() {
 #[test]
 fn boolean_prop_calculated_from_string_child_in_case_insensitive_way() {
     // create a boolean prop with one string child
-    let (prop, _prop_view, child_var) = set_up_boolean_prop_with_child(String::from("TruE"), false);
+    let (mut prop, _prop_view, child_var) =
+        set_up_boolean_prop_with_child(String::from("TruE"), false);
 
     // the initial value of "TruE" leads to true
     prop.calculate_and_mark_fresh();
@@ -152,7 +154,7 @@ fn invert_boolean_prop_that_has_a_single_string_child() {
 #[test]
 fn boolean_prop_calculated_from_two_string_children() {
     // create a boolean prop with two string children
-    let (prop, _prop_view, child_var_1, child_var_2) =
+    let (mut prop, _prop_view, child_var_1, child_var_2) =
         set_up_boolean_prop_with_two_children(String::from("Tr"), String::from("Ue"), false);
 
     // the initial value of "TrUe" leads to true
@@ -212,7 +214,7 @@ fn boolean_prop_from_attribute_gives_correct_data_queries() {
 #[test]
 fn boolean_prop_calculated_from_single_boolean_attribute_child() {
     // create a boolean prop with one boolean attribute child
-    let (prop, _prop_view, child_var) =
+    let (mut prop, _prop_view, child_var) =
         set_up_boolean_prop_with_attribute_child("my_attr", false, true);
 
     // we initialize child to be false, so should get false
@@ -231,7 +233,7 @@ fn boolean_prop_calculated_from_single_boolean_attribute_child() {
 #[test]
 fn boolean_prop_calculated_from_a_blank_string_attribute_child_is_true() {
     // create a boolean prop with one string attribute child
-    let (prop, _prop_view, child_var) =
+    let (mut prop, _prop_view, child_var) =
         set_up_boolean_prop_with_attribute_child("my_attr", String::from(""), false);
 
     // the initial value of "" leads to false

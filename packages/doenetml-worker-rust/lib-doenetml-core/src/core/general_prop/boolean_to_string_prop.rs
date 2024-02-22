@@ -37,7 +37,7 @@ impl PropUpdater<String, RequiredData> for BooleanToStringProp {
         .into()
     }
 
-    fn calculate<'a>(&self, data: &'a RequiredData) -> PropCalcResult<'a, String> {
+    fn calculate(&mut self, data: &RequiredData) -> PropCalcResult<String> {
         PropCalcResult::Calculated(data.boolean.get().to_string())
     }
 

@@ -1,4 +1,11 @@
-import { evalWithMathExpressionsInScope } from "./eval-math";
+import {
+    evalWithMathExpressionsInScope,
+    parseTextIntoMath,
+    parseLatexIntoMath,
+    toLatex,
+    substituteIntoMath,
+    normalizeMath,
+} from "./eval-math";
 import { globalThis } from "./global-this";
 
 export * from "./CoreWorker";
@@ -8,9 +15,21 @@ declare global {
     interface Window {
         __forDoenetWorker: {
             evalWithMathExpressionsInScope: typeof evalWithMathExpressionsInScope;
+            parseTextIntoMath: typeof parseTextIntoMath;
+            parseLatexIntoMath: typeof parseLatexIntoMath;
+            toLatex: typeof toLatex;
+            substituteIntoMath: typeof substituteIntoMath;
+            normalizeMath: typeof normalizeMath;
         };
     }
 }
 
-// The Rust code assumes a global variable called `evalWithMathExpressionsInScope` exists.
-globalThis.__forDoenetWorker = { evalWithMathExpressionsInScope };
+// The Rust code assumes these global variables exist.
+globalThis.__forDoenetWorker = {
+    evalWithMathExpressionsInScope,
+    parseTextIntoMath,
+    parseLatexIntoMath,
+    toLatex,
+    substituteIntoMath,
+    normalizeMath,
+};

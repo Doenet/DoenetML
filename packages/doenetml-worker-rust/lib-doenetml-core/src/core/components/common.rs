@@ -5,6 +5,7 @@ use strum_macros::EnumString;
 
 use crate::attribute::{AttributeName, AttributeType};
 use crate::dast::flat_dast::FlatAttribute;
+use crate::state::types::math_expr::MathExpr;
 use serde::{Deserialize, Serialize};
 
 use crate::dast::Position as DastPosition;
@@ -18,6 +19,7 @@ use super::_external::*;
 use super::actions::UpdateFromAction;
 use super::doenet::boolean::*;
 use super::doenet::document::*;
+use super::doenet::math::*;
 use super::doenet::p::*;
 use super::doenet::section::*;
 use super::doenet::text::*;
@@ -46,6 +48,7 @@ use super::prelude::UntaggedContent;
 pub enum ComponentEnum {
     Text(Text),
     TextInput(TextInput),
+    Math(Math),
     Boolean(Boolean),
     Section(Section),
     Document(Document),
@@ -305,6 +308,8 @@ pub enum ComponentProfile {
     LiteralString,
     /// Matches Number props
     Number,
+    /// Matches Math props
+    Math,
     /// Matches Integer props
     Integer,
     /// Matches Boolean props
@@ -320,6 +325,7 @@ impl ComponentProfile {
             ComponentProfile::Boolean => PropValue::Boolean(bool::default()),
             ComponentProfile::Integer => PropValue::Integer(i64::default()),
             ComponentProfile::Number => PropValue::Number(f64::default()),
+            ComponentProfile::Math => PropValue::Math(MathExpr::default()),
             ComponentProfile::LiteralString | ComponentProfile::String => {
                 PropValue::String(String::default())
             }

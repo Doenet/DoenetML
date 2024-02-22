@@ -18,7 +18,7 @@ fn boolean_to_string_prop_gives_correct_data_queries() {
 
 #[test]
 fn calculate_boolean_to_string_prop() {
-    let (prop, _prop_view, boolean_var) = set_up_boolean_to_string_prop(false, true);
+    let (mut prop, _prop_view, boolean_var) = set_up_boolean_to_string_prop(false, true);
 
     // we initialize original value to be false, so should get "false"
     prop.calculate_and_mark_fresh();

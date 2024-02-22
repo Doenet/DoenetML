@@ -10,9 +10,10 @@ use doenetml_derive::{
 };
 
 use crate::{
-    components::doenet::{boolean::Boolean, text::Text},
+    components::doenet::{boolean::Boolean, math::Math, text::Text},
     components::ComponentProfile,
     dependency::{DataQuery, DependenciesCreatedForDataQuery, DependencyValueUpdateRequest},
+    state::types::math_expr::MathExpr,
 };
 
 use super::{Freshness, InvertError, Prop, PropView, PropViewMut, TryFromState};
@@ -29,6 +30,7 @@ pub enum PropEnumRef<'a> {
     Integer(&'a Prop<i64>),
     String(&'a Prop<String>),
     Boolean(&'a Prop<bool>),
+    Math(&'a Prop<MathExpr>),
 }
 
 #[derive(PropMethods, PropMethodsMut)]
@@ -37,6 +39,7 @@ pub enum PropEnumRefMut<'a> {
     Integer(&'a mut Prop<i64>),
     String(&'a mut Prop<String>),
     Boolean(&'a mut Prop<bool>),
+    Math(&'a mut Prop<MathExpr>),
 }
 
 /// An mutable enum view of the value of the prop.
@@ -47,6 +50,7 @@ pub enum PropViewMutEnum {
     Integer(PropViewMut<i64>),
     String(PropViewMut<String>),
     Boolean(PropViewMut<bool>),
+    Math(PropViewMut<MathExpr>),
 }
 
 /// An read-only enum view of the value of the prop.
@@ -57,6 +61,7 @@ pub enum PropViewEnum {
     Integer(PropView<i64>),
     String(PropView<String>),
     Boolean(PropView<bool>),
+    Math(PropView<MathExpr>),
 }
 
 /// This can contain the value of a prop of any type,
@@ -79,6 +84,7 @@ pub enum PropValue {
     Number(f64),
     Integer(i64),
     Boolean(bool),
+    Math(MathExpr),
 }
 
 impl<'a> PropEnumRef<'a> {
@@ -95,6 +101,7 @@ impl<'a> PropEnumRef<'a> {
             PropEnumRef::Integer(_) => unimplemented!("Have not yet created number component"),
             PropEnumRef::String(_) => Text::get_component_type(),
             PropEnumRef::Boolean(_) => Boolean::get_component_type(),
+            PropEnumRef::Math(_) => Math::get_component_type(),
         }
     }
 }

@@ -17,7 +17,7 @@ import {
 } from "../utils/rounding";
 import {
     textToAst,
-    getTextToMathConverter,
+    textToMathFactory,
     mathStateVariableFromNumberStateVariable,
     numberToMathExpression,
     roundForDisplay,
@@ -881,7 +881,7 @@ export default class NumberComponent extends InlineComponent {
                         ],
                     };
                 } else {
-                    let fromText = getTextToMathConverter({
+                    let fromText = textToMathFactory({
                         parseScientificNotation: false,
                     });
 

@@ -39,11 +39,6 @@ pub fn create_dependency_from_extend_source_if_matches_profile(
                 // by determining the `ComponentProfile` of the prop
                 // and checking if it matches `match_profiles`.
 
-                // Note: we are ignoring `exclude_if_prefer_profiles` because
-                // the main purpose of this check is to verify that we have an appropriate type,
-                // rather than filter out possible matches.
-                // We assume if an `Extending` was created, it should be used if it matches.
-
                 let source_component = components[description.component_idx].borrow();
                 let source_prop = source_component.get_prop(var_match.source_idx).unwrap();
 

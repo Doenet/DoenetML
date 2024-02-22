@@ -4,7 +4,7 @@ use std::{
     rc::Rc,
 };
 
-use super::{Freshness, PropInner, QueryUpdateRequests};
+use super::{Freshness, PropCalcResult, PropInner, RequiredDataItem};
 
 /// A mutable view of a prop.
 /// It includes methods that allow one to view and change the variable.
@@ -70,10 +70,10 @@ impl<T: Default + Clone> PropViewMut<T> {
     }
 
     /// Determine if the prop has changed
-    /// since we last called `get_value_record_viewed`.
+    /// since we last called `get_value_mark_viewed`.
     ///
     /// Note: calls to `get` are ignored when determining when last viewed.
-    pub fn check_if_changed_since_last_viewed(&self) -> bool {
+    pub fn changed_since_last_viewed(&self) -> bool {
         self.inner.borrow().get_change_counter() != self.change_counter_when_last_viewed
     }
 
@@ -81,7 +81,7 @@ impl<T: Default + Clone> PropViewMut<T> {
     /// and record the fact that we viewed the value.
     ///
     /// Panics: if the prop is not fresh.
-    pub fn get_value_record_viewed(&mut self) -> impl Deref<Target = T> + '_ {
+    pub fn get_value_mark_viewed(&mut self) -> impl Deref<Target = T> + '_ {
         let inner: Ref<'_, PropInner<T>> = self.inner.borrow();
 
         // We record the fact that the prop was viewed
@@ -99,7 +99,7 @@ impl<T: Default + Clone> PropViewMut<T> {
     }
 
     /// Record the fact that we viewed the value.
-    pub fn record_viewed(&mut self) {
+    pub fn mark_viewed(&mut self) {
         let inner = self.inner.borrow();
 
         // We record the fact that the prop was viewed
@@ -197,17 +197,16 @@ pub struct PropView<T: Default + Clone> {
     /// in order to determine if the prop has changed since last viewed
     change_counter_when_last_viewed: u32,
 
-    ///
+    /// if true, then an update to this prop was queued by a call to `queue_update`.
     update_has_been_queued: bool,
-    // pub register_update_request: Option<RegisterUpdateRequest<'a>>,
 }
 
 impl<T: Default + Clone> PropView<T> {
     /// Determine if the prop has changed
-    /// since we last called `get_value_record_viewed`.
+    /// since we last called `get_value_mark_viewed`.
     ///
     /// Note: calls to `get` are ignored when determining when last viewed.
-    pub fn check_if_changed_since_last_viewed(&self) -> bool {
+    pub fn changed_since_last_viewed(&self) -> bool {
         self.inner.borrow().get_change_counter() != self.change_counter_when_last_viewed
     }
 
@@ -215,12 +214,21 @@ impl<T: Default + Clone> PropView<T> {
     /// and record the fact that we viewed the value.
     ///
     /// Panics: if the prop is not fresh.
-    pub fn get_value_record_viewed(&mut self) -> impl Deref<Target = T> + '_ {
+    pub fn get_value_mark_viewed(&mut self) -> impl Deref<Target = T> + '_ {
         let inner = self.inner.borrow();
         self.change_counter_when_last_viewed = inner.get_change_counter();
         Ref::map(inner, |v| v.get())
     }
 
+    /// Return a `PropCalcResult` that copies the value of this prop
+    /// and also copies `came_from_default`
+    pub fn prop_calc_result(&self) -> PropCalcResult<T> {
+        if self.came_from_default() {
+            PropCalcResult::FromDefault(self.get().clone())
+        } else {
+            PropCalcResult::Calculated(self.get().clone())
+        }
+    }
     /// If the variable is fresh, get a reference to its current value.
     ///
     /// Panics: if the prop is not fresh.
@@ -229,7 +237,7 @@ impl<T: Default + Clone> PropView<T> {
     }
 
     /// Record the fact that we viewed the value.
-    pub fn record_viewed(&mut self) {
+    pub fn mark_viewed(&mut self) {
         let inner = self.inner.borrow();
         self.change_counter_when_last_viewed = inner.get_change_counter();
     }
@@ -313,7 +321,7 @@ impl<T: Default + Clone> Clone for PropView<T> {
     }
 }
 
-impl<T: Default + Clone> QueryUpdateRequests for PropView<T> {
+impl<T: Default + Clone> RequiredDataItem for PropView<T> {
     /// Reset 'update_has_been_queued` to false
     fn clear_queued_updates(&mut self) {
         self.update_has_been_queued = false;
@@ -325,5 +333,9 @@ impl<T: Default + Clone> QueryUpdateRequests for PropView<T> {
         } else {
             vec![]
         }
+    }
+
+    fn mark_data_viewed(&mut self) {
+        self.mark_viewed();
     }
 }

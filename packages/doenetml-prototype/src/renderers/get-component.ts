@@ -5,6 +5,7 @@ import {
     Graph,
     LineInGraph,
     M,
+    Math,
     P,
     PointInGraph,
     Problem,
@@ -43,6 +44,7 @@ const TEXT_MODE_COMPONENTS: Record<
     p: { component: P, passthroughChildren: true },
     document: { component: Document, passthroughChildren: true },
     m: { component: M, passthroughChildren: true },
+    math: { component: Math },
     graph: { component: Graph },
     section: {
         component: Section,
