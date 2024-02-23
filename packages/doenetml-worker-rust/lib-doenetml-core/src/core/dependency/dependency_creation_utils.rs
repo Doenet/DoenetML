@@ -33,21 +33,21 @@ pub fn create_dependency_from_extend_source_if_matches_profile(
                 // We look for a prop match where shadowing_idx is prop_idx.
                 prop_match.dest_idx == prop_idx
             })
-            .and_then(|var_match| {
+            .and_then(|prop_match| {
                 // We found a match to prop_idx.
                 // Next, check if this match is of the correct type
                 // by determining the `ComponentProfile` of the prop
                 // and checking if it matches `match_profiles`.
 
                 let source_component = components[description.component_idx].borrow();
-                let source_prop = source_component.get_prop(var_match.source_idx).unwrap();
+                let source_prop = source_component.get_prop(prop_match.source_idx).unwrap();
 
                 let prop_profile = source_prop.get_matching_component_profile();
 
                 match_profiles.contains(&prop_profile).then(|| Dependency {
                     source: DependencySource::Prop {
                         component_idx: description.component_idx,
-                        prop_idx: var_match.source_idx,
+                        prop_idx: prop_match.source_idx,
                     },
                     value: source_prop.create_new_read_only_view(),
                 })

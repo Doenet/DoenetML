@@ -20,7 +20,7 @@ use std::{collections::HashMap, fmt::Debug, hash::Hash};
 /// assert_eq!(graph.walk_descendants(&"a".into()).collect::<Vec<_>>(), vec!["b", "c"]);
 /// ```
 #[derive(Debug)]
-pub struct DirectedGraph<Node: Clone + Eq + Debug, IndexLookup: Taggable<Node, usize>> {
+pub struct DirectedGraph<Node: Clone + Debug, IndexLookup: Taggable<Node, usize>> {
     /// A `Taggable` that allows for looking up the index of a node in the graph.
     /// I.e., used for `Node -> usize` lookups.
     index_lookup: IndexLookup,
@@ -34,9 +34,7 @@ pub struct DirectedGraph<Node: Clone + Eq + Debug, IndexLookup: Taggable<Node, u
     reverse_edges: Vec<Vec<usize>>,
 }
 
-impl<Node: Clone + Eq + Debug, IndexLookup: Taggable<Node, usize>>
-    DirectedGraph<Node, IndexLookup>
-{
+impl<Node: Clone + Debug, IndexLookup: Taggable<Node, usize>> DirectedGraph<Node, IndexLookup> {
     /// Add a node to the graph.
     pub fn add_node(&mut self, node: Node) -> usize {
         if let Some(index) = self.index_lookup.get_tag(&node) {
@@ -89,7 +87,7 @@ impl<Node: Clone + Eq + Debug, IndexLookup: Taggable<Node, usize>>
     }
 }
 
-impl<Node: Clone + Eq + Debug, IndexLookup: Taggable<Node, usize> + Default> Default
+impl<Node: Clone + Debug, IndexLookup: Taggable<Node, usize> + Default> Default
     for DirectedGraph<Node, IndexLookup>
 {
     fn default() -> Self {
@@ -97,7 +95,7 @@ impl<Node: Clone + Eq + Debug, IndexLookup: Taggable<Node, usize> + Default> Def
     }
 }
 
-impl<Node: Clone + Eq + Debug, IndexLookup: Taggable<Node, usize> + Default>
+impl<Node: Clone + Debug, IndexLookup: Taggable<Node, usize> + Default>
     DirectedGraph<Node, IndexLookup>
 {
     pub fn new() -> Self {
