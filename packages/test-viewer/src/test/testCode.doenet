@@ -1,4 +1,6 @@
-<CodeEditor showResults resultsLocation="left" showFormatter>
+<CodeEditor showFormatter showResults>
+</CodeEditor>
+<!-- 
   <p>Use this to <m>a < b</m>test DoenetML</p> <graph showNavigation>
 
     <line through="(-8,8) (9,6)" />
@@ -7,5 +9,6 @@
     <line equation="y=2x-8" styleNumber="3" />
     <line equation="x=-6" styleNumber="4" />
     
-  </graph>
-</CodeEditor>
+  </graph> -->
+<mathinput name="a" />
+$a.immediateValue

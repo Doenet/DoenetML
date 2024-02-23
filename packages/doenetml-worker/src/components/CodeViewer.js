@@ -303,15 +303,15 @@ export default class CodeViewer extends BlockComponent {
             }),
             inverseDefinition({ desiredStateVariableValues }) {
                 return {
-                    success: true,
-                    instructions: [
-                        {
-                            setEssentialValue: "codeChanged",
-                            value: Boolean(
-                                desiredStateVariableValues.codeChanged,
-                            ),
-                        },
-                    ],
+                    success: false,
+                    // instructions: [
+                    //     {
+                    //         setEssentialValue: "codeChanged",
+                    //         value: Boolean(
+                    //             desiredStateVariableValues.codeChanged,
+                    //         ),
+                    //     },
+                    // ],
                 };
             },
         };

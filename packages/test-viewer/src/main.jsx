@@ -2,7 +2,6 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import TestViewer from "./test/testViewer";
-import { MathJax, MathJaxContext } from "better-react-mathjax";
 import "@doenet/doenetml/style.css";
 
 const root = createRoot(document.getElementById("root"));
@@ -18,51 +17,10 @@ window.addEventListener("message", (event) => {
     }
 });
 
-export const mathjaxConfig = 
-{
-    tex: {
-      tags: "ams",
-      macros: {
-        lt: "<",
-        gt: ">",
-        amp: "&",
-        var: ["\\mathrm{#1}", 1],
-        csch: "\\operatorname{csch}",
-        sech: "\\operatorname{sech}"
-      },
-      displayMath: [["\\[", "\\]"]],
-      packages: ['base', 'ams', 'noerrors', 'noundefined']
-    },
-    options: {
-      ignoreHtmlClass: 'tex2jax_ignore',
-      processHtmlClass: 'tex2jax_process'
-    },
-    loader: {
-      load: ['[tex]/noerrors']
-    }
-  };
-
-let mathJaxify = "\\(\\frac{a}{b}+5\\)";
-
 root.render(
-
     <Router>
         <Routes>
-            <Route path="*" element={
-                
-                <MathJaxContext
-                    version={3}
-                    config={mathjaxConfig}
-                >
-
-                    <a name={name} />
-                    <span id={name}>
-                        <MathJax hideUntilTypeset={"first"} inline dynamic>
-                            {mathJaxify}
-                        </MathJax>
-                    </span>
-                </MathJaxContext>
-            } />
+            <Route path="*" element={<TestViewer />} />
         </Routes>
     </Router>,
 );
