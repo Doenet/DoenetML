@@ -16,6 +16,72 @@ fn text_prop_is_alias_of_value() {
     );
 }
 
+/// <text>, a component with `no_rendered_children` and marked `extend_via_default_prop`
+/// extending itself
+#[test]
+fn texts_extending_texts_concatenate_values() {
+    let dast_root = dast_root_no_position(
+        r#"<text name="t1">One</text><text name="t2" extend="$t1">Two</text><text extend="$t2">Three</text>"#,
+    );
+    let mut core = DoenetMLCore::new(dast_root, "", "", None);
+
+    // indices start at 1, as the document tag will be index 0.
+    let text1_idx = 1;
+    let text2_idx = 2;
+    let text3_idx = 3;
+
+    assert_eq!(get_value_prop(text1_idx, &mut core), "One");
+    assert_eq!(get_value_prop(text2_idx, &mut core), "OneTwo");
+    assert_eq!(get_value_prop(text3_idx, &mut core), "OneTwoThree");
+}
+
+/// <text>, a component with `no_rendered_children` and marked `extend_via_default_prop`
+/// extending a string prop
+#[test]
+fn texts_extending_text_values_concatenate_values() {
+    let dast_root = dast_root_no_position(
+        r#"<text name="t1">One</text><text name="t2" extend="$t1.value">Two</text><text extend="$t2.value">Three</text>"#,
+    );
+    let mut core = DoenetMLCore::new(dast_root, "", "", None);
+
+    // indices start at 1, as the document tag will be index 0.
+    let text1_idx = 1;
+    let text2_idx = 2;
+    let text3_idx = 4; // skip to index 4, as `$t1.value` becomes a component
+
+    assert_eq!(get_value_prop(text1_idx, &mut core), "One");
+    assert_eq!(get_value_prop(text2_idx, &mut core), "OneTwo");
+    assert_eq!(get_value_prop(text3_idx, &mut core), "OneTwoThree");
+}
+
+/// <text>, a component with `no_rendered_children` and marked `extend_via_default_prop`
+/// extending <p>, a component with pass through children and not marked `extend_via_default_prop`
+#[test]
+fn text_extending_p_concatenate_children() {
+    let dast_root = dast_root_no_position(r#"<p name="p">One</p><text extend="$p">Two</text>"#);
+    let mut core = DoenetMLCore::new(dast_root, "", "", None);
+
+    // indices start at 1, as the document tag will be index 0.
+    let text_idx = 2;
+
+    assert_eq!(get_value_prop(text_idx, &mut core), "OneTwo");
+}
+
+/// <text>, a component with `no_rendered_children` and marked `extend_via_default_prop`
+// extending <textInput> another component with `no_rendered_children` and marked `extend_via_default_prop`
+#[test]
+fn text_extending_text_input() {
+    let dast_root = dast_root_no_position(
+        r#"<textInput name="ti">One</textInput><text extend="$ti">Two</text>"#,
+    );
+    let mut core = DoenetMLCore::new(dast_root, "", "", None);
+
+    // indices start at 1, as the document tag will be index 0.
+    let text_idx = 2;
+
+    assert_eq!(get_value_prop(text_idx, &mut core), "OneTwo");
+}
+
 mod test_helpers {
 
     use super::*;

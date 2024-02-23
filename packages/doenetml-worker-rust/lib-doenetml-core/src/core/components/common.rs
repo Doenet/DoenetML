@@ -119,6 +119,9 @@ pub trait ComponentNode: ComponentState {
     fn get_children(&self) -> &Vec<UntaggedContent>;
     /// Set the vector containing the indices of all child component nodes and the literal string children.
     fn set_children(&mut self, children: Vec<UntaggedContent>);
+    /// Take the vector containing the indices of all child component nodes and the literal string children.
+    fn take_children(&mut self) -> Vec<UntaggedContent>;
+
     /// Set component's index, parent, extending, and position in the original DoenetML string.
     ///
     /// This is a separate step from creation because we create it using EnumString's from_str,
@@ -181,16 +184,6 @@ pub trait ComponentNode: ComponentState {
 
     fn extend_via_default_prop(&self) -> bool {
         false
-    }
-
-    /// When this component has `extend="$ref"`, depending on the different
-    /// `ComponentProfiles` `$ref` may present itself as, the component might want
-    /// to set different prop values. This function returns a vector of
-    /// possible pairings of the `ComponentProfile` that `$ref` may provide and
-    /// the index of the prop that should be set if `$ref` provides that
-    /// `ComponentProfile`.
-    fn accepted_profiles(&self) -> Vec<(ComponentProfile, PropIdx)> {
-        vec![]
     }
 
     /// A vector of the possible profiles this component provides along with the

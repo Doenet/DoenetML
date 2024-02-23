@@ -57,7 +57,23 @@ impl ComponentBuilder {
 
             match Self::determine_extending(ref_source, component, referent) {
                 Ok(extending) => {
+                    let extending_component = matches!(extending, Extending::Component(..));
+                    let component_type_changed =
+                        component.get_component_type() != referent.get_component_type();
                     builder.components[idx].set_extending(Some(extending));
+
+                    if extending_component && component_type_changed {
+                        // Since we are extending a component where the component type changed,
+                        // the reference was inside an extend attribute and
+                        // `Expander::consume_extend_attributes` added an extra child
+                        // in case the referent was marked `extend_via_default_prop`
+                        // which would created an `Extending::Prop`.
+                        // The fact that we still have an `Extending::Component`
+                        // means that this extra child was not needed, so we delete it.
+                        let mut children = builder.components[idx].take_children();
+                        children.remove(0);
+                        builder.components[idx].set_children(children);
+                    }
                 }
                 Err(err) => {
                     builder.components[idx] = ComponentEnum::_Error(_Error {

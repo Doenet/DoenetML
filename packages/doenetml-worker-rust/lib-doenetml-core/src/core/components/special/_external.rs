@@ -27,6 +27,9 @@ impl ComponentNode for _External {
     fn set_children(&mut self, children: Vec<UntaggedContent>) {
         self.common.children = children;
     }
+    fn take_children(&mut self) -> Vec<UntaggedContent> {
+        std::mem::take(&mut self.common.children)
+    }
     fn initialize(
         &mut self,
         idx: ComponentIdx,

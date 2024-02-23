@@ -194,7 +194,7 @@ impl Expander {
             //  3. Multiple elements are present
             let mut is_invalid_attr = false;
             let mut num_element_children = 0;
-            let extend_referent: Option<(ComponentIdx, Source<RefResolution>)> = extend
+            let extend_referent: Option<(ComponentIdx, String, Source<RefResolution>)> = extend
                 .children
                 .iter()
                 .flat_map(|child| match child {
@@ -202,10 +202,10 @@ impl Expander {
                         num_element_children += 1;
 
                         match &flat_root.nodes[*idx] {
-                            FlatNode::Element(e) => match &e.extending {
-                                Some(extending) => Some((*idx, extending.clone())),
-                                None => None,
-                            },
+                            FlatNode::Element(e) => e
+                                .extending
+                                .as_ref()
+                                .map(|extending| (*idx, e.name.clone(), extending.clone())),
                             _ => None,
                         }
                     }
@@ -233,18 +233,28 @@ impl Expander {
                 flat_root.nodes[i] = node;
                 continue;
             }
-            let (ref_idx, source) = extend_referent.unwrap();
+            let (ref_idx, ref_name, source) = extend_referent.unwrap();
 
-            // If we an extending with an unresolved path, then we add the component (with index `ref_idx`)
+            // If we an extending with an unresolved path or the component type changes,
+            // then we add the component (with index `ref_idx`)
             // that is extending the prop as the first child.
             // In this way, the first child will be an actual component that we can send to the renderer.
             //
-            // If we don't have an unresolved path, the component with index `ref_idx`
+            // If we don't have an unresolved path and the component type is the ame,
+            // the component with index `ref_idx`
             // will become orphaned and removed when we compactify the dast.
             // In this case, we are extending an entire component, not just a prop,
             // and that component is already in the dast.
-            // That component will be added as the first child whenever children are requested.
-            if source.get_resolution().unresolved_path.is_some() {
+            // That component's children will be added as the first children whenever children are requested.
+            //
+            // If we don't have an unresolved path and the component type changed,
+            // we will later check if the referent component type set `extend_via_default_prop`,
+            // at which point it will be treated as though there was an unresolved path
+            // corresponding to that prop.
+            // If the component type did not set `extend_via_default_prop`,
+            // then we will delete this child as we are extending an entire component.
+
+            if source.get_resolution().unresolved_path.is_some() || ref_name != element.name {
                 element.children.insert(0, UntaggedContent::Ref(ref_idx));
             }
 

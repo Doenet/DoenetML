@@ -26,10 +26,8 @@ fn error_from_no_referent() {
     let dast_root = dast_root_no_position("<document>$t</document>");
 
     let mut core = DoenetMLCore::new(dast_root, "", "", None);
-    println!("components: {:#?}", core.components);
 
     let elements = core.to_flat_dast().elements;
-    println!("elements: {:#?}", elements);
 
     assert_eq!(elements[1].name, "_error");
     assert_eq!(elements[1].data.id, 1);
@@ -49,8 +47,6 @@ fn error_referencing_external_and_referencing_error() {
 
     let mut core = DoenetMLCore::new(dast_root, "", "", None);
 
-    println!("components: {:#?}", core.components);
-
     let elements = core.to_flat_dast().elements;
     println!("elements: {:#?}", elements);
 
@@ -69,15 +65,15 @@ fn error_referencing_external_and_referencing_error() {
         .unwrap()
         .contains("from an external component"));
 
-    assert_eq!(elements[2].name, "_error");
-    assert_eq!(elements[2].data.id, 2);
-    assert!(elements[2]
+    assert_eq!(elements[3].name, "_error");
+    assert_eq!(elements[3].data.id, 3);
+    assert!(elements[3]
         .data
         .message
         .as_ref()
         .unwrap()
         .contains("Error while extending"));
-    assert!(elements[2]
+    assert!(elements[3]
         .data
         .message
         .as_ref()

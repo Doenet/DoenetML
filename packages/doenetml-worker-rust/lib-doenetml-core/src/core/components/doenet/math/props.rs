@@ -18,6 +18,7 @@ pub struct MathState {
     /// queries for children with the `Math` component profile.
     #[is_public]
     #[component_profile_prop]
+    #[default_prop]
     value: Prop<MathExpr>,
 
     /// A representation of `value` as a Latex string

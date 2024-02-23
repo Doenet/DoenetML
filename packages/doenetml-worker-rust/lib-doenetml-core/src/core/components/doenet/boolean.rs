@@ -12,7 +12,7 @@ use crate::general_prop::{BooleanProp, BooleanToStringProp, PropAlias};
     RenderedChildren,
 )]
 #[no_rendered_children]
-#[component(when_extending(match_profile = "Boolean", store_in = "value"))]
+#[component(extend_via_default_prop)]
 pub struct Boolean {
     /// The common component data needed to derive the `ComponentNode` trait
     pub common: ComponentCommonData,
@@ -36,6 +36,7 @@ pub struct BooleanState {
     #[is_public]
     #[for_renderer]
     #[component_profile_prop]
+    #[default_prop]
     value: Prop<bool>,
 
     /// An alias to the `value` prop.
