@@ -133,7 +133,7 @@ pub fn create_dependencies_from_data_query_initialize_state(
             // The dependency for each child will be a view of the matching prop.
 
             // We address two possible extend sources
-            // 1. If there is a prop extend source extending this prop that came a direct ref,
+            // 1. If there is a prop extend source extending this prop that came from a direct ref,
             //    and that prop matches `match_profiles`, then the first dependency
             //    will be that prop.
             //    (If the prop extend came from an extend attribute, then the prop was already added to children.)
