@@ -43,7 +43,7 @@ pub trait PropUpdater<T: Default + Clone, RequiredData>: std::fmt::Debug {
     /// for this prop. These queries may be based on structure of the document,
     /// e.g., the children, attributes, or other props
     /// of the component of this prop.
-    fn return_data_queries(&self) -> Vec<Option<DataQuery>>;
+    fn return_data_queries(&self) -> Vec<DataQuery>;
 
     /// Calculate the value of the prop from the passed in `data`.
     /// Results of this function will be cached, so local caching is not needed.
@@ -81,7 +81,7 @@ pub trait PropUpdaterWithCache<T: Default + Clone>: std::fmt::Debug {
     /// for this prop. These queries may be based on structure of the document,
     /// e.g., the children, attributes, or other props
     /// of the component of this prop.
-    fn return_data_queries(&mut self) -> Vec<DataQuery>;
+    fn return_data_queries(&self) -> Vec<DataQuery>;
 
     /// Called when data queries for the prop have been completed.
     /// props cache the results of their queries
@@ -129,7 +129,6 @@ pub trait PropUpdaterWithCache<T: Default + Clone>: std::fmt::Debug {
 pub struct PropUpdaterWithCacheStruct<PropUpdater, RequiredData: Default> {
     prop_updater: PropUpdater,
     cache: RequiredData,
-    queries_used: Vec<usize>,
 }
 
 /// An implementation of `PropUpdaterWithCache<T>`
@@ -146,24 +145,12 @@ where
     T: Default + Clone,
     RequiredData: std::fmt::Debug + Default + FromDependencies,
 {
-    fn return_data_queries(&mut self) -> Vec<DataQuery> {
-        self.queries_used = Vec::new();
-
-        self.prop_updater
-            .return_data_queries()
-            .into_iter()
-            .enumerate()
-            .filter_map(|(dep_idx, data_query_option)| {
-                if data_query_option.is_some() {
-                    self.queries_used.push(dep_idx);
-                }
-                data_query_option
-            })
-            .collect()
+    fn return_data_queries(&self) -> Vec<DataQuery> {
+        self.prop_updater.return_data_queries()
     }
 
     fn save_data(&mut self, dependencies: &Vec<DependenciesCreatedForDataQuery>) {
-        self.cache = dependencies.to_data(&self.queries_used);
+        self.cache = dependencies.to_data();
     }
 
     fn calculate(&mut self) -> PropCalcResult<T> {
@@ -199,22 +186,18 @@ where
         let updater_with_cache = PropUpdaterWithCacheStruct {
             prop_updater: self,
             cache: Default::default(),
-            queries_used: Default::default(),
         };
         Prop::new(Box::new(updater_with_cache), default_value)
     }
 }
 
 pub trait DependenciesToData<RequiredData> {
-    fn to_data(&self, queries_used: &[usize]) -> RequiredData;
+    fn to_data(&self) -> RequiredData;
 }
 
 pub trait FromDependencies {
     /// Create this data from the dependencies that were created for a data query
-    fn from_dependencies(
-        dependencies: &[DependenciesCreatedForDataQuery],
-        queries_used: &[usize],
-    ) -> Self;
+    fn from_dependencies(dependencies: &[DependenciesCreatedForDataQuery]) -> Self;
 
     /// Record that all data has been viewed so that future checks for changes
     /// will be based on changes after this moment.
@@ -227,8 +210,8 @@ where
 {
     /// Convert a vector of `DependenciesCreatedForDataQuery` into an object of type `RequiredData`,
     /// where `RequiredData` is a type that has implemented `FromDependencies`
-    fn to_data(&self, queries_used: &[usize]) -> RequiredData {
-        RequiredData::from_dependencies(self, queries_used)
+    fn to_data(&self) -> RequiredData {
+        RequiredData::from_dependencies(self)
     }
 }
 

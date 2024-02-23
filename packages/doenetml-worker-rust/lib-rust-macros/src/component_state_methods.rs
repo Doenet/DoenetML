@@ -393,18 +393,11 @@ pub fn prop_dependencies_derive(input: TokenStream) -> TokenStream {
                     initialize_data_struct_statements.push(quote! {
                         // #data_query_idx is the index of this query in the list of fields
                         // in #structure_identity.
-                        // However, since some fields may have been skipped in dependencies vector from core
-                        // (as the queries weren't actually used)
-                        // when need to potentially shift the index to account for their absence in dependencies[]
-                        if queries_used.contains(&#data_query_idx) {
-                            for (dep_idx, dep) in dependencies[shifted_query_idx].iter().enumerate() {
-                                mapping_data.#field_identity.push((shifted_query_idx, dep_idx));
-                            }
-                            data_struct.#field_identity = (&dependencies[shifted_query_idx]).try_to_state().unwrap();
-
-                            // since this query was actually used, we increment the index for dependencies[]
-                            shifted_query_idx += 1;
+                        for (dep_idx, dep) in dependencies[#data_query_idx].iter().enumerate() {
+                            mapping_data.#field_identity.push((#data_query_idx, dep_idx));
                         }
+                        data_struct.#field_identity = (&dependencies[#data_query_idx]).try_to_state().unwrap();
+
                     });
 
                     mark_data_viewed_statements.push(quote! {
@@ -429,15 +422,10 @@ pub fn prop_dependencies_derive(input: TokenStream) -> TokenStream {
                     {
                         fn from_dependencies(
                             dependencies: &[DependenciesCreatedForDataQuery],
-                            queries_used: &[usize],
                         ) -> Self {
 
                             let mut data_struct = #structure_identity::default();
                             let mut mapping_data = #data_identity::default();
-
-                            // index for looking up values in dependencies[]
-                            // It will be incremented only when the query was actually used and appears in dependencies[]
-                            let mut shifted_query_idx = 0;
 
                             #(#initialize_data_struct_statements)*
 
@@ -539,7 +527,7 @@ pub fn prop_data_queries_derive(input: TokenStream) -> TokenStream {
                         }
 
                         data_query_struct_statements.push(quote! {
-                            pub #field_identity: Option<DataQuery>,
+                            pub #field_identity: DataQuery,
                         });
 
                         from_structure_to_vec_statements.push(quote! {
@@ -553,7 +541,7 @@ pub fn prop_data_queries_derive(input: TokenStream) -> TokenStream {
                             #(#data_query_struct_statements)*
                         }
 
-                        impl From<#data_query_identity> for Vec<Option<DataQuery>> {
+                        impl From<#data_query_identity> for Vec<DataQuery> {
                             fn from(structure: #data_query_identity) -> Self {
                                 let mut instruct_vec = Vec::with_capacity(#num_queries);
                                 #(#from_structure_to_vec_statements)*

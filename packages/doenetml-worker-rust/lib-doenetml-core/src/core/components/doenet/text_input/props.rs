@@ -41,10 +41,14 @@ pub struct TextInputState {
     #[is_public]
     immediate_value: Prop<String>,
 
-    // TODO: there are subtleties for why needed `sync_immediate_value` to get the proper behavior of `<textInput>`.
-    // Will figure these out again as write a test for making sure it works correctly.
-    // Also, it's behavior may change if we replace `value_from_children` with children.
-    sync_immediate_value: Prop<bool>,
+    /// If `true`, then `value` is synchronized to `immediate_value`.
+    ///
+    /// When a user is typing into a text input, it will be `false`,
+    /// allowing `immediate_value` and `value` to diverge.
+    ///
+    /// When a user presses enter or the text input loses focus, it will be `true`,
+    /// so that `immediate_value` and `value` will be synchronized.
+    sync_value_to_immediate_value: Prop<bool>,
 
     /// The string value computed from any children to the textInput.
     /// If the textInput has children, then this prop will not be marked `came_from_default`,
@@ -84,8 +88,15 @@ impl TextInputState {
         TextInputState {
             value: ValueProp::new().into_prop(),
             immediate_value: ImmediateValueProp::new().into_prop(),
-            sync_immediate_value: IndependentProp::new(true).into_prop(),
-            value_from_children: StringProp::new_from_children("".to_string()).into_prop(),
+            sync_value_to_immediate_value: IndependentProp::new(true).into_prop(),
+
+            // Note: need to pass false for propagate_change_from_default (second argument)
+            // so that came_from_default will be false if the text input has any children
+            // (even if it just has one child whose came_from_default is true)
+            value_from_children: StringProp::new_from_children("".to_string())
+                .dont_propagate_came_from_default()
+                .into_prop(),
+
             prefill: TextInputAttribute::Prefill.prop(),
             hidden: TextInputAttribute::Hide.prop(),
             disabled: TextInputAttribute::Disabled.prop(),

@@ -14,10 +14,13 @@ fn string_prop_from_children_gives_correct_data_queries() {
 
     assert_eq!(
         queries,
-        vec![DataQuery::ChildPropProfile {
-            match_profiles: vec![ComponentProfile::String],
-            always_return_value: true,
-        },]
+        vec![
+            DataQuery::State,
+            DataQuery::ChildPropProfile {
+                match_profiles: vec![ComponentProfile::String],
+                always_return_value: true,
+            },
+        ]
     );
 }
 
@@ -27,7 +30,7 @@ fn string_prop_from_children_gives_correct_data_queries() {
 #[test]
 fn string_prop_calculated_from_single_string_child() {
     // create a string prop with one string child
-    let (mut prop, _prop_view, child_var) =
+    let (mut prop, _prop_view, _state_var, child_var) =
         set_up_string_prop_with_string_child(String::from("hello"), true);
 
     // we initialize child to be "hello", so should get "hello"
@@ -47,7 +50,7 @@ fn string_prop_calculated_from_single_string_child() {
 #[test]
 fn invert_string_prop_that_has_a_single_string_child() {
     // create a string prop with one string child
-    let (mut prop, mut prop_view, child_var) =
+    let (mut prop, mut prop_view, _state_var, child_var) =
         set_up_string_prop_with_string_child(String::from("hello"), false);
 
     // on the prop view, record that we request the value be "bye"
@@ -59,7 +62,7 @@ fn invert_string_prop_that_has_a_single_string_child() {
     assert_eq!(
         invert_result,
         vec![DependencyValueUpdateRequest {
-            data_query_idx: 0,
+            data_query_idx: 1,
             dependency_idx: 0
         }]
     );
@@ -73,7 +76,7 @@ fn invert_string_prop_that_has_a_single_string_child() {
 #[test]
 fn string_prop_calculated_from_two_string_children() {
     // create a string prop with two string children
-    let (mut prop, _prop_view, child_var_1, child_var_2) =
+    let (mut prop, _prop_view, _state_var, child_var_1, child_var_2) =
         set_up_string_prop_with_two_string_children(
             String::from("Hello"),
             String::from(" World"),
@@ -95,7 +98,7 @@ fn string_prop_calculated_from_two_string_children() {
 #[test]
 fn cannot_invert_string_prop_that_has_two_string_children() {
     // create a string prop with two string children
-    let (mut prop, mut prop_view, _child_var_1, _child_var_2) =
+    let (mut prop, mut prop_view, _state_var, _child_var_1, _child_var_2) =
         set_up_string_prop_with_two_string_children(
             String::from("Hello"),
             String::from(" World"),
@@ -121,11 +124,14 @@ fn string_prop_from_attribute_gives_correct_data_queries() {
 
     assert_eq!(
         queries,
-        vec![DataQuery::Attribute {
-            attribute_name: "my_attr",
-            match_profiles: vec![ComponentProfile::String],
-            always_return_value: true
-        },]
+        vec![
+            DataQuery::State,
+            DataQuery::Attribute {
+                attribute_name: "my_attr",
+                match_profiles: vec![ComponentProfile::String],
+                always_return_value: true
+            },
+        ]
     );
 }
 
@@ -136,30 +142,6 @@ mod setup_functions {
     /// Utility function to set up string prop that depends on one string child variable
     pub fn set_up_string_prop_with_string_child(
         initial_value: String,
-        came_from_default: bool,
-    ) -> (Prop<String>, PropView<String>, PropViewMut<String>) {
-        let mut prop: Prop<String> = StringProp::new_from_children(String::from("")).into_prop();
-        let prop_view = prop.create_new_read_only_view();
-
-        // need to return data queries since side effect is saving the required data
-        prop.return_data_queries();
-
-        // fulfill data query with one child of type T
-        let (child_dependency, child_var) =
-            create_prop_dependency(initial_value, came_from_default);
-
-        let dependencies_created_for_data_queries =
-            vec![DependenciesCreatedForDataQuery(vec![child_dependency])];
-
-        prop.save_dependencies(&dependencies_created_for_data_queries);
-
-        (prop, prop_view, child_var)
-    }
-
-    /// Utility function to set up string prop that depends on two string child variables
-    pub fn set_up_string_prop_with_two_string_children(
-        initial_value_1: String,
-        initial_value_2: String,
         came_from_default: bool,
     ) -> (
         Prop<String>,
@@ -173,6 +155,45 @@ mod setup_functions {
         // need to return data queries since side effect is saving the required data
         prop.return_data_queries();
 
+        // fulfill data queries with state and one child of type T
+
+        let (state_dependency, state_var) =
+            create_prop_dependency(initial_value.clone(), came_from_default);
+
+        let (child_dependency, child_var) =
+            create_prop_dependency(initial_value, came_from_default);
+
+        let dependencies_created_for_data_queries = vec![
+            DependenciesCreatedForDataQuery(vec![state_dependency]),
+            DependenciesCreatedForDataQuery(vec![child_dependency]),
+        ];
+
+        prop.save_dependencies(&dependencies_created_for_data_queries);
+
+        (prop, prop_view, state_var, child_var)
+    }
+
+    /// Utility function to set up string prop that depends on two string child variables
+    pub fn set_up_string_prop_with_two_string_children(
+        initial_value_1: String,
+        initial_value_2: String,
+        came_from_default: bool,
+    ) -> (
+        Prop<String>,
+        PropView<String>,
+        PropViewMut<String>,
+        PropViewMut<String>,
+        PropViewMut<String>,
+    ) {
+        let mut prop: Prop<String> = StringProp::new_from_children(String::from("")).into_prop();
+        let prop_view = prop.create_new_read_only_view();
+
+        // need to return data queries since side effect is saving the required data
+        prop.return_data_queries();
+
+        let (state_dependency, state_var) =
+            create_prop_dependency(initial_value_1.clone(), came_from_default);
+
         // fulfill data query with two children of type T
         let (child_dependency_1, child_var_1) =
             create_prop_dependency(initial_value_1, came_from_default);
@@ -181,13 +202,13 @@ mod setup_functions {
         let (child_dependency_2, child_var_2) =
             create_prop_dependency(initial_value_2, came_from_default);
 
-        let dependencies_created_for_data_queries = vec![DependenciesCreatedForDataQuery(vec![
-            child_dependency_1,
-            child_dependency_2,
-        ])];
+        let dependencies_created_for_data_queries = vec![
+            DependenciesCreatedForDataQuery(vec![state_dependency]),
+            DependenciesCreatedForDataQuery(vec![child_dependency_1, child_dependency_2]),
+        ];
 
         prop.save_dependencies(&dependencies_created_for_data_queries);
 
-        (prop, prop_view, child_var_1, child_var_2)
+        (prop, prop_view, state_var, child_var_1, child_var_2)
     }
 }

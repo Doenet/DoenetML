@@ -107,12 +107,14 @@ fn value_and_immediate_value_with_text_child_respond_to_actions() {
     let dast_root = dast_root_no_position(r#"<textInput><text>hello</text></textInput>"#);
     let mut core = DoenetMLCore::new(dast_root, "", "", None);
 
-    // the text input will be index 1, as the document tag will be index 0.
+    // the text input will be index 1 amd the text will be index 2, as the document tag will be index 0.
     let text_input_idx = 1;
+    let text_idx = 2;
 
     // both variables are initialized to blank strings
     assert_eq!(get_immediate_value(text_input_idx, &mut core), "hello");
     assert_eq!(get_value(text_input_idx, &mut core), "hello");
+    assert_eq!(get_text_value(text_idx, &mut core), "hello");
 
     // The UpdateImmediateValue action (which should be in response to typing characters)
     // should only update the immediate_value prop
@@ -122,6 +124,7 @@ fn value_and_immediate_value_with_text_child_respond_to_actions() {
 
     assert_eq!(get_immediate_value(text_input_idx, &mut core), "bye");
     assert_eq!(get_value(text_input_idx, &mut core), "hello");
+    assert_eq!(get_text_value(text_idx, &mut core), "hello");
 
     // The UpdateValue action (which should corresponds to pressing enter or blurring)
     // should update value to match immediate value
@@ -131,6 +134,46 @@ fn value_and_immediate_value_with_text_child_respond_to_actions() {
 
     assert_eq!(get_immediate_value(text_input_idx, &mut core), "bye");
     assert_eq!(get_value(text_input_idx, &mut core), "bye");
+    assert_eq!(get_text_value(text_idx, &mut core), "bye");
+}
+
+/// The UpdateImmediateValue and UpdateValue actions work the same when the text input has a blank text child,
+/// only their initial values are from the child.
+/// This test is checking in particular that the text input and the text child are still changed with the actions
+/// even though the text child starts with its default value.
+#[test]
+fn value_and_immediate_value_with_blank_text_child_respond_to_actions() {
+    let dast_root = dast_root_no_position(r#"<textInput><text/></textInput>"#);
+    let mut core = DoenetMLCore::new(dast_root, "", "", None);
+
+    // the text input will be index 1 amd the text will be index 2, as the document tag will be index 0.
+    let text_input_idx = 1;
+    let text_idx = 2;
+
+    // both variables are initialized to blank strings
+    assert_eq!(get_immediate_value(text_input_idx, &mut core), "");
+    assert_eq!(get_value(text_input_idx, &mut core), "");
+    assert_eq!(get_text_value(text_idx, &mut core), "");
+
+    // The UpdateImmediateValue action (which should be in response to typing characters)
+    // should only update the immediate_value prop
+    let type_word_action = update_immediate_value_action(String::from("bye"), text_input_idx);
+
+    let _ = core.dispatch_action(type_word_action);
+
+    assert_eq!(get_immediate_value(text_input_idx, &mut core), "bye");
+    assert_eq!(get_value(text_input_idx, &mut core), "");
+    assert_eq!(get_text_value(text_idx, &mut core), "");
+
+    // The UpdateValue action (which should corresponds to pressing enter or blurring)
+    // should update value to match immediate value
+    let press_enter_action = update_value_action(text_input_idx);
+
+    let _ = core.dispatch_action(press_enter_action);
+
+    assert_eq!(get_immediate_value(text_input_idx, &mut core), "bye");
+    assert_eq!(get_value(text_input_idx, &mut core), "bye");
+    assert_eq!(get_text_value(text_idx, &mut core), "bye");
 }
 
 /// When have two children, `UpdateImmediateValue` still works,

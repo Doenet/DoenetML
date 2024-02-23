@@ -4,7 +4,7 @@ use std::{
     rc::Rc,
 };
 
-use super::{Freshness, PropCalcResult, PropInner, RequiredDataItem};
+use super::{Freshness, PropInner, RequiredDataItem};
 
 /// A mutable view of a prop.
 /// It includes methods that allow one to view and change the variable.
@@ -220,15 +220,6 @@ impl<T: Default + Clone> PropView<T> {
         Ref::map(inner, |v| v.get())
     }
 
-    /// Return a `PropCalcResult` that copies the value of this prop
-    /// and also copies `came_from_default`
-    pub fn prop_calc_result(&self) -> PropCalcResult<T> {
-        if self.came_from_default() {
-            PropCalcResult::FromDefault(self.get().clone())
-        } else {
-            PropCalcResult::Calculated(self.get().clone())
-        }
-    }
     /// If the variable is fresh, get a reference to its current value.
     ///
     /// Panics: if the prop is not fresh.
