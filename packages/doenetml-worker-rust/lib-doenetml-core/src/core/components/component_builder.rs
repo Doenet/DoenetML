@@ -60,7 +60,14 @@ impl ComponentBuilder {
                 Ok(extending) => {
                     builder.components[idx].set_extending(Some(extending));
 
-                    builder.add_child_if_prop_from_extend_attribute(idx);
+                    // Check if we are extending from prop where
+                    // the reference was inside the `extend` attribute.
+                    // In that case, prepend a child corresponding to that prop.
+                    let new_child = builder.create_implicit_child_from_extend_prop(idx);
+                    if let Some(new_child) = new_child {
+                        Self::prepend_child(&mut builder.components[idx], &new_child);
+                        builder.components.push(new_child);
+                    }
                 }
                 Err(err) => {
                     builder.components[idx] = ComponentEnum::_Error(_Error {
@@ -230,14 +237,18 @@ impl ComponentBuilder {
     }
 
     /// If component `component_idx` extended a prop using the `extend` attribute,
-    /// then add a child to the component corresponding to that prop.
+    /// then create a child corresponding to that prop
+    /// that should be prepended to the children of the component.
     ///
-    /// For example, if `<text name="$i"/>`, then we add a child corresponding to `$i.value`
-    /// in the case of `<p extend="$i.value" />` but not to the text component coming from a `$i.value`
-    /// that occurs outside the `extend` attribute.
-    fn add_child_if_prop_from_extend_attribute(&mut self, component_idx: ComponentIdx) {
+    /// For example, if `<textInput name="i"/>`, then we create a child corresponding to `$i.value`
+    /// in the cases of `<text extend="$i.value>more text</text>` or `<p extend="$i.value">more text</p>`
+    /// but not in the case of text component from `$i.value` that occurs outside the `extend` attribute.
+    fn create_implicit_child_from_extend_prop(
+        &self,
+        component_idx: ComponentIdx,
+    ) -> Option<ComponentEnum> {
         let component = &self.components[component_idx];
-        let new_child = if let Some(Extending::Prop(prop_source)) = component.get_extending() {
+        if let Some(Extending::Prop(prop_source)) = component.get_extending() {
             if !prop_source.from_direct_ref {
                 // the `Extending` was due to specifying a prop inside the `extend` attribute
 
@@ -269,16 +280,16 @@ impl ComponentBuilder {
             }
         } else {
             None
-        };
-
-        if let Some(new_child) = new_child {
-            // Add the child created to the component as well as the vector of all components
-            let component = &mut self.components[component_idx];
-            let mut children = component.take_children();
-            children.insert(0, UntaggedContent::Ref(new_child.get_idx()));
-            component.set_children(children);
-            self.components.push(new_child);
         }
+    }
+
+    /// Prepend `child` to the children of component `parent_idx`
+    /// and append `child` to the list of components.
+    fn prepend_child(parent: &mut ComponentEnum, child: &ComponentEnum) {
+        // prepend a reference to `child` to parent's children
+        let mut children = parent.take_children();
+        children.insert(0, UntaggedContent::Ref(child.get_idx()));
+        parent.set_children(children);
     }
 
     /// Create a component from `node`.

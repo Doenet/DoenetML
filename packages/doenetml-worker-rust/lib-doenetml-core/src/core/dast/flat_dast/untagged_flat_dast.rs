@@ -30,7 +30,7 @@ pub enum Source<T> {
 }
 
 impl<T> Source<T> {
-    /// Recast `self` as `Self::Attribute`.
+    /// Recast `self` as `Self::Attribute`, indicating that it came from inside the `extend` attribute.
     pub fn as_attribute(self) -> Self {
         match self {
             Source::Attribute(_) => self,

@@ -228,6 +228,11 @@ impl Expander {
                 flat_root.nodes[i] = node;
                 continue;
             }
+
+            // Since this reference was inside an `extend` attribute,
+            // we must mark it as such
+            // (which indicates that we shouldn't change the component type
+            // from the one specified in the element)
             element.extending = extend_referent.map(|source| source.as_attribute());
 
             // We successfully consumed the `extend` attribute, so remove the `extend` attribute.
