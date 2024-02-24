@@ -566,21 +566,22 @@ export default class CodeEditor extends BlockComponent {
         stateVariableDefinitions.errorsAndWarnings = {
             forRenderer: true,
             stateVariablesDeterminingDependencies: [
-                "viewerChildName",
+                // "viewerChildName",
                 "showResults",
             ],
             returnDependencies({ stateValues }) {
-                if (stateValues.viewerChildName && stateValues.showResults) {
-                    return {
-                        errorsAndWarnings: {
-                            dependencyType: "stateVariable",
-                            componentName: stateValues.viewerChildName,
-                            variableName: "errorsAndWarnings",
-                        },
-                    };
-                } else {
-                    return {};
-                }
+                // if (stateValues.viewerChildName && stateValues.showResults) {
+                //     return {
+                //         errorsAndWarnings: {
+                //             dependencyType: "stateVariable",
+                //             componentName: stateValues.viewerChildName,
+                //             variableName: "errorsAndWarnings",
+                //         },
+                //     };
+                // } else {
+                //     return {};
+                // }
+                return {};
             },
             definition({ dependencyValues }) {
                 if (dependencyValues.errorsAndWarnings) {

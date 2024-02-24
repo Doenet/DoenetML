@@ -474,6 +474,12 @@ export default class Textinput extends Input {
                         updateType: "setComponentNeedingUpdateValue",
                         componentName: this.componentName,
                     },
+                    {
+                    updateType: "updateValue",
+                    componentName: "/viewer",
+                    stateVariable: "codeChanged",
+                    value: true,
+                    }
                 ],
                 transient: true,
                 actionId,
