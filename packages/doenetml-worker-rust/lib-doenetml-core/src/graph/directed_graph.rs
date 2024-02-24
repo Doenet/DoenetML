@@ -35,6 +35,27 @@ pub struct DirectedGraph<Node: Clone + Debug, IndexLookup: Taggable<Node, usize>
 }
 
 impl<Node: Clone + Debug, IndexLookup: Taggable<Node, usize>> DirectedGraph<Node, IndexLookup> {
+    /// Get `self.nodes`
+    pub fn get_nodes(&self) -> &Vec<Node> {
+        &self.nodes
+    }
+
+    /// Get a slice of `self.edges`. Note values listed in the edges array are internal indices.
+    /// `self.nodes` must be used to look up the node for each index.
+    ///
+    /// Only use this function if you know what you're doing.
+    pub fn get_edges_raw(&self) -> &Vec<Vec<usize>> {
+        &self.edges
+    }
+
+    /// Get a slice of `self.edges`. Note values listed in the edges array are internal indices.
+    /// `self.nodes` must be used to look up the node for each index.
+    ///
+    /// Only use this function if you know what you're doing.
+    pub fn get_reverse_edges_raw(&self) -> &Vec<Vec<usize>> {
+        &self.reverse_edges
+    }
+
     /// Add a node to the graph.
     pub fn add_node(&mut self, node: Node) -> usize {
         if let Some(index) = self.index_lookup.get_tag(&node) {
@@ -49,6 +70,7 @@ impl<Node: Clone + Debug, IndexLookup: Taggable<Node, usize>> DirectedGraph<Node
         self.reverse_edges.push(Vec::new());
         index
     }
+
     /// Set an edge between two nodes. If the nodes do not exist, they are added to the graph.
     pub fn add_edge(&mut self, from: &Node, to: &Node) {
         let from_index = self
@@ -64,12 +86,14 @@ impl<Node: Clone + Debug, IndexLookup: Taggable<Node, usize>> DirectedGraph<Node
         self.edges[from_index].push(to_index);
         self.reverse_edges[to_index].push(from_index);
     }
+
     /// Walk through all nodes that have `node` as an ancestor. Nodes are walked in _topological_ order.
     /// Panics if a cycle is detected.
     pub fn walk_descendants(&self, node: &Node) -> DescendantTopologicalIterator<Node> {
         let &start_index = self.index_lookup.get_tag(node).unwrap();
         DescendantTopologicalIterator::new(&self.nodes, &self.edges, start_index)
     }
+
     /// Walk through all nodes that have `node` as a descendant. Nodes are walked in _topological_ order.
     /// Panics if a cycle is detected.
     pub fn walk_ancestors(&self, node: &Node) -> DescendantTopologicalIterator<Node> {
