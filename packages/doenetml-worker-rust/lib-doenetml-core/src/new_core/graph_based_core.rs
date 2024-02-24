@@ -36,7 +36,6 @@ pub struct Core {
     /// it can be referenced), but we don't store any information about virtual nodes themselves.
     virtual_node_count: usize,
     // XXX: fill these in
-    #[allow(dead_code)]
     props: Vec<()>,
     #[allow(dead_code)]
     states: Vec<()>,
@@ -117,6 +116,7 @@ impl Core {
 
                     //
                     // Add a virtual node for the children and attach all children to it
+                    // **MUST** be the **first** child of `graph_component_node`
                     //
                     let graph_virtual_node = self.new_virtual_node();
                     self.structure_graph.add_node(graph_virtual_node);
@@ -126,6 +126,7 @@ impl Core {
 
                     //
                     // Add a virtual node for the attributes and attach all attributes to it
+                    // **MUST** be the **second** child of `graph_component_node`
                     //
                     let graph_virtual_node = self.new_virtual_node();
                     self.structure_graph.add_node(graph_virtual_node);
@@ -162,6 +163,7 @@ impl Core {
                     //
                     // Add a virtual node for the props and attach all props to it
                     //
+                    //
                     let graph_virtual_node = self.new_virtual_node();
                     self.structure_graph.add_node(graph_virtual_node);
                     self.structure_graph
@@ -192,9 +194,11 @@ impl Core {
     fn add_content_to_structure_graph(&mut self, parent: GraphNode, content: &[UntaggedContent]) {
         for child in content {
             match child {
-                UntaggedContent::Ref(r) => {
-                    self.structure_graph
-                        .add_edge(&parent, &GraphNode::Component(*r));
+                UntaggedContent::Ref(idx) => {
+                    let graph_child_node = GraphNode::Component(*idx);
+                    // `graph_child_node` may already be in the graph or it may be missing.
+                    // If it is missing, it is automatically added, so there's no need to check.
+                    self.structure_graph.add_edge(&parent, &graph_child_node);
                 }
                 UntaggedContent::Text(text) => {
                     let graph_string_node = self.new_string_node(text.clone());
