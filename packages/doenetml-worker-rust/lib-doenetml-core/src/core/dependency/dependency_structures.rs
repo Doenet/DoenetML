@@ -82,6 +82,15 @@ pub enum DependencySource {
     },
 }
 
+impl From<PropPointer> for DependencySource {
+    fn from(prop_pointer: PropPointer) -> Self {
+        DependencySource::Prop {
+            component_idx: prop_pointer.component_idx,
+            prop_idx: prop_pointer.prop_idx,
+        }
+    }
+}
+
 impl TryFrom<&DependencySource> for PropPointer {
     type Error = &'static str;
 

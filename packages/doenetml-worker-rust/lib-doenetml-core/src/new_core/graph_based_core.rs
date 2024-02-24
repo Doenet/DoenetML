@@ -83,6 +83,24 @@ impl Core {
     /// This function relies upon the fact that `dast.nodes` will be the same length as `self.components`
     /// and exactly mirror it's structure (i.e., `dast.nodes[i].idx == self.components[i].idx`).
     pub fn init_from_normalized_root(&mut self, dast: &NormalizedRoot) {
+        // We record _original_ parent information. After including `extend` information, the `structure_graph`
+        // may not be a tree, and so looking up parent information about the original parent may not be possible.
+        let mut parents: Vec<Option<usize>> =
+            std::iter::repeat(None).take(dast.nodes.len()).collect();
+        for node in &dast.nodes {
+            match node {
+                NormalizedNode::Element(elm) => {
+                    for child_idx in elm.children.iter().filter_map(|c| match c {
+                        UntaggedContent::Ref(r) => Some(*r),
+                        _ => None,
+                    }) {
+                        parents[child_idx] = Some(elm.idx);
+                    }
+                }
+                NormalizedNode::Error(_) => {}
+            }
+        }
+
         self.components.reserve(dast.nodes.len());
         for (idx, node) in dast.nodes.iter().enumerate() {
             let graph_component_node = GraphNode::Component(idx);
@@ -133,7 +151,13 @@ impl Core {
                         self.add_content_to_structure_graph(attr_virtual_node, &attr_content);
                     }
                     // XXX: This should be updated when we update the type of information `component` stores.
-                    component.initialize(idx, None, None, unused_attributes, elm.position.clone());
+                    component.initialize(
+                        idx,
+                        parents[idx],
+                        None,
+                        unused_attributes,
+                        elm.position.clone(),
+                    );
 
                     //
                     // Add a virtual node for the props and attach all props to it

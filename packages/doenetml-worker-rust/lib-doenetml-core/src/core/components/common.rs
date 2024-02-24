@@ -119,6 +119,9 @@ pub trait ComponentNode: ComponentState {
     fn get_children(&self) -> &Vec<UntaggedContent>;
     /// Set the vector containing the indices of all child component nodes and the literal string children.
     fn set_children(&mut self, children: Vec<UntaggedContent>);
+    /// Take the vector containing the indices of all child component nodes and the literal string children.
+    fn take_children(&mut self) -> Vec<UntaggedContent>;
+
     /// Set component's index, parent, extending, and position in the original DoenetML string.
     ///
     /// This is a separate step from creation because we create it using EnumString's from_str,
@@ -179,14 +182,18 @@ pub trait ComponentNode: ComponentState {
         None
     }
 
-    /// When this component has `extend="$ref"`, depending on the different
-    /// `ComponentProfiles` `$ref` may present itself as, the component might want
-    /// to set different prop values. This function returns a vector of
-    /// possible pairings of the `ComponentProfile` that `$ref` may provide and
-    /// the index of the prop that should be set if `$ref` provides that
-    /// `ComponentProfile`.
-    fn accepted_profiles(&self) -> Vec<(ComponentProfile, PropIdx)> {
-        vec![]
+    /// If `extend_via_default_prop` is `true` and the component is extended by a different component type,
+    /// then the component will be extended via the prop that is marked with `#[default_prop]`.
+    /// Otherwise, the component will always be extended directly as a component
+    /// whenever a prop is not explicitly specified,
+    /// even if it is extended by a different component type.
+    ///
+    /// For example, since `extend_via_default_prop()` returns `true` for a text input,
+    /// and its default prop is 'value`,
+    /// `<textInput name="$i"/><text extend="$i"/>` will become equivalent to
+    /// `<textInput name="$i"/><text extend="$i.value"/>`
+    fn extend_via_default_prop(&self) -> bool {
+        false
     }
 
     /// A vector of the possible profiles this component provides along with the

@@ -39,8 +39,8 @@ impl Expander {
             // which will prevent the borrow checker from complaining if we mutate `flat_root` during processing.
             flat_root.nodes[idx] = match mem::take(&mut flat_root.nodes[idx]) {
                 FlatNode::Ref(ref_) => {
-                    // A ref `$f`` get's replace with `<foo extend="f" />`` where `foo` is the tag name of the referent.
-                    // e.g. `<point name="p" />$p`` becomes `<point name="p" /><point extend="p" />``
+                    // A ref `$f` gets replaced with `<foo extend="f" />` where `foo` is the tag name of the referent.
+                    // e.g. `<point name="p" />$p` becomes `<point name="p" /><point extend="p" />`
                     // Expanding a ref is can be done with a single replacement.
 
                     //flat_root.nodes[idx] = resolved
@@ -228,6 +228,11 @@ impl Expander {
                 flat_root.nodes[i] = node;
                 continue;
             }
+
+            // Since this reference was inside an `extend` attribute,
+            // we must mark it as such
+            // (which indicates that we shouldn't change the component type
+            // from the one specified in the element)
             element.extending = extend_referent.map(|source| source.as_attribute());
 
             // We successfully consumed the `extend` attribute, so remove the `extend` attribute.

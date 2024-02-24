@@ -4,7 +4,7 @@ use proc_macro2::{Ident, Span};
 use quote::quote;
 use syn::{self, FieldsNamed};
 
-use darling::{FromDeriveInput, FromMeta};
+use darling::FromDeriveInput;
 
 use crate::util::has_attribute;
 
@@ -18,13 +18,15 @@ pub struct ComponentOptions {
     /// rather than a `TextInput`. In this case, you would set `ref_transmutes_to = "Text"`.
     pub ref_transmutes_to: Option<String>,
 
-    pub when_extending: Option<WhenExtending>,
-}
-
-#[derive(Debug, Default, FromMeta)]
-pub struct WhenExtending {
-    pub match_profile: String,
-    pub store_in: String,
+    /// Accessible via `#[component(extend_via_default_prop)]`.
+    /// Indicates that, when a component is extended into a different component type,
+    /// it should use its default prop to create an `Extending::Prop` link
+    /// rather than an `Extending::Component` link.
+    ///
+    /// For example, with `<textInput name="a"/><text extend="$a" />`,
+    /// the extension to `<text>` uses the `value` prop of the textInput,
+    /// i.e., equivalent `<textInput name="a"/><text extend="$a.value" />`.
+    pub extend_via_default_prop: Option<()>,
 }
 
 /// Implement the ComponentNode trait structs
@@ -56,6 +58,9 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                     }
                     fn set_children(&mut self, children: Vec<UntaggedContent>) {
                         self.common.children = children;
+                    }
+                    fn take_children(&mut self) -> Vec<UntaggedContent> {
+                        std::mem::take(&mut self.common.children)
                     }
                     fn initialize(
                         &mut self,
@@ -125,23 +130,12 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                         }
                     });
                 }
-
-                if let Some(WhenExtending {
-                    match_profile,
-                    store_in,
-                }) = &options.when_extending
-                {
-                    let local_get_index_function_name =
-                        format!("local_get_{}_prop_index", store_in);
-                    let local_get_index_function_identity =
-                        Ident::new(&local_get_index_function_name, Span::call_site());
-                    let match_profile_identity = Ident::new(match_profile, Span::call_site());
-
+                if options.extend_via_default_prop.is_some() {
                     component_node_impl_body.extend(quote! {
-                        fn accepted_profiles(&self) -> Vec<(ComponentProfile, PropIdx)> {
-                            vec![(ComponentProfile::#match_profile_identity, self.state.#local_get_index_function_identity())]
+                        fn extend_via_default_prop(&self) -> bool {
+                            true
                         }
-                    });
+                    })
                 }
 
                 quote! {

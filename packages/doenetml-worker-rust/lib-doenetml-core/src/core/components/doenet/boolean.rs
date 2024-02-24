@@ -12,7 +12,7 @@ use crate::general_prop::{BooleanProp, BooleanToStringProp, PropAlias};
     RenderedChildren,
 )]
 #[no_rendered_children]
-#[component(when_extending(match_profile = "Boolean", store_in = "value"))]
+#[component(extend_via_default_prop)]
 pub struct Boolean {
     /// The common component data needed to derive the `ComponentNode` trait
     pub common: ComponentCommonData,
@@ -33,9 +33,13 @@ pub struct BooleanState {
     /// It is marked as a component profile prop,
     /// which means this prop will be used if a parent of a `<boolean>` component
     /// queries for children with the `Boolean` component profile.
+    ///
+    /// It is marked `default_prop`, which in combination with the component being marked `extend_via_default_prop`,
+    /// means the `value` prop will be used if a `<boolean>` is extended to another component type.
     #[is_public]
     #[for_renderer]
     #[component_profile_prop]
+    #[default_prop]
     value: Prop<bool>,
 
     /// An alias to the `value` prop.
