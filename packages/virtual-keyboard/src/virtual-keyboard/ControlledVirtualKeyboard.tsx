@@ -27,10 +27,29 @@ import { useRef } from "react";
 import { FaKeyboard } from "react-icons/fa";
 import { CloseIcon } from "@chakra-ui/icons";
 
+function useTraceUpdate(props) {
+    const prev = useRef(props);
+    useEffect(() => {
+      const changedProps = Object.entries(props).reduce((ps, [k, v]) => {
+        if (prev.current[k] !== v) {
+          ps[k] = [prev.current[k], v];
+        }
+        return ps;
+      }, {});
+      if (Object.keys(changedProps).length > 0) {
+        console.log('Changed props:', changedProps);
+      }
+      prev.current = props;
+    });
+  }
+export function ControlledVirtualKeyboard() {
+    return (<div></div>);
+}
+
 /**
  * Virtual keyboard without Recoil integration. You must handle its state and pass in the callbacks yourself.
  */
-export function ControlledVirtualKeyboard({
+export function ControlledVirtualKeyboardOld({
     returnCallback,
     setPalletRef,
     callback,
@@ -54,6 +73,16 @@ export function ControlledVirtualKeyboard({
     onClose: () => void;
     onToggle: () => void;
 }) {
+    console.log("Render ControlledVirtualKeyboard");
+    const jasonParamsTest = {
+    returnCallback,
+    setPalletRef,
+    callback,
+    isOpen,
+    onClose,
+    onToggle,
+    };
+    useTraceUpdate(jasonParamsTest);
     const [toggleLetters, setToggleLetters] = useState(false);
     const [toggleABCCase, setToggleABCCase] = useState(false);
     const [toggleGreekCase, setToggleGreekCase] = useState(false);
