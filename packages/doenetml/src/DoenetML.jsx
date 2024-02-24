@@ -61,6 +61,7 @@ export function DoenetML({
     cid,
     activityId = "",
     userId,
+    noMathJax = false,
     attemptNumber = 1,
     requestedVariantIndex,
     updateCreditAchievedCallback,
@@ -151,17 +152,8 @@ export function DoenetML({
         keyboard = <VirtualKeyboard />;
     }
 
-    return (
-        <ChakraProvider
-            theme={theme}
-            resetScope=".before-keyboard"
-            disableGlobalStyle
-        >
-            <RecoilRoot>
-                <MathJaxContext
-                    version={3}
-                    config={mathjaxConfig}
-                >
+    let innerViewer = (
+        <>
                     <ActivityViewer
                         doenetML={doenetML}
                         updateDataOnContentChange={updateDataOnContentChange}
@@ -204,7 +196,29 @@ export function DoenetML({
                     />
                     <div className="before-keyboard" />
                     {keyboard}
-                </MathJaxContext>
+        </>
+    )
+    console.log(noMathJax);
+    return (
+        <ChakraProvider
+            theme={theme}
+            resetScope=".before-keyboard"
+            disableGlobalStyle
+        >
+            <RecoilRoot>
+                {noMathJax ?
+                (<div>
+                    {innerViewer}
+                </div>) : 
+                    <MathJaxContext
+                        version={3}
+                        config={mathjaxConfig}
+                        renderMode="pre"
+                        typesettingOptions={{fn:"tex2chtml"}}
+                    >
+                        {innerViewer}
+                    </MathJaxContext>
+                }
             </RecoilRoot>
         </ChakraProvider>
     );

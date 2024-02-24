@@ -13,6 +13,7 @@ export default React.memo(function CodeViewer(props) {
         props,
         false,
     );
+    console.log(JSON.parse(JSON.stringify(SVs)));
 
     const [variants, setVariants] = useState({
         index: 1,
@@ -132,6 +133,7 @@ export default React.memo(function CodeViewer(props) {
             >
                 <DoenetML
                     doenetML={SVs.doenetML}
+                    noMathJax={true}
                     flags={{
                         showCorrectness: true,
                         solutionDisplayMode: "button",

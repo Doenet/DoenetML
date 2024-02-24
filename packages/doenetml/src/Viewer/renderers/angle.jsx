@@ -218,9 +218,7 @@ export default React.memo(function Angle(props) {
         <>
             <a name={id} />
             <span id={id}>
-                <MathJax hideUntilTypeset={"first"} inline dynamic>
-                    {mathJaxify}
-                </MathJax>
+                <MathJax renderMode="pre" typesettingOptions={{fn:"tex2chtml"}} hideUntilTypeset={"first"} inline dynamic text={mathJaxify} />
             </span>
         </>
     );

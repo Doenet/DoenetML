@@ -457,9 +457,7 @@ export default React.memo(function NumberComponent(props) {
         <>
             <a name={id} />
             <span id={id} style={style}>
-                <MathJax hideUntilTypeset={"first"} inline dynamic>
-                    {number}
-                </MathJax>
+                <MathJax renderMode="pre" typesettingOptions={{fn:"tex2chtml"}} hideUntilTypeset={"first"} inline dynamic text={number} />
             </span>
         </>
     );

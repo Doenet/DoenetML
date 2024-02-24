@@ -101,7 +101,7 @@ export function ControlledVirtualKeyboard({
                     callback("write \\" + letter);
                 }}
             >
-                <MathJax dynamic>{"\\(\\" + letter + "\\)"}</MathJax>
+                <MathJax renderMode="pre" typesettingOptions={{fn:"tex2chtml"}} dynamic text={"\\" +letter} />
             </Button>
         );
     }
@@ -112,7 +112,7 @@ export function ControlledVirtualKeyboard({
                 variant="outline"
                 onClick={() => callback("write " + number)}
             >
-                <MathJax dynamic>{action}</MathJax>
+                <MathJax renderMode="pre" typesettingOptions={{fn:"tex2chtml"}} dynamic text={action} />
             </Button>
         );
     }
@@ -123,7 +123,7 @@ export function ControlledVirtualKeyboard({
                 variant="outline"
                 onClick={() => callback("type " + symbol)}
             >
-                <MathJax dynamic>\(\{action}\)</MathJax>
+                <MathJax renderMode="pre" typesettingOptions={{fn:"tex2chtml"}} dynamic text={"\\" + action} />
             </Button>
         );
     }
@@ -131,7 +131,7 @@ export function ControlledVirtualKeyboard({
         // cmd ___
         return (
             <Button variant="outline" onClick={() => callback("cmd " + input)}>
-                <MathJax dynamic>\(\{action}\)</MathJax>
+                <MathJax renderMode="pre" typesettingOptions={{fn:"tex2chtml"}} dynamic text={"\\" + action} />
             </Button>
         );
     }
@@ -141,7 +141,7 @@ export function ControlledVirtualKeyboard({
     ) {
         return (
             <Button variant="outline" onClick={onClickHandler}>
-                <MathJax dynamic>{action}</MathJax>
+                <MathJax renderMode="pre" typesettingOptions={{fn:"tex2chtml"}} dynamic text={action} />
             </Button>
         );
     }
@@ -239,11 +239,11 @@ export function ControlledVirtualKeyboard({
                 {SpaceBar()}
                 {LetterArrowButton(
                     () => callback("keystroke Left"),
-                    <MathJax dynamic>\(\leftarrow\)</MathJax>,
+                    <MathJax renderMode="pre" typesettingOptions={{fn:"tex2chtml"}} dynamic text={"\\leftarrow"} />
                 )}
                 {LetterArrowButton(
                     () => callback("keystroke Right"),
-                    <MathJax dynamic>\(\rightarrow\)</MathJax>,
+                    <MathJax renderMode="pre" typesettingOptions={{fn:"tex2chtml"}} dynamic text={"\\rightarrow"} />
                 )}
                 {LetterArrowButton(() => returnCallback(), "Enter")}
             </Box>
@@ -312,11 +312,11 @@ export function ControlledVirtualKeyboard({
                 {SpaceBar()}
                 {LetterArrowButton(
                     () => callback("keystroke Left"),
-                    <MathJax dynamic>\(\leftarrow\)</MathJax>,
+                    <MathJax renderMode="pre" typesettingOptions={{fn:"tex2chtml"}} dynamic text={"\\leftarrow"} />
                 )}
                 {LetterArrowButton(
                     () => callback("keystroke Right"),
-                    <MathJax dynamic>\(\rightarrow\)</MathJax>,
+                    <MathJax renderMode="pre" typesettingOptions={{fn:"tex2chtml"}} dynamic text={"\\rightarrow"} />
                 )}
                 {LetterArrowButton(() => returnCallback(), "Enter")}
             </Box>
@@ -347,19 +347,19 @@ export function ControlledVirtualKeyboard({
                 "\\(\\emptyset\\)",
             )}
             {/* <Button onClick={() => callback('write \\mathbb{N}')}>
-          <MathJax dynamic>{`\\(\\mathbb{N}\\)`}</MathJax>
+          <MathJax renderMode="pre" typesettingOptions={{fn:"tex2chtml"}} dynamic>{`\\(\\mathbb{N}\\)`}</MathJax>
         </Button>
         <Button onClick={() => callback('write \\mathbb{Z}')}>
-          <MathJax dynamic>{`\\(\\mathbb{Z}\\)`}</MathJax>
+          <MathJax renderMode="pre" typesettingOptions={{fn:"tex2chtml"}} dynamic>{`\\(\\mathbb{Z}\\)`}</MathJax>
         </Button>
         <Button onClick={() => callback('write \\mathbb{Q}')}>
-          <MathJax dynamic>{`\\(\\mathbb{Q}\\)`}</MathJax>
+          <MathJax renderMode="pre" typesettingOptions={{fn:"tex2chtml"}} dynamic>{`\\(\\mathbb{Q}\\)`}</MathJax>
         </Button>
         <Button onClick={() => callback('write \\mathbb{R}')}>
-          <MathJax dynamic>{`\\(\\mathbb{R}\\)`}</MathJax>
+          <MathJax renderMode="pre" typesettingOptions={{fn:"tex2chtml"}} dynamic>{`\\(\\mathbb{R}\\)`}</MathJax>
         </Button>
         <Button onClick={() => callback('write \\mathbb{C}')}>
-          <MathJax dynamic>{`\\(\\mathbb{C}\\)`}</MathJax>
+          <MathJax renderMode="pre" typesettingOptions={{fn:"tex2chtml"}} dynamic>{`\\(\\mathbb{C}\\)`}</MathJax>
         </Button> */}
         </SimpleGrid>
     );
@@ -393,15 +393,15 @@ export function ControlledVirtualKeyboard({
             {CustomButton(() => callback("cmd _"), `\\(a_b\\)`)}
 
             {/* <Button onClick={() => callback('write \\neg')}>
-          <MathJax dynamic>{`\\(\\neg\\)`}</MathJax>
+          <MathJax renderMode="pre" typesettingOptions={{fn:"tex2chtml"}} dynamic>{`\\(\\neg\\)`}</MathJax>
         </Button> */}
             {LetterArrowButton(
                 () => callback("keystroke Left"),
-                <MathJax dynamic>\(\leftarrow\)</MathJax>,
+                <MathJax renderMode="pre" typesettingOptions={{fn:"tex2chtml"}} dynamic text={"\\leftarrow"} />
             )}
             {LetterArrowButton(
                 () => callback("keystroke Right"),
-                <MathJax dynamic>\(\rightarrow\)</MathJax>,
+                <MathJax renderMode="pre" typesettingOptions={{fn:"tex2chtml"}} dynamic text={"\\rightarrow"} />
             )}
             {LetterArrowButton(() => returnCallback(), "Enter")}
         </SimpleGrid>
@@ -454,7 +454,7 @@ export function ControlledVirtualKeyboard({
                 callback("write \\frac{d}{dx}");
             }, `\\(\\frac{d}{dx}\\)`)}
             {/* <Button33 onClick={() => callback('write \\int')}>
-          <MathJax dynamic>\(\int\)</MathJax>
+          <MathJax renderMode="pre" typesettingOptions={{fn:"tex2chtml"}} dynamic>\(\int\)</MathJax>
         </Button33> */}
             {CustomButton(() => {
                 callback("write \\int_{}^{}");
@@ -480,11 +480,11 @@ export function ControlledVirtualKeyboard({
             )}
             {LetterArrowButton(
                 () => callback("keystroke Left"),
-                <MathJax dynamic>\(\leftarrow\)</MathJax>,
+                <MathJax renderMode="pre" typesettingOptions={{fn:"tex2chtml"}} dynamic text={"\\leftarrow"} />
             )}
             {LetterArrowButton(
                 () => callback("keystroke Right"),
-                <MathJax dynamic>\(\rightarrow\)</MathJax>,
+                <MathJax renderMode="pre" typesettingOptions={{fn:"tex2chtml"}} dynamic text={"\\rightarrow"} />
             )}
             {LetterArrowButton(() => returnCallback(), "Enter")}
         </SimpleGrid>
@@ -551,11 +551,11 @@ export function ControlledVirtualKeyboard({
                 {SpaceBar()}
                 {LetterArrowButton(
                     () => callback("keystroke Left"),
-                    <MathJax dynamic>\(\leftarrow\)</MathJax>,
+                    <MathJax renderMode="pre" typesettingOptions={{fn:"tex2chtml"}} dynamic text={"\\leftarrow"} />
                 )}
                 {LetterArrowButton(
                     () => callback("keystroke Right"),
-                    <MathJax dynamic>\(\rightarrow\)</MathJax>,
+                    <MathJax renderMode="pre" typesettingOptions={{fn:"tex2chtml"}} dynamic text={"\\rightarrow"} />
                 )}
                 {LetterArrowButton(() => returnCallback(), "Enter")}
             </Box>
@@ -624,11 +624,11 @@ export function ControlledVirtualKeyboard({
                 {SpaceBar()}
                 {LetterArrowButton(
                     () => callback("keystroke Left"),
-                    <MathJax dynamic>\(\leftarrow\)</MathJax>,
+                    <MathJax renderMode="pre" typesettingOptions={{fn:"tex2chtml"}} dynamic text={"\\leftarrow"} />
                 )}
                 {LetterArrowButton(
                     () => callback("keystroke Right"),
-                    <MathJax dynamic>\(\rightarrow\)</MathJax>,
+                    <MathJax renderMode="pre" typesettingOptions={{fn:"tex2chtml"}} dynamic text={"\\rightarrow"} />
                 )}
                 {LetterArrowButton(() => returnCallback(), "Enter")}
             </Box>
@@ -675,7 +675,7 @@ export function ControlledVirtualKeyboard({
             {NumberButton("+", "+")}
             {NumberButton("-", "-")}
             {/* <Button variant="outline" onClick={() => callback("cmd -")}>
-        <MathJax dynamic>\(-\)</MathJax>
+        <MathJax renderMode="pre" typesettingOptions={{fn:"tex2chtml"}} dynamic>\(-\)</MathJax>
       </Button> */}
             {NumberButton(1, `\\(1\\)`)}
             {NumberButton(2, `\\(2\\)`)}
@@ -689,11 +689,11 @@ export function ControlledVirtualKeyboard({
             {NumberButton(".", ".")}
             {LetterArrowButton(
                 () => callback("keystroke Left"),
-                <MathJax dynamic>\(\leftarrow\)</MathJax>,
+                <MathJax renderMode="pre" typesettingOptions={{fn:"tex2chtml"}} dynamic text={"\\leftarrow"} />
             )}
             {LetterArrowButton(
                 () => callback("keystroke Right"),
-                <MathJax dynamic>\(\rightarrow\)</MathJax>,
+                <MathJax renderMode="pre" typesettingOptions={{fn:"tex2chtml"}} dynamic text={"\\rightarrow"} />
             )}
             {LetterArrowButton(() => returnCallback(), "Enter")}
         </SimpleGrid>

@@ -1,5 +1,7 @@
-<CodeEditor showFormatter showResults>
-</CodeEditor>
+<textInput name="b" expanded>This is some content </textInput>
+<codeViewer name="viewer" codeSource="$b" />
+<!-- <CodeEditor showFormatter showResults>
+</CodeEditor> -->
 <!-- 
   <p>Use this to <m>a < b</m>test DoenetML</p> <graph showNavigation>
 
@@ -11,4 +13,9 @@
     
   </graph> -->
 <mathinput name="a" />
+$a.immediateValue
+$a.immediateValue
+$a.immediateValue
+$a.immediateValue
+$a.immediateValue
 $a.immediateValue

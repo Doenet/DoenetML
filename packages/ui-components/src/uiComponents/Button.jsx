@@ -109,9 +109,7 @@ export function Button(props) {
         }
         if (props.value && props.valueHasLatex) {
             button.value = (
-                <MathJax hideUntilTypeset={"first"} inline dynamic>
-                    {button.value}
-                </MathJax>
+                <MathJax renderMode="pre" typesettingOptions={{fn:"tex2chtml"}} hideUntilTypeset={"first"} inline dynamic text={button.value} />
             );
         }
     }

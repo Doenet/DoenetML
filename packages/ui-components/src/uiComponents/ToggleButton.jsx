@@ -112,9 +112,7 @@ export function ToggleButton(props) {
         }
         if (props.value && props.valueHasLatex) {
             toggleButton.value = (
-                <MathJax hideUntilTypeset={"first"} inline dynamic>
-                    {toggleButton.value}
-                </MathJax>
+                <MathJax renderMode="pre" typesettingOptions={{fn:"tex2chtml"}} hideUntilTypeset={"first"} inline dynamic text={toggleButton.value} />
             );
         }
     }

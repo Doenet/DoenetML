@@ -564,9 +564,7 @@ export default React.memo(function MathComponent(props) {
             <>
                 {anchors}
                 <span id={id} style={style}>
-                    <MathJax hideUntilTypeset={"first"} inline dynamic>
-                        {latexOrInputChildren[0]}
-                    </MathJax>
+                    <MathJax renderMode="pre" typesettingOptions={{fn:"tex2chtml"}} hideUntilTypeset={"first"} inline dynamic text={latexOrInputChildren[0]} />
                 </span>
             </>
         );
@@ -575,10 +573,8 @@ export default React.memo(function MathComponent(props) {
             <>
                 {anchors}
                 <span id={id} style={style}>
-                    <MathJax hideUntilTypeset={"first"} inline dynamic>
-                        {latexOrInputChildren[0]}
-                        {latexOrInputChildren[1]}
-                    </MathJax>
+                    <MathJax renderMode="pre" typesettingOptions={{fn:"tex2chtml"}} hideUntilTypeset={"first"} inline dynamic text={latexOrInputChildren[0]} />
+                    <MathJax renderMode="pre" typesettingOptions={{fn:"tex2chtml"}} hideUntilTypeset={"first"} inline dynamic text={latexOrInputChildren[1]} />
                 </span>
             </>
         );
@@ -587,9 +583,7 @@ export default React.memo(function MathComponent(props) {
             <>
                 {anchors}
                 <span id={id} style={style}>
-                    <MathJax hideUntilTypeset={"first"} inline dynamic>
-                        {latexOrInputChildren[0]}
-                    </MathJax>
+                    <MathJax renderMode="pre" typesettingOptions={{fn:"tex2chtml"}} hideUntilTypeset={"first"} inline dynamic text={latexOrInputChildren[0]} />
                 </span>
             </>
         );

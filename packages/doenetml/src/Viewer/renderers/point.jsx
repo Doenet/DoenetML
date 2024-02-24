@@ -653,7 +653,7 @@ export default React.memo(function Point(props) {
         <>
             <a name={id} />
             <span id={id} style={style}>
-                <MathJax hideUntilTypeset={"first"} inline dynamic>
+                <MathJax renderMode="pre" typesettingOptions={{fn:"tex2chtml"}} hideUntilTypeset={"first"} inline dynamic>
                     {mathJaxify}
                 </MathJax>
             </span>
