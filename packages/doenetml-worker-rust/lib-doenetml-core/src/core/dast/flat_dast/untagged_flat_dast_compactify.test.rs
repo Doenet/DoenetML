@@ -167,31 +167,11 @@ fn compactify_adjusts_extending_refs_and_attributes() {
                 "type": "Element",
                 "name": "text",
                 "parent": 0,
-                "children": [5, " world"],
+                "children": [" world"],
                 "attributes": [],
                 "idx": 4,
                 "extending": {
                   "Attribute": {
-                    "node_idx": 3,
-                    "unresolved_path": [
-                      {
-                        "type": "pathPart",
-                        "name": "immediateValue",
-                        "index": []
-                      }
-                    ]
-                  }
-                }
-              },
-              {
-                "type": "Element",
-                "name": "textInput",
-                "parent": 4,
-                "children": [],
-                "attributes": [],
-                "idx": 5,
-                "extending": {
-                  "Ref": {
                     "node_idx": 3,
                     "unresolved_path": [
                       {

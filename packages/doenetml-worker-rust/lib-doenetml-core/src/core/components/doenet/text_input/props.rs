@@ -21,10 +21,12 @@ pub struct TextInputState {
     ///
     /// It is marked `is_public` so that it can be referenced in DoenetML via `.value`.
     ///
-    ///
     /// It is marked as a component profile prop,
     /// which means this prop will be used if a parent of a `<textInput>` component
     /// queries for children with the `Text` component profile.
+    ///
+    /// It is marked `default_prop`, which in combination with the component being marked `extend_via_default_prop`,
+    /// means the `value` prop will be used if a `<textInput>` is extended to another component type.
     #[is_public]
     #[component_profile_prop]
     #[default_prop]

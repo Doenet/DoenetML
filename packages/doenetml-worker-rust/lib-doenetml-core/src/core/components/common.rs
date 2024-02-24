@@ -182,6 +182,16 @@ pub trait ComponentNode: ComponentState {
         None
     }
 
+    /// If `extend_via_default_prop` is `true` and the component is extended by a different component type,
+    /// then the component will be extended via the prop that is marked with `#[default_prop]`.
+    /// Otherwise, the component will always be extended directly as a component
+    /// whenever a prop is not explicitly specified,
+    /// even if it is extended by a different component type.
+    ///
+    /// For example, since `extend_via_default_prop()` returns `true` for a text input,
+    /// and its default prop is 'value`,
+    /// `<textInput name="$i"/><text extend="$i"/>` will become equivalent to
+    /// `<textInput name="$i"/><text extend="$i.value"/>`
     fn extend_via_default_prop(&self) -> bool {
         false
     }

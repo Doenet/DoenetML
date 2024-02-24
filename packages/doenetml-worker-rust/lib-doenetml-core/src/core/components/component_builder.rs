@@ -13,10 +13,10 @@ use crate::{
     },
     state::PropPointer,
     utils::KeyValueIgnoreCase,
-    Extending, PropSource,
+    ComponentIdx, Extending, PropSource,
 };
 
-use super::{ComponentEnum, _error::_Error, _external::_External};
+use super::{ComponentEnum, _error::_Error, _external::_External, prelude::UntaggedContent};
 
 #[derive(Debug)]
 pub struct ComponentBuilder {
@@ -51,29 +51,16 @@ impl ComponentBuilder {
             if elm.extending.is_none() {
                 continue;
             }
+
             let ref_source = elm.extending.clone().unwrap();
             let component = &builder.components[idx];
             let referent = &builder.components[ref_source.idx()];
 
             match Self::determine_extending(ref_source, component, referent) {
                 Ok(extending) => {
-                    let extending_component = matches!(extending, Extending::Component(..));
-                    let component_type_changed =
-                        component.get_component_type() != referent.get_component_type();
                     builder.components[idx].set_extending(Some(extending));
 
-                    if extending_component && component_type_changed {
-                        // Since we are extending a component where the component type changed,
-                        // the reference was inside an extend attribute and
-                        // `Expander::consume_extend_attributes` added an extra child
-                        // in case the referent was marked `extend_via_default_prop`
-                        // which would created an `Extending::Prop`.
-                        // The fact that we still have an `Extending::Component`
-                        // means that this extra child was not needed, so we delete it.
-                        let mut children = builder.components[idx].take_children();
-                        children.remove(0);
-                        builder.components[idx].set_children(children);
-                    }
+                    builder.add_child_if_prop_from_extend_attribute(idx);
                 }
                 Err(err) => {
                     builder.components[idx] = ComponentEnum::_Error(_Error {
@@ -242,6 +229,58 @@ impl ComponentBuilder {
         }
     }
 
+    /// If component `component_idx` extended a prop using the `extend` attribute,
+    /// then add a child to the component corresponding to that prop.
+    ///
+    /// For example, if `<text name="$i"/>`, then we add a child corresponding to `$i.value`
+    /// in the case of `<p extend="$i.value" />` but not to the text component coming from a `$i.value`
+    /// that occurs outside the `extend` attribute.
+    fn add_child_if_prop_from_extend_attribute(&mut self, component_idx: ComponentIdx) {
+        let component = &self.components[component_idx];
+        let new_child = if let Some(Extending::Prop(prop_source)) = component.get_extending() {
+            if !prop_source.from_direct_ref {
+                // the `Extending` was due to specifying a prop inside the `extend` attribute
+
+                let prop_pointer = prop_source.prop_pointer;
+                let referent = &self.components[prop_pointer.component_idx];
+
+                // The creation of the new child mimics `create_component()`
+                // for the case where there is a remaining path corresponding to the prop
+                let new_component_type = referent
+                    .get_prop(prop_pointer.prop_idx)
+                    .unwrap()
+                    .preferred_component_type();
+
+                let mut new_child = ComponentEnum::from_str(new_component_type).unwrap();
+
+                new_child.initialize(
+                    self.components.len(),
+                    Some(component.get_idx()),
+                    Some(Extending::Prop(PropSource {
+                        prop_pointer,
+                        from_direct_ref: true,
+                    })),
+                    HashMap::new(),
+                    None,
+                );
+                Some(new_child)
+            } else {
+                None
+            }
+        } else {
+            None
+        };
+
+        if let Some(new_child) = new_child {
+            // Add the child created to the component as well as the vector of all components
+            let component = &mut self.components[component_idx];
+            let mut children = component.take_children();
+            children.insert(0, UntaggedContent::Ref(new_child.get_idx()));
+            component.set_children(children);
+            self.components.push(new_child);
+        }
+    }
+
     /// Create a component from `node`.
     ///  - `node` - The node to create a component from.
     ///  - `components` - An array of already created components. When there is an `extending` field, the algorithm for deciding
@@ -327,7 +366,7 @@ impl ComponentBuilder {
                     unused_attributes,
                     elm.position.clone(),
                 );
-                component.get_extending();
+
                 // The referenced children may not yet be created as components, but by the end of the loop
                 // they should all be created with the exact same indices as the `normalized_flat_dast` indices.
                 component.set_children(elm.children.clone());

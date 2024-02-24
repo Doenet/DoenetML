@@ -18,6 +18,14 @@ pub struct ComponentOptions {
     /// rather than a `TextInput`. In this case, you would set `ref_transmutes_to = "Text"`.
     pub ref_transmutes_to: Option<String>,
 
+    /// Accessible via `#[component(extend_via_default_prop)]`.
+    /// Indicates that, when a component is extended into a different component type,
+    /// it should use its default prop to create an `Extending::Prop` link
+    /// rather than an `Extending::Component` link.
+    ///
+    /// For example, with `<textInput name="a"/><text extend="$a" />`,
+    /// the extension to `<text>` uses the `value` prop of the textInput,
+    /// i.e., equivalent `<textInput name="a"/><text extend="$a.value" />`.
     pub extend_via_default_prop: Option<()>,
 }
 

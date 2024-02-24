@@ -35,6 +35,9 @@ pub struct TextState {
     /// It is marked as a component profile prop,
     /// which means this prop will be used if a parent of a `<text>` component
     /// queries for children with the `Text` component profile.
+    ///
+    /// It is marked `default_prop`, which in combination with the component being marked `extend_via_default_prop`,
+    /// means the `value` prop will be used if a `<text>` is extended to another component type.
     #[is_public]
     #[for_renderer]
     #[component_profile_prop]

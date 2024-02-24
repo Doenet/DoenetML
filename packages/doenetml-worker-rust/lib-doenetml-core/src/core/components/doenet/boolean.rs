@@ -33,6 +33,9 @@ pub struct BooleanState {
     /// It is marked as a component profile prop,
     /// which means this prop will be used if a parent of a `<boolean>` component
     /// queries for children with the `Boolean` component profile.
+    ///
+    /// It is marked `default_prop`, which in combination with the component being marked `extend_via_default_prop`,
+    /// means the `value` prop will be used if a `<boolean>` is extended to another component type.
     #[is_public]
     #[for_renderer]
     #[component_profile_prop]

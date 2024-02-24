@@ -186,7 +186,11 @@ pub struct PropSource {
     /// If true, the source of the extending was due to a direct reference,
     /// as opposed to being in an extend attribute.
     ///
-    /// In this case, we need to add the prop as a child in the `DataQuery::ChildPropProfile`,
+    /// For example, given `<textInput name="i"/>`, a direct ref would be `$i.value` by itself,
+    /// unlike `<text extend="$i.value"/>`.
+    ///
+    /// If we are extending from a direct ref,
+    /// we need to add the referenced prop as a child in the `DataQuery::ChildPropProfile`,
     /// because the prop was not already added to the children.
     pub from_direct_ref: bool,
 }

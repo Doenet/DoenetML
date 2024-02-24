@@ -16,6 +16,9 @@ pub struct MathState {
     /// It is marked as a component profile state variable,
     /// which means this state variable will be used if a parent of a `<math>` component
     /// queries for children with the `Math` component profile.
+    ///
+    /// It is marked `default_prop`, which in combination with the component being marked `extend_via_default_prop`,
+    /// means the `value` prop will be used if a `<math>` is extended to another component type.
     #[is_public]
     #[component_profile_prop]
     #[default_prop]

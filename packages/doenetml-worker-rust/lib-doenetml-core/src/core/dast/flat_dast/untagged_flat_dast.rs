@@ -20,6 +20,9 @@ pub enum UntaggedContent {
     Ref(Index),
 }
 
+/// A designation of whether the source of `T`
+/// was from inside the `extend` attribute
+/// or was from a direct reference that was not inside the `extend` attribute.
 #[derive(Clone, Debug, Serialize)]
 pub enum Source<T> {
     Attribute(T),

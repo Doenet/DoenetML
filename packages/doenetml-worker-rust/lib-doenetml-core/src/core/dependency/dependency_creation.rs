@@ -142,7 +142,8 @@ pub fn create_dependencies_from_data_query_initialize_state(
 
             let mut dependencies = Vec::new();
 
-            // If extending from a prop that matches a profile. add that prop as a dependency
+            // If extending from a prop that matches a profile and was added as a direct ref,
+            // then add that prop as a dependency
             if let Some(Extending::Prop(prop_source)) =
                 components[component_idx].borrow().get_extending()
             {

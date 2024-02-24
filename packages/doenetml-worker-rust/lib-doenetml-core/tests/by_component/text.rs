@@ -47,7 +47,7 @@ fn texts_extending_text_values_concatenate_values() {
     // indices start at 1, as the document tag will be index 0.
     let text1_idx = 1;
     let text2_idx = 2;
-    let text3_idx = 4; // skip to index 4, as `$t1.value` becomes a component
+    let text3_idx = 3;
 
     assert_eq!(get_value_prop(text1_idx, &mut core), "One");
     assert_eq!(get_value_prop(text2_idx, &mut core), "OneTwo");
