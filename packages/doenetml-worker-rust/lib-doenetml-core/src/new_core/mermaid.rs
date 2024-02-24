@@ -167,6 +167,7 @@ impl Core {
     pub fn to_mermaid(&self) -> String {
         let mut mermaid = String::new();
         mermaid.push_str("graph TD;\n");
+        mermaid.push_str("classDef text color:red, stroke:red, fill:#fee\n");
         mermaid.push_str(&self.structure_graph.to_mermaid_edges());
 
         // `mermaid` contains just the edges of the structure graph
@@ -184,11 +185,12 @@ impl Core {
                     ));
                 }
                 GraphNode::Virtual(_) => {
-                    mermaid.push_str(&format!("{}([virtual])\n", graph_node.to_mermaid_id()));
+                    // These are all overridden with names, so no need to do anything here.
+                    //mermaid.push_str(&format!("{}([virtual])\n", graph_node.to_mermaid_id()));
                 }
                 GraphNode::String(idx) => {
                     mermaid.push_str(&format!(
-                        "{}[\"'{}'\"]\n",
+                        "{}[\"&quot;{}&quot;\"]:::text\n",
                         graph_node.to_mermaid_id(),
                         self.strings[*idx]
                     ));
@@ -244,6 +246,16 @@ impl Core {
                     component.get_attribute_names()[i]
                 ));
             }
+
+            // Props
+            let props_virtual_node = self
+                .structure_graph
+                .get_nth_child(&component_node, 2)
+                .unwrap();
+            mermaid.push_str(&format!(
+                "{}([props])\n",
+                props_virtual_node.to_mermaid_id()
+            ));
         }
 
         mermaid

@@ -7,7 +7,7 @@ use crate::{
         ComponentEnum,
         _error::_Error,
         _external::_External,
-        prelude::{KeyValueIgnoreCase, UntaggedContent},
+        prelude::{ComponentState, KeyValueIgnoreCase, UntaggedContent},
         ComponentAttributes, ComponentNode,
     },
     dast::flat_dast::{NormalizedNode, NormalizedRoot},
@@ -134,6 +134,22 @@ impl Core {
                     }
                     // XXX: This should be updated when we update the type of information `component` stores.
                     component.initialize(idx, None, None, unused_attributes, elm.position.clone());
+
+                    //
+                    // Add a virtual node for the props and attach all props to it
+                    //
+                    let graph_virtual_node = self.new_virtual_node();
+                    self.structure_graph.add_node(graph_virtual_node);
+                    self.structure_graph
+                        .add_edge(&graph_component_node, &graph_virtual_node);
+                    for _ in 0..component.get_num_props() {
+                        let prop_graph_node = GraphNode::Prop(self.props.len());
+                        // XXX: right now we don't do any caching or initialization of props, so we just push a placeholder
+                        self.props.push(());
+                        self.structure_graph.add_node(prop_graph_node);
+                        self.structure_graph
+                            .add_edge(&graph_virtual_node, &prop_graph_node);
+                    }
 
                     component
                 }
