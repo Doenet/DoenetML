@@ -307,6 +307,11 @@ export function PageViewer({
                 navigate(location.search + e.data.args.hash, {
                     replace: true,
                 });
+            } else if (e.data.messageType === "saveCreditForItem") {
+                window.postMessage({
+                    ...e.data,
+                    subject: "SPLICE.reportScoreAndState",
+                });
             } else if (e.data.messageType === "terminated") {
                 reinitializeCoreAndTerminateAnimations();
             }

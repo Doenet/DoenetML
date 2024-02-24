@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback } from "react";
 import { useDisclosure } from "@chakra-ui/react";
 
 import { useRecoilValue, useSetRecoilState } from "recoil";
@@ -11,29 +11,38 @@ import {
 
 import { ControlledVirtualKeyboard } from "./ControlledVirtualKeyboard";
 
+export function VirtualKeyboard() {
+    console.log("Render non-existant virtual keyboard");
+    return (<div></div>);
+}
+
 /**
  * Virtual keyboard that is connected via Recoil to math elements.
  */
-export function VirtualKeyboard() {
-    const callback = useRecoilValue(focusedMathField);
-    const returnCallback = useRecoilValue(focusedMathFieldReturn);
-    const setPalletRef = useSetRecoilState(palletRef);
+export function VirtualKeyboardOld() {
+    console.log("Render virtual keyboard, hopefully with no recoil?");
+    // const callback = useRecoilValue(focusedMathField);
+    const callback = useCallback(() => {}, []);
+    // const returnCallback = useRecoilValue(focusedMathFieldReturn);
+    // const setPalletRef = useSetRecoilState(palletRef);
 
-    const {
-        isOpen: keyboardIsOpen,
-        // onOpen: keyboardOnOpen,
-        onClose: keyboardOnClose,
-        onToggle: keyboardOnToggle,
-    } = useDisclosure();
+    const returnCallback = useCallback(() => {}, []);
+    const setPalletRef = useCallback(() => {}, []);
+    // const {
+    //     isOpen: keyboardIsOpen,
+    //     // onOpen: keyboardOnOpen,
+    //     onClose: keyboardOnClose,
+    //     onToggle: keyboardOnToggle,
+    // } = useDisclosure();
 
     return (
         <ControlledVirtualKeyboard
             callback={callback}
             returnCallback={returnCallback}
             setPalletRef={setPalletRef}
-            isOpen={keyboardIsOpen}
-            onClose={keyboardOnClose}
-            onToggle={keyboardOnToggle}
+            isOpen={true}
+            onClose={useCallback(() => {}, [])}
+            onToggle={useCallback(() => {}, [])}
         />
     );
 }

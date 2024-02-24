@@ -53,6 +53,7 @@ export default React.memo(function CodeEditor(props) {
 
     const onEditorChange = React.useCallback(
         (value: string) => {
+            console.log("onEditorChange");
             if (currentValue.current !== value) {
                 currentValue.current = value;
 
@@ -69,17 +70,17 @@ export default React.memo(function CodeEditor(props) {
                 });
 
                 // Debounce update value at 3 seconds
-                clearTimeout(updateValueTimer.current ?? undefined);
+                // clearTimeout(updateValueTimer.current ?? undefined);
 
-                //TODO: when you try to leave the page before it saved you will lose work
-                //so prompt the user on page leave
-                updateValueTimer.current = window.setTimeout(function () {
-                    callAction({
-                        action: actions.updateValue,
-                        baseVariableValue: currentValue.current,
-                    });
-                    updateValueTimer.current = null;
-                }, 3000); //3 seconds
+                // //TODO: when you try to leave the page before it saved you will lose work
+                // //so prompt the user on page leave
+                // updateValueTimer.current = window.setTimeout(function () {
+                //     callAction({
+                //         action: actions.updateValue,
+                //         baseVariableValue: currentValue.current,
+                //     });
+                //     updateValueTimer.current = null;
+                // }, 3000); //3 seconds
             }
         },
         [
@@ -110,45 +111,47 @@ export default React.memo(function CodeEditor(props) {
         return null;
     }
 
-    useEffect(() => {
-        let platform = "Linux";
-        if (navigator.platform.indexOf("Win") != -1) {
-            platform = "Win";
-        } else if (navigator.platform.indexOf("Mac") != -1) {
-            platform = "Mac";
-        }
-        const handleEditorKeyDown = (event: KeyboardEvent) => {
-            if (
-                (platform == "Mac" && event.metaKey && event.code === "KeyS") ||
-                (platform != "Mac" && event.ctrlKey && event.code === "KeyS")
-            ) {
-                event.preventDefault();
-                event.stopPropagation();
-                window.clearTimeout(updateValueTimer.current ?? undefined);
-                callAction({
-                    action: actions.updateValue,
-                    baseVariableValue: currentValue.current,
-                });
-                updateValueTimer.current = null;
-                callAction({ action: actions.updateComponents });
-            }
-        };
+    // useEffect(() => {
+    //     console.log("useEffect for save keyevents");
+    //     let platform = "Linux";
+    //     if (navigator.platform.indexOf("Win") != -1) {
+    //         platform = "Win";
+    //     } else if (navigator.platform.indexOf("Mac") != -1) {
+    //         platform = "Mac";
+    //     }
+    //     const handleEditorKeyDown = (event: KeyboardEvent) => {
+    //         console.log("handleEditorKeyDown - useEffect for save keyevents");
+    //         if (
+    //             (platform == "Mac" && event.metaKey && event.code === "KeyS") ||
+    //             (platform != "Mac" && event.ctrlKey && event.code === "KeyS")
+    //         ) {
+    //             event.preventDefault();
+    //             event.stopPropagation();
+    //             window.clearTimeout(updateValueTimer.current ?? undefined);
+    //             callAction({
+    //                 action: actions.updateValue,
+    //                 baseVariableValue: currentValue.current,
+    //             });
+    //             updateValueTimer.current = null;
+    //             callAction({ action: actions.updateComponents });
+    //         }
+    //     };
 
-        let codeEditorContainer = document.getElementById(id);
-        if (SVs.showResults) {
-            codeEditorContainer?.addEventListener(
-                "keydown",
-                handleEditorKeyDown,
-            );
-        }
+    //     let codeEditorContainer = document.getElementById(id);
+    //     if (SVs.showResults) {
+    //         codeEditorContainer?.addEventListener(
+    //             "keydown",
+    //             handleEditorKeyDown,
+    //         );
+    //     }
 
-        return () => {
-            codeEditorContainer?.removeEventListener(
-                "keydown",
-                handleEditorKeyDown,
-            );
-        };
-    }, [SVs.showResults]);
+    //     return () => {
+    //         codeEditorContainer?.removeEventListener(
+    //             "keydown",
+    //             handleEditorKeyDown,
+    //         );
+    //     };
+    // }, [SVs.showResults]);
 
     const editorKey = id + "_editor";
     const viewerKey = id + "_viewer";

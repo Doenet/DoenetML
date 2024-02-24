@@ -16,6 +16,7 @@ let coreBaseArgs = {};
 let initializeResult = {};
 
 globalThis.onmessage = function (e) {
+    console.log(e);
     if (e.data.messageType === "requestAction") {
         if (core?.initialized) {
             // setTimeout(() => core.requestAction(e.data.args), 1000)
