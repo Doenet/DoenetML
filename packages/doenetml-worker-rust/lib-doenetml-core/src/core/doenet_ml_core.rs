@@ -175,32 +175,24 @@ pub enum Extending {
     Component(ComponentIdx),
     // TODO: what about array props?
     /// The component is extending the prop of another component
-    Prop(ExtendProp),
+    Prop(PropSource),
 }
 
-/// Description of the shadowing of props
-/// when a component extends the prop of another component
 #[derive(Debug, Clone)]
-pub struct ExtendProp {
-    /// the component being extended
-    pub component_idx: ComponentIdx,
+pub struct PropSource {
+    /// The prop being extended
+    pub prop_pointer: PropPointer,
 
-    /// the matching of which props are shadowing which props
-    pub prop_matching: Vec<PropLink>,
-}
-
-/// Description of which prop is shadowing
-/// another prop when extending a component
-#[derive(Debug, Clone)]
-pub struct PropLink {
-    /// The prop with this index in the extending component
-    /// will match (shadow) the prop
-    /// from the component being extended
-    pub dest_idx: PropIdx,
-
-    /// The prop with this index in the component being extended
-    /// will be shadowed
-    pub source_idx: PropIdx,
+    /// If true, the source of the extending was due to a direct reference,
+    /// as opposed to being in an extend attribute.
+    ///
+    /// For example, given `<textInput name="i"/>`, a direct ref would be `$i.value` by itself,
+    /// unlike `<text extend="$i.value"/>`.
+    ///
+    /// If we are extending from a direct ref,
+    /// we need to add the referenced prop as a child in the `DataQuery::ChildPropProfile`,
+    /// because the prop was not already added to the children.
+    pub from_direct_ref: bool,
 }
 
 impl DoenetMLCore {

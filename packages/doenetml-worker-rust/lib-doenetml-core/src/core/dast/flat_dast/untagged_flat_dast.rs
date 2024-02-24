@@ -20,6 +20,9 @@ pub enum UntaggedContent {
     Ref(Index),
 }
 
+/// A designation of whether the source of `T`
+/// was from inside the `extend` attribute
+/// or was from a direct reference that was not inside the `extend` attribute.
 #[derive(Clone, Debug, Serialize)]
 pub enum Source<T> {
     Attribute(T),
@@ -27,7 +30,7 @@ pub enum Source<T> {
 }
 
 impl<T> Source<T> {
-    /// Recast `self` as `Self::Attribute`.
+    /// Recast `self` as `Self::Attribute`, indicating that it came from inside the `extend` attribute.
     pub fn as_attribute(self) -> Self {
         match self {
             Source::Attribute(_) => self,

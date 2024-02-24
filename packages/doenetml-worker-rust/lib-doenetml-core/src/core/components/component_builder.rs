@@ -4,7 +4,6 @@
 use std::{collections::HashMap, iter, str::FromStr};
 
 use anyhow::anyhow;
-use itertools::Itertools;
 
 use crate::{
     components::{prelude::ComponentState, ComponentAttributes, ComponentNode},
@@ -12,11 +11,12 @@ use crate::{
         flat_dast::{Index, NormalizedNode, NormalizedRoot, Source},
         ref_resolve::RefResolution,
     },
+    state::PropPointer,
     utils::KeyValueIgnoreCase,
-    ExtendProp, Extending, PropLink,
+    ComponentIdx, Extending, PropSource,
 };
 
-use super::{ComponentEnum, _error::_Error, _external::_External};
+use super::{ComponentEnum, _error::_Error, _external::_External, prelude::UntaggedContent};
 
 #[derive(Debug)]
 pub struct ComponentBuilder {
@@ -48,17 +48,26 @@ impl ComponentBuilder {
                 NormalizedNode::Element(elm) => elm,
                 _ => unreachable!(),
             };
-            let extending = elm.extending.clone().map(|e| e.take_resolution());
-            if extending.is_none() {
+            if elm.extending.is_none() {
                 continue;
             }
-            let ref_resolution = extending.unwrap();
-            let component = &builder.components[idx];
-            let referent = &builder.components[ref_resolution.node_idx];
 
-            match Self::determine_extending(&ref_resolution, component, referent) {
+            let ref_source = elm.extending.clone().unwrap();
+            let component = &builder.components[idx];
+            let referent = &builder.components[ref_source.idx()];
+
+            match Self::determine_extending(ref_source, component, referent) {
                 Ok(extending) => {
-                    builder.components[idx].set_extending(extending);
+                    builder.components[idx].set_extending(Some(extending));
+
+                    // Check if we are extending from prop where
+                    // the reference was inside the `extend` attribute.
+                    // In that case, prepend a child corresponding to that prop.
+                    let new_child = builder.create_implicit_child_from_extend_prop(idx);
+                    if let Some(new_child) = new_child {
+                        Self::prepend_child(&mut builder.components[idx], &new_child);
+                        builder.components.push(new_child);
+                    }
                 }
                 Err(err) => {
                     builder.components[idx] = ComponentEnum::_Error(_Error {
@@ -121,25 +130,30 @@ impl ComponentBuilder {
     }
 
     /// DoenetML coerces the type of `extending` to allow users to be sloppy with types.
-    /// For example
+    ///
+    /// The default behavior is to ignore the fact that the type changed,
+    /// and simply copy children and attributes in the same way as when the type didn't change.
+    ///
+    /// For example, with
+    /// ```xml
+    /// <text name="t">x</text><math extend="$t">y</math>
+    /// ```
+    /// the `<math>` extends the `<text>` by taking its child `x` and essentially becoming `<math>xy</math>`.
+    ///
+    /// The `<textInput>` component, however, set the `extend_via_default_prop` flag
+    /// and set its `default_prop` to be its `value` prop. Therefore,
     /// ```xml
     /// <textInput name="i" /><text extend="$i" />
     /// ```
-    /// would be coerced to
+    /// would be coerced to essentially becoming
     /// ```xml
     /// <textInput name="i" /><text extend="$i.value" />
     /// ```
-    /// since `$i.value` is of `Text` type, where `$i` is a `TextInput` type.
-    ///
-    /// This coercion is based on _component profiles_ based on the following algorithm:
-    ///  1. If the component tag name matches the referent's tag name, no coercion is done.
-    ///  2. If the tag names differ, a search is done for a prop on the referent that matches the preferred profile
-    ///     of the component.
     fn determine_extending(
-        ref_resolution: &RefResolution,
+        ref_source: Source<RefResolution>,
         component: &ComponentEnum,
         referent: &ComponentEnum,
-    ) -> Result<Option<Extending>, anyhow::Error> {
+    ) -> Result<Extending, anyhow::Error> {
         // If the referent is an error or external, we're immediately done.
         match referent {
             ComponentEnum::_Error(_) => {
@@ -155,6 +169,16 @@ impl ComponentBuilder {
             _ => {}
         }
 
+        // We need to keep track if the extension was from a direct ref
+        // because the children were already copied to the component if it came from an attribute,
+        // but not if it came from a direct ref.
+        let from_direct_ref = match ref_source {
+            Source::Attribute(..) => false,
+            Source::Ref(..) => true,
+        };
+
+        let ref_resolution = ref_source.take_resolution();
+
         // Handle the case where there is a remaining path
         if let Some(unresolved_path) = &ref_resolution.unresolved_path {
             if unresolved_path.len() != 1 {
@@ -164,87 +188,108 @@ impl ComponentBuilder {
                 return Err(anyhow!("Path indices not yet supported"));
             }
             let referenced_prop_name = &unresolved_path[0].name;
-            // Look to see if there is a prop with a matching name on `referent`
-            let referent_prop_idx =
-                referent.get_public_prop_index_from_name_case_insensitive(referenced_prop_name);
-            if referent_prop_idx.is_none() {
-                return Err(anyhow!(
+
+            // Look to see if there is a public prop with a matching name on `referent`
+            return match referent
+                .get_public_prop_index_from_name_case_insensitive(referenced_prop_name)
+            {
+                Some(referent_prop_idx) => Ok(Extending::Prop(PropSource {
+                    prop_pointer: PropPointer {
+                        component_idx: referent.get_idx(),
+                        prop_idx: referent_prop_idx,
+                    },
+                    from_direct_ref,
+                })),
+                None => Err(anyhow!(
                     "prop {} not found on component {}",
                     referenced_prop_name,
                     referent.get_component_type()
-                ));
-            }
-            let referent_prop_idx = referent_prop_idx.unwrap();
-            // We found a public prop that matched the remaining path.
-            let referent_prop = &referent.get_prop(referent_prop_idx).unwrap();
-
-            // This is the profile that the referent says it can provide.
-            let referent_prop_profile = referent_prop.get_matching_component_profile();
-
-            let extending = component.accepted_profiles().into_iter().find_map(
-                |(profile, component_prop_idx)| {
-                    if profile == referent_prop_profile {
-                        Some(Extending::Prop(ExtendProp {
-                            component_idx: referent.get_idx(),
-                            prop_matching: vec![PropLink {
-                                dest_idx: component_prop_idx,
-                                source_idx: referent_prop_idx,
-                            }],
-                        }))
-                    } else {
-                        None
-                    }
-                },
-            );
-            if extending.is_some() {
-                return Ok(extending);
-            } else {
-                return Err(anyhow!("No matching prop profile found"));
-            }
+                )),
+            };
         }
         // If we're here, there is no remaining path.
 
-        // If we are extending a component of the same name, then this is a "component extension",
+        // If we are extending a component of the same type,
+        // the component did not specify that it should extend via default prop,
+        // then this is a "component extension",
         // which is treated differently than extending by a prop.
-        if component.get_component_type() == referent.get_component_type() {
-            return Ok(Some(Extending::Component(referent.get_idx())));
-        }
-
-        // In this case, we know the referent, but we do not know what the _source_ prop
-        // is on `referent` and what the _dest_ prop is `component`. We do this by searching
-        // through the profiles `referent` provides and the profiles `component` accepts and look for a match.
-
-        let extending = component
-            .accepted_profiles()
-            .into_iter()
-            .cartesian_product(referent.provided_profiles())
-            .find_map(
-                |(
-                    (component_profile, component_prop_idx),
-                    (referent_profile, referent_prop_idx),
-                )| {
-                    if component_profile == referent_profile {
-                        Some(Extending::Prop(ExtendProp {
-                            component_idx: referent.get_idx(),
-                            prop_matching: vec![PropLink {
-                                dest_idx: component_prop_idx,
-                                source_idx: referent_prop_idx,
-                            }],
-                        }))
-                    } else {
-                        None
-                    }
-                },
-            );
-        if extending.is_some() {
-            Ok(extending)
+        if component.get_component_type() == referent.get_component_type()
+            || !referent.extend_via_default_prop()
+        {
+            Ok(Extending::Component(referent.get_idx()))
         } else {
-            Err(anyhow!(
-                "Cannot do <{} extend='$ref'/> where $ref is type `{}`",
-                component.get_component_type(),
-                referent.get_component_type()
-            ))
+            // Since we are extending a component to a different type via default prop,
+            // the component should have specified a default prop
+            match referent.get_default_prop() {
+                Some(default_prop) => Ok(Extending::Prop(PropSource {
+                    prop_pointer: PropPointer {
+                        component_idx: referent.get_idx(),
+                        prop_idx: default_prop,
+                    },
+                    from_direct_ref,
+                })),
+                None => Err(anyhow!(
+                    "Cannot extend {} via default prop because a default prop was not defined.",
+                    referent.get_component_type()
+                )),
+            }
         }
+    }
+
+    /// If component `component_idx` extended a prop using the `extend` attribute,
+    /// then create a child corresponding to that prop
+    /// that should be prepended to the children of the component.
+    ///
+    /// For example, if `<textInput name="i"/>`, then we create a child corresponding to `$i.value`
+    /// in the cases of `<text extend="$i.value>more text</text>` or `<p extend="$i.value">more text</p>`
+    /// but not in the case of text component from `$i.value` that occurs outside the `extend` attribute.
+    fn create_implicit_child_from_extend_prop(
+        &self,
+        component_idx: ComponentIdx,
+    ) -> Option<ComponentEnum> {
+        let component = &self.components[component_idx];
+        if let Some(Extending::Prop(prop_source)) = component.get_extending() {
+            if !prop_source.from_direct_ref {
+                // the `Extending` was due to specifying a prop inside the `extend` attribute
+
+                let prop_pointer = prop_source.prop_pointer;
+                let referent = &self.components[prop_pointer.component_idx];
+
+                // The creation of the new child mimics `create_component()`
+                // for the case where there is a remaining path corresponding to the prop
+                let new_component_type = referent
+                    .get_prop(prop_pointer.prop_idx)
+                    .unwrap()
+                    .preferred_component_type();
+
+                let mut new_child = ComponentEnum::from_str(new_component_type).unwrap();
+
+                new_child.initialize(
+                    self.components.len(),
+                    Some(component.get_idx()),
+                    Some(Extending::Prop(PropSource {
+                        prop_pointer,
+                        from_direct_ref: true,
+                    })),
+                    HashMap::new(),
+                    None,
+                );
+                Some(new_child)
+            } else {
+                None
+            }
+        } else {
+            None
+        }
+    }
+
+    /// Prepend `child` to the children of component `parent_idx`
+    /// and append `child` to the list of components.
+    fn prepend_child(parent: &mut ComponentEnum, child: &ComponentEnum) {
+        // prepend a reference to `child` to parent's children
+        let mut children = parent.take_children();
+        children.insert(0, UntaggedContent::Ref(child.get_idx()));
+        parent.set_children(children);
     }
 
     /// Create a component from `node`.
@@ -317,12 +362,13 @@ impl ComponentBuilder {
                         .map(|attr| (attr.name.clone(), attr.clone())),
                 );
 
-                let attributes: HashMap<&'static str, _> =
-                    HashMap::from_iter(component.get_attribute_names().iter().map(|&name| {
+                let attributes: HashMap<&'static str, _> = HashMap::from_iter(
+                    component.get_attribute_names().iter().filter_map(|&name| {
                         unused_attributes
                             .remove_ignore_case(name)
-                            .map_or_else(|| (name, Vec::new()), |v| (name, v.children))
-                    }));
+                            .map(|v| (name, v.children))
+                    }),
+                );
 
                 component.initialize(
                     elm.idx,
@@ -331,7 +377,7 @@ impl ComponentBuilder {
                     unused_attributes,
                     elm.position.clone(),
                 );
-                component.get_extending();
+
                 // The referenced children may not yet be created as components, but by the end of the loop
                 // they should all be created with the exact same indices as the `normalized_flat_dast` indices.
                 component.set_children(elm.children.clone());

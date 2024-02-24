@@ -42,7 +42,7 @@ pub enum TextInputAction {
 /// Definition of the `<textInput>` DoenetML component
 #[derive(Debug, Default, ComponentNode, ComponentState, RenderedChildren)]
 #[no_rendered_children]
-#[component(ref_transmutes_to = "Text")]
+#[component(ref_transmutes_to = "Text", extend_via_default_prop)]
 pub struct TextInput {
     /// The common component data needed to derive the `ComponentNode` trait
     pub common: ComponentCommonData,

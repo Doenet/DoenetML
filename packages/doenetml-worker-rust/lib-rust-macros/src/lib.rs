@@ -142,7 +142,7 @@ pub fn into_prop_enum_refs_derive_wrapper(input: TokenStream) -> TokenStream {
 ///   the fields of the struct will be selected.
 #[proc_macro_derive(
     ComponentState,
-    attributes(for_renderer, is_public, component_profile_prop)
+    attributes(for_renderer, is_public, component_profile_prop, default_prop)
 )]
 pub fn component_state_derive_wrapper(input: TokenStream) -> TokenStream {
     component_state_derive(input)

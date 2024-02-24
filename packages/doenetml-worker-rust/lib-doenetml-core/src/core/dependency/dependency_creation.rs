@@ -6,14 +6,14 @@ use crate::{
         ComponentEnum, ComponentNode, ComponentProfile,
     },
     state::prop_state::{create_state_data_for, InitialStateData, StateProp, StatePropDataOrigin},
-    ComponentIdx,
+    ComponentIdx, Extending,
 };
 
 use super::{
     dependency_creation_utils::{
-        create_dependency_from_extend_source_if_matches_profile,
-        get_attributes_with_parent_falling_back_to_extend_source,
-        get_children_with_parent_including_from_extend_source, get_component_extend_source_origin,
+        get_attribute_with_parent_falling_back_to_extend_source,
+        get_children_with_parent_including_from_extend_source,
+        get_same_type_component_extend_source_origin,
     },
     DataQuery, DependenciesCreatedForDataQuery, Dependency, DependencySource,
 };
@@ -33,7 +33,8 @@ pub fn create_dependencies_from_data_query_initialize_state(
         DataQuery::State => {
             // We recurse to extend source components so that this state data
             // is shared with the extend source of any other components that is extending from it.
-            let source_idx = get_component_extend_source_origin(components, component_idx);
+            let source_idx =
+                get_same_type_component_extend_source_origin(components, component_idx);
 
             let state_origin = StatePropDataOrigin::State(prop_idx);
 
@@ -131,43 +132,34 @@ pub fn create_dependencies_from_data_query_initialize_state(
             // that match a profile from match_profiles.
             // The dependency for each child will be a view of the matching prop.
 
-            /// Local enum to keep track of what children were found
-            /// before creating dependencies from this enum in the end.
-            /// Right now, it appears that the RelevantChild intermediate step is not needed,
-            /// as we could create dependencies from children as we encounter them.
-            /// However, the intermediate step will be needed when we parse math expressions
-            /// from children, so leave it in for now.
-            enum RelevantChild<'a> {
-                Prop {
-                    dependency: Dependency,
-                    _parent: ComponentIdx,
-                },
-                String {
-                    value: &'a String,
-                    parent: ComponentIdx,
-                },
-            }
-
-            let mut relevant_children: Vec<RelevantChild> = Vec::new();
-
             // We address two possible extend sources
-            // 1. If there is a prop extend source extending this prop,
+            // 1. If there is a prop extend source extending this prop that came from a direct ref,
             //    and that prop matches `match_profiles`, then the first dependency
             //    will be that prop.
+            //    (If the prop extend came from an extend attribute, then the prop was already added to children.)
             // 2. If, instead, there is a component extend source, then include the children
             //    from the extend source in the list of children (starting with extend source children)
 
             let mut dependencies = Vec::new();
 
-            // First check if there is a matching a prop extend source
-            match create_dependency_from_extend_source_if_matches_profile(
-                components[component_idx].borrow().get_extending(),
-                prop_idx,
-                match_profiles,
-                components,
-            ) {
-                Some(dependency) => dependencies.push(dependency),
-                None => (),
+            // If extending from a prop that matches a profile and was added as a direct ref,
+            // then add that prop as a dependency
+            if let Some(Extending::Prop(prop_source)) =
+                components[component_idx].borrow().get_extending()
+            {
+                if prop_source.from_direct_ref {
+                    let prop_pointer = prop_source.prop_pointer;
+                    let referent = components[prop_pointer.component_idx].borrow();
+                    let referent_prop = referent.get_prop(prop_pointer.prop_idx).unwrap();
+                    let referent_profile = referent_prop.get_matching_component_profile();
+
+                    if match_profiles.contains(&referent_profile) {
+                        dependencies.push(Dependency {
+                            source: prop_pointer.into(),
+                            value: referent_prop.create_new_read_only_view(),
+                        });
+                    }
+                }
             }
 
             // To address a potential component extend source, we get all children,
@@ -175,15 +167,19 @@ pub fn create_dependencies_from_data_query_initialize_state(
             let children_info =
                 get_children_with_parent_including_from_extend_source(components, component_idx);
 
+            // Stores how many string children added per parent.
+            // Use it to generate the index for the StatePropDataOrigin so it points to the right string child
+            let mut state_data_numbering: HashMap<ComponentIdx, usize> = HashMap::new();
+
             for child_info in children_info.iter() {
                 match child_info {
-                    (UntaggedContent::Ref(child_idx), parent_idx) => {
+                    (UntaggedContent::Ref(child_idx), _parent_idx) => {
                         let child = components[*child_idx].borrow();
 
                         // Iterate through all the child's component profile props
                         // to see if one matches matches_profile.
 
-                        let child_matches_with_prop = child
+                        child
                             .get_component_profile_prop_indices()
                             .into_iter()
                             .find_map(|prop_idx| {
@@ -191,93 +187,58 @@ pub fn create_dependencies_from_data_query_initialize_state(
                                 let child_profile = child_prop.get_matching_component_profile();
 
                                 if match_profiles.contains(&child_profile) {
-                                    Some((child_prop.create_new_read_only_view(), prop_idx))
+                                    dependencies.push(Dependency {
+                                        source: DependencySource::Prop {
+                                            component_idx: *child_idx,
+                                            prop_idx,
+                                        },
+                                        value: child_prop.create_new_read_only_view(),
+                                    });
+                                    Some(())
                                 } else {
                                     None
                                 }
                             });
-
-                        if let Some((prop_view, prop_idx)) = child_matches_with_prop {
-                            let prop_dep = Dependency {
-                                source: DependencySource::Prop {
-                                    component_idx: *child_idx,
-                                    prop_idx,
-                                },
-                                value: prop_view,
-                            };
-
-                            relevant_children.push(RelevantChild::Prop {
-                                dependency: prop_dep,
-                                _parent: *parent_idx,
-                            });
-                        }
                     }
                     (UntaggedContent::Text(string_value), parent_idx) => {
                         // Text children are just strings, and they just match the String or LiteralString profiles
                         if match_profiles.contains(&ComponentProfile::String)
                             || match_profiles.contains(&ComponentProfile::LiteralString)
                         {
-                            relevant_children.push(RelevantChild::String {
-                                value: string_value,
-                                parent: *parent_idx,
-                            });
-                        }
-                    }
-                }
-            }
+                            let parent_idx = *parent_idx;
 
-            // Stores how many string children added per parent.
-            // Use it to generate the index for the StatePropDataOrigin so it points to the right string child
-            let mut state_data_numbering: HashMap<ComponentIdx, usize> = HashMap::new();
+                            let index = state_data_numbering.entry(parent_idx).or_insert(0_usize);
 
-            for relevant_child in relevant_children {
-                match relevant_child {
-                    RelevantChild::Prop {
-                        dependency: child_dep,
-                        ..
-                    } => {
-                        dependencies.push(child_dep);
-                    }
+                            let state_origin = StatePropDataOrigin::StringChild(*index);
 
-                    // For string children, we create an state prop datum for them
-                    // so that they can be added to the dependency graph.
-                    RelevantChild::String {
-                        value: string_value,
-                        parent: actual_parent_idx,
-                    } => {
-                        let index = state_data_numbering
-                            .entry(actual_parent_idx)
-                            .or_insert(0_usize);
+                            let state_data_view = if let Some(current_view) =
+                                state_data[parent_idx].get(&state_origin)
+                            {
+                                current_view.create_new_read_only_view()
+                            } else {
+                                let value = PropValue::String(string_value.clone());
+                                let new_view = create_state_data_for(
+                                    parent_idx,
+                                    state_origin.clone(),
+                                    InitialStateData::Single {
+                                        value,
+                                        came_from_default: false,
+                                    },
+                                    state_data,
+                                );
+                                new_view.create_new_read_only_view()
+                            };
 
-                        let state_origin = StatePropDataOrigin::StringChild(*index);
-
-                        let state_data_view = if let Some(current_view) =
-                            state_data[actual_parent_idx].get(&state_origin)
-                        {
-                            current_view.create_new_read_only_view()
-                        } else {
-                            let value = PropValue::String(string_value.clone());
-                            let new_view = create_state_data_for(
-                                actual_parent_idx,
-                                state_origin.clone(),
-                                InitialStateData::Single {
-                                    value,
-                                    came_from_default: false,
+                            dependencies.push(Dependency {
+                                source: DependencySource::State {
+                                    component_idx: parent_idx,
+                                    origin: state_origin,
                                 },
-                                state_data,
-                            );
-                            new_view.create_new_read_only_view()
-                        };
+                                value: state_data_view,
+                            });
 
-                        dependencies.push(Dependency {
-                            source: DependencySource::State {
-                                component_idx: actual_parent_idx,
-                                origin: state_origin,
-                            },
-                            value: state_data_view,
-                        });
-
-                        *index += 1;
+                            *index += 1;
+                        }
                     }
                 }
             }
@@ -288,7 +249,8 @@ pub fn create_dependencies_from_data_query_initialize_state(
 
                 // For the state prop data origin, recurse to extend source components
                 // in order to share the state data with the extend source.
-                let source_idx = get_component_extend_source_origin(components, component_idx);
+                let source_idx =
+                    get_same_type_component_extend_source_origin(components, component_idx);
                 let state_origin = StatePropDataOrigin::ChildSubstitute(prop_idx);
 
                 let state_data_view = if let Some(current_view) =
@@ -344,29 +306,23 @@ pub fn create_dependencies_from_data_query_initialize_state(
         } => {
             let always_return_value = *always_return_value;
 
-            // Create a dependency from all attribute children
+            // Create a dependency from all attribute components
             // that match a profile from match_profiles.
             // The dependency for each child will be a view of the matching prop.
 
-            let (attributes, parent_idx) =
-                get_attributes_with_parent_falling_back_to_extend_source(
+            let (attribute_components, parent_idx) =
+                get_attribute_with_parent_falling_back_to_extend_source(
                     components,
                     component_idx,
                     attribute_name,
                 )
-                .unwrap_or_else(|| {
-                    panic!(
-                        "Invalid attribute {} for component of type {}",
-                        attribute_name,
-                        components[component_idx].borrow().get_component_type()
-                    );
-                });
+                .unwrap_or_else(|| (Vec::new(), component_idx));
 
             // Stores how many string children added.
             // Use it to generate the index for the StatePropDataOrigin so it points to the right string child
             let mut state_data_index = 0;
 
-            let mut dependencies: Vec<_> = attributes
+            let mut dependencies: Vec<_> = attribute_components
                 .iter()
                 .filter_map(|child| {
                     match child {
@@ -445,7 +401,8 @@ pub fn create_dependencies_from_data_query_initialize_state(
 
                 // For the state data origin, recurse to extend source components
                 // in order to share the state data with the extend source.
-                let source_idx = get_component_extend_source_origin(components, component_idx);
+                let source_idx =
+                    get_same_type_component_extend_source_origin(components, component_idx);
                 let state_origin =
                     StatePropDataOrigin::AttributeSubstitute(attribute_name, prop_idx);
 

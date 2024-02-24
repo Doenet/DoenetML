@@ -14,7 +14,7 @@ use crate::general_prop::{PropAlias, StringProp};
     RenderedChildren,
 )]
 #[no_rendered_children]
-#[component(when_extending(match_profile = "String", store_in = "value"))]
+#[component(extend_via_default_prop)]
 pub struct Text {
     /// The common component data needed to derive the `ComponentNode` trait
     pub common: ComponentCommonData,
@@ -35,9 +35,13 @@ pub struct TextState {
     /// It is marked as a component profile prop,
     /// which means this prop will be used if a parent of a `<text>` component
     /// queries for children with the `Text` component profile.
+    ///
+    /// It is marked `default_prop`, which in combination with the component being marked `extend_via_default_prop`,
+    /// means the `value` prop will be used if a `<text>` is extended to another component type.
     #[is_public]
     #[for_renderer]
     #[component_profile_prop]
+    #[default_prop]
     value: Prop<String>,
 
     /// An alias to the `value` prop.

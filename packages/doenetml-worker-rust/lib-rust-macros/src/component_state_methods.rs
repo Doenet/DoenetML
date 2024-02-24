@@ -51,13 +51,6 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
                                 self.state.get_prop_index_from_name(name)
                             }
 
-                            // fn get_prop_index_from_name_case_insensitive(
-                            //     &self,
-                            //     name: &str,
-                            // ) -> Option<PropIdx> {
-                            //     self.state.get_prop_index_from_name_case_insensitive(name)
-                            // }
-
                             fn get_component_profile_prop_indices(&self) -> Vec<PropIdx> {
                                 self.state.get_component_profile_prop_indices()
                             }
@@ -67,6 +60,10 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
                                 name: &str,
                             ) -> Option<PropIdx> {
                                 self.state.get_public_prop_index_from_name_case_insensitive(name)
+                            }
+
+                            fn get_default_prop(&self) -> Option<PropIdx> {
+                                self.state.get_default_prop()
                             }
 
                             fn get_for_renderer_prop_indices(&self) -> Vec<PropIdx> {
@@ -98,7 +95,6 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
                     let mut get_prop_arms = Vec::new();
                     let mut get_prop_mut_arms = Vec::new();
                     let mut get_prop_index_from_name_arms = Vec::new();
-                    // let mut get_prop_index_from_name_case_insensitive_arms = Vec::new();
                     let mut get_public_prop_index_from_name_case_insensitive_arms = Vec::new();
                     let mut get_component_profile_prop_indices_items = Vec::new();
                     let mut get_for_renderer_prop_indices_items = Vec::new();
@@ -110,6 +106,8 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
                     let mut get_prop_index_functions = Vec::new();
                     let mut get_value_data_query_functions = Vec::new();
                     let mut update_from_action_functions = Vec::new();
+
+                    let mut default_prop = None;
 
                     let renderer_props_name = format!("Rendered{}", structure_identity);
                     let rendered_props_identity =
@@ -128,10 +126,6 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
                             #field_camel_case => Some(#prop_idx),
                         });
 
-                        // get_prop_index_from_name_case_insensitive_arms.push(quote! {
-                        //     x if x.eq_ignore_ascii_case(#field_camel_case) => Some(#prop_idx),
-                        // });
-
                         if has_attribute(&named[prop_idx].attrs, "is_public") {
                             get_public_prop_index_from_name_case_insensitive_arms.push(quote! {
                                 x if x.eq_ignore_ascii_case(#field_camel_case) => Some(#prop_idx),
@@ -142,6 +136,13 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
                             get_component_profile_prop_indices_items.push(quote! {
                                 #prop_idx,
                             });
+                        }
+
+                        if has_attribute(&named[prop_idx].attrs, "default_prop") {
+                            if default_prop.is_some() {
+                                panic!("Cannot define default prop on more than one prop");
+                            }
+                            default_prop = Some(prop_idx);
                         }
 
                         if has_attribute(&named[prop_idx].attrs, "for_renderer") {
@@ -221,6 +222,11 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
                         });
                     }
 
+                    let default_prop_statement = match default_prop {
+                        Some(prop_idx) => quote!(Some(#prop_idx)),
+                        None => quote!(None),
+                    };
+
                     quote! {
                         impl ComponentState for #structure_identity {
 
@@ -250,16 +256,6 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
                                 }
                             }
 
-                            // fn get_prop_index_from_name_case_insensitive(
-                            //     &self,
-                            //     name: &str,
-                            // ) -> Option<PropIdx> {
-                            //     match name {
-                            //         #(#get_prop_index_from_name_case_insensitive_arms)*
-                            //         _ => None,
-                            //     }
-                            // }
-
                             fn get_public_prop_index_from_name_case_insensitive(
                                 &self,
                                 name: &str,
@@ -275,6 +271,11 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
                                     #(#get_component_profile_prop_indices_items)*
                                 ]
                             }
+
+                            fn get_default_prop(&self) -> Option<PropIdx> {
+                                #default_prop_statement
+                            }
+
 
                             fn get_for_renderer_prop_indices(&self) -> Vec<PropIdx> {
                                 vec![

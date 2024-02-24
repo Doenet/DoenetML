@@ -14,7 +14,7 @@ pub enum MathAttribute {
 /// Definition of the `<math>` DoenetML component
 #[derive(Debug, Default, ComponentNode, ComponentState, ComponentActions, RenderedChildren)]
 #[no_rendered_children]
-#[component(when_extending(match_profile = "Math", store_in = "value"))]
+#[component(extend_via_default_prop)]
 pub struct Math {
     /// The common component data needed to derive the `ComponentNode` trait
     pub common: ComponentCommonData,
