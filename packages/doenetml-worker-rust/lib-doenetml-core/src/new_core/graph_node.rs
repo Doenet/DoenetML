@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::graph::directed_graph::Taggable;
+use crate::graph::directed_graph::{DirectedGraph, Taggable};
 
 /// A node in `Core`'s `structure_graph` or `dependency_graph`. `GraphNode` don't store
 /// any data themselves, but serve as pointers to data that is stored by `Core`. This enables
@@ -66,5 +66,38 @@ impl<T: Clone> Taggable<GraphNode, T> for GraphNodeLookup<T> {
     }
     fn get_tag(&self, node: &GraphNode) -> Option<&T> {
         self.hash.get(node)
+    }
+}
+
+impl DirectedGraph<GraphNode, GraphNodeLookup<usize>> {
+    /// Get a list of `GraphNode`s corresponding to the requested
+    /// component's children.
+    ///
+    /// `node` must be a `GraphNode::Component`, otherwise this function will
+    /// panic.
+    pub fn get_component_children(&self, node: GraphNode) -> Vec<GraphNode> {
+        assert!(
+            matches!(node, GraphNode::Component(_)),
+            "Expected a GraphNode::Component"
+        );
+        let children_virtual_node = self
+            .get_nth_child(&node, 0)
+            .expect("A component node should always have children in the structure graph");
+        self.get_children(&children_virtual_node)
+    }
+
+    /// Get a list of `GraphNode`s corresponding to the requested
+    /// component's attributes. Each node will be a `GraphNode::Virtual` and
+    /// the children of each virtual node will be the content of the attribute.
+    /// The order is the same as that returned by `Component::get_attribute_names()`.
+    pub fn get_component_attributes(&self, node: GraphNode) -> Vec<GraphNode> {
+        assert!(
+            matches!(node, GraphNode::Component(_)),
+            "Expected a GraphNode::Component"
+        );
+        let attributes_virtual_node = self
+            .get_nth_child(&node, 1)
+            .expect("A component node should always have attributes in the structure graph");
+        self.get_children(&attributes_virtual_node)
     }
 }

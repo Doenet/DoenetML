@@ -1,9 +1,15 @@
 //! A version of `Core` based on `DirectedGraph`
 
-use std::str::FromStr;
+use std::{collections::HashMap, str::FromStr};
 
 use crate::{
-    components::{ComponentEnum, _error::_Error, _external::_External, prelude::UntaggedContent},
+    components::{
+        ComponentEnum,
+        _error::_Error,
+        _external::_External,
+        prelude::{KeyValueIgnoreCase, UntaggedContent},
+        ComponentAttributes, ComponentNode,
+    },
     dast::flat_dast::{NormalizedNode, NormalizedRoot},
     graph::directed_graph::DirectedGraph,
 };
@@ -83,32 +89,51 @@ impl Core {
             self.structure_graph.add_node(graph_component_node);
             let component = match node {
                 NormalizedNode::Element(elm) => {
-                    let component = ComponentEnum::from_str(&elm.name).unwrap_or_else(|_| {
+                    let mut component = ComponentEnum::from_str(&elm.name).unwrap_or_else(|_| {
                         // If we didn't find a match, then create a component of type external
                         ComponentEnum::_External(_External {
                             name: elm.name.clone(),
                             ..Default::default()
                         })
                     });
+
+                    //
                     // Add a virtual node for the children and attach all children to it
+                    //
                     let graph_virtual_node = self.new_virtual_node();
                     self.structure_graph.add_node(graph_virtual_node);
                     self.structure_graph
                         .add_edge(&graph_component_node, &graph_virtual_node);
-                    for child in &elm.children {
-                        match child {
-                            UntaggedContent::Ref(r) => {
-                                self.structure_graph
-                                    .add_edge(&graph_virtual_node, &GraphNode::Component(*r));
-                            }
-                            UntaggedContent::Text(text) => {
-                                let graph_string_node = self.new_string_node(text.clone());
-                                self.structure_graph.add_node(graph_string_node);
-                                self.structure_graph
-                                    .add_edge(&graph_virtual_node, &graph_string_node);
-                            }
-                        }
+                    self.add_content_to_structure_graph(graph_virtual_node, &elm.children);
+
+                    //
+                    // Add a virtual node for the attributes and attach all attributes to it
+                    //
+                    let graph_virtual_node = self.new_virtual_node();
+                    self.structure_graph.add_node(graph_virtual_node);
+                    self.structure_graph
+                        .add_edge(&graph_component_node, &graph_virtual_node);
+                    // These are the unused attributes that are not recognized by the component
+                    let mut unused_attributes = HashMap::<String, _>::from_iter(
+                        elm.attributes
+                            .iter()
+                            .map(|attr| (attr.name.clone(), attr.clone())),
+                    );
+
+                    for attr_name in component.get_attribute_names() {
+                        // Each attribute's content is stored in a virtual node
+                        let attr_virtual_node = self.new_virtual_node();
+                        self.structure_graph.add_node(attr_virtual_node);
+                        self.structure_graph
+                            .add_edge(&graph_virtual_node, &attr_virtual_node);
+
+                        let attr_content = unused_attributes
+                            .remove_ignore_case(attr_name)
+                            .map_or_else(Vec::new, |v| v.children);
+                        self.add_content_to_structure_graph(attr_virtual_node, &attr_content);
                     }
+                    // XXX: This should be updated when we update the type of information `component` stores.
+                    component.initialize(idx, None, None, unused_attributes, elm.position.clone());
 
                     component
                 }
@@ -119,6 +144,24 @@ impl Core {
                 }
             };
             self.components.push(component);
+        }
+    }
+
+    /// Add every node in `content` as a child node of `parent` in `structure_graph`.
+    /// If `content` contains string children, they are added to `self.strings`.
+    fn add_content_to_structure_graph(&mut self, parent: GraphNode, content: &[UntaggedContent]) {
+        for child in content {
+            match child {
+                UntaggedContent::Ref(r) => {
+                    self.structure_graph
+                        .add_edge(&parent, &GraphNode::Component(*r));
+                }
+                UntaggedContent::Text(text) => {
+                    let graph_string_node = self.new_string_node(text.clone());
+                    self.structure_graph.add_node(graph_string_node);
+                    self.structure_graph.add_edge(&parent, &graph_string_node);
+                }
+            }
         }
     }
 }

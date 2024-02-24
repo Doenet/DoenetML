@@ -1,7 +1,7 @@
 //! Utilities for generating `mermaid` diagrams from `doenetml` data.
 
 use crate::{
-    components::{prelude::UntaggedContent, ComponentNode},
+    components::{prelude::UntaggedContent, ComponentAttributes, ComponentEnum, ComponentNode},
     dast::flat_dast::{NormalizedNode, NormalizedRoot},
     graph::directed_graph::DirectedGraph,
 };
@@ -149,7 +149,7 @@ impl DirectedGraph<GraphNode, GraphNodeLookup<usize>> {
     pub fn to_mermaid_edges(&self) -> String {
         let mut mermaid = String::new();
         let nodes = self.get_nodes();
-        for (head, tails) in self.get_edges_raw().iter().enumerate() {
+        for (head, tails) in self._get_edges_raw().iter().enumerate() {
             for &tail in tails {
                 mermaid.push_str(&format!(
                     "{} --> {}\n",
@@ -194,6 +194,55 @@ impl Core {
                     ));
                 }
                 _ => {}
+            }
+        }
+
+        // Some virtual nodes have special names. For example the 1st virtual
+        // node of a component is the children of that component. The 2nd is the attributes.
+        // We want to label these nodes appropriately.
+        for &component_node in self
+            .structure_graph
+            .get_nodes()
+            .iter()
+            .filter(|n| matches!(n, GraphNode::Component(_)))
+        {
+            let component_idx = match component_node {
+                GraphNode::Component(idx) => idx,
+                _ => unreachable!(),
+            };
+            let component = &self.components[component_idx];
+            // Children
+            let children_virtual_node = self
+                .structure_graph
+                .get_nth_child(&component_node, 0)
+                .unwrap();
+            mermaid.push_str(&format!(
+                "{}([children])\n",
+                children_virtual_node.to_mermaid_id()
+            ));
+
+            // Attrs
+            let attrs_virtual_node = self
+                .structure_graph
+                .get_nth_child(&component_node, 1)
+                .unwrap();
+            mermaid.push_str(&format!(
+                "{}([attrs])\n",
+                attrs_virtual_node.to_mermaid_id()
+            ));
+
+            // Label the individual attributes
+            for (i, attr_virtual_node) in self
+                .structure_graph
+                .get_component_attributes(component_node)
+                .iter()
+                .enumerate()
+            {
+                mermaid.push_str(&format!(
+                    "{}([\"@{}\"])\n",
+                    attr_virtual_node.to_mermaid_id(),
+                    component.get_attribute_names()[i]
+                ));
             }
         }
 

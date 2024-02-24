@@ -30,7 +30,7 @@ fn test_normalized_root_to_mermaid() {
 #[test]
 fn test_core() {
     let dast_root = dast_root_no_position(
-        r#"<text case="upper" name="t"><text name="t2">hello</text> World!</text><text case="lower" name="t3">$t</text>"#,
+        r#"<textInput prefill="hi" name="t"><text name="t2">hello</text> World!</textInput><text case="lower" name="t3">$t</text>"#,
     );
     let mut flat_root = FlatRoot::from_dast(&dast_root);
     Expander::expand(&mut flat_root);

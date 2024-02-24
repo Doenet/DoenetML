@@ -43,16 +43,16 @@ impl<Node: Clone + Debug, IndexLookup: Taggable<Node, usize>> DirectedGraph<Node
     /// Get a slice of `self.edges`. Note values listed in the edges array are internal indices.
     /// `self.nodes` must be used to look up the node for each index.
     ///
-    /// Only use this function if you know what you're doing.
-    pub fn get_edges_raw(&self) -> &Vec<Vec<usize>> {
+    /// **For internal use**. Only use this function if you know what you're doing.
+    pub(crate) fn _get_edges_raw(&self) -> &Vec<Vec<usize>> {
         &self.edges
     }
 
     /// Get a slice of `self.edges`. Note values listed in the edges array are internal indices.
     /// `self.nodes` must be used to look up the node for each index.
     ///
-    /// Only use this function if you know what you're doing.
-    pub fn get_reverse_edges_raw(&self) -> &Vec<Vec<usize>> {
+    /// **For internal use**. Only use this function if you know what you're doing.
+    pub(crate) fn _get_reverse_edges_raw(&self) -> &Vec<Vec<usize>> {
         &self.reverse_edges
     }
 
@@ -85,6 +85,21 @@ impl<Node: Clone + Debug, IndexLookup: Taggable<Node, usize>> DirectedGraph<Node
             .unwrap_or_else(|| self.add_node(to.clone()));
         self.edges[from_index].push(to_index);
         self.reverse_edges[to_index].push(from_index);
+    }
+
+    /// Returns the immediate children of `node`.
+    pub fn get_children(&self, node: &Node) -> Vec<Node> {
+        let &index = self.index_lookup.get_tag(node).unwrap();
+        self.edges[index]
+            .iter()
+            .map(|&i| self.nodes[i].clone())
+            .collect()
+    }
+
+    /// Returns the `n`th child of `node`. `n` is 0-indexed.
+    pub fn get_nth_child(&self, node: &Node, n: usize) -> Option<Node> {
+        let &index = self.index_lookup.get_tag(node).unwrap();
+        self.edges[index].get(n).map(|&i| self.nodes[i].clone())
     }
 
     /// Walk through all nodes that have `node` as an ancestor. Nodes are walked in _topological_ order.
