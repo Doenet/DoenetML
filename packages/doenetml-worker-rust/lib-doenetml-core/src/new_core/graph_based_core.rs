@@ -162,7 +162,7 @@ impl Core {
 
                     //
                     // Add a virtual node for the props and attach all props to it
-                    //
+                    // **MUST** be the **third** child of `graph_component_node`
                     //
                     let graph_virtual_node = self.new_virtual_node();
                     self.structure_graph.add_node(graph_virtual_node);
