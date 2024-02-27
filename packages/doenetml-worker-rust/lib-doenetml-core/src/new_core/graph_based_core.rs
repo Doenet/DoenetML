@@ -481,9 +481,19 @@ impl Core {
             self.structure_graph
                 .add_edge(&graph_virtual_node, &attr_virtual_node);
 
-            let attr_content = unused_attributes
+            let attr_content =
+                unused_attributes
                 .remove_ignore_case(attr_name)
-                .map_or_else(Vec::new, |v| v.children);
+                    .map_or_else(Vec::new, |v| {
+                        if v.children.is_empty() {
+                            // if an attribute was supplied by given no content,
+                            // then make it the same as giving it a empty string
+                            // (e.g., `<textInput hide/>` should be the same as `<textInput hide=""/>`)
+                            vec![UntaggedContent::Text("".to_string())]
+                        } else {
+                            v.children
+                        }
+                    });
             self.add_content_to_structure_graph(attr_virtual_node, &attr_content);
         }
 
