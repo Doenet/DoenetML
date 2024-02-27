@@ -414,7 +414,7 @@ impl Core {
                 component.set_idx(elm.idx);
 
                 let unused_attributes = self.add_component_to_structure_graph(
-                    &mut component,
+                    &component,
                     &elm.children,
                     &elm.attributes,
                 );
