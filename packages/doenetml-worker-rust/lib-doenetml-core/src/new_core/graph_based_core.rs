@@ -123,7 +123,11 @@ impl Core {
                             if let Some(new_child) = new_child {
                                 let new_child_idx = new_child.get_idx();
                                 self.add_component_to_structure_graph(&new_child, &[], &[]);
-                                self.prepend_child_to_structure_graph(idx, new_child_idx);
+
+                                self.prepend_component_child(
+                                    GraphNode::Component(idx),
+                                    GraphNode::Component(new_child_idx),
+                                );
                                 self.components.push(new_child);
 
                                 // For the new child, we mark the `prop_source` with `from_direct_ref`,
@@ -442,10 +446,6 @@ impl Core {
         children: &[UntaggedContent],
         attributes: &[FlatAttribute],
     ) -> HashMap<String, FlatAttribute> {
-        println!(
-            "adding component {} to structure graph",
-            component.get_idx()
-        );
         let graph_component_node = GraphNode::Component(component.get_idx());
         self.structure_graph.add_node(graph_component_node);
 
@@ -483,7 +483,7 @@ impl Core {
 
             let attr_content =
                 unused_attributes
-                .remove_ignore_case(attr_name)
+                    .remove_ignore_case(attr_name)
                     .map_or_else(Vec::new, |v| {
                         if v.children.is_empty() {
                             // if an attribute was supplied by given no content,
@@ -537,24 +537,24 @@ impl Core {
         }
     }
 
-    /// Add component `child_idx` as the first child of `parent_idx`.
-    fn prepend_child_to_structure_graph(
-        &mut self,
-        parent_idx: ComponentIdx,
-        child_idx: ComponentIdx,
-    ) {
-        let parent_node = GraphNode::Component(parent_idx);
-        let child_node = GraphNode::Component(child_idx);
-
-        let children_virtual_node = self.structure_graph.get_nth_child(&parent_node, 0).unwrap();
+    /// Add component `child_node` as the first child of `parent_node`.
+    fn prepend_component_child(&mut self, parent_node: GraphNode, child_node: GraphNode) {
+        let children_virtual_node = self
+            .structure_graph
+            .get_component_child_virtual_node(parent_node);
         self.structure_graph
             .prepend_edge(&children_virtual_node, &child_node);
     }
 
-    /// Add to `structure_graph` the relationships from component `component_idx` extending component `referent_idx`.
+    /// Add to `structure_graph` the relationships from when a component extends another component,
+    /// such as when, in `<text name="t">hello</text><text extend="$t"> world</text>`,
+    /// the second `<text>` extends the first.
+    ///
+    /// Designating the component of `component_idx` as `component` and the component of `referent_idx` as `referent`,
+    /// the following relationships are formed when `component` extends `referent`:
     /// - The children of `referent` become the first children of `component` (i.e., become _virtual children_)
     /// - Attributes of `referent` that match attributes of `component` become backup attributes of `component`,
-    ///   (i.e., become _virtual_attributes_)
+    ///   (i.e., become _virtual attributes_)
     /// - If the component types of `component` and `referent` are the same,
     ///   then state props of `referent` are used for the state props of `component`
     fn add_component_extending_structure(
@@ -569,12 +569,10 @@ impl Core {
         // so that `referent`'s children will be the first children of `component`.
         let component_children_virtual_node = self
             .structure_graph
-            .get_nth_child(&component_node, 0)
-            .unwrap();
+            .get_component_child_virtual_node(component_node);
         let referent_children_virtual_node = self
             .structure_graph
-            .get_nth_child(&referent_node, 0)
-            .unwrap();
+            .get_component_child_virtual_node(referent_node);
         self.structure_graph.prepend_edge(
             &component_children_virtual_node,
             &referent_children_virtual_node,
@@ -585,34 +583,25 @@ impl Core {
         // so that they will be used as a fallback if component doesn't have those attributes.
 
         // TODO: we could check if attributes of `component` were specified and then omit the dependency.
-        let component_attributes_virtual_node = self
+        let component_attributes = self
             .structure_graph
-            .get_nth_child(&component_node, 1)
-            .unwrap();
-        let referent_attributes_virtual_node = self
-            .structure_graph
-            .get_nth_child(&referent_node, 1)
-            .unwrap();
+            .get_component_attributes(component_node);
+        let referent_attributes = self.structure_graph.get_component_attributes(referent_node);
 
-        let referent_attributes = self.components[referent_idx].get_attribute_names();
+        let referent_attribute_names = self.components[referent_idx].get_attribute_names();
 
         for (attr_idx, attr_name) in self.components[component_idx]
             .get_attribute_names()
             .into_iter()
             .enumerate()
         {
-            if let Some(ref_attr_idx) = referent_attributes.iter().position(|a| *a == attr_name) {
+            if let Some(ref_attr_idx) = referent_attribute_names
+                .iter()
+                .position(|a| *a == attr_name)
+            {
                 // found a matching attribute. Add a link to the attributes
-                let comp_attr = self
-                    .structure_graph
-                    .get_nth_child(&component_attributes_virtual_node, attr_idx)
-                    .unwrap();
-
-                let ref_attr = self
-                    .structure_graph
-                    .get_nth_child(&referent_attributes_virtual_node, ref_attr_idx)
-                    .unwrap();
-
+                let comp_attr = component_attributes[attr_idx];
+                let ref_attr = referent_attributes[ref_attr_idx];
                 self.structure_graph.add_edge(&comp_attr, &ref_attr);
             }
         }
@@ -624,40 +613,38 @@ impl Core {
             // of the prop from `component`.
             // This dependency indicates that any state props requested by each prop of `component`
             // should be the corresponding state prop of `referent`.
-            let component_props_virtual_node = self
-                .structure_graph
-                .get_nth_child(&component_node, 2)
-                .unwrap();
-            let referent_props_virtual_node = self
-                .structure_graph
-                .get_nth_child(&referent_node, 2)
-                .unwrap();
+
+            let component_props = self.structure_graph.get_component_props(component_node);
+            let referent_props = self.structure_graph.get_component_props(referent_node);
 
             for prop_idx in 0..self.components[component_idx].get_num_props() {
-                let comp_prop = self
-                    .structure_graph
-                    .get_nth_child(&component_props_virtual_node, prop_idx)
-                    .unwrap();
-
-                let ref_prop = self
-                    .structure_graph
-                    .get_nth_child(&referent_props_virtual_node, prop_idx)
-                    .unwrap();
+                let comp_prop = component_props[prop_idx];
+                let ref_prop = referent_props[prop_idx];
 
                 self.structure_graph.add_edge(&comp_prop, &ref_prop);
             }
         }
     }
 
-    /// Add to `structure_graph` the relationships from component `component_idx` extending the prop from `prop_source`.
-    /// If `referent` is the component of `prop_source` and `prop` is its prop, then
+    /// Add to `structure_graph` the relationships from a component extending the prop of another component,
+    /// such as when, in `<textInput name="i"/>$i.value`,
+    /// the reference `$i.value` becomes a `<text>` that is extending the value prop of the `<textInput>`.
+    ///
+    /// Designating the component of `component_idx` as `component`,
+    /// the component of `prop_source` as `referent`,
+    /// and the prop of `prop_source` as `prop`,
+    /// the following relationships are formed when `component` extends `prop` of `referent`:
     /// - Attributes of `referent` that match attributes of `component` become backup attributes of `component`,
     ///   (i.e., become _virtual_attributes_)
     /// - If `prop_source` is marked `from_direct_ref`, i.e., it came from a reference outside the `extend` attribute,
+    ///   such as in the above example,
     ///   then make `prop` of `referent` be the first child of `component`.
     ///
-    /// Note: if `prop_source` is not marked `from_direct_ref`, then an implicit child will have been added outside this function,
-    /// so no child is added.
+    /// Note: if `prop_source` is not marked `from_direct_ref`,
+    /// then it came from a reference inside the `extend` attribute,
+    /// such as in `<textInput name="i"/><text extend="$i.value"/>`.
+    /// In this case, an implicit child (corresponding to `$i.value` in the example)
+    /// will have been already been added so no additional child is needed.
     fn add_prop_extending_structure(
         &mut self,
         component_idx: ComponentIdx,
@@ -668,34 +655,25 @@ impl Core {
         let component_node = GraphNode::Component(component_idx);
         let referent_node = GraphNode::Component(referent_idx);
 
-        let component_attributes_virtual_node = self
+        let component_attributes = self
             .structure_graph
-            .get_nth_child(&component_node, 1)
-            .unwrap();
-        let referent_attributes_virtual_node = self
-            .structure_graph
-            .get_nth_child(&referent_node, 1)
-            .unwrap();
+            .get_component_attributes(component_node);
+        let referent_attributes = self.structure_graph.get_component_attributes(referent_node);
 
-        let referent_attributes = self.components[referent_idx].get_attribute_names();
+        let referent_attributes_names = self.components[referent_idx].get_attribute_names();
 
         for (attr_idx, attr_name) in self.components[component_idx]
             .get_attribute_names()
             .into_iter()
             .enumerate()
         {
-            if let Some(ref_attr_idx) = referent_attributes.iter().position(|a| *a == attr_name) {
+            if let Some(ref_attr_idx) = referent_attributes_names
+                .iter()
+                .position(|a| *a == attr_name)
+            {
                 // found a matching attribute. Add a link to the attributes
-                let comp_attr = self
-                    .structure_graph
-                    .get_nth_child(&component_attributes_virtual_node, attr_idx)
-                    .unwrap();
-
-                let ref_attr = self
-                    .structure_graph
-                    .get_nth_child(&referent_attributes_virtual_node, ref_attr_idx)
-                    .unwrap();
-
+                let comp_attr = component_attributes[attr_idx];
+                let ref_attr = referent_attributes[ref_attr_idx];
                 self.structure_graph.add_edge(&comp_attr, &ref_attr);
             }
         }
@@ -703,21 +681,10 @@ impl Core {
         if prop_source.from_direct_ref {
             let component_children_virtual_node = self
                 .structure_graph
-                .get_nth_child(&component_node, 0)
-                .unwrap();
+                .get_component_child_virtual_node(component_node);
 
-            let referent_props_virtual_node = self
-                .structure_graph
-                .get_nth_child(&referent_node, 2)
-                .unwrap();
-
-            let referent_prop_node = self
-                .structure_graph
-                .get_nth_child(
-                    &referent_props_virtual_node,
-                    prop_source.prop_pointer.prop_idx,
-                )
-                .unwrap();
+            let referent_prop_node = self.structure_graph.get_component_props(referent_node)
+                [prop_source.prop_pointer.prop_idx];
 
             self.structure_graph
                 .prepend_edge(&component_children_virtual_node, &referent_prop_node);
