@@ -113,6 +113,8 @@ pub struct ComponentCommonData {
 pub trait ComponentNode: ComponentState {
     /// Get the index of the component, which is its index in the `components` vector of `DoenetMLCore`.
     fn get_idx(&self) -> ComponentIdx;
+    /// Get the index of the component, which is its index in the `components` vector of `DoenetMLCore`.
+    fn set_idx(&mut self, idx: ComponentIdx);
     /// Get the index of the parent node
     fn get_parent(&self) -> Option<ComponentIdx>;
     /// Get the vector containing the indices of all child component nodes and the literal string children.
@@ -128,7 +130,6 @@ pub trait ComponentNode: ComponentState {
     /// which assigns values based on the Default trait
     fn initialize(
         &mut self,
-        idx: ComponentIdx,
         parent: Option<ComponentIdx>,
         extending: Option<Extending>,
         unrecognized_attributes: HashMap<String, FlatAttribute>,

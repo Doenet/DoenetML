@@ -74,8 +74,8 @@ impl ComponentBuilder {
                         message: format!("Error while extending: {}", err),
                         ..Default::default()
                     });
+                    builder.components[idx].set_idx(elm.idx);
                     builder.components[idx].initialize(
-                        elm.idx,
                         elm.parent,
                         None,
                         HashMap::new(),
@@ -264,8 +264,9 @@ impl ComponentBuilder {
 
                 let mut new_child = ComponentEnum::from_str(new_component_type).unwrap();
 
+                new_child.set_idx(self.components.len());
+
                 new_child.initialize(
-                    self.components.len(),
                     Some(component.get_idx()),
                     Some(Extending::Prop(PropSource {
                         prop_pointer,
@@ -370,13 +371,9 @@ impl ComponentBuilder {
                     }),
                 );
 
-                component.initialize(
-                    elm.idx,
-                    elm.parent,
-                    None,
-                    unused_attributes,
-                    elm.position.clone(),
-                );
+                component.set_idx(elm.idx);
+
+                component.initialize(elm.parent, None, unused_attributes, elm.position.clone());
 
                 // The referenced children may not yet be created as components, but by the end of the loop
                 // they should all be created with the exact same indices as the `normalized_flat_dast` indices.
@@ -387,7 +384,8 @@ impl ComponentBuilder {
             NormalizedNode::Error(e) => {
                 let mut error = _Error::new();
                 error.message = e.message.clone();
-                error.initialize(e.idx, e.parent, None, HashMap::new(), e.position.clone());
+                error.set_idx(e.idx);
+                error.initialize(e.parent, None, HashMap::new(), e.position.clone());
                 ComponentEnum::_Error(error)
             }
         };

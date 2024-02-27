@@ -1,7 +1,7 @@
 //! Utilities for generating `mermaid` diagrams from `doenetml` data.
 
 use crate::{
-    components::{prelude::UntaggedContent, ComponentAttributes, ComponentEnum, ComponentNode},
+    components::{prelude::UntaggedContent, ComponentAttributes, ComponentNode},
     dast::flat_dast::{NormalizedNode, NormalizedRoot},
     graph::directed_graph::DirectedGraph,
 };
