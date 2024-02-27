@@ -691,3 +691,7 @@ impl Core {
         }
     }
 }
+
+#[cfg(test)]
+#[path = "graph_based_core.test.rs"]
+mod test;
