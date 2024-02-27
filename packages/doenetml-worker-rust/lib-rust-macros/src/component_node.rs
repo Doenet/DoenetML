@@ -50,6 +50,9 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                     fn get_idx(&self) -> ComponentIdx {
                         self.common.idx
                     }
+                    fn set_idx(&mut self, idx: ComponentIdx) {
+                        self.common.idx = idx
+                    }
                     fn get_parent(&self) -> Option<ComponentIdx> {
                         self.common.parent
                     }
@@ -64,13 +67,11 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                     }
                     fn initialize(
                         &mut self,
-                        idx: ComponentIdx,
                         parent: Option<ComponentIdx>,
                         extending: Option<Extending>,
                         unrecognized_attributes: HashMap<String, FlatAttribute>,
                         position: Option<DastPosition>,
                     ) {
-                        self.common.idx = idx;
                         self.common.parent = parent;
                         self.common.extending = extending;
                         self.common.position = position;

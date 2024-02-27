@@ -87,6 +87,23 @@ impl<Node: Clone + Debug, IndexLookup: Taggable<Node, usize>> DirectedGraph<Node
         self.reverse_edges[to_index].push(from_index);
     }
 
+    /// Set an edge between two nodes as the first edge of the first node.
+    /// If the nodes do not exist, they are added to the graph.
+    pub fn prepend_edge(&mut self, from: &Node, to: &Node) {
+        let from_index = self
+            .index_lookup
+            .get_tag(from)
+            .cloned()
+            .unwrap_or_else(|| self.add_node(from.clone()));
+        let to_index = self
+            .index_lookup
+            .get_tag(to)
+            .cloned()
+            .unwrap_or_else(|| self.add_node(to.clone()));
+        self.edges[from_index].insert(0, to_index);
+        self.reverse_edges[to_index].push(from_index);
+    }
+
     /// Returns the immediate children of `node`.
     pub fn get_children(&self, node: &Node) -> Vec<Node> {
         let &index = self.index_lookup.get_tag(node).unwrap();

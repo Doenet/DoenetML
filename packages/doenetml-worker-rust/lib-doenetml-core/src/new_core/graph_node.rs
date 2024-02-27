@@ -86,6 +86,19 @@ impl DirectedGraph<GraphNode, GraphNodeLookup<usize>> {
         self.get_children(&children_virtual_node)
     }
 
+    /// Get's the virtual node that contains the requested component's children.
+    ///
+    /// `node` must be a `GraphNode::Component`, otherwise this function will
+    /// panic.
+    pub fn get_component_child_virtual_node(&self, node: GraphNode) -> GraphNode {
+        assert!(
+            matches!(node, GraphNode::Component(_)),
+            "Expected a GraphNode::Component"
+        );
+        self.get_nth_child(&node, 0)
+            .expect("A component node should always have children in the structure graph")
+    }
+
     /// Get a list of `GraphNode`s corresponding to the requested
     /// component's attributes. Each node will be a `GraphNode::Virtual` and
     /// the children of each virtual node will be the content of the attribute.
@@ -97,6 +110,21 @@ impl DirectedGraph<GraphNode, GraphNodeLookup<usize>> {
         );
         let attributes_virtual_node = self
             .get_nth_child(&node, 1)
+            .expect("A component node should always have attributes in the structure graph");
+        self.get_children(&attributes_virtual_node)
+    }
+
+    /// Get a list of `GraphNode`s corresponding to the requested
+    /// component's props. Each node will be a `GraphNode::Virtual` and
+    /// the children of each virtual node will be the content of the attribute.
+    /// The order is the same as that returned by `Component::get_attribute_names()`.
+    pub fn get_component_props(&self, node: GraphNode) -> Vec<GraphNode> {
+        assert!(
+            matches!(node, GraphNode::Component(_)),
+            "Expected a GraphNode::Component"
+        );
+        let attributes_virtual_node = self
+            .get_nth_child(&node, 2)
             .expect("A component node should always have attributes in the structure graph");
         self.get_children(&attributes_virtual_node)
     }
