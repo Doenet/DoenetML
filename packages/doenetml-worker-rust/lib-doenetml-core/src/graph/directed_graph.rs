@@ -134,12 +134,19 @@ impl<Node: Clone + Debug, IndexLookup: Taggable<Node, usize>> DirectedGraph<Node
     }
 
     /// Iterate through all nodes that have `node` as an ancestor. This iterator is meant to be fast.
-    /// The order of the nodes is not guaranteed, and the same node may be yielded multiple times (e.g., if
-    /// the graph is not a tree).
+    /// The order of the nodes is not guaranteed.
     /// Panics if a cycle is detected.
     pub fn descendants_quick(&self, node: &Node) -> DescendantIterator<Node> {
         let &start_index = self.index_lookup.get_tag(node).unwrap();
         DescendantIterator::new(&self.nodes, &self.edges, start_index)
+    }
+
+    /// Iterate through all edges of `node` and `node`'s descendants. This iterator is meant to be fast.
+    /// The order of the edges is not guaranteed.
+    /// Panics if a cycle is detected.
+    pub fn descendant_edges(&self, node: &Node) -> DescendantEdgeIterator<Node> {
+        let &start_index = self.index_lookup.get_tag(node).unwrap();
+        DescendantEdgeIterator::new(&self.nodes, &self.edges, start_index)
     }
 }
 
@@ -168,28 +175,96 @@ use iterators::*;
 pub mod iterators {
     //! Iterators for the `Graph` type.
 
-    /// Iterate through the descendants of a node. This iterator is
-    /// meant to be fast, does not guarantee any particular order, and
-    /// may yield the same node multiple times.
-    pub struct DescendantIterator<'a, Node> {
-        nodes: &'a [Node],
+    /// Iterate through all edges of a node an its descendants.
+    /// This returns edges represented with `DirectedGraph`'s internal representation.
+    ///
+    /// **For internal use**. Only use this function if you know what you're doing.
+    pub struct DescendantEdgeIteratorRaw<'a> {
         edges: &'a [Vec<usize>],
-        remaining_indices: Vec<usize>,
-        num_visited: usize,
+        remaining_indices: Vec<(usize, usize)>,
+        descendant_iterator_raw: DescendantIteratorRaw<'a>,
     }
-    impl<'a, Node> DescendantIterator<'a, Node> {
-        pub fn new(nodes: &'a [Node], edges: &'a [Vec<usize>], start_index: usize) -> Self {
-            let remaining_indices = edges[start_index].clone();
+    impl<'a> DescendantEdgeIteratorRaw<'a> {
+        pub fn new(num_nodes: usize, edges: &'a [Vec<usize>], start_index: usize) -> Self {
+            let descendant_iterator_raw =
+                DescendantIteratorRaw::new(num_nodes, edges, start_index);
+            let remaining_indices = edges[start_index]
+                .iter()
+                .map(|&to| (start_index, to))
+                .collect();
             Self {
-                nodes,
                 edges,
                 remaining_indices,
-                num_visited: 0,
+                descendant_iterator_raw,
             }
         }
     }
-    impl<'a, Node> Iterator for DescendantIterator<'a, Node> {
-        type Item = &'a Node;
+    impl<'a> Iterator for DescendantEdgeIteratorRaw<'a> {
+        type Item = (usize, usize);
+        fn next(&mut self) -> Option<Self::Item> {
+            if let Some(edge) = self.remaining_indices.pop() {
+                Some(edge)
+            } else {
+                // We've exhausted our current supply of edges. Move to the next descendant.
+                let next_descendant = self.descendant_iterator_raw.next()?;
+                self.remaining_indices.extend(
+                    self.edges[next_descendant]
+                        .iter()
+                        .map(|&to| (next_descendant, to)),
+                );
+                self.next()
+            }
+        }
+    }
+
+    pub struct DescendantEdgeIterator<'a, Node> {
+        nodes: &'a [Node],
+        descendant_edge_iterator_raw: DescendantEdgeIteratorRaw<'a>,
+    }
+    impl<'a, Node> DescendantEdgeIterator<'a, Node> {
+        pub fn new(nodes: &'a [Node], edges: &'a [Vec<usize>], start_index: usize) -> Self {
+            Self {
+                nodes,
+                descendant_edge_iterator_raw: DescendantEdgeIteratorRaw::new(
+                    nodes.len(),
+                    edges,
+                    start_index,
+                ),
+            }
+        }
+    }
+    impl<'a, Node> Iterator for DescendantEdgeIterator<'a, Node> {
+        type Item = (&'a Node, &'a Node);
+        fn next(&mut self) -> Option<Self::Item> {
+            let (from, to) = self.descendant_edge_iterator_raw.next()?;
+            Some((&self.nodes[from], &self.nodes[to]))
+        }
+    }
+
+    /// Iterate through the descendants of a node but return
+    /// the `DirectedGraph`'s internal representation of each node.
+    ///
+    /// **For internal use**. Only use this function if you know what you're doing.
+    pub struct DescendantIteratorRaw<'a> {
+        edges: &'a [Vec<usize>],
+        remaining_indices: Vec<usize>,
+        num_visited: usize,
+        visited: Vec<bool>,
+    }
+    impl<'a> DescendantIteratorRaw<'a> {
+        pub fn new(num_nodes: usize, edges: &'a [Vec<usize>], start_index: usize) -> Self {
+            let remaining_indices = edges[start_index].clone();
+            let visited = vec![false; num_nodes];
+            Self {
+                edges,
+                remaining_indices,
+                num_visited: 0,
+                visited,
+            }
+        }
+    }
+    impl<'a> Iterator for DescendantIteratorRaw<'a> {
+        type Item = usize;
         fn next(&mut self) -> Option<Self::Item> {
             let index = self.remaining_indices.pop()?;
             // Add all children of the node to `remaining_indices`
@@ -201,9 +276,41 @@ pub mod iterators {
             // But that's an excessive check for most graphs. Hopefully this quick
             // check will save us trouble.
             self.num_visited += 1;
-            if self.num_visited > 2 * self.nodes.len() {
+            if self.num_visited > 2 * self.visited.len() {
                 panic!("Cycle detected in graph")
             }
+            // Don't return the same node twice
+            if self.visited[index] {
+                self.next()
+            } else {
+                self.visited[index] = true;
+                Some(index)
+            }
+        }
+    }
+
+    /// Iterate through the descendants of a node. This iterator
+    /// does not guarantee any particular order.
+    pub struct DescendantIterator<'a, Node> {
+        nodes: &'a [Node],
+        descendant_iterator_raw: DescendantIteratorRaw<'a>,
+    }
+    impl<'a, Node> DescendantIterator<'a, Node> {
+        pub fn new(nodes: &'a [Node], edges: &'a [Vec<usize>], start_index: usize) -> Self {
+            Self {
+                nodes,
+                descendant_iterator_raw: DescendantIteratorRaw::new(
+                    nodes.len(),
+                    edges,
+                    start_index,
+                ),
+            }
+        }
+    }
+    impl<'a, Node> Iterator for DescendantIterator<'a, Node> {
+        type Item = &'a Node;
+        fn next(&mut self) -> Option<Self::Item> {
+            let index = self.descendant_iterator_raw.next()?;
             Some(&self.nodes[index])
         }
     }
@@ -374,7 +481,36 @@ mod test {
         assert_eq!(
             graph.descendants_quick(&"a".into()).collect::<Vec<_>>(),
             // Repeated nodes are allowed for the `_quick` iterator
-            vec!["c", "e", "d", "e", "b"]
+            vec!["c", "e", "d", "b"]
+        );
+    }
+
+    #[test]
+    fn can_iterate_through_descendant_edges() {
+        // Set up the graph
+        // a -> b
+        // a -> c -> e
+        // c -> d -> e
+        let mut graph = DirectedGraph::<String, HashMap<_, _>>::new();
+        graph.add_node("a".into());
+        graph.add_node("b".into());
+        graph.add_node("c".into());
+        graph.add_node("d".into());
+        graph.add_node("e".into());
+        graph.add_edge(&"a".into(), &"b".into());
+        graph.add_edge(&"a".into(), &"c".into());
+        graph.add_edge(&"c".into(), &"d".into());
+        graph.add_edge(&"c".into(), &"e".into());
+        graph.add_edge(&"d".into(), &"e".into());
+        assert_eq!(
+            graph.descendant_edges(&"a".into()).collect::<Vec<_>>(),
+            vec![
+                (&"a".into(), &"c".into()),
+                (&"a".into(), &"b".into()),
+                (&"c".into(), &"e".into()),
+                (&"c".into(), &"d".into()),
+                (&"d".into(), &"e".into())
+            ]
         );
     }
 }
