@@ -178,7 +178,7 @@ pub enum Extending {
     Prop(PropSource),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct PropSource {
     /// The prop being extended
     pub prop_pointer: PropPointer,

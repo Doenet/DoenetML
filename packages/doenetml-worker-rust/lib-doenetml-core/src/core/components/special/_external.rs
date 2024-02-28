@@ -18,6 +18,9 @@ impl ComponentNode for _External {
     fn get_idx(&self) -> ComponentIdx {
         self.common.idx
     }
+    fn set_idx(&mut self, idx: ComponentIdx) {
+        self.common.idx = idx;
+    }
     fn get_parent(&self) -> Option<ComponentIdx> {
         self.common.parent
     }
@@ -32,13 +35,11 @@ impl ComponentNode for _External {
     }
     fn initialize(
         &mut self,
-        idx: ComponentIdx,
         parent: Option<ComponentIdx>,
         _extending: Option<Extending>,
         unrecognized_attributes: HashMap<String, FlatAttribute>,
         position: Option<DastPosition>,
     ) {
-        self.common.idx = idx;
         self.common.parent = parent;
         self.common.position = position;
         self.common.unrecognized_attributes = unrecognized_attributes;

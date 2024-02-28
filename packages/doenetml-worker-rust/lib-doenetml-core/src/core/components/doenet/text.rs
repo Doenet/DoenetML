@@ -1,18 +1,18 @@
 use std::collections::HashMap;
+use strum::VariantNames;
 
 use crate::components::prelude::*;
-use crate::general_prop::{PropAlias, StringProp};
+use crate::general_prop::{BooleanProp, PropAlias, StringProp};
+
+#[derive(Debug, AttributeProp)]
+pub enum TextAttribute {
+    /// Whether the `<text>` should be hidden.
+    #[attribute(prop = BooleanProp, default = false)]
+    Hide,
+}
 
 /// Definition of the `<text>` DoenetML component
-#[derive(
-    Debug,
-    Default,
-    ComponentNode,
-    ComponentState,
-    ComponentActions,
-    ComponentAttributes,
-    RenderedChildren,
-)]
+#[derive(Debug, Default, ComponentNode, ComponentState, ComponentActions, RenderedChildren)]
 #[no_rendered_children]
 #[component(extend_via_default_prop)]
 pub struct Text {
@@ -49,6 +49,14 @@ pub struct TextState {
     /// It is marked public so that it can be referenced in DoenetML via `.text`.
     #[is_public]
     text: Prop<String>,
+
+    /// A variable that determines whether or not a text should be sent to the renderer (i.e., appear in the render tree).
+    ///
+    /// If `hidden` is true, then don't send the text to the renderer. (TODO: implement this)
+    ///
+    /// It is marked `is_public` so that it can be referenced in DoenetML via `.hidden`.
+    #[is_public]
+    hidden: Prop<bool>,
 }
 
 impl TextState {
@@ -56,6 +64,7 @@ impl TextState {
         TextState {
             value: StringProp::new_from_children("".to_string()).into_prop(),
             text: PropAlias::new(TextState::get_value_prop_index()).into_prop(),
+            hidden: TextAttribute::Hide.prop(),
         }
     }
 }
@@ -63,5 +72,11 @@ impl TextState {
 impl Default for TextState {
     fn default() -> Self {
         TextState::new()
+    }
+}
+
+impl ComponentAttributes for Text {
+    fn get_attribute_names(&self) -> Vec<AttributeName> {
+        TextAttribute::VARIANTS.into()
     }
 }
