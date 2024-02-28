@@ -685,7 +685,3 @@ impl ComponentBuilder {
         }
     }
 }
-
-#[cfg(test)]
-#[path = "graph_based_core.test.rs"]
-mod test;

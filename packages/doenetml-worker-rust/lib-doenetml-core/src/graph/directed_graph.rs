@@ -179,15 +179,14 @@ pub mod iterators {
     /// This returns edges represented with `DirectedGraph`'s internal representation.
     ///
     /// **For internal use**. Only use this function if you know what you're doing.
-    pub struct DescendantEdgeIteratorRaw<'a> {
+    struct DescendantEdgeIteratorRaw<'a> {
         edges: &'a [Vec<usize>],
         remaining_indices: Vec<(usize, usize)>,
         descendant_iterator_raw: DescendantIteratorRaw<'a>,
     }
     impl<'a> DescendantEdgeIteratorRaw<'a> {
         pub fn new(num_nodes: usize, edges: &'a [Vec<usize>], start_index: usize) -> Self {
-            let descendant_iterator_raw =
-                DescendantIteratorRaw::new(num_nodes, edges, start_index);
+            let descendant_iterator_raw = DescendantIteratorRaw::new(num_nodes, edges, start_index);
             let remaining_indices = edges[start_index]
                 .iter()
                 .map(|&to| (start_index, to))
@@ -245,7 +244,7 @@ pub mod iterators {
     /// the `DirectedGraph`'s internal representation of each node.
     ///
     /// **For internal use**. Only use this function if you know what you're doing.
-    pub struct DescendantIteratorRaw<'a> {
+    struct DescendantIteratorRaw<'a> {
         edges: &'a [Vec<usize>],
         remaining_indices: Vec<usize>,
         num_visited: usize,
