@@ -1,5 +1,5 @@
 use crate::{
-    components::prelude::DataQuery,
+    components::{prelude::DataQuery, ComponentProfile},
     dast::{flat_dast::FlatRoot, ref_expand::Expander},
     new_core::{graph_based_core::Core, graph_node::GraphNode},
     state::PropPointer,
@@ -137,7 +137,40 @@ fn test_adding_prop_data_query() {
             &GraphNode::State(0)
         ]
     );
+}
 
-    println!("{}", core.to_mermaid_dependency_graph());
-    println!("{}", core.to_mermaid_structure_graph());
+#[test]
+fn test_attribute_data_query() {
+    let dast_root = dast_root_no_position(
+        r#"<text name="t1" hide="$t2.value rue">Hello</text><text name="t2">T</text>"#,
+    );
+    let mut flat_root = FlatRoot::from_dast(&dast_root);
+    Expander::expand(&mut flat_root);
+    dbg!(&flat_root.to_xml());
+    flat_root.compactify();
+    let normalized_flat_root = flat_root.into_normalized_root();
+
+    let mut core = Core::new();
+    core.init_from_normalized_root(&normalized_flat_root);
+
+    core.add_data_query(
+        PropPointer {
+            component_idx: 1,
+            prop_idx: 0,
+        },
+        DataQuery::Attribute {
+            attribute_name: "hide",
+            match_profiles: vec![ComponentProfile::String],
+            always_return_value: true,
+        },
+    );
+    assert_eq!(
+        core.dependency_graph
+            .walk_descendants(GraphNode::Query(0))
+            .collect::<Vec<_>>(),
+        vec![&GraphNode::Prop(6), &GraphNode::String(1)]
+    );
+
+    //    println!("{}", core.to_mermaid_dependency_graph());
+    //    println!("{}", core.to_mermaid_structure_graph());
 }

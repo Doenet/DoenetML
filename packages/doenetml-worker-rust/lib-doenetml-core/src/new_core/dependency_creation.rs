@@ -116,7 +116,8 @@ impl Core {
             DataQuery::Attribute {
                 attribute_name,
                 match_profiles,
-                always_return_value,
+                // TODO: no longer used. Remove this.
+                always_return_value: _,
             } => {
                 // Find the requested attribute.
                 let local_attr_idx = self.components[origin.component_idx]
@@ -138,7 +139,6 @@ impl Core {
                 // We may be extending another attribute. If so, find the "origin" node (i.e., the one with relevant children).
                 let attr_node = self.attribute_node_origin(attr_node);
 
-                let mut did_add_children = false;
                 for node in self.structure_graph.content_children(attr_node) {
                     match node {
                         GraphNode::Component(component_idx) => {
@@ -161,7 +161,6 @@ impl Core {
                                 });
                             if let Some(matching_prop) = matching_prop {
                                 self.dependency_graph.add_edge(query_node, matching_prop);
-                                did_add_children = true;
                             }
                         }
                         GraphNode::String(_) => {
@@ -169,35 +168,22 @@ impl Core {
                                 || match_profiles.contains(&ComponentProfile::LiteralString)
                             {
                                 self.dependency_graph.add_edge(query_node, node);
-                                did_add_children = true;
                             }
                         }
-                        GraphNode::State(_) => {
-                            // XXX: Will the type be correct here? Do we do a profile match?
-                            self.dependency_graph.add_edge(query_node, node);
-                            did_add_children = true;
+                        GraphNode::State(_)
+                        | GraphNode::Query(_)
+                        | GraphNode::Prop(_)
+                        | GraphNode::Virtual(_) => {
+                            unreachable!("Cannot have GraphNode of type {:?} as a direct child of an attribute.", node);
                         }
-                        _ => {}
                     }
-                }
-
-                if always_return_value && !did_add_children {
-                    // Found no matching attribute children.
-                    // This means that the attribute wasn't specified on any component (or any referent of the component).
-
-                    // In this case, we create some state and depend on it.
-                    let state = self.add_state_node();
-                    // Add this state to the structure graph as well as the dependency graph.
-                    self.structure_graph.add_edge(attr_node, state);
-                    self.dependency_graph.add_edge(query_node, state);
-
-                    // XXX: the state needs to be initialized somehow?
                 }
             }
             // Create a dependency from all children that match a profile from match_profiles.
             DataQuery::ChildPropProfile {
                 match_profiles,
-                always_return_value,
+                // TODO: no longer used. Remove this.
+                always_return_value: _,
             } => {
                 let children_virtual_node = self
                     .structure_graph
@@ -205,7 +191,6 @@ impl Core {
                         origin.component_idx,
                     ));
 
-                let mut did_add_children = false;
                 for node in self.structure_graph.content_children(children_virtual_node) {
                     match node {
                         GraphNode::Component(component_idx) => {
@@ -228,7 +213,6 @@ impl Core {
                                 });
                             if let Some(matching_prop) = matching_prop {
                                 self.dependency_graph.add_edge(query_node, matching_prop);
-                                did_add_children = true;
                             }
                         }
                         GraphNode::String(_) => {
@@ -236,32 +220,15 @@ impl Core {
                                 || match_profiles.contains(&ComponentProfile::LiteralString)
                             {
                                 self.dependency_graph.add_edge(query_node, node);
-                                did_add_children = true;
                             }
-                        }
-                        GraphNode::State(_) => {
-                            // XXX: Will the type be correct here? Do we do a profile match?
-                            self.dependency_graph.add_edge(query_node, node);
-                            did_add_children = true;
                         }
                         GraphNode::Prop(_) => {
                             // XXX: What to do in this case? I suppose we need to check if the prop matches the profile?
                         }
-                        _ => {}
+                        GraphNode::State(_) | GraphNode::Virtual(_) | GraphNode::Query(_) => {
+                            unreachable!("Cannot have GraphNode of type {:?} as a content child of a component's children.", node);
+                        }
                     }
-                }
-                if always_return_value && !did_add_children {
-                    // Found no matching attribute children.
-                    // This means that the attribute wasn't specified on any component (or any referent of the component).
-
-                    // In this case, we create some state and depend on it.
-                    let state = self.add_state_node();
-                    // Add this state to the structure graph as well as the dependency graph.
-                    // XXX: This is wrong. Where should the state be added?
-                    self.structure_graph.add_edge(children_virtual_node, state);
-                    self.dependency_graph.add_edge(query_node, state);
-
-                    // XXX: the state needs to be initialized somehow?
                 }
             }
         }
