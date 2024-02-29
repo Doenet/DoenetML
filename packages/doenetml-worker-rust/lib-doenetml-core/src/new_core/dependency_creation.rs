@@ -47,7 +47,6 @@ impl Core {
             }
             _ => {
                 // No new state to create
-                // XXX: This is wrong. Several other cases to handle.
             }
         }
 
