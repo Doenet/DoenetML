@@ -30,31 +30,16 @@ use super::util::MathOrString;
 #[derive(Debug, Default)]
 pub struct MathProp {
     /// The data query that indicates how the dependencies of this prop will be created.
-    ///
-    /// The `always_return_value` attribute of the data query will be assumed to be coordinated with
-    /// the prop's `propagate_came_from_default`, as described with `propagate_came_from_default`.
     data_query: DataQuery,
 
     /// The default value that is initially returned if no dependencies were returned.
     /// It behaves differently depending on the value of `propagate_came_from_default`.
-    ///
-    /// If `propagate_came_from_default` is `true`, then `always_return_value` is set to `true` on the data queries.
-    /// If no dependencies were found by those data queries, they will return a value with this default.
-    ///
-    /// If `propagate_came_from_default` is `false`, then `always_return_value` is set to `false` on the data queries.
-    /// If no dependencies were found by those data queries, they will return nothing,
-    /// and we will fall back to `independent_state`, which will be initialized with this default.
     default_value: MathExpr,
 
     /// If `true`, then we will propagate `came_from_default` from the dependency
     /// in the case where a single dependency is returned.
     /// If `false`, then `came_from_default` will be true only if no dependencies were found
     /// and we are returning an independent value that hasn't yet been changed from its default.
-    ///
-    /// The following relationship between `propagate_came_from_default` and the data query's `always_return_value`
-    /// is assumed to be maintained:
-    /// - if `propagate_came_from_default` is `true`, then `always_return_value` must be `true` on the `data_query`.
-    /// - if `propagate_came_from_default` is `false`, then `always_return_value` must be `false` on the `data_query`.
     propagate_came_from_default: bool,
 
     // TODO: this should be based on a data query for a prop/attribute once we implement enum props or attributes
@@ -118,7 +103,6 @@ impl MathProp {
         MathProp {
             data_query: DataQuery::ChildPropProfile {
                 match_profiles: vec![ComponentProfile::String, ComponentProfile::Math],
-                always_return_value: true,
             },
             parser,
             split_symbols,
@@ -153,7 +137,6 @@ impl MathProp {
             data_query: DataQuery::Attribute {
                 attribute_name: attr_name,
                 match_profiles: vec![ComponentProfile::String, ComponentProfile::Math],
-                always_return_value: true,
             },
             parser,
             split_symbols,
@@ -190,17 +173,6 @@ impl MathProp {
         // preventing this case from being distinguished from the case with a single match.)
 
         self.propagate_came_from_default = false;
-        match &mut self.data_query {
-            DataQuery::ChildPropProfile {
-                always_return_value,
-                ..
-            } => *always_return_value = false,
-            DataQuery::Attribute {
-                always_return_value,
-                ..
-            } => *always_return_value = false,
-            _ => (),
-        }
         self
     }
 }

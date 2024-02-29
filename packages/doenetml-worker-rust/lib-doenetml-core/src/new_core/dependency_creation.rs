@@ -115,8 +115,6 @@ impl Core {
             DataQuery::Attribute {
                 attribute_name,
                 match_profiles,
-                // TODO: no longer used. Remove this.
-                always_return_value: _,
             } => {
                 // Find the requested attribute.
                 let local_attr_idx = self.components[origin.component_idx]
@@ -181,8 +179,6 @@ impl Core {
             // Create a dependency from all children that match a profile from match_profiles.
             DataQuery::ChildPropProfile {
                 match_profiles,
-                // TODO: no longer used. Remove this.
-                always_return_value: _,
             } => {
                 let children_virtual_node = self
                     .structure_graph

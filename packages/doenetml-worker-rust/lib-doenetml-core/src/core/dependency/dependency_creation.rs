@@ -124,9 +124,8 @@ pub fn create_dependencies_from_data_query_initialize_state(
 
         DataQuery::ChildPropProfile {
             match_profiles,
-            always_return_value,
         } => {
-            let always_return_value = *always_return_value;
+            let always_return_value = false;
 
             // Create a dependency from all children
             // that match a profile from match_profiles.
@@ -302,9 +301,8 @@ pub fn create_dependencies_from_data_query_initialize_state(
         DataQuery::Attribute {
             attribute_name,
             match_profiles,
-            always_return_value,
         } => {
-            let always_return_value = *always_return_value;
+            let always_return_value = false;
 
             // Create a dependency from all attribute components
             // that match a profile from match_profiles.

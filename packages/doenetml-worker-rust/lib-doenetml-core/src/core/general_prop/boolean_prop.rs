@@ -81,7 +81,6 @@ impl BooleanProp {
         BooleanProp {
             data_query: DataQuery::ChildPropProfile {
                 match_profiles: vec![ComponentProfile::String, ComponentProfile::Boolean],
-                always_return_value: true,
             },
             default_value,
             propagate_came_from_default: true,
@@ -98,7 +97,6 @@ impl BooleanProp {
             data_query: DataQuery::Attribute {
                 attribute_name: attr_name,
                 match_profiles: vec![ComponentProfile::String, ComponentProfile::Boolean],
-                always_return_value: true,
             },
             default_value,
             propagate_came_from_default: true,
@@ -132,17 +130,6 @@ impl BooleanProp {
         // preventing this case from being distinguished from the case with a single match.)
 
         self.propagate_came_from_default = false;
-        match &mut self.data_query {
-            DataQuery::ChildPropProfile {
-                always_return_value,
-                ..
-            } => *always_return_value = false,
-            DataQuery::Attribute {
-                always_return_value,
-                ..
-            } => *always_return_value = false,
-            _ => (),
-        }
         self
     }
 }

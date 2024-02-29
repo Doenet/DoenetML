@@ -161,7 +161,6 @@ fn test_attribute_data_query() {
         DataQuery::Attribute {
             attribute_name: "hide",
             match_profiles: vec![ComponentProfile::String],
-            always_return_value: true,
         },
     );
     assert_eq!(

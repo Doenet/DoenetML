@@ -18,18 +18,6 @@ pub enum DataQuery {
     ChildPropProfile {
         /// The data query will match child components that have at least one of these profiles
         match_profiles: Vec<ComponentProfile>,
-
-        /// If true, then the data query will return a single variable if no matching children found.
-        ///
-        /// If the type of the requesting prop matches a `ComponentProfile` from `match_profiles`,
-        /// then this single variable returned will match the type of the requesting prop
-        /// and will be initialized with the prop's default value.
-        ///
-        /// If the type of the requesting prop does not match
-        /// a `ComponentProfile` from `match_profiles`,
-        /// then this single variable returned will be of the type of the first entry in `match_profiles`
-        /// and will be initialized to the default value of that type.
-        always_return_value: bool,
     },
     /// Query for a particular prop of a component
     Prop {
@@ -48,18 +36,6 @@ pub enum DataQuery {
 
         /// The data query will match child components that have at least one of these profiles.
         match_profiles: Vec<ComponentProfile>,
-
-        /// If true, then the data query will return a single variable if no matching children found.
-        ///
-        /// If the type of the requesting prop matches a `ComponentProfile` from `match_profiles`,
-        /// then this single variable returned will match the type of the requesting prop
-        /// and will be initialized with the prop's default value.
-        ///
-        /// If the type of the requesting prop does not match
-        /// a `ComponentProfile` from `match_profiles`,
-        /// then this single variable returned will be of the type of the first entry in `match_profiles`
-        /// and will be initialized to the default value of that type.
-        always_return_value: bool,
     },
     #[default]
     /// Will be initialized with the default value of this prop
