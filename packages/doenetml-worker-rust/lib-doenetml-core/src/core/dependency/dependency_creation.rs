@@ -122,9 +122,7 @@ pub fn create_dependencies_from_data_query_initialize_state(
             }])
         }
 
-        DataQuery::ChildPropProfile {
-            match_profiles,
-        } => {
+        DataQuery::ChildPropProfile { match_profiles } => {
             let always_return_value = false;
 
             // Create a dependency from all children

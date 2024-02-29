@@ -177,9 +177,7 @@ impl Core {
                 }
             }
             // Create a dependency from all children that match a profile from match_profiles.
-            DataQuery::ChildPropProfile {
-                match_profiles,
-            } => {
+            DataQuery::ChildPropProfile { match_profiles } => {
                 let children_virtual_node = self
                     .structure_graph
                     .get_component_children_virtual_node(GraphNode::Component(
