@@ -6,7 +6,7 @@ use crate::{
     state::PropPointer,
 };
 
-use super::{graph_based_core::Core, graph_node::GraphNode};
+use super::{graph_based_core::Core, graph_node::GraphNode, props::PropIdent};
 
 impl Core {
     /// Creates all necessary dependencies for a `DataQuery`.
@@ -34,7 +34,7 @@ impl Core {
                 match leaf_node {
                     GraphNode::State(_) => {}
                     GraphNode::Prop(_) => {
-                        let state_node = self.add_state_node();
+                        let state_node = self.add_state_node(origin);
                         self.structure_graph.add_edge(leaf_node, state_node);
                     }
                     _ => {
@@ -231,9 +231,21 @@ impl Core {
     }
 
     /// Create a new `GraphNode::State` and add it to the `structure_graph`.
-    fn add_state_node(&mut self) -> GraphNode {
+    fn add_state_node(&mut self, origin: PropPointer) -> GraphNode {
         let idx = self.states.len();
-        self.states.push(());
+
+        // XXX: We should be able to get this information directly from the component.
+        // New macros might need to be created.
+        let profile = &self.components[origin.component_idx]
+            .get_prop(origin.local_prop_idx)
+            .unwrap()
+            .get_matching_component_profile();
+        let prop_ident = PropIdent {
+            prop_pointer: origin,
+            profile: profile.clone(),
+        };
+
+        self.states.push(prop_ident);
         let new_node = GraphNode::State(idx);
         self.structure_graph.add_node(new_node);
         new_node

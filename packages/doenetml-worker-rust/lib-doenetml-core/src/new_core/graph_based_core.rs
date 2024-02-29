@@ -32,8 +32,8 @@ pub struct Core {
     virtual_node_count: usize,
     /// Information about a prop used to resolve dependencies in a `DataQuery`.
     pub props: Vec<PropIdent>,
+    pub states: Vec<PropIdent>,
     // XXX: fill these in
-    pub states: Vec<()>,
     pub queries: Vec<()>,
 }
 
