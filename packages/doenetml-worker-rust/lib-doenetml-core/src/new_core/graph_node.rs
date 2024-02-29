@@ -128,4 +128,111 @@ impl DirectedGraph<GraphNode, GraphNodeLookup<usize>> {
             .expect("A component node should always have attributes in the structure graph");
         self.get_children(attributes_virtual_node)
     }
+
+    /// Iterate through the "content" children of a node. That is,
+    /// all the non-virtual children. If a virtual child is detected,
+    /// it's children are recursively iterated over.
+    ///
+    /// This can be used to, for example, iterate over all string children, etc.
+    /// It does _not_ iterate over all descendants.
+    pub fn content_children(&self, node: GraphNode) -> ContentChildrenIterator<'_> {
+        ContentChildrenIterator::new(self, node)
+    }
+}
+
+use iterators::*;
+mod iterators {
+    //! Utility iterators
+
+    type Graph = DirectedGraph<GraphNode, GraphNodeLookup<usize>>;
+
+    use crate::{
+        graph::directed_graph::DirectedGraph,
+        new_core::graph_node::{GraphNode, GraphNodeLookup},
+    };
+    /// Iterate through the "content" children of a node. That is,
+    /// all the non-virtual children. If a virtual child is detected,
+    /// it's children are recursively iterated over.
+    ///
+    /// This can be used to, for example, iterate over all string children, etc.
+    /// It does _not_ iterate over all descendants.
+    pub struct ContentChildrenIterator<'a> {
+        graph: &'a Graph,
+        /// Stack storing the nodes for iteration in _reverse_ order.
+        stack: Vec<GraphNode>,
+    }
+    impl<'a> ContentChildrenIterator<'a> {
+        pub fn new(graph: &'a Graph, start: GraphNode) -> Self {
+            let mut stack = graph.get_children(start);
+            // Order matters and we will be popping values off the end of the stack, so
+            // we reverse it.
+            stack.reverse();
+            Self { graph, stack }
+        }
+    }
+    impl<'a> Iterator for ContentChildrenIterator<'a> {
+        type Item = GraphNode;
+        fn next(&mut self) -> Option<Self::Item> {
+            let node = self.stack.pop();
+            match node {
+                Some(GraphNode::Virtual(idx)) => {
+                    // A virtual node's only job is to hold children.
+                    // So if we encounter one, push its children onto the stack.
+                    self.stack.extend(
+                        self.graph
+                            .get_children(GraphNode::Virtual(idx))
+                            .into_iter()
+                            .rev(),
+                    );
+                    self.next()
+                }
+                _ => node,
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_can_iterate_content_children() {
+        // Set up a graph
+        // v_0 -> v_1
+        // v_0 -> s_0
+        // v_0 -> s_1 -> s_2
+        // v_1 -> s_3
+        // v_1 -> s_4
+
+        let mut graph: DirectedGraph<GraphNode, GraphNodeLookup<usize>> = DirectedGraph::new();
+        graph.add_edge(GraphNode::Virtual(0), GraphNode::Virtual(1));
+        graph.add_edge(GraphNode::Virtual(0), GraphNode::String(0));
+        graph.add_edge(GraphNode::Virtual(0), GraphNode::String(1));
+        graph.add_edge(GraphNode::String(1), GraphNode::String(2));
+        graph.add_edge(GraphNode::Virtual(1), GraphNode::String(3));
+        graph.add_edge(GraphNode::Virtual(1), GraphNode::String(4));
+
+        // The direct children
+        assert_eq!(
+            graph.get_children(GraphNode::Virtual(0)),
+            vec![
+                GraphNode::Virtual(1),
+                GraphNode::String(0),
+                GraphNode::String(1)
+            ]
+        );
+
+        assert_eq!(
+            graph
+                .content_children(GraphNode::Virtual(0))
+                .collect::<Vec<_>>(),
+            vec![
+                GraphNode::String(3),
+                GraphNode::String(4),
+                GraphNode::String(0),
+                GraphNode::String(1),
+            ]
+        );
+    }
 }

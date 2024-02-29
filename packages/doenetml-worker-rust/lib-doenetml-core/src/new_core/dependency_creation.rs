@@ -139,7 +139,7 @@ impl Core {
                 let attr_node = self.attribute_node_origin(attr_node);
 
                 let mut did_add_children = false;
-                for node in ContentChildrenIterator::new(&self.structure_graph, attr_node) {
+                for node in self.structure_graph.content_children(attr_node) {
                     match node {
                         GraphNode::Component(component_idx) => {
                             // Check the component. We want to link to the first prop that matches one of the profiles.
@@ -234,58 +234,6 @@ impl Core {
             self.attribute_node_origin(children[0])
         } else {
             attribute_node
-        }
-    }
-}
-
-use iterators::*;
-mod iterators {
-    //! Utility iterators
-
-    type Graph = DirectedGraph<GraphNode, GraphNodeLookup<usize>>;
-
-    use crate::{
-        graph::directed_graph::DirectedGraph,
-        new_core::graph_node::{GraphNode, GraphNodeLookup},
-    };
-    /// Iterate through the "content" children of a node. That is,
-    /// all the non-virtual children. If a virtual child is detected,
-    /// it's children are recursively iterated over.
-    ///
-    /// This can be used to, for example, iterate over all string children, etc.
-    /// It does _not_ iterate over all descendants.
-    pub struct ContentChildrenIterator<'a> {
-        graph: &'a Graph,
-        /// Stack storing the nodes for iteration in _reverse_ order.
-        stack: Vec<GraphNode>,
-    }
-    impl<'a> ContentChildrenIterator<'a> {
-        pub fn new(graph: &'a Graph, start: GraphNode) -> Self {
-            let mut stack = graph.get_children(start);
-            // Order matters and we will be popping values off the end of the stack, so
-            // we reverse it.
-            stack.reverse();
-            Self { graph, stack }
-        }
-    }
-    impl<'a> Iterator for ContentChildrenIterator<'a> {
-        type Item = GraphNode;
-        fn next(&mut self) -> Option<Self::Item> {
-            let node = self.stack.pop();
-            match node {
-                Some(GraphNode::Virtual(idx)) => {
-                    // A virtual node's only job is to hold children.
-                    // So if we encounter one, push its children onto the stack.
-                    self.stack.extend(
-                        self.graph
-                            .get_children(GraphNode::Virtual(idx))
-                            .into_iter()
-                            .rev(),
-                    );
-                    self.next()
-                }
-                _ => node,
-            }
         }
     }
 }
