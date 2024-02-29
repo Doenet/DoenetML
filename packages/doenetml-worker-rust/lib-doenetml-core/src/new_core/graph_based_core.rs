@@ -1,8 +1,8 @@
 //! A version of `Core` based on `DirectedGraph`
 
 use crate::{
-    components::ComponentEnum, dast::flat_dast::NormalizedRoot,
-    graph::directed_graph::DirectedGraph,
+    components::{prelude::PropValue, ComponentEnum}, dast::flat_dast::NormalizedRoot,
+    graph::directed_graph::DirectedGraph, state::Freshness,
 };
 
 use super::{
@@ -32,9 +32,10 @@ pub struct Core {
     virtual_node_count: usize,
     /// Information about a prop used to resolve dependencies in a `DataQuery`.
     pub props: Vec<PropIdent>,
-    pub states: Vec<PropIdent>,
+    pub states: Vec<(PropIdent, PropValue)>,
     // XXX: fill these in
     pub queries: Vec<()>,
+    pub freshness: GraphNodeLookup<Freshness>
 }
 
 impl Default for Core {
@@ -54,6 +55,7 @@ impl Core {
             states: Vec::new(),
             queries: Vec::new(),
             virtual_node_count: 0,
+            freshness: GraphNodeLookup::new(),
         }
     }
 

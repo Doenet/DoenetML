@@ -236,16 +236,16 @@ impl Core {
 
         // XXX: We should be able to get this information directly from the component.
         // New macros might need to be created.
-        let profile = &self.components[origin.component_idx]
+        let prop = &self.components[origin.component_idx]
             .get_prop(origin.local_prop_idx)
-            .unwrap()
-            .get_matching_component_profile();
+            .unwrap();
+        let profile = prop.get_matching_component_profile();
         let prop_ident = PropIdent {
             prop_pointer: origin,
             profile: profile.clone(),
         };
 
-        self.states.push(prop_ident);
+        self.states.push((prop_ident, prop.default()));
         let new_node = GraphNode::State(idx);
         self.structure_graph.add_node(new_node);
         new_node
