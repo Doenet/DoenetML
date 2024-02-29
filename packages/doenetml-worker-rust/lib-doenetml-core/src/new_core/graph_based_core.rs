@@ -31,9 +31,7 @@ pub struct Core {
     virtual_node_count: usize,
     // XXX: fill these in
     pub props: Vec<()>,
-    #[allow(dead_code)]
     pub states: Vec<()>,
-    #[allow(dead_code)]
     pub queries: Vec<()>,
 }
 
