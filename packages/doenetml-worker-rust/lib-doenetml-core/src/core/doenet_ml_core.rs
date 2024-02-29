@@ -301,7 +301,7 @@ impl DoenetMLCore {
             get_prop_value(
                 PropPointer {
                     component_idx,
-                    prop_idx,
+                    local_prop_idx: prop_idx,
                 },
                 &self.components,
                 &mut self.dependency_graph,
@@ -337,7 +337,7 @@ impl DoenetMLCore {
                 // now we just need to keep track of which prop we are seeking to update.
                 let prop_ptr = PropPointer {
                     component_idx,
-                    prop_idx,
+                    local_prop_idx: prop_idx,
                 };
 
                 // If prop is unresolved, then resolve it.
@@ -409,7 +409,7 @@ impl DoenetMLCore {
         get_prop_value(
             PropPointer {
                 component_idx,
-                prop_idx,
+                local_prop_idx: prop_idx,
             },
             &self.components,
             &mut self.dependency_graph,

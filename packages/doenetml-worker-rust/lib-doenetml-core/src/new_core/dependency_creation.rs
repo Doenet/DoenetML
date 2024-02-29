@@ -13,7 +13,7 @@ impl Core {
     pub fn add_data_query(&mut self, origin: PropPointer, query: DataQuery) {
         let prop_node = self
             .structure_graph
-            .get_component_props(GraphNode::Component(origin.component_idx))[origin.prop_idx];
+            .get_component_props(GraphNode::Component(origin.component_idx))[origin.local_prop_idx];
 
         //
         // Create any necessary state nodes
@@ -77,7 +77,7 @@ impl Core {
                 let component_idx = component_idx.unwrap_or(origin.component_idx);
                 let target_prop_node = self.prop_pointer_to_prop_node(PropPointer {
                     component_idx,
-                    prop_idx: local_prop_idx,
+                    local_prop_idx,
                 });
                 assert_ne!(prop_node, target_prop_node, "Self-loop detected; DataQuery requested a prop that is the same as the origin prop.");
                 self.dependency_graph.add_edge(query_node, target_prop_node);
@@ -152,7 +152,7 @@ impl Core {
                                         .map(|_| {
                                             self.prop_pointer_to_prop_node(PropPointer {
                                                 component_idx,
-                                                prop_idx,
+                                                local_prop_idx: prop_idx,
                                             })
                                         })
                                 });
@@ -200,7 +200,7 @@ impl Core {
                                         .map(|_| {
                                             self.prop_pointer_to_prop_node(PropPointer {
                                                 component_idx,
-                                                prop_idx,
+                                                local_prop_idx: prop_idx,
                                             })
                                         })
                                 });
@@ -215,8 +215,11 @@ impl Core {
                                 self.dependency_graph.add_edge(query_node, node);
                             }
                         }
-                        GraphNode::Prop(_) => {
-                            // XXX: What to do in this case? I suppose we need to check if the prop matches the profile?
+                        GraphNode::Prop(prop_idx) => {
+                            let prop_ident = &self.props[prop_idx];
+                            if match_profiles.contains(&prop_ident.profile) {
+                                self.dependency_graph.add_edge(query_node, node);
+                            }
                         }
                         GraphNode::State(_) | GraphNode::Virtual(_) | GraphNode::Query(_) => {
                             unreachable!("Cannot have GraphNode of type {:?} as a content child of a component's children.", node);
@@ -250,7 +253,7 @@ impl Core {
     fn prop_pointer_to_prop_node(&self, prop_pointer: PropPointer) -> GraphNode {
         self.structure_graph
             .get_component_props(GraphNode::Component(prop_pointer.component_idx))
-            [prop_pointer.prop_idx]
+            [prop_pointer.local_prop_idx]
     }
 
     /// Find the "origin" of a `GraphNode::Virtual` corresponding to an attribute. That is, if an attribute

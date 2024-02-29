@@ -21,7 +21,10 @@ use crate::{
     ComponentIdx, Extending, PropSource,
 };
 
-use super::graph_node::{GraphNode, GraphNodeLookup};
+use super::{
+    graph_node::{GraphNode, GraphNodeLookup},
+    props::PropIdent,
+};
 
 /// Initialize `structure_graph` and `components` based on a provided `normalized_root`.
 /// This is a utility to assist in the initialization of `Core`.
@@ -37,8 +40,8 @@ pub struct ComponentBuilder {
     /// A counter for the number of virtual nodes created. Every virtual node needs to be unique (so that
     /// it can be referenced), but we don't store any information about virtual nodes themselves.
     pub virtual_node_count: usize,
-    // XXX: fill these in
-    pub props: Vec<()>,
+    // Information about each prop sufficient for resolving `DataQuery`s.
+    pub props: Vec<PropIdent>,
 }
 
 impl Default for ComponentBuilder {
@@ -220,7 +223,7 @@ impl ComponentBuilder {
                 Some(referent_prop_idx) => Ok(Extending::Prop(PropSource {
                     prop_pointer: PropPointer {
                         component_idx: referent.get_idx(),
-                        prop_idx: referent_prop_idx,
+                        local_prop_idx: referent_prop_idx,
                     },
                     from_direct_ref,
                 })),
@@ -248,7 +251,7 @@ impl ComponentBuilder {
                 Some(default_prop) => Ok(Extending::Prop(PropSource {
                     prop_pointer: PropPointer {
                         component_idx: referent.get_idx(),
-                        prop_idx: default_prop,
+                        local_prop_idx: default_prop,
                     },
                     from_direct_ref,
                 })),
@@ -281,7 +284,7 @@ impl ComponentBuilder {
             // The creation of the new child mimics `create_component()`
             // for the case where there is a remaining path corresponding to the prop
             let new_component_type = referent
-                .get_prop(prop_pointer.prop_idx)
+                .get_prop(prop_pointer.local_prop_idx)
                 .unwrap()
                 .preferred_component_type();
 
@@ -499,10 +502,23 @@ impl ComponentBuilder {
         self.structure_graph.add_node(graph_virtual_node);
         self.structure_graph
             .add_edge(graph_component_node, graph_virtual_node);
-        for _ in 0..component.get_num_props() {
+        for local_prop_idx in 0..component.get_num_props() {
             let prop_graph_node = GraphNode::Prop(self.props.len());
-            // XXX: right now we don't do any caching or initialization of props, so we just push a placeholder
-            self.props.push(());
+
+            // XXX: We should be able to get this information directly from the component.
+            // New macros might need to be created.
+            let profile = component
+                .get_prop(local_prop_idx)
+                .unwrap()
+                .get_matching_component_profile();
+            self.props.push(PropIdent {
+                prop_pointer: PropPointer {
+                    component_idx: component.get_idx(),
+                    local_prop_idx,
+                },
+                profile,
+            });
+
             self.structure_graph.add_node(prop_graph_node);
             self.structure_graph
                 .add_edge(graph_virtual_node, prop_graph_node);
@@ -687,7 +703,7 @@ impl ComponentBuilder {
                 .get_component_children_virtual_node(component_node);
 
             let referent_prop_node = self.structure_graph.get_component_props(referent_node)
-                [prop_source.prop_pointer.prop_idx];
+                [prop_source.prop_pointer.local_prop_idx];
 
             self.structure_graph
                 .prepend_edge(component_children_virtual_node, referent_prop_node);

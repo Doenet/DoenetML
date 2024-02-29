@@ -105,7 +105,7 @@ fn mark_stale_prop_and_dependencies(
 
     while let Some(PropPointer {
         component_idx,
-        prop_idx,
+        local_prop_idx: prop_idx,
     }) = mark_stale_stack.pop()
     {
         let component = components[component_idx].borrow();
@@ -124,13 +124,13 @@ fn mark_stale_prop_and_dependencies(
 
             for PropPointer {
                 component_idx: new_comp_idx,
-                prop_idx: new_prop_idx,
+                local_prop_idx: new_prop_idx,
             } in states_depending_on_me.iter()
             {
                 // Recurse by adding the props to the stack
                 mark_stale_stack.push(PropPointer {
                     component_idx: *new_comp_idx,
-                    prop_idx: *new_prop_idx,
+                    local_prop_idx: *new_prop_idx,
                 });
             }
         }
@@ -178,7 +178,7 @@ fn invert_including_shadow(
     is_direct_change_from_action: bool,
 ) -> Vec<PropUpdateRequest> {
     let component_idx = prop_ptr.component_idx;
-    let prop_idx = prop_ptr.prop_idx;
+    let prop_idx = prop_ptr.local_prop_idx;
     let mut component = components[component_idx].borrow_mut();
     let prop = &mut component.get_prop_mut(prop_idx).unwrap();
 
@@ -207,9 +207,9 @@ fn convert_dependency_updates_requested_to_prop_update_requests(
     dependencies: &Vec<Vec<Vec<DependenciesCreatedForDataQuery>>>,
 ) -> Vec<PropUpdateRequest> {
     let component_idx = prop_ptr.component_idx;
-    let prop_idx = prop_ptr.prop_idx;
+    let prop_idx = prop_ptr.local_prop_idx;
 
-    let my_dependencies = &dependencies[prop_ptr.component_idx][prop_ptr.prop_idx];
+    let my_dependencies = &dependencies[prop_ptr.component_idx][prop_ptr.local_prop_idx];
 
     let mut update_requests = Vec::new();
 
@@ -244,7 +244,7 @@ fn convert_dependency_updates_requested_to_prop_update_requests(
 
                 let prop_ptr = PropPointer {
                     component_idx: *component_idx,
-                    prop_idx: *prop_idx,
+                    local_prop_idx: *prop_idx,
                 };
                 update_requests.push(PropUpdateRequest::SetProp(prop_ptr));
             }

@@ -196,7 +196,7 @@ impl ComponentBuilder {
                 Some(referent_prop_idx) => Ok(Extending::Prop(PropSource {
                     prop_pointer: PropPointer {
                         component_idx: referent.get_idx(),
-                        prop_idx: referent_prop_idx,
+                        local_prop_idx: referent_prop_idx,
                     },
                     from_direct_ref,
                 })),
@@ -224,7 +224,7 @@ impl ComponentBuilder {
                 Some(default_prop) => Ok(Extending::Prop(PropSource {
                     prop_pointer: PropPointer {
                         component_idx: referent.get_idx(),
-                        prop_idx: default_prop,
+                        local_prop_idx: default_prop,
                     },
                     from_direct_ref,
                 })),
@@ -258,7 +258,7 @@ impl ComponentBuilder {
                 // The creation of the new child mimics `create_component()`
                 // for the case where there is a remaining path corresponding to the prop
                 let new_component_type = referent
-                    .get_prop(prop_pointer.prop_idx)
+                    .get_prop(prop_pointer.local_prop_idx)
                     .unwrap()
                     .preferred_component_type();
 

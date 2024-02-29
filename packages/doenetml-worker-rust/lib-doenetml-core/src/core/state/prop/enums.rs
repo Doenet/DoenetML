@@ -75,6 +75,7 @@ pub enum PropViewEnum {
     derive_more::TryInto,
     derive_more::From,
     FromPropIntoPropEnumRefs,
+    strum_macros::EnumDiscriminants,
 )]
 #[serde(untagged)]
 #[cfg_attr(feature = "web", derive(Tsify))]

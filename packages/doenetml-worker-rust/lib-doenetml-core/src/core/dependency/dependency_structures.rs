@@ -62,7 +62,7 @@ impl From<PropPointer> for DependencySource {
     fn from(prop_pointer: PropPointer) -> Self {
         DependencySource::Prop {
             component_idx: prop_pointer.component_idx,
-            prop_idx: prop_pointer.prop_idx,
+            prop_idx: prop_pointer.local_prop_idx,
         }
     }
 }
@@ -77,7 +77,7 @@ impl TryFrom<&DependencySource> for PropPointer {
                 prop_idx,
             } => Ok(PropPointer {
                 component_idx: *component_idx,
-                prop_idx: *prop_idx,
+                local_prop_idx: *prop_idx,
             }),
             DependencySource::State { .. } => {
                 Err("Cannot convert state dependency source to a prop pointer.")

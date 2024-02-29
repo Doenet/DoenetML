@@ -147,7 +147,7 @@ pub fn create_dependencies_from_data_query_initialize_state(
                 if prop_source.from_direct_ref {
                     let prop_pointer = prop_source.prop_pointer;
                     let referent = components[prop_pointer.component_idx].borrow();
-                    let referent_prop = referent.get_prop(prop_pointer.prop_idx).unwrap();
+                    let referent_prop = referent.get_prop(prop_pointer.local_prop_idx).unwrap();
                     let referent_profile = referent_prop.get_matching_component_profile();
 
                     if match_profiles.contains(&referent_profile) {

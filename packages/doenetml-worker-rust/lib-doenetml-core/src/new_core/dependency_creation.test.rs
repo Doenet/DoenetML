@@ -25,7 +25,7 @@ fn test_adding_sate_data_query() {
     core.add_data_query(
         PropPointer {
             component_idx: 2,
-            prop_idx: 0,
+            local_prop_idx: 0,
         },
         DataQuery::State,
     );
@@ -57,7 +57,7 @@ fn test_adding_sate_data_query_with_extending() {
     core.add_data_query(
         PropPointer {
             component_idx: 2,
-            prop_idx: 0,
+            local_prop_idx: 0,
         },
         DataQuery::State,
     );
@@ -65,7 +65,7 @@ fn test_adding_sate_data_query_with_extending() {
     core.add_data_query(
         PropPointer {
             component_idx: 1,
-            prop_idx: 0,
+            local_prop_idx: 0,
         },
         DataQuery::State,
     );
@@ -101,7 +101,7 @@ fn test_adding_prop_data_query() {
     core.add_data_query(
         PropPointer {
             component_idx: 2,
-            prop_idx: 0,
+            local_prop_idx: 0,
         },
         DataQuery::Prop {
             component_idx: None,
@@ -121,7 +121,7 @@ fn test_adding_prop_data_query() {
     core.add_data_query(
         PropPointer {
             component_idx: 2,
-            prop_idx: 1,
+            local_prop_idx: 1,
         },
         DataQuery::State,
     );
@@ -156,7 +156,7 @@ fn test_attribute_data_query() {
     core.add_data_query(
         PropPointer {
             component_idx: 1,
-            prop_idx: 0,
+            local_prop_idx: 0,
         },
         DataQuery::Attribute {
             attribute_name: "hide",

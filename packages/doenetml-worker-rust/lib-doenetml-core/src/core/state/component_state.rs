@@ -12,8 +12,11 @@ pub type PropIdx = usize;
 /// Pointer to a component's prop
 #[derive(Debug, Clone, Copy)]
 pub struct PropPointer {
+    /// The index of the component in `Core.components`
     pub component_idx: ComponentIdx,
-    pub prop_idx: PropIdx,
+    /// The local index of the prop relative to the component to which
+    /// it belongs. This is _not_ the offset of the prop in `Core.props`.
+    pub local_prop_idx: PropIdx,
 }
 
 #[enum_dispatch]

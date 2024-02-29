@@ -33,7 +33,7 @@ pub fn get_prop_value(
 
     components[original_prop_ptr.component_idx]
         .borrow()
-        .get_prop(original_prop_ptr.prop_idx)
+        .get_prop(original_prop_ptr.local_prop_idx)
         .unwrap()
         .get()
 }
@@ -86,7 +86,7 @@ pub fn freshen_all_stale_renderer_states(
         for prop_idx in rendered_prop_indices {
             let prop_ptr = PropPointer {
                 component_idx: *component_idx,
-                prop_idx,
+                local_prop_idx: prop_idx,
             };
             freshen_prop(
                 prop_ptr,
@@ -154,7 +154,7 @@ pub fn freshen_prop(
 
     let original_freshness = components[original_prop_ptr.component_idx]
         .borrow()
-        .get_prop(original_prop_ptr.prop_idx)
+        .get_prop(original_prop_ptr.local_prop_idx)
         .unwrap()
         .get_freshness();
 
@@ -175,7 +175,7 @@ pub fn freshen_prop(
     while let Some(prop_ptr) = freshen_stack.pop() {
         let current_freshness = components[prop_ptr.component_idx]
             .borrow()
-            .get_prop(prop_ptr.prop_idx)
+            .get_prop(prop_ptr.local_prop_idx)
             .unwrap()
             .get_freshness();
 
@@ -191,7 +191,7 @@ pub fn freshen_prop(
         };
 
         let dependencies_for_prop =
-            &dependency_graph.dependencies[prop_ptr.component_idx][prop_ptr.prop_idx];
+            &dependency_graph.dependencies[prop_ptr.component_idx][prop_ptr.local_prop_idx];
 
         // If we find a stale or resolved dependency
         // (i.e., not fresh, as we shouldn't have unresolved)
@@ -255,7 +255,7 @@ pub fn freshen_prop(
             // else restore its previous value.
 
             let component_idx = prop_ptr.component_idx;
-            let prop_idx = prop_ptr.prop_idx;
+            let prop_idx = prop_ptr.local_prop_idx;
 
             let mut comp = components[component_idx].borrow_mut();
             let prop = &mut comp.get_prop_mut(prop_idx).unwrap();
@@ -285,7 +285,7 @@ pub fn resolve_prop(
 
     while let Some(prop_ptr) = resolve_stack.pop() {
         let component_idx = prop_ptr.component_idx;
-        let prop_idx = prop_ptr.prop_idx;
+        let prop_idx = prop_ptr.local_prop_idx;
 
         let data_queries: Vec<DataQuery>;
 
@@ -325,7 +325,7 @@ pub fn resolve_prop(
                         let vec_dep = &mut dependency_graph.dependent_on_prop[*inner_comp_idx];
                         vec_dep[*inner_prop_idx].push(PropPointer {
                             component_idx,
-                            prop_idx,
+                            local_prop_idx: prop_idx,
                         });
                     }
                     DependencySource::State {
@@ -337,7 +337,7 @@ pub fn resolve_prop(
                             .or_default();
                         vec_dep.push(PropPointer {
                             component_idx,
-                            prop_idx,
+                            local_prop_idx: prop_idx,
                         });
                     }
                 }
@@ -351,7 +351,7 @@ pub fn resolve_prop(
                 {
                     let new_prop_ptr = PropPointer {
                         component_idx: *comp_idx_inner,
-                        prop_idx: *prop_idx_inner,
+                        local_prop_idx: *prop_idx_inner,
                     };
 
                     let new_current_freshness = dep.value.get_freshness();
