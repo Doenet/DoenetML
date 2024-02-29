@@ -90,7 +90,7 @@ impl DirectedGraph<GraphNode, GraphNodeLookup<usize>> {
     ///
     /// `node` must be a `GraphNode::Component`, otherwise this function will
     /// panic.
-    pub fn get_component_child_virtual_node(&self, node: GraphNode) -> GraphNode {
+    pub fn get_component_children_virtual_node(&self, node: GraphNode) -> GraphNode {
         assert!(
             matches!(node, GraphNode::Component(_)),
             "Expected a GraphNode::Component"

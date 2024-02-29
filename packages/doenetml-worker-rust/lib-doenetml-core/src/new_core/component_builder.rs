@@ -535,7 +535,7 @@ impl ComponentBuilder {
     fn prepend_component_child(&mut self, parent_node: GraphNode, child_node: GraphNode) {
         let children_virtual_node = self
             .structure_graph
-            .get_component_child_virtual_node(parent_node);
+            .get_component_children_virtual_node(parent_node);
         self.structure_graph
             .prepend_edge(children_virtual_node, child_node);
     }
@@ -563,10 +563,10 @@ impl ComponentBuilder {
         // so that `referent`'s children will be the first children of `component`.
         let component_children_virtual_node = self
             .structure_graph
-            .get_component_child_virtual_node(component_node);
+            .get_component_children_virtual_node(component_node);
         let referent_children_virtual_node = self
             .structure_graph
-            .get_component_child_virtual_node(referent_node);
+            .get_component_children_virtual_node(referent_node);
         self.structure_graph.prepend_edge(
             component_children_virtual_node,
             referent_children_virtual_node,
@@ -684,7 +684,7 @@ impl ComponentBuilder {
         if prop_source.from_direct_ref {
             let component_children_virtual_node = self
                 .structure_graph
-                .get_component_child_virtual_node(component_node);
+                .get_component_children_virtual_node(component_node);
 
             let referent_prop_node = self.structure_graph.get_component_props(referent_node)
                 [prop_source.prop_pointer.prop_idx];

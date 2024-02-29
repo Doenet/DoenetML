@@ -52,7 +52,7 @@ fn extend_via_ref() {
     // text ref's child is text's virtual node of children
     let text_node_children_virtual_node = core
         .structure_graph
-        .get_component_child_virtual_node(text_node);
+        .get_component_children_virtual_node(text_node);
     let text_ref_children = core.structure_graph.get_component_children(text_ref_node);
     assert_eq!(text_ref_children, vec![text_node_children_virtual_node]);
 
@@ -201,7 +201,7 @@ fn extend_via_extend_attribute() {
     // text2's children start with text1's virtual node of children
     let text1_node_children_virtual_node = core
         .structure_graph
-        .get_component_child_virtual_node(text1_node);
+        .get_component_children_virtual_node(text1_node);
     let world_node = GraphNode::String(1);
     let text2_children = core.structure_graph.get_component_children(text2_node);
     assert_eq!(
@@ -242,7 +242,7 @@ fn do_not_transmute_with_extend_attribute() {
     // text_input2's child is text_input1's virtual node of children
     let text_input1_node_children_virtual_node = core
         .structure_graph
-        .get_component_child_virtual_node(text_input1_node);
+        .get_component_children_virtual_node(text_input1_node);
     let text_input2_children = core
         .structure_graph
         .get_component_children(text_input2_node);
@@ -444,7 +444,7 @@ fn extend_attribute_without_default_prop() {
     // text's children begin with p's virtual node of children
     let p_node_children_virtual_node = core
         .structure_graph
-        .get_component_child_virtual_node(p_node);
+        .get_component_children_virtual_node(p_node);
     let world_node = GraphNode::String(1);
     let text_children = core.structure_graph.get_component_children(text_node);
     assert_eq!(

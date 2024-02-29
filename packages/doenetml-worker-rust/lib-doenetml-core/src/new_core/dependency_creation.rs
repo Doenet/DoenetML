@@ -169,11 +169,13 @@ impl Core {
                                 || match_profiles.contains(&ComponentProfile::LiteralString)
                             {
                                 self.dependency_graph.add_edge(query_node, node);
-                                did_add_children = true
+                                did_add_children = true;
                             }
                         }
                         GraphNode::State(_) => {
-                            // XXX What to do here?
+                            // XXX: Will the type be correct here? Do we do a profile match?
+                            self.dependency_graph.add_edge(query_node, node);
+                            did_add_children = true;
                         }
                         _ => {}
                     }
@@ -184,11 +186,83 @@ impl Core {
                     // This means that the attribute wasn't specified on any component (or any referent of the component).
 
                     // In this case, we create some state and depend on it.
+                    let state = self.add_state_node();
+                    // Add this state to the structure graph as well as the dependency graph.
+                    self.structure_graph.add_edge(attr_node, state);
+                    self.dependency_graph.add_edge(query_node, state);
+
+                    // XXX: the state needs to be initialized somehow?
                 }
             }
-            _ => {
-                // No new dependencies to create
-                // XXX: This is wrong. Several other cases to handle.
+            // Create a dependency from all children that match a profile from match_profiles.
+            DataQuery::ChildPropProfile {
+                match_profiles,
+                always_return_value,
+            } => {
+                let children_virtual_node = self
+                    .structure_graph
+                    .get_component_children_virtual_node(GraphNode::Component(
+                        origin.component_idx,
+                    ));
+
+                let mut did_add_children = false;
+                for node in self.structure_graph.content_children(children_virtual_node) {
+                    match node {
+                        GraphNode::Component(component_idx) => {
+                            // Check the component. We want to link to the first prop that matches one of the profiles.
+                            let component = &self.components[component_idx];
+                            let matching_prop = component
+                                .get_component_profile_prop_indices()
+                                .into_iter()
+                                .find_map(|prop_idx| {
+                                    component
+                                        .get_prop(prop_idx)
+                                        .map(|prop| prop.get_matching_component_profile())
+                                        .filter(|profile| match_profiles.contains(profile))
+                                        .map(|_| {
+                                            self.prop_pointer_to_prop_node(PropPointer {
+                                                component_idx,
+                                                prop_idx,
+                                            })
+                                        })
+                                });
+                            if let Some(matching_prop) = matching_prop {
+                                self.dependency_graph.add_edge(query_node, matching_prop);
+                                did_add_children = true;
+                            }
+                        }
+                        GraphNode::String(_) => {
+                            if match_profiles.contains(&ComponentProfile::String)
+                                || match_profiles.contains(&ComponentProfile::LiteralString)
+                            {
+                                self.dependency_graph.add_edge(query_node, node);
+                                did_add_children = true;
+                            }
+                        }
+                        GraphNode::State(_) => {
+                            // XXX: Will the type be correct here? Do we do a profile match?
+                            self.dependency_graph.add_edge(query_node, node);
+                            did_add_children = true;
+                        }
+                        GraphNode::Prop(_) => {
+                            // XXX: What to do in this case? I suppose we need to check if the prop matches the profile?
+                        }
+                        _ => {}
+                    }
+                }
+                if always_return_value && !did_add_children {
+                    // Found no matching attribute children.
+                    // This means that the attribute wasn't specified on any component (or any referent of the component).
+
+                    // In this case, we create some state and depend on it.
+                    let state = self.add_state_node();
+                    // Add this state to the structure graph as well as the dependency graph.
+                    // XXX: This is wrong. Where should the state be added?
+                    self.structure_graph.add_edge(children_virtual_node, state);
+                    self.dependency_graph.add_edge(query_node, state);
+
+                    // XXX: the state needs to be initialized somehow?
+                }
             }
         }
     }
