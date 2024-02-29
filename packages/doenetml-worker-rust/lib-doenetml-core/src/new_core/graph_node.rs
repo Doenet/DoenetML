@@ -81,9 +81,9 @@ impl DirectedGraph<GraphNode, GraphNodeLookup<usize>> {
             "Expected a GraphNode::Component"
         );
         let children_virtual_node = self
-            .get_nth_child(&node, 0)
+            .get_nth_child(node, 0)
             .expect("A component node should always have children in the structure graph");
-        self.get_children(&children_virtual_node)
+        self.get_children(children_virtual_node)
     }
 
     /// Get's the virtual node that contains the requested component's children.
@@ -95,7 +95,7 @@ impl DirectedGraph<GraphNode, GraphNodeLookup<usize>> {
             matches!(node, GraphNode::Component(_)),
             "Expected a GraphNode::Component"
         );
-        self.get_nth_child(&node, 0)
+        self.get_nth_child(node, 0)
             .expect("A component node should always have children in the structure graph")
     }
 
@@ -109,9 +109,9 @@ impl DirectedGraph<GraphNode, GraphNodeLookup<usize>> {
             "Expected a GraphNode::Component"
         );
         let attributes_virtual_node = self
-            .get_nth_child(&node, 1)
+            .get_nth_child(node, 1)
             .expect("A component node should always have attributes in the structure graph");
-        self.get_children(&attributes_virtual_node)
+        self.get_children(attributes_virtual_node)
     }
 
     /// Get a list of `GraphNode`s corresponding to the requested
@@ -124,8 +124,8 @@ impl DirectedGraph<GraphNode, GraphNodeLookup<usize>> {
             "Expected a GraphNode::Component"
         );
         let attributes_virtual_node = self
-            .get_nth_child(&node, 2)
+            .get_nth_child(node, 2)
             .expect("A component node should always have attributes in the structure graph");
-        self.get_children(&attributes_virtual_node)
+        self.get_children(attributes_virtual_node)
     }
 }

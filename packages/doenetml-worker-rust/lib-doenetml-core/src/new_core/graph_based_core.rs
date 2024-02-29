@@ -30,11 +30,11 @@ pub struct Core {
     /// it can be referenced), but we don't store any information about virtual nodes themselves.
     virtual_node_count: usize,
     // XXX: fill these in
-    props: Vec<()>,
+    pub props: Vec<()>,
     #[allow(dead_code)]
-    states: Vec<()>,
+    pub states: Vec<()>,
     #[allow(dead_code)]
-    queries: Vec<()>,
+    pub queries: Vec<()>,
 }
 
 impl Default for Core {
