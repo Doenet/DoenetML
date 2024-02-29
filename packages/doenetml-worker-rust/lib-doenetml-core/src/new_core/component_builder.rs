@@ -450,7 +450,7 @@ impl ComponentBuilder {
         let graph_virtual_node = self.new_virtual_node();
         self.structure_graph.add_node(graph_virtual_node);
         self.structure_graph
-            .add_edge(&graph_component_node, &graph_virtual_node);
+            .add_edge(graph_component_node, graph_virtual_node);
         self.add_content_to_structure_graph(graph_virtual_node, children);
 
         //
@@ -460,7 +460,7 @@ impl ComponentBuilder {
         let graph_virtual_node = self.new_virtual_node();
         self.structure_graph.add_node(graph_virtual_node);
         self.structure_graph
-            .add_edge(&graph_component_node, &graph_virtual_node);
+            .add_edge(graph_component_node, graph_virtual_node);
         // These are the unused attributes that are not recognized by the component
         let mut unused_attributes = HashMap::<String, _>::from_iter(
             attributes
@@ -473,7 +473,7 @@ impl ComponentBuilder {
             let attr_virtual_node = self.new_virtual_node();
             self.structure_graph.add_node(attr_virtual_node);
             self.structure_graph
-                .add_edge(&graph_virtual_node, &attr_virtual_node);
+                .add_edge(graph_virtual_node, attr_virtual_node);
 
             let attr_content =
                 unused_attributes
@@ -498,14 +498,14 @@ impl ComponentBuilder {
         let graph_virtual_node = self.new_virtual_node();
         self.structure_graph.add_node(graph_virtual_node);
         self.structure_graph
-            .add_edge(&graph_component_node, &graph_virtual_node);
+            .add_edge(graph_component_node, graph_virtual_node);
         for _ in 0..component.get_num_props() {
             let prop_graph_node = GraphNode::Prop(self.props.len());
             // XXX: right now we don't do any caching or initialization of props, so we just push a placeholder
             self.props.push(());
             self.structure_graph.add_node(prop_graph_node);
             self.structure_graph
-                .add_edge(&graph_virtual_node, &prop_graph_node);
+                .add_edge(graph_virtual_node, prop_graph_node);
         }
 
         unused_attributes
@@ -520,12 +520,12 @@ impl ComponentBuilder {
                     let graph_child_node = GraphNode::Component(*idx);
                     // `graph_child_node` may already be in the graph or it may be missing.
                     // If it is missing, it is automatically added, so there's no need to check.
-                    self.structure_graph.add_edge(&parent, &graph_child_node);
+                    self.structure_graph.add_edge(parent, graph_child_node);
                 }
                 UntaggedContent::Text(text) => {
                     let graph_string_node = self.new_string_node(text.clone());
                     self.structure_graph.add_node(graph_string_node);
-                    self.structure_graph.add_edge(&parent, &graph_string_node);
+                    self.structure_graph.add_edge(parent, graph_string_node);
                 }
             }
         }
@@ -535,9 +535,9 @@ impl ComponentBuilder {
     fn prepend_component_child(&mut self, parent_node: GraphNode, child_node: GraphNode) {
         let children_virtual_node = self
             .structure_graph
-            .get_component_child_virtual_node(parent_node);
+            .get_component_children_virtual_node(parent_node);
         self.structure_graph
-            .prepend_edge(&children_virtual_node, &child_node);
+            .prepend_edge(children_virtual_node, child_node);
     }
 
     /// Add to `structure_graph` the relationships from when a component extends another component,
@@ -548,7 +548,7 @@ impl ComponentBuilder {
     /// the following relationships are formed when `component` extends `referent`:
     /// - The children of `referent` become the first children of `component` (i.e., become _virtual children_)
     /// - Attributes of `referent` that match attributes of `component` become backup attributes of `component`,
-    ///   (i.e., become _virtual attributes_)
+    ///   (i.e., become _virtual attributes_). If an attribute is specified explicitly, no virtual attribute is created.
     /// - If the component types of `component` and `referent` are the same,
     ///   then state props of `referent` are used for the state props of `component`
     fn add_component_extending_structure(
@@ -563,20 +563,19 @@ impl ComponentBuilder {
         // so that `referent`'s children will be the first children of `component`.
         let component_children_virtual_node = self
             .structure_graph
-            .get_component_child_virtual_node(component_node);
+            .get_component_children_virtual_node(component_node);
         let referent_children_virtual_node = self
             .structure_graph
-            .get_component_child_virtual_node(referent_node);
+            .get_component_children_virtual_node(referent_node);
         self.structure_graph.prepend_edge(
-            &component_children_virtual_node,
-            &referent_children_virtual_node,
+            component_children_virtual_node,
+            referent_children_virtual_node,
         );
 
         // Attributes from `referent` with the same name as an attribute from `component`
         // are added as dependency of the attribute from `component`
         // so that they will be used as a fallback if component doesn't have those attributes.
 
-        // TODO: we could check if attributes of `component` were specified and then omit the dependency.
         let component_attributes = self
             .structure_graph
             .get_component_attributes(component_node);
@@ -589,6 +588,16 @@ impl ComponentBuilder {
             .into_iter()
             .enumerate()
         {
+            // If the attribute already has children, its value will be determined by the children
+            // and won't use any information from the referent component.
+            if !self
+                .structure_graph
+                .get_children(component_attributes[attr_idx])
+                .is_empty()
+            {
+                continue;
+            }
+
             if let Some(ref_attr_idx) = referent_attribute_names
                 .iter()
                 .position(|a| *a == attr_name)
@@ -596,7 +605,7 @@ impl ComponentBuilder {
                 // found a matching attribute. Add a link to the attributes
                 let comp_attr = component_attributes[attr_idx];
                 let ref_attr = referent_attributes[ref_attr_idx];
-                self.structure_graph.add_edge(&comp_attr, &ref_attr);
+                self.structure_graph.add_edge(comp_attr, ref_attr);
             }
         }
 
@@ -615,7 +624,7 @@ impl ComponentBuilder {
                 let comp_prop = component_props[prop_idx];
                 let ref_prop = referent_props[prop_idx];
 
-                self.structure_graph.add_edge(&comp_prop, &ref_prop);
+                self.structure_graph.add_edge(comp_prop, ref_prop);
             }
         }
     }
@@ -668,20 +677,20 @@ impl ComponentBuilder {
                 // found a matching attribute. Add a link to the attributes
                 let comp_attr = component_attributes[attr_idx];
                 let ref_attr = referent_attributes[ref_attr_idx];
-                self.structure_graph.add_edge(&comp_attr, &ref_attr);
+                self.structure_graph.add_edge(comp_attr, ref_attr);
             }
         }
 
         if prop_source.from_direct_ref {
             let component_children_virtual_node = self
                 .structure_graph
-                .get_component_child_virtual_node(component_node);
+                .get_component_children_virtual_node(component_node);
 
             let referent_prop_node = self.structure_graph.get_component_props(referent_node)
                 [prop_source.prop_pointer.prop_idx];
 
             self.structure_graph
-                .prepend_edge(&component_children_virtual_node, &referent_prop_node);
+                .prepend_edge(component_children_virtual_node, referent_prop_node);
         }
     }
 }

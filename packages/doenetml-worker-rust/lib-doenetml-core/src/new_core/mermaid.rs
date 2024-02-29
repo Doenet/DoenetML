@@ -163,17 +163,31 @@ impl DirectedGraph<GraphNode, GraphNodeLookup<usize>> {
 }
 
 impl Core {
+    /// Output a mermaid graph of the dependency graph.
+    pub fn to_mermaid_dependency_graph(&self) -> String {
+        self.to_mermaid_from_graph(&self.dependency_graph)
+    }
+    /// Output a mermaid graph of the structure graph.
+    pub fn to_mermaid_structure_graph(&self) -> String {
+        self.to_mermaid_from_graph(&self.structure_graph)
+    }
     /// Output a mermaid graph of the structure graph.
     pub fn to_mermaid(&self) -> String {
+        self.to_mermaid_from_graph(&self.structure_graph)
+    }
+    pub fn to_mermaid_from_graph(
+        &self,
+        graph: &DirectedGraph<GraphNode, GraphNodeLookup<usize>>,
+    ) -> String {
         let mut mermaid = String::new();
         mermaid.push_str("graph TD;\n");
         mermaid.push_str("classDef text color:red, stroke:red, fill:#fee\n");
-        mermaid.push_str(&self.structure_graph.to_mermaid_edges());
+        mermaid.push_str(&graph.to_mermaid_edges());
 
         // `mermaid` contains just the edges of the structure graph
         // labeled as `1, 2, 3, ...`. We want to give appropriate labels to
         // each node.
-        for graph_node in self.structure_graph.get_nodes().iter() {
+        for graph_node in graph.get_nodes().iter() {
             match graph_node {
                 GraphNode::Component(idx) => {
                     let component = &self.components[*idx];
@@ -202,8 +216,7 @@ impl Core {
         // Some virtual nodes have special names. For example the 1st virtual
         // node of a component is the children of that component. The 2nd is the attributes.
         // We want to label these nodes appropriately.
-        for &component_node in self
-            .structure_graph
+        for &component_node in graph
             .get_nodes()
             .iter()
             .filter(|n| matches!(n, GraphNode::Component(_)))
@@ -214,28 +227,23 @@ impl Core {
             };
             let component = &self.components[component_idx];
             // Children
-            let children_virtual_node = self
-                .structure_graph
-                .get_nth_child(&component_node, 0)
-                .unwrap();
-            mermaid.push_str(&format!(
-                "{}([children])\n",
-                children_virtual_node.to_mermaid_id()
-            ));
+            if let Some(children_virtual_node) = graph.get_nth_child(&component_node, 0) {
+                mermaid.push_str(&format!(
+                    "{}([children])\n",
+                    children_virtual_node.to_mermaid_id()
+                ));
+            }
 
             // Attrs
-            let attrs_virtual_node = self
-                .structure_graph
-                .get_nth_child(&component_node, 1)
-                .unwrap();
-            mermaid.push_str(&format!(
-                "{}([attrs])\n",
-                attrs_virtual_node.to_mermaid_id()
-            ));
+            if let Some(attrs_virtual_node) = graph.get_nth_child(&component_node, 1) {
+                mermaid.push_str(&format!(
+                    "{}([attrs])\n",
+                    attrs_virtual_node.to_mermaid_id()
+                ));
+            }
 
             // Label the individual attributes
-            for (i, attr_virtual_node) in self
-                .structure_graph
+            for (i, attr_virtual_node) in graph
                 .get_component_attributes(component_node)
                 .iter()
                 .enumerate()
@@ -248,10 +256,7 @@ impl Core {
             }
 
             // Props
-            let props_virtual_node = self
-                .structure_graph
-                .get_nth_child(&component_node, 2)
-                .unwrap();
+            let props_virtual_node = graph.get_nth_child(&component_node, 2).unwrap();
             mermaid.push_str(&format!(
                 "{}([props])\n",
                 props_virtual_node.to_mermaid_id()
