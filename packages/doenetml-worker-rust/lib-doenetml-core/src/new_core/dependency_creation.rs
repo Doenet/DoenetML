@@ -262,7 +262,7 @@ impl Core {
     }
 
     /// Convert a `PropPointer` to a `GraphNode::Prop`.
-    fn prop_pointer_to_prop_node(&self, prop_pointer: PropPointer) -> GraphNode {
+    pub fn prop_pointer_to_prop_node(&self, prop_pointer: PropPointer) -> GraphNode {
         self.structure_graph
             .get_component_props(GraphNode::Component(prop_pointer.component_idx))
             [prop_pointer.local_prop_idx]

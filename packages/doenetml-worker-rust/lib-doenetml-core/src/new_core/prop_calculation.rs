@@ -3,6 +3,7 @@ use crate::{
         prelude::{ComponentState, FlatDastElementContent},
         ComponentNode,
     },
+    graph::directed_graph::Taggable,
     state::PropPointer,
     ComponentIdx,
 };
@@ -68,5 +69,9 @@ impl Core {
         // This approach was chosen because it is relatively easy to produce documents
         // with thousands of levels in the dependency graph, and it wasn't clear what
         // size WASM stack would be appropriate.
+
+        let original_freshness = self
+            .freshness
+            .get_tag(&self.prop_pointer_to_prop_node(original_prop_ptr));
     }
 }
