@@ -2,7 +2,7 @@ use std::{cell::RefCell, collections::HashMap, ops::Deref, rc::Rc};
 
 use crate::{
     components::{
-        prelude::ComponentState, ComponentActions, ComponentEnum, ComponentNode, RenderedChildren,
+        prelude::ComponentState, ComponentActions, ComponentEnum, ComponentNode, ComponentChildren,
     },
     ComponentIdx, Extending,
 };
@@ -34,7 +34,7 @@ pub fn to_flat_dast(
         // children from the component itself come after children the extend source
         children.extend(
             component
-                .get_rendered_children()
+                .render_children()
                 .iter()
                 .map(|child| match child {
                     UntaggedContent::Ref(comp_idx) => FlatDastElementContent::Element(*comp_idx),

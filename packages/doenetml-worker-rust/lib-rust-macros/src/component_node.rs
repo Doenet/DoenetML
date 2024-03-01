@@ -171,8 +171,8 @@ pub fn rendered_children_derive(input: TokenStream) -> TokenStream {
             syn::Fields::Named(FieldsNamed { .. }) => {
                 if pass_through_children {
                     quote! {
-                        impl RenderedChildren for #name {
-                            fn get_rendered_children(&self) -> &Vec<UntaggedContent> {
+                        impl ComponentChildren for #name {
+                            fn render_children(&self) -> &Vec<UntaggedContent> {
                                 &self.common.children
                             }
                         }
@@ -180,8 +180,8 @@ pub fn rendered_children_derive(input: TokenStream) -> TokenStream {
                 } else {
                     // no_rendered_children
                     quote! {
-                        impl RenderedChildren for #name {
-                            fn get_rendered_children(&self) -> &Vec<UntaggedContent> {
+                        impl ComponentChildren for #name {
+                            fn render_children(&self) -> &Vec<UntaggedContent> {
                                 static EMPTY_VECTOR: Vec<UntaggedContent> = vec![];
                                 &EMPTY_VECTOR
                             }

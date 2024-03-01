@@ -4,7 +4,7 @@ use crate::components::prelude::*;
     Debug,
     Default,
     ComponentNode,
-    RenderedChildren,
+    ComponentChildren,
     ComponentState,
     ComponentActions,
     ComponentAttributes,

@@ -1,7 +1,7 @@
 use crate::{components::prelude::*, dast::flat_dast::FlatAttribute};
 
 #[derive(
-    Debug, Default, RenderedChildren, ComponentState, ComponentActions, ComponentAttributes,
+    Debug, Default, ComponentChildren, ComponentState, ComponentActions, ComponentAttributes,
 )]
 #[pass_through_children]
 pub struct _External {

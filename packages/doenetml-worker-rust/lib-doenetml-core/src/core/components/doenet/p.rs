@@ -12,7 +12,7 @@ pub enum PAttribute {
     Hide,
 }
 
-#[derive(Debug, Default, ComponentNode, RenderedChildren, ComponentState, ComponentActions)]
+#[derive(Debug, Default, ComponentNode, ComponentChildren, ComponentState, ComponentActions)]
 #[pass_through_children]
 pub struct P {
     pub common: ComponentCommonData,

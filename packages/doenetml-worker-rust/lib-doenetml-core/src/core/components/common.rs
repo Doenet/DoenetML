@@ -36,7 +36,7 @@ use super::prelude::UntaggedContent;
 #[enum_dispatch(
     ComponentNode,
     ComponentState,
-    RenderedChildren,
+    ComponentChildren,
     ComponentAttributes,
     ComponentActions
 )]
@@ -213,14 +213,14 @@ pub trait ComponentNode: ComponentState {
 
 /// Specifies the children that will be sent to the renderer.
 ///
-/// Two behaviors can be automatically derived by the `RenderedChildren` macro
+/// Two behaviors can be automatically derived by the `ComponentChildren` macro
 /// based on helper attributes applied to the struct.
 /// - `#[pass_through_children]`: all children are passed through as the rendered children (default if no attributes)
 /// - `#[no_rendered_children]`: no children are passed to the renderer
 #[enum_dispatch]
-pub trait RenderedChildren {
+pub trait ComponentChildren {
     /// Return the children that will be used in the flat dast sent to the renderer.
-    fn get_rendered_children(&self) -> &Vec<UntaggedContent>;
+    fn render_children(&self) -> &Vec<UntaggedContent>;
 }
 
 /// The ComponentAttributes trait can be derived for a component,

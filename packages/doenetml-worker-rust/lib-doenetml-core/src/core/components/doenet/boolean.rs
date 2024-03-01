@@ -9,7 +9,7 @@ use crate::general_prop::{BooleanProp, BooleanToStringProp, PropAlias};
     ComponentState,
     ComponentActions,
     ComponentAttributes,
-    RenderedChildren,
+    ComponentChildren,
 )]
 #[no_rendered_children]
 #[component(extend_via_default_prop)]

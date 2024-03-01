@@ -30,4 +30,6 @@ impl Core {
         // We don't recompute now. We just record that the node is stale.
         self.freshness.set_tag(node, Freshness::Stale)
     }
+    /// Recalculate all stale nodes.
+    fn recalculate(&mut self) {}
 }
