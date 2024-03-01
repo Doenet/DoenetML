@@ -8,7 +8,7 @@ use crate::dast::flat_dast::FlatAttribute;
 use crate::state::types::math_expr::MathExpr;
 use serde::{Deserialize, Serialize};
 
-use crate::dast::Position as DastPosition;
+use crate::dast::{FlatDastElementContent, Position as DastPosition};
 use crate::state::{ComponentState, Prop, PropIdx, PropValue};
 use crate::{ComponentIdx, Extending};
 
@@ -215,12 +215,24 @@ pub trait ComponentNode: ComponentState {
 ///
 /// Two behaviors can be automatically derived by the `ComponentChildren` macro
 /// based on helper attributes applied to the struct.
+/// (Note: additional options will be added later)
 /// - `#[pass_through_children]`: all children are passed through as the rendered children (default if no attributes)
 /// - `#[no_rendered_children]`: no children are passed to the renderer
 #[enum_dispatch]
 pub trait ComponentChildren {
-    /// Return the children that will be used in the flat dast sent to the renderer.
-    fn render_children(&self) -> &Vec<UntaggedContent>;
+    /// Keeping this obsolete function so that can see how old code worked for reference.
+    /// TODO: delete once not needed anymore
+    fn render_children_obsolete(&self) -> &Vec<UntaggedContent>;
+
+    /// Given the vector of all flat dast children,
+    /// return the vector of flat dast children that should be sent to the renderer.
+    ///
+    /// TODO: make this more efficient to not create children in the first place
+    /// in the case of `no_rendered_children`?
+    fn filter_rendered_children(
+        &self,
+        children: Vec<FlatDastElementContent>,
+    ) -> Vec<FlatDastElementContent>;
 }
 
 /// The ComponentAttributes trait can be derived for a component,

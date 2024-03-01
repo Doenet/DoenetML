@@ -4,7 +4,8 @@ use crate::{
     components::{prelude::PropValue, ComponentEnum},
     dast::flat_dast::NormalizedRoot,
     graph::directed_graph::DirectedGraph,
-    state::Freshness,
+    state::{Freshness, PropPointer},
+    ComponentIdx,
 };
 
 use super::{
@@ -38,6 +39,7 @@ pub struct Core {
     // XXX: fill these in
     pub queries: Vec<()>,
     pub freshness: GraphNodeLookup<Freshness>,
+    pub processing_state: CoreProcessingState,
 }
 
 impl Default for Core {
@@ -48,6 +50,9 @@ impl Default for Core {
 
 impl Core {
     pub fn new() -> Self {
+        // Initialize with the document element being stale.
+        let stale_renderers = Vec::from([0]);
+
         Core {
             structure_graph: DirectedGraph::new(),
             dependency_graph: DirectedGraph::new(),
@@ -58,6 +63,11 @@ impl Core {
             queries: Vec::new(),
             virtual_node_count: 0,
             freshness: GraphNodeLookup::new(),
+            processing_state: CoreProcessingState {
+                stale_renderers,
+                freshen_stack: Vec::new(),
+                mark_stale_stack: Vec::new(),
+            },
         }
     }
 
@@ -74,6 +84,18 @@ impl Core {
         self.virtual_node_count = component_builder.virtual_node_count;
         self.props = component_builder.props;
     }
+}
+
+#[derive(Debug)]
+pub struct CoreProcessingState {
+    /// List of the rendered components that have stale `for_renderer` props.
+    pub stale_renderers: Vec<ComponentIdx>,
+
+    // To prevent unnecessary reallocations of temporary vectors, like stacks,
+    // we store them on the DoenetMLCore struct so that they will stay allocated.
+    pub freshen_stack: Vec<PropPointer>,
+    pub mark_stale_stack: Vec<PropPointer>,
+    // pub update_stack: Vec<PropUpdateRequest>,
 }
 
 #[cfg(test)]
