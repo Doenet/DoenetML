@@ -1,10 +1,10 @@
 use crate::{
     components::{
-        prelude::{ComponentState, FlatDastElementContent},
+        prelude::{ComponentState, DataQuery, FlatDastElementContent},
         ComponentNode,
     },
     graph::directed_graph::Taggable,
-    state::PropPointer,
+    state::{Freshness, PropPointer},
     ComponentIdx,
 };
 
@@ -72,6 +72,48 @@ impl Core {
 
         let original_freshness = self
             .freshness
-            .get_tag(&self.prop_pointer_to_prop_node(original_prop_ptr));
+            .get_tag(&self.prop_pointer_to_prop_node(original_prop_ptr))
+            .unwrap();
+
+        // If the current prop is fresh, there's nothing to do.
+        // If it is unresolved, resolve it
+        match original_freshness {
+            Freshness::Fresh => return,
+            Freshness::Unresolved => {
+                self.resolve_prop(original_prop_ptr);
+            }
+            Freshness::Stale | Freshness::Resolved => (),
+        };
+
+        // TODO: unfinished
+    }
+
+    pub fn resolve_prop(&mut self, original_prop_ptr: PropPointer) {
+        // Since resolving props won't recurse with repeated actions,
+        // will go ahead and allocate the stack locally, for simplicity.
+        let mut resolve_stack = Vec::new();
+        resolve_stack.push(original_prop_ptr);
+
+        while let Some(prop_ptr) = resolve_stack.pop() {
+            let component_idx = prop_ptr.component_idx;
+            let local_prop_idx = prop_ptr.local_prop_idx;
+
+            let current_freshness = self
+                .freshness
+                .get_tag(&self.prop_pointer_to_prop_node(original_prop_ptr))
+                .unwrap();
+
+            if *current_freshness != Freshness::Unresolved {
+                // nothing to do if the prop is already resolved
+                continue;
+            }
+
+            let data_queries = self.components[component_idx]
+                .get_prop_mut(local_prop_idx)
+                .unwrap()
+                .return_data_queries();
+
+            // TODO: unfinished
+        }
     }
 }
