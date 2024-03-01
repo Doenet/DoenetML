@@ -158,7 +158,7 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
     output.into()
 }
 
-pub fn rendered_children_derive(input: TokenStream) -> TokenStream {
+pub fn component_children_derive(input: TokenStream) -> TokenStream {
     let ast: syn::DeriveInput = syn::parse(input).unwrap();
     let name = &ast.ident;
     let data = &ast.data;

@@ -2,7 +2,7 @@ use std::{cell::RefCell, collections::HashMap, ops::Deref, rc::Rc};
 
 use crate::{
     components::{
-        prelude::ComponentState, ComponentActions, ComponentEnum, ComponentNode, ComponentChildren,
+        prelude::ComponentState, ComponentActions, ComponentChildren, ComponentEnum, ComponentNode,
     },
     ComponentIdx, Extending,
 };
@@ -32,15 +32,10 @@ pub fn to_flat_dast(
         };
 
         // children from the component itself come after children the extend source
-        children.extend(
-            component
-                .render_children()
-                .iter()
-                .map(|child| match child {
-                    UntaggedContent::Ref(comp_idx) => FlatDastElementContent::Element(*comp_idx),
-                    UntaggedContent::Text(s) => FlatDastElementContent::Text(s.to_string()),
-                }),
-        );
+        children.extend(component.render_children().iter().map(|child| match child {
+            UntaggedContent::Ref(comp_idx) => FlatDastElementContent::Element(*comp_idx),
+            UntaggedContent::Text(s) => FlatDastElementContent::Text(s.to_string()),
+        }));
     }
 
     let mut component = components[component_idx].borrow_mut();

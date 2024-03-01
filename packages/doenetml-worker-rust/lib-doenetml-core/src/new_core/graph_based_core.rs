@@ -1,8 +1,10 @@
 //! A version of `Core` based on `DirectedGraph`
 
 use crate::{
-    components::{prelude::PropValue, ComponentEnum}, dast::flat_dast::NormalizedRoot,
-    graph::directed_graph::DirectedGraph, state::Freshness,
+    components::{prelude::PropValue, ComponentEnum},
+    dast::flat_dast::NormalizedRoot,
+    graph::directed_graph::DirectedGraph,
+    state::Freshness,
 };
 
 use super::{
@@ -35,7 +37,7 @@ pub struct Core {
     pub states: Vec<(PropIdent, PropValue)>,
     // XXX: fill these in
     pub queries: Vec<()>,
-    pub freshness: GraphNodeLookup<Freshness>
+    pub freshness: GraphNodeLookup<Freshness>,
 }
 
 impl Default for Core {

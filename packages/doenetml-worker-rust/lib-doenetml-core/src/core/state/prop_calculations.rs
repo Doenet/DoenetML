@@ -1,7 +1,7 @@
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use crate::{
-    components::{prelude::UntaggedContent, ComponentEnum, ComponentNode, ComponentChildren},
+    components::{prelude::UntaggedContent, ComponentChildren, ComponentEnum, ComponentNode},
     dependency::{
         create_dependencies_from_data_query_initialize_state, DataQuery, DependencySource,
     },
