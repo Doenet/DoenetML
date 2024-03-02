@@ -6,7 +6,7 @@ use super::MathAttribute;
 
 /// The state variables that underlie the `<math>` component.
 #[derive(Debug, ComponentProps)]
-pub struct MathState {
+pub struct MathProps {
     /// The value of the `<math>` component.
     ///
     /// It is marked `is_public` so that it can be referenced in DoenetML via `.value`.
@@ -34,26 +34,26 @@ pub struct MathState {
     split_symbols: Prop<bool>,
 }
 
-impl MathState {
+impl MathProps {
     fn new() -> Self {
-        MathState {
+        MathProps {
             value: MathProp::new_from_children(
                 MathExpr::default(),
                 // TODO: specify parser via attribute once we implement enum attributes and props
                 MathParser::Text,
-                MathState::get_split_symbols_data_query(),
+                MathProps::get_split_symbols_data_query(),
                 // TODO: specify function_symbols via attribute once we implement array attributes and props
                 vec!["f".to_string(), "g".to_string()],
             )
             .into_prop(),
-            latex: LatexProp::new(MathState::get_value_data_query()).into_prop(),
+            latex: LatexProp::new(MathProps::get_value_data_query()).into_prop(),
             split_symbols: MathAttribute::SplitSymbols.prop(),
         }
     }
 }
 
-impl Default for MathState {
+impl Default for MathProps {
     fn default() -> Self {
-        MathState::new()
+        MathProps::new()
     }
 }

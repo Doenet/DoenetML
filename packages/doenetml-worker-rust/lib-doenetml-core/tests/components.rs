@@ -7,9 +7,9 @@ use doenetml_core::{
     components::{
         actions::{Action, ActionBody},
         doenet::{
-            boolean::BooleanState,
-            text::TextState,
-            text_input::{TextInputAction, TextInputActionArgs, TextInputState},
+            boolean::BooleanProps,
+            text::TextProps,
+            text_input::{TextInputAction, TextInputActionArgs, TextInputProps},
         },
         ActionsEnum, ComponentNode,
     },

@@ -7,7 +7,7 @@ use crate::{
     general_prop::{BooleanProp, StringProp},
 };
 
-use super::TextInputState;
+use super::TextInputProps;
 
 #[derive(Debug, AttributeProp)]
 pub enum TextInputAttribute {
@@ -48,7 +48,7 @@ pub struct TextInput {
     pub common: ComponentCommonData,
 
     /// The props that underlie the `<textInput>` component.
-    pub state: TextInputState,
+    pub props: TextInputProps,
 }
 
 impl ComponentChildren for TextInput {
@@ -83,16 +83,16 @@ impl ComponentActions for TextInput {
 
         match action {
             TextInputAction::UpdateImmediateValue(ActionBody { args }) => {
-                Ok(vec![TextInputState::update_immediate_value_from_action(
+                Ok(vec![TextInputProps::update_immediate_value_from_action(
                     args.text,
                 )])
             }
 
             TextInputAction::UpdateValue => {
                 let new_val =
-                    resolve_and_retrieve_prop(TextInputState::get_immediate_value_prop_index());
+                    resolve_and_retrieve_prop(TextInputProps::get_immediate_value_prop_index());
 
-                Ok(vec![TextInputState::update_value_from_action(
+                Ok(vec![TextInputProps::update_value_from_action(
                     new_val.try_into().unwrap(),
                 )])
             }

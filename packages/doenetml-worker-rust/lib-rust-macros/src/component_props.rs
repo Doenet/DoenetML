@@ -6,7 +6,7 @@ use syn::{self, parse::Parser, FieldsNamed};
 
 use crate::util::{find_type_from_prop_with_generics, has_attribute};
 
-pub fn component_state_derive(input: TokenStream) -> TokenStream {
+pub fn component_props_derive(input: TokenStream) -> TokenStream {
     let ast: syn::DeriveInput = syn::parse(input).unwrap();
     let structure_identity = &ast.ident;
     let data = &ast.data;
@@ -22,65 +22,65 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
                     .collect::<Vec<_>>();
 
                 // Determine if struct represents a component or represents props.
-                // If a component, then we implement the trait by calling each function on the state.
+                // If a component, then we implement the trait by calling each function on the props.
                 // If props, then determine the trait functions from the fields.
                 //
                 // TODO: better condition to determine if is component struct.
-                // For now, we just check if there are fields named "common" and "state".
+                // For now, we just check if there are fields named "common" and "props".
                 // Could check the type of common to make sure it is CommonData
                 // or check if each field is a prop.
                 let is_component_struct = field_identities.iter().any(|ident| *ident == "common")
-                    && field_identities.iter().any(|ident| *ident == "state");
+                    && field_identities.iter().any(|ident| *ident == "props");
 
                 if is_component_struct {
                     quote! {
                         impl ComponentProps for #structure_identity {
                             fn get_num_props(&self) -> PropIdx {
-                                self.state.get_num_props()
+                                self.props.get_num_props()
                             }
 
                             fn get_prop(&self, prop_idx: PropIdx) -> Option<PropEnumRef> {
-                                self.state.get_prop(prop_idx)
+                                self.props.get_prop(prop_idx)
                             }
 
                             fn get_prop_mut(&mut self, prop_idx: PropIdx) -> Option<PropEnumRefMut> {
-                                self.state.get_prop_mut(prop_idx)
+                                self.props.get_prop_mut(prop_idx)
                             }
 
                             fn get_prop_index_from_name(&self, name: &str) -> Option<PropIdx> {
-                                self.state.get_prop_index_from_name(name)
+                                self.props.get_prop_index_from_name(name)
                             }
 
                             fn get_component_profile_prop_indices(&self) -> Vec<PropIdx> {
-                                self.state.get_component_profile_prop_indices()
+                                self.props.get_component_profile_prop_indices()
                             }
 
                             fn get_public_prop_index_from_name_case_insensitive(
                                 &self,
                                 name: &str,
                             ) -> Option<PropIdx> {
-                                self.state.get_public_prop_index_from_name_case_insensitive(name)
+                                self.props.get_public_prop_index_from_name_case_insensitive(name)
                             }
 
                             fn get_default_prop(&self) -> Option<PropIdx> {
-                                self.state.get_default_prop()
+                                self.props.get_default_prop()
                             }
 
                             fn get_for_renderer_prop_indices(&self) -> Vec<PropIdx> {
-                                self.state.get_for_renderer_prop_indices()
+                                self.props.get_for_renderer_prop_indices()
                             }
 
                             fn check_if_prop_is_for_renderer(&self, prop_idx: PropIdx) -> bool {
-                                self.state.check_if_prop_is_for_renderer(prop_idx)
+                                self.props.check_if_prop_is_for_renderer(prop_idx)
                             }
 
                             /// Return object will the values of all the rendered props
-                            fn get_rendered_props_old(&mut self) -> Option<RenderedState> {
-                                self.state.get_rendered_props_old()
+                            fn get_rendered_props_old(&mut self) -> Option<RenderedProps> {
+                                self.props.get_rendered_props_old()
                             }
 
-                            fn get_rendered_props_old_update(&mut self) -> Option<RenderedState> {
-                                self.state.get_rendered_props_old_update()
+                            fn get_rendered_props_old_update(&mut self) -> Option<RenderedProps> {
+                                self.props.get_rendered_props_old_update()
                             }
                         }
                     }
@@ -290,18 +290,18 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
                                 }
                             }
 
-                            fn get_rendered_props_old(&mut self) -> Option<RenderedState> {
-                                Some(RenderedState::#structure_identity(#rendered_props_identity {
+                            fn get_rendered_props_old(&mut self) -> Option<RenderedProps> {
+                                Some(RenderedProps::#structure_identity(#rendered_props_identity {
                                     #(#get_rendered_props_old_items)*
                                 }))
                             }
 
-                            fn get_rendered_props_old_update(&mut self) -> Option<RenderedState> {
+                            fn get_rendered_props_old_update(&mut self) -> Option<RenderedProps> {
                                 let mut updated_variables = #rendered_props_identity::default();
 
                                 #(#get_rendered_props_old_update_statements)*
 
-                                Some(RenderedState::#structure_identity(updated_variables))
+                                Some(RenderedProps::#structure_identity(updated_variables))
                             }
 
                         }
@@ -397,7 +397,7 @@ pub fn prop_dependencies_derive(input: TokenStream) -> TokenStream {
                         for (dep_idx, dep) in dependencies[#data_query_idx].iter().enumerate() {
                             mapping_data.#field_identity.push((#data_query_idx, dep_idx));
                         }
-                        data_struct.#field_identity = (&dependencies[#data_query_idx]).try_to_state().unwrap();
+                        data_struct.#field_identity = (&dependencies[#data_query_idx]).try_to_prop().unwrap();
 
                     });
 
@@ -412,8 +412,8 @@ pub fn prop_dependencies_derive(input: TokenStream) -> TokenStream {
                 let where_clause = generics.where_clause.as_ref().map(|wc| {
                     quote!(
                         #wc
-                        PropView #generics: TryFromState<PropViewEnum>,
-                        <PropView #generics as TryFromState<PropViewEnum>>::Error: std::fmt::Debug,
+                        PropView #generics: TryFromProp<PropViewEnum>,
+                        <PropView #generics as TryFromProp<PropViewEnum>>::Error: std::fmt::Debug,
                     )
                 });
 

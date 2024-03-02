@@ -34,8 +34,8 @@ impl<T: Default + Clone> IndependentProp<T> {
 impl<T> PropUpdater<T, RequiredData<T>> for IndependentProp<T>
 where
     T: Default + Clone + std::fmt::Debug,
-    PropView<T>: TryFromState<PropViewEnum>,
-    <PropView<T> as TryFromState<PropViewEnum>>::Error: std::fmt::Debug,
+    PropView<T>: TryFromProp<PropViewEnum>,
+    <PropView<T> as TryFromProp<PropViewEnum>>::Error: std::fmt::Debug,
 {
     fn default_value(&self) -> T {
         self.default_value.clone()

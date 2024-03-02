@@ -34,8 +34,8 @@ impl PropAlias {
 impl<T> PropUpdater<T, RequiredData<T>> for PropAlias
 where
     T: Default + Clone + std::fmt::Debug,
-    PropView<T>: TryFromState<PropViewEnum>,
-    <PropView<T> as TryFromState<PropViewEnum>>::Error: std::fmt::Debug,
+    PropView<T>: TryFromProp<PropViewEnum>,
+    <PropView<T> as TryFromProp<PropViewEnum>>::Error: std::fmt::Debug,
 {
     fn return_data_queries(&self) -> Vec<DataQuery> {
         RequiredDataQueries {

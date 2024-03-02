@@ -267,7 +267,7 @@ mod setup_functions {
     )
     where
         T: Default + Clone,
-        PropView<T>: TryFromState<PropViewEnum>,
+        PropView<T>: TryFromProp<PropViewEnum>,
         PropViewEnum: From<PropView<T>>,
     {
         let mut prop: Prop<bool> = BooleanProp::new_from_children(false).into_prop();
@@ -307,7 +307,7 @@ mod setup_functions {
     )
     where
         T: Default + Clone,
-        PropView<T>: TryFromState<PropViewEnum>,
+        PropView<T>: TryFromProp<PropViewEnum>,
         PropViewEnum: From<PropView<T>>,
     {
         let mut prop: Prop<bool> = BooleanProp::new_from_children(false).into_prop();
@@ -350,7 +350,7 @@ mod setup_functions {
     )
     where
         T: Default + Clone,
-        PropView<T>: TryFromState<PropViewEnum>,
+        PropView<T>: TryFromProp<PropViewEnum>,
         PropViewEnum: From<PropView<T>>,
     {
         let mut prop: Prop<bool> = BooleanProp::new_from_attribute(attr_name, false).into_prop();

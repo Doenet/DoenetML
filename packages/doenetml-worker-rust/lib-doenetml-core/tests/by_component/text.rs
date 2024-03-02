@@ -86,8 +86,8 @@ mod test_helpers {
 
     use super::*;
 
-    const VALUE_IDX: PropIdx = TextState::get_value_prop_index();
-    const TEXT_IDX: PropIdx = TextState::get_text_prop_index();
+    const VALUE_IDX: PropIdx = TextProps::get_value_prop_index();
+    const TEXT_IDX: PropIdx = TextProps::get_text_prop_index();
 
     /// Resolves `value` from a `<text>` component and returns its value as a `String`
     pub fn get_value_prop(component_idx: ComponentIdx, core: &mut DoenetMLCore) -> String {

@@ -1,7 +1,7 @@
 use enum_dispatch::enum_dispatch;
 
 use crate::{
-    components::prelude::{PropView, PropViewEnum, RequiredDataItem, TryFromState},
+    components::prelude::{PropView, PropViewEnum, RequiredDataItem, TryFromProp},
     state::types::math_expr::MathExpr,
 };
 
@@ -31,13 +31,13 @@ pub enum BooleanOrString {
     String(PropView<String>),
 }
 
-// We implement TryFromState
+// We implement TryFromProp
 // because all RequiredData must implement this trait.
 // (Needed to create the RequiredData from the information sent the prop)
-impl TryFromState<PropViewEnum> for BooleanOrString {
+impl TryFromProp<PropViewEnum> for BooleanOrString {
     type Error = &'static str;
 
-    fn try_from_state(value: &PropViewEnum) -> Result<Self, Self::Error> {
+    fn try_from_prop(value: &PropViewEnum) -> Result<Self, Self::Error> {
         match value {
             PropViewEnum::Boolean(boolean_prop) => Ok(BooleanOrString::Boolean(
                 boolean_prop.create_new_read_only_view(),
@@ -67,13 +67,13 @@ pub enum MathOrString {
     String(PropView<String>),
 }
 
-// We implement TryFromState
+// We implement TryFromProp
 // because all RequiredData must implement this trait.
 // (Needed to create the RequiredData from the information sent the state variable)
-impl TryFromState<PropViewEnum> for MathOrString {
+impl TryFromProp<PropViewEnum> for MathOrString {
     type Error = &'static str;
 
-    fn try_from_state(value: &PropViewEnum) -> Result<Self, Self::Error> {
+    fn try_from_prop(value: &PropViewEnum) -> Result<Self, Self::Error> {
         match value {
             PropViewEnum::Math(math_prop) => {
                 Ok(MathOrString::Math(math_prop.create_new_read_only_view()))

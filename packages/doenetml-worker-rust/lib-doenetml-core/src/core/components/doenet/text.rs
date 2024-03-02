@@ -20,7 +20,7 @@ pub struct Text {
     pub common: ComponentCommonData,
 
     /// The props that underlie the `<text>` component.
-    pub state: TextState,
+    pub props: TextProps,
 }
 
 impl ComponentChildren for Text {
@@ -32,7 +32,7 @@ impl ComponentChildren for Text {
 
 /// The props that underlie the `<text>` component.
 #[derive(Debug, ComponentProps)]
-pub struct TextState {
+pub struct TextProps {
     /// The value of the `<text>` component.
     ///
     /// It is marked `is_public` so that it can be referenced in DoenetML via `.value`.
@@ -66,19 +66,19 @@ pub struct TextState {
     hidden: Prop<bool>,
 }
 
-impl TextState {
+impl TextProps {
     fn new() -> Self {
-        TextState {
+        TextProps {
             value: StringProp::new_from_children("".to_string()).into_prop(),
-            text: PropAlias::new(TextState::get_value_prop_index()).into_prop(),
+            text: PropAlias::new(TextProps::get_value_prop_index()).into_prop(),
             hidden: TextAttribute::Hide.prop(),
         }
     }
 }
 
-impl Default for TextState {
+impl Default for TextProps {
     fn default() -> Self {
-        TextState::new()
+        TextProps::new()
     }
 }
 

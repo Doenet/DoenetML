@@ -1,10 +1,10 @@
 use super::*;
 
-const IMMEDIATE_VALUE_IDX: PropIdx = TextInputState::get_immediate_value_prop_index();
-const VALUE_IDX: PropIdx = TextInputState::get_value_prop_index();
+const IMMEDIATE_VALUE_IDX: PropIdx = TextInputProps::get_immediate_value_prop_index();
+const VALUE_IDX: PropIdx = TextInputProps::get_value_prop_index();
 
-const TEXT_VALUE_IDX: PropIdx = TextState::get_value_prop_index();
-const BOOLEAN_VALUE_IDX: PropIdx = BooleanState::get_value_prop_index();
+const TEXT_VALUE_IDX: PropIdx = TextProps::get_value_prop_index();
+const BOOLEAN_VALUE_IDX: PropIdx = BooleanProps::get_value_prop_index();
 
 /// Resolves `immediate_value` of a text input and returns its value as a `String`
 pub fn get_immediate_value(component_idx: ComponentIdx, core: &mut DoenetMLCore) -> String {

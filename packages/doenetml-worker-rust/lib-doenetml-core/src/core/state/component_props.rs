@@ -1,7 +1,7 @@
 use enum_dispatch::enum_dispatch;
 
 use crate::{
-    components::{ComponentEnum, RenderedState},
+    components::{ComponentEnum, RenderedProps},
     ComponentIdx,
 };
 
@@ -53,10 +53,10 @@ pub trait ComponentProps {
     fn check_if_prop_is_for_renderer(&self, prop_idx: PropIdx) -> bool;
 
     /// Return object with the values of all the rendered props
-    fn get_rendered_props_old(&mut self) -> Option<RenderedState>;
+    fn get_rendered_props_old(&mut self) -> Option<RenderedProps>;
 
     /// Return object with the values of all the rendered props
     /// that have changed since the previous call of
     /// `get_rendered_props_old` or `get_rendered_props_old_update`.
-    fn get_rendered_props_old_update(&mut self) -> Option<RenderedState>;
+    fn get_rendered_props_old_update(&mut self) -> Option<RenderedProps>;
 }

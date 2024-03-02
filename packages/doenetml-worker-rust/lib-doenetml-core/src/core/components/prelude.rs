@@ -13,7 +13,7 @@ pub use crate::dast::flat_dast::UntaggedContent;
 pub use crate::dast::Position as DastPosition;
 pub use crate::dependency::DependenciesCreatedForDataQuery;
 pub use crate::state::{
-    ComponentProps, FromDependencies, RequiredDataItem, TryFromState, TryToState,
+    ComponentProps, FromDependencies, RequiredDataItem, TryFromProp, TryToProp,
 };
 
 pub use crate::utils::KeyValueIgnoreCase;
@@ -28,7 +28,7 @@ pub use crate::components::{
 
 pub use crate::attribute::AttributeName;
 pub use crate::components::actions::{Action, ActionBody, UpdateFromAction};
-pub use crate::components::{ActionsEnum, ComponentEnum, ComponentProfile, RenderedState};
+pub use crate::components::{ActionsEnum, ComponentEnum, ComponentProfile, RenderedProps};
 pub use crate::dast::{
     DastAttribute, ElementData, FlatDastElement, FlatDastElementContent, FlatDastElementUpdate,
 };

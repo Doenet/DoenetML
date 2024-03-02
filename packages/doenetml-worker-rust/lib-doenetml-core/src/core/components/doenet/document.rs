@@ -12,11 +12,11 @@ use crate::components::prelude::*;
 #[pass_through_children]
 pub struct Document {
     pub common: ComponentCommonData,
-    pub state: DocumentState,
+    pub props: DocumentProps,
 }
 
 #[derive(Debug, Default, ComponentProps)]
-pub struct DocumentState {}
+pub struct DocumentProps {}
 
 impl ComponentChildren for Document {
     fn get_children(&self, child_query_object: ChildQueryObject) -> Vec<GraphNode> {

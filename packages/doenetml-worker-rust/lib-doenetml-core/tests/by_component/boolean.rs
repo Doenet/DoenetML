@@ -33,9 +33,9 @@ mod test_helpers {
 
     use super::*;
 
-    const VALUE_IDX: PropIdx = BooleanState::get_value_prop_index();
-    const BOOLEAN_IDX: PropIdx = BooleanState::get_boolean_prop_index();
-    const TEXT_IDX: PropIdx = BooleanState::get_text_prop_index();
+    const VALUE_IDX: PropIdx = BooleanProps::get_value_prop_index();
+    const BOOLEAN_IDX: PropIdx = BooleanProps::get_boolean_prop_index();
+    const TEXT_IDX: PropIdx = BooleanProps::get_text_prop_index();
 
     /// Resolves `value` from a `<boolean>` component and returns its value as a `bool`
     pub fn get_value_prop(component_idx: ComponentIdx, core: &mut DoenetMLCore) -> bool {
