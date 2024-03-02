@@ -125,7 +125,7 @@ mod test_helpers {
                 FlatDastElementContent::Element(child_idx) => {
                     let child_elt = &elements[*child_idx];
                     if child_elt.name == "text" {
-                        match child_elt.data.state.as_ref().unwrap() {
+                        match child_elt.data.props.as_ref().unwrap() {
                             RenderedState::TextState(text_state) => {
                                 text_state.value.as_ref().map(|s| s.as_str())
                             }

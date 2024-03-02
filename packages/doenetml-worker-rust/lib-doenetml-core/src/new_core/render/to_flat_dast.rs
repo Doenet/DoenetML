@@ -50,7 +50,7 @@ impl Core {
                 id: component.get_idx(),
                 action_names: Some(component.get_action_names()),
                 // XXX: What should this be?
-                state: None,
+                props: None,
                 message,
             },
             position: component.get_position().cloned(),

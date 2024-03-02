@@ -95,7 +95,7 @@ pub struct ElementData {
     pub message: Option<String>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub state: Option<RenderedState>,
+    pub props: Option<RenderedState>,
 }
 
 impl PartialEq for ElementData {

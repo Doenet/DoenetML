@@ -67,7 +67,7 @@ pub fn to_flat_dast(
         data: ElementData {
             id: component.get_idx(),
             action_names: Some(component.get_action_names()),
-            state: rendered_state,
+            props: rendered_state,
             message,
         },
         position: component.get_position().cloned(),
