@@ -60,7 +60,7 @@ impl Core {
     /// then freshen the variable, resolving its dependencies if necessary.
     ///
     /// If the prop was not fresh, then recurse to its dependencies to freshen them.
-    pub fn freshen_prop(&mut self, original_prop_ptr: PropPointer) {
+    pub fn freshen_prop(&mut self, prop_pointer: PropPointer) {
         // This function currently implements recursion through an iterative method,
         // using a stack on the heap.
         // This approach was chosen because the function recursion implementation would overflow
@@ -70,20 +70,22 @@ impl Core {
         // with thousands of levels in the dependency graph, and it wasn't clear what
         // size WASM stack would be appropriate.
 
-        let original_freshness = self
+        let freshness = self
             .freshness
-            .get_tag(&self.prop_pointer_to_prop_node(original_prop_ptr))
+            .get_tag(&self.prop_pointer_to_prop_node(prop_pointer))
             .unwrap();
 
         // If the current prop is fresh, there's nothing to do.
         // If it is unresolved, resolve it
-        match original_freshness {
+        match freshness {
             Freshness::Fresh => return,
             Freshness::Unresolved => {
-                self.resolve_prop(original_prop_ptr);
+                self.resolve_prop(prop_pointer);
             }
             Freshness::Stale | Freshness::Resolved => (),
         };
+
+        let prop_node = self.prop_pointer_to_prop_node(prop_pointer);
 
         // TODO: unfinished
     }
