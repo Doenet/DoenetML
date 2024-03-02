@@ -186,6 +186,30 @@ impl<Node: Clone + Debug, IndexLookup: Taggable<Node, usize>> DirectedGraph<Node
         DescendantReverseTopologicalIterator::new_multiroot(&self.nodes, &self.edges, start_nodes)
     }
 
+    /// Walk through all nodes that have any node listed in `start_nodes` as an ancestor. Nodes for which `skip` returns `true`
+    /// are treated as if they are absent from the graph.
+    /// Nodes are walked in _reverse topological_ order. That is, if there is an edge `a -> b`, the node `b` will be visited before `a`.
+    /// Panics if a cycle is detected.
+    pub fn descendants_reverse_topological_multiroot_with_skip<
+        A: Borrow<Node>,
+        SkipFn: Fn(&Node) -> bool,
+    >(
+        &self,
+        start_nodes: &[A],
+        skip: SkipFn,
+    ) -> DescendantReverseTopologicalIterator<Node> {
+        let start_nodes = start_nodes
+            .iter()
+            .map(|node| *self.index_lookup.get_tag(node.borrow()).unwrap())
+            .collect();
+        DescendantReverseTopologicalIterator::new_multiroot_with_skip(
+            &self.nodes,
+            &self.edges,
+            start_nodes,
+            skip,
+        )
+    }
+
     /// Walk through all nodes that have `node` as a descendant. Nodes are walked in _topological_ order.
     /// Panics if a cycle is detected.
     pub fn walk_ancestors<A: Borrow<Node>>(&self, node: A) -> DescendantTopologicalIterator<Node> {

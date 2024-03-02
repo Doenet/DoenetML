@@ -1,3 +1,5 @@
+use itertools::Itertools;
+
 use super::*;
 
 #[test]
@@ -22,11 +24,11 @@ fn can_walk_in_topological_order() {
     graph.add_node("c".into());
     graph.add_node("d".into());
     graph.add_node("e".into());
-    graph.add_edge(&"a".into(), &"b".into());
-    graph.add_edge(&"a".into(), &"c".into());
-    graph.add_edge(&"c".into(), &"d".into());
-    graph.add_edge(&"c".into(), &"e".into());
-    graph.add_edge(&"d".into(), &"e".into());
+    graph.add_edge("a".to_string(), "b".to_string());
+    graph.add_edge("a".to_string(), "c".to_string());
+    graph.add_edge("c".to_string(), "d".to_string());
+    graph.add_edge("c".to_string(), "e".to_string());
+    graph.add_edge("d".to_string(), "e".to_string());
     assert_eq!(
         graph
             .descendants_topological(&"a".into())
@@ -61,11 +63,11 @@ fn can_quick_iterate_through_descendants() {
     graph.add_node("c".into());
     graph.add_node("d".into());
     graph.add_node("e".into());
-    graph.add_edge(&"a".into(), &"b".into());
-    graph.add_edge(&"a".into(), &"c".into());
-    graph.add_edge(&"c".into(), &"d".into());
-    graph.add_edge(&"c".into(), &"e".into());
-    graph.add_edge(&"d".into(), &"e".into());
+    graph.add_edge("a".to_string(), "b".to_string());
+    graph.add_edge("a".to_string(), "c".to_string());
+    graph.add_edge("c".to_string(), "d".to_string());
+    graph.add_edge("c".to_string(), "e".to_string());
+    graph.add_edge("d".to_string(), "e".to_string());
     assert_eq!(
         graph.descendants_quick(&"a".into()).collect::<Vec<_>>(),
         // Repeated nodes are allowed for the `_quick` iterator
@@ -85,11 +87,11 @@ fn can_iterate_through_descendant_edges() {
     graph.add_node("c".into());
     graph.add_node("d".into());
     graph.add_node("e".into());
-    graph.add_edge(&"a".into(), &"b".into());
-    graph.add_edge(&"a".into(), &"c".into());
-    graph.add_edge(&"c".into(), &"d".into());
-    graph.add_edge(&"c".into(), &"e".into());
-    graph.add_edge(&"d".into(), &"e".into());
+    graph.add_edge("a".to_string(), "b".to_string());
+    graph.add_edge("a".to_string(), "c".to_string());
+    graph.add_edge("c".to_string(), "d".to_string());
+    graph.add_edge("c".to_string(), "e".to_string());
+    graph.add_edge("d".to_string(), "e".to_string());
     assert_eq!(
         graph.descendant_edges(&"a".into()).collect::<Vec<_>>(),
         vec![
@@ -100,4 +102,27 @@ fn can_iterate_through_descendant_edges() {
             (&"d".into(), &"e".into())
         ]
     );
+}
+
+#[test]
+fn can_iterate_through_descendants_with_skip() {
+    // Set up the graph
+    // a -> b
+    // a -> c -> e
+    // c -> d -> e
+    // b -> e
+
+    let (a, b, c, d, e) = ("a", "b", "c", "d", "e");
+    let mut graph = DirectedGraph::<&str, HashMap<_, _>>::new();
+    graph.add_edge(a, b);
+    graph.add_edge(a, c);
+    graph.add_edge(c, d);
+    graph.add_edge(c, e);
+    graph.add_edge(d, e);
+    graph.add_edge(b, e);
+
+    let nodes = graph
+        .descendants_reverse_topological_multiroot_with_skip(&[a], |&node| node == "c")
+        .collect_vec();
+    assert_eq!(nodes, vec![&e, &b, &a]);
 }

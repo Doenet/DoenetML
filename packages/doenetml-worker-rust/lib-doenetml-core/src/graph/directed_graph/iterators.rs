@@ -189,6 +189,26 @@ impl<'a, Node> DescendantReverseTopologicalIterator<'a, Node> {
             },
         }
     }
+    /// Iterate over all descendants of any node in `start_indices` in reverse topological order, but skip
+    /// over nodes that `fn_skip` returns `true` for.
+    pub fn new_multiroot_with_skip<SkipFn: Fn(&Node) -> bool>(
+        nodes: &'a [Node],
+        edges: &'a [Vec<usize>],
+        start_indices: Vec<usize>,
+        skip: SkipFn,
+    ) -> Self {
+        // TODO: This might be made more efficient by calling `skip` in the _raw_ version of this iterator
+        // only when needed. Investigate if we need this performance boost.
+        let visited = nodes.iter().map(skip).collect::<Vec<_>>();
+        Self {
+            nodes,
+            iter: DescendantReverseTopologicalIteratorRaw {
+                edges,
+                remaining_indices: start_indices,
+                visited,
+            },
+        }
+    }
 }
 impl<'a, Node> Iterator for DescendantReverseTopologicalIterator<'a, Node> {
     type Item = &'a Node;
