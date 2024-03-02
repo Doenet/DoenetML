@@ -88,6 +88,10 @@ impl Core {
         // TODO: unfinished
     }
 
+    /// Props are created lazily so they start as `Unresolved`.
+    /// They need to be resolved to be used.
+    ///
+    /// We resolve the prop by adding its data query to the dependency graph.
     pub fn resolve_prop(&mut self, original_prop_ptr: PropPointer) {
         // Since resolving props won't recurse with repeated actions,
         // will go ahead and allocate the stack locally, for simplicity.
@@ -98,9 +102,8 @@ impl Core {
         while let Some(prop_ptr) = resolve_stack.pop() {
             let prop_node = self.prop_pointer_to_prop_node(prop_ptr);
 
-            let freshness = self.freshness.get_tag(&prop_node).unwrap();
-
-            if *freshness != Freshness::Unresolved {
+            let freshness = *self.freshness.get_tag(&prop_node).unwrap();
+            if freshness != Freshness::Unresolved {
                 // nothing to do if the prop is already resolved
                 continue;
             }
@@ -111,30 +114,16 @@ impl Core {
             let data_queries = self.get_prop_mut(prop_ptr).unwrap().return_data_queries();
 
             for data_query in data_queries {
-                let query_node = self.add_data_query(prop_ptr, data_query);
-
-                for query_child in self.structure_graph.get_children(query_node) {
-                    match query_child {
-                        GraphNode::Prop(prop_idx) => {
-                            let freshness = self.freshness.get_tag(&query_child).unwrap();
-
-                            if *freshness == Freshness::Unresolved {
-                                let prop_ident = &self.props[prop_idx];
-                                resolve_stack.push(prop_ident.prop_pointer);
-                            }
-                        }
-                        GraphNode::Query(_) => {
-                            unimplemented!("Need to address case where query has query child when resolving prop");
-                        }
-                        GraphNode::State(_) | GraphNode::String(_) => (),
-                        GraphNode::Component(_) | GraphNode::Virtual(_) => {
-                            unreachable!(
-                                "Cannot have GraphNode of type {:?} as a direct child of a query.",
-                                query_child
-                            );
-                        }
-                    }
-                }
+                // The data query we created may have referenced unresolved props,
+                // so loop through all the props it references
+                resolve_stack.extend(
+                    self.add_data_query(prop_ptr, data_query)
+                        .into_iter()
+                        .filter_map(|node| match node {
+                            GraphNode::Prop(prod_idx) => Some(self.props[prod_idx].prop_pointer),
+                            _ => None,
+                        }),
+                );
             }
 
             self.freshness.set_tag(prop_node, Freshness::Resolved);
