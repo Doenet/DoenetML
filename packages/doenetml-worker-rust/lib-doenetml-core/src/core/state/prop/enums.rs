@@ -16,7 +16,7 @@ use crate::{
     state::types::math_expr::MathExpr,
 };
 
-use super::{Freshness, InvertError, Prop, PropView, PropViewMut, TryFromState};
+use super::{Freshness, InvertError, Prop, PropView, PropViewMut, TryFromProp};
 
 ///////////////////////////////////////////////////////////////////////
 // prop enum views that allow one to refer to props

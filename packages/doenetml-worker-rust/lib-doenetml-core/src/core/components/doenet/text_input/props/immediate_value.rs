@@ -1,6 +1,6 @@
 use crate::components::prelude::*;
 
-use super::TextInputState;
+use super::TextInputProps;
 
 /// A struct of all data required to compute the value of this prop.
 #[add_dependency_data]
@@ -35,9 +35,9 @@ impl PropUpdater<String, RequiredData> for ImmediateValueProp {
         RequiredDataQueries {
             independent_state: DataQuery::State,
             sync_value_to_immediate_value:
-                TextInputState::get_sync_value_to_immediate_value_data_query(),
-            value_from_children: TextInputState::get_value_from_children_data_query(),
-            prefill: TextInputState::get_prefill_data_query(),
+                TextInputProps::get_sync_value_to_immediate_value_data_query(),
+            value_from_children: TextInputProps::get_value_from_children_data_query(),
+            prefill: TextInputProps::get_prefill_data_query(),
         }
         .into()
     }

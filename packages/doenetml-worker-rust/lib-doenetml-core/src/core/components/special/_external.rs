@@ -8,11 +8,11 @@ pub struct _External {
     pub common: ComponentCommonData,
 
     pub name: String,
-    pub state: _ExternalState,
+    pub props: _ExternalProps,
 }
 
 #[derive(Debug, Default, ComponentProps)]
-pub struct _ExternalState {}
+pub struct _ExternalProps {}
 
 impl ComponentNode for _External {
     fn get_idx(&self) -> ComponentIdx {

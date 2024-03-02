@@ -12,7 +12,7 @@ use crate::dast::{FlatDastElementContent, Position as DastPosition};
 use crate::state::{ComponentProps, Prop, PropIdx, PropValue};
 use crate::{ComponentIdx, Extending};
 
-use doenetml_derive::RenderedState;
+use doenetml_derive::RenderedProps;
 
 use super::_error::*;
 use super::_external::*;
@@ -32,7 +32,7 @@ use super::prelude::UntaggedContent;
 /// to allow easy access to the methods.
 ///
 /// Each component type added to `ComponentEnum` must implement that component node traits.
-#[derive(Debug, EnumString, RenderedState)]
+#[derive(Debug, EnumString, RenderedProps)]
 #[enum_dispatch(
     ComponentNode,
     ComponentProps,

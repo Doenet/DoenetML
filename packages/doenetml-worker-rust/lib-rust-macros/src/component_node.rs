@@ -238,7 +238,7 @@ pub fn component_actions_derive(input: TokenStream) -> TokenStream {
     output.into()
 }
 
-pub fn rendered_state_derive(input: TokenStream) -> TokenStream {
+pub fn rendered_props_derive(input: TokenStream) -> TokenStream {
     let ast: syn::DeriveInput = syn::parse(input).unwrap();
     let data = &ast.data;
 
@@ -246,16 +246,16 @@ pub fn rendered_state_derive(input: TokenStream) -> TokenStream {
         syn::Data::Enum(v) => {
             let variants = &v.variants;
 
-            let mut rendered_state_arms = Vec::new();
+            let mut rendered_props_arms = Vec::new();
 
             for variant in variants {
                 let variant_ident = &variant.ident;
-                let props_name = format!("{}State", variant_ident);
+                let props_name = format!("{}Props", variant_ident);
                 let rendered_props_name = format!("Rendered{}", props_name);
                 let props_identity = Ident::new(&props_name, Span::call_site());
                 let rendered_props_identity = Ident::new(&rendered_props_name, Span::call_site());
 
-                rendered_state_arms.push(quote! {
+                rendered_props_arms.push(quote! {
                     #props_identity(#rendered_props_identity),
                 })
             }
@@ -263,11 +263,11 @@ pub fn rendered_state_derive(input: TokenStream) -> TokenStream {
             quote! {
                 /// A enum listing the renderer data for each component.
                 ///
-                /// Used for sending state to the renderer
+                /// Used for sending props to the renderer
                 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
                 #[serde(untagged)]
-                pub enum RenderedState {
-                    #(#rendered_state_arms)*
+                pub enum RenderedProps {
+                    #(#rendered_props_arms)*
                 }
 
             }

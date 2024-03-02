@@ -13,7 +13,7 @@ use super::TextInputAttribute;
 
 /// The props that underlie the `<textInput>` component.
 #[derive(Debug, ComponentProps)]
-pub struct TextInputState {
+pub struct TextInputProps {
     /// The value of the `<textInput>` component.
     ///
     /// It is updated when a user presses Enter or blurs away from the input box.
@@ -86,9 +86,9 @@ pub struct TextInputState {
     disabled: Prop<bool>,
 }
 
-impl TextInputState {
+impl TextInputProps {
     fn new() -> Self {
-        TextInputState {
+        TextInputProps {
             value: ValueProp::new().into_prop(),
             immediate_value: ImmediateValueProp::new().into_prop(),
             sync_value_to_immediate_value: IndependentProp::new(true).into_prop(),
@@ -107,8 +107,8 @@ impl TextInputState {
     }
 }
 
-impl Default for TextInputState {
+impl Default for TextInputProps {
     fn default() -> Self {
-        TextInputState::new()
+        TextInputProps::new()
     }
 }

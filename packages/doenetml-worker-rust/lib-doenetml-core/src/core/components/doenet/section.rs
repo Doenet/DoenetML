@@ -13,11 +13,11 @@ use crate::components::prelude::*;
 pub struct Section {
     pub common: ComponentCommonData,
 
-    pub state: SectionState,
+    pub props: SectionProps,
 }
 
 #[derive(Debug, Default, ComponentProps)]
-pub struct SectionState {}
+pub struct SectionProps {}
 
 impl ComponentChildren for Section {
     fn get_children(&self, child_query_object: ChildQueryObject) -> Vec<GraphNode> {

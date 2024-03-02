@@ -713,9 +713,9 @@ pub fn into_prop_enum_refs_derive(input: TokenStream) -> TokenStream {
 
                         impl_try_from_read_only_enum_to_ready_only_view_variants.push(quote! {
 
-                            impl TryFromState<PropViewEnum> for PropView<#prop_type> {
+                            impl TryFromProp<PropViewEnum> for PropView<#prop_type> {
                                 type Error = &'static str;
-                                fn try_from_state(value: &PropViewEnum) -> Result<Self, Self::Error> {
+                                fn try_from_prop(value: &PropViewEnum) -> Result<Self, Self::Error> {
                                     match value {
                                         PropViewEnum::#variant_ident(ref prop_ref) => {
                                             Result::Ok(prop_ref.create_new_read_only_view())

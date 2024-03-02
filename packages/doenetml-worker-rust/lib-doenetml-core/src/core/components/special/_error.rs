@@ -13,7 +13,7 @@ use crate::components::prelude::*;
 pub struct _Error {
     pub common: ComponentCommonData,
     pub message: String,
-    pub state: _ErrorState,
+    pub props: _ErrorProps,
 }
 
 impl _Error {
@@ -30,4 +30,4 @@ impl ComponentChildren for _Error {
 }
 
 #[derive(Debug, Default, ComponentProps)]
-pub struct _ErrorState {}
+pub struct _ErrorProps {}

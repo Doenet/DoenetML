@@ -18,7 +18,7 @@ pub struct Boolean {
     pub common: ComponentCommonData,
 
     /// The props that underlie the `<boolean>` component.
-    pub state: BooleanState,
+    pub props: BooleanProps,
 }
 
 impl ComponentChildren for Boolean {
@@ -30,7 +30,7 @@ impl ComponentChildren for Boolean {
 
 /// The props that underlie the `<boolean>` component.
 #[derive(Debug, ComponentProps)]
-pub struct BooleanState {
+pub struct BooleanProps {
     /// The value of the `<boolean>` component.
     ///
     /// It is marked `is_public` so that it can be referenced in DoenetML via `.value`.
@@ -67,18 +67,18 @@ pub struct BooleanState {
     text: Prop<String>,
 }
 
-impl BooleanState {
+impl BooleanProps {
     fn new() -> Self {
-        BooleanState {
+        BooleanProps {
             value: BooleanProp::new_from_children(false).into_prop(),
-            boolean: PropAlias::new(BooleanState::get_value_prop_index()).into_prop(),
-            text: BooleanToStringProp::new(BooleanState::get_value_prop_index()).into_prop(),
+            boolean: PropAlias::new(BooleanProps::get_value_prop_index()).into_prop(),
+            text: BooleanToStringProp::new(BooleanProps::get_value_prop_index()).into_prop(),
         }
     }
 }
 
-impl Default for BooleanState {
+impl Default for BooleanProps {
     fn default() -> Self {
-        BooleanState::new()
+        BooleanProps::new()
     }
 }

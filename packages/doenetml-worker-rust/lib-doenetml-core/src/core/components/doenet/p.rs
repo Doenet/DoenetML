@@ -17,11 +17,11 @@ pub enum PAttribute {
 pub struct P {
     pub common: ComponentCommonData,
 
-    pub state: PState,
+    pub props: PProps,
 }
 
 #[derive(Debug, ComponentProps)]
-pub struct PState {
+pub struct PProps {
     /// A variable that determines whether or not a p should be sent to the renderer (i.e., appear in the render tree).
     ///
     /// If `hidden` is true, then don't send the p to the renderer. (TODO: implement this)
@@ -31,17 +31,17 @@ pub struct PState {
     hidden: Prop<bool>,
 }
 
-impl PState {
+impl PProps {
     fn new() -> Self {
-        PState {
+        PProps {
             hidden: PAttribute::Hide.prop(),
         }
     }
 }
 
-impl Default for PState {
+impl Default for PProps {
     fn default() -> Self {
-        PState::new()
+        PProps::new()
     }
 }
 

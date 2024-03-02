@@ -98,7 +98,7 @@ fn p_extending_section() {
 mod test_helpers {
 
     use doenetml_core::{
-        components::RenderedState,
+        components::RenderedProps,
         dast::{FlatDastElement, FlatDastElementContent},
     };
 
@@ -126,7 +126,7 @@ mod test_helpers {
                     let child_elt = &elements[*child_idx];
                     if child_elt.name == "text" {
                         match child_elt.data.props.as_ref().unwrap() {
-                            RenderedState::TextState(text_state) => {
+                            RenderedProps::TextProps(text_state) => {
                                 text_state.value.as_ref().map(|s| s.as_str())
                             }
                             _ => None,

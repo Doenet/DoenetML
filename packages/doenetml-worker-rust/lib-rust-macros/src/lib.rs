@@ -3,10 +3,10 @@ extern crate proc_macro2;
 use component_attributes::attribute_prop_derive;
 use component_node::{
     component_actions_derive, component_attributes_derive, component_children_derive,
-    component_node_derive, rendered_state_derive,
+    component_node_derive, rendered_props_derive,
 };
-use component_state_methods::{
-    add_dependency_data_impl, component_state_derive, prop_data_queries_derive,
+use component_props::{
+    add_dependency_data_impl, component_props_derive, prop_data_queries_derive,
     prop_dependencies_derive,
 };
 use proc_macro::TokenStream;
@@ -17,7 +17,7 @@ use prop_methods::{
 
 mod component_attributes;
 mod component_node;
-mod component_state_methods;
+mod component_props;
 mod prop_methods;
 mod util;
 
@@ -111,7 +111,7 @@ pub fn into_prop_enum_refs_derive_wrapper(input: TokenStream) -> TokenStream {
 /// The derive macro is designed to be applied to the struct defining the DoenetML component itself
 /// as well as the struct defining the component's props.
 ///
-/// The macro assumes that the component struct has a field `state` that contains
+/// The macro assumes that the component struct has a field `props` that contains
 /// the component props struct.
 ///
 /// The macro assumes all fields of the component props struct are props `Prop<T>`.
@@ -120,7 +120,7 @@ pub fn into_prop_enum_refs_derive_wrapper(input: TokenStream) -> TokenStream {
 /// - #\[for_renderer\]
 ///
 ///   Designate the prop as one that will be sent to the renderer.
-///   If `for_renderer` is set, the value of the prop will be added to the `RenderedState`
+///   If `for_renderer` is set, the value of the prop will be added to the `RenderedProps`
 ///   structure for the component that is sent to the renderer
 ///
 /// - #\[is_public\]
@@ -144,31 +144,31 @@ pub fn into_prop_enum_refs_derive_wrapper(input: TokenStream) -> TokenStream {
     ComponentProps,
     attributes(for_renderer, is_public, component_profile_prop, default_prop)
 )]
-pub fn component_state_derive_wrapper(input: TokenStream) -> TokenStream {
-    component_state_derive(input)
+pub fn component_props_derive_wrapper(input: TokenStream) -> TokenStream {
+    component_props_derive(input)
 }
 
-/// Derives the RenderedState enum
+/// Derives the RenderedProps enum
 ///
 /// This derive macro is designed to be applied to the `ComponentEnum` listing all component types.
 ///
-/// It creates a parallel `RenderedState` enum whose variant names and field types
+/// It creates a parallel `RenderedProps` enum whose variant names and field types
 /// are based on the variant names from the `ComponentEnum`.
 ///
-/// The variant names append `State` to the variant from `ComponentEnum`.
+/// The variant names append `Props` to the variant from `ComponentEnum`.
 ///
 /// The field types prepend `Rendered` to the variant names. These structures
 /// are created by the `ComponentProps` macro applied
 /// to the components prop struct.
 ///
-/// For example, the component type `Text` has a `TextState` struct,
-/// and the `ComponentProps` macro creates the `RenderedTextState` struct.
-/// Since the `ComponentEnum` has a `Text` variant, the `RenderedState` macros
-/// adds the variant `TextState(RenderedTextState)`
-/// to the `RenderedState` enum.
-#[proc_macro_derive(RenderedState)]
-pub fn rendered_state_derive_wrapper(input: TokenStream) -> TokenStream {
-    rendered_state_derive(input)
+/// For example, the component type `Text` has a `TextProps` struct,
+/// and the `ComponentProps` macro creates the `RenderedTextProps` struct.
+/// Since the `ComponentEnum` has a `Text` variant, the `RenderedProps` macros
+/// adds the variant `TextProps(RenderedTextProps)`
+/// to the `RenderedProps` enum.
+#[proc_macro_derive(RenderedProps)]
+pub fn rendered_props_derive_wrapper(input: TokenStream) -> TokenStream {
+    rendered_props_derive(input)
 }
 
 #[proc_macro_derive(PropDependencies)]

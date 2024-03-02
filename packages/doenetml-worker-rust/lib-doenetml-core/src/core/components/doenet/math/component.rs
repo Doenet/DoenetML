@@ -2,7 +2,7 @@ use strum::VariantNames;
 
 use crate::{components::prelude::*, general_prop::BooleanProp};
 
-use super::MathState;
+use super::MathProps;
 
 #[derive(Debug, AttributeProp)]
 pub enum MathAttribute {
@@ -19,8 +19,8 @@ pub struct Math {
     /// The common component data needed to derive the `ComponentNode` trait
     pub common: ComponentCommonData,
 
-    /// The state variables that underlie the `<math>` component.
-    pub state: MathState,
+    /// The props that underlie the `<math>` component.
+    pub props: MathProps,
 }
 
 impl ComponentAttributes for Math {

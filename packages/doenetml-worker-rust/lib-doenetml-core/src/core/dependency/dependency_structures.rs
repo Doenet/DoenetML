@@ -3,7 +3,7 @@ use std::ops::Deref;
 use crate::{
     attribute::AttributeName,
     components::{
-        prelude::{PropIdx, TryFromState, TryToState},
+        prelude::{PropIdx, TryFromProp, TryToProp},
         ComponentProfile,
     },
     state::{prop_state::StatePropDataOrigin, PropPointer},
@@ -116,46 +116,46 @@ pub struct DependencyValueUpdateRequest {
     pub dependency_idx: usize,
 }
 
-impl<T> TryFromState<DependenciesCreatedForDataQuery> for T
+impl<T> TryFromProp<DependenciesCreatedForDataQuery> for T
 where
-    T: TryFromState<PropViewEnum>,
+    T: TryFromProp<PropViewEnum>,
 {
     type Error = T::Error;
 
-    fn try_from_state(value: &DependenciesCreatedForDataQuery) -> Result<Self, Self::Error> {
+    fn try_from_prop(value: &DependenciesCreatedForDataQuery) -> Result<Self, Self::Error> {
         if value.len() != 1 {
             panic!("Must have a single dependency. Got `{:?}`", &value);
             // return Err("Must have a single dependency");
         }
-        value[0].value.try_to_state()
+        value[0].value.try_to_prop()
     }
 }
 
-impl<T> TryFromState<DependenciesCreatedForDataQuery> for Option<T>
+impl<T> TryFromProp<DependenciesCreatedForDataQuery> for Option<T>
 where
-    T: TryFromState<PropViewEnum>,
+    T: TryFromProp<PropViewEnum>,
 {
     type Error = T::Error;
 
-    fn try_from_state(value: &DependenciesCreatedForDataQuery) -> Result<Self, Self::Error> {
+    fn try_from_prop(value: &DependenciesCreatedForDataQuery) -> Result<Self, Self::Error> {
         if value.is_empty() {
             Ok(None)
         } else if value.len() > 1 {
             panic!("Must have a single dependency. Got `{:?}`", &value);
             // return Err("Must have a single dependency");
         } else {
-            Ok(Some(value[0].value.try_to_state()?))
+            Ok(Some(value[0].value.try_to_prop()?))
         }
     }
 }
 
-impl<T> TryFromState<DependenciesCreatedForDataQuery> for Vec<T>
+impl<T> TryFromProp<DependenciesCreatedForDataQuery> for Vec<T>
 where
-    T: TryFromState<PropViewEnum>,
+    T: TryFromProp<PropViewEnum>,
 {
     type Error = T::Error;
 
-    fn try_from_state(value: &DependenciesCreatedForDataQuery) -> Result<Self, Self::Error> {
-        value.iter().map(|dep| dep.value.try_to_state()).collect()
+    fn try_from_prop(value: &DependenciesCreatedForDataQuery) -> Result<Self, Self::Error> {
+        value.iter().map(|dep| dep.value.try_to_prop()).collect()
     }
 }
