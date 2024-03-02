@@ -48,7 +48,7 @@ where
         .into()
     }
 
-    fn calculate(&mut self, data: &RequiredData<T>) -> PropCalcResult<T> {
+    fn calculate_old(&mut self, data: &RequiredData<T>) -> PropCalcResult<T> {
         // take on the value from `independent_state`, propagating `came_from_default`.
         if data.independent_state.came_from_default() {
             PropCalcResult::FromDefault(data.independent_state.get().clone())

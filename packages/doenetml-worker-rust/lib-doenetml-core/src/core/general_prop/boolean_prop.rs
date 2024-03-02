@@ -148,7 +148,7 @@ impl PropUpdater<bool, RequiredData> for BooleanProp {
     }
 
     #[allow(clippy::needless_return)]
-    fn calculate(&mut self, data: &RequiredData) -> PropCalcResult<bool> {
+    fn calculate_old(&mut self, data: &RequiredData) -> PropCalcResult<bool> {
         match data.booleans_and_strings.len() {
             0 => {
                 if self.propagate_came_from_default {

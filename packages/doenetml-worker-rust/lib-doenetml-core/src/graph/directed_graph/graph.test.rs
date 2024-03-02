@@ -28,17 +28,23 @@ fn can_walk_in_topological_order() {
     graph.add_edge(&"c".into(), &"e".into());
     graph.add_edge(&"d".into(), &"e".into());
     assert_eq!(
-        graph.walk_descendants(&"a".into()).collect::<Vec<_>>(),
+        graph
+            .descendants_topological(&"a".into())
+            .collect::<Vec<_>>(),
         vec!["b", "c", "d", "e"]
     );
 
     assert_eq!(
-        graph.walk_descendants(&"d".into()).collect::<Vec<_>>(),
+        graph
+            .descendants_topological(&"d".into())
+            .collect::<Vec<_>>(),
         vec!["e"]
     );
 
     assert_eq!(
-        graph.walk_descendants(&"e".into()).collect::<Vec<_>>(),
+        graph
+            .descendants_topological(&"e".into())
+            .collect::<Vec<_>>(),
         Vec::<&String>::new()
     );
 }

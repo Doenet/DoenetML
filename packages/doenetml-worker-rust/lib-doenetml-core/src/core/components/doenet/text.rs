@@ -12,7 +12,7 @@ pub enum TextAttribute {
 }
 
 /// Definition of the `<text>` DoenetML component
-#[derive(Debug, Default, ComponentNode, ComponentState, ComponentActions, ComponentChildren)]
+#[derive(Debug, Default, ComponentNode, ComponentState, ComponentActions, ComponentChildrenOld)]
 #[no_rendered_children]
 #[component(extend_via_default_prop)]
 pub struct Text {
@@ -21,6 +21,13 @@ pub struct Text {
 
     /// The props that underlie the `<text>` component.
     pub state: TextState,
+}
+
+impl ComponentChildren for Text {
+    fn get_children(&self, _child_query_object: ChildQueryObject) -> Vec<GraphNode> {
+        // Return no children
+        Vec::new()
+    }
 }
 
 /// The props that underlie the `<text>` component.

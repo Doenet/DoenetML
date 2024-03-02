@@ -1,7 +1,7 @@
 use crate::{components::prelude::*, dast::flat_dast::FlatAttribute};
 
 #[derive(
-    Debug, Default, ComponentChildren, ComponentState, ComponentActions, ComponentAttributes,
+    Debug, Default, ComponentChildrenOld, ComponentState, ComponentActions, ComponentAttributes,
 )]
 #[pass_through_children]
 pub struct _External {
@@ -24,7 +24,7 @@ impl ComponentNode for _External {
     fn get_parent(&self) -> Option<ComponentIdx> {
         self.common.parent
     }
-    fn get_children(&self) -> &Vec<UntaggedContent> {
+    fn get_children_old(&self) -> &Vec<UntaggedContent> {
         &self.common.children
     }
     fn set_children(&mut self, children: Vec<UntaggedContent>) {
@@ -85,5 +85,12 @@ impl ComponentNode for _External {
 
     fn set_is_in_render_tree(&mut self, is_in_render_tree: bool) {
         self.common.is_in_render_tree = is_in_render_tree;
+    }
+}
+
+impl ComponentChildren for _External {
+    fn get_children(&self, child_query_object: ChildQueryObject) -> Vec<GraphNode> {
+        // Return children without modification
+        child_query_object.child_iter().collect()
     }
 }

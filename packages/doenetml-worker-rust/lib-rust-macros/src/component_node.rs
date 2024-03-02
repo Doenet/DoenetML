@@ -56,7 +56,7 @@ pub fn component_node_derive(input: TokenStream) -> TokenStream {
                     fn get_parent(&self) -> Option<ComponentIdx> {
                         self.common.parent
                     }
-                    fn get_children(&self) -> &Vec<UntaggedContent> {
+                    fn get_children_old(&self) -> &Vec<UntaggedContent> {
                         &self.common.children
                     }
                     fn set_children(&mut self, children: Vec<UntaggedContent>) {
@@ -171,8 +171,8 @@ pub fn component_children_derive(input: TokenStream) -> TokenStream {
             syn::Fields::Named(FieldsNamed { .. }) => {
                 if pass_through_children {
                     quote! {
-                        impl ComponentChildren for #name {
-                            fn render_children_obsolete(&self) -> &Vec<UntaggedContent> {
+                        impl ComponentChildrenOld for #name {
+                            fn render_children_old(&self) -> &Vec<UntaggedContent> {
                                 &self.common.children
                             }
                             fn filter_rendered_children(
@@ -186,8 +186,8 @@ pub fn component_children_derive(input: TokenStream) -> TokenStream {
                 } else {
                     // no_rendered_children
                     quote! {
-                        impl ComponentChildren for #name {
-                            fn render_children_obsolete(&self) -> &Vec<UntaggedContent> {
+                        impl ComponentChildrenOld for #name {
+                            fn render_children_old(&self) -> &Vec<UntaggedContent> {
                                 static EMPTY_VECTOR: Vec<UntaggedContent> = vec![];
                                 &EMPTY_VECTOR
                             }

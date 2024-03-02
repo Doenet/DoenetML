@@ -5,7 +5,7 @@ pub mod graph_based_core;
 pub mod graph_node;
 pub mod prop_calculation;
 pub mod props;
-pub mod to_flat_dast;
+pub mod render;
 
 #[cfg(test)]
 pub mod mermaid;

@@ -1,7 +1,7 @@
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use crate::{
-    components::{prelude::UntaggedContent, ComponentChildren, ComponentEnum, ComponentNode},
+    components::{prelude::UntaggedContent, ComponentChildrenOld, ComponentEnum, ComponentNode},
     dependency::{
         create_dependencies_from_data_query_initialize_state, DataQuery, DependencySource,
     },
@@ -121,7 +121,7 @@ fn get_non_string_rendered_children_including_from_extend(
 
     children.extend(
         component
-            .render_children_obsolete()
+            .render_children_old()
             .iter()
             .filter_map(|child| match child {
                 &UntaggedContent::Ref(comp_idx) => Some(comp_idx),

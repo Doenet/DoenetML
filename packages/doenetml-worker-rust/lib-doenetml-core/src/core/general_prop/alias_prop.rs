@@ -47,7 +47,7 @@ where
         .into()
     }
 
-    fn calculate(&mut self, data: &RequiredData<T>) -> PropCalcResult<T> {
+    fn calculate_old(&mut self, data: &RequiredData<T>) -> PropCalcResult<T> {
         // take on the value from `aliased_value`, propagating `came_from_default`.
         if data.aliased_value.came_from_default() {
             PropCalcResult::FromDefault(data.aliased_value.get().clone())

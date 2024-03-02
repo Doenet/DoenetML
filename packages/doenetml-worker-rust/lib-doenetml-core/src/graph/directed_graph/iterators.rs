@@ -141,10 +141,9 @@ pub struct DescendantTopologicalIterator<'a, Node> {
     nodes: &'a [Node],
     iter: std::vec::IntoIter<usize>,
 }
-
 impl<'a, Node> DescendantTopologicalIterator<'a, Node> {
     pub fn new(nodes: &'a [Node], edges: &'a [Vec<usize>], start_index: usize) -> Self {
-        let rti = ReverseTopologicalIterator::new(edges, start_index);
+        let rti = DescendantReverseTopologicalIteratorRaw::new(edges, start_index);
         let mut order = rti.collect::<Vec<_>>();
         order.reverse();
 
@@ -154,7 +153,6 @@ impl<'a, Node> DescendantTopologicalIterator<'a, Node> {
         }
     }
 }
-
 impl<'a, Node> Iterator for DescendantTopologicalIterator<'a, Node> {
     type Item = &'a Node;
 
@@ -163,14 +161,53 @@ impl<'a, Node> Iterator for DescendantTopologicalIterator<'a, Node> {
     }
 }
 
+/// An iterator that yields all descendants of a node in a graph in reverse topological order (i.e., children are
+/// always yielded before parents).
+pub struct DescendantReverseTopologicalIterator<'a, Node> {
+    nodes: &'a [Node],
+    iter: DescendantReverseTopologicalIteratorRaw<'a>,
+}
+impl<'a, Node> DescendantReverseTopologicalIterator<'a, Node> {
+    pub fn new(nodes: &'a [Node], edges: &'a [Vec<usize>], start_index: usize) -> Self {
+        Self {
+            nodes,
+            iter: DescendantReverseTopologicalIteratorRaw::new(edges, start_index),
+        }
+    }
+    /// Iterate over all descendants of any node in `start_indices` in reverse topological order.
+    pub fn new_multiroot(
+        nodes: &'a [Node],
+        edges: &'a [Vec<usize>],
+        start_indices: Vec<usize>,
+    ) -> Self {
+        Self {
+            nodes,
+            iter: DescendantReverseTopologicalIteratorRaw {
+                edges,
+                remaining_indices: start_indices,
+                visited: vec![false; edges.len()],
+            },
+        }
+    }
+}
+impl<'a, Node> Iterator for DescendantReverseTopologicalIterator<'a, Node> {
+    type Item = &'a Node;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next().map(|index| &self.nodes[index])
+    }
+}
+
 /// An iterator that yields indices of all descendants of a node in a graph in reverse topological order.
-pub struct ReverseTopologicalIterator<'a> {
+///
+/// **For internal use**. Only use this function if you know what you're doing.
+struct DescendantReverseTopologicalIteratorRaw<'a> {
     edges: &'a [Vec<usize>],
     remaining_indices: Vec<usize>,
     visited: Vec<bool>,
 }
 
-impl<'a> ReverseTopologicalIterator<'a> {
+impl<'a> DescendantReverseTopologicalIteratorRaw<'a> {
     pub fn new(edges: &'a [Vec<usize>], start_index: usize) -> Self {
         let visited = vec![false; edges.len()];
         let remaining_indices = edges[start_index].clone();
@@ -182,7 +219,7 @@ impl<'a> ReverseTopologicalIterator<'a> {
     }
 }
 
-impl<'a> Iterator for ReverseTopologicalIterator<'a> {
+impl<'a> Iterator for DescendantReverseTopologicalIteratorRaw<'a> {
     type Item = usize;
 
     fn next(&mut self) -> Option<Self::Item> {

@@ -69,7 +69,10 @@ impl<T: Clone> Taggable<GraphNode, T> for GraphNodeLookup<T> {
     }
 }
 
-impl DirectedGraph<GraphNode, GraphNodeLookup<usize>> {
+pub type StructureGraph = DirectedGraph<GraphNode, GraphNodeLookup<usize>>;
+pub type DependencyGraph = DirectedGraph<GraphNode, GraphNodeLookup<usize>>;
+
+impl StructureGraph {
     /// Get a list of `GraphNode`s corresponding to the requested
     /// component's children.
     ///

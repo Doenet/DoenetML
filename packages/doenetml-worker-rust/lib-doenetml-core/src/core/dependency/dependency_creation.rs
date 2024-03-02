@@ -12,7 +12,7 @@ use crate::{
 use super::{
     dependency_creation_utils::{
         get_attribute_with_parent_falling_back_to_extend_source,
-        get_children_with_parent_including_from_extend_source,
+        get_children_old_with_parent_including_from_extend_source,
         get_same_type_component_extend_source_origin,
     },
     DataQuery, DependenciesCreatedForDataQuery, Dependency, DependencySource,
@@ -159,8 +159,10 @@ pub fn create_dependencies_from_data_query_initialize_state(
 
             // To address a potential component extend source, we get all children,
             // including those from a component extend source.
-            let children_info =
-                get_children_with_parent_including_from_extend_source(components, component_idx);
+            let children_info = get_children_old_with_parent_including_from_extend_source(
+                components,
+                component_idx,
+            );
 
             // Stores how many string children added per parent.
             // Use it to generate the index for the StatePropDataOrigin so it points to the right string child

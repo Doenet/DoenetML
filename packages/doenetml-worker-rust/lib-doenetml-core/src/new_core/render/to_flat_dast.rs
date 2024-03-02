@@ -5,33 +5,35 @@ use crate::components::{
     ComponentActions, ComponentChildren, ComponentEnum, ComponentNode,
 };
 
-use super::{graph_based_core::Core, graph_node::GraphNode};
+use super::{
+    super::{graph_based_core::Core, graph_node::GraphNode},
+    ChildQueryObject, ComponentChildren,
+};
 
 impl Core {
-    /// Get the vector of component's children that should be sent to the renderer.
-    pub fn component_rendered_children(
-        &self,
-        component: &ComponentEnum,
-    ) -> Vec<FlatDastElementContent> {
-        let component_node = GraphNode::Component(component.get_idx());
-        component.filter_rendered_children(
-            self.structure_graph
-                .content_children(component_node)
-                .flat_map(|child| match child {
-                    GraphNode::Component(idx) => Some(FlatDastElementContent::Element(idx)),
-                    GraphNode::String(idx) => {
-                        Some(FlatDastElementContent::Text(self.strings[idx].clone()))
-                    }
-                    _ => None,
-                })
-                .collect::<Vec<_>>(),
-        )
+    /// Convert a component to a `FlatDastElement`.
+    pub fn component_to_flat_dast(&self, component: &ComponentEnum) -> FlatDastElement {
+        let children = component
+            .get_children(ChildQueryObject::new_from_core(component.get_idx(), self))
+            .into_iter()
+            .flat_map(|child| match child {
+                GraphNode::Component(idx) => Some(FlatDastElementContent::Element(idx)),
+                GraphNode::String(idx) => {
+                    Some(FlatDastElementContent::Text(self.strings[idx].clone()))
+                }
+                _ => None,
+            })
+            .collect::<Vec<_>>();
+
+        FlatDastElement {
+            children,
+            ..self.component_to_flat_dast_no_children(component)
+        }
     }
 
-    /// Convert a `ComponentEnum` to a `FlatDastElement`.
-    pub fn component_to_flat_dast(&self, component: &ComponentEnum) -> FlatDastElement {
-        let children = self.component_rendered_children(component);
-
+    /// Convert a component to a `FlatDastElement` without its children. This is can be used
+    /// as an intermediate step when producing flat dast elements.
+    fn component_to_flat_dast_no_children(&self, component: &ComponentEnum) -> FlatDastElement {
         let message = if let ComponentEnum::_Error(error) = component {
             Some(error.message.clone())
         } else {

@@ -10,7 +10,7 @@ use crate::{
 
 use super::{
     component_builder::ComponentBuilder,
-    graph_node::{GraphNode, GraphNodeLookup},
+    graph_node::{DependencyGraph, GraphNodeLookup, StructureGraph},
     props::PropIdent,
 };
 
@@ -20,11 +20,11 @@ use super::{
 pub struct Core {
     /// A graph that stores the structure of the document. This graph keeps
     /// track of children, attributes, props, and state.
-    pub structure_graph: DirectedGraph<GraphNode, GraphNodeLookup<usize>>,
+    pub structure_graph: StructureGraph,
     /// A graph that stores the active dependencies between nodes. The nodes
     /// of this graph are the same as the nodes of `structure_graph`, but edges
     /// are only added to this graph if if one node must be updated when another changes.
-    pub dependency_graph: DirectedGraph<GraphNode, GraphNodeLookup<usize>>,
+    pub dependency_graph: DependencyGraph,
     /// The reified components. These can be queried for information about their attributes/props/state
     /// as well as asked to calculate/recalculate props.
     pub components: Vec<ComponentEnum>,

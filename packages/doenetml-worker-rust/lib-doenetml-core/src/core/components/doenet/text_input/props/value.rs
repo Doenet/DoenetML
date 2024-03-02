@@ -47,9 +47,9 @@ impl PropUpdater<String, RequiredData> for ValueProp {
         .into()
     }
 
-    fn calculate(&mut self, data: &RequiredData) -> PropCalcResult<String> {
+    fn calculate_old(&mut self, data: &RequiredData) -> PropCalcResult<String> {
         // For the value calculation of `textInput`, we work out scenarios where the value didn't change
-        // because this calculate() function will get called whenever immediate_value is changed
+        // because this calculate_old() function will get called whenever immediate_value is changed
         // even though that often does not influence value.
 
         if !data.value_from_children.came_from_default() {

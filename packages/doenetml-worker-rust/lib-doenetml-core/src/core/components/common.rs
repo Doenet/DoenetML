@@ -36,9 +36,10 @@ use super::prelude::UntaggedContent;
 #[enum_dispatch(
     ComponentNode,
     ComponentState,
-    ComponentChildren,
+    ComponentChildrenOld,
     ComponentAttributes,
-    ComponentActions
+    ComponentActions,
+    ComponentChildren
 )]
 #[strum(ascii_case_insensitive)]
 // Components vary in size. It is unclear if we want to `Box` all of them,
@@ -118,7 +119,7 @@ pub trait ComponentNode: ComponentState {
     /// Get the index of the parent node
     fn get_parent(&self) -> Option<ComponentIdx>;
     /// Get the vector containing the indices of all child component nodes and the literal string children.
-    fn get_children(&self) -> &Vec<UntaggedContent>;
+    fn get_children_old(&self) -> &Vec<UntaggedContent>;
     /// Set the vector containing the indices of all child component nodes and the literal string children.
     fn set_children(&mut self, children: Vec<UntaggedContent>);
     /// Take the vector containing the indices of all child component nodes and the literal string children.
@@ -211,28 +212,18 @@ pub trait ComponentNode: ComponentState {
     }
 }
 
+/// XXX: Obsolete. Remove when we have the new renderer working.
 /// Specifies the children that will be sent to the renderer.
 ///
-/// Two behaviors can be automatically derived by the `ComponentChildren` macro
+/// Two behaviors can be automatically derived by the `ComponentChildrenOld` macro
 /// based on helper attributes applied to the struct.
 /// (Note: additional options will be added later)
 /// - `#[pass_through_children]`: all children are passed through as the rendered children (default if no attributes)
 /// - `#[no_rendered_children]`: no children are passed to the renderer
 #[enum_dispatch]
-pub trait ComponentChildren {
-    /// Keeping this obsolete function so that can see how old code worked for reference.
-    /// TODO: delete once not needed anymore
-    fn render_children_obsolete(&self) -> &Vec<UntaggedContent>;
-
-    /// Given the vector of all flat dast children,
-    /// return the vector of flat dast children that should be sent to the renderer.
-    ///
-    /// TODO: make this more efficient to not create children in the first place
-    /// in the case of `no_rendered_children`?
-    fn filter_rendered_children(
-        &self,
-        children: Vec<FlatDastElementContent>,
-    ) -> Vec<FlatDastElementContent>;
+pub trait ComponentChildrenOld {
+    /// Return the children that will be used in the flat dast sent to the renderer.
+    fn render_children_old(&self) -> &Vec<UntaggedContent>;
 }
 
 /// The ComponentAttributes trait can be derived for a component,

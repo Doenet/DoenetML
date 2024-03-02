@@ -4,7 +4,7 @@ use crate::components::prelude::*;
     Debug,
     Default,
     ComponentNode,
-    ComponentChildren,
+    ComponentChildrenOld,
     ComponentState,
     ComponentActions,
     ComponentAttributes,
@@ -19,6 +19,13 @@ pub struct _Error {
 impl _Error {
     pub fn new() -> Self {
         Self::default()
+    }
+}
+
+impl ComponentChildren for _Error {
+    fn get_children(&self, _child_query_object: ChildQueryObject) -> Vec<GraphNode> {
+        // Return no children
+        Vec::new()
     }
 }
 

@@ -40,7 +40,7 @@ pub enum TextInputAction {
     UpdateValue,
 }
 /// Definition of the `<textInput>` DoenetML component
-#[derive(Debug, Default, ComponentNode, ComponentState, ComponentChildren)]
+#[derive(Debug, Default, ComponentNode, ComponentState, ComponentChildrenOld)]
 #[no_rendered_children]
 #[component(ref_transmutes_to = "Text", extend_via_default_prop)]
 pub struct TextInput {
@@ -49,6 +49,13 @@ pub struct TextInput {
 
     /// The props that underlie the `<textInput>` component.
     pub state: TextInputState,
+}
+
+impl ComponentChildren for TextInput {
+    fn get_children(&self, _child_query_object: ChildQueryObject) -> Vec<GraphNode> {
+        // Return no children
+        Vec::new()
+    }
 }
 
 impl ComponentAttributes for TextInput {
