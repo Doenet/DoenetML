@@ -1,6 +1,6 @@
 use crate::{
     components::{
-        prelude::{ComponentState, DataQuery, FlatDastElementContent},
+        prelude::{ComponentState, FlatDastElementContent},
         ComponentNode,
     },
     graph::directed_graph::Taggable,
@@ -8,7 +8,7 @@ use crate::{
     ComponentIdx,
 };
 
-use super::graph_based_core::Core;
+use super::{graph_based_core::Core, graph_node::GraphNode};
 
 impl Core {
     pub fn freshen_renderer_state(&mut self) -> Vec<ComponentIdx> {
@@ -92,28 +92,52 @@ impl Core {
         // Since resolving props won't recurse with repeated actions,
         // will go ahead and allocate the stack locally, for simplicity.
         let mut resolve_stack = Vec::new();
+
         resolve_stack.push(original_prop_ptr);
 
         while let Some(prop_ptr) = resolve_stack.pop() {
-            let component_idx = prop_ptr.component_idx;
-            let local_prop_idx = prop_ptr.local_prop_idx;
+            let prop_node = self.prop_pointer_to_prop_node(prop_ptr);
 
-            let current_freshness = self
-                .freshness
-                .get_tag(&self.prop_pointer_to_prop_node(original_prop_ptr))
-                .unwrap();
+            let freshness = self.freshness.get_tag(&prop_node).unwrap();
 
-            if *current_freshness != Freshness::Unresolved {
+            if *freshness != Freshness::Unresolved {
                 // nothing to do if the prop is already resolved
                 continue;
             }
 
-            let data_queries = self.components[component_idx]
-                .get_prop_mut(local_prop_idx)
-                .unwrap()
-                .return_data_queries();
+            // TODO: the structure of the interface to props will be changed,
+            // so this line will presumably be modified.
+            // It might not need to be mutable any more.
+            let data_queries = self.get_prop_mut(prop_ptr).unwrap().return_data_queries();
 
-            // TODO: unfinished
+            for data_query in data_queries {
+                let query_node = self.add_data_query(prop_ptr, data_query);
+
+                for query_child in self.structure_graph.get_children(query_node) {
+                    match query_child {
+                        GraphNode::Prop(prop_idx) => {
+                            let freshness = self.freshness.get_tag(&query_child).unwrap();
+
+                            if *freshness == Freshness::Unresolved {
+                                let prop_ident = &self.props[prop_idx];
+                                resolve_stack.push(prop_ident.prop_pointer);
+                            }
+                        }
+                        GraphNode::Query(_) => {
+                            unimplemented!("Need to address case where query has query child when resolving prop");
+                        }
+                        GraphNode::State(_) | GraphNode::String(_) => (),
+                        GraphNode::Component(_) | GraphNode::Virtual(_) => {
+                            unreachable!(
+                                "Cannot have GraphNode of type {:?} as a direct child of a query.",
+                                query_child
+                            );
+                        }
+                    }
+                }
+            }
+
+            self.freshness.set_tag(prop_node, Freshness::Resolved);
         }
     }
 }

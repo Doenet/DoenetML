@@ -319,7 +319,7 @@ pub trait ComponentActions: ComponentNode {
 /// A component profile will match children that have a prop of the corresponding type
 /// that has been designated with `#[component_profile_prop]`.
 /// When a prop from a child is matched, the value of that prop is returned.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum ComponentProfile {
     /// Matches String props as well as literal string children
     String,

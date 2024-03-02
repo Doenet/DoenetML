@@ -10,7 +10,7 @@ use super::{graph_based_core::Core, graph_node::GraphNode, props::PropIdent};
 
 impl Core {
     /// Creates all necessary dependencies for a `DataQuery`.
-    pub fn add_data_query(&mut self, origin: PropPointer, query: DataQuery) {
+    pub fn add_data_query(&mut self, origin: PropPointer, query: DataQuery) -> GraphNode {
         let prop_node = self
             .structure_graph
             .get_component_props(GraphNode::Component(origin.component_idx))[origin.local_prop_idx];
@@ -228,6 +228,7 @@ impl Core {
                 }
             }
         }
+        query_node
     }
 
     /// Create a new `GraphNode::State` and add it to the `structure_graph`.
@@ -236,14 +237,8 @@ impl Core {
 
         // XXX: We should be able to get this information directly from the component.
         // New macros might need to be created.
-        let prop = &self.components[origin.component_idx]
-            .get_prop(origin.local_prop_idx)
-            .unwrap();
-        let profile = prop.get_matching_component_profile();
-        let prop_ident = PropIdent {
-            prop_pointer: origin,
-            profile: profile.clone(),
-        };
+        let prop = self.get_prop(origin).unwrap();
+        let prop_ident = self.get_prop_identity(origin).unwrap();
 
         self.states.push((prop_ident, prop.default()));
         let new_node = GraphNode::State(idx);
