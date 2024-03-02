@@ -4,7 +4,7 @@ pub mod dependency_update;
 pub mod graph_based_core;
 pub mod graph_node;
 pub mod props;
-pub mod to_flat_dast;
+pub mod render;
 
 #[cfg(test)]
 pub mod mermaid;

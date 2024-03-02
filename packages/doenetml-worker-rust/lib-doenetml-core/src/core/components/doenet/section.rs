@@ -4,7 +4,7 @@ use crate::components::prelude::*;
     Debug,
     Default,
     ComponentNode,
-    ComponentChildren,
+    ComponentChildrenOld,
     ComponentState,
     ComponentActions,
     ComponentAttributes,
@@ -18,3 +18,13 @@ pub struct Section {
 
 #[derive(Debug, Default, ComponentState)]
 pub struct SectionState {}
+
+impl<'a> ComponentChildren<'a> for Section {
+    fn get_children(
+        &self,
+        child_query_object: ChildQueryObject<'a>,
+    ) -> Box<dyn Iterator<Item = GraphNode> + 'a> {
+        // Return children without modification
+        Box::new(child_query_object.child_iter())
+    }
+}

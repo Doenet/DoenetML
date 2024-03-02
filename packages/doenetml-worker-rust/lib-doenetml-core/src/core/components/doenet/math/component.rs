@@ -12,7 +12,7 @@ pub enum MathAttribute {
 }
 
 /// Definition of the `<math>` DoenetML component
-#[derive(Debug, Default, ComponentNode, ComponentState, ComponentActions, ComponentChildren)]
+#[derive(Debug, Default, ComponentNode, ComponentState, ComponentActions, ComponentChildrenOld)]
 #[no_rendered_children]
 #[component(extend_via_default_prop)]
 pub struct Math {
@@ -26,5 +26,15 @@ pub struct Math {
 impl ComponentAttributes for Math {
     fn get_attribute_names(&self) -> Vec<AttributeName> {
         MathAttribute::VARIANTS.into()
+    }
+}
+
+impl ComponentChildren<'_> for Math {
+    fn get_children(
+        &self,
+        _child_query_object: ChildQueryObject,
+    ) -> Box<dyn Iterator<Item = GraphNode>> {
+        // Return no children
+        Box::new(std::iter::empty())
     }
 }

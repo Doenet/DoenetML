@@ -12,7 +12,7 @@ use crate::{
 ///
 /// Since children from extend sources will have a different parent,
 /// we include the parent index in the output.
-pub fn get_children_with_parent_including_from_extend_source(
+pub fn get_children_old_with_parent_including_from_extend_source(
     components: &Vec<Rc<RefCell<ComponentEnum>>>,
     component_idx: ComponentIdx,
 ) -> Vec<(UntaggedContent, ComponentIdx)> {
@@ -20,14 +20,14 @@ pub fn get_children_with_parent_including_from_extend_source(
 
     let mut children_vec =
         if let Some(&Extending::Component(source_idx)) = component.get_extending() {
-            get_children_with_parent_including_from_extend_source(components, source_idx)
+            get_children_old_with_parent_including_from_extend_source(components, source_idx)
         } else {
             Vec::new()
         };
 
     children_vec.extend(
         component
-            .get_children()
+            .get_children_old()
             .iter()
             .map(|c| (c.clone(), component_idx)),
     );

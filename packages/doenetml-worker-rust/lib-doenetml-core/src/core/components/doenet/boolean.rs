@@ -9,7 +9,7 @@ use crate::general_prop::{BooleanProp, BooleanToStringProp, PropAlias};
     ComponentState,
     ComponentActions,
     ComponentAttributes,
-    ComponentChildren,
+    ComponentChildrenOld,
 )]
 #[no_rendered_children]
 #[component(extend_via_default_prop)]
@@ -19,6 +19,16 @@ pub struct Boolean {
 
     /// The props that underlie the `<boolean>` component.
     pub state: BooleanState,
+}
+
+impl ComponentChildren<'_> for Boolean {
+    fn get_children(
+        &self,
+        _child_query_object: ChildQueryObject,
+    ) -> Box<dyn Iterator<Item = GraphNode>> {
+        // Return no children
+        Box::new(std::iter::empty())
+    }
 }
 
 /// The props that underlie the `<boolean>` component.

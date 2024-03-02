@@ -12,7 +12,7 @@ pub enum PAttribute {
     Hide,
 }
 
-#[derive(Debug, Default, ComponentNode, ComponentChildren, ComponentState, ComponentActions)]
+#[derive(Debug, Default, ComponentNode, ComponentChildrenOld, ComponentState, ComponentActions)]
 #[pass_through_children]
 pub struct P {
     pub common: ComponentCommonData,
@@ -48,5 +48,15 @@ impl Default for PState {
 impl ComponentAttributes for P {
     fn get_attribute_names(&self) -> Vec<AttributeName> {
         PAttribute::VARIANTS.into()
+    }
+}
+
+impl<'a> ComponentChildren<'a> for P {
+    fn get_children(
+        &self,
+        child_query_object: ChildQueryObject<'a>,
+    ) -> Box<dyn Iterator<Item = GraphNode> + 'a> {
+        // Return children without modification
+        Box::new(child_query_object.child_iter())
     }
 }

@@ -64,7 +64,7 @@ pub fn component_node_derive_wrapper(input: TokenStream) -> TokenStream {
 }
 
 #[proc_macro_derive(
-    ComponentChildren,
+    ComponentChildrenOld,
     attributes(pass_through_children, no_rendered_children)
 )]
 pub fn component_children_derive_wrapper(input: TokenStream) -> TokenStream {

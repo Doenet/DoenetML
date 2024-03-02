@@ -5,7 +5,7 @@ use crate::components::{
     ComponentActions, ComponentEnum, ComponentNode,
 };
 
-use super::{graph_based_core::Core, graph_node::GraphNode};
+use super::super::{graph_based_core::Core, graph_node::GraphNode};
 
 impl Core {
     /// Convert a `ComponentEnum` to a `FlatDastElement`. Children of the component are directly passed through.
