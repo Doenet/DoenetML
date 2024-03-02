@@ -21,13 +21,10 @@ pub struct Boolean {
     pub state: BooleanState,
 }
 
-impl ComponentChildren<'_> for Boolean {
-    fn get_children(
-        &self,
-        _child_query_object: ChildQueryObject,
-    ) -> Box<dyn Iterator<Item = GraphNode>> {
+impl ComponentChildren for Boolean {
+    fn get_children(&self, _child_query_object: ChildQueryObject) -> Vec<GraphNode> {
         // Return no children
-        Box::new(std::iter::empty())
+        Vec::new()
     }
 }
 

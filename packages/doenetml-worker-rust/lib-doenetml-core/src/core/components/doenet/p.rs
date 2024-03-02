@@ -51,12 +51,9 @@ impl ComponentAttributes for P {
     }
 }
 
-impl<'a> ComponentChildren<'a> for P {
-    fn get_children(
-        &self,
-        child_query_object: ChildQueryObject<'a>,
-    ) -> Box<dyn Iterator<Item = GraphNode> + 'a> {
+impl ComponentChildren for P {
+    fn get_children(&self, child_query_object: ChildQueryObject) -> Vec<GraphNode> {
         // Return children without modification
-        Box::new(child_query_object.child_iter())
+        child_query_object.child_iter().collect()
     }
 }

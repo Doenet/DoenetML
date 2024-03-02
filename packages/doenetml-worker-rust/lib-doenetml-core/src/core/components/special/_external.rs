@@ -1,3 +1,5 @@
+use itertools::Itertools;
+
 use crate::{components::prelude::*, dast::flat_dast::FlatAttribute};
 
 #[derive(
@@ -88,12 +90,9 @@ impl ComponentNode for _External {
     }
 }
 
-impl<'a> ComponentChildren<'a> for _External {
-    fn get_children(
-        &self,
-        child_query_object: ChildQueryObject<'a>,
-    ) -> Box<dyn Iterator<Item = GraphNode> + 'a> {
+impl ComponentChildren for _External {
+    fn get_children(&self, child_query_object: ChildQueryObject) -> Vec<GraphNode> {
         // Return children without modification
-        Box::new(child_query_object.child_iter())
+        child_query_object.child_iter().collect()
     }
 }

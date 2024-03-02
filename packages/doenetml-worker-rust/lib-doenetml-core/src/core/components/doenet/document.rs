@@ -18,12 +18,9 @@ pub struct Document {
 #[derive(Debug, Default, ComponentState)]
 pub struct DocumentState {}
 
-impl<'a> ComponentChildren<'a> for Document {
-    fn get_children(
-        &self,
-        child_query_object: ChildQueryObject<'a>,
-    ) -> Box<dyn Iterator<Item = GraphNode> + 'a> {
+impl ComponentChildren for Document {
+    fn get_children(&self, child_query_object: ChildQueryObject) -> Vec<GraphNode> {
         // Return children without modification
-        Box::new(child_query_object.child_iter())
+        child_query_object.child_iter().collect()
     }
 }

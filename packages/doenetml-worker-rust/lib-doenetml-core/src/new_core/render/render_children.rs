@@ -61,13 +61,10 @@ impl<'a> ChildQueryObject<'a> {
 
 /// All components that can be rendered must implement this trait.
 /// It instructs Core how to render the children of a component.
-pub trait ComponentChildren<'a> {
+pub trait ComponentChildren {
     /// The children this component should render. `child_query_object` can be used to iterate through
     /// and seek information about your children. To seek more complex information, you must create
     /// a prop based on a `DataQuery` for the desired information. (This allows Core to appropriately call this function
     /// again in case any dependencies change.)
-    fn get_children(
-        &self,
-        child_query_object: ChildQueryObject<'a>,
-    ) -> Box<dyn Iterator<Item = GraphNode> + 'a>;
+    fn get_children(&self, child_query_object: ChildQueryObject) -> Vec<GraphNode>;
 }
