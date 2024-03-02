@@ -1,5 +1,5 @@
 use crate::{
-    components::prelude::ComponentState,
+    components::prelude::ComponentProps,
     graph::directed_graph::Taggable,
     state::{Freshness, PropPointer},
     ComponentIdx,

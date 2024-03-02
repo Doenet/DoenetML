@@ -9,7 +9,7 @@ use crate::state::types::math_expr::MathExpr;
 use serde::{Deserialize, Serialize};
 
 use crate::dast::{FlatDastElementContent, Position as DastPosition};
-use crate::state::{ComponentState, Prop, PropIdx, PropValue};
+use crate::state::{ComponentProps, Prop, PropIdx, PropValue};
 use crate::{ComponentIdx, Extending};
 
 use doenetml_derive::RenderedState;
@@ -35,7 +35,7 @@ use super::prelude::UntaggedContent;
 #[derive(Debug, EnumString, RenderedState)]
 #[enum_dispatch(
     ComponentNode,
-    ComponentState,
+    ComponentProps,
     ComponentChildrenOld,
     ComponentAttributes,
     ComponentActions,
@@ -108,10 +108,10 @@ pub struct ComponentCommonData {
 }
 
 /// The Component trait specifies methods that will, in general, be implemented by deriving them.
-/// It depends on the ComponentState trait, which will be derived
+/// It depends on the ComponentProps trait, which will be derived
 /// for each component type based on its prop structure.
 #[enum_dispatch]
-pub trait ComponentNode: ComponentState {
+pub trait ComponentNode: ComponentProps {
     /// Get the index of the component, which is its index in the `components` vector of `DoenetMLCore`.
     fn get_idx(&self) -> ComponentIdx;
     /// Get the index of the component, which is its index in the `components` vector of `DoenetMLCore`.

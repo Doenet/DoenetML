@@ -1,7 +1,7 @@
 use crate::{components::prelude::*, dast::flat_dast::FlatAttribute};
 
 #[derive(
-    Debug, Default, ComponentChildrenOld, ComponentState, ComponentActions, ComponentAttributes,
+    Debug, Default, ComponentChildrenOld, ComponentProps, ComponentActions, ComponentAttributes,
 )]
 #[pass_through_children]
 pub struct _External {
@@ -11,7 +11,7 @@ pub struct _External {
     pub state: _ExternalState,
 }
 
-#[derive(Debug, Default, ComponentState)]
+#[derive(Debug, Default, ComponentProps)]
 pub struct _ExternalState {}
 
 impl ComponentNode for _External {

@@ -106,7 +106,7 @@ pub fn into_prop_enum_refs_derive_wrapper(input: TokenStream) -> TokenStream {
     into_prop_enum_refs_derive(input)
 }
 
-/// Derives an implementation of the `ComponentState` trait and auxillary functions.
+/// Derives an implementation of the `ComponentProps` trait and auxillary functions.
 ///
 /// The derive macro is designed to be applied to the struct defining the DoenetML component itself
 /// as well as the struct defining the component's props.
@@ -141,7 +141,7 @@ pub fn into_prop_enum_refs_derive_wrapper(input: TokenStream) -> TokenStream {
 ///   If there is more than one match, the prop that appears first in the ordering of
 ///   the fields of the struct will be selected.
 #[proc_macro_derive(
-    ComponentState,
+    ComponentProps,
     attributes(for_renderer, is_public, component_profile_prop, default_prop)
 )]
 pub fn component_state_derive_wrapper(input: TokenStream) -> TokenStream {
@@ -158,11 +158,11 @@ pub fn component_state_derive_wrapper(input: TokenStream) -> TokenStream {
 /// The variant names append `State` to the variant from `ComponentEnum`.
 ///
 /// The field types prepend `Rendered` to the variant names. These structures
-/// are created by the `ComponentState` macro applied
+/// are created by the `ComponentProps` macro applied
 /// to the components prop struct.
 ///
 /// For example, the component type `Text` has a `TextState` struct,
-/// and the `ComponentState` macro creates the `RenderedTextState` struct.
+/// and the `ComponentProps` macro creates the `RenderedTextState` struct.
 /// Since the `ComponentEnum` has a `Text` variant, the `RenderedState` macros
 /// adds the variant `TextState(RenderedTextState)`
 /// to the `RenderedState` enum.

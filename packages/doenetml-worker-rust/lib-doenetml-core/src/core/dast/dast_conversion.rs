@@ -2,7 +2,7 @@ use std::{cell::RefCell, collections::HashMap, ops::Deref, rc::Rc};
 
 use crate::{
     components::{
-        prelude::ComponentState, ComponentActions, ComponentChildrenOld, ComponentEnum,
+        prelude::ComponentProps, ComponentActions, ComponentChildrenOld, ComponentEnum,
         ComponentNode,
     },
     ComponentIdx, Extending,
@@ -47,7 +47,7 @@ pub fn to_flat_dast(
     let mut component = components[component_idx].borrow_mut();
 
     let rendered_state = if component.get_is_in_render_tree() {
-        component.return_rendered_state()
+        component.get_rendered_props_old()
     } else {
         None
     };
@@ -82,7 +82,7 @@ pub fn get_flat_dast_update(
     let mut component = components[component_idx].borrow_mut();
 
     component
-        .return_rendered_state_update()
+        .get_rendered_props_old_update()
         .map(|changed_variables| FlatDastElementUpdate {
             new_children: None,
             changed_state: Some(changed_variables),

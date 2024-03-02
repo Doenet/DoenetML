@@ -2,7 +2,7 @@ use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use crate::{
     components::{
-        prelude::{ComponentState, PropIdx, PropValue, UntaggedContent},
+        prelude::{ComponentProps, PropIdx, PropValue, UntaggedContent},
         ComponentEnum, ComponentNode, ComponentProfile,
     },
     state::prop_state::{create_state_data_for, InitialStateData, StateProp, StatePropDataOrigin},

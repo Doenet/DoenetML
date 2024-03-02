@@ -40,7 +40,7 @@ pub enum TextInputAction {
     UpdateValue,
 }
 /// Definition of the `<textInput>` DoenetML component
-#[derive(Debug, Default, ComponentNode, ComponentState, ComponentChildrenOld)]
+#[derive(Debug, Default, ComponentNode, ComponentProps, ComponentChildrenOld)]
 #[no_rendered_children]
 #[component(ref_transmutes_to = "Text", extend_via_default_prop)]
 pub struct TextInput {

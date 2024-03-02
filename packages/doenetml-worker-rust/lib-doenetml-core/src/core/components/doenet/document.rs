@@ -5,7 +5,7 @@ use crate::components::prelude::*;
     Default,
     ComponentNode,
     ComponentChildrenOld,
-    ComponentState,
+    ComponentProps,
     ComponentActions,
     ComponentAttributes,
 )]
@@ -15,7 +15,7 @@ pub struct Document {
     pub state: DocumentState,
 }
 
-#[derive(Debug, Default, ComponentState)]
+#[derive(Debug, Default, ComponentProps)]
 pub struct DocumentState {}
 
 impl ComponentChildren for Document {

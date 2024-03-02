@@ -12,7 +12,7 @@ pub enum TextAttribute {
 }
 
 /// Definition of the `<text>` DoenetML component
-#[derive(Debug, Default, ComponentNode, ComponentState, ComponentActions, ComponentChildrenOld)]
+#[derive(Debug, Default, ComponentNode, ComponentProps, ComponentActions, ComponentChildrenOld)]
 #[no_rendered_children]
 #[component(extend_via_default_prop)]
 pub struct Text {
@@ -31,7 +31,7 @@ impl ComponentChildren for Text {
 }
 
 /// The props that underlie the `<text>` component.
-#[derive(Debug, ComponentState)]
+#[derive(Debug, ComponentProps)]
 pub struct TextState {
     /// The value of the `<text>` component.
     ///

@@ -1,5 +1,5 @@
 use crate::{
-    components::prelude::{ComponentState, PropEnumRef, PropEnumRefMut},
+    components::prelude::{ComponentProps, PropEnumRef, PropEnumRefMut},
     new_core::graph_based_core::Core,
     state::PropPointer,
 };

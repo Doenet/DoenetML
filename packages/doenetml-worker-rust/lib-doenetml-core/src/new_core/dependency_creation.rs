@@ -1,6 +1,6 @@
 use crate::{
     components::{
-        prelude::{ComponentState, DataQuery},
+        prelude::{ComponentProps, DataQuery},
         ComponentAttributes, ComponentNode, ComponentProfile,
     },
     state::PropPointer,
