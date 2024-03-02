@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::components::{
     prelude::{ElementData, FlatDastElement, FlatDastElementContent},
-    ComponentActions, ComponentChildren, ComponentEnum, ComponentNode,
+    ComponentActions, ComponentEnum, ComponentNode,
 };
 
 use super::{
@@ -45,7 +45,7 @@ impl Core {
             // TODO: We should return some version of component.get_unrecognized_attributes()
             // However, those attributes might not be expandable if they contain an expanded refs.
             attributes: HashMap::new(),
-            children,
+            children: Vec::new(),
             data: ElementData {
                 id: component.get_idx(),
                 action_names: Some(component.get_action_names()),

@@ -175,12 +175,6 @@ pub fn component_children_derive(input: TokenStream) -> TokenStream {
                             fn render_children_old(&self) -> &Vec<UntaggedContent> {
                                 &self.common.children
                             }
-                            fn filter_rendered_children(
-                                &self,
-                                children: Vec<FlatDastElementContent>,
-                            ) -> Vec<FlatDastElementContent> {
-                                children
-                            }
                         }
                     }
                 } else {
@@ -190,12 +184,6 @@ pub fn component_children_derive(input: TokenStream) -> TokenStream {
                             fn render_children_old(&self) -> &Vec<UntaggedContent> {
                                 static EMPTY_VECTOR: Vec<UntaggedContent> = vec![];
                                 &EMPTY_VECTOR
-                            }
-                            fn filter_rendered_children(
-                                &self,
-                                children: Vec<FlatDastElementContent>,
-                            ) -> Vec<FlatDastElementContent> {
-                                vec![]
                             }
                         }
                     }
