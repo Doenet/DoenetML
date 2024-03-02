@@ -53,21 +53,12 @@ impl Core {
         components_freshened
     }
 
-    /// If the prop specified by original_prop_ptr is stale or unresolved,
-    /// then freshen the variable, resolving its dependencies if necessary.
-    ///
-    /// If the prop was not fresh, then recurse to its dependencies to freshen them.
-    pub fn freshen_prop(&mut self, props: &[PropPointer]) {
-        // This function currently implements recursion through an iterative method,
-        // using a stack on the heap.
-        // This approach was chosen because the function recursion implementation would overflow
-        // the small WASM stack once it recursed a few thousands of times.
-        // An alternative approach would be to increase the size of the WASM stack.
-        // This approach was chosen because it is relatively easy to produce documents
-        // with thousands of levels in the dependency graph, and it wasn't clear what
-        // size WASM stack would be appropriate.
-
-        let nodes_to_freshen = props
+    /// Ensure that every prop in `prop_pointers` in fresh.
+    /// This function:
+    /// - adds needed dependencies to `dependency_graph`
+    /// - resolves and freshens all dependencies of the props
+    pub fn freshen_prop(&mut self, prop_pointers: &[PropPointer]) {
+        let nodes_to_freshen = prop_pointers
             .iter()
             .filter_map(|prop_pointer| {
                 let prop_node = self.prop_pointer_to_prop_node(*prop_pointer);
