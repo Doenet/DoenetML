@@ -12,7 +12,7 @@ use crate::{
 use super::TextInputAttribute;
 
 /// The props that underlie the `<textInput>` component.
-#[derive(Debug, ComponentState)]
+#[derive(Debug, ComponentProps)]
 pub struct TextInputState {
     /// The value of the `<textInput>` component.
     ///

@@ -34,7 +34,7 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
 
                 if is_component_struct {
                     quote! {
-                        impl ComponentState for #structure_identity {
+                        impl ComponentProps for #structure_identity {
                             fn get_num_props(&self) -> PropIdx {
                                 self.state.get_num_props()
                             }
@@ -75,12 +75,12 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
                             }
 
                             /// Return object will the values of all the rendered props
-                            fn return_rendered_state(&mut self) -> Option<RenderedState> {
-                                self.state.return_rendered_state()
+                            fn get_rendered_props_old(&mut self) -> Option<RenderedState> {
+                                self.state.get_rendered_props_old()
                             }
 
-                            fn return_rendered_state_update(&mut self) -> Option<RenderedState> {
-                                self.state.return_rendered_state_update()
+                            fn get_rendered_props_old_update(&mut self) -> Option<RenderedState> {
+                                self.state.get_rendered_props_old_update()
                             }
                         }
                     }
@@ -99,8 +99,8 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
                     let mut get_component_profile_prop_indices_items = Vec::new();
                     let mut get_for_renderer_prop_indices_items = Vec::new();
                     let mut check_if_prop_is_for_renderer_arms = Vec::new();
-                    let mut return_rendered_state_items = Vec::new();
-                    let mut return_rendered_state_update_statements = Vec::new();
+                    let mut get_rendered_props_old_items = Vec::new();
+                    let mut get_rendered_props_old_update_statements = Vec::new();
                     let mut rendered_props_struct_statements = Vec::new();
 
                     let mut get_prop_index_functions = Vec::new();
@@ -154,11 +154,11 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
                                 #prop_idx => true,
                             });
 
-                            return_rendered_state_items.push(quote! {
+                            get_rendered_props_old_items.push(quote! {
                                 #field_identity: Some(self.#field_identity.get_value_mark_viewed().clone()),
                             });
 
-                            return_rendered_state_update_statements.push(quote! {
+                            get_rendered_props_old_update_statements.push(quote! {
                                 if self.#field_identity.changed_since_last_viewed() {
                                     updated_variables.#field_identity =
                                         Some(self.#field_identity.get_value_mark_viewed().clone());
@@ -228,7 +228,7 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
                     };
 
                     quote! {
-                        impl ComponentState for #structure_identity {
+                        impl ComponentProps for #structure_identity {
 
                             fn get_num_props(&self) -> PropIdx {
                                 #num_prop
@@ -290,16 +290,16 @@ pub fn component_state_derive(input: TokenStream) -> TokenStream {
                                 }
                             }
 
-                            fn return_rendered_state(&mut self) -> Option<RenderedState> {
+                            fn get_rendered_props_old(&mut self) -> Option<RenderedState> {
                                 Some(RenderedState::#structure_identity(#rendered_props_identity {
-                                    #(#return_rendered_state_items)*
+                                    #(#get_rendered_props_old_items)*
                                 }))
                             }
 
-                            fn return_rendered_state_update(&mut self) -> Option<RenderedState> {
+                            fn get_rendered_props_old_update(&mut self) -> Option<RenderedState> {
                                 let mut updated_variables = #rendered_props_identity::default();
 
-                                #(#return_rendered_state_update_statements)*
+                                #(#get_rendered_props_old_update_statements)*
 
                                 Some(RenderedState::#structure_identity(updated_variables))
                             }

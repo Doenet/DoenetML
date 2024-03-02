@@ -1,6 +1,6 @@
 use crate::{
     components::{
-        prelude::{ComponentState, DataQuery},
+        prelude::{ComponentProps, DataQuery},
         ComponentAttributes, ComponentNode, ComponentProfile,
     },
     state::PropPointer,
@@ -10,7 +10,8 @@ use super::{graph_based_core::Core, graph_node::GraphNode, props::PropIdent};
 
 impl Core {
     /// Creates all necessary dependencies for a `DataQuery`.
-    pub fn add_data_query(&mut self, origin: PropPointer, query: DataQuery) {
+    /// Returns vector of all graph nodes directly linked to the data query    
+    pub fn add_data_query(&mut self, origin: PropPointer, query: DataQuery) -> Vec<GraphNode> {
         let prop_node = self
             .structure_graph
             .get_component_props(GraphNode::Component(origin.component_idx))[origin.local_prop_idx];
@@ -56,6 +57,10 @@ impl Core {
         let query_node = self.add_query_node(origin, query.clone());
         self.dependency_graph.add_edge(prop_node, query_node);
 
+        // Accumulate the props linked to the data query
+        // to pass on to the caller
+        let mut linked_nodes = Vec::new();
+
         match query {
             // Depend on a piece of state
             DataQuery::State => {
@@ -68,6 +73,7 @@ impl Core {
                 }
                 let state_node = state_node.unwrap();
                 self.dependency_graph.add_edge(query_node, state_node);
+                linked_nodes.push(state_node);
             }
             // Depend on a prop (of yourself or another component)
             DataQuery::Prop {
@@ -81,6 +87,7 @@ impl Core {
                 });
                 assert_ne!(prop_node, target_prop_node, "Self-loop detected; DataQuery requested a prop that is the same as the origin prop.");
                 self.dependency_graph.add_edge(query_node, target_prop_node);
+                linked_nodes.push(target_prop_node);
             }
             // Create a dependency that references the value of prop_name
             // from the parent of this component
@@ -101,13 +108,17 @@ impl Core {
                     });
 
                 // Now that we have the component and prop index, this is the same as a `DataQuery::Prop`.
-                self.add_data_query(
+                // XXX: this is wrong. We have added an extra query node onto origin in the dependency graph.
+                // We should remove the first one.
+                let nodes_from_parent = self.add_data_query(
                     origin,
                     DataQuery::Prop {
                         component_idx: Some(parent_idx),
                         prop_idx,
                     },
                 );
+
+                linked_nodes.extend(nodes_from_parent);
             }
             // Find the requested attribute and filter its children
             // based on `match_profiles`. Create dependencies on the
@@ -158,6 +169,7 @@ impl Core {
                                 });
                             if let Some(matching_prop) = matching_prop {
                                 self.dependency_graph.add_edge(query_node, matching_prop);
+                                linked_nodes.push(matching_prop);
                             }
                         }
                         GraphNode::String(_) => {
@@ -165,6 +177,7 @@ impl Core {
                                 || match_profiles.contains(&ComponentProfile::LiteralString)
                             {
                                 self.dependency_graph.add_edge(query_node, node);
+                                linked_nodes.push(node);
                             }
                         }
                         GraphNode::State(_)
@@ -206,6 +219,7 @@ impl Core {
                                 });
                             if let Some(matching_prop) = matching_prop {
                                 self.dependency_graph.add_edge(query_node, matching_prop);
+                                linked_nodes.push(matching_prop);
                             }
                         }
                         GraphNode::String(_) => {
@@ -213,12 +227,14 @@ impl Core {
                                 || match_profiles.contains(&ComponentProfile::LiteralString)
                             {
                                 self.dependency_graph.add_edge(query_node, node);
+                                linked_nodes.push(node);
                             }
                         }
                         GraphNode::Prop(prop_idx) => {
                             let prop_ident = &self.props[prop_idx];
                             if match_profiles.contains(&prop_ident.profile) {
                                 self.dependency_graph.add_edge(query_node, node);
+                                linked_nodes.push(node);
                             }
                         }
                         GraphNode::State(_) | GraphNode::Virtual(_) | GraphNode::Query(_) => {
@@ -228,6 +244,7 @@ impl Core {
                 }
             }
         }
+        linked_nodes
     }
 
     /// Create a new `GraphNode::State` and add it to the `structure_graph`.
@@ -236,14 +253,8 @@ impl Core {
 
         // XXX: We should be able to get this information directly from the component.
         // New macros might need to be created.
-        let prop = &self.components[origin.component_idx]
-            .get_prop(origin.local_prop_idx)
-            .unwrap();
-        let profile = prop.get_matching_component_profile();
-        let prop_ident = PropIdent {
-            prop_pointer: origin,
-            profile: profile.clone(),
-        };
+        let prop = self.get_prop(origin).unwrap();
+        let prop_ident = self.get_prop_identity(origin).unwrap();
 
         self.states.push((prop_ident, prop.default()));
         let new_node = GraphNode::State(idx);
@@ -262,7 +273,7 @@ impl Core {
     }
 
     /// Convert a `PropPointer` to a `GraphNode::Prop`.
-    fn prop_pointer_to_prop_node(&self, prop_pointer: PropPointer) -> GraphNode {
+    pub fn prop_pointer_to_prop_node(&self, prop_pointer: PropPointer) -> GraphNode {
         self.structure_graph
             .get_component_props(GraphNode::Component(prop_pointer.component_idx))
             [prop_pointer.local_prop_idx]

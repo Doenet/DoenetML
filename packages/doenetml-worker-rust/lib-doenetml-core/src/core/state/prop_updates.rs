@@ -9,7 +9,7 @@ use crate::{
     ComponentIdx, CoreProcessingState, DependencyGraph,
 };
 
-use super::{ComponentState, PropPointer};
+use super::{ComponentProps, PropPointer};
 
 /// Recurse in the inverse direction along the dependency graph to attempt to satisfy
 /// the requested update of the prop described in initial_update_request.

@@ -2,7 +2,7 @@ use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use crate::{
     components::{
-        prelude::{ComponentState, PropIdx, PropValue, UntaggedContent},
+        prelude::{ComponentProps, PropIdx, PropValue, UntaggedContent},
         ComponentEnum, ComponentNode, ComponentProfile,
     },
     state::prop_state::{create_state_data_for, InitialStateData, StateProp, StatePropDataOrigin},
@@ -123,8 +123,6 @@ pub fn create_dependencies_from_data_query_initialize_state(
         }
 
         DataQuery::ChildPropProfile { match_profiles } => {
-            let always_return_value = false;
-
             // Create a dependency from all children
             // that match a profile from match_profiles.
             // The dependency for each child will be a view of the matching prop.
@@ -242,59 +240,6 @@ pub fn create_dependencies_from_data_query_initialize_state(
                 }
             }
 
-            if always_return_value && dependencies.is_empty() {
-                // Found no matching children.
-                // Create a state prop dependency with the default_value for the prop
-
-                // For the state prop data origin, recurse to extend source components
-                // in order to share the state data with the extend source.
-                let source_idx =
-                    get_same_type_component_extend_source_origin(components, component_idx);
-                let state_origin = StatePropDataOrigin::ChildSubstitute(prop_idx);
-
-                let state_data_view = if let Some(current_view) =
-                    state_data[source_idx].get(&state_origin)
-                {
-                    current_view.create_new_read_only_view()
-                } else {
-                    let source_comp = components[source_idx].borrow();
-                    let source_prop = source_comp.get_prop(prop_idx).unwrap();
-
-                    // If the prop of prop_idx is in match_profiles,
-                    // then create a variable of the same type with the prop's default value.
-                    // Note: the type of the state prop created, below,
-                    // depends on the type of the initial value.
-                    let initial_data =
-                        if match_profiles.contains(&source_prop.get_matching_component_profile()) {
-                            source_prop.default()
-                        } else {
-                            // Since the prop wasn't in match_profiles,
-                            // create a prop of the type from the first match_profile
-                            // and use the default value associated with that type
-                            match_profiles[0].default()
-                        };
-
-                    let new_view = create_state_data_for(
-                        source_idx,
-                        state_origin.clone(),
-                        InitialStateData::Single {
-                            value: initial_data,
-                            came_from_default: true,
-                        },
-                        state_data,
-                    );
-                    new_view.create_new_read_only_view()
-                };
-
-                dependencies.push(Dependency {
-                    source: DependencySource::State {
-                        component_idx: source_idx,
-                        origin: state_origin,
-                    },
-                    value: state_data_view,
-                });
-            }
-
             DependenciesCreatedForDataQuery(dependencies)
         }
 
@@ -302,8 +247,6 @@ pub fn create_dependencies_from_data_query_initialize_state(
             attribute_name,
             match_profiles,
         } => {
-            let always_return_value = false;
-
             // Create a dependency from all attribute components
             // that match a profile from match_profiles.
             // The dependency for each child will be a view of the matching prop.
@@ -392,60 +335,6 @@ pub fn create_dependencies_from_data_query_initialize_state(
                     }
                 })
                 .collect();
-
-            if always_return_value && dependencies.is_empty() {
-                // Found no matching attribute children.
-                // This means that the component and any component extend sources do not have any attribute children.
-
-                // For the state data origin, recurse to extend source components
-                // in order to share the state data with the extend source.
-                let source_idx =
-                    get_same_type_component_extend_source_origin(components, component_idx);
-                let state_origin =
-                    StatePropDataOrigin::AttributeSubstitute(attribute_name, prop_idx);
-
-                let state_data_view = if let Some(current_view) =
-                    state_data[source_idx].get(&state_origin)
-                {
-                    current_view.create_new_read_only_view()
-                } else {
-                    let source_comp = components[source_idx].borrow();
-                    let source_prop = source_comp.get_prop(prop_idx).unwrap();
-
-                    // If the prop of prop_idx is in match_profiles,
-                    // then create a variable of the same type with the prop's default value.
-                    // Note: the type of state variable created, below,
-                    // depends on the type of the initial value.
-                    let initial_data =
-                        if match_profiles.contains(&source_prop.get_matching_component_profile()) {
-                            source_prop.default()
-                        } else {
-                            // Since the prop wasn't in match_profiles,
-                            // create a prop of the type from the first match_profile
-                            // and use the default value associated with that type
-                            match_profiles[0].default()
-                        };
-
-                    let new_view = create_state_data_for(
-                        source_idx,
-                        state_origin.clone(),
-                        InitialStateData::Single {
-                            value: initial_data,
-                            came_from_default: true,
-                        },
-                        state_data,
-                    );
-                    new_view.create_new_read_only_view()
-                };
-
-                dependencies.push(Dependency {
-                    source: DependencySource::State {
-                        component_idx: source_idx,
-                        origin: state_origin,
-                    },
-                    value: state_data_view,
-                });
-            }
 
             DependenciesCreatedForDataQuery(dependencies)
         }

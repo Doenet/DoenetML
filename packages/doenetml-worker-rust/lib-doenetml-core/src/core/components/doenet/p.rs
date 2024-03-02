@@ -12,7 +12,7 @@ pub enum PAttribute {
     Hide,
 }
 
-#[derive(Debug, Default, ComponentNode, ComponentChildrenOld, ComponentState, ComponentActions)]
+#[derive(Debug, Default, ComponentNode, ComponentChildrenOld, ComponentProps, ComponentActions)]
 #[pass_through_children]
 pub struct P {
     pub common: ComponentCommonData,
@@ -20,7 +20,7 @@ pub struct P {
     pub state: PState,
 }
 
-#[derive(Debug, ComponentState)]
+#[derive(Debug, ComponentProps)]
 pub struct PState {
     /// A variable that determines whether or not a p should be sent to the renderer (i.e., appear in the render tree).
     ///

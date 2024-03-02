@@ -8,8 +8,8 @@ use crate::dast::flat_dast::FlatAttribute;
 use crate::state::types::math_expr::MathExpr;
 use serde::{Deserialize, Serialize};
 
-use crate::dast::Position as DastPosition;
-use crate::state::{ComponentState, Prop, PropIdx, PropValue};
+use crate::dast::{FlatDastElementContent, Position as DastPosition};
+use crate::state::{ComponentProps, Prop, PropIdx, PropValue};
 use crate::{ComponentIdx, Extending};
 
 use doenetml_derive::RenderedState;
@@ -35,7 +35,7 @@ use super::prelude::UntaggedContent;
 #[derive(Debug, EnumString, RenderedState)]
 #[enum_dispatch(
     ComponentNode,
-    ComponentState,
+    ComponentProps,
     ComponentChildrenOld,
     ComponentAttributes,
     ComponentActions,
@@ -108,10 +108,10 @@ pub struct ComponentCommonData {
 }
 
 /// The Component trait specifies methods that will, in general, be implemented by deriving them.
-/// It depends on the ComponentState trait, which will be derived
+/// It depends on the ComponentProps trait, which will be derived
 /// for each component type based on its prop structure.
 #[enum_dispatch]
-pub trait ComponentNode: ComponentState {
+pub trait ComponentNode: ComponentProps {
     /// Get the index of the component, which is its index in the `components` vector of `DoenetMLCore`.
     fn get_idx(&self) -> ComponentIdx;
     /// Get the index of the component, which is its index in the `components` vector of `DoenetMLCore`.
@@ -217,6 +217,7 @@ pub trait ComponentNode: ComponentState {
 ///
 /// Two behaviors can be automatically derived by the `ComponentChildrenOld` macro
 /// based on helper attributes applied to the struct.
+/// (Note: additional options will be added later)
 /// - `#[pass_through_children]`: all children are passed through as the rendered children (default if no attributes)
 /// - `#[no_rendered_children]`: no children are passed to the renderer
 #[enum_dispatch]
@@ -309,7 +310,7 @@ pub trait ComponentActions: ComponentNode {
 /// A component profile will match children that have a prop of the corresponding type
 /// that has been designated with `#[component_profile_prop]`.
 /// When a prop from a child is matched, the value of that prop is returned.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum ComponentProfile {
     /// Matches String props as well as literal string children
     String,

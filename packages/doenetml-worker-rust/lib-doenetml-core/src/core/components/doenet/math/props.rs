@@ -5,7 +5,7 @@ use crate::state::types::math_expr::{MathExpr, MathParser};
 use super::MathAttribute;
 
 /// The state variables that underlie the `<math>` component.
-#[derive(Debug, ComponentState)]
+#[derive(Debug, ComponentProps)]
 pub struct MathState {
     /// The value of the `<math>` component.
     ///

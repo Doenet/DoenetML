@@ -12,7 +12,7 @@ pub enum MathAttribute {
 }
 
 /// Definition of the `<math>` DoenetML component
-#[derive(Debug, Default, ComponentNode, ComponentState, ComponentActions, ComponentChildrenOld)]
+#[derive(Debug, Default, ComponentNode, ComponentProps, ComponentActions, ComponentChildrenOld)]
 #[no_rendered_children]
 #[component(extend_via_default_prop)]
 pub struct Math {

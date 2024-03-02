@@ -6,7 +6,7 @@ use std::{collections::HashMap, iter, str::FromStr};
 use anyhow::anyhow;
 
 use crate::{
-    components::{prelude::ComponentState, ComponentAttributes, ComponentNode},
+    components::{prelude::ComponentProps, ComponentAttributes, ComponentNode},
     dast::{
         flat_dast::{Index, NormalizedNode, NormalizedRoot, Source},
         ref_resolve::RefResolution,

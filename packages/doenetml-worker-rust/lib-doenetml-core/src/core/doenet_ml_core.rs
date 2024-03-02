@@ -18,7 +18,7 @@ use super::state::Freshness;
 
 use crate::components::actions::{Action, UpdateFromAction};
 use crate::components::component_builder::ComponentBuilder;
-use crate::components::prelude::{ComponentState, DependenciesCreatedForDataQuery, PropIdx};
+use crate::components::prelude::{ComponentProps, DependenciesCreatedForDataQuery, PropIdx};
 use crate::dast::flat_dast::{FlatRoot, NormalizedRoot, UntaggedContent};
 use crate::dast::ref_expand::Expander;
 use crate::dast::{get_flat_dast_update, to_flat_dast};

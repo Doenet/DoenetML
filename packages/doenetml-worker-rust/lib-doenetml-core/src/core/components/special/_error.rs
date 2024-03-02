@@ -5,7 +5,7 @@ use crate::components::prelude::*;
     Default,
     ComponentNode,
     ComponentChildrenOld,
-    ComponentState,
+    ComponentProps,
     ComponentActions,
     ComponentAttributes,
 )]
@@ -29,5 +29,5 @@ impl ComponentChildren for _Error {
     }
 }
 
-#[derive(Debug, Default, ComponentState)]
+#[derive(Debug, Default, ComponentProps)]
 pub struct _ErrorState {}

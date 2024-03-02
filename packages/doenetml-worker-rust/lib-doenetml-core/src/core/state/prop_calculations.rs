@@ -12,7 +12,7 @@ use crate::{
     ComponentIdx, CoreProcessingState, DependencyGraph, Extending,
 };
 
-use super::{ComponentState, PropPointer};
+use super::{ComponentProps, PropPointer};
 
 /// Freshen the prop specified by original_prop_ptr,
 /// then get its fresh value

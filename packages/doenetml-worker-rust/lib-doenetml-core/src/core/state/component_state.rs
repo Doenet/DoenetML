@@ -20,7 +20,7 @@ pub struct PropPointer {
 }
 
 #[enum_dispatch]
-pub trait ComponentState {
+pub trait ComponentProps {
     /// Get the number of props for this component
     fn get_num_props(&self) -> PropIdx;
 
@@ -53,10 +53,10 @@ pub trait ComponentState {
     fn check_if_prop_is_for_renderer(&self, prop_idx: PropIdx) -> bool;
 
     /// Return object with the values of all the rendered props
-    fn return_rendered_state(&mut self) -> Option<RenderedState>;
+    fn get_rendered_props_old(&mut self) -> Option<RenderedState>;
 
     /// Return object with the values of all the rendered props
     /// that have changed since the previous call of
-    /// `return_rendered_state` or `return_rendered_state_update`.
-    fn return_rendered_state_update(&mut self) -> Option<RenderedState>;
+    /// `get_rendered_props_old` or `get_rendered_props_old_update`.
+    fn get_rendered_props_old_update(&mut self) -> Option<RenderedState>;
 }

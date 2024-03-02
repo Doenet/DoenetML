@@ -6,7 +6,7 @@ use crate::general_prop::{BooleanProp, BooleanToStringProp, PropAlias};
     Debug,
     Default,
     ComponentNode,
-    ComponentState,
+    ComponentProps,
     ComponentActions,
     ComponentAttributes,
     ComponentChildrenOld,
@@ -29,7 +29,7 @@ impl ComponentChildren for Boolean {
 }
 
 /// The props that underlie the `<boolean>` component.
-#[derive(Debug, ComponentState)]
+#[derive(Debug, ComponentProps)]
 pub struct BooleanState {
     /// The value of the `<boolean>` component.
     ///

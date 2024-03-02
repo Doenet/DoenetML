@@ -4,7 +4,7 @@
 // These imports are required for the derive macros to work correctly
 pub use doenetml_derive::{
     add_dependency_data, AttributeProp, ComponentActions, ComponentAttributes,
-    ComponentChildrenOld, ComponentNode, ComponentState, PropDataQueries, PropDependencies,
+    ComponentChildrenOld, ComponentNode, ComponentProps, PropDataQueries, PropDependencies,
 };
 pub use std::collections::HashMap;
 
@@ -13,7 +13,7 @@ pub use crate::dast::flat_dast::UntaggedContent;
 pub use crate::dast::Position as DastPosition;
 pub use crate::dependency::DependenciesCreatedForDataQuery;
 pub use crate::state::{
-    ComponentState, FromDependencies, RequiredDataItem, TryFromState, TryToState,
+    ComponentProps, FromDependencies, RequiredDataItem, TryFromState, TryToState,
 };
 
 pub use crate::utils::KeyValueIgnoreCase;

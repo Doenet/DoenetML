@@ -9,7 +9,7 @@ use crate::{
         ComponentEnum,
         _error::_Error,
         _external::_External,
-        prelude::{ComponentState, FlatAttribute, KeyValueIgnoreCase, UntaggedContent},
+        prelude::{ComponentProps, FlatAttribute, KeyValueIgnoreCase, UntaggedContent},
         ComponentAttributes, ComponentNode,
     },
     dast::{
