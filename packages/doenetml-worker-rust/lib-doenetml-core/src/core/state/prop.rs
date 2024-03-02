@@ -339,7 +339,7 @@ impl<T: Default + Clone> Prop<T> {
     ///
     /// Return whether or not the value changed
     pub fn calculate_and_mark_fresh(&mut self) -> bool {
-        let value_changed = match self.updater.calculate() {
+        let value_changed = match self.updater.calculate_old() {
             PropCalcResult::Calculated(val) => {
                 self.value.set_value(val);
                 true

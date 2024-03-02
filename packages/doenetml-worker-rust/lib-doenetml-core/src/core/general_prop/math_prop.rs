@@ -191,7 +191,7 @@ impl PropUpdater<MathExpr, RequiredData> for MathProp {
         .into()
     }
 
-    fn calculate(&mut self, data: &RequiredData) -> PropCalcResult<MathExpr> {
+    fn calculate_old(&mut self, data: &RequiredData) -> PropCalcResult<MathExpr> {
         match data.maths_and_strings.len() {
             0 => {
                 if self.propagate_came_from_default {
@@ -300,7 +300,7 @@ impl PropUpdater<MathExpr, RequiredData> for MathProp {
 
                 if string_changed || data.split_symbols.changed_since_last_viewed() {
                     // Either a string child has changed or split_symbols changed
-                    // (the latter condition will catch the first time calculate() is called).
+                    // (the latter condition will catch the first time calculate_old() is called).
                     // We need to recalculate the expression template.
 
                     // Create the expression template from concatenating all values

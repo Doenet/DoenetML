@@ -1,6 +1,11 @@
+use enum_dispatch::enum_dispatch;
+
 use crate::{
     components::{ComponentEnum, ComponentNode},
-    new_core::graph_node::{GraphNode, StructureGraph},
+    new_core::{
+        graph_based_core::Core,
+        graph_node::{GraphNode, StructureGraph},
+    },
     ComponentIdx,
 };
 
@@ -26,6 +31,16 @@ impl<'a> ChildQueryObject<'a> {
             components,
             strings,
             structure_graph,
+        }
+    }
+
+    /// Create a new `Self` with appropriate data extracted from an instance of `Core`.
+    pub fn new_from_core(component_idx: ComponentIdx, core: &'a Core) -> Self {
+        ChildQueryObject {
+            self_graph_node: GraphNode::Component(component_idx),
+            components: &core.components,
+            strings: &core.strings,
+            structure_graph: &core.structure_graph,
         }
     }
 
@@ -61,6 +76,7 @@ impl<'a> ChildQueryObject<'a> {
 
 /// All components that can be rendered must implement this trait.
 /// It instructs Core how to render the children of a component.
+#[enum_dispatch]
 pub trait ComponentChildren {
     /// The children this component should render. `child_query_object` can be used to iterate through
     /// and seek information about your children. To seek more complex information, you must create

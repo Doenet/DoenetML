@@ -1,5 +1,3 @@
-use itertools::Itertools;
-
 use crate::{components::prelude::*, dast::flat_dast::FlatAttribute};
 
 #[derive(

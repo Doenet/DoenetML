@@ -38,7 +38,8 @@ use super::prelude::UntaggedContent;
     ComponentState,
     ComponentChildrenOld,
     ComponentAttributes,
-    ComponentActions
+    ComponentActions,
+    ComponentChildren
 )]
 #[strum(ascii_case_insensitive)]
 // Components vary in size. It is unclear if we want to `Box` all of them,

@@ -135,7 +135,7 @@ impl PropUpdater<String, RequiredData> for StringProp {
         .into()
     }
 
-    fn calculate(&mut self, data: &RequiredData) -> PropCalcResult<String> {
+    fn calculate_old(&mut self, data: &RequiredData) -> PropCalcResult<String> {
         match data.strings.len() {
             0 => {
                 if self.propagate_came_from_default {

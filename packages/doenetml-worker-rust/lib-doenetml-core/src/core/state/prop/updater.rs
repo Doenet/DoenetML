@@ -47,7 +47,7 @@ pub trait PropUpdater<T: Default + Clone, RequiredData>: std::fmt::Debug {
 
     /// Calculate the value of the prop from the passed in `data`.
     /// Results of this function will be cached, so local caching is not needed.
-    fn calculate(&mut self, data: &RequiredData) -> PropCalcResult<T>;
+    fn calculate_old(&mut self, data: &RequiredData) -> PropCalcResult<T>;
 
     /// All props know how to calculate their value given their dependencies.
     /// Sometimes a prop is requested to take on a particular value. If the
@@ -91,7 +91,7 @@ pub trait PropUpdaterWithCache<T: Default + Clone>: std::fmt::Debug {
 
     /// Calculate the value of the prop from the currently cached query results.
     /// Results of this function will be cached, so local caching is not needed.
-    fn calculate(&mut self) -> PropCalcResult<T>;
+    fn calculate_old(&mut self) -> PropCalcResult<T>;
 
     /// All props know how to calculate their value given their dependencies.
     /// Sometimes a prop is requested to take on a particular value. If the
@@ -153,8 +153,8 @@ where
         self.cache = dependencies.to_data();
     }
 
-    fn calculate(&mut self) -> PropCalcResult<T> {
-        let result = self.prop_updater.calculate(&self.cache);
+    fn calculate_old(&mut self) -> PropCalcResult<T> {
+        let result = self.prop_updater.calculate_old(&self.cache);
         self.cache.mark_data_viewed();
         result
     }
