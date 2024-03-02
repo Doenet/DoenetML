@@ -112,7 +112,7 @@ fn test_adding_prop_data_query() {
     // We should have our prop and the prop from the corresponding extending source.
     assert_eq!(
         core.dependency_graph
-            .walk_descendants(GraphNode::Query(0))
+            .descendants_topological(GraphNode::Query(0))
             .collect::<Vec<_>>(),
         vec![&GraphNode::Prop(4)]
     );
@@ -129,7 +129,7 @@ fn test_adding_prop_data_query() {
     // We should now have the new state at the end of the graph.
     assert_eq!(
         core.dependency_graph
-            .walk_descendants(GraphNode::Query(0))
+            .descendants_topological(GraphNode::Query(0))
             .collect::<Vec<_>>(),
         vec![
             &GraphNode::Prop(4),
@@ -165,7 +165,7 @@ fn test_attribute_data_query() {
     );
     assert_eq!(
         core.dependency_graph
-            .walk_descendants(GraphNode::Query(0))
+            .descendants_topological(GraphNode::Query(0))
             .collect::<Vec<_>>(),
         vec![&GraphNode::Prop(6), &GraphNode::String(1)]
     );
