@@ -77,3 +77,76 @@ fn test_can_query_for_prop_in_calculate_function() {
 
     assert_eq!(*val2.value, PropValue::Integer(15));
 }
+
+#[test]
+fn test_can_set_prop() {
+    let cache = PropCache::new();
+
+    let prop_node = GraphNode::Prop(0);
+    let query_node = GraphNode::Query(0);
+
+    // The status doesn't _have_ to be set to resolved to set the prop, but it's good practice.
+    cache.set_prop_status(prop_node, PropStatus::Resolved);
+    cache.set_prop(
+        prop_node,
+        PropCalcResult::Calculated(PropValue::Integer(10)),
+    );
+    let val = cache.get_prop(prop_node, query_node, || {
+        PropCalcResult::Calculated(PropValue::Integer(15))
+    });
+
+    assert_eq!(*val.value, PropValue::Integer(10));
+}
+
+#[test]
+fn test_a_data_query_can_keep_track_of_changes_to_multiple_props() {
+    let cache = PropCache::new();
+
+    let prop_node = GraphNode::Prop(0);
+    let prop_node2 = GraphNode::Prop(1);
+    let query_node = GraphNode::Query(0);
+
+    // Set the prop values multiple times to make sure they have different change counters.
+    cache.set_prop_status(prop_node, PropStatus::Resolved);
+    cache.set_prop(
+        prop_node,
+        PropCalcResult::Calculated(PropValue::Integer(10)),
+    );
+    cache.set_prop(
+        prop_node,
+        PropCalcResult::Calculated(PropValue::Integer(10)),
+    );
+    cache.set_prop(
+        prop_node,
+        PropCalcResult::Calculated(PropValue::Integer(10)),
+    );
+
+    cache.set_prop_status(prop_node2, PropStatus::Resolved);
+    cache.set_prop(
+        prop_node2,
+        PropCalcResult::Calculated(PropValue::Integer(15)),
+    );
+
+    // Get the prop multiple times so that its `changed` status should be `false`
+    let val2 = cache.get_prop(prop_node2, query_node, || {
+        PropCalcResult::Calculated(PropValue::Integer(10))
+    });
+    assert_eq!(val2.changed, true);
+    let val = cache.get_prop(prop_node, query_node, || {
+        PropCalcResult::Calculated(PropValue::Integer(10))
+    });
+    assert_eq!(val.changed, true);
+
+    let val2 = cache.get_prop(prop_node2, query_node, || {
+        PropCalcResult::Calculated(PropValue::Integer(10))
+    });
+    let val = cache.get_prop(prop_node, query_node, || {
+        PropCalcResult::Calculated(PropValue::Integer(10))
+    });
+
+    assert_eq!(*val.value, PropValue::Integer(10));
+    assert_eq!(*val2.value, PropValue::Integer(15));
+
+    assert_eq!(val.changed, false);
+    assert_eq!(val2.changed, false);
+}

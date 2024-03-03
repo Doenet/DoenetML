@@ -1,6 +1,6 @@
 //! Allow for the caching of props (and state props and strings).
 
-use std::{borrow, cell::RefCell, rc::Rc};
+use std::{borrow, cell::RefCell, collections::HashMap, rc::Rc};
 
 use crate::{
     components::prelude::{GraphNode, PropCalcResult, PropValue},
@@ -87,22 +87,7 @@ impl CachedProp {
             ),
             PropStatus::Stale | PropStatus::Resolved => {
                 let result = calculate();
-                match result {
-                    PropCalcResult::Calculated(value) => {
-                        self._set_value(value);
-                        self._set_came_from_default(false);
-                    }
-                    PropCalcResult::FromDefault(value) => {
-                        self._set_value(value);
-                        self._set_came_from_default(true);
-                    }
-                    PropCalcResult::NoChange => {
-                        if self.get_status() == PropStatus::Resolved {
-                            panic!("Prop is marked as `Resolved` and value is computed as `NoChange`. This is a logic error as cached values only exist on `Fresh` and `Stale` props.")
-                        }
-                        self.set_status(PropStatus::Fresh);
-                    }
-                }
+                self.set_value(result);
                 self.get_cached_value().unwrap()
             }
             PropStatus::Unresolved => {
@@ -111,15 +96,25 @@ impl CachedProp {
         }
     }
 
-    //    /// Get the cached value of the prop without any side computations.
-    //    fn get_cached_value(&self) -> Option<Ref<PropValue>> {
-    //        // This code doesn't seem to work with `self.value.borrow().map(...)`. The borrow checker
-    //        // is a mystery.
-    //        match *self.value.borrow() {
-    //            Some(_) => Some(Ref::map(self.value.borrow(), |b| b.as_ref().unwrap())),
-    //            None => None,
-    //        }
-    //    }
+    /// Sets the value of the prop using interior mutability.
+    fn set_value(&self, result: PropCalcResult<PropValue>) {
+        match result {
+            PropCalcResult::Calculated(value) => {
+                self._set_value(value);
+                self._set_came_from_default(false);
+            }
+            PropCalcResult::FromDefault(value) => {
+                self._set_value(value);
+                self._set_came_from_default(true);
+            }
+            PropCalcResult::NoChange => {
+                if self.get_status() == PropStatus::Resolved {
+                    panic!("Prop is marked as `Resolved` and value is computed as `NoChange`. This is a logic error as cached values only exist on `Fresh` and `Stale` props.")
+                }
+                self.set_status(PropStatus::Fresh);
+            }
+        }
+    }
 
     /// Get the cached value of the prop without any side computations.
     fn get_cached_value(&self) -> Option<Rc<PropValue>> {
@@ -155,15 +150,19 @@ pub struct PropWithMeta {
 }
 
 /// A caching store for storage and retrieval of props.
+#[derive(Debug)]
 pub struct PropCache {
+    /// A map from {prop_node} -> {cached_prop}
     store: RefCell<GraphNodeLookup<CachedProp>>,
-    change_tracker: RefCell<GraphNodeLookup<u32>>,
+    /// A map from {prop_node}x{query_node} -> {change_counter}
+    // TODO: HashMap provides a quick solution, but there may be more efficient ones.
+    change_tracker: RefCell<HashMap<(usize, usize), u32>>,
 }
 impl PropCache {
     pub fn new() -> Self {
         PropCache {
             store: RefCell::new(GraphNodeLookup::new()),
-            change_tracker: RefCell::new(GraphNodeLookup::new()),
+            change_tracker: RefCell::new(HashMap::new()),
         }
     }
 
@@ -215,18 +214,21 @@ impl PropCache {
     ) -> PropWithMeta {
         let prop_node = prop_node.borrow();
         let origin = origin.borrow();
+        let change_tracker_key = (prop_node.idx(), origin.idx());
 
         let change_counter_on_last_query = {
             // Borrow RefCells for the shortest time possible to avoid panics.
             let change_tracker = self.change_tracker.borrow();
-            change_tracker.get_tag(origin).copied().unwrap_or(0)
+            change_tracker
+                .get(&change_tracker_key)
+                .copied()
+                .unwrap_or(0)
         };
 
         self.ensure_prop_exists(prop_node);
         let store = self.store.borrow();
 
         let cached_prop = store.get_tag(prop_node).unwrap();
-        //       let cached_prop = self.get_or_insert(prop_node);
         let value = cached_prop.get_value(calculate);
         let came_from_default = cached_prop.get_came_from_default();
 
@@ -239,7 +241,7 @@ impl PropCache {
         {
             // Borrow RefCells for the shortest time possible to avoid panics.
             let mut change_tracker = self.change_tracker.borrow_mut();
-            change_tracker.set_tag(*origin, change_counter);
+            change_tracker.insert(change_tracker_key, change_counter);
         }
 
         PropWithMeta {
@@ -247,6 +249,21 @@ impl PropCache {
             came_from_default,
             changed,
         }
+    }
+
+    /// Get the value of a prop. `origin` is the `GraphNode::DataQuery` that requested the prop.
+    /// The cache tracks and reports if the value has changed since the last time it was queried.
+    pub fn set_prop<A: borrow::Borrow<GraphNode>>(
+        &self,
+        prop_node: A,
+        result: PropCalcResult<PropValue>,
+    ) {
+        let prop_node = prop_node.borrow();
+
+        self.ensure_prop_exists(prop_node);
+        let store = self.store.borrow();
+        let cached_prop = store.get_tag(prop_node).unwrap();
+        cached_prop.set_value(result);
     }
 }
 

@@ -31,6 +31,19 @@ pub enum GraphNode {
     Virtual(usize),
 }
 
+impl GraphNode {
+    pub fn idx(&self) -> usize {
+        match self {
+            GraphNode::Component(idx) => *idx,
+            GraphNode::String(idx) => *idx,
+            GraphNode::Prop(idx) => *idx,
+            GraphNode::State(idx) => *idx,
+            GraphNode::Query(idx) => *idx,
+            GraphNode::Virtual(idx) => *idx,
+        }
+    }
+}
+
 /// Data structure on which a `Taggable<GraphNode, _>` can be implemented.
 #[derive(Clone, Debug)]
 pub struct GraphNodeLookup<T> {
