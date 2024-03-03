@@ -22,7 +22,7 @@ pub struct Boolean {
 }
 
 impl ComponentChildren for Boolean {
-    fn get_children(&self, _child_query_object: ChildQueryObject) -> Vec<GraphNode> {
+    fn get_rendered_children(&self, _child_query_object: ChildQueryObject) -> Vec<GraphNode> {
         // Return no children
         Vec::new()
     }

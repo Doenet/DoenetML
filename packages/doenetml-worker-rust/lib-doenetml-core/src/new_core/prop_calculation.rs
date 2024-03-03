@@ -2,67 +2,24 @@ use crate::{
     components::prelude::ComponentProps,
     graph::directed_graph::Taggable,
     state::{Freshness, PropPointer},
-    ComponentIdx,
 };
 
 use super::{graph_based_core::Core, graph_node::GraphNode};
 
 impl Core {
-    pub fn freshen_renderer_state(&mut self) -> Vec<ComponentIdx> {
-        let mut stale_renderers = Vec::new();
-
-        // recursively get a list of all rendered descendants of the components in stale_renderers
-        let mut stale_renderer_idx = 0;
-        while stale_renderer_idx < stale_renderers.len() {
-            let component_idx = stale_renderers[stale_renderer_idx];
-            stale_renderer_idx += 1;
-
-            // stale_renderers.extend(
-            //     self.component_rendered_children(&self.components[component_idx])
-            //         .into_iter()
-            //         .filter_map(|child| match child {
-            //             FlatDastElementContent::Text(_) => None,
-            //             FlatDastElementContent::Element(child_idx) => Some(child_idx),
-            //         }),
-            // );
-        }
-
-        // deduplicate the list of stale renderers,
-        // sorting first since .dedup removes only consecutive duplicates.
-        stale_renderers.sort_unstable();
-        stale_renderers.dedup();
-
-        // for component_idx in stale_renderers.iter() {
-        //     self.components[*component_idx].set_is_in_render_tree(true);
-
-        //     let rendered_prop_indices =
-        //         self.components[*component_idx].get_for_renderer_prop_indices();
-
-        //     for prop_idx in rendered_prop_indices {
-        //         let prop_ptr = PropPointer {
-        //             component_idx: *component_idx,
-        //             local_prop_idx: prop_idx,
-        //         };
-        //         self.freshen_prop(prop_ptr);
-        //     }
-        // }
-
-        let components_freshened = stale_renderers.clone();
-
-        stale_renderers.clear();
-        components_freshened
-    }
-
     /// Ensure that every prop in `prop_pointers` in fresh.
     /// This function:
     /// - adds needed dependencies to `dependency_graph`
     /// - resolves and freshens all dependencies of the props
-    pub fn freshen_prop(&mut self, prop_pointers: &[PropPointer]) {
+    pub fn freshen_props(&mut self, prop_pointers: &[PropPointer]) {
         let nodes_to_freshen = prop_pointers
             .iter()
             .filter_map(|prop_pointer| {
                 let prop_node = self.prop_pointer_to_prop_node(*prop_pointer);
-                let freshness = self.freshness.get_tag(&prop_node).unwrap();
+                let freshness = self
+                    .freshness
+                    .get_tag(&prop_node)
+                    .unwrap_or(&Freshness::Unresolved);
 
                 // If the current prop is fresh, there's nothing to do.
                 // If it is unresolved, resolve it

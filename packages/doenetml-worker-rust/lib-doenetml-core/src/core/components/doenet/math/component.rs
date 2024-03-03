@@ -30,7 +30,7 @@ impl ComponentAttributes for Math {
 }
 
 impl ComponentChildren for Math {
-    fn get_children(&self, _child_query_object: ChildQueryObject) -> Vec<GraphNode> {
+    fn get_rendered_children(&self, _child_query_object: ChildQueryObject) -> Vec<GraphNode> {
         // Return no children
         Vec::new()
     }
