@@ -65,7 +65,7 @@ impl PublicDoenetMLCore {
 
     pub fn return_dast(&mut self) -> Result<FlatDastRoot, String> {
         if !self.initialized {
-            let flags = match &self.flags_json {
+            let _flags = match &self.flags_json {
                 Some(f) => f,
                 None => return Err("Cannot create core before flags are set.".to_string()),
             };
@@ -75,7 +75,7 @@ impl PublicDoenetMLCore {
             };
 
             // Create components from JSON tree and create all dependencies.
-            self.core.init_from_dast_root(&dast_root);
+            self.core.init_from_dast_root(dast_root);
             self.initialized = true;
         }
 
@@ -87,7 +87,7 @@ impl PublicDoenetMLCore {
     /// changing the value of a slider).
     ///
     /// Returns updates to the FlatDast.
-    pub fn dispatch_action(&mut self, action: Action) -> Result<ActionResponse, String> {
+    pub fn dispatch_action(&mut self, _action: Action) -> Result<ActionResponse, String> {
         Ok(ActionResponse {
             // XXX: add dispatch action to core
             payload: HashMap::new(), //self.core.dispatch_action(action)?,

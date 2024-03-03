@@ -2,11 +2,7 @@
 
 use crate::{
     components::{prelude::PropValue, ComponentEnum},
-    dast::{
-        flat_dast::{FlatRoot, NormalizedRoot},
-        ref_expand::Expander,
-        DastRoot,
-    },
+    dast::{flat_dast::FlatRoot, ref_expand::Expander, DastRoot},
     graph::directed_graph::DirectedGraph,
     state::{PropPointer, PropStatus},
     ComponentIdx,
@@ -82,7 +78,7 @@ impl Core {
     /// This function relies upon the fact that `dast.nodes` will be the same length as `self.components`
     /// and exactly mirror it's structure (i.e., `dast.nodes[i].idx == self.components[i].idx`).
     pub fn init_from_dast_root(&mut self, dast_root: &DastRoot) {
-        let mut flat_root = FlatRoot::from_dast(&dast_root);
+        let mut flat_root = FlatRoot::from_dast(dast_root);
         Expander::expand(&mut flat_root);
         flat_root.compactify();
         let normalized_flat_root = flat_root.into_normalized_root();

@@ -1,6 +1,6 @@
 //! Objects related to `Prop`s
 
-mod cache;
+pub mod cache;
 mod prop_ident;
 mod prop_lookup;
 

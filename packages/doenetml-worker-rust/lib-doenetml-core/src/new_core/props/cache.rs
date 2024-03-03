@@ -1,10 +1,6 @@
 //! Allow for the caching of props (and state props and strings).
 
-use std::{
-    borrow,
-    cell::{Ref, RefCell},
-    rc::Rc,
-};
+use std::{borrow, cell::RefCell, rc::Rc};
 
 use crate::{
     components::prelude::{GraphNode, PropCalcResult, PropValue},
@@ -34,14 +30,14 @@ struct CachedPropMeta {
 #[derive(Debug)]
 struct CachedProp {
     /// Cached value of the prop. Will be `None` if the prop hasn't been computed or is stale.
-    value: Rc<RefCell<Option<PropValue>>>,
+    value: RefCell<Option<Rc<PropValue>>>,
     meta: RefCell<CachedPropMeta>,
 }
 
 impl CachedProp {
     pub fn new() -> Self {
         CachedProp {
-            value: Rc::new(RefCell::new(None)),
+            value: RefCell::new(None),
             meta: RefCell::new(CachedPropMeta {
                 status: PropStatus::Unresolved,
                 came_from_default: false,
@@ -53,7 +49,7 @@ impl CachedProp {
     /// Sets the value and marks it as fresh using internal mutability.
     /// **For internal use only.**
     fn _set_value(&self, value: PropValue) {
-        *self.value.borrow_mut() = Some(value);
+        *self.value.borrow_mut() = Some(Rc::new(value));
         self.meta.borrow_mut().status = PropStatus::Fresh;
         let change_counter = self.meta.borrow().change_counter;
         // A little bit of safety in case someone wiggles their mouse 4 billion times
@@ -86,7 +82,7 @@ impl CachedProp {
     pub fn get_value<CalculateFn: Fn() -> PropCalcResult<PropValue>>(
         &self,
         calculate: CalculateFn,
-    ) -> Ref<PropValue> {
+    ) -> Rc<PropValue> {
         match self.get_status() {
             PropStatus::Fresh => self.get_cached_value().expect(
                 "Prop is marked as Fresh but no value is cached. This state should be unreachable",
@@ -113,14 +109,19 @@ impl CachedProp {
         }
     }
 
+    //    /// Get the cached value of the prop without any side computations.
+    //    fn get_cached_value(&self) -> Option<Ref<PropValue>> {
+    //        // This code doesn't seem to work with `self.value.borrow().map(...)`. The borrow checker
+    //        // is a mystery.
+    //        match *self.value.borrow() {
+    //            Some(_) => Some(Ref::map(self.value.borrow(), |b| b.as_ref().unwrap())),
+    //            None => None,
+    //        }
+    //    }
+
     /// Get the cached value of the prop without any side computations.
-    fn get_cached_value(&self) -> Option<Ref<PropValue>> {
-        // This code doesn't seem to work with `self.value.borrow().map(...)`. The borrow checker
-        // is a mystery.
-        match *self.value.borrow() {
-            Some(_) => Some(Ref::map(self.value.borrow(), |b| b.as_ref().unwrap())),
-            None => None,
-        }
+    fn get_cached_value(&self) -> Option<Rc<PropValue>> {
+        self.value.borrow().clone()
     }
 
     /// Get the status of the prop.
@@ -140,9 +141,10 @@ impl CachedProp {
 
 /// A prop with metadata about whether it has changed
 /// and how it was last set.
-pub struct PropWithMeta<'a> {
+#[derive(Debug, Clone)]
+pub struct PropWithMeta {
     /// The value of the prop
-    pub value: Ref<'a, PropValue>,
+    pub value: Rc<PropValue>,
     /// `true` if this prop was set by using a default value.
     pub came_from_default: bool,
     /// `true` if this prop has changed since the last time it was queried from
@@ -152,40 +154,43 @@ pub struct PropWithMeta<'a> {
 
 /// A caching store for storage and retrieval of props.
 pub struct PropCache {
-    store: GraphNodeLookup<CachedProp>,
-    change_tracker: GraphNodeLookup<u32>,
+    store: RefCell<GraphNodeLookup<CachedProp>>,
+    change_tracker: RefCell<GraphNodeLookup<u32>>,
 }
 impl PropCache {
     pub fn new() -> Self {
         PropCache {
-            store: GraphNodeLookup::new(),
-            change_tracker: GraphNodeLookup::new(),
+            store: RefCell::new(GraphNodeLookup::new()),
+            change_tracker: RefCell::new(GraphNodeLookup::new()),
         }
     }
 
     /// Get the status of a prop.
     pub fn get_prop_status<A: borrow::Borrow<GraphNode>>(&self, prop_node: A) -> PropStatus {
         let prop_node = prop_node.borrow();
-        if self.store.get_tag(prop_node).is_none() {
-            PropStatus::Unresolved
-        } else {
-            self.store.get_tag(prop_node).unwrap().get_status()
+        match self.store.borrow().get_tag(prop_node) {
+            Some(cached_prop) => cached_prop.get_status(),
+            None => PropStatus::Unresolved,
         }
     }
 
     /// Set the status of a prop.
-    pub fn set_prop_status<A: borrow::Borrow<GraphNode>>(
-        &mut self,
-        prop_node: A,
-        status: PropStatus,
-    ) {
-        let prop_node = prop_node.borrow().clone();
-        if self.store.get_tag(&prop_node).is_none() {
-            let new_cached_prop = CachedProp::new();
-            self.store.set_tag(prop_node, new_cached_prop);
-        }
-        let cached_prop = self.store.get_tag(&prop_node).unwrap();
+    pub fn set_prop_status<A: borrow::Borrow<GraphNode>>(&self, prop_node: A, status: PropStatus) {
+        let prop_node = prop_node.borrow();
+        self.ensure_prop_exists(prop_node);
+        let store = self.store.borrow();
+        let cached_prop = store.get_tag(prop_node).unwrap();
         cached_prop.set_status(status);
+    }
+
+    /// Ensures that cached data associated with `prop_node` exists.
+    /// If no cached data exists, a new `CachedProp` is created and associated with `prop_node`.
+    fn ensure_prop_exists(&self, prop_node: &GraphNode) {
+        let mut store = self.store.borrow_mut();
+        if store.get_tag(prop_node).is_none() {
+            let new_cached_prop = CachedProp::new();
+            store.set_tag(*prop_node, new_cached_prop);
+        }
     }
 
     /// Get the value of a prop. `origin` is the `GraphNode::DataQuery` that requested the prop.
@@ -195,20 +200,21 @@ impl PropCache {
         A: borrow::Borrow<GraphNode>,
         B: borrow::Borrow<GraphNode>,
     >(
-        &mut self,
+        &self,
         prop_node: A,
         origin: B,
         calculate: CalculateFn,
     ) -> PropWithMeta {
-        let prop_node = prop_node.borrow().clone();
-        let origin = origin.borrow().clone();
-        let change_counter_on_last_query =
-            self.change_tracker.get_tag(&origin).copied().unwrap_or(0);
-        if self.store.get_tag(&prop_node).is_none() {
-            let new_cached_prop = CachedProp::new();
-            self.store.set_tag(prop_node, new_cached_prop);
-        }
-        let cached_prop = self.store.get_tag(&prop_node).unwrap();
+        let prop_node = prop_node.borrow();
+        let origin = origin.borrow();
+
+        let mut change_tracker = self.change_tracker.borrow_mut();
+        let change_counter_on_last_query = change_tracker.get_tag(origin).copied().unwrap_or(0);
+
+        self.ensure_prop_exists(prop_node);
+        let store = self.store.borrow();
+
+        let cached_prop = store.get_tag(prop_node).unwrap();
         //       let cached_prop = self.get_or_insert(prop_node);
         let value = cached_prop.get_value(calculate);
         let came_from_default = cached_prop.get_came_from_default();
@@ -219,7 +225,7 @@ impl PropCache {
         // so if it is queried on an unchanged value, it will report `changed == false`.
         let change_counter = cached_prop.get_change_counter();
         let changed = change_counter != change_counter_on_last_query;
-        self.change_tracker.set_tag(origin, change_counter);
+        change_tracker.set_tag(*origin, change_counter);
 
         PropWithMeta {
             value,
@@ -227,29 +233,11 @@ impl PropCache {
             changed,
         }
     }
+}
 
-    /// Get the value of a prop without specifying a DataQuery origin. This will not supply `changed`
-    /// information.
-    pub fn get_prop_no_origin<
-        CalculateFn: Fn() -> PropCalcResult<PropValue>,
-        A: borrow::Borrow<GraphNode>,
-    >(
-        &mut self,
-        node: A,
-        calculate: CalculateFn,
-    ) -> Ref<PropValue> {
-        let cached_prop = self.get_or_insert(node.borrow().clone());
-        cached_prop.get_value(calculate)
-    }
-
-    /// Get the cache entry corresponding to `prop_node` if it exists. Otherwise
-    /// insert a new cache entry and return a reference to it.
-    fn get_or_insert(&mut self, prop_node: GraphNode) -> &CachedProp {
-        if self.store.get_tag(&prop_node).is_none() {
-            let new_cached_prop = CachedProp::new();
-            self.store.set_tag(prop_node, new_cached_prop);
-        }
-        self.store.get_tag(&prop_node).unwrap()
+impl Default for PropCache {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
