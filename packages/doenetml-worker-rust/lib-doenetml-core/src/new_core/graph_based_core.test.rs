@@ -484,13 +484,9 @@ mod test_helpers {
 
     pub fn core_from_doenetml(doenetml: &str) -> Core {
         let dast_root = dast_root_no_position(doenetml);
-        let mut flat_root = FlatRoot::from_dast(&dast_root);
-        Expander::expand(&mut flat_root);
-        flat_root.compactify();
-        let normalized_flat_root = flat_root.into_normalized_root();
 
         let mut core = Core::new();
-        core.init_from_normalized_root(&normalized_flat_root);
+        core.init_from_dast_root(&dast_root);
         core
     }
 }

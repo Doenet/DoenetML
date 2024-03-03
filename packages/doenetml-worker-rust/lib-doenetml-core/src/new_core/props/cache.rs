@@ -162,7 +162,7 @@ impl PropCache {
             change_tracker: GraphNodeLookup::new(),
         }
     }
-    
+
     /// Get the status of a prop.
     pub fn get_prop_status<A: borrow::Borrow<GraphNode>>(&self, prop_node: A) -> PropStatus {
         let prop_node = prop_node.borrow();
@@ -174,7 +174,11 @@ impl PropCache {
     }
 
     /// Set the status of a prop.
-    pub fn set_prop_status<A: borrow::Borrow<GraphNode>>(&mut self, prop_node: A, status: PropStatus) {
+    pub fn set_prop_status<A: borrow::Borrow<GraphNode>>(
+        &mut self,
+        prop_node: A,
+        status: PropStatus,
+    ) {
         let prop_node = prop_node.borrow().clone();
         if self.store.get_tag(&prop_node).is_none() {
             let new_cached_prop = CachedProp::new();

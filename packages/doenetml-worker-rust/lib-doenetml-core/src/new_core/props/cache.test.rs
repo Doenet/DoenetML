@@ -29,7 +29,7 @@ fn test_can_cache_props_can_detect_changes() {
     let val = cache.get_prop(prop_node, query_node, || {
         PropCalcResult::Calculated(PropValue::String("hello".to_string()))
     });
-    
+
     assert_eq!(val.value.clone(), PropValue::String("hello".to_string()));
     assert_eq!(val.changed, false);
 }

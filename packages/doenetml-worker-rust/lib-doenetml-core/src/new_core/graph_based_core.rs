@@ -2,7 +2,11 @@
 
 use crate::{
     components::{prelude::PropValue, ComponentEnum},
-    dast::flat_dast::NormalizedRoot,
+    dast::{
+        flat_dast::{FlatRoot, NormalizedRoot},
+        ref_expand::Expander,
+        DastRoot,
+    },
     graph::directed_graph::DirectedGraph,
     state::{PropPointer, PropStatus},
     ComponentIdx,
@@ -17,6 +21,7 @@ use super::{
 /// Core stores all hydrated components, keeps track of caching data, and tracks dependencies.
 /// It is also in charge of marking nodes as dirty when they need to be recalculated and calling
 /// functions to recalculate in the appropriate order.
+#[derive(Debug)]
 pub struct Core {
     /// A graph that stores the structure of the document. This graph keeps
     /// track of children, attributes, props, and state.
@@ -76,8 +81,13 @@ impl Core {
     ///
     /// This function relies upon the fact that `dast.nodes` will be the same length as `self.components`
     /// and exactly mirror it's structure (i.e., `dast.nodes[i].idx == self.components[i].idx`).
-    pub fn init_from_normalized_root(&mut self, normalized_root: &NormalizedRoot) {
-        let component_builder = ComponentBuilder::from_normalized_root(normalized_root);
+    pub fn init_from_dast_root(&mut self, dast_root: &DastRoot) {
+        let mut flat_root = FlatRoot::from_dast(&dast_root);
+        Expander::expand(&mut flat_root);
+        flat_root.compactify();
+        let normalized_flat_root = flat_root.into_normalized_root();
+
+        let component_builder = ComponentBuilder::from_normalized_root(&normalized_flat_root);
         self.components = component_builder.components;
         self.strings = component_builder.strings;
         self.structure_graph = component_builder.structure_graph;

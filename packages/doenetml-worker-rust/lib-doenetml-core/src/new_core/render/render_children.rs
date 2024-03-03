@@ -82,5 +82,5 @@ pub trait ComponentChildren {
     /// and seek information about your children. To seek more complex information, you must create
     /// a prop based on a `DataQuery` for the desired information. (This allows Core to appropriately call this function
     /// again in case any dependencies change.)
-    fn get_children(&self, child_query_object: ChildQueryObject) -> Vec<GraphNode>;
+    fn get_rendered_children(&self, child_query_object: ChildQueryObject) -> Vec<GraphNode>;
 }
