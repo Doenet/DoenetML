@@ -59,7 +59,6 @@ impl CachedProp {
     /// Sets the prop as stale and clears the cached value using interior mutability.
     /// **For internal use only.**
     fn _set_stale(&self) {
-        *self.value.borrow_mut() = None;
         self.meta.borrow_mut().status = PropStatus::Stale;
     }
 
@@ -70,7 +69,6 @@ impl CachedProp {
     }
 
     /// Set `status` using interior mutability.
-    /// **For internal use only.**
     fn set_status(&self, status: PropStatus) {
         self.meta.borrow_mut().status = status;
     }
@@ -92,12 +90,16 @@ impl CachedProp {
                 match result {
                     PropCalcResult::Calculated(value) => {
                         self._set_value(value);
+                        self._set_came_from_default(false);
                     }
                     PropCalcResult::FromDefault(value) => {
                         self._set_value(value);
                         self._set_came_from_default(true);
                     }
                     PropCalcResult::NoChange => {
+                        if self.get_status() == PropStatus::Resolved {
+                            panic!("Prop is marked as `Resolved` and value is computed as `NoChange`. This is a logic error as cached values only exist on `Fresh` and `Stale` props.")
+                        }
                         self.set_status(PropStatus::Fresh);
                     }
                 }
@@ -167,11 +169,12 @@ impl PropCache {
 
     /// Get the status of a prop.
     pub fn get_prop_status<A: borrow::Borrow<GraphNode>>(&self, prop_node: A) -> PropStatus {
-        let prop_node = prop_node.borrow();
-        match self.store.borrow().get_tag(prop_node) {
-            Some(cached_prop) => cached_prop.get_status(),
-            None => PropStatus::Unresolved,
-        }
+        self.store
+            .borrow()
+            .get_tag(prop_node.borrow())
+            .map_or(PropStatus::Unresolved, |cached_prop| {
+                cached_prop.get_status()
+            })
     }
 
     /// Set the status of a prop.
@@ -186,8 +189,13 @@ impl PropCache {
     /// Ensures that cached data associated with `prop_node` exists.
     /// If no cached data exists, a new `CachedProp` is created and associated with `prop_node`.
     fn ensure_prop_exists(&self, prop_node: &GraphNode) {
-        let mut store = self.store.borrow_mut();
+        let store = self.store.borrow();
         if store.get_tag(prop_node).is_none() {
+            drop(store); // Drop the borrow so we can borrow mutably
+            let mut store = self
+                .store
+                .try_borrow_mut()
+                .expect("Trying to initialize CachedProp while it is already borrowed; This probably means the prop is not yet Resolved. Make sure all props are marked as Resolved before querying.");
             let new_cached_prop = CachedProp::new();
             store.set_tag(*prop_node, new_cached_prop);
         }
@@ -208,8 +216,11 @@ impl PropCache {
         let prop_node = prop_node.borrow();
         let origin = origin.borrow();
 
-        let mut change_tracker = self.change_tracker.borrow_mut();
-        let change_counter_on_last_query = change_tracker.get_tag(origin).copied().unwrap_or(0);
+        let change_counter_on_last_query = {
+            // Borrow RefCells for the shortest time possible to avoid panics.
+            let change_tracker = self.change_tracker.borrow();
+            change_tracker.get_tag(origin).copied().unwrap_or(0)
+        };
 
         self.ensure_prop_exists(prop_node);
         let store = self.store.borrow();
@@ -225,7 +236,11 @@ impl PropCache {
         // so if it is queried on an unchanged value, it will report `changed == false`.
         let change_counter = cached_prop.get_change_counter();
         let changed = change_counter != change_counter_on_last_query;
-        change_tracker.set_tag(*origin, change_counter);
+        {
+            // Borrow RefCells for the shortest time possible to avoid panics.
+            let mut change_tracker = self.change_tracker.borrow_mut();
+            change_tracker.set_tag(*origin, change_counter);
+        }
 
         PropWithMeta {
             value,
