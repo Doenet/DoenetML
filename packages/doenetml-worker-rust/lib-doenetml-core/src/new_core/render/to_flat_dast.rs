@@ -102,4 +102,19 @@ impl Core {
             position: component.get_position().cloned(),
         }
     }
+
+    /// XXX: need to implement this and determine what rendered state variables have changed
+    /// Output updates for any elements with changed rendered props
+    pub fn get_flat_dast_updates(&mut self) -> HashMap<ComponentIdx, FlatDastElementUpdate> {
+        // let components_changed = self.freshen_renderer_state();
+
+        // let mut flat_dast_updates: HashMap<ComponentIdx, FlatDastElementUpdate> = HashMap::new();
+        // for component_idx in components_changed {
+        //     if let Some(element_update) = get_flat_dast_update(component_idx, &self.components) {
+        //         flat_dast_updates.insert(component_idx, element_update);
+        //     }
+        // }
+        // flat_dast_updates
+        HashMap::new()
+    }
 }

@@ -3,6 +3,7 @@ pub mod dependency_creation;
 pub mod graph_based_core;
 pub mod graph_node;
 pub mod prop_calculation;
+pub mod prop_updates;
 pub mod props;
 pub mod render;
 

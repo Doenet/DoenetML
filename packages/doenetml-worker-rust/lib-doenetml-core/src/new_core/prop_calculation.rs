@@ -1,4 +1,4 @@
-use crate::state::PropPointer;
+use crate::{components::prelude::PropValue, state::PropPointer};
 
 use super::{graph_based_core::Core, graph_node::GraphNode, props::cache::PropStatus};
 
@@ -116,4 +116,12 @@ impl Core {
     //            }
     //        }
     //    }
+
+    /// Freshen the prop specified by prop_pointer,
+    /// then get its fresh value
+    pub fn get_prop_value(&mut self, prop_pointer: PropPointer) -> PropValue {
+        self.freshen_props(&[prop_pointer]);
+
+        self.get_prop(prop_pointer).unwrap().get()
+    }
 }

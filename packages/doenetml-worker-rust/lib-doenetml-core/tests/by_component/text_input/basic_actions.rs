@@ -6,7 +6,9 @@ use super::*;
 #[test]
 fn value_and_immediate_value_respond_to_actions() {
     let dast_root = dast_root_no_position(r#"<textInput/>"#);
-    let mut core = DoenetMLCore::new(dast_root, "", "", None);
+
+    let mut core = Core::new();
+    core.init_from_dast_root(&dast_root);
 
     // the text input will be index 1, as the document tag will be index 0.
     let text_input_idx = 1;
@@ -39,7 +41,9 @@ fn value_and_immediate_value_respond_to_actions() {
 #[test]
 fn value_and_immediate_value_with_prefill_respond_to_actions() {
     let dast_root = dast_root_no_position(r#"<textInput prefill="hello" />"#);
-    let mut core = DoenetMLCore::new(dast_root, "", "", None);
+
+    let mut core = Core::new();
+    core.init_from_dast_root(&dast_root);
 
     // the text input will be index 1, as the document tag will be index 0.
     let text_input_idx = 1;
@@ -72,7 +76,9 @@ fn value_and_immediate_value_with_prefill_respond_to_actions() {
 #[test]
 fn value_and_immediate_value_with_string_child_respond_to_actions() {
     let dast_root = dast_root_no_position(r#"<textInput>hello</textInput>"#);
-    let mut core = DoenetMLCore::new(dast_root, "", "", None);
+
+    let mut core = Core::new();
+    core.init_from_dast_root(&dast_root);
 
     // the text input will be index 1, as the document tag will be index 0.
     let text_input_idx = 1;
@@ -105,7 +111,9 @@ fn value_and_immediate_value_with_string_child_respond_to_actions() {
 #[test]
 fn value_and_immediate_value_with_text_child_respond_to_actions() {
     let dast_root = dast_root_no_position(r#"<textInput><text>hello</text></textInput>"#);
-    let mut core = DoenetMLCore::new(dast_root, "", "", None);
+
+    let mut core = Core::new();
+    core.init_from_dast_root(&dast_root);
 
     // the text input will be index 1 amd the text will be index 2, as the document tag will be index 0.
     let text_input_idx = 1;
@@ -144,7 +152,9 @@ fn value_and_immediate_value_with_text_child_respond_to_actions() {
 #[test]
 fn value_and_immediate_value_with_blank_text_child_respond_to_actions() {
     let dast_root = dast_root_no_position(r#"<textInput><text/></textInput>"#);
-    let mut core = DoenetMLCore::new(dast_root, "", "", None);
+
+    let mut core = Core::new();
+    core.init_from_dast_root(&dast_root);
 
     // the text input will be index 1 amd the text will be index 2, as the document tag will be index 0.
     let text_input_idx = 1;
@@ -181,7 +191,9 @@ fn value_and_immediate_value_with_blank_text_child_respond_to_actions() {
 #[test]
 fn value_and_immediate_value_with_two_children_respond_to_actions() {
     let dast_root = dast_root_no_position(r#"<textInput><text>hello</text> there</textInput>"#);
-    let mut core = DoenetMLCore::new(dast_root, "", "", None);
+
+    let mut core = Core::new();
+    core.init_from_dast_root(&dast_root);
 
     // the text input will be index 1, as the document tag will be index 0.
     let text_input_idx = 1;
@@ -220,7 +232,9 @@ fn value_and_immediate_value_with_two_children_respond_to_actions() {
 fn value_and_immediate_value_with_two_grandchildren_respond_to_actions() {
     let dast_root =
         dast_root_no_position(r#"<textInput><text><text>hello</text> there</text></textInput>"#);
-    let mut core = DoenetMLCore::new(dast_root, "", "", None);
+
+    let mut core = Core::new();
+    core.init_from_dast_root(&dast_root);
 
     // the text input will be index 1, as the document tag will be index 0.
     let text_input_idx = 1;
@@ -257,7 +271,9 @@ fn value_and_immediate_value_with_two_grandchildren_respond_to_actions() {
 #[test]
 fn text_input_child_supersedes_prefill() {
     let dast_root = dast_root_no_position(r#"<textInput prefill="ignored">hello</textInput>"#);
-    let mut core = DoenetMLCore::new(dast_root, "", "", None);
+
+    let mut core = Core::new();
+    core.init_from_dast_root(&dast_root);
 
     // the text input will be index 1, as the document tag will be index 0.
     let text_input_idx = 1;
