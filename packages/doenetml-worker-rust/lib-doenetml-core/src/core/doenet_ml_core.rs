@@ -14,7 +14,7 @@ use super::state::prop_calculations::{
 };
 use super::state::prop_state::{StateProp, StatePropDataOrigin};
 use super::state::prop_updates::process_prop_update_request;
-use super::state::Freshness;
+use super::state::PropStatus;
 
 use crate::components::actions::{Action, UpdateFromAction};
 use crate::components::component_builder::ComponentBuilder;
@@ -318,7 +318,7 @@ impl DoenetMLCore {
                 .on_action(action.action, &mut prop_resolver)?;
 
             for UpdateFromAction(prop_idx, requested_value) in props_to_update {
-                let freshness;
+                let status;
 
                 {
                     let component = self.components[component_idx].borrow();
@@ -330,7 +330,7 @@ impl DoenetMLCore {
                     // which will look up this requested value.
                     prop.set_requested_value(requested_value);
 
-                    freshness = prop.get_freshness();
+                    status = prop.get_status();
                 }
 
                 // Since the requested value is stored in the prop,
@@ -343,7 +343,7 @@ impl DoenetMLCore {
                 // If prop is unresolved, then resolve it.
                 // This could occur only once, but actions are free to seek to modify any prop,
                 // even if it hasn't been accessed before.
-                if freshness == Freshness::Unresolved {
+                if status == PropStatus::Unresolved {
                     resolve_prop(
                         prop_ptr,
                         &self.components,

@@ -20,7 +20,7 @@ pub fn prop_methods_derive(input: TokenStream) -> TokenStream {
 
             let mut prop_mark_stale_arms = Vec::new();
             let mut prop_set_as_resolved_arms = Vec::new();
-            let mut prop_get_freshness_arms = Vec::new();
+            let mut prop_get_status_arms = Vec::new();
             let mut prop_get_mark_fresh_arms = Vec::new();
             let mut prop_came_from_default_arms = Vec::new();
             let mut prop_create_read_only_view_arms = Vec::new();
@@ -45,9 +45,9 @@ pub fn prop_methods_derive(input: TokenStream) -> TokenStream {
                     },
                 });
 
-                prop_get_freshness_arms.push(quote! {
+                prop_get_status_arms.push(quote! {
                     #enum_ident::#variant_ident(prop) => {
-                        prop.get_freshness()
+                        prop.get_status()
                     },
                 });
 
@@ -104,7 +104,7 @@ pub fn prop_methods_derive(input: TokenStream) -> TokenStream {
             quote! {
 
                 impl #generics #enum_ident #generics {
-                    /// If the prop is Fresh, set its freshness to Stale.
+                    /// If the prop is Fresh, set its status to Stale.
                     ///
                     /// Panics: if the prop is Unresolved or Resolved.
                     pub fn mark_stale(&self) {
@@ -113,7 +113,7 @@ pub fn prop_methods_derive(input: TokenStream) -> TokenStream {
                         }
                     }
 
-                    /// If the prop is Unresolved, set its freshness to Resolved.
+                    /// If the prop is Unresolved, set its status to Resolved.
                     ///
                     /// Panics: if the prop is Fresh or Stale.
                     pub fn set_as_resolved(&self) {
@@ -122,7 +122,7 @@ pub fn prop_methods_derive(input: TokenStream) -> TokenStream {
                         }
                     }
 
-                    /// Return the current freshness of the variable
+                    /// Return the current status of the variable
                     ///
                     /// Possible values
                     /// - Fresh: the prop value has been calculated and can be accessed with `get()`.
@@ -134,9 +134,9 @@ pub fn prop_methods_derive(input: TokenStream) -> TokenStream {
                     /// - Resolved: the dependencies for the prop have been created,
                     ///   but the value has never been calculated.
                     ///   Calls to `get()`, `mark_fresh()`, or `mark_stale()` will panic.
-                    pub fn get_freshness(&self) -> Freshness {
+                    pub fn get_status(&self) -> PropStatus {
                         match self {
-                            #(#prop_get_freshness_arms)*
+                            #(#prop_get_status_arms)*
                         }
                     }
 
@@ -160,7 +160,7 @@ pub fn prop_methods_derive(input: TokenStream) -> TokenStream {
 
                     /// Create a new read-only view of the value of this prop.
                     ///
-                    /// Each view will access the same value (and freshness)
+                    /// Each view will access the same value (and status)
                     /// but each view separately tracks whether or not it has changed
                     /// since it was last viewed.
                     pub fn create_new_read_only_view(&self) -> PropViewEnum {
@@ -381,7 +381,7 @@ pub fn prop_mutable_view_methods_derive(input: TokenStream) -> TokenStream {
             let mut prop_mutable_view_new_with_value_arms = Vec::new();
             let mut prop_mutable_view_mark_stale_arms = Vec::new();
             let mut prop_mutable_view_set_as_resolved_arms = Vec::new();
-            let mut prop_mutable_view_get_freshness_arms = Vec::new();
+            let mut prop_mutable_view_get_status_arms = Vec::new();
             let mut prop_mutable_view_came_from_default_arms = Vec::new();
             let mut prop_mutable_view_create_read_only_view_arms = Vec::new();
             let mut prop_mutable_view_get_arms = Vec::new();
@@ -410,9 +410,9 @@ pub fn prop_mutable_view_methods_derive(input: TokenStream) -> TokenStream {
                     },
                 });
 
-                prop_mutable_view_get_freshness_arms.push(quote! {
+                prop_mutable_view_get_status_arms.push(quote! {
                     PropViewMutEnum::#variant_ident(prop) => {
-                        prop.get_freshness()
+                        prop.get_status()
                     },
                 });
 
@@ -457,7 +457,7 @@ pub fn prop_mutable_view_methods_derive(input: TokenStream) -> TokenStream {
                         }
                     }
 
-                    /// If the prop is Fresh, set its freshness to Stale.
+                    /// If the prop is Fresh, set its status to Stale.
                     ///
                     /// Panics: if the prop is Unresolved.
                     pub fn mark_stale(&mut self) {
@@ -466,7 +466,7 @@ pub fn prop_mutable_view_methods_derive(input: TokenStream) -> TokenStream {
                         };
                     }
 
-                    /// If the prop is Unresolved, set its freshness to Resolved.
+                    /// If the prop is Unresolved, set its status to Resolved.
                     ///
                     /// Panics: if the prop is Fresh or Stale.
                     pub fn set_as_resolved(&self) {
@@ -475,7 +475,7 @@ pub fn prop_mutable_view_methods_derive(input: TokenStream) -> TokenStream {
                         }
                     }
 
-                    /// Return the current freshness of the variable
+                    /// Return the current status of the variable
                     ///
                     /// Possible values
                     /// - Fresh: the prop value has been calculated and can be accessed with `get()`.
@@ -487,9 +487,9 @@ pub fn prop_mutable_view_methods_derive(input: TokenStream) -> TokenStream {
                     /// - Resolved: the dependencies for the prop have been created,
                     ///   but the value has never been calculated.
                     ///   Calls to `get()`, `mark_fresh()`, or `mark_stale()` will panic.
-                    pub fn get_freshness(&self) -> Freshness {
+                    pub fn get_status(&self) -> PropStatus {
                         match self {
-                            #(#prop_mutable_view_get_freshness_arms)*
+                            #(#prop_mutable_view_get_status_arms)*
                         }
                     }
 
@@ -502,7 +502,7 @@ pub fn prop_mutable_view_methods_derive(input: TokenStream) -> TokenStream {
 
                     /// Create a new read-only view of the value of this prop.
                     ///
-                    /// Each view will access the same value (and freshness)
+                    /// Each view will access the same value (and status)
                     /// but each view separately tracks whether or not it has changed
                     /// since it was last viewed.
                     pub fn create_new_read_only_view(&self) -> PropViewEnum {
@@ -553,7 +553,7 @@ pub fn prop_read_only_view_methods_derive(input: TokenStream) -> TokenStream {
         syn::Data::Enum(v) => {
             let variants = &v.variants;
 
-            let mut prop_read_only_view_get_freshness_arms = Vec::new();
+            let mut prop_read_only_view_get_status_arms = Vec::new();
             let mut prop_read_only_view_came_from_default_arms = Vec::new();
             let mut prop_read_only_view_get_arms = Vec::new();
             let mut prop_read_only_view_create_new_read_only_view_arms = Vec::new();
@@ -563,9 +563,9 @@ pub fn prop_read_only_view_methods_derive(input: TokenStream) -> TokenStream {
             for variant in variants {
                 let variant_ident = &variant.ident;
 
-                prop_read_only_view_get_freshness_arms.push(quote! {
+                prop_read_only_view_get_status_arms.push(quote! {
                     PropViewEnum::#variant_ident(prop) => {
-                        prop.get_freshness()
+                        prop.get_status()
                     },
                 });
 
@@ -605,7 +605,7 @@ pub fn prop_read_only_view_methods_derive(input: TokenStream) -> TokenStream {
 
                 impl PropViewEnum {
 
-                    /// Return the current freshness of the variable
+                    /// Return the current status of the variable
                     ///
                     /// Possible values
                     /// - Fresh: the prop value has been calculated and can be accessed with `get()`.
@@ -613,9 +613,9 @@ pub fn prop_read_only_view_methods_derive(input: TokenStream) -> TokenStream {
                     ///   Calls to `get()` will panic.
                     /// - Unresolved: the dependencies for the prop have not yet been calculated.
                     ///   Calls to `get()`, `mark_fresh()`, or `mark_stale()` will panic.
-                    pub fn get_freshness(&self) -> Freshness {
+                    pub fn get_status(&self) -> PropStatus {
                         match self {
-                            #(#prop_read_only_view_get_freshness_arms)*
+                            #(#prop_read_only_view_get_status_arms)*
                         }
                     }
 
@@ -637,7 +637,7 @@ pub fn prop_read_only_view_methods_derive(input: TokenStream) -> TokenStream {
 
                     /// Create a new read-only view of the value of this prop.
                     ///
-                    /// Each view will access the same value (and freshness)
+                    /// Each view will access the same value (and status)
                     /// but each view separately tracks whether or not it has changed
                     /// since it was last viewed.
                     pub fn create_new_read_only_view(&self) -> PropViewEnum {

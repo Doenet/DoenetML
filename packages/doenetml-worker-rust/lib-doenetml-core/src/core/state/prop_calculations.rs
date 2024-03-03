@@ -7,7 +7,7 @@ use crate::{
     },
     state::{
         prop_state::{StateProp, StatePropDataOrigin, StatePropDescription},
-        Freshness, PropValue,
+        PropStatus, PropValue,
     },
     ComponentIdx, CoreProcessingState, DependencyGraph, Extending,
 };
@@ -152,20 +152,20 @@ pub fn freshen_prop(
     // with thousands of levels in the dependency graph, and it wasn't clear what
     // size WASM stack would be appropriate.
 
-    let original_freshness = components[original_prop_ptr.component_idx]
+    let original_status = components[original_prop_ptr.component_idx]
         .borrow()
         .get_prop(original_prop_ptr.local_prop_idx)
         .unwrap()
-        .get_freshness();
+        .get_status();
 
     // If the current prop is fresh, there's nothing to do.
     // If it is unresolved, resolve it
-    match original_freshness {
-        Freshness::Fresh => return,
-        Freshness::Unresolved => {
+    match original_status {
+        PropStatus::Fresh => return,
+        PropStatus::Unresolved => {
             resolve_prop(original_prop_ptr, components, dependency_graph, state_data);
         }
-        Freshness::Stale | Freshness::Resolved => (),
+        PropStatus::Stale | PropStatus::Resolved => (),
     };
 
     // At this point, the prop is stale or resolved.
@@ -173,21 +173,21 @@ pub fn freshen_prop(
     freshen_stack.push(original_prop_ptr);
 
     while let Some(prop_ptr) = freshen_stack.pop() {
-        let current_freshness = components[prop_ptr.component_idx]
+        let current_status = components[prop_ptr.component_idx]
             .borrow()
             .get_prop(prop_ptr.local_prop_idx)
             .unwrap()
-            .get_freshness();
+            .get_status();
 
         // If we have cycles in the graph, it's possible that this
         // prop was reached from another path and already freshened.
         // Skip it in that case.
-        match current_freshness {
-            Freshness::Fresh => continue,
-            Freshness::Unresolved => {
+        match current_status {
+            PropStatus::Fresh => continue,
+            PropStatus::Unresolved => {
                 panic!("Should not have an unresolved prop here!")
             }
-            Freshness::Stale | Freshness::Resolved => (),
+            PropStatus::Stale | PropStatus::Resolved => (),
         };
 
         let dependencies_for_prop =
@@ -210,11 +210,11 @@ pub fn freshen_prop(
                 // so we need to check if that prop is fresh.
                 // (There is nothing to do for DependencySource::State.)
                 if let Ok(dep_prop_ptr) = PropPointer::try_from(&dep.source) {
-                    match dep.value.get_freshness() {
+                    match dep.value.get_status() {
                         // No need to recurse if the prop of the dependency is already fresh
                         // so don't do anything to just continue the inner loop
-                        Freshness::Fresh => (),
-                        Freshness::Stale | Freshness::Resolved => {
+                        PropStatus::Fresh => (),
+                        PropStatus::Stale | PropStatus::Resolved => {
                             // If this is the first time we found a stale/resolved dependency,
                             // this means we have not yet put prop_ptr on the stack,
                             // so we do that now.
@@ -229,7 +229,7 @@ pub fn freshen_prop(
                             // prop_ptr is on the stack).
                             freshen_stack.push(dep_prop_ptr);
                         }
-                        Freshness::Unresolved => {
+                        PropStatus::Unresolved => {
                             panic!("How did a stale prop depend on an unresolved prop?")
                         }
                     };
@@ -293,9 +293,9 @@ pub fn resolve_prop(
             let mut component = components[component_idx].borrow_mut();
             let prop = &mut component.get_prop_mut(prop_idx).unwrap();
 
-            let current_freshness = prop.get_freshness();
+            let current_status = prop.get_status();
 
-            if current_freshness != Freshness::Unresolved {
+            if current_status != PropStatus::Unresolved {
                 // nothing to do if the prop is already resolved
                 continue;
             }
@@ -354,9 +354,9 @@ pub fn resolve_prop(
                         local_prop_idx: *prop_idx_inner,
                     };
 
-                    let new_current_freshness = dep.value.get_freshness();
+                    let new_current_status = dep.value.get_status();
 
-                    if new_current_freshness == Freshness::Unresolved {
+                    if new_current_status == PropStatus::Unresolved {
                         // recurse to any unresolved dependencies
                         resolve_stack.push(new_prop_ptr);
                     }

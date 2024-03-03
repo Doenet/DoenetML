@@ -1,7 +1,7 @@
 use crate::{
     components::prelude::ComponentProps,
     graph::directed_graph::Taggable,
-    state::{Freshness, PropPointer},
+    state::{PropPointer, PropStatus},
     ComponentIdx,
 };
 
@@ -14,7 +14,6 @@ impl Core {
         // recursively get a list of all rendered descendants of the components in stale_renderers
         let mut stale_renderer_idx = 0;
         while stale_renderer_idx < stale_renderers.len() {
-            let component_idx = stale_renderers[stale_renderer_idx];
             stale_renderer_idx += 1;
 
             // stale_renderers.extend(
@@ -62,17 +61,17 @@ impl Core {
             .iter()
             .filter_map(|prop_pointer| {
                 let prop_node = self.prop_pointer_to_prop_node(*prop_pointer);
-                let freshness = self.freshness.get_tag(&prop_node).unwrap();
+                let status = self.status.get_tag(&prop_node).unwrap();
 
                 // If the current prop is fresh, there's nothing to do.
                 // If it is unresolved, resolve it
-                match freshness {
-                    Freshness::Fresh => None,
-                    Freshness::Unresolved => {
+                match status {
+                    PropStatus::Fresh => None,
+                    PropStatus::Unresolved => {
                         self.resolve_prop(*prop_pointer);
                         Some(prop_node)
                     }
-                    Freshness::Stale | Freshness::Resolved => Some(prop_node),
+                    PropStatus::Stale | PropStatus::Resolved => Some(prop_node),
                 }
             })
             .collect::<Vec<_>>();
@@ -84,15 +83,15 @@ impl Core {
             // At this point, all dependencies of `node` must be fresh
             match *node {
                 GraphNode::Prop(prop_idx) => {
-                    let freshness = *self
-                        .freshness
+                    let status = *self
+                        .status
                         .get_tag(node)
-                        .expect("No freshness set on prop");
+                        .expect("No status set on prop");
 
-                    match freshness {
-                        Freshness::Fresh => continue,
-                        Freshness::Unresolved => unreachable!("Prop should not be Unresolved!"),
-                        Freshness::Resolved | Freshness::Stale => (),
+                    match status {
+                        PropStatus::Fresh => continue,
+                        PropStatus::Unresolved => unreachable!("Prop should not be Unresolved!"),
+                        PropStatus::Resolved | PropStatus::Stale => (),
                     };
 
                     // TODO: currently the calculated valued is stored on prop,
@@ -128,12 +127,12 @@ impl Core {
         while let Some(prop_ptr) = resolve_stack.pop() {
             let prop_node = self.prop_pointer_to_prop_node(prop_ptr);
 
-            let freshness = self
-                .freshness
+            let status = self
+                .status
                 .get_tag(&prop_node)
-                .unwrap_or(&Freshness::Unresolved);
+                .unwrap_or(&PropStatus::Unresolved);
 
-            if *freshness != Freshness::Unresolved {
+            if *status != PropStatus::Unresolved {
                 // nothing to do if the prop is already resolved
                 continue;
             }
@@ -156,7 +155,7 @@ impl Core {
                 );
             }
 
-            self.freshness.set_tag(prop_node, Freshness::Resolved);
+            self.status.set_tag(prop_node, PropStatus::Resolved);
         }
     }
 }

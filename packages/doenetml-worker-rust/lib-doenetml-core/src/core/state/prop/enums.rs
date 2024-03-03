@@ -16,7 +16,7 @@ use crate::{
     state::types::math_expr::MathExpr,
 };
 
-use super::{Freshness, InvertError, Prop, PropView, PropViewMut, TryFromProp};
+use super::{InvertError, Prop, PropStatus, PropView, PropViewMut, TryFromProp};
 
 ///////////////////////////////////////////////////////////////////////
 // prop enum views that allow one to refer to props
@@ -109,22 +109,22 @@ impl<'a> PropEnumRef<'a> {
 
 impl fmt::Debug for PropViewMutEnum {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self.get_freshness() {
-            Freshness::Fresh => self.get().fmt(f),
-            Freshness::Stale => f.write_str("Stale"),
-            Freshness::Unresolved => f.write_str("Unresolved"),
-            Freshness::Resolved => f.write_str("Resolved"),
+        match self.get_status() {
+            PropStatus::Fresh => self.get().fmt(f),
+            PropStatus::Stale => f.write_str("Stale"),
+            PropStatus::Unresolved => f.write_str("Unresolved"),
+            PropStatus::Resolved => f.write_str("Resolved"),
         }
     }
 }
 
 impl fmt::Debug for PropViewEnum {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self.get_freshness() {
-            Freshness::Fresh => self.get().fmt(f),
-            Freshness::Stale => f.write_str("Stale"),
-            Freshness::Unresolved => f.write_str("Unresolved"),
-            Freshness::Resolved => f.write_str("Resolved"),
+        match self.get_status() {
+            PropStatus::Fresh => self.get().fmt(f),
+            PropStatus::Stale => f.write_str("Stale"),
+            PropStatus::Unresolved => f.write_str("Unresolved"),
+            PropStatus::Resolved => f.write_str("Resolved"),
         }
     }
 }

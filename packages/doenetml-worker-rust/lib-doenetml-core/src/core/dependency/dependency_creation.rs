@@ -263,7 +263,7 @@ pub fn create_dependencies_from_data_query_initialize_state(
             // Use it to generate the index for the StatePropDataOrigin so it points to the right string child
             let mut state_data_index = 0;
 
-            let mut dependencies: Vec<_> = attribute_components
+            let dependencies: Vec<_> = attribute_components
                 .iter()
                 .filter_map(|child| {
                     match child {

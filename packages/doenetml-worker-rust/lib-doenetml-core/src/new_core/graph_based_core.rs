@@ -4,7 +4,7 @@ use crate::{
     components::{prelude::PropValue, ComponentEnum},
     dast::flat_dast::NormalizedRoot,
     graph::directed_graph::DirectedGraph,
-    state::{Freshness, PropPointer},
+    state::{PropPointer, PropStatus},
     ComponentIdx,
 };
 
@@ -38,7 +38,7 @@ pub struct Core {
     pub states: Vec<(PropIdent, PropValue)>,
     // XXX: fill these in
     pub queries: Vec<()>,
-    pub freshness: GraphNodeLookup<Freshness>,
+    pub status: GraphNodeLookup<PropStatus>,
     pub processing_state: CoreProcessingState,
 }
 
@@ -62,7 +62,7 @@ impl Core {
             states: Vec::new(),
             queries: Vec::new(),
             virtual_node_count: 0,
-            freshness: GraphNodeLookup::new(),
+            status: GraphNodeLookup::new(),
             processing_state: CoreProcessingState {
                 stale_renderers,
                 freshen_stack: Vec::new(),

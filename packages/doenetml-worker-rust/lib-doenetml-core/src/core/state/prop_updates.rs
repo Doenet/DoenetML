@@ -5,7 +5,7 @@ use crate::{
     dependency::{DependenciesCreatedForDataQuery, DependencySource, DependencyValueUpdateRequest},
     state::prop_calculations::PropUpdateRequest,
     state::prop_state::{StateProp, StatePropDataOrigin, StatePropDescription},
-    state::Freshness,
+    state::PropStatus,
     ComponentIdx, CoreProcessingState, DependencyGraph,
 };
 
@@ -111,7 +111,7 @@ fn mark_stale_prop_and_dependencies(
         let component = components[component_idx].borrow();
         let prop = &component.get_prop(prop_idx).unwrap();
 
-        if prop.get_freshness() == Freshness::Fresh {
+        if prop.get_status() == PropStatus::Fresh {
             prop.mark_stale();
 
             if component.check_if_prop_is_for_renderer(prop_idx)

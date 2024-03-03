@@ -19,14 +19,14 @@ pub use super::PropIdx;
 /// The name (snake_case) of a prop
 pub type PropName = &'static str;
 
-/// The possible values of the freshness of a prop.
+/// The possible values of the status of a prop.
 /// - `Fresh`: the prop value has been calculated from given base variable values
 /// - `Stale`: a base variable influencing this prop has changed so it must be recalculated
 /// - `Unresolved`: the dependencies for this prop have not yet been created
 /// - `Resolved`: the dependencies for this prop have been created,
 ///   but the value has not yet been calculated
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub enum Freshness {
+pub enum PropStatus {
     Fresh,
     Stale,
     Unresolved,
@@ -86,10 +86,10 @@ struct PropInner<T: Default + Clone> {
     /// It can be viewed by all views but changed only by mutable views.
     value: T,
 
-    /// The current freshness of the prop.
+    /// The current status of the prop.
     /// It is set to fresh whenever the value is set
     /// and set to stale via the mark_stale method.
-    freshness: Freshness,
+    status: PropStatus,
 
     /// If one of the dependencies of this prop has requested that its value
     /// be changed to a particular value, it will be stored in requested_value.
@@ -110,11 +110,11 @@ struct PropInner<T: Default + Clone> {
 
 impl<T: Default + Clone + std::fmt::Display> std::fmt::Display for PropInner<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self.freshness {
-            Freshness::Fresh => write!(f, "{}", self.value),
-            Freshness::Resolved => write!(f, "Resolved"),
-            Freshness::Stale => write!(f, "Stale"),
-            Freshness::Unresolved => write!(f, "Unresolved"),
+        match self.status {
+            PropStatus::Fresh => write!(f, "{}", self.value),
+            PropStatus::Resolved => write!(f, "Resolved"),
+            PropStatus::Stale => write!(f, "Stale"),
+            PropStatus::Unresolved => write!(f, "Unresolved"),
         }
     }
 }
@@ -124,7 +124,7 @@ impl<T: Default + Clone> PropInner<T> {
     ///
     /// Panics: if the prop is not fresh.
     pub fn get(&self) -> &T {
-        if self.freshness != Freshness::Fresh {
+        if self.status != PropStatus::Fresh {
             panic!("prop is not fresh, cannot get its fresh value");
         }
         &self.value
@@ -133,33 +133,33 @@ impl<T: Default + Clone> PropInner<T> {
     /// Attempts to retrieve a reference to the last value (fresh or not) of the prop.
     /// If the prop is unresolved or merely resolved, returns None.
     pub fn try_get_last_value(&self) -> Option<&T> {
-        match self.freshness {
-            Freshness::Unresolved | Freshness::Resolved => None,
-            Freshness::Fresh | Freshness::Stale => Some(&self.value),
+        match self.status {
+            PropStatus::Unresolved | PropStatus::Resolved => None,
+            PropStatus::Fresh | PropStatus::Stale => Some(&self.value),
         }
     }
 
-    /// Set the freshness of the variable to Stale
+    /// Set the status of the variable to Stale
     pub fn mark_stale(&mut self) {
-        match self.freshness {
-            Freshness::Fresh => {
-                self.freshness = Freshness::Stale;
+        match self.status {
+            PropStatus::Fresh => {
+                self.status = PropStatus::Stale;
             }
-            Freshness::Stale => (),
-            Freshness::Unresolved | Freshness::Resolved => {
+            PropStatus::Stale => (),
+            PropStatus::Unresolved | PropStatus::Resolved => {
                 panic!("Cannot mark an unresolved or merely resolved prop as stale.");
             }
         }
     }
 
-    /// Set the freshness of the variable to Resolved
+    /// Set the status of the variable to Resolved
     pub fn set_as_resolved(&mut self) {
-        match self.freshness {
-            Freshness::Unresolved => {
-                self.freshness = Freshness::Resolved;
+        match self.status {
+            PropStatus::Unresolved => {
+                self.status = PropStatus::Resolved;
             }
-            Freshness::Resolved => (),
-            Freshness::Fresh | Freshness::Stale => {
+            PropStatus::Resolved => (),
+            PropStatus::Fresh | PropStatus::Stale => {
                 panic!("Cannot set a fresh or stale prop to resolved.");
             }
         }
@@ -169,7 +169,7 @@ impl<T: Default + Clone> PropInner<T> {
     /// set `came_from_default` to `false`, and increment the change counter.
     pub fn set_value(&mut self, new_val: T) {
         self.value = new_val;
-        self.freshness = Freshness::Fresh;
+        self.status = PropStatus::Fresh;
         self.came_from_default = false;
         self.change_counter += 1;
     }
@@ -178,7 +178,7 @@ impl<T: Default + Clone> PropInner<T> {
     /// mark it as Fresh, set `came_from_default` to `true`, and increment the change counter.
     pub fn set_value_from_default(&mut self, new_val: T) {
         self.value = new_val;
-        self.freshness = Freshness::Fresh;
+        self.status = PropStatus::Fresh;
         self.came_from_default = true;
         self.change_counter += 1;
     }
@@ -189,12 +189,12 @@ impl<T: Default + Clone> PropInner<T> {
     ///
     /// Panics: if the prop is Unresolved or Resolved.
     pub fn mark_fresh(&mut self) {
-        match self.freshness {
-            Freshness::Stale => {
-                self.freshness = Freshness::Fresh;
+        match self.status {
+            PropStatus::Stale => {
+                self.status = PropStatus::Fresh;
             }
-            Freshness::Fresh => (),
-            Freshness::Unresolved | Freshness::Resolved => {
+            PropStatus::Fresh => (),
+            PropStatus::Unresolved | PropStatus::Resolved => {
                 panic!("Cannot mark fresh a prop that is unresolved or merely resolved prop");
             }
         }
@@ -293,19 +293,19 @@ impl<T: Default + Clone> Prop<T> {
         self.value.came_from_default()
     }
 
-    /// Set the freshness of the variable to Stale
+    /// Set the status of the variable to Stale
     pub fn mark_stale(&self) {
         self.value.mark_stale()
     }
 
-    /// Set the freshness of the variable to Resolved
+    /// Set the status of the variable to Resolved
     pub fn set_as_resolved(&self) {
         self.value.set_as_resolved()
     }
 
-    /// Return the current freshness of the variable
-    pub fn get_freshness(&self) -> Freshness {
-        self.value.get_freshness()
+    /// Return the current status of the variable
+    pub fn get_status(&self) -> PropStatus {
+        self.value.get_status()
     }
 
     /// Set the `requested_value` field to the supplied value
@@ -379,8 +379,8 @@ impl<T: Default + Clone> Prop<T> {
         if self.all_data.is_empty() {
             // if there are no dependencies, then report true if prop is Unresolved or Resolved,
             // as in that case, we still need to calculate the prop
-            let this_freshness = self.get_freshness();
-            this_freshness == Freshness::Resolved || this_freshness == Freshness::Unresolved
+            let this_status = self.get_status();
+            this_status == PropStatus::Resolved || this_status == PropStatus::Unresolved
         } else {
             self.all_data
                 .iter()

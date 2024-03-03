@@ -1,6 +1,6 @@
 //! Updates values when a dependency changes.
 
-use crate::{components::prelude::PropValue, graph::directed_graph::Taggable, state::Freshness};
+use crate::{components::prelude::PropValue, graph::directed_graph::Taggable, state::PropStatus};
 
 use super::{graph_based_core::Core, graph_node::GraphNode};
 
@@ -28,7 +28,7 @@ impl Core {
             }
         }
         // We don't recompute now. We just record that the node is stale.
-        self.freshness.set_tag(node, Freshness::Stale)
+        self.status.set_tag(node, PropStatus::Stale)
     }
     /// Recalculate all stale nodes.
     fn recalculate(&mut self) {}

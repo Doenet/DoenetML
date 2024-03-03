@@ -8,7 +8,7 @@ use crate::dast::flat_dast::FlatAttribute;
 use crate::state::types::math_expr::MathExpr;
 use serde::{Deserialize, Serialize};
 
-use crate::dast::{FlatDastElementContent, Position as DastPosition};
+use crate::dast::Position as DastPosition;
 use crate::state::{ComponentProps, Prop, PropIdx, PropValue};
 use crate::{ComponentIdx, Extending};
 

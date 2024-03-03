@@ -60,7 +60,7 @@ impl<T> GraphNodeLookup<T> {
 
 /// Cheap taggable to lookup `Node`s by index.
 /// XXX: This struct makes no attempt to be efficient.
-impl<T: Clone> Taggable<GraphNode, T> for GraphNodeLookup<T> {
+impl<T> Taggable<GraphNode, T> for GraphNodeLookup<T> {
     fn set_tag(&mut self, node: GraphNode, tag: T) {
         self.hash.insert(node, tag);
     }

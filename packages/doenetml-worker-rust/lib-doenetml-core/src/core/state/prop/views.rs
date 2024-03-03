@@ -4,7 +4,7 @@ use std::{
     rc::Rc,
 };
 
-use super::{Freshness, PropInner, RequiredDataItem};
+use super::{PropInner, PropStatus, RequiredDataItem};
 
 /// A mutable view of a prop.
 /// It includes methods that allow one to view and change the variable.
@@ -37,7 +37,7 @@ impl<T: Default + Clone> PropViewMut<T> {
         PropViewMut {
             inner: Rc::new(RefCell::new(PropInner {
                 value: T::default(),
-                freshness: Freshness::Unresolved,
+                status: PropStatus::Unresolved,
                 requested_value: T::default(),
                 came_from_default: false,
                 change_counter: 1, // Note: start at 1 so starts out indicating it changed
@@ -51,7 +51,7 @@ impl<T: Default + Clone> PropViewMut<T> {
         PropViewMut {
             inner: Rc::new(RefCell::new(PropInner {
                 value: val,
-                freshness: Freshness::Fresh,
+                status: PropStatus::Fresh,
                 requested_value: T::default(),
                 came_from_default,
                 change_counter: 1, // Note: start at 1 so starts out indicating it changed
@@ -149,19 +149,19 @@ impl<T: Default + Clone> PropViewMut<T> {
         self.inner.borrow().came_from_default()
     }
 
-    /// Set the freshness of the variable to Stale
+    /// Set the status of the variable to Stale
     pub fn mark_stale(&self) {
         self.inner.borrow_mut().mark_stale()
     }
 
-    /// Set the freshness of the variable to Resolved
+    /// Set the status of the variable to Resolved
     pub fn set_as_resolved(&self) {
         self.inner.borrow_mut().set_as_resolved()
     }
 
-    /// Return the current freshness of the variable
-    pub fn get_freshness(&self) -> Freshness {
-        self.inner.borrow().freshness
+    /// Return the current status of the variable
+    pub fn get_status(&self) -> PropStatus {
+        self.inner.borrow().status
     }
 
     /// Set the `requested_value` field to the supplied value
@@ -249,9 +249,9 @@ impl<T: Default + Clone> PropView<T> {
         }
     }
 
-    /// Return the current freshness of the variable
-    pub fn get_freshness(&self) -> Freshness {
-        self.inner.borrow().freshness
+    /// Return the current status of the variable
+    pub fn get_status(&self) -> PropStatus {
+        self.inner.borrow().status
     }
 
     /// Return if the value of this prop was set from its default value
@@ -295,7 +295,7 @@ impl<T: Default + Clone> Default for PropView<T> {
         PropView {
             inner: Rc::new(RefCell::new(PropInner {
                 value: T::default(),
-                freshness: Freshness::Unresolved,
+                status: PropStatus::Unresolved,
                 requested_value: T::default(),
                 came_from_default: false,
                 change_counter: 1, // Note: start at 1 so starts out indicating it changed

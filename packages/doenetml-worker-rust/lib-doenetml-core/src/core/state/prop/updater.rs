@@ -15,7 +15,7 @@ use super::PropView;
 /// - `FromDefault(val)`: the value `val` was determined from the default value
 /// - `NoChange`: the value did not change, so just mark it as fresh
 #[derive(Debug)]
-pub enum PropCalcResult<T: Default + Clone> {
+pub enum PropCalcResult<T: Clone> {
     Calculated(T),
     FromDefault(T),
     NoChange,

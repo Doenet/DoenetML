@@ -6,7 +6,7 @@ use crate::{
     state::PropPointer,
 };
 
-use super::{graph_based_core::Core, graph_node::GraphNode, props::PropIdent};
+use super::{graph_based_core::Core, graph_node::GraphNode};
 
 impl Core {
     /// Creates all necessary dependencies for a `DataQuery`.
