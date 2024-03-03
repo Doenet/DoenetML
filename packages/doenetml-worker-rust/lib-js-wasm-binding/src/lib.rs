@@ -11,7 +11,8 @@ use wasm_bindgen::prelude::*;
 use doenetml_core::{
     components::actions::Action,
     dast::{DastRoot, FlatDastElementUpdate, FlatDastRoot},
-    ComponentIdx, DoenetMLCore,
+    new_core::graph_based_core::Core,
+    ComponentIdx,
 };
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
@@ -23,7 +24,7 @@ static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 #[wasm_bindgen(getter_with_clone)]
 #[derive(Debug)]
 pub struct PublicDoenetMLCore {
-    core: Option<DoenetMLCore>,
+    core: Core,
     dast_root: Option<DastRoot>,
     source: String,
     flags_json: Option<String>,
@@ -42,7 +43,7 @@ impl PublicDoenetMLCore {
     pub fn new() -> PublicDoenetMLCore {
         utils::set_panic_hook();
         PublicDoenetMLCore {
-            core: None,
+            core: Core::new(),
             dast_root: None,
             source: "".to_string(),
             flags_json: None,
@@ -74,16 +75,11 @@ impl PublicDoenetMLCore {
             };
 
             // Create components from JSON tree and create all dependencies.
-            self.core = Some(DoenetMLCore::new(
-                dast_root.clone(),
-                &self.source,
-                flags,
-                None,
-            ));
+            self.core.init_from_dast_root(&dast_root);
             self.initialized = true;
         }
 
-        Ok(self.core.as_mut().unwrap().to_flat_dast())
+        Ok(self.core.to_flat_dast())
     }
 
     /// Send an action to DoenetMLCore. This is often in response to a user
@@ -93,7 +89,8 @@ impl PublicDoenetMLCore {
     /// Returns updates to the FlatDast.
     pub fn dispatch_action(&mut self, action: Action) -> Result<ActionResponse, String> {
         Ok(ActionResponse {
-            payload: self.core.as_mut().unwrap().dispatch_action(action)?,
+            // XXX: add dispatch action to core
+            payload: HashMap::new(), //self.core.dispatch_action(action)?,
         })
     }
 }

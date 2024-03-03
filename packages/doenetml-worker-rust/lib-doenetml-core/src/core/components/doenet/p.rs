@@ -52,7 +52,7 @@ impl ComponentAttributes for P {
 }
 
 impl ComponentChildren for P {
-    fn get_children(&self, child_query_object: ChildQueryObject) -> Vec<GraphNode> {
+    fn get_rendered_children(&self, child_query_object: ChildQueryObject) -> Vec<GraphNode> {
         // Return children without modification
         child_query_object.child_iter().collect()
     }

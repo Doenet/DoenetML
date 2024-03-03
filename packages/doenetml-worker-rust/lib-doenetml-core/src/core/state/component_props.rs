@@ -59,4 +59,7 @@ pub trait ComponentProps {
     /// that have changed since the previous call of
     /// `get_rendered_props_old` or `get_rendered_props_old_update`.
     fn get_rendered_props_old_update(&mut self) -> Option<RenderedProps>;
+
+    /// Return object with the values of all the rendered props
+    fn get_rendered_props(&self) -> Option<RenderedProps>;
 }

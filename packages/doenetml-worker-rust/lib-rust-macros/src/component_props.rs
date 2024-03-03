@@ -82,6 +82,10 @@ pub fn component_props_derive(input: TokenStream) -> TokenStream {
                             fn get_rendered_props_old_update(&mut self) -> Option<RenderedProps> {
                                 self.props.get_rendered_props_old_update()
                             }
+
+                            fn get_rendered_props(&self) -> Option<RenderedProps> {
+                                self.props.get_rendered_props()
+                            }
                         }
                     }
                 } else {
@@ -101,6 +105,7 @@ pub fn component_props_derive(input: TokenStream) -> TokenStream {
                     let mut check_if_prop_is_for_renderer_arms = Vec::new();
                     let mut get_rendered_props_old_items = Vec::new();
                     let mut get_rendered_props_old_update_statements = Vec::new();
+                    let mut get_rendered_props_items = Vec::new();
                     let mut rendered_props_struct_statements = Vec::new();
 
                     let mut get_prop_index_functions = Vec::new();
@@ -163,6 +168,10 @@ pub fn component_props_derive(input: TokenStream) -> TokenStream {
                                     updated_variables.#field_identity =
                                         Some(self.#field_identity.get_value_mark_viewed().clone());
                                 }
+                            });
+
+                            get_rendered_props_items.push(quote! {
+                                #field_identity: Some(self.#field_identity.get().clone()),
                             });
 
                             let prop_type =
@@ -302,6 +311,12 @@ pub fn component_props_derive(input: TokenStream) -> TokenStream {
                                 #(#get_rendered_props_old_update_statements)*
 
                                 Some(RenderedProps::#structure_identity(updated_variables))
+                            }
+
+                            fn get_rendered_props(&self) -> Option<RenderedProps> {
+                                Some(RenderedProps::#structure_identity(#rendered_props_identity {
+                                    #(#get_rendered_props_items)*
+                                }))
                             }
 
                         }
