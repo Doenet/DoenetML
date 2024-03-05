@@ -8,7 +8,9 @@ fn ps_extending_ps_concatenate_children() {
     let dast_root = dast_root_no_position(
         r#"<p name="p1">one</p><p name="p2" extend="$p1">two</p><p extend="$p2">three</p>"#,
     );
-    let mut core = DoenetMLCore::new(dast_root, "", "", None);
+
+    let mut core = Core::new();
+    core.init_from_dast_root(&dast_root);
 
     // p1 will be index 1, etc., as the document tag will be index 0.
     let p1_idx = 1;
@@ -39,7 +41,9 @@ fn ps_extending_ps_concatenate_children() {
 fn p_extending_text() {
     let dast_root =
         dast_root_no_position(r#"<text name="t">one</text><p name="p2" extend="$t">two</p>"#);
-    let mut core = DoenetMLCore::new(dast_root, "", "", None);
+
+    let mut core = Core::new();
+    core.init_from_dast_root(&dast_root);
 
     // indices start at 1, as the document tag will be index 0.
     let p_idx = 2;
@@ -59,7 +63,9 @@ fn p_extending_text() {
 fn p_extending_text_value() {
     let dast_root =
         dast_root_no_position(r#"<text name="t">one</text><p extend="$t.value">two</p>"#);
-    let mut core = DoenetMLCore::new(dast_root, "", "", None);
+
+    let mut core = Core::new();
+    core.init_from_dast_root(&dast_root);
 
     // indices start at 1, as the document tag will be index 0.
     let p_idx = 2;
@@ -80,7 +86,9 @@ fn p_extending_text_value() {
 fn p_extending_section() {
     let dast_root =
         dast_root_no_position(r#"<section name="s">one</section><p name="p2" extend="$s">two</p>"#);
-    let mut core = DoenetMLCore::new(dast_root, "", "", None);
+
+    let mut core = Core::new();
+    core.init_from_dast_root(&dast_root);
 
     // indices start at 1, as the document tag will be index 0.
     let p_idx = 2;

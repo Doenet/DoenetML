@@ -5,9 +5,9 @@ use crate::{
         prelude::{
             ComponentIdx, ComponentProps, ElementData, FlatDastElement, FlatDastElementContent,
         },
-        ComponentActions, ComponentEnum, ComponentNode,
+        ComponentActions, ComponentCommon, ComponentEnum, ComponentNode,
     },
-    dast::FlatDastRoot,
+    dast::{FlatDastElementUpdate, FlatDastRoot},
     state::PropPointer,
 };
 
@@ -64,7 +64,7 @@ impl Core {
         component_idx: ComponentIdx,
     ) -> FlatDastElement {
         let rendered_prop_pointers = self.components[component_idx]
-            .get_for_renderer_prop_indices()
+            .get_for_renderer_local_prop_indices()
             .into_iter()
             .map(|local_prop_idx| PropPointer {
                 component_idx,
@@ -77,13 +77,15 @@ impl Core {
         self.freshen_props(&rendered_prop_pointers);
 
         let component = &self.components[component_idx];
-        let message = if let ComponentEnum::_Error(error) = component {
+        let message = if let ComponentEnum::_Error(error) = &component.variant {
             Some(error.message.clone())
         } else {
             None
         };
 
-        let rendered_props = component.get_rendered_props();
+        // XXX: implement getting rendered props
+        // let rendered_props = component.get_rendered_props();
+        let rendered_props = None;
 
         FlatDastElement {
             name: component.get_component_type().to_string(),
@@ -99,5 +101,20 @@ impl Core {
             },
             position: component.get_position().cloned(),
         }
+    }
+
+    /// XXX: need to implement this and determine what rendered state variables have changed
+    /// Output updates for any elements with changed rendered props
+    pub fn get_flat_dast_updates(&mut self) -> HashMap<ComponentIdx, FlatDastElementUpdate> {
+        // let components_changed = self.freshen_renderer_state();
+
+        // let mut flat_dast_updates: HashMap<ComponentIdx, FlatDastElementUpdate> = HashMap::new();
+        // for component_idx in components_changed {
+        //     if let Some(element_update) = get_flat_dast_update(component_idx, &self.components) {
+        //         flat_dast_updates.insert(component_idx, element_update);
+        //     }
+        // }
+        // flat_dast_updates
+        HashMap::new()
     }
 }

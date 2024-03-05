@@ -9,10 +9,9 @@ use tsify::Tsify;
 use wasm_bindgen::prelude::*;
 
 use doenetml_core::{
-    components::actions::Action,
+    components::{actions::Action, prelude::ComponentIdx},
     dast::{DastRoot, FlatDastElementUpdate, FlatDastRoot},
     new_core::graph_based_core::Core,
-    ComponentIdx,
 };
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global

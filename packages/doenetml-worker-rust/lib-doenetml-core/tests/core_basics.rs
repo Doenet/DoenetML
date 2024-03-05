@@ -1,13 +1,14 @@
 mod test_utils;
 use assert_json_diff::assert_json_eq;
-use doenetml_core::DoenetMLCore;
+use doenetml_core::new_core::graph_based_core::Core;
 use test_utils::*;
 
 #[test]
 fn basic_core_initialization() {
     let dast_root = dast_root_no_position("<document>hi there<text>you</text></document>");
 
-    let mut core = DoenetMLCore::new(dast_root, "", "", None);
+    let mut core = Core::new();
+    core.init_from_dast_root(&dast_root);
 
     let result = core.to_flat_dast();
 

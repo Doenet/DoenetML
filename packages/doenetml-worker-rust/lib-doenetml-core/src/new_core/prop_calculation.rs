@@ -1,4 +1,4 @@
-use crate::state::PropPointer;
+use crate::{components::prelude::PropValue, state::PropPointer};
 
 use super::{graph_based_core::Core, graph_node::GraphNode, props::cache::PropStatus};
 
@@ -42,19 +42,21 @@ impl Core {
                         PropStatus::Resolved | PropStatus::Stale => (),
                     };
 
+                    // XXX: implement this
+
                     // TODO: currently the calculated valued is stored on prop,
                     // so we are getting a mut view of it.
                     // In the future, we will store the value in a cache on core.
-                    let prop_pointer = self.props[prop_idx].meta.prop_pointer;
-                    let mut prop = self.components[prop_pointer.component_idx]
-                        .get_prop_mut(prop_pointer.local_prop_idx)
-                        .unwrap();
+                    // let prop_pointer = self.props[prop_idx].meta.prop_pointer;
+                    // let mut prop = self.components[prop_pointer.component_idx]
+                    //     .get_prop_mut(prop_pointer.local_prop_idx)
+                    //     .unwrap();
 
                     // TODO: for efficiency, we should check if any dependencies have changed
                     // since the last time were here, and skip a call to calculate in that case.
 
                     // XXX: add new implementation of calculate that doesn't require mut
-                    prop.calculate_and_mark_fresh();
+                    // prop.calculate_and_mark_fresh();
                 }
                 _ => (),
             }
@@ -114,4 +116,16 @@ impl Core {
     //            }
     //        }
     //    }
+
+    /// Freshen the prop specified by prop_pointer,
+    /// then get its fresh value
+    pub fn get_prop_value(&mut self, prop_pointer: PropPointer) -> PropValue {
+        self.freshen_props(&[prop_pointer]);
+
+        // XXX - implement this
+
+        PropValue::Boolean(false) // just to put something here
+
+        // self.get_prop(prop_pointer).unwrap().get()
+    }
 }

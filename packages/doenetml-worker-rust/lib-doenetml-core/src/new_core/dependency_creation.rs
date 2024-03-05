@@ -155,7 +155,7 @@ impl Core {
                                 .find_map(|prop_idx| {
                                     let prop_node =
                                         self.structure_graph.get_component_props(node)[prop_idx];
-                                    let prop = self.props[prop_node.idx()];
+                                    let prop = &self.props[prop_node.idx()];
                                     let profile = prop.meta.profile;
 
                                     if profile.is_some()
@@ -207,7 +207,7 @@ impl Core {
                                 .find_map(|prop_idx| {
                                     let prop_node =
                                         self.structure_graph.get_component_props(node)[prop_idx];
-                                    let prop = self.props[prop_node.idx()];
+                                    let prop = &self.props[prop_node.idx()];
                                     let profile = prop.meta.profile;
 
                                     if profile.is_some()

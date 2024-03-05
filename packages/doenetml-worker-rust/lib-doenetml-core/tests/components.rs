@@ -13,6 +13,7 @@ use doenetml_core::{
         },
         ActionsEnum, ComponentNode,
     },
+    new_core::graph_based_core::Core,
     state::PropIdx,
-    ComponentIdx, DoenetMLCore,
+    ComponentIdx,
 };
