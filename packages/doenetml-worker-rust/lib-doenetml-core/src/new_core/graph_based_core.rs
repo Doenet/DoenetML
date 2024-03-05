@@ -1,10 +1,7 @@
 //! A version of `Core` based on `DirectedGraph`
 
 use crate::{
-    components::{
-        prelude::{ComponentIdx, PropValue},
-        Component, ComponentEnum,
-    },
+    components::{prelude::ComponentIdx, Component},
     dast::{flat_dast::FlatRoot, ref_expand::Expander, DastRoot},
     graph::directed_graph::DirectedGraph,
     state::PropPointer,

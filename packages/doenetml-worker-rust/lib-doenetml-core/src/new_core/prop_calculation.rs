@@ -33,7 +33,7 @@ impl Core {
         {
             // At this point, all dependencies of `node` must be fresh
             match *node {
-                GraphNode::Prop(prop_idx) => {
+                GraphNode::Prop(_prop_idx) => {
                     let status = self.prop_cache.get_prop_status(node);
 
                     match status {
@@ -89,10 +89,7 @@ impl Core {
                 resolve_stack.extend(
                     self.add_data_query(prop_node, data_query)
                         .into_iter()
-                        .filter_map(|node| match node {
-                            GraphNode::Prop(_) => Some(node),
-                            _ => None,
-                        }),
+                        .filter(|node| matches!(node, GraphNode::Prop(_))),
                 );
             }
 

@@ -37,7 +37,7 @@ impl Core {
         // - take a prop index,
         // - freshen the prop, if needed, and
         // - return the prop's value
-        let mut prop_resolver = |prop_idx: PropIdx| {
+        let mut prop_resolver = |_prop_idx: PropIdx| {
             // XXX - we need another solution here.
             // probably have the action request which prop values it wants and do multiple passes
 
@@ -55,7 +55,7 @@ impl Core {
             let props_to_update =
                 self.components[component_idx].on_action(action.action, &mut prop_resolver)?;
 
-            for UpdateFromAction(local_prop_idx, requested_value) in props_to_update {
+            for UpdateFromAction(local_prop_idx, _requested_value) in props_to_update {
                 let prop_pointer = PropPointer {
                     component_idx,
                     local_prop_idx,

@@ -4,7 +4,7 @@ use proc_macro2::{Ident, Span};
 use quote::quote;
 use syn::{self, parse::Parser, FieldsNamed};
 
-use crate::util::{find_type_from_prop_with_generics, has_attribute};
+//use crate::util::{find_type_from_prop_with_generics, has_attribute};
 
 pub fn component_props_derive(input: TokenStream) -> TokenStream {
     let ast: syn::DeriveInput = syn::parse(input).unwrap();
@@ -29,7 +29,7 @@ pub fn component_props_derive(input: TokenStream) -> TokenStream {
                 // For now, we just check if there are fields named "common" and "props".
                 // Could check the type of common to make sure it is CommonData
                 // or check if each field is a prop.
-                let is_component_struct = field_identities.iter().any(|ident| *ident == "common")
+                let _is_component_struct = field_identities.iter().any(|ident| *ident == "common")
                     && field_identities.iter().any(|ident| *ident == "props");
 
                 quote! {

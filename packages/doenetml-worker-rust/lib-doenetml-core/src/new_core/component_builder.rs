@@ -6,12 +6,11 @@ use anyhow::anyhow;
 
 use crate::{
     components::{
-        ComponentEnum,
-        _error::_Error,
         prelude::{
             ComponentIdx, Extending, FlatAttribute, KeyValueIgnoreCase, PropSource, UntaggedContent,
         },
-        Component, ComponentAttributes, ComponentCommon, ComponentCommonData, ComponentNode,
+        Component, ComponentAttributes, ComponentCommon, ComponentCommonData, ComponentEnum,
+        ComponentNode,
     },
     dast::{
         flat_dast::{Index, NormalizedNode, NormalizedRoot, Source},
@@ -140,7 +139,7 @@ impl ComponentBuilder {
                     self.components[idx] = Component::new_error(
                         format!("Error while extending: {}", err),
                         ComponentCommonData {
-                            idx: idx,
+                            idx,
                             parent: elm.parent,
                             position: elm.position.clone(),
                             unrecognized_attributes: HashMap::new(),
@@ -282,7 +281,7 @@ impl ComponentBuilder {
                 .idx();
             let new_component_type = self.props[prop_idx].preferred_component_type();
 
-            let mut new_child = Component::from_tag_name(
+            let new_child = Component::from_tag_name(
                 new_component_type,
                 ComponentCommonData {
                     idx: self.components.len(),
@@ -412,7 +411,8 @@ impl ComponentBuilder {
                     }
                 }
 
-                let unused_attributes = self.add_component_to_structure_graph(
+                // XXX: Do something with these attributes
+                let _unused_attributes = self.add_component_to_structure_graph(
                     &component,
                     &elm.children,
                     &elm.attributes,
@@ -434,6 +434,7 @@ impl ComponentBuilder {
     }
 
     /// Add `component` to the `structure_graph` along with links to its attributes, children, and props.
+    /// Returns a HashMap of attributes that were not recognized by the component.
     fn add_component_to_structure_graph(
         &mut self,
         component: &Component,

@@ -12,7 +12,7 @@ use crate::state::{ComponentProps, PropIdx};
 use super::_error::_Error;
 use super::_external::_External;
 use super::component_enum::ComponentEnum;
-use super::prelude::{ComponentIdx, Extending, FlatAttribute};
+use super::prelude::{ComponentIdx, FlatAttribute};
 use super::{ComponentActions, ComponentAttributes, ComponentNode, ComponentProfile};
 
 /// A DoenetML component. A component is a collection of props combined with render information.

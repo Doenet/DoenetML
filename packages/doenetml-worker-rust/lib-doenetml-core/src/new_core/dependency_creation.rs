@@ -251,7 +251,7 @@ impl Core {
     }
 
     /// Create a new `GraphNode::State` and add it to the `structure_graph`.
-    fn add_state_node(&mut self, origin_node: GraphNode) -> GraphNode {
+    fn add_state_node(&mut self, _origin_node: GraphNode) -> GraphNode {
         let idx = self.states.len();
 
         // XXX: What do we store here?
