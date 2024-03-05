@@ -1,7 +1,12 @@
 //! Objects related to `Prop`s
 
 pub mod cache;
-mod prop_ident;
-mod prop_lookup;
+mod data_query;
+mod prop;
+mod prop_updater;
+mod prop_value;
 
-pub use prop_ident::*;
+pub use data_query::*;
+pub use prop::*;
+pub use prop_updater::*;
+pub use prop_value::*;

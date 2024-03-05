@@ -1,6 +1,6 @@
 //! Build the `structure_graph` and initialize `components`.
 
-use std::{collections::HashMap, str::FromStr};
+use std::collections::HashMap;
 
 use anyhow::anyhow;
 
@@ -8,22 +8,22 @@ use crate::{
     components::{
         ComponentEnum,
         _error::_Error,
-        _external::_External,
-        prelude::{ComponentProps, FlatAttribute, KeyValueIgnoreCase, UntaggedContent},
-        ComponentAttributes, ComponentNode,
+        prelude::{
+            ComponentIdx, Extending, FlatAttribute, KeyValueIgnoreCase, PropSource, UntaggedContent,
+        },
+        Component, ComponentAttributes, ComponentCommon, ComponentCommonData, ComponentNode,
     },
     dast::{
         flat_dast::{Index, NormalizedNode, NormalizedRoot, Source},
         ref_resolve::RefResolution,
     },
     graph::directed_graph::DirectedGraph,
-    state::PropPointer,
-    ComponentIdx, Extending, PropSource,
+    state::{ComponentProps, PropPointer},
 };
 
 use super::{
     graph_node::{GraphNode, GraphNodeLookup},
-    props::PropIdent,
+    props::Prop,
 };
 
 /// Initialize `structure_graph` and `components` based on a provided `normalized_root`.
@@ -34,14 +34,14 @@ pub struct ComponentBuilder {
     pub structure_graph: DirectedGraph<GraphNode, GraphNodeLookup<usize>>,
     /// The reified components. These can be queried for information about their attributes/props/state
     /// as well as asked to calculate/recalculate props.
-    pub components: Vec<ComponentEnum>,
+    pub components: Vec<Component>,
     /// A list of all strings in the document. Strings are stored here once and referenced when they appear as children.
     pub strings: Vec<String>,
     /// A counter for the number of virtual nodes created. Every virtual node needs to be unique (so that
     /// it can be referenced), but we don't store any information about virtual nodes themselves.
     pub virtual_node_count: usize,
     // Information about each prop sufficient for resolving `DataQuery`s.
-    pub props: Vec<PropIdent>,
+    pub props: Vec<Prop>,
 }
 
 impl Default for ComponentBuilder {
@@ -135,21 +135,16 @@ impl ComponentBuilder {
                             }
                         }
                     }
-
-                    // TODO: do we even need to set extending anymore?
-                    self.components[idx].set_extending(Some(extending));
                 }
                 Err(err) => {
-                    self.components[idx] = ComponentEnum::_Error(_Error {
-                        message: format!("Error while extending: {}", err),
-                        ..Default::default()
-                    });
-                    self.components[idx].set_idx(elm.idx);
-                    self.components[idx].initialize(
-                        elm.parent,
-                        None,
-                        HashMap::new(),
-                        elm.position.clone(),
+                    self.components[idx] = Component::new_error(
+                        format!("Error while extending: {}", err),
+                        ComponentCommonData {
+                            idx: idx,
+                            parent: elm.parent,
+                            position: elm.position.clone(),
+                            unrecognized_attributes: HashMap::new(),
+                        },
                     );
                 }
             }
@@ -178,11 +173,11 @@ impl ComponentBuilder {
     /// ```
     fn determine_extending(
         ref_source: Source<RefResolution>,
-        component: &ComponentEnum,
-        referent: &ComponentEnum,
+        component: &Component,
+        referent: &Component,
     ) -> Result<Extending, anyhow::Error> {
         // If the referent is an error or external, we're immediately done.
-        match referent {
+        match referent.variant {
             ComponentEnum::_Error(_) => {
                 return Err(anyhow!(
                     "Attempted to extend component from an error component"
@@ -218,7 +213,7 @@ impl ComponentBuilder {
 
             // Look to see if there is a public prop with a matching name on `referent`
             return match referent
-                .get_public_prop_index_from_name_case_insensitive(referenced_prop_name)
+                .get_public_local_prop_index_from_name_case_insensitive(referenced_prop_name)
             {
                 Some(referent_prop_idx) => Ok(Extending::Prop(PropSource {
                     prop_pointer: PropPointer {
@@ -247,7 +242,7 @@ impl ComponentBuilder {
         } else {
             // Since we are extending a component to a different type via default prop,
             // the component should have specified a default prop
-            match referent.get_default_prop() {
+            match referent.get_default_prop_local_index() {
                 Some(default_prop) => Ok(Extending::Prop(PropSource {
                     prop_pointer: PropPointer {
                         component_idx: referent.get_idx(),
@@ -272,35 +267,31 @@ impl ComponentBuilder {
     /// but not in the case of text component from `$i.value` that occurs outside the `extend` attribute.
     fn create_implicit_child_from_prop_source(
         &self,
-        component: &ComponentEnum,
+        component: &Component,
         prop_source: PropSource,
-    ) -> Option<ComponentEnum> {
+    ) -> Option<Component> {
         if !prop_source.from_direct_ref {
             // the `Extending` was due to specifying a prop inside the `extend` attribute
 
             let prop_pointer = prop_source.prop_pointer;
-            let referent = &self.components[prop_pointer.component_idx];
 
-            // The creation of the new child mimics `create_component()`
-            // for the case where there is a remaining path corresponding to the prop
-            let new_component_type = referent
-                .get_prop(prop_pointer.local_prop_idx)
-                .unwrap()
-                .preferred_component_type();
+            let prop_idx = self
+                .structure_graph
+                .get_component_props(GraphNode::Component(prop_pointer.component_idx))
+                [prop_pointer.local_prop_idx]
+                .idx();
+            let new_component_type = self.props[prop_idx].preferred_component_type();
 
-            let mut new_child = ComponentEnum::from_str(new_component_type).unwrap();
-
-            new_child.set_idx(self.components.len());
-
-            new_child.initialize(
-                Some(component.get_idx()),
-                Some(Extending::Prop(PropSource {
-                    prop_pointer,
-                    from_direct_ref: true,
-                })),
-                HashMap::new(),
-                None,
+            let mut new_child = Component::from_tag_name(
+                new_component_type,
+                ComponentCommonData {
+                    idx: self.components.len(),
+                    parent: Some(component.get_idx()),
+                    position: None,
+                    unrecognized_attributes: HashMap::new(),
+                },
             );
+
             Some(new_child)
         } else {
             None
@@ -312,7 +303,7 @@ impl ComponentBuilder {
     fn init_normalized_root_without_extending(&mut self, normalized_root: &NormalizedRoot) {
         // We are going to create components possibly out of order. We will track which components are created
         // and which are in the process of being created.
-        let mut components: Vec<Option<ComponentEnum>> = std::iter::repeat_with(|| None)
+        let mut components: Vec<Option<Component>> = std::iter::repeat_with(|| None)
             .take(normalized_root.nodes.len())
             .collect();
 
@@ -359,18 +350,19 @@ impl ComponentBuilder {
     fn create_component(
         &mut self,
         node: &NormalizedNode,
-        components: &[Option<ComponentEnum>],
-    ) -> Result<ComponentEnum, Index> {
+        components: &[Option<Component>],
+    ) -> Result<Component, Index> {
         let component = match node {
             NormalizedNode::Element(elm) => {
-                let mut component = ComponentEnum::from_str(&elm.name).unwrap_or_else(|_| {
-                    // If we didn't find a match, then create a component of type external
-                    ComponentEnum::_External(_External {
-                        name: elm.name.clone(),
-                        ..Default::default()
-                    })
-                });
-
+                let mut component = Component::from_tag_name(
+                    &elm.name,
+                    ComponentCommonData {
+                        idx: elm.idx,
+                        parent: elm.parent,
+                        position: elm.position.clone(),
+                        unrecognized_attributes: HashMap::new(),
+                    },
+                );
                 if let Some(Source::Ref(ref_resolution)) = &elm.extending {
                     // Some components specify that when they are referenced with the `$foo` syntax,
                     // a different component should be created in their place. E.g., `<textInput name="i" />$i`
@@ -380,7 +372,7 @@ impl ComponentBuilder {
                         if let Some(name) = component.ref_transmutes_to() {
                             // It is forbidden to expand to an invalid component type, so we do not
                             // have a fallback to `_External` here.
-                            component = ComponentEnum::from_str(name).unwrap();
+                            component = Component::from_tag_name(name, component.common);
                         }
                     } else {
                         // If there is a remaining path, we may need to further mutate the component.
@@ -396,23 +388,29 @@ impl ComponentBuilder {
                                 return Err(ref_resolution.node_idx);
                             }
                             let referent = referent.unwrap();
-                            let referent_prop_idx = referent
-                                .get_public_prop_index_from_name_case_insensitive(&path_part.name);
-                            if let Some(referent_prop_idx) = referent_prop_idx {
-                                let new_component_type = referent
-                                    .get_prop(referent_prop_idx)
-                                    .unwrap()
-                                    .preferred_component_type();
+                            let referent_local_prop_idx = referent
+                                .get_public_local_prop_index_from_name_case_insensitive(
+                                    &path_part.name,
+                                );
+                            if let Some(referent_local_prop_idx) = referent_local_prop_idx {
+                                let prop_idx = self
+                                    .structure_graph
+                                    .get_component_props(GraphNode::Component(referent.get_idx()))
+                                    [referent_local_prop_idx]
+                                    .idx();
+
+                                let new_component_type =
+                                    self.props[prop_idx].preferred_component_type();
                                 if new_component_type != component.get_component_type() {
-                                    component =
-                                        ComponentEnum::from_str(new_component_type).unwrap();
+                                    component = Component::from_tag_name(
+                                        new_component_type,
+                                        component.common,
+                                    );
                                 }
                             }
                         }
                     }
                 }
-
-                component.set_idx(elm.idx);
 
                 let unused_attributes = self.add_component_to_structure_graph(
                     &component,
@@ -420,18 +418,17 @@ impl ComponentBuilder {
                     &elm.attributes,
                 );
 
-                // XXX: This should be updated when we update the type of information `component` stores.
-                component.initialize(elm.parent, None, unused_attributes, elm.position.clone());
-
                 component
             }
-            NormalizedNode::Error(e) => {
-                let mut error = _Error::new();
-                error.message = e.message.clone();
-                error.set_idx(e.idx);
-                error.initialize(e.parent, None, HashMap::new(), e.position.clone());
-                ComponentEnum::_Error(error)
-            }
+            NormalizedNode::Error(e) => Component::new_error(
+                e.message.clone(),
+                ComponentCommonData {
+                    idx: e.idx,
+                    parent: e.parent,
+                    position: e.position.clone(),
+                    unrecognized_attributes: HashMap::new(),
+                },
+            ),
         };
         Ok(component)
     }
@@ -439,7 +436,7 @@ impl ComponentBuilder {
     /// Add `component` to the `structure_graph` along with links to its attributes, children, and props.
     fn add_component_to_structure_graph(
         &mut self,
-        component: &ComponentEnum,
+        component: &Component,
         children: &[UntaggedContent],
         attributes: &[FlatAttribute],
     ) -> HashMap<String, FlatAttribute> {
@@ -502,24 +499,10 @@ impl ComponentBuilder {
         self.structure_graph.add_node(graph_virtual_node);
         self.structure_graph
             .add_edge(graph_component_node, graph_virtual_node);
-        for local_prop_idx in 0..component.get_num_props() {
+
+        for prop in component.generate_props() {
             let prop_graph_node = GraphNode::Prop(self.props.len());
-
-            // XXX: We should be able to get this information directly from the component.
-            // New macros might need to be created.
-            let profile = component
-                .get_prop(local_prop_idx)
-                .unwrap()
-                .get_matching_component_profile();
-            self.props.push(PropIdent {
-                prop_pointer: PropPointer {
-                    component_idx: component.get_idx(),
-                    local_prop_idx,
-                },
-                profile,
-            });
-
-            self.structure_graph.add_node(prop_graph_node);
+            self.props.push(prop);
             self.structure_graph
                 .add_edge(graph_virtual_node, prop_graph_node);
         }
@@ -636,10 +619,7 @@ impl ComponentBuilder {
             let component_props = self.structure_graph.get_component_props(component_node);
             let referent_props = self.structure_graph.get_component_props(referent_node);
 
-            for prop_idx in 0..self.components[component_idx].get_num_props() {
-                let comp_prop = component_props[prop_idx];
-                let ref_prop = referent_props[prop_idx];
-
+            for (comp_prop, ref_prop) in component_props.iter().zip(referent_props.iter()) {
                 self.structure_graph.add_edge(comp_prop, ref_prop);
             }
         }

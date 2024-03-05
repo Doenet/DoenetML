@@ -7,8 +7,6 @@ use wasm_bindgen::prelude::*;
 
 use thiserror::Error;
 
-use crate::components::RenderedProps;
-
 /// Dast root node
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(tag = "type")]
@@ -95,7 +93,8 @@ pub struct ElementData {
     pub message: Option<String>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub props: Option<RenderedProps>,
+    // XXX This used to be `RenderedProps`
+    pub props: Option<()>,
 }
 
 impl PartialEq for ElementData {
@@ -366,7 +365,8 @@ pub struct FlatDastElementUpdate {
     pub new_children: Option<Vec<FlatDastElementContent>>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub changed_state: Option<RenderedProps>,
+    // XXX: This used to be `RenderedProps`
+    pub changed_state: Option<()>,
 }
 
 #[derive(Debug, Error)]

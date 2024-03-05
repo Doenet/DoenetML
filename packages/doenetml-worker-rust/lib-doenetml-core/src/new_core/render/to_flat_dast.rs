@@ -2,12 +2,13 @@ use std::collections::HashMap;
 
 use crate::{
     components::{
-        prelude::{ComponentProps, ElementData, FlatDastElement, FlatDastElementContent},
+        prelude::{
+            ComponentIdx, ComponentProps, ElementData, FlatDastElement, FlatDastElementContent,
+        },
         ComponentActions, ComponentEnum, ComponentNode,
     },
     dast::FlatDastRoot,
     state::PropPointer,
-    ComponentIdx,
 };
 
 use super::{
@@ -39,7 +40,7 @@ impl Core {
     pub fn component_to_flat_dast(&mut self, component_idx: ComponentIdx) -> FlatDastElement {
         let component = &self.components[component_idx];
         let children = component
-            .get_rendered_children(ChildQueryObject::new_from_core(component.get_idx(), self))
+            .get_rendered_children(ChildQueryObject::new_from_core(component_idx, self))
             .into_iter()
             .flat_map(|child| match child {
                 GraphNode::Component(idx) => Some(FlatDastElementContent::Element(idx)),

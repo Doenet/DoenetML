@@ -1,17 +1,8 @@
 use crate::components::prelude::*;
 
-#[derive(
-    Debug,
-    Default,
-    ComponentNode,
-    ComponentChildrenOld,
-    ComponentProps,
-    ComponentActions,
-    ComponentAttributes,
-)]
-#[pass_through_children]
+#[derive(Debug, Default, ComponentProps, ComponentActions, ComponentAttributes, ComponentNode)]
+//#[pass_through_children]
 pub struct Document {
-    pub common: ComponentCommonData,
     pub props: DocumentProps,
 }
 

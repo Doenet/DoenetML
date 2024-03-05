@@ -9,25 +9,14 @@ use super::dast::{
     FlatDastRoot, Position as DastPosition,
 };
 
-use super::state::prop_calculations::{
-    freshen_all_stale_renderer_states, get_prop_value, resolve_prop, PropUpdateRequest,
-};
-use super::state::prop_state::{StateProp, StatePropDataOrigin};
-use super::state::prop_updates::process_prop_update_request;
-use super::state::PropStatus;
-
 use crate::components::actions::{Action, UpdateFromAction};
-use crate::components::component_builder::ComponentBuilder;
-use crate::components::prelude::{ComponentProps, DependenciesCreatedForDataQuery, PropIdx};
-use crate::dast::flat_dast::{FlatRoot, NormalizedRoot, UntaggedContent};
+use crate::components::prelude::{ComponentProps, PropIdx};
+use crate::dast::flat_dast::{FlatRoot, UntaggedContent};
 use crate::dast::ref_expand::Expander;
 use crate::dast::{get_flat_dast_update, to_flat_dast};
 use crate::state::PropPointer;
 #[allow(unused)]
 use crate::utils::{log, log_debug, log_json};
-
-#[cfg_attr(feature = "web", tsify::declare)]
-pub type ComponentIdx = usize;
 
 /// All the state of DoenetML document with methods to interact with it.
 #[derive(Debug)]
@@ -167,34 +156,6 @@ impl DoenetMLRoot {
     }
 }
 
-/// Information of the source that a component is extending, which is currently
-/// either another component or a prop.
-#[derive(Debug, Clone)]
-pub enum Extending {
-    /// The component is extending another entire component, given by the component index
-    Component(ComponentIdx),
-    // TODO: what about array props?
-    /// The component is extending the prop of another component
-    Prop(PropSource),
-}
-
-#[derive(Debug, Clone, Copy)]
-pub struct PropSource {
-    /// The prop being extended
-    pub prop_pointer: PropPointer,
-
-    /// If true, the source of the extending was due to a direct reference,
-    /// as opposed to being in an extend attribute.
-    ///
-    /// For example, given `<textInput name="i"/>`, a direct ref would be `$i.value` by itself,
-    /// unlike `<text extend="$i.value"/>`.
-    ///
-    /// If we are extending from a direct ref,
-    /// we need to add the referenced prop as a child in the `DataQuery::ChildPropProfile`,
-    /// because the prop was not already added to the children.
-    pub from_direct_ref: bool,
-}
-
 impl DoenetMLCore {
     pub fn new(
         dast_root: DastRoot,
@@ -207,12 +168,7 @@ impl DoenetMLCore {
         let mut flat_root = FlatRoot::from_dast(&dast_root);
         Expander::expand(&mut flat_root);
         flat_root.compactify();
-        let normalized_root = NormalizedRoot::from_flat_root(&flat_root);
-        let components = ComponentBuilder::from_normalized_root(&normalized_root)
-            .components
-            .into_iter()
-            .map(|c| Rc::new(RefCell::new(c)))
-            .collect::<Vec<_>>();
+        let components: Vec<Rc<RefCell<ComponentEnum>>> = Vec::new();
 
         // add root node
         let root = DoenetMLRoot {

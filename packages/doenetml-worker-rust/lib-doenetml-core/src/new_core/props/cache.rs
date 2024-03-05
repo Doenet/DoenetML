@@ -6,8 +6,27 @@ use crate::{
     components::prelude::{GraphNode, PropCalcResult, PropValue},
     graph::directed_graph::Taggable,
     new_core::graph_node::GraphNodeLookup,
-    state::PropStatus,
 };
+
+/// The possible values of the status of a prop.
+/// - `Fresh`: the prop value has been calculated from given base variable values
+/// - `Stale`: a base variable influencing this prop has changed so it must be recalculated
+/// - `Unresolved`: the dependencies for this prop have not yet been created
+/// - `Resolved`: the dependencies for this prop have been created,
+///   but the value has not yet been calculated
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum PropStatus {
+    /// The value has been computed and doesn't need recomputing.
+    Fresh,
+    /// The value has been computed, but needs recomputing.
+    Stale,
+    /// The prop has not been "resolved" yet, meaning it and (possibly) the other props it depends on for computing
+    /// its value have not yet been added to the dependency graph.
+    Unresolved,
+    /// The prop has been "resolved", meaning it and its dependencies have been added to the dependency graph,
+    /// but the value has never been computed.
+    Resolved,
+}
 
 /// Metadata stored along with a cached prop.
 #[derive(Debug, Clone)]

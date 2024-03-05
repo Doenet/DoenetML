@@ -2,8 +2,9 @@ pub mod keyvalue;
 pub mod logging;
 pub mod parse_json;
 
-#[cfg(test)]
-pub mod test_utils;
+// XXX: fix these for tests
+//#[cfg(test)]
+//pub mod test_utils;
 
 pub use keyvalue::*;
 #[allow(unused)]

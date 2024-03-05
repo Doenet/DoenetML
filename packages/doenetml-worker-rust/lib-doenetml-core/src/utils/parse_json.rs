@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-use crate::state::PropValue;
+use crate::components::prelude::PropValue;
 
 /// The structure of the json argument in a call to dispatch_action.
 #[derive(Debug, Serialize, Deserialize)]

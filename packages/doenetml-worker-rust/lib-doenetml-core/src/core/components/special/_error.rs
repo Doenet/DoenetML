@@ -1,15 +1,7 @@
 use crate::components::prelude::*;
 
-#[derive(
-    Debug,
-    Default,
-    ComponentNode,
-    ComponentChildrenOld,
-    ComponentProps,
-    ComponentActions,
-    ComponentAttributes,
-)]
-#[pass_through_children]
+#[derive(Debug, Default, ComponentProps, ComponentNode, ComponentActions, ComponentAttributes)]
+//#[pass_through_children]
 pub struct _Error {
     pub common: ComponentCommonData,
     pub message: String,

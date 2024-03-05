@@ -1,12 +1,11 @@
 use enum_dispatch::enum_dispatch;
 
 use crate::{
-    components::{ComponentEnum, ComponentNode},
+    components::{prelude::ComponentIdx, ComponentEnum, ComponentNode},
     new_core::{
         graph_based_core::Core,
         graph_node::{GraphNode, StructureGraph},
     },
-    ComponentIdx,
 };
 
 /// Object that lets you query for some information about your children.

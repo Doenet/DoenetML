@@ -1,11 +1,11 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    state::{PropIdx, PropValue},
-    ComponentIdx,
-};
+use crate::state::PropIdx;
 
-use super::ActionsEnum;
+use super::{
+    prelude::{ComponentIdx, PropValue},
+    ActionsEnum,
+};
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
