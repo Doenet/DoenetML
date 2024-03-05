@@ -7,7 +7,7 @@ use crate::{
         },
         ComponentActions, ComponentCommon, ComponentEnum, ComponentNode,
     },
-    dast::FlatDastRoot,
+    dast::{FlatDastElementUpdate, FlatDastRoot},
     state::PropPointer,
 };
 

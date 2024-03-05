@@ -122,6 +122,10 @@ impl Core {
     pub fn get_prop_value(&mut self, prop_pointer: PropPointer) -> PropValue {
         self.freshen_props(&[prop_pointer]);
 
-        self.get_prop(prop_pointer).unwrap().get()
+        // XXX - implement this
+
+        PropValue::Boolean(false) // just to put something here
+
+        // self.get_prop(prop_pointer).unwrap().get()
     }
 }

@@ -3,15 +3,16 @@ use std::collections::HashMap;
 use crate::{
     components::{
         actions::{Action, UpdateFromAction},
-        prelude::{FlatDastElementUpdate, PropIdx},
+        prelude::{ComponentIdx, FlatDastElementUpdate, PropIdx},
         ComponentActions,
     },
-    graph::directed_graph::Taggable,
-    state::{Freshness, PropPointer},
-    ComponentIdx,
+    state::PropPointer,
 };
 
-use super::graph_based_core::Core;
+use super::{
+    graph_based_core::Core,
+    props::{cache::PropStatus, PropValue},
+};
 
 impl Core {
     /// Run the action specified by the `action` json and return any changes to the output flat dast.
@@ -37,10 +38,15 @@ impl Core {
         // - freshen the prop, if needed, and
         // - return the prop's value
         let mut prop_resolver = |prop_idx: PropIdx| {
-            self.get_prop_value(PropPointer {
-                component_idx,
-                local_prop_idx: prop_idx,
-            })
+            // XXX - we need another solution here.
+            // probably have the action request which prop values it wants and do multiple passes
+
+            PropValue::Boolean(false) // return something for now
+
+            // self.get_prop_value(PropPointer {
+            //     component_idx,
+            //     local_prop_idx: prop_idx,
+            // })
         };
 
         {
@@ -55,31 +61,22 @@ impl Core {
                     local_prop_idx,
                 };
 
-                // TODO: this is obsolete. Replace with new method
+                // XXX: this is obsolete. Replace with new method
                 // Record the requested value directly on the prop.
                 // Later calls from within process_prop_update_request
                 // will call invert on the prop
                 // which will look up this requested value.
-                let prop = self.get_prop(prop_pointer).unwrap();
-                prop.set_requested_value(requested_value);
+                // prop.set_requested_value(requested_value);
 
-                let freshness = self
-                    .freshness
-                    .get_tag(&self.prop_pointer_to_prop_node(prop_pointer))
-                    .unwrap_or(&Freshness::Unresolved);
+                let prop_node = self.prop_pointer_to_prop_node(prop_pointer);
 
-                // Since the requested value is stored in the prop,
-                // now we just need to keep track of which prop we are seeking to update.
-                let prop_ptr = PropPointer {
-                    component_idx,
-                    local_prop_idx,
-                };
+                let status = self.prop_cache.get_prop_status(prop_node);
 
                 // If prop is unresolved, then resolve it.
                 // This could occur only once, but actions are free to seek to modify any prop,
                 // even if it hasn't been accessed before.
-                if *freshness == Freshness::Unresolved {
-                    self.resolve_prop(prop_ptr);
+                if status == PropStatus::Unresolved {
+                    self.resolve_prop(prop_pointer);
                 }
 
                 // Recurse in the inverse direction along to dependency graph
