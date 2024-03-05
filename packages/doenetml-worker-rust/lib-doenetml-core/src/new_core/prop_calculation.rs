@@ -42,19 +42,21 @@ impl Core {
                         PropStatus::Resolved | PropStatus::Stale => (),
                     };
 
+                    // XXX: implement this
+
                     // TODO: currently the calculated valued is stored on prop,
                     // so we are getting a mut view of it.
                     // In the future, we will store the value in a cache on core.
-                    let prop_pointer = self.props[prop_idx].meta.prop_pointer;
-                    let mut prop = self.components[prop_pointer.component_idx]
-                        .get_prop_mut(prop_pointer.local_prop_idx)
-                        .unwrap();
+                    // let prop_pointer = self.props[prop_idx].meta.prop_pointer;
+                    // let mut prop = self.components[prop_pointer.component_idx]
+                    //     .get_prop_mut(prop_pointer.local_prop_idx)
+                    //     .unwrap();
 
                     // TODO: for efficiency, we should check if any dependencies have changed
                     // since the last time were here, and skip a call to calculate in that case.
 
                     // XXX: add new implementation of calculate that doesn't require mut
-                    prop.calculate_and_mark_fresh();
+                    // prop.calculate_and_mark_fresh();
                 }
                 _ => (),
             }

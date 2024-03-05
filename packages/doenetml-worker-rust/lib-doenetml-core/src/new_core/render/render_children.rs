@@ -1,7 +1,7 @@
 use enum_dispatch::enum_dispatch;
 
 use crate::{
-    components::{prelude::ComponentIdx, ComponentEnum, ComponentNode},
+    components::{prelude::ComponentIdx, Component, ComponentEnum, ComponentNode},
     new_core::{
         graph_based_core::Core,
         graph_node::{GraphNode, StructureGraph},
@@ -13,7 +13,7 @@ use crate::{
 pub struct ChildQueryObject<'a> {
     /// The graph node of `self`. All data about children that is returned will be in the context of this node.
     self_graph_node: GraphNode,
-    components: &'a [ComponentEnum],
+    components: &'a [Component],
     strings: &'a [String],
     structure_graph: &'a StructureGraph,
 }
@@ -21,7 +21,7 @@ pub struct ChildQueryObject<'a> {
 impl<'a> ChildQueryObject<'a> {
     pub fn new(
         component_idx: ComponentIdx,
-        components: &'a [ComponentEnum],
+        components: &'a [Component],
         strings: &'a [String],
         structure_graph: &'a StructureGraph,
     ) -> Self {
