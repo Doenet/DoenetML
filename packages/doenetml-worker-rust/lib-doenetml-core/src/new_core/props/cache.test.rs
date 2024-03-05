@@ -150,3 +150,28 @@ fn test_a_data_query_can_keep_track_of_changes_to_multiple_props() {
     assert_eq!(val.changed, false);
     assert_eq!(val2.changed, false);
 }
+
+#[test]
+fn test_can_get_unchecked_prop_if_already_computed() {
+    let cache = PropCache::new();
+
+    let prop_node = GraphNode::Prop(0);
+    let query_node = GraphNode::Query(0);
+
+    cache.set_prop_status(prop_node, PropStatus::Resolved);
+    let val = cache.get_prop(prop_node, query_node, || {
+        PropCalcResult::Calculated(PropValue::Integer(10))
+    });
+    let val2 = cache.get_prop_unchecked(prop_node, query_node);
+    cache.set_prop(
+        prop_node,
+        PropCalcResult::Calculated(PropValue::Integer(15)),
+    );
+    // Both of these should have `changed == true` since there was no `get_prop` called since the value was set.
+    let _val3 = cache.get_prop_unchecked(prop_node, query_node);
+    let val3 = cache.get_prop_unchecked(prop_node, query_node);
+
+    assert_eq!(*val.value, *val2.value);
+    assert_eq!(val.changed, true);
+    assert_eq!(val3.changed, true);
+}

@@ -9,7 +9,7 @@ use crate::{
 
 use super::{
     component_builder::ComponentBuilder,
-    graph_node::{DependencyGraph, StructureGraph},
+    graph_node::{DependencyGraph, GraphNode, StructureGraph},
     props::{cache::PropCache, Prop},
 };
 
@@ -41,6 +41,9 @@ pub struct Core {
     pub processing_state: CoreProcessingState,
     /// Cache of prop values. The only way core should ever access prop values is through the cache.
     pub prop_cache: PropCache,
+    // This graph node is used to figure out if any props have changed between renders.
+    // It is a single fixed node and should always be related to the first entry of `self.queries`.
+    pub(super) for_render_query_node: GraphNode,
 }
 
 impl Default for Core {
@@ -61,7 +64,7 @@ impl Core {
             strings: Vec::new(),
             props: Vec::new(),
             states: Vec::new(),
-            queries: Vec::new(),
+            queries: vec![()],
             virtual_node_count: 0,
             processing_state: CoreProcessingState {
                 stale_renderers,
@@ -69,6 +72,7 @@ impl Core {
                 mark_stale_stack: Vec::new(),
             },
             prop_cache: PropCache::new(),
+            for_render_query_node: GraphNode::Query(0),
         }
     }
 

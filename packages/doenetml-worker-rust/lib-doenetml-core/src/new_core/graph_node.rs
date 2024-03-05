@@ -42,6 +42,14 @@ impl GraphNode {
             GraphNode::Virtual(idx) => *idx,
         }
     }
+    /// Get the wrapped `index` value. This is the same as `idx()`
+    /// except it will panic if `self` is not `GraphNode::Prop`.
+    pub fn prop_idx(&self) -> usize {
+        match self {
+            GraphNode::Prop(idx) => *idx,
+            _ => panic!("`prop_idx` expected a GraphNode::Prop"),
+        }
+    }
 }
 
 /// Data structure on which a `Taggable<GraphNode, _>` can be implemented.

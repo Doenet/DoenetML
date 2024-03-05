@@ -1,76 +1,26 @@
-use crate::{components::prelude::PropValue, state::PropPointer};
-
-use super::{graph_based_core::Core, graph_node::GraphNode, props::cache::PropStatus};
+use super::{
+    graph_based_core::Core,
+    graph_node::GraphNode,
+    props::{
+        cache::{PropStatus, PropWithMeta},
+        DataQueryResult,
+    },
+};
 
 impl Core {
-    /// Ensure that every prop in `prop_pointers` in fresh.
-    /// This function:
-    /// - adds needed dependencies to `dependency_graph`
-    /// - resolves and freshens all dependencies of the props
-    pub fn freshen_props(&mut self, prop_pointers: &[PropPointer]) {
-        let nodes_to_freshen = prop_pointers
-            .iter()
-            .filter_map(|prop_pointer| {
-                let prop_node = self.prop_pointer_to_prop_node(*prop_pointer);
-                let status = self.prop_cache.get_prop_status(prop_node);
-
-                // If the current prop is fresh, there's nothing to do.
-                // If it is unresolved, resolve it
-                match status {
-                    PropStatus::Fresh => None,
-                    PropStatus::Unresolved => {
-                        self.resolve_prop(*prop_pointer);
-                        Some(prop_node)
-                    }
-                    PropStatus::Stale | PropStatus::Resolved => Some(prop_node),
-                }
-            })
-            .collect::<Vec<_>>();
-
-        for node in self
-            .dependency_graph
-            .descendants_reverse_topological_multiroot(&nodes_to_freshen)
-        {
-            // At this point, all dependencies of `node` must be fresh
-            match *node {
-                GraphNode::Prop(_prop_idx) => {
-                    let status = self.prop_cache.get_prop_status(node);
-
-                    match status {
-                        PropStatus::Fresh => continue,
-                        PropStatus::Unresolved => unreachable!("Prop should not be Unresolved!"),
-                        PropStatus::Resolved | PropStatus::Stale => (),
-                    };
-
-                    // XXX: implement this
-
-                    // TODO: currently the calculated valued is stored on prop,
-                    // so we are getting a mut view of it.
-                    // In the future, we will store the value in a cache on core.
-                    // let prop_pointer = self.props[prop_idx].meta.prop_pointer;
-                    // let mut prop = self.components[prop_pointer.component_idx]
-                    //     .get_prop_mut(prop_pointer.local_prop_idx)
-                    //     .unwrap();
-
-                    // TODO: for efficiency, we should check if any dependencies have changed
-                    // since the last time were here, and skip a call to calculate in that case.
-
-                    // XXX: add new implementation of calculate that doesn't require mut
-                    // prop.calculate_and_mark_fresh();
-                }
-                _ => (),
-            }
-        }
-    }
-
     /// Props are created lazily so they start as `Unresolved`.
     /// They need to be resolved to be used.
     ///
     /// We resolve the prop by adding its data query to the dependency graph.
-    pub fn resolve_prop(&mut self, original_prop_ptr: PropPointer) {
+    pub fn resolve_prop(&mut self, prop_node: GraphNode) {
+        // Short-circuit if the prop is already resolved
+        if self.prop_cache.get_prop_status(prop_node) != PropStatus::Unresolved {
+            return;
+        }
+
         // Since resolving props won't recurse with repeated actions,
         // will go ahead and allocate the stack locally, for simplicity.
-        let mut resolve_stack = vec![self.prop_pointer_to_prop_node(original_prop_ptr)];
+        let mut resolve_stack = vec![prop_node];
 
         while let Some(prop_node) = resolve_stack.pop() {
             let status = self.prop_cache.get_prop_status(prop_node);
@@ -98,31 +48,129 @@ impl Core {
         }
     }
 
-    //    ///
-    //    pub fn execute_data_query(&mut self, prop_pointer: PropPointer, data_query: DataQuery) {
-    //        match data_query {
-    //            DataQuery::State => {
-    //                let prop = self.get_prop_mut(prop_pointer).unwrap();
-    //                prop.calculate_and_mark_fresh();
-    //            }
-    //            DataQuery::Prop(prop_pointer) => {
-    //                self.resolve_prop(prop_pointer);
-    //            }
-    //            DataQuery::Query(query_pointer) => {
-    //                self.resolve_query(query_pointer);
-    //            }
-    //        }
-    //    }
+    /// Gets the `DataQueryResult` associated with the given data query node.
+    pub fn execute_data_query(&mut self, query_node: GraphNode) -> DataQueryResult {
+        for prop_node in self
+            .dependency_graph
+            .get_children(query_node)
+            .into_iter()
+            .filter(|node| matches!(node, GraphNode::Prop(_)))
+        {
+            self.resolve_prop(prop_node);
+        }
+        self._execute_data_query_with_resolved_deps(query_node)
+    }
 
-    /// Freshen the prop specified by prop_pointer,
-    /// then get its fresh value
-    pub fn get_prop_value(&mut self, prop_pointer: PropPointer) -> PropValue {
-        self.freshen_props(&[prop_pointer]);
+    /// Executes a data query for a **resolved** prop. This function will recursively
+    /// compute any dependencies required to call the prop's `calculate` function.
+    ///
+    /// If `prop_node` is not resolved, this function will panic.
+    fn _execute_data_query_with_resolved_deps(&self, query_node: GraphNode) -> DataQueryResult {
+        let skip_fn = |prop_node: &GraphNode| {
+            if matches!(prop_node, GraphNode::Prop(_)) {
+                self.prop_cache.get_prop_status(prop_node) == PropStatus::Fresh
+            } else {
+                false
+            }
+        };
 
-        // XXX - implement this
+        // Compute all the prop values in topological order
+        for node in self
+            .dependency_graph
+            .descendants_reverse_topological_multiroot_with_skip(&[query_node], skip_fn)
+        {
+            match *node {
+                GraphNode::Prop(prop_idx) => {
+                    // This refers to a dependency of the current prop we're trying to calculate
+                    let dependency_prop_node = *node;
 
-        PropValue::Boolean(false) // just to put something here
+                    // Sanity check before we continue
+                    match self.prop_cache.get_prop_status(dependency_prop_node) {
+                        PropStatus::Fresh => {
+                            unreachable!("Prop should already be skipped due to topological sort!")
+                        }
+                        PropStatus::Unresolved => unreachable!("Prop should not be Unresolved!"),
+                        PropStatus::Resolved | PropStatus::Stale => {}
+                    };
 
-        // self.get_prop(prop_pointer).unwrap().get()
+                    let required_data = self
+                        .get_data_query_nodes_for_prop(dependency_prop_node)
+                        .into_iter()
+                        .map(|dependency_query_node| {
+                            self._execute_data_query_with_fresh_deps(dependency_query_node)
+                        })
+                        .collect::<Vec<_>>();
+                    let prop = &self.props[prop_idx];
+                    self.prop_cache
+                        .set_prop(node, prop.updater.calculate(required_data));
+                }
+                _ => {
+                    // Only Prop nodes need to be recursively calculated.
+                }
+            }
+        }
+
+        // By now the prop and all of its dependencies have been calculated.
+        // The prop _must_ be fresh, so we can just retrieve its value.
+        self._execute_data_query_with_fresh_deps(query_node)
+    }
+
+    /// Executes a data query assuming all props for the data query are already fresh.
+    ///
+    /// Will panic if any required prop is not fresh.
+    fn _execute_data_query_with_fresh_deps(&self, query_node: GraphNode) -> DataQueryResult {
+        // The props for the data query should be the immediate children of the query node
+        let values = self
+            .dependency_graph
+            .get_children(query_node)
+            .into_iter()
+            .filter_map(|node| {
+                match node {
+                    GraphNode::Prop(_) => {
+                        let prop_to_calculate = node;
+                        // The prop should be fresh, so `unreachable_calculate` should never be called
+                        Some(
+                            self.prop_cache
+                                .get_prop_unchecked(prop_to_calculate, query_node),
+                        )
+                    }
+                    GraphNode::State(_) => panic!("State nodes not implemented yet"),
+                    // XXX: Can we have other children
+                    _ => None,
+                }
+            })
+            .collect::<Vec<_>>();
+
+        DataQueryResult {
+            graph_node: query_node,
+            values,
+        }
+    }
+
+    /// Get the value of a prop for rendering. If the prop is stale or not resolved,
+    /// this function will resolve the prop, calculate all its dependencies, and then
+    /// return the result of `PropUpdater::calculate` applied to those dependencies.
+    pub fn get_prop_for_render(&mut self, prop_node: GraphNode) -> PropWithMeta {
+        self.resolve_prop(prop_node);
+
+        self.prop_cache
+            .get_prop(prop_node, self.for_render_query_node, || {
+                let required_data = self
+                    .get_data_query_nodes_for_prop(prop_node)
+                    .into_iter()
+                    .map(|query_node| self._execute_data_query_with_resolved_deps(query_node))
+                    .collect::<Vec<_>>();
+
+                let prop = &self.props[prop_node.prop_idx()];
+                prop.updater.calculate(required_data)
+            })
+    }
+
+    fn get_data_query_nodes_for_prop(&self, prop_node: GraphNode) -> Vec<GraphNode> {
+        self.dependency_graph.get_children(prop_node).into_iter().inspect(|n| {
+            if !matches!(n, GraphNode::Query(_)) {
+                panic!("Dependency graph should only have DataQuery nodes as children of Prop nodes!");
+            }
+        }).collect()
     }
 }

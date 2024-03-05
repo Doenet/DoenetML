@@ -411,12 +411,12 @@ impl ComponentBuilder {
                     }
                 }
 
-                // XXX: Do something with these attributes
-                let _unused_attributes = self.add_component_to_structure_graph(
+                let unrecognized_attributes = self.add_component_to_structure_graph(
                     &component,
                     &elm.children,
                     &elm.attributes,
                 );
+                component.set_unrecognized_attributes(unrecognized_attributes);
 
                 component
             }

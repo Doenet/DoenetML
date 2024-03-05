@@ -76,7 +76,7 @@ impl Core {
                 // This could occur only once, but actions are free to seek to modify any prop,
                 // even if it hasn't been accessed before.
                 if status == PropStatus::Unresolved {
-                    self.resolve_prop(prop_pointer);
+                    self.resolve_prop(prop_node);
                 }
 
                 // Recurse in the inverse direction along to dependency graph

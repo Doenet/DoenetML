@@ -74,7 +74,7 @@ impl Core {
 
         // TODO: many components in the flat dast are not rendered
         // For efficiency, we should not calculate the rendered props for these components.
-        self.freshen_props(&rendered_prop_pointers);
+        //self.freshen_props(&rendered_prop_pointers);
 
         let component = &self.components[component_idx];
         let message = if let ComponentEnum::_Error(error) = &component.variant {

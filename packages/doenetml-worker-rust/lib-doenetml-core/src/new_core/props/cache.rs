@@ -96,7 +96,7 @@ impl CachedProp {
     /// the `calculate` function will be called to get the value.
     ///
     /// This function uses interior mutability to cache computed values.
-    pub fn get_value<CalculateFn: Fn() -> PropCalcResult<PropValue>>(
+    pub fn get_value<CalculateFn: FnOnce() -> PropCalcResult<PropValue>>(
         &self,
         calculate: CalculateFn,
     ) -> Rc<PropValue> {
@@ -222,7 +222,7 @@ impl PropCache {
     /// Get the value of a prop. `origin` is the `GraphNode::DataQuery` that requested the prop.
     /// The cache tracks and reports if the value has changed since the last time it was queried.
     pub fn get_prop<
-        CalculateFn: Fn() -> PropCalcResult<PropValue>,
+        CalculateFn: FnOnce() -> PropCalcResult<PropValue>,
         A: borrow::Borrow<GraphNode>,
         B: borrow::Borrow<GraphNode>,
     >(
@@ -230,6 +230,40 @@ impl PropCache {
         prop_node: A,
         origin: B,
         calculate: CalculateFn,
+    ) -> PropWithMeta {
+        self._get_prop(prop_node, origin, calculate, true)
+    }
+
+    /// Get the cached value of a prop. An error is thrown if the prop is not `Fresh`.
+    /// Retrieving a prop this way does _not_ update the change tracker. The change state will be
+    /// the same as the last time the prop was queried.
+    ///
+    /// `origin` is the `GraphNode::DataQuery` that requested the prop.
+    /// The cache tracks and reports if the value has changed since the last time it was queried.
+    pub fn get_prop_unchecked<A: borrow::Borrow<GraphNode>, B: borrow::Borrow<GraphNode>>(
+        &self,
+        prop_node: A,
+        origin: B,
+    ) -> PropWithMeta {
+        self._get_prop(
+            prop_node,
+            origin,
+            || panic!("Call to `get_prop_unchecked` on a prop that isn't `Fresh`"),
+            false,
+        )
+    }
+
+    /// Internal version `get_prop`. Can optionally update the change tracker or not when retrieving the prop.
+    fn _get_prop<
+        CalculateFn: FnOnce() -> PropCalcResult<PropValue>,
+        A: borrow::Borrow<GraphNode>,
+        B: borrow::Borrow<GraphNode>,
+    >(
+        &self,
+        prop_node: A,
+        origin: B,
+        calculate: CalculateFn,
+        update_change_tracker: bool,
     ) -> PropWithMeta {
         let prop_node = prop_node.borrow();
         let origin = origin.borrow();
@@ -257,7 +291,7 @@ impl PropCache {
         // so if it is queried on an unchanged value, it will report `changed == false`.
         let change_counter = cached_prop.get_change_counter();
         let changed = change_counter != change_counter_on_last_query;
-        {
+        if update_change_tracker {
             // Borrow RefCells for the shortest time possible to avoid panics.
             let mut change_tracker = self.change_tracker.borrow_mut();
             change_tracker.insert(change_tracker_key, change_counter);

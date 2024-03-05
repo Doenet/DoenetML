@@ -149,11 +149,20 @@ impl Component {
         Self { common, variant }
     }
 
+    /// Create a new `_Error` component instance.
     pub fn new_error(message: String, common: ComponentCommonData) -> Self {
         let variant = ComponentEnum::_Error(_Error {
             message,
             ..Default::default()
         });
         Self { common, variant }
+    }
+
+    /// Set `self.common.unrecognized_attributes`.
+    pub fn set_unrecognized_attributes(
+        &mut self,
+        unused_attributes: HashMap<String, FlatAttribute>,
+    ) {
+        self.common.unrecognized_attributes = unused_attributes;
     }
 }

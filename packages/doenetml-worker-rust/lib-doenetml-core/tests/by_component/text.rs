@@ -103,7 +103,7 @@ mod test_helpers {
 
     /// Resolves `value` from a `<text>` component and returns its value as a `String`
     pub fn get_value_prop(component_idx: ComponentIdx, core: &mut Core) -> String {
-        core.get_prop_value(PropPointer {
+        core.get_prop_for_render(PropPointer {
             component_idx,
             local_prop_idx: VALUE_IDX,
         })
@@ -113,7 +113,7 @@ mod test_helpers {
 
     /// Resolves `text` from a `<text>` component and returns its value as a `String`
     pub fn get_text_prop(component_idx: ComponentIdx, core: &mut Core) -> String {
-        core.get_prop_value(PropPointer {
+        core.get_prop_for_render(PropPointer {
             component_idx,
             local_prop_idx: TEXT_IDX,
         })
