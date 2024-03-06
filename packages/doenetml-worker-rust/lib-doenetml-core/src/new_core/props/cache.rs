@@ -48,7 +48,7 @@ struct CachedPropMeta {
 /// that intelligently recomputes props when their dependencies change.
 #[derive(Debug)]
 struct CachedProp {
-    /// Cached value of the prop. Will be `None` if the prop hasn't been computed or is stale.
+    /// Cached value of the prop. Will be `None` if the prop hasn't been computed.
     value: RefCell<Option<Rc<PropValue>>>,
     meta: RefCell<CachedPropMeta>,
 }
@@ -75,7 +75,7 @@ impl CachedProp {
         self.meta.borrow_mut().change_counter = change_counter.wrapping_add(1);
     }
 
-    /// Sets the prop as stale and clears the cached value using interior mutability.
+    /// Sets the prop as stale using interior mutability.
     /// **For internal use only.**
     fn _set_stale(&self) {
         self.meta.borrow_mut().status = PropStatus::Stale;
@@ -304,7 +304,7 @@ impl PropCache {
         }
     }
 
-    /// Get the value of a prop. `origin` is the `GraphNode::DataQuery` that requested the prop.
+    /// Set the value of a prop. `origin` is the `GraphNode::DataQuery` that requested the prop.
     /// The cache tracks and reports if the value has changed since the last time it was queried.
     pub fn set_prop<A: borrow::Borrow<GraphNode>>(
         &self,

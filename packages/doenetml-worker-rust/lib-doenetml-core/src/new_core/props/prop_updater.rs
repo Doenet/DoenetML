@@ -25,6 +25,12 @@ pub enum InvertError {
 
 /// Implemented by all Props. Specifies how a prop is computed and what data it needs to compute its value.
 pub trait PropUpdater: std::fmt::Debug {
+    /// The default value used when creating a state prop for this prop
+    /// using a `State` data query
+    fn default(&self) -> PropValue {
+        PropValue::Boolean(false)
+    }
+
     /// Returns the data queries needed to calculate the dependencies
     /// for this prop. These queries may be based on structure of the document,
     /// e.g., the children, attributes, or other props
