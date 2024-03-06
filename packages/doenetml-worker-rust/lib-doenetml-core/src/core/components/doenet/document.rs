@@ -3,7 +3,7 @@ use crate::components::prelude::*;
 #[derive(Debug, Default, ComponentProps, ComponentActions, ComponentAttributes, ComponentNode)]
 //#[pass_through_children]
 pub struct Document {
-    pub props: DocumentProps,
+    //   pub props: DocumentProps,
 }
 
 #[derive(Debug, Default, ComponentProps)]

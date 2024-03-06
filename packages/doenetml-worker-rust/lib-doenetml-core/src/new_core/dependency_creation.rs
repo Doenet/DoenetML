@@ -152,7 +152,7 @@ impl Core {
                 // We may be extending another attribute. If so, find the "origin" node (i.e., the one with relevant children).
                 let attr_node = self.attribute_node_origin(attr_node);
 
-                for node in self.structure_graph.content_children(attr_node) {
+                for node in self.structure_graph.get_content_children(attr_node) {
                     match node {
                         GraphNode::Component(component_idx) => {
                             // Check the component. We want to link to the first prop that matches one of the profiles.
@@ -204,7 +204,10 @@ impl Core {
                         prop_pointer.component_idx,
                     ));
 
-                for node in self.structure_graph.content_children(children_virtual_node) {
+                for node in self
+                    .structure_graph
+                    .get_content_children(children_virtual_node)
+                {
                     match node {
                         GraphNode::Component(component_idx) => {
                             // Check the component. We want to link to the first prop that matches one of the profiles.

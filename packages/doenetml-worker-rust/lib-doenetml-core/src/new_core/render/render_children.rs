@@ -45,7 +45,8 @@ impl<'a> ChildQueryObject<'a> {
 
     /// Get an iterator that will iterate through your children in order.
     pub fn child_iter(&self) -> impl Iterator<Item = GraphNode> + 'a {
-        self.structure_graph.content_children(self.self_graph_node)
+        self.structure_graph
+            .get_content_children(self.self_graph_node)
     }
 
     /// Get the type of the component specified by `node`. `node` must

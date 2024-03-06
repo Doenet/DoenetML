@@ -5,9 +5,12 @@ use crate::{
         prelude::{
             ComponentIdx, ComponentProps, ElementData, FlatDastElement, FlatDastElementContent,
         },
-        ComponentActions, ComponentCommon, ComponentEnum, ComponentNode,
+        Component, ComponentActions, ComponentCommon, ComponentEnum, ComponentNode,
     },
-    dast::{FlatDastElementUpdate, FlatDastRoot},
+    dast::{
+        flat_dast::UntaggedContent, DastAttribute, DastText, DastTextRefContent,
+        FlatDastElementUpdate, FlatDastRoot,
+    },
     state::PropPointer,
 };
 
@@ -32,6 +35,67 @@ impl Core {
             children: vec![FlatDastElementContent::Element(0)],
             elements,
             warnings: vec![],
+            position: None,
+        }
+    }
+
+    pub fn component_to_flat_dast2(&self, component: &Component) -> FlatDastElement {
+        let component_node = GraphNode::Component(component.get_idx());
+
+        // Children don't need any additional processing. They are directly converted into FlatDast.
+        let children = self
+            .structure_graph
+            .get_component_children(component_node)
+            .into_iter()
+            .map(|node| match node {
+                GraphNode::Component(idx) => FlatDastElementContent::Element(idx),
+                GraphNode::String(idx) => FlatDastElementContent::Text(self.strings[idx].clone()),
+                _ => panic!("Unexpected node type in component children {:?}", node),
+            })
+            .collect::<Vec<_>>();
+
+        // Only the unrecognized attributes remain ont he actual element. Convert them to a flat dast.
+        let attributes = component.get_unrecognized_attributes();
+        let attributes = attributes
+            .iter()
+            .map(|(key, flat_attr)| {
+                (
+                    key.to_string(),
+                    DastAttribute {
+                        name: flat_attr.name.clone(),
+                        children: flat_attr
+                            .children
+                            .iter()
+                            .filter_map(|c| match c {
+                                UntaggedContent::Text(s) => {
+                                    Some(DastTextRefContent::Text(DastText {
+                                        value: s.clone(),
+                                        data: None,
+                                        position: None,
+                                    }))
+                                }
+                                // Refs have been expanded during processing to actual components. Since XML is not allowed
+                                // in a FlatDast attribute, we ignore them.
+                                // TODO: should we put in the value of the ref here?
+                                UntaggedContent::Ref(_) => None,
+                            })
+                            .collect(),
+                        position: flat_attr.position.clone(),
+                    },
+                )
+            })
+            .collect::<HashMap<_, _>>();
+
+        FlatDastElement {
+            name: component.get_component_type().to_string(),
+            attributes,
+            children,
+            data: ElementData {
+                id: component.get_idx(),
+                action_names: Some(component.get_action_names()),
+                props: None,
+                message: None,
+            },
             position: None,
         }
     }
@@ -118,3 +182,7 @@ impl Core {
         HashMap::new()
     }
 }
+
+#[cfg(test)]
+#[path = "to_flat_dast.test.rs"]
+mod test;

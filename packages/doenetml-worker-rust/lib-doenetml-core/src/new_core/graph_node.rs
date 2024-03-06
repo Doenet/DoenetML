@@ -95,11 +95,17 @@ pub type DependencyGraph = DirectedGraph<GraphNode, GraphNodeLookup<usize>>;
 
 impl StructureGraph {
     /// Get a list of `GraphNode`s corresponding to the requested
-    /// component's children.
+    /// component's children. This function will "unwrap" any virtual children.
+    /// E.g., if a component has children `v_1, c_2, c_3` and `v_1 -> c_a, c_b` (where `v_1` is a virtual node),
+    /// then this function will return `c_a, c_b, c_2, c_3`.
+    ///
+    /// If you want _only_ the direct children without any expanding, use
+    /// `self.get_children(self.get_component_children_virtual_node(node))`
+    /// instead.
     ///
     /// `node` must be a `GraphNode::Component`, otherwise this function will
     /// panic.
-    pub fn get_component_children(&self, node: GraphNode) -> Vec<GraphNode> {
+    pub fn get_component_children(&self, node: GraphNode) -> ContentChildrenIterator<'_> {
         assert!(
             matches!(node, GraphNode::Component(_)),
             "Expected a GraphNode::Component"
@@ -107,7 +113,7 @@ impl StructureGraph {
         let children_virtual_node = self
             .get_nth_child(node, 0)
             .expect("A component node should always have children in the structure graph");
-        self.get_children(children_virtual_node)
+        self.get_content_children(children_virtual_node)
     }
 
     /// Get's the virtual node that contains the requested component's children.
@@ -159,7 +165,7 @@ impl StructureGraph {
     ///
     /// This can be used to, for example, iterate over all string children, etc.
     /// It does _not_ iterate over all descendants.
-    pub fn content_children(&self, node: GraphNode) -> ContentChildrenIterator<'_> {
+    pub fn get_content_children(&self, node: GraphNode) -> ContentChildrenIterator<'_> {
         ContentChildrenIterator::new(self, node)
     }
 }
@@ -249,7 +255,7 @@ mod test {
 
         assert_eq!(
             graph
-                .content_children(GraphNode::Virtual(0))
+                .get_content_children(GraphNode::Virtual(0))
                 .collect::<Vec<_>>(),
             vec![
                 GraphNode::String(3),
