@@ -65,3 +65,7 @@ impl StateCache {
             .set_prop(state_node, PropCalcResult::Calculated(value));
     }
 }
+
+#[cfg(test)]
+#[path = "state_prop.test.rs"]
+mod test;
