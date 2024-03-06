@@ -10,7 +10,7 @@ use crate::{
 use super::{
     component_builder::ComponentBuilder,
     graph_node::{DependencyGraph, GraphNode, StructureGraph},
-    props::{cache::PropCache, Prop, StatePropStore},
+    props::{cache::PropCache, Prop, StateCache},
 };
 
 /// Core stores all hydrated components, keeps track of caching data, and tracks dependencies.
@@ -36,7 +36,7 @@ pub struct Core {
     /// Information about a prop used to resolve dependencies in a `DataQuery`.
     pub props: Vec<Prop>,
     // XXX: fill these in
-    pub states: StatePropStore,
+    pub states: StateCache,
     pub queries: Vec<()>,
     pub processing_state: CoreProcessingState,
     /// Cache of prop values. The only way core should ever access prop values is through the cache.
@@ -63,7 +63,7 @@ impl Core {
             components: Vec::new(),
             strings: Vec::new(),
             props: Vec::new(),
-            states: StatePropStore::new(),
+            states: StateCache::new(),
             queries: vec![()],
             virtual_node_count: 0,
             processing_state: CoreProcessingState {
