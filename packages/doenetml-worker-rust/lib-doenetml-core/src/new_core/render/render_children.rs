@@ -5,6 +5,7 @@ use crate::{
     new_core::{
         graph_based_core::Core,
         graph_node::{GraphNode, StructureGraph},
+        props::StringCache,
     },
 };
 
@@ -14,7 +15,7 @@ pub struct ChildQueryObject<'a> {
     /// The graph node of `self`. All data about children that is returned will be in the context of this node.
     self_graph_node: GraphNode,
     components: &'a [Component],
-    strings: &'a [String],
+    strings: &'a StringCache,
     structure_graph: &'a StructureGraph,
 }
 
@@ -22,7 +23,7 @@ impl<'a> ChildQueryObject<'a> {
     pub fn new(
         component_idx: ComponentIdx,
         components: &'a [Component],
-        strings: &'a [String],
+        strings: &'a StringCache,
         structure_graph: &'a StructureGraph,
     ) -> Self {
         ChildQueryObject {
@@ -63,9 +64,9 @@ impl<'a> ChildQueryObject<'a> {
 
     /// Get the string contents of the component specified by `node`. `node` must
     /// be a `GraphNode::String`.
-    pub fn get_string(&self, node: GraphNode) -> &str {
+    pub fn get_string(&self, node: GraphNode) -> String {
         match node {
-            GraphNode::String(idx) => &self.strings[idx],
+            GraphNode::String(_) => self.strings.get_string_value(node),
             _ => panic!(
                 "Can only get the string of a GraphNode::String, not {:?}",
                 node

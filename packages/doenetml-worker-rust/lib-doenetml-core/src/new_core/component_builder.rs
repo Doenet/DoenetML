@@ -22,7 +22,7 @@ use crate::{
 
 use super::{
     graph_node::{GraphNode, GraphNodeLookup},
-    props::Prop,
+    props::{Prop, StringCache},
 };
 
 /// Initialize `structure_graph` and `components` based on a provided `normalized_root`.
@@ -35,7 +35,7 @@ pub struct ComponentBuilder {
     /// as well as asked to calculate/recalculate props.
     pub components: Vec<Component>,
     /// A list of all strings in the document. Strings are stored here once and referenced when they appear as children.
-    pub strings: Vec<String>,
+    pub strings: StringCache,
     /// A counter for the number of virtual nodes created. Every virtual node needs to be unique (so that
     /// it can be referenced), but we don't store any information about virtual nodes themselves.
     pub virtual_node_count: usize,
@@ -54,7 +54,7 @@ impl ComponentBuilder {
         ComponentBuilder {
             structure_graph: DirectedGraph::new(),
             components: Vec::new(),
-            strings: Vec::new(),
+            strings: StringCache::new(),
             props: Vec::new(),
             virtual_node_count: 0,
         }
@@ -74,8 +74,8 @@ impl ComponentBuilder {
     }
 
     fn new_string_node(&mut self, s: String) -> GraphNode {
-        let node = GraphNode::String(self.strings.len());
-        self.strings.push(s);
+        let idx = self.strings.add_string(s);
+        let node = GraphNode::String(idx);
         node
     }
 

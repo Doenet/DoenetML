@@ -67,5 +67,5 @@ impl StateCache {
 }
 
 #[cfg(test)]
-#[path = "state_prop.test.rs"]
+#[path = "state_cache.test.rs"]
 mod test;

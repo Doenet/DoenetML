@@ -202,11 +202,11 @@ impl Core {
                     // These are all overridden with names, so no need to do anything here.
                     //mermaid.push_str(&format!("{}([virtual])\n", graph_node.to_mermaid_id()));
                 }
-                GraphNode::String(idx) => {
+                GraphNode::String(_) => {
                     mermaid.push_str(&format!(
                         "{}[\"&quot;{}&quot;\"]:::text\n",
                         graph_node.to_mermaid_id(),
-                        self.strings[*idx]
+                        self.strings.get_string_value(graph_node)
                     ));
                 }
                 _ => {}

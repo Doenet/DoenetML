@@ -49,7 +49,9 @@ impl Core {
             .into_iter()
             .map(|node| match node {
                 GraphNode::Component(idx) => FlatDastElementContent::Element(idx),
-                GraphNode::String(idx) => FlatDastElementContent::Text(self.strings[idx].clone()),
+                GraphNode::String(idx) => {
+                    FlatDastElementContent::Text(self.strings.get_string_value(node))
+                }
                 _ => panic!("Unexpected node type in component children {:?}", node),
             })
             .collect::<Vec<_>>();
@@ -108,9 +110,9 @@ impl Core {
             .into_iter()
             .flat_map(|child| match child {
                 GraphNode::Component(idx) => Some(FlatDastElementContent::Element(idx)),
-                GraphNode::String(idx) => {
-                    Some(FlatDastElementContent::Text(self.strings[idx].clone()))
-                }
+                GraphNode::String(idx) => Some(FlatDastElementContent::Text(
+                    self.strings.get_string_value(child),
+                )),
                 _ => None,
             })
             .collect::<Vec<_>>();
