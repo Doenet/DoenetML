@@ -5,7 +5,7 @@ use crate::{
     state::{ComponentProps, PropPointer},
 };
 
-use super::{graph_based_core::Core, graph_node::GraphNode};
+use super::{graph_based_core::Core, graph_node::GraphNode, props::PropValue};
 
 impl Core {
     /// Creates all necessary dependencies for a `DataQuery`.
@@ -29,8 +29,16 @@ impl Core {
                 // Otherwise, we have the "bottom most" prop. Create a new state node.
                 match leaf_node {
                     GraphNode::State(_) => {}
-                    GraphNode::Prop(_) => {
-                        let state_node = self.add_state_node(prop_node);
+                    GraphNode::Prop(prop_idx) => {
+                        let prop = &self.props[prop_idx];
+
+                        // TODO: when we load saved data from a data base, then set value and came_from_default
+                        // from the data.
+                        let default_value = prop.updater.default();
+                        let came_from_default = true;
+
+                        let state_node: GraphNode =
+                            self.add_state_node(prop_node, default_value, came_from_default);
                         self.structure_graph.add_edge(leaf_node, state_node);
                     }
                     _ => {
@@ -251,11 +259,14 @@ impl Core {
     }
 
     /// Create a new `GraphNode::State` and add it to the `structure_graph`.
-    fn add_state_node(&mut self, _origin_node: GraphNode) -> GraphNode {
-        let idx = self.states.len();
+    fn add_state_node(
+        &mut self,
+        _origin_node: GraphNode,
+        value: PropValue,
+        came_from_default: bool,
+    ) -> GraphNode {
+        let idx = self.states.add_state(value, came_from_default);
 
-        // XXX: What do we store here?
-        self.states.push(());
         let new_node = GraphNode::State(idx);
         self.structure_graph.add_node(new_node);
         new_node

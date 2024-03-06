@@ -134,7 +134,7 @@ impl Core {
                                 .get_prop_unchecked(prop_to_calculate, query_node),
                         )
                     }
-                    GraphNode::State(_) => panic!("State nodes not implemented yet"),
+                    GraphNode::State(_) => Some(self.states.get_state(node, query_node)),
                     // XXX: Can we have other children
                     _ => None,
                 }
