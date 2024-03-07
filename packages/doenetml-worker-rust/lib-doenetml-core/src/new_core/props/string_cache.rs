@@ -59,14 +59,9 @@ impl StringCache {
     pub fn get_string_value<A: borrow::Borrow<GraphNode>>(&self, string_node: A) -> String {
         let string_node = string_node.borrow();
 
-        // use a string node as a substitute for the origin, as that could never be an actual origin
-        let fake_origin = GraphNode::String(0);
-        let prop = self.prop_cache.get_prop(string_node, fake_origin, || {
-            panic!(
-                "Trying to retrieve a string prop that hasn't been set yet, {:?}",
-                string_node
-            )
-        });
+        // the origin doesn't matter as `qet_prop_unchecked` does not update change tracker
+        let fake_origin = GraphNode::Query(0);
+        let prop = self.prop_cache.get_prop_unchecked(string_node, fake_origin);
 
         match (*prop.value).clone() {
             PropValue::String(s) => s,

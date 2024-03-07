@@ -79,4 +79,11 @@ fn test_get_string_value() {
     let val = cache.get_string_value(string_node);
 
     assert_eq!(val, "hello!");
+
+    // verify that `get_string_value` did not update change tracker for Query(0)
+
+    let query_node = GraphNode::Query(0);
+    let val = cache.get_string(string_node, query_node);
+    assert_eq!(*val.value, PropValue::String("hello!".to_string()));
+    assert_eq!(val.changed, true);
 }
