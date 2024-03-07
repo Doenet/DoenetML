@@ -34,7 +34,7 @@ pub enum DataQuery {
         component_idx: Option<ComponentIdx>,
 
         /// The prop from component_idx or component making the query.
-        prop_idx: PropIdx,
+        local_prop_idx: PropIdx,
     },
     /// Query for a prop from a parent
     ParentProp { prop_name: &'static str },

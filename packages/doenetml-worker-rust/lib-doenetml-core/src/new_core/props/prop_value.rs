@@ -32,3 +32,12 @@ pub enum PropValue {
     Boolean(bool),
     Math(MathExpr),
 }
+
+pub mod prop_type {
+    //! This module provides a type for each discriminant of `PropValue`.
+    pub struct String;
+    pub struct Number;
+    pub struct Integer;
+    pub struct Boolean;
+    pub struct Math;
+}

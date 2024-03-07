@@ -83,7 +83,7 @@ impl Core {
             // Depend on a prop (of yourself or another component)
             DataQuery::Prop {
                 component_idx,
-                prop_idx: local_prop_idx,
+                local_prop_idx,
             } => {
                 let component_idx = component_idx.unwrap_or(prop_pointer.component_idx);
                 let target_prop_node = self.prop_pointer_to_prop_node(PropPointer {
@@ -102,7 +102,7 @@ impl Core {
                 let parent_idx = self.components[prop_pointer.component_idx]
                     .get_parent()
                     .expect("Component asks for parent but there is none.");
-                let prop_idx = self.components[parent_idx]
+                let local_prop_idx = self.components[parent_idx]
                     .get_local_prop_index_from_name(prop_name)
                     .unwrap_or_else(|| {
                         panic!(
@@ -119,7 +119,7 @@ impl Core {
                     prop_node,
                     DataQuery::Prop {
                         component_idx: Some(parent_idx),
-                        prop_idx,
+                        local_prop_idx,
                     },
                 );
 

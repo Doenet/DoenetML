@@ -1,8 +1,8 @@
 use enum_dispatch::enum_dispatch;
 
 use crate::{
-    components::{prelude::ComponentIdx, ComponentEnum},
-    new_core::props::Prop,
+    components::{prelude::ComponentIdx, ComponentEnum, ComponentProfile},
+    new_core::props::{Prop, PropUpdater},
 };
 
 pub type PropIdx = usize;
@@ -44,4 +44,17 @@ pub trait ComponentProps {
     /// Get the vector of the indices of all this component's props
     /// that have been marked `for_renderer`.
     fn get_for_renderer_local_prop_indices(&self) -> Vec<PropIdx>;
+}
+
+/// A trait to be implemented on each component variant. `ComponentProps` is only
+/// implemented on the master `struct Component`, which contains the `variant` as
+/// a field.
+pub trait ComponentVariantProps {
+    fn get_num_props(&self) -> usize;
+    fn get_prop_is_for_render(&self, local_prop_idx: PropIdx) -> bool;
+    fn get_prop_name(&self, local_prop_idx: PropIdx) -> &'static str;
+    fn get_prop_profile(&self, local_prop_idx: PropIdx) -> Option<ComponentProfile>;
+    fn get_prop_is_public(&self, local_prop_idx: PropIdx) -> bool;
+    fn get_prop_updater(&self, local_prop_idx: PropIdx) -> Box<dyn PropUpdater>;
+    fn get_default_prop_local_index(&self) -> Option<PropIdx>;
 }

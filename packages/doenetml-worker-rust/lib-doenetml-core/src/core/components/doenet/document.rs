@@ -61,7 +61,10 @@ impl ComponentChildren for Document {
 //
 //    enum Props {
 //        /// Docstring for stuff
-//        #[prop(value_type = String, is_public, component_profile_prop, default)]
+//        #[prop(value_type = String,
+//              is_public,
+//              profile(ComponentProfile::String),
+//              default)]
 //        Value,
 //
 //        /// Other docstring
