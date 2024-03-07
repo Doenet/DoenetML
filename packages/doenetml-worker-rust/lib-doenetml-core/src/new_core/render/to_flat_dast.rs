@@ -5,13 +5,13 @@ use crate::{
         prelude::{
             ComponentIdx, ComponentProps, ElementData, FlatDastElement, FlatDastElementContent,
         },
+        types::PropPointer,
         Component, ComponentActions, ComponentCommon, ComponentEnum, ComponentNode,
     },
     dast::{
         flat_dast::UntaggedContent, DastAttribute, DastText, DastTextRefContent,
         FlatDastElementUpdate, FlatDastRoot,
     },
-    state::PropPointer,
 };
 
 use super::{
@@ -49,7 +49,7 @@ impl Core {
             .into_iter()
             .map(|node| match node {
                 GraphNode::Component(idx) => FlatDastElementContent::Element(idx),
-                GraphNode::String(idx) => {
+                GraphNode::String(_) => {
                     FlatDastElementContent::Text(self.strings.get_string_value(node))
                 }
                 _ => panic!("Unexpected node type in component children {:?}", node),
@@ -110,7 +110,7 @@ impl Core {
             .into_iter()
             .flat_map(|child| match child {
                 GraphNode::Component(idx) => Some(FlatDastElementContent::Element(idx)),
-                GraphNode::String(idx) => Some(FlatDastElementContent::Text(
+                GraphNode::String(_) => Some(FlatDastElementContent::Text(
                     self.strings.get_string_value(child),
                 )),
                 _ => None,
@@ -129,7 +129,7 @@ impl Core {
         &mut self,
         component_idx: ComponentIdx,
     ) -> FlatDastElement {
-        let rendered_prop_pointers = self.components[component_idx]
+        let _rendered_prop_pointers = self.components[component_idx]
             .get_for_renderer_local_prop_indices()
             .into_iter()
             .map(|local_prop_idx| PropPointer {

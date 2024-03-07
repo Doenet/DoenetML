@@ -1,4 +1,4 @@
-use crate::{components::ComponentProfile, state::PropPointer};
+use crate::components::{types::PropPointer, ComponentProfile};
 
 use super::{PropUpdater, PropValueDiscriminants};
 

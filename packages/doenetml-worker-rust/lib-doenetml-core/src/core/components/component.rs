@@ -6,14 +6,18 @@ use std::str::FromStr;
 
 use crate::dast::Position as DastPosition;
 use crate::new_core::graph_node::GraphNode;
+use crate::new_core::props::{Prop, PropComponentMeta};
 use crate::new_core::render::{ChildQueryObject, ComponentChildren};
-use crate::state::{ComponentProps, PropIdx};
 
 use super::_error::_Error;
 use super::_external::_External;
 use super::component_enum::ComponentEnum;
 use super::prelude::{ComponentIdx, FlatAttribute};
-use super::{ComponentActions, ComponentAttributes, ComponentNode, ComponentProfile};
+use super::types::{PropIdx, PropPointer};
+use super::{
+    ComponentActions, ComponentAttributes, ComponentNode, ComponentProfile, ComponentProps,
+    ComponentVariantProps,
+};
 
 /// A DoenetML component. A component is a collection of props combined with render information.
 #[derive(Debug)]
@@ -67,11 +71,30 @@ pub trait ComponentCommon {
 
 impl ComponentProps for Component {
     fn generate_props(&self) -> Vec<crate::new_core::props::Prop> {
-        self.variant.generate_props()
+        let component_idx = self.get_idx();
+        (0..self.variant.get_num_props())
+            .map(|local_prop_idx| Prop {
+                meta: PropComponentMeta {
+                    name: self.variant.get_prop_name(local_prop_idx),
+                    for_renderer: self.variant.get_prop_is_for_render(local_prop_idx),
+                    profile: self.variant.get_prop_profile(local_prop_idx),
+                    prop_pointer: PropPointer {
+                        component_idx,
+                        local_prop_idx,
+                    },
+                    public: self.variant.get_prop_is_public(local_prop_idx),
+                },
+                updater: self.variant.get_prop_updater(local_prop_idx),
+                variant: self.variant.get_prop_value_type(local_prop_idx),
+            })
+            .collect()
     }
 
     fn get_local_prop_index_from_name(&self, name: &str) -> Option<PropIdx> {
-        self.variant.get_local_prop_index_from_name(name)
+        self.variant
+            .get_prop_names()
+            .iter()
+            .position(|&x| x == name)
     }
 
     fn get_public_local_prop_index_from_name_case_insensitive(
@@ -79,11 +102,15 @@ impl ComponentProps for Component {
         name: &str,
     ) -> Option<PropIdx> {
         self.variant
-            .get_public_local_prop_index_from_name_case_insensitive(name)
+            .get_prop_names()
+            .iter()
+            .position(|&x| x.eq_ignore_ascii_case(name))
     }
 
     fn get_component_profile_local_prop_indices(&self) -> Vec<PropIdx> {
-        self.variant.get_component_profile_local_prop_indices()
+        (0..self.variant.get_num_props())
+            .filter(|&i| self.variant.get_prop_profile(i).is_some())
+            .collect()
     }
 
     fn get_default_prop_local_index(&self) -> Option<PropIdx> {
@@ -91,7 +118,9 @@ impl ComponentProps for Component {
     }
 
     fn get_for_renderer_local_prop_indices(&self) -> Vec<PropIdx> {
-        self.variant.get_for_renderer_local_prop_indices()
+        (0..self.variant.get_num_props())
+            .filter(|&i| self.variant.get_prop_is_for_render(i))
+            .collect()
     }
 }
 

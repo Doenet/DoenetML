@@ -33,6 +33,9 @@ pub enum PropValue {
     Math(MathExpr),
 }
 
+/// The discriminating type of a `PropValue`.
+pub type PropValueType = PropValueDiscriminants;
+
 pub mod prop_type {
     //! This module provides a type for each discriminant of `PropValue`.
     pub struct String;

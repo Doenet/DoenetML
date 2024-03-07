@@ -9,15 +9,15 @@ use crate::{
         prelude::{
             ComponentIdx, Extending, FlatAttribute, KeyValueIgnoreCase, PropSource, UntaggedContent,
         },
+        types::PropPointer,
         Component, ComponentAttributes, ComponentCommon, ComponentCommonData, ComponentEnum,
-        ComponentNode,
+        ComponentNode, ComponentProps,
     },
     dast::{
         flat_dast::{Index, NormalizedNode, NormalizedRoot, Source},
         ref_resolve::RefResolution,
     },
     graph::directed_graph::DirectedGraph,
-    state::{ComponentProps, PropPointer},
 };
 
 use super::{

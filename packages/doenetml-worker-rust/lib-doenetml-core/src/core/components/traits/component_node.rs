@@ -1,14 +1,12 @@
-use crate::state::{ComponentProps, PropIdx};
 use enum_dispatch::enum_dispatch;
 
-use super::component_profile::ComponentProfile;
-use super::ComponentEnum;
+use crate::components::{types::PropIdx, ComponentEnum, ComponentProfile};
 
 /// The Component trait specifies methods that will, in general, be implemented by deriving them.
 /// It depends on the ComponentProps trait, which will be derived
 /// for each component type based on its prop structure.
 #[enum_dispatch]
-pub trait ComponentNode: ComponentProps {
+pub trait ComponentNode {
     /// Get the component type, which is the name of the component's struct
     /// converted to camel case.
     fn get_component_type(&self) -> &str;
@@ -41,13 +39,14 @@ pub trait ComponentNode: ComponentProps {
     /// that profile.
     fn provided_profiles(&self) -> Vec<(ComponentProfile, PropIdx)> {
         // TODO: Make more efficient?
-        self.generate_props()
-            .into_iter()
-            .filter_map(|prop| {
-                prop.meta
-                    .profile
-                    .map(|profile| (profile, prop.meta.prop_pointer.local_prop_idx))
-            })
-            .collect()
+        unimplemented!()
+        //self.generate_props()
+        //    .into_iter()
+        //    .filter_map(|prop| {
+        //        prop.meta
+        //            .profile
+        //            .map(|profile| (profile, prop.meta.prop_pointer.local_prop_idx))
+        //    })
+        //    .collect()
     }
 }

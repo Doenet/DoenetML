@@ -1,6 +1,6 @@
 use crate::components::prelude::*;
 
-#[derive(Debug, Default, ComponentProps, ComponentActions, ComponentAttributes)]
+#[derive(Debug, Default, ComponentActions, ComponentAttributes)]
 //#[pass_through_children]
 pub struct _External {
     pub common: ComponentCommonData,
@@ -24,5 +24,35 @@ impl ComponentChildren for _External {
     fn get_rendered_children(&self, child_query_object: ChildQueryObject) -> Vec<GraphNode> {
         // Return children without modification
         child_query_object.child_iter().collect()
+    }
+}
+
+impl ComponentVariantProps for _External {
+    fn get_default_prop_local_index(&self) -> Option<PropIdx> {
+        None
+    }
+    fn get_num_props(&self) -> usize {
+        0
+    }
+    fn get_prop_is_for_render(&self, _local_prop_idx: PropIdx) -> bool {
+        panic!("No props on _External")
+    }
+    fn get_prop_name(&self, _local_prop_idx: PropIdx) -> &'static str {
+        panic!("No props on _External")
+    }
+    fn get_prop_profile(&self, _local_prop_idx: PropIdx) -> Option<ComponentProfile> {
+        None
+    }
+    fn get_prop_value_type(&self, _local_prop_idx: PropIdx) -> PropValueType {
+        panic!("No props on _External")
+    }
+    fn get_prop_is_public(&self, _local_prop_idx: PropIdx) -> bool {
+        panic!("No props on _External")
+    }
+    fn get_prop_names(&self) -> &'static [&'static str] {
+        &[]
+    }
+    fn get_prop_updater(&self, _local_prop_idx: PropIdx) -> Box<dyn PropUpdater> {
+        panic!("No props on _External")
     }
 }

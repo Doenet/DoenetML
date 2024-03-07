@@ -1,10 +1,12 @@
 use crate::components::prelude::*;
 
-#[derive(Debug, Default, ComponentProps, ComponentActions, ComponentAttributes, ComponentNode)]
+#[derive(Debug, Default, ComponentActions, ComponentAttributes, ComponentNode)]
 //#[pass_through_children]
 pub struct Document {
     //   pub props: DocumentProps,
 }
+
+impl ComponentVariantProps for Document {}
 
 #[derive(Debug, Default, ComponentProps)]
 pub struct DocumentProps {}
@@ -61,9 +63,9 @@ impl ComponentChildren for Document {
 //
 //    enum Props {
 //        /// Docstring for stuff
-//        #[prop(value_type = String,
+//        #[prop(value_type = PropValueType::String,
 //              is_public,
-//              profile(ComponentProfile::String),
+//              profile = ComponentProfile::String,
 //              default)]
 //        Value,
 //

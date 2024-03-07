@@ -1,6 +1,6 @@
 use crate::components::prelude::*;
 
-#[derive(Debug, Default, ComponentProps, ComponentNode, ComponentActions, ComponentAttributes)]
+#[derive(Debug, Default, ComponentNode, ComponentActions, ComponentAttributes)]
 //#[pass_through_children]
 pub struct _Error {
     pub common: ComponentCommonData,
@@ -13,6 +13,8 @@ impl _Error {
         Self::default()
     }
 }
+
+impl ComponentVariantProps for _Error {}
 
 impl ComponentChildren for _Error {
     fn get_rendered_children(&self, _child_query_object: ChildQueryObject) -> Vec<GraphNode> {

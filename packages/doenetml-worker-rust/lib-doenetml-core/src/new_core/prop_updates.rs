@@ -1,12 +1,10 @@
 use std::collections::HashMap;
 
-use crate::{
-    components::{
-        actions::{Action, UpdateFromAction},
-        prelude::{ComponentIdx, FlatDastElementUpdate, PropIdx},
-        ComponentActions,
-    },
-    state::PropPointer,
+use crate::components::{
+    actions::{Action, UpdateFromAction},
+    prelude::{ComponentIdx, FlatDastElementUpdate, PropIdx},
+    types::PropPointer,
+    ComponentActions,
 };
 
 use super::{

@@ -1,5 +1,7 @@
 use enum_dispatch::enum_dispatch;
 
+use crate::components::ComponentEnum;
+
 use crate::attribute::AttributeName;
 use crate::new_core::props::Prop;
 

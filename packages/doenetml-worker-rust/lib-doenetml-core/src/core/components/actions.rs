@@ -1,9 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-use crate::state::PropIdx;
-
 use super::{
     prelude::{ComponentIdx, PropValue},
+    types::PropIdx,
     ActionsEnum,
 };
 

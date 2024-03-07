@@ -2,10 +2,14 @@ use enum_dispatch::enum_dispatch;
 
 use serde::{Deserialize, Serialize};
 
-use crate::state::PropIdx;
+use crate::components::doenet::document::Document;
+use crate::components::special::_error::_Error;
+use crate::components::special::_external::_External;
+use crate::{
+    components::{actions::UpdateFromAction, types::PropIdx, ComponentEnum},
+    new_core::props::PropValue,
+};
 
-use super::actions::UpdateFromAction;
-use super::prelude::PropValue;
 use super::ComponentNode;
 
 /// An enum listing the actions that are available for each component type.
