@@ -10,7 +10,7 @@ use crate::{
 use super::{
     component_builder::ComponentBuilder,
     graph_node::{DependencyGraph, GraphNode, StructureGraph},
-    props::{cache::PropCache, Prop, StateCache},
+    props::{cache::PropCache, Prop, StateCache, StringCache},
 };
 
 /// Core stores all hydrated components, keeps track of caching data, and tracks dependencies.
@@ -29,7 +29,7 @@ pub struct Core {
     /// as well as asked to calculate/recalculate props.
     pub components: Vec<Component>,
     /// A list of all strings in the document. Strings are stored here once and referenced when they appear as children.
-    pub strings: Vec<String>,
+    pub strings: StringCache,
     /// A counter for the number of virtual nodes created. Every virtual node needs to be unique (so that
     /// it can be referenced), but we don't store any information about virtual nodes themselves.
     virtual_node_count: usize,
@@ -61,7 +61,7 @@ impl Core {
             structure_graph: DirectedGraph::new(),
             dependency_graph: DirectedGraph::new(),
             components: Vec::new(),
-            strings: Vec::new(),
+            strings: StringCache::new(),
             props: Vec::new(),
             states: StateCache::new(),
             queries: vec![()],

@@ -12,6 +12,7 @@ use crate::{
 use super::cache::PropWithMeta;
 
 /// Data resulting from a `DataQuery`
+#[derive(Debug)]
 pub struct DataQueryResult {
     /// The graph `GraphNode::Query` on the dependency graph that specified what data is needed.
     pub graph_node: GraphNode,
