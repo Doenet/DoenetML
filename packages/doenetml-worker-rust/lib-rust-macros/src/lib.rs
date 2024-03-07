@@ -1,5 +1,6 @@
 extern crate proc_macro2;
 
+use component::parse_module::parse_module;
 use component_attributes::attribute_prop_derive;
 use component_node::{
     component_actions_derive, component_attributes_derive, component_children_derive,
@@ -14,7 +15,9 @@ use prop_methods::{
     into_prop_enum_refs_derive, prop_methods_derive, prop_methods_mut_derive,
     prop_mutable_view_methods_derive, prop_read_only_view_methods_derive,
 };
+use quote::quote;
 
+mod component;
 mod component_attributes;
 mod component_node;
 mod component_props;
@@ -184,4 +187,25 @@ pub fn prop_data_queries_derive_wrapper(input: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 pub fn add_dependency_data(attr: TokenStream, item: TokenStream) -> TokenStream {
     add_dependency_data_impl(attr, item)
+}
+
+/// The building blocks of a component
+/// XXX: Finish doc.
+#[proc_macro_attribute]
+pub fn component(attr: TokenStream, item: TokenStream) -> TokenStream {
+    let item = proc_macro2::TokenStream::from(item);
+    let attr = proc_macro2::TokenStream::from(attr);
+
+    // The function is meant to be called on the full tree with the
+    // `#[component(...)]` intact. So, we reconstruct it here.
+    let combined = quote! {
+        #[component(#attr)]
+        #item
+    };
+
+    //panic!("{}", attr);
+
+    parse_module(combined);
+
+    quote! {}.into()
 }
