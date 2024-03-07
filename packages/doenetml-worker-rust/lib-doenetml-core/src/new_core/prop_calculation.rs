@@ -135,6 +135,7 @@ impl Core {
                         )
                     }
                     GraphNode::State(_) => Some(self.states.get_state(node, query_node)),
+                    GraphNode::String(_) => Some(self.strings.get_string(node, query_node)),
                     // XXX: Can we have other children
                     _ => None,
                 }
