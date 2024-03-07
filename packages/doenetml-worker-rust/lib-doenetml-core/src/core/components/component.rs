@@ -135,7 +135,13 @@ impl ComponentNode for Component {
         self.variant.extend_via_default_prop()
     }
     fn provided_profiles(&self) -> Vec<(ComponentProfile, PropIdx)> {
-        self.variant.provided_profiles()
+        (0..self.variant.get_num_props())
+            .flat_map(|local_prop_idx| {
+                self.variant
+                    .get_prop_profile(local_prop_idx)
+                    .map(|profile| (profile, local_prop_idx))
+            })
+            .collect()
     }
 }
 

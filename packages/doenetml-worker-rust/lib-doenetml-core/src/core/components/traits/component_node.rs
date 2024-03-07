@@ -38,15 +38,10 @@ pub trait ComponentNode {
     /// index of the prop that you should refer to if you want data satisfying
     /// that profile.
     fn provided_profiles(&self) -> Vec<(ComponentProfile, PropIdx)> {
-        // TODO: Make more efficient?
-        unimplemented!()
-        //self.generate_props()
-        //    .into_iter()
-        //    .filter_map(|prop| {
-        //        prop.meta
-        //            .profile
-        //            .map(|profile| (profile, prop.meta.prop_pointer.local_prop_idx))
-        //    })
-        //    .collect()
+        // This is automatically implemented for `Component` from `ComponentVariantProps`
+        // so it doesn't actually need to be implemented on each variant.
+        // This impl is kept here so that `Component` and each component variant
+        // can have the same traits
+        panic!("Not implemented. `provided_profiles` is automatically implemented on `Component`")
     }
 }
