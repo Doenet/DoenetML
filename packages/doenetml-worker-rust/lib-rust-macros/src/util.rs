@@ -1,5 +1,6 @@
 use proc_macro2::Ident;
-use syn::{self, Attribute, GenericArgument, Meta, PathArguments, Type, TypePath};
+use syn::{self, Attribute, Meta, Type};
+//use syn::{self, Attribute, GenericArgument, Meta, PathArguments, Type, TypePath};
 
 pub fn find_type_from_prop(ty: &Type) -> Option<&Ident> {
     if let Type::Path(type_path) = ty {
@@ -10,18 +11,18 @@ pub fn find_type_from_prop(ty: &Type) -> Option<&Ident> {
     None
 }
 
-pub fn find_type_from_prop_with_generics(ty: &Type) -> Option<&Ident> {
-    if let Type::Path(type_path) = ty {
-        let seg = &type_path.path.segments[0];
-
-        if let PathArguments::AngleBracketed(path_args) = &seg.arguments {
-            if let GenericArgument::Type(Type::Path(TypePath { path, .. })) = &path_args.args[0] {
-                return Some(&path.segments[0].ident);
-            }
-        }
-    }
-    None
-}
+// pub fn find_type_from_prop_with_generics(ty: &Type) -> Option<&Ident> {
+//     if let Type::Path(type_path) = ty {
+//         let seg = &type_path.path.segments[0];
+//
+//         if let PathArguments::AngleBracketed(path_args) = &seg.arguments {
+//             if let GenericArgument::Type(Type::Path(TypePath { path, .. })) = &path_args.args[0] {
+//                 return Some(&path.segments[0].ident);
+//             }
+//         }
+//     }
+//     None
+// }
 
 pub fn has_attribute(attrs: &[Attribute], attr_name: &str) -> bool {
     for attr in attrs.iter() {

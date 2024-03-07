@@ -1,3 +1,9 @@
+use serde::{Deserialize, Serialize};
+
+use crate::new_core::props::PropValue;
+
+use super::ActionsEnum;
+
 /// The local index of a prop relative to the component to which it belongs.
 pub type PropIdx = usize;
 
@@ -42,3 +48,23 @@ pub struct PropPointer {
     /// it belongs. This is _not_ the offset of the prop in `Core.props`.
     pub local_prop_idx: PropIdx,
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "web", derive(tsify::Tsify))]
+#[cfg_attr(feature = "web", tsify(from_wasm_abi))]
+pub struct ActionBody<T> {
+    pub args: T,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[cfg_attr(feature = "web", derive(tsify::Tsify))]
+#[cfg_attr(feature = "web", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "web", tsify(from_wasm_abi))]
+pub struct Action {
+    pub component_idx: ComponentIdx,
+    #[serde(flatten)]
+    pub action: ActionsEnum,
+}
+
+pub struct UpdateFromAction(pub PropIdx, pub PropValue);

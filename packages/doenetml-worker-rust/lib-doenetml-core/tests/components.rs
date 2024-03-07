@@ -5,12 +5,12 @@ use test_utils::*;
 
 use doenetml_core::{
     components::{
-        actions::{Action, ActionBody},
         doenet::{
             boolean::BooleanProps,
             text::TextProps,
             text_input::{TextInputAction, TextInputActionArgs, TextInputProps},
         },
+        types::{Action, ActionBody},
         ActionsEnum, ComponentNode,
     },
     new_core::graph_based_core::Core,

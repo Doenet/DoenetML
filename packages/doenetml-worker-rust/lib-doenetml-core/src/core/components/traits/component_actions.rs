@@ -6,7 +6,7 @@ use crate::components::doenet::document::Document;
 use crate::components::special::_error::_Error;
 use crate::components::special::_external::_External;
 use crate::{
-    components::{actions::UpdateFromAction, types::PropIdx, ComponentEnum},
+    components::{types::PropIdx, types::UpdateFromAction, ComponentEnum},
     new_core::props::PropValue,
 };
 

@@ -9,7 +9,7 @@ use super::dast::{
     FlatDastRoot, Position as DastPosition,
 };
 
-use crate::components::actions::{Action, UpdateFromAction};
+use crate::components::types::{Action, UpdateFromAction};
 use crate::components::prelude::{ComponentProps, PropIdx};
 use crate::dast::flat_dast::{FlatRoot, UntaggedContent};
 use crate::dast::ref_expand::Expander;

@@ -9,7 +9,7 @@ use tsify::Tsify;
 use wasm_bindgen::prelude::*;
 
 use doenetml_core::{
-    components::{actions::Action, prelude::ComponentIdx},
+    components::{prelude::ComponentIdx, types::Action},
     dast::{DastRoot, FlatDastElementUpdate, FlatDastRoot},
     new_core::graph_based_core::Core,
 };

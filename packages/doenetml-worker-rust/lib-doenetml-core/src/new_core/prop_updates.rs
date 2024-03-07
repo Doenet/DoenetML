@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 
 use crate::components::{
-    actions::{Action, UpdateFromAction},
     prelude::{ComponentIdx, FlatDastElementUpdate, PropIdx},
     types::PropPointer,
+    types::{Action, UpdateFromAction},
     ComponentActions,
 };
 
