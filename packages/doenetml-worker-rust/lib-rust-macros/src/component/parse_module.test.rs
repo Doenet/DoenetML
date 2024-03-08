@@ -9,11 +9,11 @@ fn test_can_parse_module() {
 
             enum Props {
                 /// Docstring for stuff
-                #[prop(value_type = String, is_public, component_profile_prop, default)]
+                #[prop(value_type = PropValueType::String, is_public, profile = ComponentProfile::String, default)]
                 Value,
                 
                 /// Other docstring
-                #[prop(value_type = String, is_public)]
+                #[prop(value_type = PropValueType::Boolean, is_public, for_render)]
                 ImmediateValue,
             }
             enum Actions {

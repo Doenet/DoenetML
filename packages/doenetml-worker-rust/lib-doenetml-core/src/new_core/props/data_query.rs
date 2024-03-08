@@ -20,6 +20,14 @@ pub struct DataQueryResult {
     pub values: Vec<PropWithMeta>,
 }
 
+/// A vector of `DataQueryResult`s implemented as a wrapped type.
+///
+/// The type is wrapped so we can re-implement external traits like `std::ops::Index`.
+#[derive(Debug)]
+pub struct DataQueryResultVec {
+    pub vec: Vec<DataQueryResult>,
+}
+
 /// A DataQuery is used to make a Dependency based on the input document structure
 #[derive(Debug, Clone, Default, PartialEq)]
 pub enum DataQuery {

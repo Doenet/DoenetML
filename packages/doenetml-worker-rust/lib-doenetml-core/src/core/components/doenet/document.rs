@@ -61,7 +61,7 @@ impl ComponentChildren for Document {
 //
 //    use super::ActionBody;
 //
-//    enum Props {
+//  enum Props {
 //        /// Docstring for stuff
 //        #[prop(value_type = PropValueType::String,
 //              is_public,
@@ -71,8 +71,8 @@ impl ComponentChildren for Document {
 //
 //        /// Other docstring
 //        #[prop(value_type = String, is_public)]
-//        ImmediateValue,
-//    }
+//    ImmediateValue,
+//}
 //    enum Actions {
 //        UpdateImmediateValue(ActionBody<()>),
 //        UpdateValue,
@@ -88,6 +88,18 @@ impl ComponentChildren for Document {
 //        #[attribute(prop = StringProp, default = String::new())]
 //        Prefill,
 //    }
+
+//impl Props {
+//    fn get_updater(&self) {
+//         match self {
+//             Props::Value => (),
+//             Props::ImmediateValue => {
+//                StringProp::new_from_children("".to_string()).into_prop();
+//                todo!()
+//             },
+//        }
+//    }
+//}
 //}
 //
 ////pub type Document = component::Component;
@@ -96,3 +108,54 @@ impl ComponentChildren for Document {
 ////pub type DocumentAttributes = component::Attributes;
 ////pub type DocumentRenderedProps = component::RenderedProps;
 //
+
+//enum RequiredData {
+//    FooState,
+//    BarState
+//}
+//
+//impl GetDataQueries for RequiredData {
+//    fn get_query(&self) -> DataQuery {
+//        match self {
+//            RequiredData::FooState => DataQuery::State,
+//            RequiredData::BarState => DataQuery::Prop{..Default::default()},
+//        }
+//    }
+//}
+//
+//trait GetProp<T> {
+//    fn get(&self, idx: T) -> DataQueryResult;
+//}
+//
+//
+//impl GetProp<RequiredData> for Vec<DataQueryResult> {
+//    fn get_vec(&self, idx: RequiredData) -> Vec<PropWithMeta> {
+//        match idx {
+//            RequiredData::FooState => self[0].values,
+//            RequiredData::BarState => self[1].values,
+//        }
+//    }
+//    fn get_single(&self, idx: RequiredData) -> PropWithMeta {
+//        match idx {
+//            RequiredData::FooState => self[0].values[0],
+//            RequiredData::BarState => self[1].values[0],
+//        }
+//    }
+//}
+//
+//fn updater(res: Vec<DataQueryResult>) {
+//    let foo_state = res.get_single(RequiredData::FooState);
+//    let foo_state_value: String = foo_state.try_into()?;
+//    let bar_state = res.get_vec(RequiredData::BarState);
+//
+//}
+
+//struct TypedPropWithMeta<T> {
+//    value: T,
+//    meta: ()
+//}
+
+//struct RequiredData {
+//    foo_state: TypedPropWithMeta<String>,
+//    bar_state: Vec<TypedPropWithMeta<bool>>,
+//}
