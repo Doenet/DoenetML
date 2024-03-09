@@ -2,6 +2,8 @@ use convert_case::{Case, Casing};
 use proc_macro2::TokenStream;
 use quote::quote;
 
+use crate::component::component_mod::Children;
+
 use super::super::component_mod::ComponentModule;
 
 impl ComponentModule {
@@ -14,6 +16,7 @@ impl ComponentModule {
         let impl_component_attributes_trait = self.impl_component_attributes_trait();
         let impl_component_actions_trait = self.impl_component_actions_trait();
         let impl_component_on_action_trait = self.impl_component_on_action_trait();
+        let impl_component_children_trait = self.impl_component_children_trait();
 
         quote! {
             #component
@@ -23,6 +26,7 @@ impl ComponentModule {
             #impl_component_variant_props_trait
             #impl_component_actions_trait
             #impl_component_on_action_trait
+            #impl_component_children_trait
         }
     }
 
@@ -208,6 +212,38 @@ impl ComponentModule {
             }
         } else {
             quote! {}
+        }
+    }
+
+    /// Implement the `ComponentChildren` trait for the component.
+    /// The implementation chosen is based on `self.children` which specifies
+    /// `Passthrough`, `None`, or `Handle`. If `Handle` is specified, the component
+    /// author must implement the trait themselves so an empty token stream is returned.
+    pub fn impl_component_children_trait(&self) -> TokenStream {
+        match self.children {
+            Children::Handle => {
+                quote! {}
+            }
+            Children::None => {
+                quote! {
+                    impl ComponentChildren for Component {
+                        fn get_rendered_children(&self, _: ChildQueryObject) -> Vec<GraphNode> {
+                            // Return no children
+                            Vec::new()
+                        }
+                    }
+                }
+            }
+            Children::Passthrough => {
+                quote! {
+                    impl ComponentChildren for Component {
+                        fn get_rendered_children(&self, child_query_object: ChildQueryObject) -> Vec<GraphNode> {
+                            // Return the children passed through without modification
+                            child_query_object.child_iter().collect()
+                        }
+                    }
+                }
+            }
         }
     }
 }

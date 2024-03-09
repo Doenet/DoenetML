@@ -77,32 +77,42 @@ impl PropsEnum {
 }
 
 /// Extract the `enum Props {...}` from the module.
-pub fn props_enum_from_module(module: &syn::ItemMod) -> Option<PropsEnum> {
+pub fn props_enum_from_module(module: &syn::ItemMod) -> syn::Result<Option<PropsEnum>> {
     let enums = find_enums_in_module(module);
     let enums = enums
         .iter()
         .map(|enum_instance| EnumInBody::from_derive_input(&enum_instance.clone().into()).unwrap())
         .collect::<Vec<_>>();
 
-    let props_enum = enums
+    let props_enum: Option<syn::Result<_>> = enums
         .iter()
         .find(|enum_instance| enum_instance.ident == "Props")
         .map(|enum_instance| {
-            let variants = enum_instance.data.clone().take_enum().unwrap();
-            variants
+            let variants: Result<Vec<_>, _> = enum_instance
+                .data
+                .clone()
+                .take_enum()
+                .unwrap()
                 .iter()
                 .map(PropsVariant::from_variant)
-                .map(Result::unwrap)
+                .collect();
+
+            let variants = variants?;
+
+            let variants: Vec<_> = variants
+                .into_iter()
                 .map(|mut variant| {
                     // Extract the doc comments.
                     variant.doc = doc_comment_from_attrs(&variant.attrs);
                     // Now that we have the doc comments, we don't need to keep the attrs around anymore.
-                    variant.attrs.clear();
-
+                    // ...
                     variant
                 })
-                .collect::<Vec<_>>()
+                .collect();
+
+            Ok(variants)
         });
 
-    props_enum.map(|variants| PropsEnum { variants })
+    let props_enum = props_enum.transpose()?;
+    Ok(props_enum.map(|variants| PropsEnum { variants }))
 }

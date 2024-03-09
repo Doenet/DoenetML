@@ -1,10 +1,17 @@
 use crate::components::prelude::*;
 use crate::general_prop::StringProp;
 
-#[component(name = Text)]
+#[component(name = Text, children = "none")]
 mod component {
     enum Props {
-        #[prop(value_type = PropValueType::String, is_public, profile = ComponentProfile::String, default)]
+        /// The value of the `<text>`. This is the content that will be displayed inside
+        /// the `<text>` component.
+        #[prop(
+            value_type = PropValueType::String,
+            is_public,
+            profile = ComponentProfile::String,
+            default
+        )]
         Value,
     }
 
@@ -30,12 +37,6 @@ impl PropGetUpdater for TextProps {
     }
 }
 
-impl ComponentChildren for Text {
-    fn get_rendered_children(&self, _child_query_object: ChildQueryObject) -> Vec<GraphNode> {
-        // Return no children
-        Vec::new()
-    }
-}
 // #[derive(Debug, AttributeProp)]
 // pub enum TextAttribute {
 //     /// Whether the `<text>` should be hidden.

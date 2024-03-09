@@ -90,11 +90,15 @@ pub fn attribute_prop_derive_wrapper(input: TokenStream) -> TokenStream {
 /// }
 /// ```
 ///  It has the following options:
-/// - `name = ...` - Required; the name of your component in PascalCase.
-/// - `ref_transmutes_to = ...` - Optional; if this component is used directly as a reference (i.e. using `$foo`
+/// - `name = ...` - Required; the name of your component in PascalCase supplied as an unquoted string. E.g. `name = MyComponent`.
+/// - `ref_transmutes_to = ...` - Optional; supplied as an unquoted string. If this component is used directly as a reference (i.e. using `$foo`
 /// syntax), then instead of creating a component `<self>`, create the component specified by `ref_transmutes_to`.
 /// This is used, for example, in the `textInput` component where the code `<textInput name="a"/>$a` should render as
 /// `<textInput name="a"/><text extend="$a"/>` rather than `<textInput name="a"/><textInput extend="$a"/>`.
+/// - `children = "..."` - Optional; one of `"passthrough"` (default), `"handle"`, or `"none"`. This controls how the children
+/// of your component are handled. If `"passthrough"`, then the children of your component are passed unmodified to the renderer.
+/// If `"handle"`, then the children are handled explicitly by the component author, in which case you _must_ implement
+/// `ComponentChildren` yourself on the resulting component. If `"none"`, then the component will not render any children.
 ///
 /// ### `#[attribute(...)]`
 ///
@@ -169,5 +173,8 @@ pub fn component(attr: TokenStream, item: TokenStream) -> TokenStream {
 
     //panic!("{}", attr);
 
-    parse_module(combined).into()
+    match parse_module(combined) {
+        Ok(tokens) => tokens.into(),
+        Err(e) => e.to_compile_error().into(),
+    }
 }
