@@ -3,13 +3,19 @@ use doenetml_derive::component;
 
 #[component(name = Document)]
 pub mod component {}
-impl ComponentChildren for component::Component {
+
+pub use component::Document;
+pub use component::DocumentActions;
+pub use component::DocumentAttributes;
+pub use component::DocumentProps;
+
+impl ComponentChildren for Document {
     fn get_rendered_children(&self, child_query_object: ChildQueryObject) -> Vec<GraphNode> {
         // Return children without modification
         child_query_object.child_iter().collect()
     }
 }
-impl PropGetUpdater for component::Props {
+impl PropGetUpdater for DocumentProps {
     fn get_updater(&self) -> Box<dyn PropUpdater> {
         unimplemented!()
     }

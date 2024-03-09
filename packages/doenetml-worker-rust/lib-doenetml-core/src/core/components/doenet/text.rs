@@ -23,15 +23,15 @@ pub use component::TextProps;
 
 // XXX - ignoring hide attribute
 
-impl PropGetUpdater for component::Props {
+impl PropGetUpdater for TextProps {
     fn get_updater(&self) -> Box<dyn PropUpdater> {
         match self {
-            component::Props::Value => Box::new(StringProp::new_from_children("".to_string())),
+            TextProps::Value => Box::new(StringProp::new_from_children("".to_string())),
         }
     }
 }
 
-impl ComponentChildren for component::Component {
+impl ComponentChildren for Text {
     fn get_rendered_children(&self, _child_query_object: ChildQueryObject) -> Vec<GraphNode> {
         // Return no children
         Vec::new()
