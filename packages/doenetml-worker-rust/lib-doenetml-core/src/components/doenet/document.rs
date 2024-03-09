@@ -1,5 +1,4 @@
 use crate::components::prelude::*;
-use doenetml_derive::component;
 
 #[component(name = Document)]
 pub mod component {}
@@ -58,7 +57,6 @@ impl PropGetUpdater for DocumentProps {
 //
 //#[component(name = Document)]
 //mod component {
-//    use doenetml_derive::component;
 //
 //    use crate::core::props::PropValueDiscriminants;
 //

@@ -1,6 +1,5 @@
 use crate::components::prelude::*;
 use crate::general_prop::StringProp;
-use doenetml_derive::component;
 
 #[component(name = Text)]
 mod component {
