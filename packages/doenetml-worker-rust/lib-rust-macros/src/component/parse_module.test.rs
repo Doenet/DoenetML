@@ -1,3 +1,5 @@
+use crate::component::utils::pretty_print;
+
 use super::*;
 
 #[test]
@@ -35,6 +37,7 @@ fn test_can_parse_module() {
         }
     "#;
     let result = parse_module(syn::parse_str(input).unwrap());
+    println!("\n{}\n", pretty_print(&result));
     //dbg!(syn::parse_str::<ItemMod>(input).unwrap());
-    dbg!(result.to_string());
+    // dbg!(result.to_string());
 }
