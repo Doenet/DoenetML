@@ -3,7 +3,6 @@ use std::{cell::RefCell, collections::HashMap, rc::Rc};
 #[cfg(feature = "web")]
 use wasm_bindgen::prelude::*;
 
-use super::components::{ComponentActions, ComponentEnum};
 use super::dast::{
     DastRoot, DastWarning, FlatDastElement, FlatDastElementContent, FlatDastElementUpdate,
     FlatDastRoot, Position as DastPosition,

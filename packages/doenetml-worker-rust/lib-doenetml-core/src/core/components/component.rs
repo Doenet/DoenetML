@@ -6,7 +6,7 @@ use std::str::FromStr;
 
 use crate::dast::Position as DastPosition;
 use crate::new_core::graph_node::GraphNode;
-use crate::new_core::props::{Prop, PropComponentMeta};
+use crate::new_core::props::{Prop, PropComponentMeta, PropValue};
 use crate::new_core::render::{ChildQueryObject, ComponentChildren};
 
 use super::_error::_Error;
@@ -15,8 +15,8 @@ use super::component_enum::ComponentEnum;
 use super::prelude::{ComponentIdx, FlatAttribute};
 use super::types::{PropIdx, PropPointer};
 use super::{
-    ComponentActions, ComponentAttributes, ComponentNode, ComponentProfile, ComponentProps,
-    ComponentVariantProps,
+    ActionsEnum, ComponentActions, ComponentAttributes, ComponentNode, ComponentOnAction,
+    ComponentProfile, ComponentProps, ComponentVariantProps,
 };
 
 /// A DoenetML component. A component is a collection of props combined with render information.
@@ -164,7 +164,7 @@ impl ComponentChildren for Component {
 }
 
 impl ComponentActions for Component {
-    fn get_action_names(&self) -> Vec<String> {
+    fn get_action_names(&self) -> &'static [&'static str] {
         self.variant.get_action_names()
     }
 }
@@ -199,5 +199,15 @@ impl Component {
         unused_attributes: HashMap<String, FlatAttribute>,
     ) {
         self.common.unrecognized_attributes = unused_attributes;
+    }
+}
+
+impl ComponentOnAction for Component {
+    fn on_action(
+        &self,
+        action: ActionsEnum,
+        resolve_and_retrieve_prop: &mut dyn FnMut(PropIdx) -> PropValue,
+    ) -> Result<Vec<super::types::UpdateFromAction>, String> {
+        self.variant.on_action(action, resolve_and_retrieve_prop)
     }
 }

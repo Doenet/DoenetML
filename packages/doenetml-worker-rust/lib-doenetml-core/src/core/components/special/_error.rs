@@ -1,6 +1,6 @@
 use crate::components::prelude::*;
 
-#[derive(Debug, Default, ComponentNode, ComponentActions, ComponentAttributes)]
+#[derive(Debug, Default, ComponentNode, ComponentAttributes)]
 //#[pass_through_children]
 pub struct _Error {
     pub common: ComponentCommonData,
@@ -13,6 +13,9 @@ impl _Error {
         Self::default()
     }
 }
+
+impl ComponentActions for _Error {}
+impl ComponentOnAction for _Error {}
 
 impl ComponentVariantProps for _Error {}
 

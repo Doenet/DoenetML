@@ -1,6 +1,6 @@
 use crate::components::prelude::*;
 
-#[derive(Debug, Default, ComponentActions, ComponentAttributes)]
+#[derive(Debug, Default, ComponentAttributes)]
 //#[pass_through_children]
 pub struct _External {
     pub common: ComponentCommonData,
@@ -11,6 +11,9 @@ pub struct _External {
 
 #[derive(Debug, Default, ComponentProps)]
 pub struct _ExternalProps {}
+
+impl ComponentActions for _External {}
+impl ComponentOnAction for _External {}
 
 impl ComponentNode for _External {
     // The main reason we customize the implementation of ComponentNode

@@ -4,7 +4,6 @@ use doenetml_derive::component;
 
 #[component(name = Text)]
 mod component {
-
     enum Props {
         #[prop(value_type = PropValueType::String, is_public, profile = ComponentProfile::String, default)]
         Value,
@@ -17,9 +16,12 @@ mod component {
     }
 }
 
+pub use component::Text;
+pub use component::TextActions;
+pub use component::TextAttributes;
+pub use component::TextProps;
+
 // XXX - ignoring hide attribute
-impl ComponentAttributes for component::Component {}
-impl ComponentActions for component::Component {}
 
 impl PropGetUpdater for component::Props {
     fn get_updater(&self) -> Box<dyn PropUpdater> {

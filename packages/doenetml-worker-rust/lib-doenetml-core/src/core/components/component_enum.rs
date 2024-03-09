@@ -23,6 +23,7 @@ use super::doenet::text;
     ComponentVariantProps,
     ComponentAttributes,
     ComponentActions,
+    ComponentOnAction,
     ComponentChildren
 )]
 #[strum(ascii_case_insensitive)]

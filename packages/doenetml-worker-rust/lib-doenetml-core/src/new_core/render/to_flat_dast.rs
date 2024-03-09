@@ -94,7 +94,13 @@ impl Core {
             children,
             data: ElementData {
                 id: component.get_idx(),
-                action_names: Some(component.get_action_names()),
+                action_names: Some(
+                    component
+                        .get_action_names()
+                        .iter()
+                        .map(|x| x.to_string())
+                        .collect(),
+                ),
                 props: None,
                 message: None,
             },
@@ -161,7 +167,13 @@ impl Core {
             children: Vec::new(),
             data: ElementData {
                 id: component.get_idx(),
-                action_names: Some(component.get_action_names()),
+                action_names: Some(
+                    component
+                        .get_action_names()
+                        .iter()
+                        .map(|x| x.to_string())
+                        .collect(),
+                ),
                 props: rendered_props,
                 message,
             },

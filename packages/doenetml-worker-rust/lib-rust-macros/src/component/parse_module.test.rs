@@ -41,3 +41,15 @@ fn test_can_parse_module() {
     //dbg!(syn::parse_str::<ItemMod>(input).unwrap());
     // dbg!(result.to_string());
 }
+
+#[test]
+fn test_can_parse_empty_module() {
+    let input = r#"
+        #[component(name = Document, ref_transmutes_to = Text)]
+        mod component {}
+    "#;
+    let result = parse_module(syn::parse_str(input).unwrap());
+    println!("\n{}\n", pretty_print(&result));
+    //dbg!(syn::parse_str::<ItemMod>(input).unwrap());
+    // dbg!(result.to_string());
+}

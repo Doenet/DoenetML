@@ -2,9 +2,8 @@ use std::collections::HashMap;
 
 use crate::components::{
     prelude::{ComponentIdx, FlatDastElementUpdate, PropIdx},
-    types::PropPointer,
-    types::{Action, UpdateFromAction},
-    ComponentActions,
+    types::{Action, PropPointer, UpdateFromAction},
+    ComponentOnAction,
 };
 
 use super::{

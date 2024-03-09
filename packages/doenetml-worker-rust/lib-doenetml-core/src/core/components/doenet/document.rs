@@ -3,8 +3,6 @@ use doenetml_derive::component;
 
 #[component(name = Document)]
 pub mod component {}
-impl ComponentAttributes for component::Component {}
-impl ComponentActions for component::Component {}
 impl ComponentChildren for component::Component {
     fn get_rendered_children(&self, child_query_object: ChildQueryObject) -> Vec<GraphNode> {
         // Return children without modification
