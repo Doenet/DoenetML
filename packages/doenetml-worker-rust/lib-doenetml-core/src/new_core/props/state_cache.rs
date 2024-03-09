@@ -66,6 +66,12 @@ impl StateCache {
     }
 }
 
+impl Default for StateCache {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[cfg(test)]
 #[path = "state_cache.test.rs"]
 mod test;

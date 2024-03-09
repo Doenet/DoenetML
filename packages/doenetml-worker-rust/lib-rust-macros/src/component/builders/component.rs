@@ -68,7 +68,7 @@ impl ComponentModule {
         let default_prop = match self
             .props
             .as_ref()
-            .map_or(None, |props| props.get_default_prop_local_index())
+            .and_then(|props| props.get_default_prop_local_index())
         {
             Some(idx) => quote! {Some(#idx)},
             None => quote! {None},
@@ -116,7 +116,7 @@ impl ComponentModule {
             }
         };
 
-        ret.into()
+        ret
     }
 
     /// Generate the `impl ComponentNode for ...` trait for the component.
@@ -137,7 +137,7 @@ impl ComponentModule {
             }
         };
 
-        ret.into()
+        ret
     }
 
     /// Implement the `ComponentProps` trait for the component.
@@ -174,7 +174,7 @@ impl ComponentModule {
             }
         };
 
-        ret.into()
+        ret
     }
 
     pub fn impl_component_attributes_trait(&self) -> TokenStream {

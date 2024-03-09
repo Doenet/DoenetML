@@ -1,6 +1,6 @@
 use crate::components::prelude::*;
 
-#[derive(Debug, Default, ComponentAttributes)]
+#[derive(Debug, Default)]
 //#[pass_through_children]
 pub struct _External {
     pub common: ComponentCommonData,
@@ -9,11 +9,35 @@ pub struct _External {
     pub props: _ExternalProps,
 }
 
-#[derive(Debug, Default, ComponentProps)]
+#[derive(Debug, Default)]
 pub struct _ExternalProps {}
 
 impl ComponentActions for _External {}
 impl ComponentOnAction for _External {}
+impl ComponentAttributes for _External {}
+impl ComponentProps for _External {
+    fn generate_props(&self) -> Vec<Prop> {
+        vec![]
+    }
+    fn get_component_profile_local_prop_indices(&self) -> Vec<PropIdx> {
+        vec![]
+    }
+    fn get_default_prop_local_index(&self) -> Option<PropIdx> {
+        None
+    }
+    fn get_for_renderer_local_prop_indices(&self) -> Vec<PropIdx> {
+        vec![]
+    }
+    fn get_local_prop_index_from_name(&self, _name: &str) -> Option<PropIdx> {
+        None
+    }
+    fn get_public_local_prop_index_from_name_case_insensitive(
+        &self,
+        _name: &str,
+    ) -> Option<PropIdx> {
+        None
+    }
+}
 
 impl ComponentNode for _External {
     // The main reason we customize the implementation of ComponentNode

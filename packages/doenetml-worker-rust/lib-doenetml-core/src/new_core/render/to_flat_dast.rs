@@ -46,7 +46,6 @@ impl Core {
         let children = self
             .structure_graph
             .get_component_children(component_node)
-            .into_iter()
             .map(|node| match node {
                 GraphNode::Component(idx) => FlatDastElementContent::Element(idx),
                 GraphNode::String(_) => {

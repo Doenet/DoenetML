@@ -2,10 +2,7 @@
 //! macros properly. Rather than repeat them each time, collect them and re-export them here.
 
 // These imports are required for the derive macros to work correctly
-pub use doenetml_derive::{
-    add_dependency_data, AttributeProp, ComponentActions, ComponentAttributes,
-    ComponentChildrenOld, ComponentNode, ComponentProps, PropDataQueries, PropDependencies,
-};
+pub use doenetml_derive::component;
 pub use std::collections::HashMap;
 
 pub use super::traits::*;

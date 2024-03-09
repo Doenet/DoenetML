@@ -57,12 +57,12 @@ impl PropsEnum {
 
     /// The `for_render` property of all props defined on this component
     pub fn get_prop_for_renders(&self) -> Vec<bool> {
-        self.variants.iter().map(|x| x.for_render.clone()).collect()
+        self.variants.iter().map(|x| x.for_render).collect()
     }
 
     /// The `is_public` property of all props defined on this component
     pub fn get_prop_is_publics(&self) -> Vec<bool> {
-        self.variants.iter().map(|x| x.is_public.clone()).collect()
+        self.variants.iter().map(|x| x.is_public).collect()
     }
 
     /// The `is_public` property of all props defined on this component
@@ -86,7 +86,7 @@ pub fn props_enum_from_module(module: &syn::ItemMod) -> Option<PropsEnum> {
 
     let props_enum = enums
         .iter()
-        .find(|enum_instance| enum_instance.ident.to_string() == "Props")
+        .find(|enum_instance| enum_instance.ident == "Props")
         .map(|enum_instance| {
             let variants = enum_instance.data.clone().take_enum().unwrap();
             variants

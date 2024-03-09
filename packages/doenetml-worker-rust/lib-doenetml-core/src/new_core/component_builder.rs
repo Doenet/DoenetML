@@ -75,8 +75,7 @@ impl ComponentBuilder {
 
     fn new_string_node(&mut self, s: String) -> GraphNode {
         let idx = self.strings.add_string(s);
-        let node = GraphNode::String(idx);
-        node
+        GraphNode::String(idx)
     }
 
     /// Initialize `structure_graph`, `state_graph`, and other data

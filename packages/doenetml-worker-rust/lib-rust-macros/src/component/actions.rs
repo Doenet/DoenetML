@@ -46,7 +46,7 @@ pub fn actions_enum_from_module(module: &syn::ItemMod) -> Option<ActionsEnum> {
 
     let actions_enum = enums
         .iter()
-        .find(|enum_instance| enum_instance.ident.to_string() == "Actions")
+        .find(|enum_instance| enum_instance.ident == "Actions")
         .map(|enum_instance| {
             let variants = enum_instance.data.clone().take_enum().unwrap();
             variants

@@ -55,7 +55,7 @@ pub fn attributes_enum_from_module(module: &syn::ItemMod) -> Option<AttributesEn
 
     let attributes_enum = enums
         .iter()
-        .find(|enum_instance| enum_instance.ident.to_string() == "Attributes")
+        .find(|enum_instance| enum_instance.ident == "Attributes")
         .map(|enum_instance| {
             let variants = enum_instance.data.clone().take_enum().unwrap();
             variants

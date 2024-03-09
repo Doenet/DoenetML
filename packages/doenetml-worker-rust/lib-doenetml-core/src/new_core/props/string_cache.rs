@@ -80,6 +80,12 @@ impl StringCache {
     }
 }
 
+impl Default for StringCache {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[cfg(test)]
 #[path = "string_cache.test.rs"]
 mod test;

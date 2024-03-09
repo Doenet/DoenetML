@@ -11,7 +11,7 @@ pub fn parse_module(input: TokenStream) -> TokenStream {
 
     // println!("\n{}\n", pretty_print(component_module.generate_module()));
 
-    component_module.generate_module().into()
+    component_module.generate_module()
 }
 
 #[cfg(test)]
