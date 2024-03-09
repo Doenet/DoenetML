@@ -3,6 +3,19 @@ use super::*;
 use test_helpers::*;
 
 #[test]
+fn value_prop_from_string_child() {
+    let dast_root = dast_root_no_position(r#"<text>hello</text>"#);
+
+    let mut core = Core::new();
+    core.init_from_dast_root(&dast_root);
+
+    // the text will be index 1, as the document tag will be index 0.
+    let text_idx = 1;
+
+    assert_eq!(get_value_prop(text_idx, &mut core), "hello");
+}
+
+#[test]
 fn text_prop_is_alias_of_value() {
     let dast_root = dast_root_no_position(r#"<text>hello</text>"#);
 
@@ -94,30 +107,34 @@ fn text_extending_text_input() {
 
 mod test_helpers {
 
-    use doenetml_core::state::PropPointer;
-
     use super::*;
 
-    const VALUE_IDX: PropIdx = TextProps::get_value_prop_index();
-    const TEXT_IDX: PropIdx = TextProps::get_text_prop_index();
+    // const VALUE_IDX: PropIdx = TextProps::get_value_prop_index();
+    // const TEXT_IDX: PropIdx = TextProps::get_text_prop_index();
+
+    // XXX - get these indices from the component type
+    const VALUE_LOCAL_IDX: PropIdx = 0;
+    const TEXT_LOCAL_IDX: PropIdx = 1;
 
     /// Resolves `value` from a `<text>` component and returns its value as a `String`
     pub fn get_value_prop(component_idx: ComponentIdx, core: &mut Core) -> String {
-        core.get_prop_for_render(PropPointer {
+        let prop_node = core.prop_pointer_to_prop_node(PropPointer {
             component_idx,
-            local_prop_idx: VALUE_IDX,
-        })
-        .try_into()
-        .unwrap()
+            local_prop_idx: VALUE_LOCAL_IDX,
+        });
+        let value = core.get_prop_for_render(prop_node).value;
+
+        (*value).clone().try_into().unwrap()
     }
 
-    /// Resolves `text` from a `<text>` component and returns its value as a `String`
+    // /// Resolves `text` from a `<text>` component and returns its value as a `String`
     pub fn get_text_prop(component_idx: ComponentIdx, core: &mut Core) -> String {
-        core.get_prop_for_render(PropPointer {
+        let prop_node = core.prop_pointer_to_prop_node(PropPointer {
             component_idx,
-            local_prop_idx: TEXT_IDX,
-        })
-        .try_into()
-        .unwrap()
+            local_prop_idx: TEXT_LOCAL_IDX,
+        });
+        let value = core.get_prop_for_render(prop_node).value;
+
+        (*value).clone().try_into().unwrap()
     }
 }

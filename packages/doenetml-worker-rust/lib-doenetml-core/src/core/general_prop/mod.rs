@@ -4,7 +4,7 @@
 //mod independent_prop;
 //mod latex_prop;
 //mod math_prop;
-//mod string_prop;
+mod string_prop;
 //mod util;
 
 //pub use self::alias_prop::PropAlias;
@@ -13,4 +13,4 @@
 //pub use self::independent_prop::IndependentProp;
 //pub use self::latex_prop::LatexProp;
 //pub use self::math_prop::MathProp;
-//pub use self::string_prop::StringProp;
+pub use self::string_prop::StringProp;

@@ -55,13 +55,14 @@ pub trait PropUpdater: std::fmt::Debug {
     /// The `is_direct_change_from_action` argument is true if the requested value
     /// came directly from an action (as opposed to coming from another prop requesting
     /// a change).
+    // TODO: not too happy with the return of nested vectors.
     #[allow(unused)]
     fn invert(
         &self,
         data: Vec<DataQueryResult>,
         requested_value: PropValue,
         is_direct_change_from_action: bool,
-    ) -> Result<Vec<Option<PropValue>>, InvertError> {
+    ) -> Result<Vec<Option<Vec<Option<PropValue>>>>, InvertError> {
         Err(InvertError::NotImplemented)
     }
 }

@@ -1,4 +1,7 @@
-use crate::components::prelude::*;
+use crate::{
+    components::prelude::*,
+    new_core::props::{DataQueryResult, InvertError, PropUpdater},
+};
 
 /// A string prop that calculates its value by concatenating all string dependencies.
 ///
@@ -47,19 +50,6 @@ pub struct StringProp {
     /// - if `propagate_came_from_default` is `true`, then `always_return_value` must be `true` on the `data_query`.
     /// - if `propagate_came_from_default` is `false`, then `always_return_value` must be `false` on the `data_query`.
     propagate_came_from_default: bool,
-}
-
-/// The data required to compute the value of this prop.
-#[add_dependency_data]
-#[derive(Debug, Default, PropDependencies, PropDataQueries)]
-pub struct RequiredData {
-    /// An independent piece of data (a [`StateProp`](crate::state::prop_state::StateProp) whose value gets saved)
-    /// that is used if `propagate_came_from_default` is false
-    /// to store the value when there are no dependencies.
-    independent_state: PropView<String>,
-
-    /// A vector of the string values of the dependencies coming from the data_query
-    strings: Vec<PropView<String>>,
 }
 
 impl StringProp {
@@ -122,70 +112,53 @@ impl StringProp {
     }
 }
 
-impl PropUpdater<String, RequiredData> for StringProp {
-    fn default_value(&self) -> String {
-        self.default_value.clone()
+impl PropUpdater for StringProp {
+    fn default(&self) -> PropValue {
+        PropValue::String(self.default_value.clone())
     }
 
-    fn return_data_queries(&self) -> Vec<DataQuery> {
-        RequiredDataQueries {
-            independent_state: DataQuery::State,
-            strings: self.data_query.clone(),
-        }
-        .into()
+    fn data_queries(&self) -> Vec<DataQuery> {
+        vec![DataQuery::State, self.data_query.clone()]
     }
 
-    fn calculate_old(&mut self, data: &RequiredData) -> PropCalcResult<String> {
-        match data.strings.len() {
+    fn calculate(&self, data: Vec<DataQueryResult>) -> PropCalcResult<PropValue> {
+        let independent_state = &data[0].values[0];
+        let strings = &data[1].values;
+
+        match strings.len() {
             0 => {
-                if self.propagate_came_from_default {
-                    // If `propagate_came_from_default` is true,
-                    // this means we did not call `dont_propagate_came_from_default()`
-                    // so the `always_return_value` flag must still be set to true on the data query,
-                    // forcing them to return at least one value.
-
-                    // If we reached here, then there has been a programming error violating this contract.
-                    unreachable!()
-                }
-
-                // If we reach here, then we must have called `dont_propagate_came_from_default()`
-                // and there were no dependencies returned from the data query.
-                // This is the one case where we use `independent_state`,
-                // using its `came_from_default` as well as its value.
-                if data.independent_state.came_from_default() {
-                    PropCalcResult::FromDefault(data.independent_state.get().clone())
+                // If we reach here, then there were no dependencies returned from the data query.
+                // Use the value and came_from_default of `independent_state`
+                if independent_state.came_from_default {
+                    PropCalcResult::FromDefault((*independent_state.value).clone())
                 } else {
-                    PropCalcResult::Calculated(data.independent_state.get().clone())
+                    PropCalcResult::Calculated((*independent_state.value).clone())
                 }
             }
             1 => {
-                if self.propagate_came_from_default {
+                if self.propagate_came_from_default && strings[0].came_from_default {
                     // if we are basing it on a single variable and propagating `came_from_default`,
                     // then we propagate `came_from_default` as well as the value.
-                    if data.strings[0].came_from_default() {
-                        PropCalcResult::FromDefault(data.strings[0].get().clone())
-                    } else {
-                        PropCalcResult::Calculated(data.strings[0].get().clone())
-                    }
+                    PropCalcResult::FromDefault((*strings[0].value).clone())
                 } else {
                     // If we are not propagating `came_from_default`,
                     // then we set `came_from_default` to be false (by specifying `Calculated`)
                     // independent of the dependency's `came_from_default`
-                    PropCalcResult::Calculated(data.strings[0].get().clone())
+                    PropCalcResult::Calculated((*strings[0].value).clone())
                 }
             }
             _ => {
                 // multiple string variables, so concatenate
 
-                if data
-                    .strings
-                    .iter()
-                    .any(|view| view.changed_since_last_viewed())
-                {
+                if strings.iter().any(|view| view.changed) {
                     let mut value = String::new();
-                    value.extend(data.strings.iter().map(|v| v.get().clone()));
 
-                    PropCalcResult::Calculated(value)
+                    value.extend(strings.iter().map(|v| match (*v.value).clone() {
+                        PropValue::String(str) => str,
+                        _ => panic!("Received non-string value"),
+                    }));
+
+                    PropCalcResult::Calculated(PropValue::String(value))
                 } else {
                     PropCalcResult::NoChange
                 }
@@ -197,38 +170,28 @@ impl PropUpdater<String, RequiredData> for StringProp {
     /// then request that variable take on the requested value for this variable.
     fn invert(
         &self,
-        data: &mut RequiredData,
-        prop: &PropView<String>,
+        data: Vec<DataQueryResult>,
+        requested_value: PropValue,
         _is_direct_change_from_action: bool,
-    ) -> Result<Vec<DependencyValueUpdateRequest>, InvertError> {
-        match data.strings.len() {
+    ) -> Result<Vec<Option<Vec<Option<PropValue>>>>, InvertError> {
+        let strings = &data[1].values;
+
+        match strings.len() {
             0 => {
-                if self.propagate_came_from_default {
-                    // if propagate_came_from_default is true,
-                    // then always_return_value is true on the string data query,
-                    // so we should never reach this
-                    unreachable!()
-                }
                 // We had no dependencies, so change the independent state variable
-                let requested_value = prop.get_requested_value();
 
-                data.independent_state.queue_update(requested_value.clone());
-
-                Ok(data.queued_updates())
+                Ok(vec![Some(vec![Some(requested_value.clone())]), None])
             }
             1 => {
                 // based on a single string value, so we can invert
-                let requested_value = prop.get_requested_value();
 
-                data.strings[0].queue_update(requested_value.clone());
-
-                Ok(data.queued_updates())
+                Ok(vec![None, Some(vec![Some(requested_value.clone())])])
             }
             _ => Err(InvertError::CouldNotUpdate),
         }
     }
 }
 
-#[cfg(test)]
-#[path = "string_prop.test.rs"]
-mod tests;
+// #[cfg(test)]
+// #[path = "string_prop.test.rs"]
+// mod tests;

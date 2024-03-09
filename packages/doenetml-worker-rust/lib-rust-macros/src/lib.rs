@@ -205,7 +205,5 @@ pub fn component(attr: TokenStream, item: TokenStream) -> TokenStream {
 
     //panic!("{}", attr);
 
-    parse_module(combined);
-
-    quote! {}.into()
+    parse_module(combined).into()
 }

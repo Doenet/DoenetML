@@ -1,20 +1,19 @@
 use crate::components::prelude::*;
+use doenetml_derive::component;
 
-#[derive(Debug, Default, ComponentActions, ComponentAttributes, ComponentNode)]
-//#[pass_through_children]
-pub struct Document {
-    //   pub props: DocumentProps,
-}
-
-impl ComponentVariantProps for Document {}
-
-#[derive(Debug, Default, ComponentProps)]
-pub struct DocumentProps {}
-
-impl ComponentChildren for Document {
+#[component(name = Document)]
+pub mod component {}
+impl ComponentAttributes for component::Component {}
+impl ComponentActions for component::Component {}
+impl ComponentChildren for component::Component {
     fn get_rendered_children(&self, child_query_object: ChildQueryObject) -> Vec<GraphNode> {
         // Return children without modification
         child_query_object.child_iter().collect()
+    }
+}
+impl PropGetUpdater for component::Props {
+    fn get_updater(&self) -> Box<dyn PropUpdater> {
+        unimplemented!()
     }
 }
 

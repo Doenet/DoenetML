@@ -1,6 +1,5 @@
-use super::utils::pretty_print;
+// use super::utils::pretty_print;
 use proc_macro2::TokenStream;
-use quote::quote;
 use syn::{self, ItemMod};
 
 use super::component_mod::ComponentModule;
@@ -8,13 +7,11 @@ use super::component_mod::ComponentModule;
 pub fn parse_module(input: TokenStream) -> TokenStream {
     let module: ItemMod = syn::parse2(input).unwrap();
     let component_module = ComponentModule::from_module(&module);
-    dbg!(&component_module);
+    // dbg!(&component_module);
 
-    println!("\n{}\n", pretty_print(component_module.generate_module()));
+    // println!("\n{}\n", pretty_print(component_module.generate_module()));
 
-    let ret = quote! {};
-
-    ret.into()
+    component_module.generate_module().into()
 }
 
 #[cfg(test)]
