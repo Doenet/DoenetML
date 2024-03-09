@@ -36,24 +36,74 @@ pub fn attribute_prop_derive_wrapper(input: TokenStream) -> TokenStream {
     attribute_prop_derive(input)
 }
 
-/// Derives an implementation of the `ComponentProps` trait and auxillary functions.
+/// Create a _DoenetML_ _Component_ from a decorated module. This macro adds creates required structs/enums
+/// from a module containing a declaration of a _DoenetML_ component.
 ///
-/// The derive macro is designed to be applied to the struct defining the DoenetML component itself
-/// as well as the struct defining the component's props.
+/// By decorating a "component-description" module with `#[component(name = Foo, ...)]`,
+/// this macro will create the component struct `Foo` as well as enums `FooProps`, `FooAttributes`, and `FooActions`
+/// corresponding to the props, attributes, and actions of the component that were specified (or empty enum if nothing
+/// was specified). These generated structs/enums should be re-exported by component authors.
 ///
-/// The macro assumes that the component struct has a field `props` that contains
-/// the component props struct.
+/// ### Example (Basic)
+/// ```ignore
+/// #[component(name = MyComponent)]
+/// mod component {}
 ///
-/// The macro assumes all fields of the component props struct are props `Prop<T>`.
+/// pub use component::MyComponent;
+/// pub use component::MyComponentActions;
+/// pub use component::MyComponentAttributes;
+/// pub use component::MyComponentProps;
+/// ```
+/// Note the re-exporting of the generated structs/enums. This is good practice to be consistent
+/// with the rest of the DoenetML Rust code.
 ///
-//#[proc_macro_derive(
-//    ComponentProps,
-//    attributes(for_renderer, is_public, component_profile_prop, default_prop)
-//)]
-//pub fn component_props_derive_wrapper(input: TokenStream) -> TokenStream {
-//    component_props_derive(input)
-//}
-
+/// ### Example (With Props)
+/// ```ignore
+/// #[component(name = MyComponent)]
+/// mod component {
+///    enum Props {
+///       #[prop(value_type = PropValueType::String,
+///              is_public,
+///              profile = ComponentProfile::String,
+///              default)]
+///      Value,
+///   }
+/// }
+/// pub use component::MyComponent;
+/// pub use component::MyComponentActions;
+/// pub use component::MyComponentAttributes;
+/// pub use component::MyComponentProps;
+/// ```
+/// In this example, `MyComponent` will have a prop `value` (note how Rust's PascalCase is converted to camelCase).
+/// It's value type is String, it is marked as public, and it satisfies the `ComponentProfile::String` profile. It is also
+/// marked as the (unique) default prop.
+///
+/// ## Usage
+///
+/// ### `#[component(name = ...)]`
+///
+/// This macro annotates a module (normally called `component`). For example
+/// ```ignore
+/// #[component(name = MyComponent)]
+/// mod component {
+///   // ...
+/// }
+/// ```
+///  It has the following options:
+/// - `name = ...` - Required; the name of your component in PascalCase.
+/// - `ref_transmutes_to = ...` - Optional; if this component is used directly as a reference (i.e. using `$foo`
+/// syntax), then instead of creating a component `<self>`, create the component specified by `ref_transmutes_to`.
+/// This is used, for example, in the `textInput` component where the code `<textInput name="a"/>$a` should render as
+/// `<textInput name="a"/><text extend="$a"/>` rather than `<textInput name="a"/><textInput extend="$a"/>`.
+///
+/// ### `#[attribute(...)]`
+///
+/// XXX Finish
+///
+/// ### `#[prop(...)]`
+///
+/// XXX Finish
+///
 /// The building blocks of a component
 /// ## Options
 ///  - `#[component(ref_transmutes_to = "...")]` - The name of the component that should be used to

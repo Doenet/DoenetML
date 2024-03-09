@@ -49,7 +49,7 @@ pub struct PropPointer {
     pub local_prop_idx: PropIdx,
 }
 
-/// The body of an [`Action`](self::Action).
+/// The body of an [`Action`].
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 #[cfg_attr(feature = "web", derive(tsify::Tsify))]

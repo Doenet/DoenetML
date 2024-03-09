@@ -28,8 +28,8 @@ pub trait ComponentNode {
     ///
     /// For example, since `extend_via_default_prop()` returns `true` for a text input,
     /// and its default prop is 'value`,
-    /// `<textInput name="$i"/><text extend="$i"/>` will become equivalent to
-    /// `<textInput name="$i"/><text extend="$i.value"/>`
+    /// `<textInput name="$i" /><text extend="$i" />` will become equivalent to
+    /// `<textInput name="$i" /><text extend="$i.value" />`
     fn extend_via_default_prop(&self) -> bool {
         false
     }
