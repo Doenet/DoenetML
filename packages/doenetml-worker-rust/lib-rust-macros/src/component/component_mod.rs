@@ -125,8 +125,8 @@ impl ComponentModule {
     pub fn struct_component(&self) -> TokenStream {
         // TODO: this Debug should print the name of the component, not `Component`. Implement `Debug` manually.
         quote! {
-            #[derive(Debug, Clone, Copy)]
-            struct Component {}
+            #[derive(Debug, Clone, Copy, Default)]
+            pub struct Component {}
         }
     }
 
@@ -141,7 +141,7 @@ impl ComponentModule {
 
         quote! {
             #[derive(Debug, Clone, Copy)]
-            enum Props {
+            pub enum Props {
                 #(#prop_idents,)*
             }
         }
@@ -297,7 +297,9 @@ impl ComponentModule {
         let impl_component_props_trait = self.impl_component_variant_props_trait();
 
         quote! {
-            mod generated_component {
+            // TODO: whether or not component is pub should depend one what was entered.
+            // Also, presumably the name should the original name and not be hard-coded as `component`
+            pub mod component {
                 use crate::components::prelude::*;
 
                 #struct_component
