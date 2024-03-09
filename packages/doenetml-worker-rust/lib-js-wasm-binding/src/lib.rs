@@ -10,8 +10,8 @@ use wasm_bindgen::prelude::*;
 
 use doenetml_core::{
     components::{prelude::ComponentIdx, types::Action},
+    core::graph_based_core::Core,
     dast::{DastRoot, FlatDastElementUpdate, FlatDastRoot},
-    new_core::graph_based_core::Core,
 };
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global

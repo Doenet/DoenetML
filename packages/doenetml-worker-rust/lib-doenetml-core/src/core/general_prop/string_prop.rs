@@ -1,6 +1,6 @@
 use crate::{
     components::prelude::*,
-    new_core::props::{DataQueryResult, InvertError, PropUpdater},
+    core::props::{DataQueryResult, InvertError, PropUpdater},
 };
 
 /// A string prop that calculates its value by concatenating all string dependencies.

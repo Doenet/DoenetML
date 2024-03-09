@@ -1,5 +1,5 @@
 use anyhow::Result;
-use doenetml_core::{dast::DastRoot, new_core::graph_based_core::Core};
+use doenetml_core::{core::graph_based_core::Core, dast::DastRoot};
 
 fn main() -> Result<()> {
     println!("Running DoenetML Core in Standalone Mode");
