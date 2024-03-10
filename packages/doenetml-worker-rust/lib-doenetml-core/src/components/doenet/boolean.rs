@@ -1,7 +1,7 @@
 use crate::components::prelude::*;
 use crate::general_prop::BooleanProp;
 
-#[component(name = Boolean, children = "none", extend_via_default_prop)]
+#[component(name = Boolean, rendered_children = "none", extend_via_default_prop)]
 mod component {
     enum Props {
         /// The value of the `<boolean>`. This is the content that will be displayed inside

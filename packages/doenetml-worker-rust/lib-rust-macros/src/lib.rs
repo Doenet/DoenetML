@@ -95,7 +95,7 @@ pub fn attribute_prop_derive_wrapper(input: TokenStream) -> TokenStream {
 /// syntax), then instead of creating a component `<self>`, create the component specified by `ref_transmutes_to`.
 /// This is used, for example, in the `textInput` component where the code `<textInput name="a"/>$a` should render as
 /// `<textInput name="a"/><text extend="$a"/>` rather than `<textInput name="a"/><textInput extend="$a"/>`.
-/// - `children = "..."` - Optional; one of `"passthrough"` (default), `"handle"`, or `"none"`. This controls how the children
+/// - `rendered_children = "..."` - Optional; one of `"passthrough"` (default), `"handle"`, or `"none"`. This controls how the children
 /// of your component are handled. If `"passthrough"`, then the children of your component are passed unmodified to the renderer.
 /// If `"handle"`, then the children are handled explicitly by the component author, in which case you _must_ implement
 /// `ComponentChildren` yourself on the resulting component. If `"none"`, then the component will not render any children.

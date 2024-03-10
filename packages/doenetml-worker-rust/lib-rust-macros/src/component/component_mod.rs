@@ -14,13 +14,13 @@ use super::{
 };
 
 #[derive(Debug, Default, EnumVariantNames)]
-pub enum Children {
+pub enum RenderedChildren {
     Passthrough,
     None,
     #[default]
     Handle,
 }
-impl FromMeta for Children {
+impl FromMeta for RenderedChildren {
     fn from_value(value: &Lit) -> darling::Result<Self> {
         match value {
             Lit::Str(lit_str) => match lit_str.value().to_ascii_lowercase().as_str() {
@@ -28,7 +28,7 @@ impl FromMeta for Children {
                 "none" => Ok(Self::None),
                 "handle" => Ok(Self::Handle),
                 _ => {
-                    let variants = Children::VARIANTS
+                    let variants = RenderedChildren::VARIANTS
                         .iter()
                         .map(|x| format!("`{}`", x.to_string().to_ascii_lowercase()))
                         .collect::<Vec<String>>()
@@ -56,7 +56,7 @@ pub struct ComponentMacroVariant {
     #[darling(default)]
     extend_via_default_prop: bool,
     #[darling(default)]
-    children: Children,
+    rendered_children: RenderedChildren,
 }
 
 #[derive(Debug)]
@@ -67,7 +67,7 @@ pub struct ComponentModule {
     pub name: String,
     pub ref_transmutes_to: Option<String>,
     pub extend_via_default_prop: bool,
-    pub children: Children,
+    pub children: RenderedChildren,
     //
     // The content defined _inside_ the module
     //
@@ -82,7 +82,7 @@ impl ComponentModule {
         let component_macro: ComponentMacroVariant =
             ComponentMacroVariant::from_attributes(&module.attrs)?;
         let name = component_macro.name.to_string();
-        let children = component_macro.children;
+        let children = component_macro.rendered_children;
 
         let props = props_enum_from_module(module)?;
         let actions = actions_enum_from_module(module);

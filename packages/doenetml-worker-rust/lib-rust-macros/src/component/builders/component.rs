@@ -2,7 +2,7 @@ use convert_case::{Case, Casing};
 use proc_macro2::TokenStream;
 use quote::quote;
 
-use crate::component::component_mod::Children;
+use crate::component::component_mod::RenderedChildren;
 
 use super::super::component_mod::ComponentModule;
 
@@ -221,10 +221,10 @@ impl ComponentModule {
     /// author must implement the trait themselves so an empty token stream is returned.
     pub fn impl_component_children_trait(&self) -> TokenStream {
         match self.children {
-            Children::Handle => {
+            RenderedChildren::Handle => {
                 quote! {}
             }
-            Children::None => {
+            RenderedChildren::None => {
                 quote! {
                     impl ComponentChildren for Component {
                         fn get_rendered_children(&self, _: ChildQueryObject) -> Vec<GraphNode> {
@@ -234,7 +234,7 @@ impl ComponentModule {
                     }
                 }
             }
-            Children::Passthrough => {
+            RenderedChildren::Passthrough => {
                 quote! {
                     impl ComponentChildren for Component {
                         fn get_rendered_children(&self, child_query_object: ChildQueryObject) -> Vec<GraphNode> {

@@ -1,7 +1,7 @@
 use crate::components::prelude::*;
 use crate::general_prop::{BooleanProp, StringProp};
 
-#[component(name = Text, children = "none", extend_via_default_prop)]
+#[component(name = Text, rendered_children = "none", extend_via_default_prop)]
 mod component {
     enum Props {
         /// The value of the `<text>`. This is the content that will be displayed inside
