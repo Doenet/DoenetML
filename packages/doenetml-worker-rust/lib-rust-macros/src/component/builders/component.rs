@@ -87,7 +87,7 @@ impl ComponentModule {
             impl Component {
                 /// The name of the component. This is used to identify the component in the DoenetML document.
                 /// It is in _camelCase_.
-                const NAME: &'static str = #name_camel_case;
+                pub const NAME: &'static str = #name_camel_case;
 
                 /// The internal name of the component. This is used in Rust enums, etc. It is in _PascalCase_.
                 const COMPONENT_NAME: &'static str = #component_name;

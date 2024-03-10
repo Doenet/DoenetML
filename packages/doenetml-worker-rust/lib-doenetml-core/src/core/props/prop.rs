@@ -1,4 +1,4 @@
-use crate::components::{types::PropPointer, ComponentProfile};
+use crate::components::{types::PropPointer, Boolean, ComponentProfile, Text};
 
 use super::{PropUpdater, PropValueDiscriminants};
 
@@ -28,6 +28,9 @@ pub struct Prop {
 }
 
 impl Prop {
+    /// Sometimes we need to render a prop. Since only components can be rendered,
+    /// the prop needs to be wrapped in a component. This function returns the component
+    /// type that should be used to wrap the prop.
     pub fn preferred_component_type(&self) -> &'static str {
         match self.variant {
             PropValueDiscriminants::Integer => {
@@ -36,29 +39,9 @@ impl Prop {
             PropValueDiscriminants::Number => {
                 unimplemented!("haven't yet created a number component")
             }
-            PropValueDiscriminants::String => "text",
-            PropValueDiscriminants::Boolean => "boolean",
+            PropValueDiscriminants::String => Text::NAME,
+            PropValueDiscriminants::Boolean => Boolean::NAME,
             PropValueDiscriminants::Math => "math",
         }
     }
-    //    pub fn new() -> Self {
-    //        Self {
-    //            component_meta: None,
-    //        }
-    //    }
-    //    pub fn with_component_meta(self, component_meta: PropComponentMeta) -> Self {
-    //        Self {
-    //            component_meta: Some(component_meta),
-    //        }
-    //    }
 }
-
-//struct TrivialPropUpdater {}
-//impl PropUpdater for TrivialPropUpdater {
-//    fn data_queries(&self) -> Vec<DataQuery> {
-//        vec![]
-//    }
-//    fn calculate(&self, _data: Vec<DataQueryResult>) -> PropCalcResult<PropValue> {
-//        PropCalcResult::Calculated(PropValue::String("".to_string()))
-//    }
-//}
