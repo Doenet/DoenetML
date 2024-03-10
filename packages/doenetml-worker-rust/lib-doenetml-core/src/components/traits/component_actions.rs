@@ -1,10 +1,6 @@
 use enum_dispatch::enum_dispatch;
 
-use crate::components::doenet::document::Document;
-use crate::components::doenet::text::Text;
-use crate::components::special::_error::_Error;
-use crate::components::special::_external::_External;
-use crate::components::ComponentEnum;
+use crate::components::*;
 
 use super::ComponentNode;
 

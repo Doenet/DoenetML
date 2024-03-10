@@ -1,7 +1,7 @@
 use crate::components::prelude::*;
-use crate::general_prop::StringProp;
+use crate::general_prop::{BooleanProp, StringProp};
 
-#[component(name = Text, children = "none")]
+#[component(name = Text, children = "none", extend_via_default_prop)]
 mod component {
     enum Props {
         /// The value of the `<text>`. This is the content that will be displayed inside
@@ -13,6 +13,8 @@ mod component {
             default
         )]
         Value,
+        #[prop(value_type = PropValueType::Boolean)]
+        Hidden,
     }
 
     enum Attributes {
@@ -33,6 +35,9 @@ impl PropGetUpdater for TextProps {
     fn get_updater(&self) -> Box<dyn PropUpdater> {
         match self {
             TextProps::Value => Box::new(StringProp::new_from_children("".to_string())),
+            // TODO: derive this from TextAttributes so don't have to repeat the default value
+            // or match the string name
+            TextProps::Hidden => Box::new(BooleanProp::new_from_attribute("hide", false)),
         }
     }
 }

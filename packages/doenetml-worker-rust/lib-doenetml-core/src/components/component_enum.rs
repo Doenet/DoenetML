@@ -1,15 +1,15 @@
 use enum_dispatch::enum_dispatch;
 use strum_macros::EnumString;
 
-use super::_error::*;
-use super::_external::*;
-//use super::doenet::boolean::*;
-use super::doenet::document::*;
-//use super::doenet::math::*;
-//use super::doenet::p::*;
-//use super::doenet::section::*;
-use super::doenet::text::*;
-//use super::doenet::text_input::*;
+pub use super::_error::_Error;
+pub use super::_external::_External;
+pub use super::doenet::boolean::Boolean;
+pub use super::doenet::document::Document;
+//pub use super::doenet::math::Math;
+//pub use super::doenet::p::P;
+//pub use super::doenet::section::Section;
+pub use super::doenet::text::Text;
+//pub use super::doenet::text_input::TextInput;
 
 /// A enum that can contain a component of any possible component type.
 ///
@@ -35,7 +35,7 @@ pub enum ComponentEnum {
     Text(Text),
     //    TextInput(TextInput),
     //    Math(Math),
-    //    Boolean(Boolean),
+    Boolean(Boolean),
     //    Section(Section),
     //    P(P),
     Document(Document),

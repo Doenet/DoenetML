@@ -3,6 +3,41 @@ use super::*;
 use test_helpers::*;
 
 #[test]
+fn value_prop_from_string_child() {
+    let dast_root = dast_root_no_position(r#"<boolean>true</boolean><boolean>false</boolean>"#);
+
+    let mut core = Core::new();
+    core.init_from_dast_root(&dast_root);
+
+    // the document tag will be index 0
+    let boolean1_idx = 1;
+    let boolean2_idx = 2;
+
+    assert_eq!(get_value_prop(boolean1_idx, &mut core), true);
+    assert_eq!(get_value_prop(boolean2_idx, &mut core), false);
+}
+
+#[test]
+fn value_prop_from_boolean_child() {
+    let dast_root = dast_root_no_position(
+        r#"
+        <boolean><boolean>true</boolean></boolean>
+        <boolean><boolean>false</boolean></boolean>
+        "#,
+    );
+
+    let mut core = Core::new();
+    core.init_from_dast_root(&dast_root);
+
+    // the document tag will be index 0
+    let boolean1_idx = 1;
+    let boolean3_idx = 3;
+
+    assert_eq!(get_value_prop(boolean1_idx, &mut core), true);
+    assert_eq!(get_value_prop(boolean3_idx, &mut core), false);
+}
+
+#[test]
 fn boolean_prop_is_alias_of_value() {
     let dast_root = dast_root_no_position(r#"<boolean>true</boolean>"#);
 
@@ -32,43 +67,66 @@ fn text_prop_converts_value() {
     assert_eq!(get_text_prop(boolean_idx, &mut core), "true");
 }
 
-mod test_helpers {
+/// <boolean> extends text by concatenating strings
+#[test]
+fn boolean_extending_texts_concatenate_values() {
+    let dast_root = dast_root_no_position(
+        r#"<text name="t">Tr</text><boolean extend="$t">Ue</boolean><boolean extend="$t">true</boolean>"#,
+    );
 
-    use doenetml_core::state::PropPointer;
+    let mut core = Core::new();
+    core.init_from_dast_root(&dast_root);
+
+    // the document tag will be index 0
+    let boolean1_idx = 2;
+    let boolean2_idx = 3;
+
+    assert_eq!(get_value_prop(boolean1_idx, &mut core), true);
+    assert_eq!(get_value_prop(boolean2_idx, &mut core), false);
+}
+mod test_helpers {
 
     use super::*;
 
-    const VALUE_IDX: PropIdx = BooleanProps::get_value_prop_index();
-    const BOOLEAN_IDX: PropIdx = BooleanProps::get_boolean_prop_index();
-    const TEXT_IDX: PropIdx = BooleanProps::get_text_prop_index();
+    // const VALUE_IDX: PropIdx = BooleanProps::get_value_prop_index();
+    // const BOOLEAN_IDX: PropIdx = BooleanProps::get_boolean_prop_index();
+    // const TEXT_IDX: PropIdx = BooleanProps::get_text_prop_index();
+
+    // XXX - get these indices from the component type
+    const VALUE_LOCAL_IDX: PropIdx = 0;
+    const BOOLEAN_LOCAL_IDX: PropIdx = 1;
+    const TEXT_LOCAL_IDX: PropIdx = 2;
 
     /// Resolves `value` from a `<boolean>` component and returns its value as a `bool`
     pub fn get_value_prop(component_idx: ComponentIdx, core: &mut Core) -> bool {
-        core.get_prop_for_render(PropPointer {
+        let prop_node = core.prop_pointer_to_prop_node(PropPointer {
             component_idx,
-            local_prop_idx: VALUE_IDX,
-        })
-        .try_into()
-        .unwrap()
+            local_prop_idx: VALUE_LOCAL_IDX,
+        });
+        let value = core.get_prop_for_render(prop_node).value;
+
+        (*value).clone().try_into().unwrap()
     }
 
     /// Resolves `boolean` from a `<boolean>` component and returns its value as a `bool`
     pub fn get_boolean_prop(component_idx: ComponentIdx, core: &mut Core) -> bool {
-        core.get_prop_for_render(PropPointer {
+        let prop_node = core.prop_pointer_to_prop_node(PropPointer {
             component_idx,
-            local_prop_idx: BOOLEAN_IDX,
-        })
-        .try_into()
-        .unwrap()
+            local_prop_idx: BOOLEAN_LOCAL_IDX,
+        });
+        let value = core.get_prop_for_render(prop_node).value;
+
+        (*value).clone().try_into().unwrap()
     }
 
     /// Resolves `text` from a `<boolean>` component and returns its value as a `String`
     pub fn get_text_prop(component_idx: ComponentIdx, core: &mut Core) -> String {
-        core.get_prop_for_render(PropPointer {
+        let prop_node = core.prop_pointer_to_prop_node(PropPointer {
             component_idx,
-            local_prop_idx: TEXT_IDX,
-        })
-        .try_into()
-        .unwrap()
+            local_prop_idx: TEXT_LOCAL_IDX,
+        });
+        let value = core.get_prop_for_render(prop_node).value;
+
+        (*value).clone().try_into().unwrap()
     }
 }
