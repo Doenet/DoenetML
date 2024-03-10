@@ -1,84 +1,38 @@
 use crate::components::prelude::*;
-use crate::general_prop::{BooleanProp, BooleanToStringProp, PropAlias};
+use crate::general_prop::BooleanProp;
 
-/// Definition of the `<boolean>` DoenetML component
-#[derive(
-    Debug,
-    Default,
-    ComponentNode,
-    ComponentProps,
-    ComponentActions,
-    ComponentAttributes,
-    ComponentChildrenOld,
-)]
-#[no_rendered_children]
-#[component(extend_via_default_prop)]
-pub struct Boolean {
-    /// The common component data needed to derive the `ComponentNode` trait
-    pub common: ComponentCommonData,
+#[component(name = Boolean, children = "none", extend_via_default_prop)]
+mod component {
+    enum Props {
+        /// The value of the `<boolean>`. This is the content that will be displayed inside
+        /// the `<boolean>` component.
+        #[prop(
+            value_type = PropValueType::Boolean,
+            is_public,
+            profile = ComponentProfile::Boolean,
+            default
+        )]
+        Value,
+        // #[prop(value_type = PropValueType::Boolean)]
+        // Hidden,
+    }
 
-    /// The props that underlie the `<boolean>` component.
-    pub props: BooleanProps,
-}
-
-impl ComponentChildren for Boolean {
-    fn get_rendered_children(&self, _child_query_object: ChildQueryObject) -> Vec<GraphNode> {
-        // Return no children
-        Vec::new()
+    enum Attributes {
+        /// Whether the `<boolean>` should be hidden.
+        #[attribute(prop = BooleanProp, default = false)]
+        Hide,
     }
 }
 
-/// The props that underlie the `<boolean>` component.
-#[derive(Debug, ComponentProps)]
-pub struct BooleanProps {
-    /// The value of the `<boolean>` component.
-    ///
-    /// It is marked `is_public` so that it can be referenced in DoenetML via `.value`.
-    ///
-    /// It is marked `for_renderer` to send this value to the renderer of the `<boolean>` component.
-    ///
-    /// It is marked as a component profile prop,
-    /// which means this prop will be used if a parent of a `<boolean>` component
-    /// queries for children with the `Boolean` component profile.
-    ///
-    /// It is marked `default_prop`, which in combination with the component being marked `extend_via_default_prop`,
-    /// means the `value` prop will be used if a `<boolean>` is extended to another component type.
-    #[is_public]
-    #[for_renderer]
-    #[component_profile_prop]
-    #[default_prop]
-    value: Prop<bool>,
+pub use component::Boolean;
+pub use component::BooleanActions;
+pub use component::BooleanAttributes;
+pub use component::BooleanProps;
 
-    /// An alias to the `value` prop.
-    ///
-    /// It is marked `is_public` so that it can be referenced in DoenetML via `.boolean`.
-    #[is_public]
-    boolean: Prop<bool>,
-
-    /// A conversion of the boolean value into a string.
-    ///
-    /// It is marked `is_public` so that it can be referenced in DoenetML via `.text`.
-    ///
-    /// It is marked as a component profile prop,
-    /// which means this prop will be used if a parent of a `<boolean>` component
-    /// queries for children with the `Text` component profile.
-    #[is_public]
-    #[component_profile_prop]
-    text: Prop<String>,
-}
-
-impl BooleanProps {
-    fn new() -> Self {
-        BooleanProps {
-            value: BooleanProp::new_from_children(false).into_prop(),
-            boolean: PropAlias::new(BooleanProps::get_value_prop_index()).into_prop(),
-            text: BooleanToStringProp::new(BooleanProps::get_value_prop_index()).into_prop(),
+impl PropGetUpdater for BooleanProps {
+    fn get_updater(&self) -> Box<dyn PropUpdater> {
+        match self {
+            BooleanProps::Value => Box::new(BooleanProp::new_from_children(false)),
         }
-    }
-}
-
-impl Default for BooleanProps {
-    fn default() -> Self {
-        BooleanProps::new()
     }
 }

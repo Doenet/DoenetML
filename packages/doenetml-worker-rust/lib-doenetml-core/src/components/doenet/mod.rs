@@ -1,6 +1,6 @@
 //! DoenetML components, for example `<p />`, `<mathInput />`, etc.. These are the building blocks of the DoenetML document.
 
-//pub mod boolean;
+pub mod boolean;
 pub mod document;
 //pub mod math;
 //pub mod p;

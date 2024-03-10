@@ -105,6 +105,24 @@ fn text_extending_text_input() {
     assert_eq!(get_value_prop(text_idx, &mut core), "OneTwo");
 }
 
+#[test]
+fn text_hidden() {
+    let dast_root = dast_root_no_position(
+        r#"<text>hello</text>
+        <text hide>hello</text>"#,
+    );
+
+    let mut core = Core::new();
+    core.init_from_dast_root(&dast_root);
+
+    // indices start at 1, as the document tag will be index 0.
+    let text1_idx = 1;
+    let text2_idx = 2;
+
+    assert_eq!(get_hidden_prop(text1_idx, &mut core), false);
+    assert_eq!(get_hidden_prop(text2_idx, &mut core), true);
+}
+
 mod test_helpers {
 
     use super::*;
@@ -115,6 +133,7 @@ mod test_helpers {
     // XXX - get these indices from the component type
     const VALUE_LOCAL_IDX: PropIdx = 0;
     const TEXT_LOCAL_IDX: PropIdx = 1;
+    const HIDDEN_LOCAL_IDX: PropIdx = 1; // XXX - this won't be the same ias TEXT!!!
 
     /// Resolves `value` from a `<text>` component and returns its value as a `String`
     pub fn get_value_prop(component_idx: ComponentIdx, core: &mut Core) -> String {
@@ -127,11 +146,22 @@ mod test_helpers {
         (*value).clone().try_into().unwrap()
     }
 
-    // /// Resolves `text` from a `<text>` component and returns its value as a `String`
+    /// Resolves `text` from a `<text>` component and returns its value as a `String`
     pub fn get_text_prop(component_idx: ComponentIdx, core: &mut Core) -> String {
         let prop_node = core.prop_pointer_to_prop_node(PropPointer {
             component_idx,
             local_prop_idx: TEXT_LOCAL_IDX,
+        });
+        let value = core.get_prop_for_render(prop_node).value;
+
+        (*value).clone().try_into().unwrap()
+    }
+
+    /// Resolves `hidden` from a `<text>` component and returns its value as a `bool`
+    pub fn get_hidden_prop(component_idx: ComponentIdx, core: &mut Core) -> bool {
+        let prop_node = core.prop_pointer_to_prop_node(PropPointer {
+            component_idx,
+            local_prop_idx: HIDDEN_LOCAL_IDX,
         });
         let value = core.get_prop_for_render(prop_node).value;
 

@@ -136,6 +136,13 @@ impl PropUpdater for StringProp {
                 }
             }
             1 => {
+                if !matches!(&*strings[0].value, PropValue::String(..)) {
+                    panic!(
+                        "Should get string dependency for string, found {:?}",
+                        strings[0].value
+                    );
+                }
+
                 if self.propagate_came_from_default && strings[0].came_from_default {
                     // if we are basing it on a single variable and propagating `came_from_default`,
                     // then we propagate `came_from_default` as well as the value.
@@ -155,7 +162,10 @@ impl PropUpdater for StringProp {
 
                     value.extend(strings.iter().map(|v| match (*v.value).clone() {
                         PropValue::String(str) => str,
-                        _ => panic!("Received non-string value"),
+                        _ => panic!(
+                            "Should get string dependency for string, found {:?}",
+                            v.value
+                        ),
                     }));
 
                     PropCalcResult::Calculated(PropValue::String(value))
@@ -175,6 +185,14 @@ impl PropUpdater for StringProp {
         _is_direct_change_from_action: bool,
     ) -> Result<Vec<Option<Vec<Option<PropValue>>>>, InvertError> {
         let strings = &data[1].values;
+
+        match &requested_value {
+            PropValue::String(string_value) => string_value,
+            _ => panic!(
+                "requested value for in invert for string must be String, found {:?}",
+                requested_value
+            ),
+        };
 
         match strings.len() {
             0 => {

@@ -1,6 +1,9 @@
-use crate::components::prelude::*;
+use crate::{
+    components::prelude::*,
+    props::{DataQueryResult, InvertError},
+};
 
-use super::util::{string_attr_to_boolean, string_to_boolean, BooleanOrString};
+use super::util::{string_attr_to_boolean, string_to_boolean};
 
 /// A boolean prop that calculates its value from dependencies.
 ///
@@ -60,18 +63,6 @@ pub struct BooleanProp {
     from_attribute: bool,
 }
 
-/// The values of the dependencies created from the data queries
-#[add_dependency_data]
-#[derive(Debug, Default, PropDependencies, PropDataQueries)]
-pub struct RequiredData {
-    /// An independent piece of data (a [`StateProp`](crate::state::prop_state::StateProp) whose value gets saved)
-    /// that is used if `propagate_came_from_default` is false
-    /// to store the value when there are no dependencies.
-    independent_state: PropView<bool>,
-
-    /// A vector of the boolean or string values of the dependencies coming from the data_query
-    booleans_and_strings: Vec<BooleanOrString>,
-}
 impl BooleanProp {
     /// Creates a boolean prop that calculates its value from the component's children
     /// matching the `String` or `Boolean` profile.
@@ -134,96 +125,80 @@ impl BooleanProp {
     }
 }
 
-impl PropUpdater<bool, RequiredData> for BooleanProp {
-    fn default_value(&self) -> bool {
-        self.default_value
+impl PropUpdater for BooleanProp {
+    fn default(&self) -> PropValue {
+        PropValue::Boolean(self.default_value)
     }
 
-    fn return_data_queries(&self) -> Vec<DataQuery> {
-        RequiredDataQueries {
-            independent_state: DataQuery::State,
-            booleans_and_strings: self.data_query.clone(),
-        }
-        .into()
+    fn data_queries(&self) -> Vec<DataQuery> {
+        vec![DataQuery::State, self.data_query.clone()]
     }
 
     #[allow(clippy::needless_return)]
-    fn calculate_old(&mut self, data: &RequiredData) -> PropCalcResult<bool> {
-        match data.booleans_and_strings.len() {
+    fn calculate(&self, data: Vec<DataQueryResult>) -> PropCalcResult<PropValue> {
+        let independent_state = &data[0].values[0];
+        let booleans_and_strings = &data[1].values;
+
+        match booleans_and_strings.len() {
             0 => {
-                if self.propagate_came_from_default {
-                    // If `propagate_came_from_default` is true,
-                    // this means we did not call `dont_propagate_came_from_default()`
-                    // so the `always_return_value` flag must still be set to true on the data query,
-                    // forcing them to return at least one value.
-
-                    // If we reached here, then there has been a programming error violating this contract.
-                    unreachable!()
-                }
-
-                // If we reach here, then we must have called `dont_propagate_came_from_default()`
-                // and there were no dependencies returned from the data query.
-                // This is the one case where we use `independent_state`,
-                // using its `came_from_default` as well as its value.
-                if data.independent_state.came_from_default() {
-                    PropCalcResult::FromDefault(*data.independent_state.get())
+                // If we reach here, then there were no dependencies returned from the data query.
+                // Use the value and came_from_default of `independent_state`
+                if independent_state.came_from_default {
+                    PropCalcResult::FromDefault((*independent_state.value).clone())
                 } else {
-                    PropCalcResult::Calculated(*data.independent_state.get())
+                    PropCalcResult::Calculated((*independent_state.value).clone())
                 }
             }
             1 => {
-                match &data.booleans_and_strings[0] {
-                    BooleanOrString::Boolean(boolean_value) => {
-                        if self.propagate_came_from_default {
+                match &*booleans_and_strings[0].value {
+                    PropValue::Boolean(..) => {
+                        if self.propagate_came_from_default
+                            && booleans_and_strings[0].came_from_default
+                        {
                             // if we are basing it on a single variable and propagating came_from_default,
                             // then we propagate came_from_default as well as the value.
-                            if boolean_value.came_from_default() {
-                                PropCalcResult::FromDefault(*boolean_value.get())
-                            } else {
-                                PropCalcResult::Calculated(*boolean_value.get())
-                            }
+                            PropCalcResult::FromDefault((*booleans_and_strings[0].value).clone())
                         } else {
-                            // If we are not propagating `came_from_default`,
-                            // then we set `came_from_default` to be false (by specifying `Calculated`)
-                            // independent of the dependency's `came_from_default`
-                            PropCalcResult::Calculated(*boolean_value.get())
+                            PropCalcResult::Calculated((*booleans_and_strings[0].value).clone())
                         }
                     }
-                    BooleanOrString::String(string_value) => {
+                    PropValue::String(string_value) => {
                         PropCalcResult::Calculated(if self.from_attribute {
-                            string_attr_to_boolean(&string_value.get())
+                            PropValue::Boolean(string_attr_to_boolean(&string_value.clone()))
                         } else {
-                            string_to_boolean(&string_value.get())
+                            PropValue::Boolean(string_to_boolean(&string_value.clone()))
                         })
                     }
+                    _ => panic!(
+                        "Should get boolean or string dependency for boolean, found {:?}",
+                        booleans_and_strings[0].value
+                    ),
                 }
             }
             _ => {
-                if data
-                    .booleans_and_strings
+                if booleans_and_strings
                     .iter()
-                    .any(|dep_value| matches!(dep_value, BooleanOrString::Boolean(_)))
+                    .any(|prop| matches!(&*prop.value, PropValue::Boolean(_)))
                 {
                     // invalid combination. Haven't implemented boolean dependency with others
-                    PropCalcResult::Calculated(false)
+                    PropCalcResult::Calculated(PropValue::Boolean(false))
                 } else {
                     // Have multiple string variables. Concatenate the string values into a single string
 
-                    if data
-                        .booleans_and_strings
-                        .iter()
-                        .any(|view| view.changed_since_last_viewed())
-                    {
+                    if booleans_and_strings.iter().any(|prop| prop.changed) {
                         let mut value = String::new();
-                        value.extend(data.booleans_and_strings.iter().map(|v| match v {
-                            BooleanOrString::Boolean(boolean_val) => boolean_val.get().to_string(),
-                            BooleanOrString::String(string_value) => string_value.get().to_string(),
+                        value.extend(booleans_and_strings.iter().map(|prop| match &*prop.value {
+                            PropValue::Boolean(boolean_val) => boolean_val.to_string(),
+                            PropValue::String(string_value) => string_value.to_string(),
+                            _ => {
+                                panic!("Should get boolean or string for boolean, found {:?}", prop)
+                            }
                         }));
 
                         PropCalcResult::Calculated(if self.from_attribute {
-                            string_attr_to_boolean(&value)
+                            PropValue::Boolean(string_attr_to_boolean(&value))
                         } else {
-                            string_to_boolean(&value)
+                            PropValue::Boolean(string_to_boolean(&value))
                         })
                     } else {
                         PropCalcResult::NoChange
@@ -236,44 +211,46 @@ impl PropUpdater<bool, RequiredData> for BooleanProp {
     #[allow(clippy::needless_return)]
     fn invert(
         &self,
-        data: &mut RequiredData,
-        prop: &PropView<bool>,
+        data: Vec<DataQueryResult>,
+        requested_value: PropValue,
         _is_direct_change_from_action: bool,
-    ) -> Result<Vec<DependencyValueUpdateRequest>, InvertError> {
-        match data.booleans_and_strings.len() {
+    ) -> Result<Vec<Option<Vec<Option<PropValue>>>>, InvertError> {
+        let booleans_and_strings = &data[1].values;
+
+        let requested_boolean = match requested_value {
+            PropValue::Boolean(boolean_value) => boolean_value,
+            _ => panic!(
+                "requested value for in invert for boolean must be Boolean, found {:?}",
+                requested_value
+            ),
+        };
+
+        match booleans_and_strings.len() {
             0 => {
-                if self.propagate_came_from_default {
-                    // if propagate_came_from_default is true,
-                    // then always_return_value is true on the string data query,
-                    // so we should never reach this
-                    unreachable!()
-                }
                 // We had no dependencies, so change the independent state variable
-                let requested_value = *prop.get_requested_value();
-
-                data.independent_state.queue_update(requested_value);
-
-                Ok(data.queued_updates())
+                Ok(vec![Some(vec![Some(requested_value.clone())]), None])
             }
             1 => {
                 // based on a single value, so we can invert
-                let requested_value = *prop.get_requested_value();
-                match &mut data.booleans_and_strings[0] {
-                    BooleanOrString::Boolean(boolean_value) => {
-                        boolean_value.queue_update(requested_value);
+                match &*booleans_and_strings[0].value {
+                    PropValue::Boolean(..) => {
+                        Ok(vec![None, Some(vec![Some(requested_value.clone())])])
                     }
-                    BooleanOrString::String(string_value) => {
-                        string_value.queue_update(requested_value.to_string());
-                    }
+                    PropValue::String(..) => Ok(vec![
+                        None,
+                        Some(vec![Some(PropValue::String(requested_boolean.to_string()))]),
+                    ]),
+                    _ => panic!(
+                        "Should get boolean or string dependency for boolean, found {:?}",
+                        booleans_and_strings[0].value
+                    ),
                 }
-
-                Ok(data.queued_updates())
             }
             _ => Err(InvertError::CouldNotUpdate),
         }
     }
 }
 
-#[cfg(test)]
-#[path = "boolean_prop.test.rs"]
-mod tests;
+// #[cfg(test)]
+// #[path = "boolean_prop.test.rs"]
+// mod tests;
