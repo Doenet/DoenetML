@@ -1,5 +1,5 @@
 mod test_utils;
-use doenetml_core::core::graph_based_core::Core;
+use doenetml_core::core::core::Core;
 use test_utils::*;
 
 #[test]

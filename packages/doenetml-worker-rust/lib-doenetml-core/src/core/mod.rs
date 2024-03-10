@@ -6,7 +6,7 @@
 
 pub mod component_builder;
 pub mod dependency_creation;
-pub mod graph_based_core;
+pub mod core;
 pub mod graph_node;
 pub mod math_via_wasm;
 pub mod prop_calculation;

@@ -1,5 +1,5 @@
 use super::{
-    graph_based_core::Core,
+    core::Core,
     graph_node::GraphNode,
     props::{
         cache::{PropStatus, PropWithMeta},

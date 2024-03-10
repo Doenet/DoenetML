@@ -1,6 +1,6 @@
 mod test_utils;
 use assert_json_diff::assert_json_eq;
-use doenetml_core::core::graph_based_core::Core;
+use doenetml_core::core::core::Core;
 use test_utils::*;
 
 #[test]

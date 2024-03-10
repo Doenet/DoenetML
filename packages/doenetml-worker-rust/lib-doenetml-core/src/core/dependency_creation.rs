@@ -3,7 +3,7 @@ use crate::components::{
     ComponentProfile, ComponentProps,
 };
 
-use super::{graph_based_core::Core, graph_node::GraphNode, props::PropValue};
+use super::{core::Core, graph_node::GraphNode, props::PropValue};
 
 impl Core {
     /// Creates all necessary dependencies for a `DataQuery`.

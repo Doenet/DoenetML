@@ -15,7 +15,7 @@ use crate::{
 };
 
 use super::{
-    super::{graph_based_core::Core, graph_node::GraphNode},
+    super::{core::Core, graph_node::GraphNode},
     ChildQueryObject, ComponentChildren,
 };
 

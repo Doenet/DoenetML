@@ -8,7 +8,7 @@ use crate::{
 use itertools::Itertools;
 
 use super::{
-    graph_based_core::Core,
+    core::Core,
     graph_node::{GraphNode, GraphNodeLookup},
 };
 

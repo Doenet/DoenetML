@@ -1,5 +1,5 @@
 use crate::{
-    core::graph_based_core::Core,
+    core::core::Core,
     dast::{flat_dast::FlatRoot, ref_expand::Expander},
     test_utils::*,
 };

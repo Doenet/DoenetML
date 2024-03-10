@@ -108,5 +108,5 @@ pub struct CoreProcessingState {
 }
 
 //#[cfg(test)]
-//#[path = "graph_based_core.test.rs"]
+//#[path = "core.test.rs"]
 //mod test;

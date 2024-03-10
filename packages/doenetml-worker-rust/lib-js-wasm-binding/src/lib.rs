@@ -10,7 +10,7 @@ use wasm_bindgen::prelude::*;
 
 use doenetml_core::{
     components::{prelude::ComponentIdx, types::Action},
-    core::graph_based_core::Core,
+    core::core::Core,
     dast::{DastRoot, FlatDastElementUpdate, FlatDastRoot},
 };
 

@@ -7,7 +7,7 @@ use crate::components::{
 };
 
 use super::{
-    graph_based_core::Core,
+    core::Core,
     props::{cache::PropStatus, PropValue},
 };
 

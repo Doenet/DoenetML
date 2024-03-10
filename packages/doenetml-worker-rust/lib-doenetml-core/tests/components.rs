@@ -8,5 +8,5 @@ use doenetml_core::{
         types::{Action, ActionBody, ComponentIdx, PropIdx, PropPointer},
         ActionsEnum, ComponentNode,
     },
-    core::graph_based_core::Core,
+    core::core::Core,
 };

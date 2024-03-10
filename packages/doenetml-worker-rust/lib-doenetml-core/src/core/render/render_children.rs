@@ -3,7 +3,7 @@ use enum_dispatch::enum_dispatch;
 use crate::{
     components::{prelude::ComponentIdx, Component, ComponentEnum, ComponentNode},
     core::{
-        graph_based_core::Core,
+        core::Core,
         graph_node::{GraphNode, StructureGraph},
         props::StringCache,
     },

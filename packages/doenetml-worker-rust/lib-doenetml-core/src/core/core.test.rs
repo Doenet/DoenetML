@@ -2,11 +2,11 @@ use strum::VariantNames;
 
 use crate::{
     components::{
-        doenet::{p::PAttribute, text::TextAttribute, text_input::TextInputAttribute},
+        doenet::{p::PAttribute, text::TextAttributes, text_input::TextInputAttribute},
         ComponentNode,
     },
     dast::{flat_dast::FlatRoot, ref_expand::Expander},
-    core::{graph_based_core::Core, graph_node::GraphNode},
+    core::{core::Core, graph_node::GraphNode},
     test_utils::*,
 };
 
