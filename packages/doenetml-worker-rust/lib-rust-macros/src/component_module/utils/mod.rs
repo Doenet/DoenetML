@@ -1,3 +1,7 @@
+//! # Utils
+//!
+//! Utility functions for creating the `mod components {...}` module.
+
 mod doc_comments;
 mod find;
 mod types;

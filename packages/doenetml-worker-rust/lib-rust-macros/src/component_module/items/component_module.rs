@@ -1,17 +1,32 @@
-//! Parse the `mod component` module.
+//! Parse the `mod component {...}` module.
 
 use darling::{FromAttributes, FromMeta};
 use proc_macro2::{Ident, TokenStream};
-use quote::quote;
+use quote::{format_ident, quote};
 use strum::VariantNames;
 use strum_macros::VariantNames;
 use syn::Lit;
 
-use super::{
-    actions::{actions_enum_from_module, ActionsEnum},
-    attributes::{attributes_enum_from_module, AttributesEnum},
-    props::{props_enum_from_module, PropsEnum},
-};
+use super::{actions::ActionsEnum, attributes::AttributesEnum, props::PropsEnum};
+
+#[derive(Debug)]
+pub struct ComponentModule {
+    module_name: String,
+    remaining_module_content: syn::ItemMod,
+    //
+    // The content defined in the `#[component(...)]` macro's arguments
+    //
+    pub name: String,
+    pub ref_transmutes_to: Option<String>,
+    pub extend_via_default_prop: bool,
+    pub children: RenderedChildren,
+    //
+    // The content defined _inside_ the module
+    //
+    pub actions: ActionsEnum,
+    pub attributes: AttributesEnum,
+    pub props: PropsEnum,
+}
 
 #[derive(Debug, Default, VariantNames)]
 pub enum RenderedChildren {
@@ -59,24 +74,6 @@ pub struct ComponentMacroVariant {
     rendered_children: RenderedChildren,
 }
 
-#[derive(Debug)]
-pub struct ComponentModule {
-    remaining_module_content: syn::ItemMod,
-    //
-    // The content defined in the `#[component(...)]` macro's arguments
-    //
-    pub name: String,
-    pub ref_transmutes_to: Option<String>,
-    pub extend_via_default_prop: bool,
-    pub children: RenderedChildren,
-    //
-    // The content defined _inside_ the module
-    //
-    pub actions: Option<ActionsEnum>,
-    pub attributes: Option<AttributesEnum>,
-    pub props: Option<PropsEnum>,
-}
-
 impl ComponentModule {
     pub fn from_module(mut module: syn::ItemMod) -> syn::Result<Self> {
         //panic!("{}", module.to_token_stream().to_string());
@@ -85,11 +82,14 @@ impl ComponentModule {
         let name = component_macro.name.to_string();
         let children = component_macro.rendered_children;
 
-        let props = props_enum_from_module(&mut module)?;
-        let actions = actions_enum_from_module(&mut module)?;
-        let attributes = attributes_enum_from_module(&mut module)?;
+        let props = PropsEnum::extract_from_module(&mut module)?;
+        let actions = ActionsEnum::extract_from_module(&mut module)?;
+        let attributes = AttributesEnum::extract_from_module(&mut module)?;
+
+        let module_name = module.ident.to_string();
 
         Ok(Self {
+            module_name,
             remaining_module_content: module,
             name,
             ref_transmutes_to: component_macro.ref_transmutes_to.map(|x| x.to_string()),
@@ -114,7 +114,23 @@ impl ComponentModule {
         }
     }
 
+    /// Returns the `Ident` of `(Component, Actions, Attributes, Props)`, in that order.
+    /// `Component` is the name of the component. Other names are all prefixed with the component name.
+    /// e.g., if the component name was `Text`, this would return `(Text, TextActions, TextAttributes, TextProps)`.
+    pub fn get_component_idents(&self) -> (Ident, Ident, Ident, Ident) {
+        let component_name = format_ident!("{}", self.name);
+        let actions_name = format_ident!("{}Actions", self.name);
+        let attributes_name = format_ident!("{}Attributes", self.name);
+        let props_name = format_ident!("{}Props", self.name);
+
+        (component_name, actions_name, attributes_name, props_name)
+    }
+
+    /// Generate the actual `mod component {...}` module.
     pub fn generate_module(&self) -> syn::Result<TokenStream> {
+        let module_name = format_ident!("{}", &self.module_name);
+        // Whether it is `pub mod` or not
+        let module_vis = &self.remaining_module_content.vis;
         let empty_vec = vec![];
         let remaining_module_content =
             extract_content(&self.remaining_module_content).unwrap_or(&empty_vec);
@@ -129,7 +145,7 @@ impl ComponentModule {
         Ok(quote! {
             // TODO: whether or not component is pub should depend one what was entered.
             // Also, presumably the name should the original name and not be hard-coded as `component`
-            pub mod component {
+            #module_vis mod #module_name {
                 #(#remaining_module_content)*
 
                 use crate::components::prelude::*;

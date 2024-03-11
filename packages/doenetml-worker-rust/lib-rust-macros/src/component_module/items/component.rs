@@ -2,9 +2,7 @@ use convert_case::{Case, Casing};
 use proc_macro2::TokenStream;
 use quote::quote;
 
-use crate::component::component_mod::RenderedChildren;
-
-use super::super::component_mod::ComponentModule;
+use super::component_module::{ComponentModule, RenderedChildren};
 
 impl ComponentModule {
     /// Generate the `struct Component` and all the associated impls for required traits.
@@ -51,10 +49,11 @@ impl ComponentModule {
 
         let extend_via_default_prop = self.extend_via_default_prop;
 
-        let action_names = self.get_action_names();
-        let attribute_names = self.get_attribute_names();
-        let prop_names = self.get_prop_names();
+        let action_names = self.actions.get_action_names();
+        let attribute_names = self.attributes.get_attribute_names();
+        let prop_names = self.props.get_prop_names();
         let prop_profiles = self
+            .props
             .get_prop_profiles()
             .iter()
             .map(|x| {
@@ -66,18 +65,15 @@ impl ComponentModule {
                 }
             })
             .collect::<Vec<_>>();
-        let prop_for_renders = self.get_prop_for_renders();
-        let prop_is_publics = self.get_prop_is_publics();
-        let prop_value_types = self.get_prop_value_types();
-        let default_prop = match self
-            .props
-            .as_ref()
-            .and_then(|props| props.get_default_prop_local_index())
-        {
+        let prop_for_renders = self.props.get_prop_for_renders();
+        let prop_is_publics = self.props.get_prop_is_publics();
+        let prop_value_types = self.props.get_prop_value_types();
+        let default_prop = match self.props.get_default_prop_local_index() {
             Some(idx) => quote! {Some(#idx)},
             None => quote! {None},
         };
         let props: Vec<TokenStream> = self
+            .props
             .get_prop_idents()
             .iter()
             .map(|x| quote! {Props::#x})
@@ -206,7 +202,7 @@ impl ComponentModule {
     /// If there are any actions, no implementation is given because the
     /// component author must implement the trait themselves.
     pub fn impl_component_on_action_trait(&self) -> TokenStream {
-        if self.get_action_names().is_empty() {
+        if self.actions.get_action_names().is_empty() {
             quote! {
                 impl ComponentOnAction for Component {}
             }

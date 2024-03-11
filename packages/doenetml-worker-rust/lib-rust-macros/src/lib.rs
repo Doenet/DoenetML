@@ -1,40 +1,10 @@
 extern crate proc_macro2;
 
-use component::parse_module::parse_module;
-use component_attributes::attribute_prop_derive;
+use component_module::generate_component_module;
 use proc_macro::TokenStream;
 use quote::quote;
 
-mod component;
-mod component_attributes;
-
-/// Use on the Enum that lists the attributes of your component.
-/// Every variant should be annotated with a `#[attribute(...)]` annotation.
-///
-/// The options available to `attribute(...)` are:
-///  - `prop` - The prop that will be created for this attribute. The prop **must**
-///    have a `new_from_attribute(attr_name, default_value)` method.
-/// - `default` - The default value for the attribute.
-/// - `explicit_type` (optional) - The type of the prop that will be created for the attribute.
-///    For example, if you expect a `Prop<bool>` to be created, then `explicit_type=bool`.
-///    This can be inferred if the value of `prop` is a commonly-recognized prop type.
-///
-/// Example:
-/// ```ignore
-/// #[derive(Debug, AttributeProp)]
-/// pub enum MyComponentAttributes {
-///   #[attribute(prop = BooleanProp, default = false)]
-///   Foo,
-///   #[attribute(prop = CustomProp, default = Vec::new(), explicit_type = Vec<String>)]
-///   Bar,
-/// }
-/// ```
-///
-/// Note: Enum variants are specified in PascalCase, but attribute names are always converted to camelCase.
-#[proc_macro_derive(AttributeProp, attributes(attribute))]
-pub fn attribute_prop_derive_wrapper(input: TokenStream) -> TokenStream {
-    attribute_prop_derive(input)
-}
+mod component_module;
 
 /// Create a _DoenetML_ _Component_ from a decorated module. This macro adds creates required structs/enums
 /// from a module containing a declaration of a _DoenetML_ component.
@@ -171,9 +141,7 @@ pub fn component(attr: TokenStream, item: TokenStream) -> TokenStream {
         #item
     };
 
-    //panic!("{}", attr);
-
-    match parse_module(combined) {
+    match generate_component_module(combined) {
         Ok(tokens) => tokens.into(),
         Err(e) => e.to_compile_error().into(),
     }

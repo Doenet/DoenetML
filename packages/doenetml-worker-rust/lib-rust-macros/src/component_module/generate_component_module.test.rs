@@ -1,6 +1,40 @@
-use crate::component::utils::pretty_print_result;
+use crate::component_module::utils::pretty_print_result;
 
 use super::*;
+
+#[test]
+fn test_preserves_name_of_module() {
+    let input = r#"
+        #[component(name = Document, ref_transmutes_to = Text)]
+        mod my_mod {}
+    "#;
+    let result = generate_component_module(syn::parse_str(input).unwrap());
+    let formatted = pretty_print_result(&result);
+
+    // formatted should contain the string `mod my_mod`
+    assert!(formatted.contains("mod my_mod"));
+}
+
+#[test]
+fn test_preserves_pub_decorator_on_module() {
+    let input = r#"
+        #[component(name = Document, ref_transmutes_to = Text)]
+        mod my_mod {}
+    "#;
+    let result = generate_component_module(syn::parse_str(input).unwrap());
+    let formatted = pretty_print_result(&result);
+    // formatted should not have a `pub mod`
+    assert!(!formatted.contains("pub mod"));
+
+    let input = r#"
+        #[component(name = Document, ref_transmutes_to = Text)]
+        pub mod my_mod {}
+    "#;
+    let result = generate_component_module(syn::parse_str(input).unwrap());
+    let formatted = pretty_print_result(&result);
+    // formatted should have a `pub mod`
+    assert!(formatted.contains("pub mod"));
+}
 
 #[test]
 fn test_can_parse_module() {
@@ -36,7 +70,7 @@ fn test_can_parse_module() {
             }
         }
     "#;
-    let result = parse_module(syn::parse_str(input).unwrap());
+    let result = generate_component_module(syn::parse_str(input).unwrap());
     println!("\n{}\n", pretty_print_result(&result));
     //dbg!(syn::parse_str::<ItemMod>(input).unwrap());
     // dbg!(result.to_string());
@@ -48,7 +82,7 @@ fn test_can_parse_empty_module() {
         #[component(name = Document, ref_transmutes_to = Text)]
         mod component {}
     "#;
-    let result = parse_module(syn::parse_str(input).unwrap());
+    let result = generate_component_module(syn::parse_str(input).unwrap());
     println!("\n{}\n", pretty_print_result(&result));
     //dbg!(syn::parse_str::<ItemMod>(input).unwrap());
     // dbg!(result.to_string());
@@ -82,7 +116,7 @@ mod component {
     }
 }
     "#;
-    let result = parse_module(syn::parse_str(input).unwrap());
+    let result = generate_component_module(syn::parse_str(input).unwrap());
     println!("\n{}\n", pretty_print_result(&result));
     //dbg!(syn::parse_str::<ItemMod>(input).unwrap());
     // dbg!(result.to_string());
