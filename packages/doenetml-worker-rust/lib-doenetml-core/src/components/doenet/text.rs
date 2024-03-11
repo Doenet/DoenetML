@@ -15,6 +15,8 @@ mod component {
             default
         )]
         Value,
+
+        /// Whether the `<text>` should be hidden.
         #[prop(value_type = PropValueType::Boolean)]
         Hidden,
     }
@@ -31,29 +33,11 @@ pub use component::TextActions;
 pub use component::TextAttributes;
 pub use component::TextProps;
 
-// XXX - ignoring hide attribute
-
 impl PropGetUpdater for TextProps {
     fn get_updater(&self) -> Box<dyn PropUpdater> {
         match self {
             TextProps::Value => Box::new(StringProp::new_from_children("".to_string())),
-            // TODO: derive this from TextAttributes so don't have to repeat the default value
-            // or match the string name
-            //TextProps::Hidden => Box::new(BooleanProp::new_from_attribute("hide", false)),
             TextProps::Hidden => TextAttributes::Hide.get_prop_updater(),
         }
     }
 }
-
-// #[derive(Debug, AttributeProp)]
-// pub enum TextAttribute {
-//     /// Whether the `<text>` should be hidden.
-//     #[attribute(prop = BooleanProp, default = false)]
-//     Hide,
-// }
-
-// impl ComponentAttributes for Text {
-//     fn get_attribute_names(&self) -> Vec<AttributeName> {
-//         TextAttribute::VARIANTS.into()
-//     }
-// }

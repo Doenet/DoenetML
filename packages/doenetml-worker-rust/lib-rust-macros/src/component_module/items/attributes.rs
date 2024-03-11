@@ -6,7 +6,7 @@ use convert_case::{Case, Casing};
 use darling::{FromDeriveInput, FromVariant};
 use proc_macro2::{Ident, TokenStream};
 use quote::quote;
-use syn::Path;
+use syn::{parse_quote, Path, Variant};
 
 use crate::component_module::utils::{doc_comment_from_attrs, extract_enum_in_module, EnumInBody};
 
@@ -52,7 +52,7 @@ impl AttributesEnum {
         self.variants.is_some()
     }
     pub fn get_variants(&self) -> &[AttributesVariant] {
-        self.variants.as_ref().map_or(&[], |v| &v)
+        self.variants.as_ref().map_or(&[], |v| v)
     }
     pub fn get_attribute_idents(&self) -> Vec<Ident> {
         self.variants.as_ref().map_or(vec![], |variants| {
@@ -64,6 +64,47 @@ impl AttributesEnum {
             .iter()
             .map(|x| x.to_string().to_case(Case::Snake))
             .collect()
+    }
+
+    /// Generate the doc comment for `enum Attributes {...}`.
+    pub fn generate_enum_doc_comment(&self) -> String {
+        let attribute_names = self
+            .get_attribute_names()
+            .iter()
+            .map(|x| format!("`{}`", x))
+            .collect::<Vec<_>>();
+        let attribute_names = attribute_names.join(", ");
+        format!(
+            "The attributes available on this component are: {}",
+            attribute_names
+        )
+    }
+
+    pub fn generate_idents_with_doc_comments(&self) -> Vec<Variant> {
+        self.get_variants()
+            .iter()
+            .enumerate()
+            .map(|(i, variant)| {
+                let doc_comment = self.generate_variant_doc_comment(i);
+                let ident = &variant.ident;
+                parse_quote! (
+                    #[doc = #doc_comment]
+                    #ident
+                )
+            })
+            .collect()
+    }
+
+    fn generate_variant_doc_comment(&self, variant_idx: usize) -> String {
+        let variant = &self.get_variants()[variant_idx];
+        let existing_doc = variant.doc.clone().unwrap_or_default();
+        let default = match variant.default.as_ref() {
+            Some(default) => format!("- Default value: `{}`", quote! {#default}),
+            None => "- No default value".to_string(),
+        };
+        let name = &self.get_attribute_names()[variant_idx];
+
+        format!("{}\n- Name: '{}'\n{}", existing_doc, name, default)
     }
 }
 
@@ -106,12 +147,14 @@ impl ComponentModule {
     /// Generate the `enum Props` for this component.
     pub fn enum_attributes(&self) -> TokenStream {
         let (_, _, attributes_name, _) = self.get_component_idents();
-        let attribute_idents = self.attributes.get_attribute_idents();
+        let doc_string = self.attributes.generate_enum_doc_comment();
+        let idents_with_doc_comments = self.attributes.generate_idents_with_doc_comments();
 
         quote! {
             #[derive(Debug, Clone, Copy)]
+            #[doc = #doc_string]
             pub enum #attributes_name {
-                #(#attribute_idents,)*
+                #(#idents_with_doc_comments,)*
             }
         }
     }

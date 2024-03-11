@@ -9,25 +9,39 @@ use syn::Lit;
 
 use super::{actions::ActionsEnum, attributes::AttributesEnum, props::PropsEnum};
 
+/// A parsed `mod component {...}` module that has been decorated with a `#[component(...)]` macro.
 #[derive(Debug)]
 pub struct ComponentModule {
+    /// The name of the module itself. E.g., the `foo` in `mod foo { ... }`
     module_name: String,
+    /// The content of the module that has not been extracted to produce the structs/enums.
+    /// This contains, for example, the `use` import statements.
     remaining_module_content: syn::ItemMod,
+
     //
     // The content defined in the `#[component(...)]` macro's arguments
     //
+    /// The component name (in PascalCase).
     pub name: String,
+    /// The value of the `ref_transmutes_to` field.
     pub ref_transmutes_to: Option<String>,
+    /// The value of the `extend_via_default_prop` field.
     pub extend_via_default_prop: bool,
+    /// The value of the `rendered_children` field.
     pub children: RenderedChildren,
+
     //
     // The content defined _inside_ the module
     //
+    /// The `enum Actions` that was defined in the module.
     pub actions: ActionsEnum,
+    /// The `enum Attributes` that was defined in the module.
     pub attributes: AttributesEnum,
+    /// The `enum Props` that was defined in the module.
     pub props: PropsEnum,
 }
 
+/// Options for the `rendered_children` field in the `#[component(...)]` macro.
 #[derive(Debug, Default, VariantNames)]
 pub enum RenderedChildren {
     Passthrough,
@@ -75,8 +89,8 @@ pub struct ComponentMacroVariant {
 }
 
 impl ComponentModule {
+    /// Parse the `#[component(...)] mod component {...}` macro and the module content to produce a `ComponentModule`.
     pub fn from_module(mut module: syn::ItemMod) -> syn::Result<Self> {
-        //panic!("{}", module.to_token_stream().to_string());
         let component_macro: ComponentMacroVariant =
             ComponentMacroVariant::from_attributes(&module.attrs)?;
         let name = component_macro.name.to_string();
@@ -161,6 +175,7 @@ impl ComponentModule {
     }
 }
 
+/// Get the `...` contents inside a `mod foo {...}`.
 fn extract_content(item_mod: &syn::ItemMod) -> Option<&Vec<syn::Item>> {
     item_mod.content.as_ref().map(|(_, items)| items)
 }

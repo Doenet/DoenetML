@@ -77,7 +77,7 @@ impl PropsEnum {
 
     /// The profile of all props defined on this component
     pub fn get_variants(&self) -> &[PropsVariant] {
-        self.variants.as_ref().map_or(&[], |v| &v)
+        self.variants.as_ref().map_or(&[], |v| v)
     }
 
     pub fn get_prop_idents(&self) -> Vec<Ident> {

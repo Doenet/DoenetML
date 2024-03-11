@@ -52,7 +52,7 @@ impl ActionsEnum {
     }
 
     pub fn get_variants(&self) -> &[ActionsVariant] {
-        self.variants.as_ref().map_or(&[], |v| &v)
+        self.variants.as_ref().map_or(&[], |v| v)
     }
 
     pub fn get_action_idents(&self) -> Vec<Ident> {
