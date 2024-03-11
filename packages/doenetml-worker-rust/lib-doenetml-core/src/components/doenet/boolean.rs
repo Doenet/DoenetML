@@ -15,8 +15,8 @@ mod component {
             default
         )]
         Value,
-        // #[prop(value_type = PropValueType::Boolean)]
-        // Hidden,
+        #[prop(value_type = PropValueType::Boolean)]
+        Hidden,
     }
 
     enum Attributes {
@@ -35,6 +35,7 @@ impl PropGetUpdater for BooleanProps {
     fn get_updater(&self) -> Box<dyn PropUpdater> {
         match self {
             BooleanProps::Value => Box::new(BooleanProp::new_from_children(false)),
+            BooleanProps::Hidden => BooleanAttributes::Hide.get_prop_updater(),
         }
     }
 }
