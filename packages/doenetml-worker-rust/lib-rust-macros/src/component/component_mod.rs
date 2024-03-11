@@ -4,7 +4,7 @@ use darling::{FromAttributes, FromMeta};
 use proc_macro2::{Ident, TokenStream};
 use quote::quote;
 use strum::VariantNames;
-use strum_macros::EnumVariantNames;
+use strum_macros::VariantNames;
 use syn::Lit;
 
 use super::{
@@ -13,7 +13,7 @@ use super::{
     props::{props_enum_from_module, PropsEnum},
 };
 
-#[derive(Debug, Default, EnumVariantNames)]
+#[derive(Debug, Default, VariantNames)]
 pub enum RenderedChildren {
     Passthrough,
     None,
@@ -61,6 +61,7 @@ pub struct ComponentMacroVariant {
 
 #[derive(Debug)]
 pub struct ComponentModule {
+    remaining_module_content: syn::ItemMod,
     //
     // The content defined in the `#[component(...)]` macro's arguments
     //
@@ -77,18 +78,19 @@ pub struct ComponentModule {
 }
 
 impl ComponentModule {
-    pub fn from_module(module: &syn::ItemMod) -> syn::Result<Self> {
+    pub fn from_module(mut module: syn::ItemMod) -> syn::Result<Self> {
         //panic!("{}", module.to_token_stream().to_string());
         let component_macro: ComponentMacroVariant =
             ComponentMacroVariant::from_attributes(&module.attrs)?;
         let name = component_macro.name.to_string();
         let children = component_macro.rendered_children;
 
-        let props = props_enum_from_module(module)?;
-        let actions = actions_enum_from_module(module);
-        let attributes = attributes_enum_from_module(module);
+        let props = props_enum_from_module(&mut module)?;
+        let actions = actions_enum_from_module(&mut module)?;
+        let attributes = attributes_enum_from_module(&mut module)?;
 
         Ok(Self {
+            remaining_module_content: module,
             name,
             ref_transmutes_to: component_macro.ref_transmutes_to.map(|x| x.to_string()),
             extend_via_default_prop: component_macro.extend_via_default_prop,
@@ -113,16 +115,23 @@ impl ComponentModule {
     }
 
     pub fn generate_module(&self) -> syn::Result<TokenStream> {
+        let empty_vec = vec![];
+        let remaining_module_content =
+            extract_content(&self.remaining_module_content).unwrap_or(&empty_vec);
+
         let component = self.generate_component_and_impls();
         let actions = self.generate_actions_and_impls();
         let attributes = self.generate_attributes_and_impls();
         let props = self.generate_props_and_impls();
 
         let type_aliases = self.get_type_aliases();
+
         Ok(quote! {
             // TODO: whether or not component is pub should depend one what was entered.
             // Also, presumably the name should the original name and not be hard-coded as `component`
             pub mod component {
+                #(#remaining_module_content)*
+
                 use crate::components::prelude::*;
 
                 #component
@@ -134,4 +143,8 @@ impl ComponentModule {
             }
         })
     }
+}
+
+fn extract_content(item_mod: &syn::ItemMod) -> Option<&Vec<syn::Item>> {
+    item_mod.content.as_ref().map(|(_, items)| items)
 }

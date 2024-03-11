@@ -15,6 +15,7 @@ pub use crate::core::props::PropValueType;
 pub use crate::dast::flat_dast::FlatAttribute;
 pub use crate::dast::flat_dast::UntaggedContent;
 pub use crate::dast::Position as DastPosition;
+pub use crate::props::traits::*;
 pub use crate::utils::KeyValueIgnoreCase;
 
 pub use crate::components::{

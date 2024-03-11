@@ -7,6 +7,7 @@ mod prop_updater;
 mod prop_value;
 mod state_cache;
 mod string_cache;
+pub mod traits;
 
 pub use data_query::*;
 pub use prop::*;

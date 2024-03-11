@@ -4,7 +4,7 @@
 use darling::{ast, FromDeriveInput, FromVariant};
 use proc_macro2::Ident;
 
-use super::utils::{doc_comment_from_attrs, find_enums_in_module, EnumInBody};
+use super::utils::{doc_comment_from_attrs, extract_enum_in_module, EnumInBody};
 
 #[derive(Debug)]
 pub struct ActionsEnum {
@@ -37,35 +37,30 @@ pub struct ActionsVariant {
     #[darling(default)]
     pub doc: Option<String>,
 }
-pub fn actions_enum_from_module(module: &syn::ItemMod) -> Option<ActionsEnum> {
-    let enums = find_enums_in_module(module);
-    let enums = enums
+
+/// Extracts the `enum Actions {...}` from the module and parses it into a `ActionsEnum`.
+pub fn actions_enum_from_module(module: &mut syn::ItemMod) -> syn::Result<Option<ActionsEnum>> {
+    let enums = extract_enum_in_module(module, "Actions");
+    if enums.is_none() {
+        return Ok(None);
+    }
+    let enums = enums.unwrap();
+    let enum_instance = EnumInBody::from_derive_input(&enums.clone().into())?;
+    let variants = enum_instance.data.clone().take_enum().unwrap();
+    let variants = variants
         .iter()
-        .map(|enum_instance| EnumInBody::from_derive_input(&enum_instance.clone().into()).unwrap())
+        .map(ActionsVariant::from_variant)
+        .collect::<Result<Vec<_>, _>>()?
+        .into_iter()
+        .map(|mut variant| {
+            // Extract the doc comments.
+            variant.doc = doc_comment_from_attrs(&variant.attrs);
+            // Now that we have the doc comments, we don't need to keep the attrs around anymore.
+            variant.attrs.clear();
+
+            variant
+        })
         .collect::<Vec<_>>();
 
-    let actions_enum = enums
-        .iter()
-        .find(|enum_instance| enum_instance.ident == "Actions")
-        .map(|enum_instance| {
-            let variants = enum_instance.data.clone().take_enum().unwrap();
-            variants
-                .iter()
-                .map(ActionsVariant::from_variant)
-                .map(Result::unwrap)
-                // .inspect(|x| {
-                //     println!("{:?}", x.fields.to_token_stream().to_string());
-                // })
-                .map(|mut variant| {
-                    // Extract the doc comments.
-                    variant.doc = doc_comment_from_attrs(&variant.attrs);
-                    // Now that we have the doc comments, we don't need to keep the attrs around anymore.
-                    variant.attrs.clear();
-
-                    variant
-                })
-                .collect::<Vec<_>>()
-        });
-
-    actions_enum.map(|variants| ActionsEnum { variants })
+    Ok(Some(ActionsEnum { variants }))
 }

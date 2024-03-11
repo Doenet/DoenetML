@@ -1,8 +1,10 @@
 use crate::components::prelude::*;
-use crate::general_prop::{BooleanProp, StringProp};
+use crate::general_prop::StringProp;
 
 #[component(name = Text, rendered_children = "none", extend_via_default_prop)]
 mod component {
+    use crate::general_prop::BooleanProp;
+
     enum Props {
         /// The value of the `<text>`. This is the content that will be displayed inside
         /// the `<text>` component.
@@ -37,7 +39,8 @@ impl PropGetUpdater for TextProps {
             TextProps::Value => Box::new(StringProp::new_from_children("".to_string())),
             // TODO: derive this from TextAttributes so don't have to repeat the default value
             // or match the string name
-            TextProps::Hidden => Box::new(BooleanProp::new_from_attribute("hide", false)),
+            //TextProps::Hidden => Box::new(BooleanProp::new_from_attribute("hide", false)),
+            TextProps::Hidden => TextAttributes::Hide.get_prop_updater(),
         }
     }
 }

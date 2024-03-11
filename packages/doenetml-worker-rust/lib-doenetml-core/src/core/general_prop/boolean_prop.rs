@@ -78,23 +78,6 @@ impl BooleanProp {
             from_attribute: false,
         }
     }
-
-    /// Creates a boolean prop that calculates its value from the attribute given by `attr_name`,
-    /// basing the calculation on the attribute children that match the `String` or `Boolean` profile.
-    ///
-    /// If there are no matching attribute children, the prop will be initialized with `default_value`.
-    pub fn new_from_attribute(attr_name: AttributeName, default_value: bool) -> Self {
-        BooleanProp {
-            data_query: DataQuery::Attribute {
-                attribute_name: attr_name,
-                match_profiles: vec![ComponentProfile::String, ComponentProfile::Boolean],
-            },
-            default_value,
-            propagate_came_from_default: true,
-            from_attribute: true,
-        }
-    }
-
     /// Changes the behavior so that this prop no longer propagates the `came_from_default` flag
     /// when there is only one matching boolean dependency.
     ///
@@ -122,6 +105,24 @@ impl BooleanProp {
 
         self.propagate_came_from_default = false;
         self
+    }
+}
+
+impl PropFromAttribute<bool> for BooleanProp {
+    /// Creates a boolean prop that calculates its value from the attribute given by `attr_name`,
+    /// basing the calculation on the attribute children that match the `String` or `Boolean` profile.
+    ///
+    /// If there are no matching attribute children, the prop will be initialized with `default_value`.
+    fn new_from_attribute(attr_name: AttributeName, default_value: bool) -> Self {
+        BooleanProp {
+            data_query: DataQuery::Attribute {
+                attribute_name: attr_name,
+                match_profiles: vec![ComponentProfile::String, ComponentProfile::Boolean],
+            },
+            default_value,
+            propagate_came_from_default: true,
+            from_attribute: true,
+        }
     }
 }
 

@@ -67,21 +67,6 @@ impl StringProp {
         }
     }
 
-    /// Creates a string prop that calculates its value from the attribute given by `attr_name`,
-    /// basing the calculation on the attribute components that match the `String` profile.
-    ///
-    /// If there are no matching attribute components, the prop will be initialized with `default_value`.
-    pub fn new_from_attribute<S: Into<String>>(attr_name: AttributeName, default_value: S) -> Self {
-        StringProp {
-            data_query: DataQuery::Attribute {
-                attribute_name: attr_name,
-                match_profiles: vec![ComponentProfile::String],
-            },
-            default_value: default_value.into(),
-            propagate_came_from_default: true,
-        }
-    }
-
     /// Changes the behavior so that this prop no longer propagates the `came_from_default` flag
     /// when there is only one matching dependency.
     ///
@@ -109,6 +94,23 @@ impl StringProp {
 
         self.propagate_came_from_default = false;
         self
+    }
+}
+
+impl<S: Into<String>> PropFromAttribute<S> for StringProp {
+    /// Creates a string prop that calculates its value from the attribute given by `attr_name`,
+    /// basing the calculation on the attribute components that match the `String` profile.
+    ///
+    /// If there are no matching attribute components, the prop will be initialized with `default_value`.
+    fn new_from_attribute(attr_name: AttributeName, default_value: S) -> Self {
+        StringProp {
+            data_query: DataQuery::Attribute {
+                attribute_name: attr_name,
+                match_profiles: vec![ComponentProfile::String],
+            },
+            default_value: default_value.into(),
+            propagate_came_from_default: true,
+        }
     }
 }
 

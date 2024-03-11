@@ -5,7 +5,7 @@ use darling::{FromDeriveInput, FromVariant};
 use proc_macro2::Ident;
 use syn::Path;
 
-use super::utils::{doc_comment_from_attrs, find_enums_in_module, EnumInBody};
+use super::utils::{doc_comment_from_attrs, extract_enum_in_module, EnumInBody};
 
 /// A variant on the `enum Props {...}` enum.
 /// This struct will parse what is inside the `#[prop(...)]` annotations on each
@@ -77,42 +77,28 @@ impl PropsEnum {
 }
 
 /// Extract the `enum Props {...}` from the module.
-pub fn props_enum_from_module(module: &syn::ItemMod) -> syn::Result<Option<PropsEnum>> {
-    let enums = find_enums_in_module(module);
-    let enums = enums
+pub fn props_enum_from_module(module: &mut syn::ItemMod) -> syn::Result<Option<PropsEnum>> {
+    let enums = extract_enum_in_module(module, "Props");
+    if enums.is_none() {
+        return Ok(None);
+    }
+    let enums = enums.unwrap();
+    let enums_instance = EnumInBody::from_derive_input(&enums.clone().into())?;
+    let variants = enums_instance.data.clone().take_enum().unwrap();
+    let variants = variants
         .iter()
-        .map(|enum_instance| EnumInBody::from_derive_input(&enum_instance.clone().into()).unwrap())
+        .map(PropsVariant::from_variant)
+        .collect::<Result<Vec<_>, _>>()?
+        .into_iter()
+        .map(|mut variant| {
+            // Extract the doc comments.
+            variant.doc = doc_comment_from_attrs(&variant.attrs);
+            // Now that we have the doc comments, we don't need to keep the attrs around anymore.
+            variant.attrs.clear();
+
+            variant
+        })
         .collect::<Vec<_>>();
 
-    let props_enum: Option<syn::Result<_>> = enums
-        .iter()
-        .find(|enum_instance| enum_instance.ident == "Props")
-        .map(|enum_instance| {
-            let variants: Result<Vec<_>, _> = enum_instance
-                .data
-                .clone()
-                .take_enum()
-                .unwrap()
-                .iter()
-                .map(PropsVariant::from_variant)
-                .collect();
-
-            let variants = variants?;
-
-            let variants: Vec<_> = variants
-                .into_iter()
-                .map(|mut variant| {
-                    // Extract the doc comments.
-                    variant.doc = doc_comment_from_attrs(&variant.attrs);
-                    // Now that we have the doc comments, we don't need to keep the attrs around anymore.
-                    // ...
-                    variant
-                })
-                .collect();
-
-            Ok(variants)
-        });
-
-    let props_enum = props_enum.transpose()?;
-    Ok(props_enum.map(|variants| PropsEnum { variants }))
+    Ok(Some(PropsEnum { variants }))
 }

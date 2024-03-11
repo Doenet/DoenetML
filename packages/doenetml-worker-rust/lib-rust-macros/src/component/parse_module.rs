@@ -6,7 +6,7 @@ use super::component_mod::ComponentModule;
 
 pub fn parse_module(input: TokenStream) -> syn::Result<TokenStream> {
     let module: ItemMod = syn::parse2(input).unwrap();
-    let component_module = ComponentModule::from_module(&module)?;
+    let component_module = ComponentModule::from_module(module)?;
     // dbg!(&component_module);
 
     // println!("\n{}\n", pretty_print(component_module.generate_module()));
