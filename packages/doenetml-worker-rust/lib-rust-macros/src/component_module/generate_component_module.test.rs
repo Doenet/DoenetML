@@ -39,6 +39,7 @@ fn test_preserves_pub_decorator_on_module() {
 #[test]
 fn test_can_parse_module() {
     let input = r#"
+        /// XXX
         #[component(name = Document, ref_transmutes_to = Text, rendered_children = "passthrough")]
         mod component {
             use super::ActionBody;

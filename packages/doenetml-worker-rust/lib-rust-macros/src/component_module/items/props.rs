@@ -4,7 +4,7 @@ use convert_case::{Case, Casing};
 use darling::{FromDeriveInput, FromVariant};
 use proc_macro2::{Ident, TokenStream};
 use quote::quote;
-use syn::Path;
+use syn::{parse_quote, Path, Variant};
 
 use crate::component_module::utils::{doc_comment_from_attrs, extract_enum_in_module, EnumInBody};
 
@@ -125,6 +125,72 @@ impl PropsEnum {
     pub fn get_default_prop_local_index(&self) -> Option<usize> {
         self.get_variants().iter().position(|x| x.default)
     }
+
+    pub fn generate_enum_doc_comment(&self) -> String {
+        if self.get_variants().is_empty() {
+            return "No props are available for this component.".to_string();
+        }
+        let action_names = self
+            .get_prop_names()
+            .iter()
+            .map(|x| format!("`{}`", x))
+            .collect::<Vec<_>>();
+
+        format!(
+            "The props for this component are: {}",
+            action_names.join(", ")
+        )
+    }
+
+    fn generate_variant_doc_comment(&self, variant_idx: usize) -> String {
+        let variant = &self.get_variants()[variant_idx];
+        let existing_doc = variant.doc.clone().unwrap_or_default();
+        let name = &self.get_prop_names()[variant_idx];
+        let mut descriptions = vec![format!("- Name: \"{}\"", name)];
+        match variant.is_public {
+            true => descriptions
+                .push("- Public: this prop can be accessed from a DoenetML document.".to_string()),
+            false => {
+                descriptions.push("- Private: this prop can only be used internally.".to_string())
+            }
+        }
+        match variant.for_render {
+            true => descriptions.push(
+                "- ForRender: this prop is always rendered and available to the UI.".to_string(),
+            ),
+            false => descriptions.push("- NotForRender: this prop is not rendered.".to_string()),
+        }
+        match &variant.profile {
+            Some(profile) => descriptions.push(format!("- Profile: `{}`", quote! {#profile})),
+            None => descriptions.push("- No profile set for this prop".to_string()),
+        }
+        match variant.default {
+            true => descriptions.push(
+                "- Default: this prop is the _unique_ default prop for this component.".to_string(),
+            ),
+            false => {}
+        }
+        // Add a description of variant.value_type
+        let value_type = &variant.value_type;
+        descriptions.push(format!("- Type: `{}`", quote! {#value_type}));
+
+        format!("{}\n{}", existing_doc, descriptions.join("\n"))
+    }
+
+    pub fn generate_idents_with_doc_comments(&self) -> Vec<Variant> {
+        self.get_variants()
+            .iter()
+            .enumerate()
+            .map(|(i, variant)| {
+                let doc_comment = self.generate_variant_doc_comment(i);
+                let ident = &variant.ident;
+                parse_quote! (
+                    #[doc = #doc_comment]
+                    #ident
+                )
+            })
+            .collect()
+    }
 }
 
 //
@@ -144,12 +210,14 @@ impl ComponentModule {
     /// Generate the `enum Props` for this component.
     pub fn enum_props(&self) -> TokenStream {
         let (_, _, _, props_name) = self.get_component_idents();
-        let prop_idents = self.props.get_prop_idents();
+        let prop_idents_with_doc_comments = self.props.generate_idents_with_doc_comments();
+        let doc_string = self.props.generate_enum_doc_comment();
 
         quote! {
+            #[doc = #doc_string]
             #[derive(Debug, Clone, Copy)]
             pub enum #props_name {
-                #(#prop_idents,)*
+                #(#prop_idents_with_doc_comments,)*
             }
         }
     }

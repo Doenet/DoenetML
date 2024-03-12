@@ -4,6 +4,7 @@ use convert_case::{Case, Casing};
 use darling::{ast, FromDeriveInput, FromVariant};
 use proc_macro2::{Ident, TokenStream};
 use quote::quote;
+use syn::{parse_quote, Variant};
 
 use crate::component_module::utils::{doc_comment_from_attrs, extract_enum_in_module, EnumInBody};
 
@@ -68,6 +69,45 @@ impl ActionsEnum {
             .map(|x| x.to_string().to_case(Case::Snake))
             .collect()
     }
+
+    pub fn generate_enum_doc_comment(&self) -> String {
+        if self.get_variants().is_empty() {
+            return "No actions are available for this component.".to_string();
+        }
+        let action_names = self
+            .get_action_names()
+            .iter()
+            .map(|x| format!("`{}`", x))
+            .collect::<Vec<_>>();
+
+        format!(
+            "The actions that can be dispatched to this component are: {}",
+            action_names.join(", ")
+        )
+    }
+
+    fn generate_variant_doc_comment(&self, variant_idx: usize) -> String {
+        let variant = &self.get_variants()[variant_idx];
+        let existing_doc = variant.doc.clone().unwrap_or_default();
+        let name = &self.get_action_names()[variant_idx];
+
+        format!("{}\n- Name: \"{}\"", existing_doc, name)
+    }
+
+    pub fn generate_idents_with_doc_comments(&self) -> Vec<Variant> {
+        self.get_variants()
+            .iter()
+            .enumerate()
+            .map(|(i, variant)| {
+                let doc_comment = self.generate_variant_doc_comment(i);
+                let ident = &variant.ident;
+                parse_quote! (
+                    #[doc = #doc_comment]
+                    #ident
+                )
+            })
+            .collect()
+    }
 }
 
 /// A variant on the `enum Actions {...}` enum.
@@ -99,12 +139,18 @@ impl ComponentModule {
     /// Generate the `enum Props` for this component.
     pub fn enum_actions(&self) -> TokenStream {
         let (_, actions_name, _, _) = self.get_component_idents();
-        let action_idents = self.actions.get_action_idents();
+        let action_idents_with_doc_comments = self.actions.generate_idents_with_doc_comments();
+        let doc_string = self.actions.generate_enum_doc_comment();
 
         quote! {
+            #[doc = #doc_string]
             #[derive(Debug, Clone, Copy)]
+            #[derive(serde::Serialize, serde::Deserialize)]
+            #[serde(tag = "actionName", rename_all = "camelCase")]
+            #[cfg_attr(feature = "web", derive(tsify::Tsify))]
+            #[cfg_attr(feature = "web", tsify(from_wasm_abi))]
             pub enum #actions_name {
-                #(#action_idents,)*
+                #(#action_idents_with_doc_comments,)*
             }
         }
     }

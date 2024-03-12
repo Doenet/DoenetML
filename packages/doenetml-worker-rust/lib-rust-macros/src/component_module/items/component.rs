@@ -216,7 +216,7 @@ impl ComponentModule {
     /// `Passthrough`, `None`, or `Handle`. If `Handle` is specified, the component
     /// author must implement the trait themselves so an empty token stream is returned.
     pub fn impl_component_children_trait(&self) -> TokenStream {
-        match self.children {
+        match self.rendered_children {
             RenderedChildren::Handle => {
                 quote! {}
             }

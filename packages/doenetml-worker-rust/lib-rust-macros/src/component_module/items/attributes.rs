@@ -68,6 +68,9 @@ impl AttributesEnum {
 
     /// Generate the doc comment for `enum Attributes {...}`.
     pub fn generate_enum_doc_comment(&self) -> String {
+        if self.get_variants().is_empty() {
+            return "No attributes available on this component.".to_string();
+        }
         let attribute_names = self
             .get_attribute_names()
             .iter()
@@ -104,7 +107,7 @@ impl AttributesEnum {
         };
         let name = &self.get_attribute_names()[variant_idx];
 
-        format!("{}\n- Name: '{}'\n{}", existing_doc, name, default)
+        format!("{}\n- Name: \"{}\"\n{}", existing_doc, name, default)
     }
 }
 

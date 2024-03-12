@@ -7,6 +7,8 @@ use strum::VariantNames;
 use strum_macros::VariantNames;
 use syn::Lit;
 
+use crate::component_module::utils::doc_comment_from_attrs;
+
 use super::{actions::ActionsEnum, attributes::AttributesEnum, props::PropsEnum};
 
 /// A parsed `mod component {...}` module that has been decorated with a `#[component(...)]` macro.
@@ -28,7 +30,7 @@ pub struct ComponentModule {
     /// The value of the `extend_via_default_prop` field.
     pub extend_via_default_prop: bool,
     /// The value of the `rendered_children` field.
-    pub children: RenderedChildren,
+    pub rendered_children: RenderedChildren,
 
     //
     // The content defined _inside_ the module
@@ -94,7 +96,7 @@ impl ComponentModule {
         let component_macro: ComponentMacroVariant =
             ComponentMacroVariant::from_attributes(&module.attrs)?;
         let name = component_macro.name.to_string();
-        let children = component_macro.rendered_children;
+        let rendered_children = component_macro.rendered_children;
 
         let props = PropsEnum::extract_from_module(&mut module)?;
         let actions = ActionsEnum::extract_from_module(&mut module)?;
@@ -108,7 +110,7 @@ impl ComponentModule {
             name,
             ref_transmutes_to: component_macro.ref_transmutes_to.map(|x| x.to_string()),
             extend_via_default_prop: component_macro.extend_via_default_prop,
-            children,
+            rendered_children,
             props,
             actions,
             attributes,
@@ -150,6 +152,7 @@ impl ComponentModule {
             extract_content(&self.remaining_module_content).unwrap_or(&empty_vec);
 
         let component = self.generate_component_and_impls();
+        let component_doc_comments = self.generate_component_doc_comments();
         let actions = self.generate_actions_and_impls();
         let attributes = self.generate_attributes_and_impls();
         let props = self.generate_props_and_impls();
@@ -164,6 +167,7 @@ impl ComponentModule {
 
                 use crate::components::prelude::*;
 
+                #[doc = #component_doc_comments]
                 #component
                 #actions
                 #attributes
@@ -172,6 +176,59 @@ impl ComponentModule {
                 #type_aliases
             }
         })
+    }
+
+    fn generate_component_doc_comments(&self) -> String {
+        let mut doc_comments =
+            doc_comment_from_attrs(&self.remaining_module_content.attrs).unwrap_or_default();
+
+        match self.rendered_children {
+            RenderedChildren::None => {
+                doc_comments.push_str("\n\nThis component does not render any children.");
+            }
+            RenderedChildren::Passthrough => {
+                doc_comments.push_str("\n\nThis component passes through its children unmodified.");
+            }
+            RenderedChildren::Handle => {}
+        }
+
+        match (
+            self.extend_via_default_prop,
+            self.props.get_default_prop_local_index(),
+        ) {
+            (true, Some(idx)) => {
+                let default_prop = &self.props.get_prop_names()[idx];
+                doc_comments.push_str(&format!("\n\nWhen this component is extended by a different component, the `{}` prop is implicitly used.", default_prop));
+            }
+            _ => {
+                // No explanation needed
+            }
+        }
+
+        match self.ref_transmutes_to.as_ref() {
+            Some(ref_transmutes_to) => {
+                doc_comments.push_str(&format!(
+                    r#"
+
+                    Bare references to this component are rendered as the <{}> component. E.g.,
+                    ```xml
+                    <{} name="a"/>
+                    $a
+                    ```
+                    becomes
+                    ```xml
+                    <{} name="a"/>
+                    <{} extend="$a"/>
+                    ```
+                    "#,
+                    ref_transmutes_to, &self.name, &self.name, ref_transmutes_to
+                ));
+            }
+            None => {
+                // No explanation needed
+            }
+        }
+        doc_comments
     }
 }
 
