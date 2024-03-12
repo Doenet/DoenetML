@@ -43,7 +43,7 @@ pub enum DataQuery {
         local_prop_idx: PropIdx,
     },
     /// Query for a prop from a parent
-    ParentProp { prop_name: &'static str },
+    ParentProp { prop_profile: PropProfile },
     /// Query for all children of an attribute that match the prescribed `PropProfile`
     Attribute {
         /// The name of the attribute whose children will be matched.

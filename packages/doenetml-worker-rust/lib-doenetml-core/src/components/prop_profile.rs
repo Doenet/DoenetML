@@ -12,8 +12,9 @@ use super::prelude::PropValue;
 /// A prop with a particular `PropProfile` must be of a particular type.
 /// XXX - this is currently not implemented.
 /// Where do we specify this and how do we enforce it? Presumably in this `enum`.
-/// Right now, the type can be inferred from the `default()` function.
-/// If you specify the `profile` of a prop should you no longer be able to specify the `value_type` attribute?
+/// (Right now, the type can be inferred from the `default()` function.)
+/// If you specify the `profile` of a prop, should you no longer be able to specify the `value_type` attribute
+/// as it is inferred from the `profile`?
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum PropProfile {
     /// Matches String props as well as literal string children

@@ -92,20 +92,28 @@ impl Core {
                 self.dependency_graph.add_edge(query_node, target_prop_node);
                 linked_nodes.push(target_prop_node);
             }
-            // Create a dependency that references the value of prop_name
+            // Create a dependency that references the value of the prop with `prop_profile`
             // from the parent of this component
-            DataQuery::ParentProp { prop_name } => {
+            DataQuery::ParentProp { prop_profile } => {
                 // If we're `extending`, we may not have a unique parent in the structure graph.
                 // So we query the component to find the (unique) original parent.
                 let parent_idx = self.components[prop_pointer.component_idx]
                     .get_parent()
                     .expect("Component asks for parent but there is none.");
                 let local_prop_idx = self.components[parent_idx]
-                    .get_local_prop_index_from_name(prop_name)
+                    .provided_profiles()
+                    .into_iter()
+                    .find_map(|(profile, idx)| {
+                        if profile == prop_profile {
+                            Some(idx)
+                        } else {
+                            None
+                        }
+                    })
                     .unwrap_or_else(|| {
                         panic!(
-                            "Cannot find prop `{}` on component `{}`",
-                            prop_name,
+                            "Cannot find prop with profile `{:?}` on component `{}`",
+                            prop_profile,
                             self.components[parent_idx].get_component_type()
                         )
                     });
