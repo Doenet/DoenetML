@@ -1,7 +1,7 @@
 use enum_dispatch::enum_dispatch;
 
 use crate::{
-    components::{types::PropIdx, ComponentEnum, ComponentProfile},
+    components::{types::PropIdx, ComponentEnum, PropProfile},
     core::props::{PropUpdater, PropValueType},
 };
 
@@ -35,8 +35,8 @@ pub trait ComponentVariantProps {
     fn get_prop_names(&self) -> &'static [&'static str] {
         unimplemented!()
     }
-    /// Get the `ComponentProfile` of the prop.
-    fn get_prop_profile(&self, local_prop_idx: PropIdx) -> Option<ComponentProfile> {
+    /// Get the `PropProfile` of the prop.
+    fn get_prop_profile(&self, local_prop_idx: PropIdx) -> Option<PropProfile> {
         unimplemented!()
     }
     /// Get whether the prop is public.

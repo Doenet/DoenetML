@@ -34,7 +34,7 @@ mod component_module;
 ///    enum Props {
 ///       #[prop(value_type = PropValueType::String,
 ///              is_public,
-///              profile = ComponentProfile::String,
+///              profile = PropProfile::String,
 ///              default)]
 ///      Value,
 ///   }
@@ -45,7 +45,7 @@ mod component_module;
 /// pub use component::MyComponentProps;
 /// ```
 /// In this example, `MyComponent` will have a prop `value` (note how Rust's PascalCase is converted to camelCase).
-/// It's value type is String, it is marked as public, and it satisfies the `ComponentProfile::String` profile. It is also
+/// It's value type is String, it is marked as public, and it satisfies the `PropProfile::String` profile. It is also
 /// marked as the (unique) default prop.
 ///
 /// ## Usage
@@ -102,7 +102,7 @@ mod component_module;
 ///
 /// - #\[component_profile_prop\]
 ///
-///   Designate that the prop can be used to satisfy the [`ComponentProfile`]
+///   Designate that the prop can be used to satisfy the [`PropProfile`]
 ///   that corresponds to the prop's type.
 ///
 ///   If a parent has a `Child` or `AttributeChild` data query, it will request

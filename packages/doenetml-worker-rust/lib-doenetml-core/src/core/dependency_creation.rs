@@ -1,6 +1,6 @@
 use crate::components::{
     prelude::DataQuery, types::PropPointer, ComponentAttributes, ComponentCommon, ComponentNode,
-    ComponentProfile, ComponentProps,
+    ComponentProps, PropProfile,
 };
 
 use super::{core::Core, graph_node::GraphNode, props::PropValue};
@@ -156,7 +156,7 @@ impl Core {
                             // Check the component. We want to link to the first prop that matches one of the profiles.
                             let component = &self.components[component_idx];
                             let matching_prop = component
-                                .get_component_profile_local_prop_indices()
+                                .get_prop_profile_local_prop_indices()
                                 .into_iter()
                                 .find_map(|prop_idx| {
                                     let prop_node =
@@ -178,8 +178,8 @@ impl Core {
                             }
                         }
                         GraphNode::String(_) => {
-                            if match_profiles.contains(&ComponentProfile::String)
-                                || match_profiles.contains(&ComponentProfile::LiteralString)
+                            if match_profiles.contains(&PropProfile::String)
+                                || match_profiles.contains(&PropProfile::LiteralString)
                             {
                                 self.dependency_graph.add_edge(query_node, node);
                                 linked_nodes.push(node);
@@ -211,7 +211,7 @@ impl Core {
                             // Check the component. We want to link to the first prop that matches one of the profiles.
                             let component = &self.components[component_idx];
                             let matching_prop = component
-                                .get_component_profile_local_prop_indices()
+                                .get_prop_profile_local_prop_indices()
                                 .into_iter()
                                 .find_map(|prop_idx| {
                                     let prop_node =
@@ -234,8 +234,8 @@ impl Core {
                             }
                         }
                         GraphNode::String(_) => {
-                            if match_profiles.contains(&ComponentProfile::String)
-                                || match_profiles.contains(&ComponentProfile::LiteralString)
+                            if match_profiles.contains(&PropProfile::String)
+                                || match_profiles.contains(&PropProfile::LiteralString)
                             {
                                 self.dependency_graph.add_edge(query_node, node);
                                 linked_nodes.push(node);

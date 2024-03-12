@@ -16,7 +16,7 @@ use super::prelude::{ComponentIdx, FlatAttribute};
 use super::types::{PropIdx, PropPointer};
 use super::{
     ActionsEnum, ComponentActions, ComponentAttributes, ComponentNode, ComponentOnAction,
-    ComponentProfile, ComponentProps, ComponentVariantProps,
+    ComponentProps, ComponentVariantProps, PropProfile,
 };
 
 /// A DoenetML component. A component is a collection of props combined with render information.
@@ -107,7 +107,7 @@ impl ComponentProps for Component {
             .position(|&x| x.eq_ignore_ascii_case(name))
     }
 
-    fn get_component_profile_local_prop_indices(&self) -> Vec<PropIdx> {
+    fn get_prop_profile_local_prop_indices(&self) -> Vec<PropIdx> {
         (0..self.variant.get_num_props())
             .filter(|&i| self.variant.get_prop_profile(i).is_some())
             .collect()
@@ -134,7 +134,7 @@ impl ComponentNode for Component {
     fn extend_via_default_prop(&self) -> bool {
         self.variant.extend_via_default_prop()
     }
-    fn provided_profiles(&self) -> Vec<(ComponentProfile, PropIdx)> {
+    fn provided_profiles(&self) -> Vec<(PropProfile, PropIdx)> {
         (0..self.variant.get_num_props())
             .flat_map(|local_prop_idx| {
                 self.variant

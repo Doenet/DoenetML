@@ -104,7 +104,7 @@ impl ComponentModule {
 
                 const PROP_NAMES: &'static [&'static str] = &[#(#prop_names),*];
 
-                const PROP_PROFILES: &'static [Option<ComponentProfile>] = &[#(#prop_profiles),*];
+                const PROP_PROFILES: &'static [Option<PropProfile>] = &[#(#prop_profiles),*];
 
                 const PROP_FOR_RENDERS: &'static [bool] = &[#(#prop_for_renders),*];
 
@@ -159,7 +159,7 @@ impl ComponentModule {
                 fn get_prop_names(&self) -> &'static [&'static str] {
                     &Component::PROP_NAMES
                 }
-                fn get_prop_profile(&self, local_prop_idx: PropIdx) -> Option<ComponentProfile> {
+                fn get_prop_profile(&self, local_prop_idx: PropIdx) -> Option<PropProfile> {
                     Component::PROP_PROFILES[local_prop_idx]
                 }
                 fn get_prop_is_public(&self, local_prop_idx: PropIdx) -> bool {

@@ -22,7 +22,7 @@ impl ComponentProps for _External {
     fn generate_props(&self) -> Vec<Prop> {
         vec![]
     }
-    fn get_component_profile_local_prop_indices(&self) -> Vec<PropIdx> {
+    fn get_prop_profile_local_prop_indices(&self) -> Vec<PropIdx> {
         vec![]
     }
     fn get_default_prop_local_index(&self) -> Option<PropIdx> {
@@ -70,7 +70,7 @@ impl ComponentVariantProps for _External {
     fn get_prop_name(&self, _local_prop_idx: PropIdx) -> &'static str {
         panic!("No props on _External")
     }
-    fn get_prop_profile(&self, _local_prop_idx: PropIdx) -> Option<ComponentProfile> {
+    fn get_prop_profile(&self, _local_prop_idx: PropIdx) -> Option<PropProfile> {
         None
     }
     fn get_prop_value_type(&self, _local_prop_idx: PropIdx) -> PropValueType {

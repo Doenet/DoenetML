@@ -4,7 +4,7 @@
 use crate::components::{
     prelude::{ComponentIdx, GraphNode, PropIdx},
     types::AttributeName,
-    ComponentProfile,
+    PropProfile,
 };
 
 use super::cache::PropWithMeta;
@@ -29,10 +29,10 @@ pub struct DataQueryResultVec {
 /// A DataQuery is used to make a Dependency based on the input document structure
 #[derive(Debug, Clone, Default, PartialEq)]
 pub enum DataQuery {
-    /// Query for all children that match the prescribed `ComponentProfile`s.
+    /// Query for all children that match the prescribed `PropProfile`s.
     ChildPropProfile {
         /// The data query will match child components that have at least one of these profiles
-        match_profiles: Vec<ComponentProfile>,
+        match_profiles: Vec<PropProfile>,
     },
     /// Query for a particular prop of a component
     Prop {
@@ -44,13 +44,13 @@ pub enum DataQuery {
     },
     /// Query for a prop from a parent
     ParentProp { prop_name: &'static str },
-    /// Query for all children of an attribute that match the prescribed `ComponentProfile`
+    /// Query for all children of an attribute that match the prescribed `PropProfile`
     Attribute {
         /// The name of the attribute whose children will be matched.
         attribute_name: AttributeName,
 
         /// The data query will match child components that have at least one of these profiles.
-        match_profiles: Vec<ComponentProfile>,
+        match_profiles: Vec<PropProfile>,
     },
     #[default]
     /// Will be initialized with the default value of this prop

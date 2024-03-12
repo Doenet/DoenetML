@@ -1,6 +1,6 @@
 use enum_dispatch::enum_dispatch;
 
-use crate::components::{types::PropIdx, ComponentEnum, ComponentProfile};
+use crate::components::{types::PropIdx, ComponentEnum, PropProfile};
 
 /// The Component trait specifies methods that will, in general, be implemented by deriving them.
 /// It depends on the ComponentProps trait, which will be derived
@@ -37,7 +37,7 @@ pub trait ComponentNode {
     /// A vector of the possible profiles this component provides along with the
     /// index of the prop that you should refer to if you want data satisfying
     /// that profile.
-    fn provided_profiles(&self) -> Vec<(ComponentProfile, PropIdx)> {
+    fn provided_profiles(&self) -> Vec<(PropProfile, PropIdx)> {
         // This is automatically implemented for `Component` from `ComponentVariantProps`
         // so it doesn't actually need to be implemented on each variant.
         // This impl is kept here so that `Component` and each component variant

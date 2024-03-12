@@ -45,7 +45,7 @@ impl ComponentProps for _Error {
     fn generate_props(&self) -> Vec<Prop> {
         vec![]
     }
-    fn get_component_profile_local_prop_indices(&self) -> Vec<PropIdx> {
+    fn get_prop_profile_local_prop_indices(&self) -> Vec<PropIdx> {
         vec![]
     }
     fn get_default_prop_local_index(&self) -> Option<PropIdx> {
