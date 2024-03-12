@@ -45,22 +45,22 @@ impl ComponentProps for _Error {
     fn generate_props(&self) -> Vec<Prop> {
         vec![]
     }
-    fn get_prop_profile_local_prop_indices(&self) -> Vec<PropIdx> {
+    fn get_prop_profile_local_prop_indices(&self) -> Vec<LocalPropIdx> {
         vec![]
     }
-    fn get_default_prop_local_index(&self) -> Option<PropIdx> {
+    fn get_default_prop_local_index(&self) -> Option<LocalPropIdx> {
         None
     }
-    fn get_for_renderer_local_prop_indices(&self) -> Vec<PropIdx> {
+    fn get_for_renderer_local_prop_indices(&self) -> Vec<LocalPropIdx> {
         vec![]
     }
-    fn get_local_prop_index_from_name(&self, _name: &str) -> Option<PropIdx> {
+    fn get_local_prop_index_from_name(&self, _name: &str) -> Option<LocalPropIdx> {
         None
     }
     fn get_public_local_prop_index_from_name_case_insensitive(
         &self,
         _name: &str,
-    ) -> Option<PropIdx> {
+    ) -> Option<LocalPropIdx> {
         None
     }
 }

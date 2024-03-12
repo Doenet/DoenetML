@@ -127,13 +127,13 @@ mod test_helpers {
 
     use super::*;
 
-    // const VALUE_IDX: PropIdx = TextProps::get_value_prop_index();
-    // const TEXT_IDX: PropIdx = TextProps::get_text_prop_index();
+    // const VALUE_IDX: LocalPropIdx = TextProps::get_value_prop_index();
+    // const TEXT_IDX: LocalPropIdx = TextProps::get_text_prop_index();
 
     // XXX - get these indices from the component type
-    const VALUE_LOCAL_IDX: PropIdx = 0;
-    const TEXT_LOCAL_IDX: PropIdx = 1;
-    const HIDDEN_LOCAL_IDX: PropIdx = 1; // XXX - this won't be the same ias TEXT!!!
+    const VALUE_LOCAL_IDX: LocalPropIdx = LocalPropIdx(0);
+    const TEXT_LOCAL_IDX: LocalPropIdx = LocalPropIdx(1);
+    const HIDDEN_LOCAL_IDX: LocalPropIdx = LocalPropIdx(1); // XXX - this won't be the same ias TEXT!!!
 
     /// Resolves `value` from a `<text>` component and returns its value as a `String`
     pub fn get_value_prop(component_idx: ComponentIdx, core: &mut Core) -> String {

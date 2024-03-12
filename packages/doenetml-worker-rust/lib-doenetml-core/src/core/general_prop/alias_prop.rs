@@ -20,13 +20,13 @@ where
 ///   the variable with the index `aliased_prop_idx`.
 #[derive(Debug, Default)]
 pub struct PropAlias {
-    aliased_prop_idx: PropIdx,
+    aliased_prop_idx: LocalPropIdx,
 }
 
 impl PropAlias {
     /// Create a prop that aliases
     /// the variable with the index `aliased_prop_idx`.
-    pub fn new(aliased_prop_idx: PropIdx) -> Self {
+    pub fn new(aliased_prop_idx: LocalPropIdx) -> Self {
         PropAlias { aliased_prop_idx }
     }
 }

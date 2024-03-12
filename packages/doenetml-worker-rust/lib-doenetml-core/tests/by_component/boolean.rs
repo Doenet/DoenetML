@@ -107,15 +107,15 @@ mod test_helpers {
 
     use super::*;
 
-    // const VALUE_IDX: PropIdx = BooleanProps::get_value_prop_index();
-    // const BOOLEAN_IDX: PropIdx = BooleanProps::get_boolean_prop_index();
-    // const TEXT_IDX: PropIdx = BooleanProps::get_text_prop_index();
+    // const VALUE_IDX: LocalPropIdx = BooleanProps::get_value_prop_index();
+    // const BOOLEAN_IDX: LocalPropIdx = BooleanProps::get_boolean_prop_index();
+    // const TEXT_IDX: LocalPropIdx = BooleanProps::get_text_prop_index();
 
     // XXX - get these indices from the component type
-    const VALUE_LOCAL_IDX: PropIdx = 0;
-    const BOOLEAN_LOCAL_IDX: PropIdx = 1;
-    const TEXT_LOCAL_IDX: PropIdx = 2;
-    const HIDDEN_LOCAL_IDX: PropIdx = 1; // XXX - this won't be the same as BOOLEAN!!!
+    const VALUE_LOCAL_IDX: LocalPropIdx = LocalPropIdx(0);
+    const BOOLEAN_LOCAL_IDX: LocalPropIdx = LocalPropIdx(1);
+    const TEXT_LOCAL_IDX: LocalPropIdx = LocalPropIdx(2);
+    const HIDDEN_LOCAL_IDX: LocalPropIdx = LocalPropIdx(1); // XXX - this won't be the same as BOOLEAN!!!
 
     /// Resolves `value` from a `<boolean>` component and returns its value as a `bool`
     pub fn get_value_prop(component_idx: ComponentIdx, core: &mut Core) -> bool {

@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::components::{
-    prelude::{ComponentIdx, FlatDastElementUpdate, PropIdx},
+    prelude::{ComponentIdx, FlatDastElementUpdate, LocalPropIdx},
     types::{Action, PropPointer, UpdateFromAction},
     ComponentOnAction,
 };
@@ -34,7 +34,7 @@ impl Core {
         // - take a prop index,
         // - freshen the prop, if needed, and
         // - return the prop's value
-        let mut prop_resolver = |_prop_idx: PropIdx| {
+        let mut prop_resolver = |_prop_idx: LocalPropIdx| {
             // XXX - we need another solution here.
             // probably have the action request which prop values it wants and do multiple passes
 

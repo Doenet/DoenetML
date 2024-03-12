@@ -2,7 +2,7 @@
 //! is lazily computed and can depend on other Props.
 
 use crate::components::{
-    prelude::{ComponentIdx, GraphNode, PropIdx},
+    prelude::{ComponentIdx, GraphNode, LocalPropIdx},
     types::AttributeName,
     PropProfile,
 };
@@ -40,7 +40,7 @@ pub enum DataQuery {
         component_idx: Option<ComponentIdx>,
 
         /// The prop from component_idx or component making the query.
-        local_prop_idx: PropIdx,
+        local_prop_idx: LocalPropIdx,
     },
     /// Query for a prop from a parent
     ParentProp { prop_profile: PropProfile },
