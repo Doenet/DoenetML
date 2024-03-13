@@ -71,7 +71,7 @@ impl BooleanProp {
     pub fn new_from_children(default_value: bool) -> Self {
         BooleanProp {
             data_query: DataQuery::ChildPropProfile {
-                match_profiles: vec![ComponentProfile::String, ComponentProfile::Boolean],
+                match_profiles: vec![PropProfile::String, PropProfile::Boolean],
             },
             default_value,
             propagate_came_from_default: true,
@@ -117,7 +117,7 @@ impl PropFromAttribute<bool> for BooleanProp {
         BooleanProp {
             data_query: DataQuery::Attribute {
                 attribute_name: attr_name,
-                match_profiles: vec![ComponentProfile::String, ComponentProfile::Boolean],
+                match_profiles: vec![PropProfile::String, PropProfile::Boolean],
             },
             default_value,
             propagate_came_from_default: true,

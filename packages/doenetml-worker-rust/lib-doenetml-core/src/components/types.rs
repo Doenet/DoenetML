@@ -1,3 +1,5 @@
+use std::ops::Deref;
+
 use serde::{Deserialize, Serialize};
 
 use crate::core::props::PropValue;
@@ -5,7 +7,15 @@ use crate::core::props::PropValue;
 use super::ActionsEnum;
 
 /// The local index of a prop relative to the component to which it belongs.
-pub type PropIdx = usize;
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct LocalPropIdx(pub usize);
+
+impl Deref for LocalPropIdx {
+    type Target = usize;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
 
 /// The index of the component in `Core.components`
 #[cfg_attr(feature = "web", tsify::declare)]
@@ -46,7 +56,7 @@ pub struct PropPointer {
     pub component_idx: ComponentIdx,
     /// The local index of the prop relative to the component to which
     /// it belongs. This is _not_ the offset of the prop in `Core.props`.
-    pub local_prop_idx: PropIdx,
+    pub local_prop_idx: LocalPropIdx,
 }
 
 /// The body of an [`Action`].
@@ -69,7 +79,7 @@ pub struct Action {
     pub action: ActionsEnum,
 }
 
-pub struct UpdateFromAction(pub PropIdx, pub PropValue);
+pub struct UpdateFromAction(pub LocalPropIdx, pub PropValue);
 
 /// The `camelCase` name of an attribute.
 #[cfg_attr(feature = "web", tsify::declare)]

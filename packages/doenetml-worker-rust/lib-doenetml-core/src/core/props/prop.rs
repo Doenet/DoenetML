@@ -1,4 +1,4 @@
-use crate::components::{types::PropPointer, Boolean, ComponentProfile, Text};
+use crate::components::{types::PropPointer, Boolean, PropProfile, Text};
 
 use super::{PropUpdater, PropValueDiscriminants};
 
@@ -10,7 +10,7 @@ pub struct PropComponentMeta {
     /// PropPointer to this prop.
     pub prop_pointer: PropPointer,
     /// The profile that this prop matches.
-    pub profile: Option<ComponentProfile>,
+    pub profile: Option<PropProfile>,
     /// Whether this prop is _always_ computed whenever this component is rendered.
     pub for_renderer: bool,
     pub public: bool,

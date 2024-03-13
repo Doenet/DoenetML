@@ -22,22 +22,22 @@ impl ComponentProps for _External {
     fn generate_props(&self) -> Vec<Prop> {
         vec![]
     }
-    fn get_component_profile_local_prop_indices(&self) -> Vec<PropIdx> {
+    fn get_prop_profile_local_prop_indices(&self) -> Vec<LocalPropIdx> {
         vec![]
     }
-    fn get_default_prop_local_index(&self) -> Option<PropIdx> {
+    fn get_default_prop_local_index(&self) -> Option<LocalPropIdx> {
         None
     }
-    fn get_for_renderer_local_prop_indices(&self) -> Vec<PropIdx> {
+    fn get_for_renderer_local_prop_indices(&self) -> Vec<LocalPropIdx> {
         vec![]
     }
-    fn get_local_prop_index_from_name(&self, _name: &str) -> Option<PropIdx> {
+    fn get_local_prop_index_from_name(&self, _name: &str) -> Option<LocalPropIdx> {
         None
     }
     fn get_public_local_prop_index_from_name_case_insensitive(
         &self,
         _name: &str,
-    ) -> Option<PropIdx> {
+    ) -> Option<LocalPropIdx> {
         None
     }
 }
@@ -58,31 +58,31 @@ impl ComponentChildren for _External {
 }
 
 impl ComponentVariantProps for _External {
-    fn get_default_prop_local_index(&self) -> Option<PropIdx> {
+    fn get_default_prop_local_index(&self) -> Option<LocalPropIdx> {
         None
     }
     fn get_num_props(&self) -> usize {
         0
     }
-    fn get_prop_is_for_render(&self, _local_prop_idx: PropIdx) -> bool {
+    fn get_prop_is_for_render(&self, _local_prop_idx: LocalPropIdx) -> bool {
         panic!("No props on _External")
     }
-    fn get_prop_name(&self, _local_prop_idx: PropIdx) -> &'static str {
+    fn get_prop_name(&self, _local_prop_idx: LocalPropIdx) -> &'static str {
         panic!("No props on _External")
     }
-    fn get_prop_profile(&self, _local_prop_idx: PropIdx) -> Option<ComponentProfile> {
+    fn get_prop_profile(&self, _local_prop_idx: LocalPropIdx) -> Option<PropProfile> {
         None
     }
-    fn get_prop_value_type(&self, _local_prop_idx: PropIdx) -> PropValueType {
+    fn get_prop_value_type(&self, _local_prop_idx: LocalPropIdx) -> PropValueType {
         panic!("No props on _External")
     }
-    fn get_prop_is_public(&self, _local_prop_idx: PropIdx) -> bool {
+    fn get_prop_is_public(&self, _local_prop_idx: LocalPropIdx) -> bool {
         panic!("No props on _External")
     }
     fn get_prop_names(&self) -> &'static [&'static str] {
         &[]
     }
-    fn get_prop_updater(&self, _local_prop_idx: PropIdx) -> Box<dyn PropUpdater> {
+    fn get_prop_updater(&self, _local_prop_idx: LocalPropIdx) -> Box<dyn PropUpdater> {
         panic!("No props on _External")
     }
 }

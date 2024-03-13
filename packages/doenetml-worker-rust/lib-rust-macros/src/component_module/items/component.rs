@@ -69,7 +69,7 @@ impl ComponentModule {
         let prop_is_publics = self.props.get_prop_is_publics();
         let prop_value_types = self.props.get_prop_value_types();
         let default_prop = match self.props.get_default_prop_local_index() {
-            Some(idx) => quote! {Some(#idx)},
+            Some(idx) => quote! {Some(LocalPropIdx(#idx))},
             None => quote! {None},
         };
         let props: Vec<TokenStream> = self
@@ -104,7 +104,7 @@ impl ComponentModule {
 
                 const PROP_NAMES: &'static [&'static str] = &[#(#prop_names),*];
 
-                const PROP_PROFILES: &'static [Option<ComponentProfile>] = &[#(#prop_profiles),*];
+                const PROP_PROFILES: &'static [Option<PropProfile>] = &[#(#prop_profiles),*];
 
                 const PROP_FOR_RENDERS: &'static [bool] = &[#(#prop_for_renders),*];
 
@@ -112,7 +112,7 @@ impl ComponentModule {
 
                 const PROP_VALUE_TYPES: &'static [PropValueType] = &[#(#prop_value_types),*];
 
-                const DEFAULT_PROP: Option<PropIdx> = #default_prop;
+                const DEFAULT_PROP: Option<LocalPropIdx> = #default_prop;
             }
         };
 
@@ -144,31 +144,31 @@ impl ComponentModule {
     pub fn impl_component_variant_props_trait(&self) -> TokenStream {
         let ret = quote! {
             impl ComponentVariantProps for Component {
-                fn get_prop_updater(&self, local_prop_idx: PropIdx) -> Box<dyn PropUpdater> {
-                    PropGetUpdater::get_updater(&Component::PROPS[local_prop_idx])
+                fn get_prop_updater(&self, local_prop_idx: LocalPropIdx) -> Box<dyn PropUpdater> {
+                    PropGetUpdater::get_updater(&Component::PROPS[*local_prop_idx])
                 }
                 fn get_num_props(&self) -> usize {
                     Component::PROP_NAMES.len()
                 }
-                fn get_prop_is_for_render(&self, local_prop_idx: PropIdx) -> bool {
-                    Component::PROP_FOR_RENDERS[local_prop_idx]
+                fn get_prop_is_for_render(&self, local_prop_idx: LocalPropIdx) -> bool {
+                    Component::PROP_FOR_RENDERS[*local_prop_idx]
                 }
-                fn get_prop_name(&self, local_prop_idx: PropIdx) -> &'static str {
-                    Component::PROP_NAMES[local_prop_idx]
+                fn get_prop_name(&self, local_prop_idx: LocalPropIdx) -> &'static str {
+                    Component::PROP_NAMES[*local_prop_idx]
                 }
                 fn get_prop_names(&self) -> &'static [&'static str] {
                     &Component::PROP_NAMES
                 }
-                fn get_prop_profile(&self, local_prop_idx: PropIdx) -> Option<ComponentProfile> {
-                    Component::PROP_PROFILES[local_prop_idx]
+                fn get_prop_profile(&self, local_prop_idx: LocalPropIdx) -> Option<PropProfile> {
+                    Component::PROP_PROFILES[*local_prop_idx]
                 }
-                fn get_prop_is_public(&self, local_prop_idx: PropIdx) -> bool {
-                    Component::PROP_IS_PUBLICS[local_prop_idx]
+                fn get_prop_is_public(&self, local_prop_idx: LocalPropIdx) -> bool {
+                    Component::PROP_IS_PUBLICS[*local_prop_idx]
                 }
-                fn get_prop_value_type(&self, local_prop_idx: PropIdx) -> PropValueType {
-                    Component::PROP_VALUE_TYPES[local_prop_idx].clone()
+                fn get_prop_value_type(&self, local_prop_idx: LocalPropIdx) -> PropValueType {
+                    Component::PROP_VALUE_TYPES[*local_prop_idx].clone()
                 }
-                fn get_default_prop_local_index(&self) -> Option<PropIdx> {
+                fn get_default_prop_local_index(&self) -> Option<LocalPropIdx> {
                     Component::DEFAULT_PROP
                 }
             }

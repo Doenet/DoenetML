@@ -75,7 +75,7 @@ impl ComponentActions for TextInput {
     fn on_action(
         &self,
         action: ActionsEnum,
-        resolve_and_retrieve_prop: &mut dyn FnMut(PropIdx) -> PropValue,
+        resolve_and_retrieve_prop: &mut dyn FnMut(LocalPropIdx) -> PropValue,
     ) -> Result<Vec<UpdateFromAction>, String> {
         // The type of `action` should have already been verified, so an
         // error here is a programming logic error, not an API error.

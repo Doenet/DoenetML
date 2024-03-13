@@ -46,7 +46,7 @@ fn test_can_parse_module() {
 
             enum Props {
                 /// Docstring for stuff
-                #[prop(value_type = PropValueType::String, is_public, profile = ComponentProfile::String, default)]
+                #[prop(value_type = PropValueType::String, is_public, profile = PropProfile::String, default)]
                 Value,
                 
                 /// Other docstring
@@ -102,7 +102,7 @@ mod component {
         #[prop(
             value_type = PropValueType::String,
             is_public,
-            profile = ComponentProfile::String,
+            profile = PropProfile::String,
             default
         )]
         Value,

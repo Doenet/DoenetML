@@ -1,7 +1,7 @@
 use crate::{
-    components::{prelude::DataQuery, ComponentProfile},
-    dast::{flat_dast::FlatRoot, ref_expand::Expander},
+    components::{prelude::DataQuery, PropProfile},
     core::{graph_based_core::Core, graph_node::GraphNode},
+    dast::{flat_dast::FlatRoot, ref_expand::Expander},
     state::PropPointer,
     test_utils::*,
 };
@@ -140,7 +140,7 @@ fn test_attribute_data_query() {
         },
         DataQuery::Attribute {
             attribute_name: "hide",
-            match_profiles: vec![ComponentProfile::String],
+            match_profiles: vec![PropProfile::String],
         },
     );
     assert_eq!(

@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     components::{
-        types::{PropIdx, UpdateFromAction},
+        types::{LocalPropIdx, UpdateFromAction},
         ComponentEnum,
     },
     core::props::PropValue,
@@ -38,7 +38,7 @@ pub trait ComponentOnAction: ComponentNode + ComponentActions {
     fn on_action(
         &self,
         action: ActionsEnum,
-        resolve_and_retrieve_prop: &mut dyn FnMut(PropIdx) -> PropValue,
+        resolve_and_retrieve_prop: &mut dyn FnMut(LocalPropIdx) -> PropValue,
     ) -> Result<Vec<UpdateFromAction>, String> {
         Err(format!(
             "Unknown action '{:?}' called on {}. Expected one of {:?}",

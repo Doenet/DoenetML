@@ -102,7 +102,7 @@ impl MathProp {
     ) -> Self {
         MathProp {
             data_query: DataQuery::ChildPropProfile {
-                match_profiles: vec![ComponentProfile::String, ComponentProfile::Math],
+                match_profiles: vec![PropProfile::String, PropProfile::Math],
             },
             parser,
             split_symbols,
@@ -136,7 +136,7 @@ impl MathProp {
         MathProp {
             data_query: DataQuery::Attribute {
                 attribute_name: attr_name,
-                match_profiles: vec![ComponentProfile::String, ComponentProfile::Math],
+                match_profiles: vec![PropProfile::String, PropProfile::Math],
             },
             parser,
             split_symbols,

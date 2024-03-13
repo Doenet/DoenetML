@@ -5,7 +5,7 @@ use test_utils::*;
 
 use doenetml_core::{
     components::{
-        types::{Action, ActionBody, ComponentIdx, PropIdx, PropPointer},
+        types::{Action, ActionBody, ComponentIdx, LocalPropIdx, PropPointer},
         ActionsEnum, ComponentNode,
     },
     core::core::Core,

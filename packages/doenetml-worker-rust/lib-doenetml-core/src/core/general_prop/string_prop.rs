@@ -60,7 +60,7 @@ impl StringProp {
     pub fn new_from_children<S: Into<String>>(default_value: S) -> Self {
         StringProp {
             data_query: DataQuery::ChildPropProfile {
-                match_profiles: vec![ComponentProfile::String],
+                match_profiles: vec![PropProfile::String],
             },
             default_value: default_value.into(),
             propagate_came_from_default: true,
@@ -106,7 +106,7 @@ impl<S: Into<String>> PropFromAttribute<S> for StringProp {
         StringProp {
             data_query: DataQuery::Attribute {
                 attribute_name: attr_name,
-                match_profiles: vec![ComponentProfile::String],
+                match_profiles: vec![PropProfile::String],
             },
             default_value: default_value.into(),
             propagate_came_from_default: true,

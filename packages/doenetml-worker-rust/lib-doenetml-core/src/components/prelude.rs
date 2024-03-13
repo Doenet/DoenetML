@@ -24,7 +24,7 @@ pub use crate::components::{
 
 // These imports are commonly used in components
 
-pub use crate::components::{ActionsEnum, ComponentEnum, ComponentProfile};
+pub use crate::components::{ActionsEnum, ComponentEnum, PropProfile};
 pub use crate::dast::{
     DastAttribute, ElementData, FlatDastElement, FlatDastElementContent, FlatDastElementUpdate,
 };

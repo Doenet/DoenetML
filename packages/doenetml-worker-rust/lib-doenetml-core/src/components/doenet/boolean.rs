@@ -11,11 +11,11 @@ mod component {
         #[prop(
             value_type = PropValueType::Boolean,
             is_public,
-            profile = ComponentProfile::Boolean,
+            profile = PropProfile::Boolean,
             default
         )]
         Value,
-        #[prop(value_type = PropValueType::Boolean)]
+        #[prop(value_type = PropValueType::Boolean, profile = PropProfile::Hidden)]
         Hidden,
     }
 

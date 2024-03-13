@@ -1,6 +1,6 @@
 use crate::components::{
     prelude::DataQuery, types::PropPointer, ComponentAttributes, ComponentCommon, ComponentNode,
-    ComponentProfile, ComponentProps,
+    ComponentProps, PropProfile,
 };
 
 use super::{core::Core, graph_node::GraphNode, props::PropValue};
@@ -92,20 +92,28 @@ impl Core {
                 self.dependency_graph.add_edge(query_node, target_prop_node);
                 linked_nodes.push(target_prop_node);
             }
-            // Create a dependency that references the value of prop_name
+            // Create a dependency that references the value of the prop with `prop_profile`
             // from the parent of this component
-            DataQuery::ParentProp { prop_name } => {
+            DataQuery::ParentProp { prop_profile } => {
                 // If we're `extending`, we may not have a unique parent in the structure graph.
                 // So we query the component to find the (unique) original parent.
                 let parent_idx = self.components[prop_pointer.component_idx]
                     .get_parent()
                     .expect("Component asks for parent but there is none.");
                 let local_prop_idx = self.components[parent_idx]
-                    .get_local_prop_index_from_name(prop_name)
+                    .provided_profiles()
+                    .into_iter()
+                    .find_map(|(profile, idx)| {
+                        if profile == prop_profile {
+                            Some(idx)
+                        } else {
+                            None
+                        }
+                    })
                     .unwrap_or_else(|| {
                         panic!(
-                            "Cannot find prop `{}` on component `{}`",
-                            prop_name,
+                            "Cannot find prop with profile `{:?}` on component `{}`",
+                            prop_profile,
                             self.components[parent_idx].get_component_type()
                         )
                     });
@@ -155,31 +163,27 @@ impl Core {
                         GraphNode::Component(component_idx) => {
                             // Check the component. We want to link to the first prop that matches one of the profiles.
                             let component = &self.components[component_idx];
-                            let matching_prop = component
-                                .get_component_profile_local_prop_indices()
-                                .into_iter()
-                                .find_map(|prop_idx| {
-                                    let prop_node =
-                                        self.structure_graph.get_component_props(node)[prop_idx];
-                                    let prop = &self.props[prop_node.idx()];
-                                    let profile = prop.meta.profile;
-
-                                    if profile.is_some()
-                                        && match_profiles.contains(&profile.unwrap())
-                                    {
+                            let matching_prop = component.provided_profiles().into_iter().find_map(
+                                |(prop_profile, local_prop_idx)| {
+                                    if match_profiles.contains(&prop_profile) {
+                                        let prop_node = self
+                                            .structure_graph
+                                            .get_component_props(node)[*local_prop_idx];
                                         Some(prop_node)
                                     } else {
                                         None
                                     }
-                                });
+                                },
+                            );
+
                             if let Some(matching_prop) = matching_prop {
                                 self.dependency_graph.add_edge(query_node, matching_prop);
                                 linked_nodes.push(matching_prop);
                             }
                         }
                         GraphNode::String(_) => {
-                            if match_profiles.contains(&ComponentProfile::String)
-                                || match_profiles.contains(&ComponentProfile::LiteralString)
+                            if match_profiles.contains(&PropProfile::String)
+                                || match_profiles.contains(&PropProfile::LiteralString)
                             {
                                 self.dependency_graph.add_edge(query_node, node);
                                 linked_nodes.push(node);
@@ -210,23 +214,18 @@ impl Core {
                         GraphNode::Component(component_idx) => {
                             // Check the component. We want to link to the first prop that matches one of the profiles.
                             let component = &self.components[component_idx];
-                            let matching_prop = component
-                                .get_component_profile_local_prop_indices()
-                                .into_iter()
-                                .find_map(|prop_idx| {
-                                    let prop_node =
-                                        self.structure_graph.get_component_props(node)[prop_idx];
-                                    let prop = &self.props[prop_node.idx()];
-                                    let profile = prop.meta.profile;
-
-                                    if profile.is_some()
-                                        && match_profiles.contains(&profile.unwrap())
-                                    {
+                            let matching_prop = component.provided_profiles().into_iter().find_map(
+                                |(prop_profile, local_prop_idx)| {
+                                    if match_profiles.contains(&prop_profile) {
+                                        let prop_node = self
+                                            .structure_graph
+                                            .get_component_props(node)[*local_prop_idx];
                                         Some(prop_node)
                                     } else {
                                         None
                                     }
-                                });
+                                },
+                            );
 
                             if let Some(matching_prop) = matching_prop {
                                 self.dependency_graph.add_edge(query_node, matching_prop);
@@ -234,8 +233,8 @@ impl Core {
                             }
                         }
                         GraphNode::String(_) => {
-                            if match_profiles.contains(&ComponentProfile::String)
-                                || match_profiles.contains(&ComponentProfile::LiteralString)
+                            if match_profiles.contains(&PropProfile::String)
+                                || match_profiles.contains(&PropProfile::LiteralString)
                             {
                                 self.dependency_graph.add_edge(query_node, node);
                                 linked_nodes.push(node);
@@ -287,7 +286,7 @@ impl Core {
     pub fn prop_pointer_to_prop_node(&self, prop_pointer: PropPointer) -> GraphNode {
         self.structure_graph
             .get_component_props(GraphNode::Component(prop_pointer.component_idx))
-            [prop_pointer.local_prop_idx]
+            [*prop_pointer.local_prop_idx]
     }
 
     /// Find the "origin" of a `GraphNode::Virtual` corresponding to an attribute. That is, if an attribute

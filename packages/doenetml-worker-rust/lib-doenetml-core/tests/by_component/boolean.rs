@@ -84,18 +84,38 @@ fn boolean_extending_texts_concatenate_values() {
     assert_eq!(get_value_prop(boolean1_idx, &mut core), true);
     assert_eq!(get_value_prop(boolean2_idx, &mut core), false);
 }
+
+#[test]
+fn boolean_hidden() {
+    let dast_root = dast_root_no_position(
+        r#"<boolean>true</boolean>
+        <boolean hide>true</boolean>"#,
+    );
+
+    let mut core = Core::new();
+    core.init_from_dast_root(&dast_root);
+
+    // indices start at 1, as the document tag will be index 0.
+    let boolean1_idx = 1;
+    let boolean2_idx = 2;
+
+    assert_eq!(get_hidden_prop(boolean1_idx, &mut core), false);
+    assert_eq!(get_hidden_prop(boolean2_idx, &mut core), true);
+}
+
 mod test_helpers {
 
     use super::*;
 
-    // const VALUE_IDX: PropIdx = BooleanProps::get_value_prop_index();
-    // const BOOLEAN_IDX: PropIdx = BooleanProps::get_boolean_prop_index();
-    // const TEXT_IDX: PropIdx = BooleanProps::get_text_prop_index();
+    // const VALUE_IDX: LocalPropIdx = BooleanProps::get_value_prop_index();
+    // const BOOLEAN_IDX: LocalPropIdx = BooleanProps::get_boolean_prop_index();
+    // const TEXT_IDX: LocalPropIdx = BooleanProps::get_text_prop_index();
 
     // XXX - get these indices from the component type
-    const VALUE_LOCAL_IDX: PropIdx = 0;
-    const BOOLEAN_LOCAL_IDX: PropIdx = 1;
-    const TEXT_LOCAL_IDX: PropIdx = 2;
+    const VALUE_LOCAL_IDX: LocalPropIdx = LocalPropIdx(0);
+    const BOOLEAN_LOCAL_IDX: LocalPropIdx = LocalPropIdx(1);
+    const TEXT_LOCAL_IDX: LocalPropIdx = LocalPropIdx(2);
+    const HIDDEN_LOCAL_IDX: LocalPropIdx = LocalPropIdx(1); // XXX - this won't be the same as BOOLEAN!!!
 
     /// Resolves `value` from a `<boolean>` component and returns its value as a `bool`
     pub fn get_value_prop(component_idx: ComponentIdx, core: &mut Core) -> bool {
@@ -124,6 +144,17 @@ mod test_helpers {
         let prop_node = core.prop_pointer_to_prop_node(PropPointer {
             component_idx,
             local_prop_idx: TEXT_LOCAL_IDX,
+        });
+        let value = core.get_prop_for_render(prop_node).value;
+
+        (*value).clone().try_into().unwrap()
+    }
+
+    /// Resolves `hidden` from a `<text>` component and returns its value as a `bool`
+    pub fn get_hidden_prop(component_idx: ComponentIdx, core: &mut Core) -> bool {
+        let prop_node = core.prop_pointer_to_prop_node(PropPointer {
+            component_idx,
+            local_prop_idx: HIDDEN_LOCAL_IDX,
         });
         let value = core.get_prop_for_render(prop_node).value;
 
