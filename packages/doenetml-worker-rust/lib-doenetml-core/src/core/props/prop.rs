@@ -1,6 +1,6 @@
-use crate::components::{types::PropPointer, Boolean, PropProfile, Text};
+use crate::components::{types::PropPointer, Boolean, Text};
 
-use super::{PropUpdater, PropValueDiscriminants};
+use super::{PropProfile, PropUpdater, PropValueDiscriminants};
 
 /// Data associated with a prop that is "owned" by a component.
 #[derive(Debug, Clone)]

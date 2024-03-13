@@ -1,8 +1,8 @@
 use enum_dispatch::enum_dispatch;
 
 use crate::{
-    components::{types::LocalPropIdx, ComponentEnum, PropProfile},
-    core::props::{PropUpdater, PropValueType},
+    components::{types::LocalPropIdx, ComponentEnum},
+    core::props::{PropProfile, PropUpdater, PropValueType},
 };
 
 // TODO: remove the default implementations for these methods. It should be a compiler

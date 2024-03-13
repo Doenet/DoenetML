@@ -1,6 +1,6 @@
 use crate::state::types::math_expr::MathExpr;
 
-use super::prelude::PropValue;
+use super::PropValue;
 
 /// A `PropProfile` is used in a `DataQuery` to match a particular type of prop.
 /// It can be used to filter components based on the presence of a prop with the `PropProfile`

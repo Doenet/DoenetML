@@ -1,6 +1,9 @@
 use enum_dispatch::enum_dispatch;
 
-use crate::components::{types::LocalPropIdx, ComponentEnum, PropProfile};
+use crate::{
+    components::{types::LocalPropIdx, ComponentEnum},
+    props::PropProfile,
+};
 
 /// The Component trait specifies methods that will, in general, be implemented by deriving them.
 /// It depends on the ComponentProps trait, which will be derived

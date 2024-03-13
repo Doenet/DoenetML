@@ -4,10 +4,9 @@
 use crate::components::{
     prelude::{ComponentIdx, GraphNode, LocalPropIdx},
     types::AttributeName,
-    PropProfile,
 };
 
-use super::cache::PropWithMeta;
+use super::{cache::PropWithMeta, PropProfile};
 
 /// Data resulting from a `DataQuery`
 #[derive(Debug)]

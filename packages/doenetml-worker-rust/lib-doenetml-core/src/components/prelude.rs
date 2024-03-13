@@ -7,11 +7,9 @@ pub use std::collections::HashMap;
 
 pub use super::traits::*;
 pub use super::types::*;
-pub use crate::core::props::DataQuery;
-pub use crate::core::props::Prop;
-pub use crate::core::props::PropCalcResult;
-pub use crate::core::props::PropUpdater;
-pub use crate::core::props::PropValueType;
+pub use crate::core::props::{
+    DataQuery, Prop, PropCalcResult, PropProfile, PropUpdater, PropValueType,
+};
 pub use crate::dast::flat_dast::FlatAttribute;
 pub use crate::dast::flat_dast::UntaggedContent;
 pub use crate::dast::Position as DastPosition;
@@ -24,7 +22,7 @@ pub use crate::components::{
 
 // These imports are commonly used in components
 
-pub use crate::components::{ActionsEnum, ComponentEnum, PropProfile};
+pub use crate::components::{ActionsEnum, ComponentEnum};
 pub use crate::dast::{
     DastAttribute, ElementData, FlatDastElement, FlatDastElementContent, FlatDastElementUpdate,
 };

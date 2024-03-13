@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use std::str::FromStr;
 
 use crate::core::graph_node::GraphNode;
-use crate::core::props::{Prop, PropComponentMeta, PropValue};
+use crate::core::props::{Prop, PropComponentMeta, PropProfile, PropValue};
 use crate::core::render::{ChildQueryObject, ComponentChildren};
 use crate::dast::Position as DastPosition;
 
@@ -16,7 +16,7 @@ use super::prelude::{ComponentIdx, FlatAttribute};
 use super::types::{LocalPropIdx, PropPointer};
 use super::{
     ActionsEnum, ComponentActions, ComponentAttributes, ComponentNode, ComponentOnAction,
-    ComponentProps, ComponentVariantProps, PropProfile,
+    ComponentProps, ComponentVariantProps,
 };
 
 /// A DoenetML component. A component is a collection of props combined with render information.

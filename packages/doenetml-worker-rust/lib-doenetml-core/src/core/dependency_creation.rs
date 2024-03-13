@@ -1,6 +1,8 @@
-use crate::components::{
-    prelude::DataQuery, types::PropPointer, ComponentAttributes, ComponentCommon, ComponentNode,
-    PropProfile,
+use crate::{
+    components::{
+        prelude::DataQuery, types::PropPointer, ComponentAttributes, ComponentCommon, ComponentNode,
+    },
+    props::PropProfile,
 };
 
 use super::{core::Core, graph_node::GraphNode, props::PropValue};
