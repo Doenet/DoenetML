@@ -42,6 +42,9 @@ impl Prop {
             PropValueDiscriminants::String => Text::NAME,
             PropValueDiscriminants::Boolean => Boolean::NAME,
             PropValueDiscriminants::Math => "math",
+            PropValueDiscriminants::ElementRefs => {
+                panic!("No preferred component type for an ElementRefs PropValue")
+            }
         }
     }
 }

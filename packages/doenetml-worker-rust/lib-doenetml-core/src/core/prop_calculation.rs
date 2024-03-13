@@ -1,3 +1,7 @@
+use std::rc::Rc;
+
+use crate::{props::PropValue, state::types::element_refs::ElementRefs};
+
 use super::{
     core::Core,
     graph_node::GraphNode,
@@ -136,6 +140,15 @@ impl Core {
                     }
                     GraphNode::State(_) => Some(self.states.get_state(node, query_node)),
                     GraphNode::String(_) => Some(self.strings.get_string(node, query_node)),
+                    // TODO: do we want to references to elements somewhere so we don't have to recreate each time?
+                    GraphNode::Component(component_idx) => Some(PropWithMeta {
+                        // TODO: once we have a singular `ElementRef` we can remove the vector
+                        value: Rc::new(PropValue::ElementRefs(ElementRefs(vec![component_idx]))),
+                        came_from_default: false,
+                        // Note: a component reference can't change like a prop can change,
+                        // but we mark `changed` as `true` as we don't know if this is the first time it is queried
+                        changed: true,
+                    }),
                     // XXX: Can we have other children
                     _ => None,
                 }

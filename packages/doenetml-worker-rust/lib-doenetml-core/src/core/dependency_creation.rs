@@ -1,6 +1,6 @@
 use crate::components::{
     prelude::DataQuery, types::PropPointer, ComponentAttributes, ComponentCommon, ComponentNode,
-    ComponentProps, PropProfile,
+    PropProfile,
 };
 
 use super::{core::Core, graph_node::GraphNode, props::PropValue};
@@ -250,6 +250,27 @@ impl Core {
                         }
                         GraphNode::State(_) | GraphNode::Virtual(_) | GraphNode::Query(_) => {
                             unreachable!("Cannot have GraphNode of type {:?} as a content child of a component's children.", node);
+                        }
+                    }
+                }
+            }
+            // Create a dependency from all children with matching `component_type`
+            DataQuery::ChildElementRefs { component_type } => {
+                let children_virtual_node = self
+                    .structure_graph
+                    .get_component_children_virtual_node(GraphNode::Component(
+                        prop_pointer.component_idx,
+                    ));
+
+                for node in self
+                    .structure_graph
+                    .get_content_children(children_virtual_node)
+                {
+                    if let GraphNode::Component(component_idx) = node {
+                        let component = &self.components[component_idx];
+                        if component.get_component_type() == component_type {
+                            self.dependency_graph.add_edge(query_node, node);
+                            linked_nodes.push(node);
                         }
                     }
                 }

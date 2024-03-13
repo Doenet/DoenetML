@@ -29,11 +29,15 @@ pub struct DataQueryResultVec {
 /// A DataQuery is used to make a Dependency based on the input document structure
 #[derive(Debug, Clone, Default, PartialEq)]
 pub enum DataQuery {
-    /// Query for all children that match the prescribed `PropProfile`s.
+    /// Query for all children that have a prop that matches the prescribed `PropProfile`s.
+    /// Returns the matching props
     ChildPropProfile {
         /// The data query will match child components that have at least one of these profiles
         match_profiles: Vec<PropProfile>,
     },
+    /// Query for all children with matching `component_type`.
+    /// Returns an ElementRefs with the indices of all match children
+    ChildElementRefs { component_type: &'static str },
     /// Query for a particular prop of a component
     Prop {
         /// If None, prop is from the component making the query.

@@ -124,7 +124,7 @@ impl ComponentModule {
         let ret = quote! {
             impl ComponentNode for Component {
                 fn get_component_type(&self) -> &'static str {
-                    Component::COMPONENT_NAME
+                    Component::NAME
                 }
 
                 fn ref_transmutes_to(&self) -> Option<&'static str> {

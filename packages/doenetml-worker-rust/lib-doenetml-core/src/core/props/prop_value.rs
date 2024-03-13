@@ -3,7 +3,7 @@ use tsify::Tsify;
 #[cfg(feature = "web")]
 use wasm_bindgen::prelude::*;
 
-use crate::state::types::math_expr::MathExpr;
+use crate::state::types::{element_refs::ElementRefs, math_expr::MathExpr};
 
 ///////////////////////////////////////////////////////////////////////
 // prop enum views that allow one to refer to props
@@ -15,7 +15,7 @@ use crate::state::types::math_expr::MathExpr;
 #[derive(
     Debug,
     Clone,
-    PartialEq,
+    PartialEq, // TODO: this might be too much to require on all value types if we have complex types
     serde::Serialize,
     serde::Deserialize,
     derive_more::TryInto,
@@ -31,6 +31,9 @@ pub enum PropValue {
     Integer(i64),
     Boolean(bool),
     Math(MathExpr),
+    // TODO: when create array props, convert this to use the general array mechanism
+    // Created a vector type for now.
+    ElementRefs(ElementRefs),
 }
 
 /// The discriminating type of a `PropValue`.
@@ -43,4 +46,5 @@ pub mod prop_type {
     pub struct Integer;
     pub struct Boolean;
     pub struct Math;
+    pub struct ElementRefs;
 }
