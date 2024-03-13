@@ -7,8 +7,9 @@ pub use super::doenet::boolean::Boolean;
 pub use super::doenet::document::Document;
 //pub use super::doenet::math::Math;
 //pub use super::doenet::p::P;
-//pub use super::doenet::section::Section;
+pub use super::doenet::section::Section;
 pub use super::doenet::text::Text;
+pub use super::doenet::title::Title;
 //pub use super::doenet::text_input::TextInput;
 
 /// A enum that can contain a component of any possible component type.
@@ -36,7 +37,8 @@ pub enum ComponentEnum {
     //    TextInput(TextInput),
     //    Math(Math),
     Boolean(Boolean),
-    //    Section(Section),
+    Section(Section),
+    Title(Title),
     //    P(P),
     Document(Document),
     _Error(_Error),

@@ -1,27 +1,41 @@
 use crate::components::prelude::*;
+use crate::general_prop::ElementRefsProp;
 
-#[derive(
-    Debug,
-    Default,
-    ComponentNode,
-    ComponentChildrenOld,
-    ComponentProps,
-    ComponentActions,
-    ComponentAttributes,
-)]
-#[pass_through_children]
-pub struct Section {
-    pub common: ComponentCommonData,
+/// The `<section>` component renders its children along with a title
+#[component(name = Section, rendered_children = "passthrough")]
+mod component {
 
-    pub props: SectionProps,
+    use crate::general_prop::BooleanProp;
+
+    enum Props {
+        /// The `<title>` child of the `<section>` that contain's the section's title
+        #[prop(
+            value_type = PropValueType::ElementRefs,
+            is_public,
+        )]
+        Title,
+        /// Whether the `<section>` should be hidden.
+        #[prop(value_type = PropValueType::Boolean, profile = PropProfile::Hidden)]
+        Hidden,
+    }
+
+    enum Attributes {
+        /// Whether the `<text>` should be hidden.
+        #[attribute(prop = BooleanProp, default = false)]
+        Hide,
+    }
 }
 
-#[derive(Debug, Default, ComponentProps)]
-pub struct SectionProps {}
+pub use component::Section;
+pub use component::SectionActions;
+pub use component::SectionAttributes;
+pub use component::SectionProps;
 
-impl ComponentChildren for Section {
-    fn get_rendered_children(&self, child_query_object: ChildQueryObject) -> Vec<GraphNode> {
-        // Return children without modification
-        child_query_object.child_iter().collect()
+impl PropGetUpdater for SectionProps {
+    fn get_updater(&self) -> Box<dyn PropUpdater> {
+        match self {
+            SectionProps::Title => Box::new(ElementRefsProp::new_from_last_matching_child("title")),
+            SectionProps::Hidden => SectionAttributes::Hide.get_prop_updater(),
+        }
     }
 }
