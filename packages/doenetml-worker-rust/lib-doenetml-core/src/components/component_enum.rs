@@ -24,8 +24,7 @@ pub use super::doenet::title::Title;
     ComponentVariantProps,
     ComponentAttributes,
     ComponentActions,
-    ComponentOnAction,
-    ComponentChildren
+    ComponentOnAction
 )]
 #[strum(ascii_case_insensitive)]
 // Components vary in size. It is unclear if we want to `Box` all of them,

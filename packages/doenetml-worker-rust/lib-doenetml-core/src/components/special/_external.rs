@@ -4,7 +4,6 @@
 use crate::components::prelude::*;
 
 #[derive(Debug, Default)]
-//#[pass_through_children]
 pub struct _External {
     pub common: ComponentCommonData,
 
@@ -47,13 +46,6 @@ impl ComponentNode for _External {
     // is to use this custom component type coming from name
     fn get_component_type(&self) -> &str {
         &self.name
-    }
-}
-
-impl ComponentChildren for _External {
-    fn get_rendered_children(&self, child_query_object: ChildQueryObject) -> Vec<GraphNode> {
-        // Return children without modification
-        child_query_object.child_iter().collect()
     }
 }
 

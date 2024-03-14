@@ -1,6 +1,6 @@
 use super::*;
 
-use doenetml_core::graph_node::GraphNode;
+use doenetml_core::{dast::FlatDastElementContent, graph_node::GraphNode};
 use test_helpers::*;
 
 #[test]
@@ -20,16 +20,28 @@ fn section_finds_beginning_title_tag() {
         get_rendered_children_prop(section_idx, &mut core),
         vec![GraphNode::Component(2), GraphNode::Component(3),]
     );
+
+    // check the flat dast
+    let flat_dast = core.to_flat_dast();
+    let section_children = &flat_dast.elements[section_idx].children;
+
+    assert_eq!(
+        *section_children,
+        vec![
+            FlatDastElementContent::Element(2),
+            FlatDastElementContent::Element(3),
+        ]
+    );
 }
 
 #[test]
 fn section_finds_title_tag_in_middle() {
     let dast_root = dast_root_no_position(
         r#"<section>
-        <text>text content</text> string outside
-        <title>Hello</title>
-        <text>more content</text>
-        </section>"#,
+<text>text content</text> string outside
+<title>Hello</title> more outside
+<text>more content</text>
+</section>"#,
     );
 
     let mut core = Core::new();
@@ -54,17 +66,34 @@ fn section_finds_title_tag_in_middle() {
             GraphNode::String(4),
         ]
     );
+
+    // check the flat dast
+    let flat_dast = core.to_flat_dast();
+    let section_children = &flat_dast.elements[section_idx].children;
+
+    assert_eq!(
+        *section_children,
+        vec![
+            FlatDastElementContent::Element(3),
+            FlatDastElementContent::Text("\n".to_string()),
+            FlatDastElementContent::Element(2),
+            FlatDastElementContent::Text(" string outside\n".to_string()),
+            FlatDastElementContent::Text(" more outside\n".to_string()),
+            FlatDastElementContent::Element(4),
+            FlatDastElementContent::Text("\n".to_string()),
+        ]
+    );
 }
 
 #[test]
 fn section_with_multiple_title_tags_picks_last() {
     let dast_root = dast_root_no_position(
         r#"<section>
-        <title>title 1</title>
-        <text>text content</text> string outside
-        <title>title 2</title>
-        <text>more content</text>
-        </section>"#,
+<title>title 1</title> after title 1
+<text>text content</text> string outside
+<title>title 2</title> after title 2
+<text>more content</text>
+</section>"#,
     );
 
     let mut core = Core::new();
@@ -88,6 +117,24 @@ fn section_with_multiple_title_tags_picks_last() {
             GraphNode::String(4),
             GraphNode::Component(5),
             GraphNode::String(5),
+        ]
+    );
+
+    // check the flat dast
+    let flat_dast = core.to_flat_dast();
+    let section_children = &flat_dast.elements[section_idx].children;
+
+    assert_eq!(
+        *section_children,
+        vec![
+            FlatDastElementContent::Element(4),
+            FlatDastElementContent::Text("\n".to_string()),
+            FlatDastElementContent::Text(" after title 1\n".to_string()),
+            FlatDastElementContent::Element(3),
+            FlatDastElementContent::Text(" string outside\n".to_string()),
+            FlatDastElementContent::Text(" after title 2\n".to_string()),
+            FlatDastElementContent::Element(5),
+            FlatDastElementContent::Text("\n".to_string()),
         ]
     );
 }

@@ -27,8 +27,4 @@ pub use crate::dast::{
     DastAttribute, ElementData, FlatDastElement, FlatDastElementContent, FlatDastElementUpdate,
 };
 
-pub use crate::core::{
-    graph_node::GraphNode,
-    props::PropValue,
-    render::{ChildQueryObject, ComponentChildren},
-};
+pub use crate::core::{graph_node::GraphNode, props::PropValue};

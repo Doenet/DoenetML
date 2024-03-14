@@ -7,7 +7,7 @@ use crate::props::DataQueryResult;
 use crate::props::PropProfileDataQueryFilter;
 
 /// The `<section>` component renders its children along with a title
-#[component(name = Section, rendered_children = "passthrough")]
+#[component(name = Section)]
 mod component {
 
     use crate::general_prop::BooleanProp;

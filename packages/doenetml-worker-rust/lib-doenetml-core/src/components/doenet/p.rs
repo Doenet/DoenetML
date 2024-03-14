@@ -2,7 +2,7 @@ use crate::components::prelude::*;
 use crate::general_prop::RenderedChildrenPassthroughProp;
 
 /// The `<p>` component renders its children
-#[component(name = P, rendered_children = "passthrough")]
+#[component(name = P)]
 mod component {
 
     use crate::general_prop::BooleanProp;

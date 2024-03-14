@@ -16,6 +16,22 @@ fn value_prop_from_string_child() {
 }
 
 #[test]
+fn text_has_no_rendered_children() {
+    let dast_root = dast_root_no_position(r#"<text>hello <text>there</text></text>"#);
+
+    let mut core = Core::new();
+    core.init_from_dast_root(&dast_root);
+
+    // the text will be index 1, as the document tag will be index 0.
+    let text_idx = 1;
+
+    let flat_dast = core.to_flat_dast();
+
+    let text_children = &flat_dast.elements[text_idx].children;
+    assert_eq!(*text_children, vec![]);
+}
+
+#[test]
 fn text_prop_is_alias_of_value() {
     let dast_root = dast_root_no_position(r#"<text>hello</text>"#);
 

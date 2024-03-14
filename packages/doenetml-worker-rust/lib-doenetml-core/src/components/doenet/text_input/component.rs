@@ -41,7 +41,6 @@ pub enum TextInputAction {
 }
 /// Definition of the `<textInput>` DoenetML component
 #[derive(Debug, Default, ComponentNode, ComponentProps, ComponentChildrenOld)]
-#[no_rendered_children]
 #[component(ref_transmutes_to = "Text", extend_via_default_prop)]
 pub struct TextInput {
     /// The common component data needed to derive the `ComponentNode` trait
@@ -49,13 +48,6 @@ pub struct TextInput {
 
     /// The props that underlie the `<textInput>` component.
     pub props: TextInputProps,
-}
-
-impl ComponentChildren for TextInput {
-    fn get_rendered_children(&self, _child_query_object: ChildQueryObject) -> Vec<GraphNode> {
-        // Return no children
-        Vec::new()
-    }
 }
 
 impl ComponentAttributes for TextInput {

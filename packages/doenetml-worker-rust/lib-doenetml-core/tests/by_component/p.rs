@@ -1,6 +1,6 @@
 use super::*;
 
-use doenetml_core::graph_node::GraphNode;
+use doenetml_core::{dast::FlatDastElementContent, graph_node::GraphNode};
 use test_helpers::*;
 
 #[test]
@@ -13,6 +13,7 @@ fn p_rendered_children() {
     // the document tag will be index 0.
     let p_idx = 1;
 
+    // check the rendered children prop
     assert_eq!(
         get_rendered_children_prop(p_idx, &mut core),
         vec![
@@ -20,6 +21,22 @@ fn p_rendered_children() {
             GraphNode::String(1),
             GraphNode::Component(3),
             GraphNode::String(2),
+        ]
+    );
+
+    // check the flat dast
+    let flat_dast = core.to_flat_dast();
+
+    let p_children = &flat_dast.elements[p_idx].children;
+
+    // TODO: when have rendered props, change to check the actual result with text values
+    assert_eq!(
+        *p_children,
+        vec![
+            FlatDastElementContent::Element(2),
+            FlatDastElementContent::Text(" and ".to_string()),
+            FlatDastElementContent::Element(3),
+            FlatDastElementContent::Text("!".to_string()),
         ]
     );
 }
@@ -41,6 +58,21 @@ fn p_hidden_children_not_rendered() {
             GraphNode::Component(2),
             GraphNode::String(1),
             GraphNode::String(2),
+        ]
+    );
+
+    // check the flat dast
+    let flat_dast = core.to_flat_dast();
+
+    let p_children = &flat_dast.elements[p_idx].children;
+
+    // TODO: when have rendered props, change to check the actual result with text values
+    assert_eq!(
+        *p_children,
+        vec![
+            FlatDastElementContent::Element(2),
+            FlatDastElementContent::Text(" and ".to_string()),
+            FlatDastElementContent::Text("!".to_string()),
         ]
     );
 }
