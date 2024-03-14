@@ -5,6 +5,7 @@ use proc_macro::TokenStream;
 use quote::quote;
 
 mod component_module;
+mod try_from_ref;
 
 /// Create a _DoenetML_ _Component_ from a decorated module. This macro adds creates required structs/enums
 /// from a module containing a declaration of a _DoenetML_ component.
@@ -138,6 +139,41 @@ pub fn component(attr: TokenStream, item: TokenStream) -> TokenStream {
     };
 
     match generate_component_module(combined) {
+        Ok(tokens) => tokens.into(),
+        Err(e) => e.to_compile_error().into(),
+    }
+}
+
+/// On an enum, implement `TryFrom<&Inner> for &Inner`. For example
+/// ```ignore
+/// #[derive(TryFromRef)]
+/// enum MyEnum {
+///   A(i32),
+///   B(String),
+/// }
+///
+/// let a = MyEnum::A(5);
+/// let a_inner: &i32 = (&a).try_into().unwrap();
+/// ```
+///
+/// This function is used for `PropValue` conversion and produces implementations similar to
+/// ```ignore
+/// impl<'a> TryFrom<&'a PropValue> for &'a i64 {
+///     type Error = anyhow::Error;
+///
+///     fn try_from(value: &'a PropValue) -> Result<Self, Self::Error> {
+///         match value {
+///             PropValue::Integer(x) => Ok(x),
+///             _ => Err(anyhow::anyhow!("Expected Integer")),
+///         }
+///     }
+/// }
+/// ```
+#[proc_macro_derive(TryFromRef)]
+pub fn try_from_ref_derive_wrapper(item: TokenStream) -> TokenStream {
+    let item = proc_macro2::TokenStream::from(item);
+
+    match try_from_ref::try_from_ref_derive(item) {
         Ok(tokens) => tokens.into(),
         Err(e) => e.to_compile_error().into(),
     }

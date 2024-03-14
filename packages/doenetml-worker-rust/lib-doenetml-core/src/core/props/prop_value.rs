@@ -23,6 +23,7 @@ use crate::{
     serde::Deserialize,
     derive_more::TryInto,
     derive_more::From,
+    doenetml_macros::TryFromRef,
     strum_macros::EnumDiscriminants,
 )]
 #[serde(untagged)]
@@ -64,25 +65,4 @@ pub mod prop_type {
     #[derive(Debug, Copy, Clone, PartialEq, Eq)]
     pub struct ElementRefs;
     pub struct GraphNodes;
-}
-
-impl<'a> TryFrom<&'a PropValue> for &'a String {
-    type Error = anyhow::Error;
-
-    fn try_from(value: &'a PropValue) -> Result<Self, Self::Error> {
-        match value {
-            PropValue::String(x) => Ok(x),
-            _ => Err(anyhow::anyhow!("Expected String")),
-        }
-    }
-}
-impl<'a> TryFrom<&'a PropValue> for &'a i64 {
-    type Error = anyhow::Error;
-
-    fn try_from(value: &'a PropValue) -> Result<Self, Self::Error> {
-        match value {
-            PropValue::Integer(x) => Ok(x),
-            _ => Err(anyhow::anyhow!("Expected Integer")),
-        }
-    }
 }

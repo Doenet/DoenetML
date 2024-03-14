@@ -7,6 +7,6 @@
 
 mod generate_component_module;
 mod items;
-mod utils;
+pub mod utils;
 
 pub use generate_component_module::generate_component_module;
