@@ -5,6 +5,7 @@ mod boolean_prop;
 //mod latex_prop;
 //mod math_prop;
 mod element_ref_prop;
+mod rendered_children_passthrough_prop;
 mod string_prop;
 mod util;
 
@@ -15,4 +16,5 @@ pub use self::boolean_prop::BooleanProp;
 //pub use self::latex_prop::LatexProp;
 //pub use self::math_prop::MathProp;
 pub use self::element_ref_prop::ElementRefsProp;
+pub use self::rendered_children_passthrough_prop::RenderedChildrenPassthroughProp;
 pub use self::string_prop::StringProp;

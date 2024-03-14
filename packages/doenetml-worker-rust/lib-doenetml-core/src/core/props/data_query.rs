@@ -4,10 +4,9 @@
 use crate::components::{
     prelude::{ComponentIdx, GraphNode, LocalPropIdx},
     types::AttributeName,
-    PropProfile,
 };
 
-use super::cache::PropWithMeta;
+use super::{cache::PropWithMeta, PropProfile, PropValue};
 
 /// Data resulting from a `DataQuery`
 #[derive(Debug)]
@@ -35,9 +34,28 @@ pub enum DataQuery {
         /// The data query will match child components that have at least one of these profiles
         match_profiles: Vec<PropProfile>,
     },
-    /// Query for all children with matching `component_type`.
-    /// Returns an ElementRefs with the indices of all match children
-    ChildElementRefs { component_type: &'static str },
+    /// Query for all child GraphNodes,
+    /// filtering element nodes for components which contain PropProfile props given specified values
+    ///
+    /// filter: a vector of `PropProfile` and `PropValue` pairings.
+    /// If a component has a prop with each specified `PropProfile`,
+    /// then it will be filtered out if any of the values don't match the specified `PropValue`.
+    /// If a component does not have a prop with one or more of the specified `PropProfiles`,
+    /// then it will be included if `include_if_missing_profile` is `true`, otherwise it will be be filtered out.
+    /// All non-component children are unaffected by the filter.
+    ///
+    /// For example, if the filter has one element `(PropProfile:Hidden`, `PropValue::Boolean(false))`, then
+    /// - if `include_if_missing_profile` is `true`,
+    ///   all component children that have a prop with the profile `Hidden` whose value is not `false`
+    ///   will be filtered out.
+    /// - if `include_if_missing_profile` is `false`,
+    ///   all component children that do not have a prop with the profile `Hidden` with value `false`
+    ///   will be filtered out.
+    FilteredChildren {
+        filters: Vec<DataQueryFilter>,
+        include_if_missing_profile: bool,
+    },
+
     /// Query for a particular prop of a component
     Prop {
         /// If None, prop is from the component making the query.
@@ -60,4 +78,31 @@ pub enum DataQuery {
     /// Will be initialized with the default value of this prop
     /// and will accept any change when inverting.
     State,
+    /// A data query that cannot be resolved. This is used as a dependency of other data queries.
+    Null,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum DataQueryFilter {
+    PropProfile(PropProfileDataQueryFilter),
+    ComponentType(ComponentTypeDataQueryFilter),
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct PropProfileDataQueryFilter {
+    pub profile: PropProfile,
+    pub value: PropValue,
+    pub comparison: DataQueryFilterComparison,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct ComponentTypeDataQueryFilter {
+    pub component_type: &'static str,
+    pub comparison: DataQueryFilterComparison,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum DataQueryFilterComparison {
+    Equal,
+    NotEqual,
 }

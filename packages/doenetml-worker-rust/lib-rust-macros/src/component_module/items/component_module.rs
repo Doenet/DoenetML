@@ -1,11 +1,8 @@
 //! Parse the `mod component {...}` module.
 
-use darling::{FromAttributes, FromMeta};
+use darling::FromAttributes;
 use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote};
-use strum::VariantNames;
-use strum_macros::VariantNames;
-use syn::Lit;
 
 use crate::component_module::utils::doc_comment_from_attrs;
 
@@ -29,8 +26,6 @@ pub struct ComponentModule {
     pub ref_transmutes_to: Option<String>,
     /// The value of the `extend_via_default_prop` field.
     pub extend_via_default_prop: bool,
-    /// The value of the `rendered_children` field.
-    pub rendered_children: RenderedChildren,
 
     //
     // The content defined _inside_ the module
@@ -43,40 +38,6 @@ pub struct ComponentModule {
     pub props: PropsEnum,
 }
 
-/// Options for the `rendered_children` field in the `#[component(...)]` macro.
-#[derive(Debug, Default, VariantNames)]
-pub enum RenderedChildren {
-    Passthrough,
-    None,
-    #[default]
-    Handle,
-}
-impl FromMeta for RenderedChildren {
-    fn from_value(value: &Lit) -> darling::Result<Self> {
-        match value {
-            Lit::Str(lit_str) => match lit_str.value().to_ascii_lowercase().as_str() {
-                "passthrough" => Ok(Self::Passthrough),
-                "none" => Ok(Self::None),
-                "handle" => Ok(Self::Handle),
-                _ => {
-                    let variants = RenderedChildren::VARIANTS
-                        .iter()
-                        .map(|x| format!("`{}`", x.to_string().to_ascii_lowercase()))
-                        .collect::<Vec<String>>()
-                        .join(", ");
-                    Err(darling::Error::custom(format!(
-                        "Invalid value for children. Must be one of: {}.",
-                        variants
-                    )))
-                }
-            },
-            _ => Err(darling::Error::custom(
-                "Invalid value for children. Must be a string.",
-            )),
-        }
-    }
-}
-
 /// This defines the `#[component(name = "...")]` macro
 /// that is placed in front of the `component` module.
 #[derive(Debug, FromAttributes)]
@@ -86,8 +47,6 @@ pub struct ComponentMacroVariant {
     ref_transmutes_to: Option<Ident>,
     #[darling(default)]
     extend_via_default_prop: bool,
-    #[darling(default)]
-    rendered_children: RenderedChildren,
 }
 
 impl ComponentModule {
@@ -96,7 +55,6 @@ impl ComponentModule {
         let component_macro: ComponentMacroVariant =
             ComponentMacroVariant::from_attributes(&module.attrs)?;
         let name = component_macro.name.to_string();
-        let rendered_children = component_macro.rendered_children;
 
         let props = PropsEnum::extract_from_module(&mut module)?;
         let actions = ActionsEnum::extract_from_module(&mut module)?;
@@ -110,7 +68,6 @@ impl ComponentModule {
             name,
             ref_transmutes_to: component_macro.ref_transmutes_to.map(|x| x.to_string()),
             extend_via_default_prop: component_macro.extend_via_default_prop,
-            rendered_children,
             props,
             actions,
             attributes,
@@ -181,16 +138,6 @@ impl ComponentModule {
     fn generate_component_doc_comments(&self) -> String {
         let mut doc_comments =
             doc_comment_from_attrs(&self.remaining_module_content.attrs).unwrap_or_default();
-
-        match self.rendered_children {
-            RenderedChildren::None => {
-                doc_comments.push_str("\n\nThis component does not render any children.");
-            }
-            RenderedChildren::Passthrough => {
-                doc_comments.push_str("\n\nThis component passes through its children unmodified.");
-            }
-            RenderedChildren::Handle => {}
-        }
 
         match (
             self.extend_via_default_prop,

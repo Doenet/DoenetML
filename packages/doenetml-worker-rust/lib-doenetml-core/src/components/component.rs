@@ -4,9 +4,7 @@
 use std::collections::HashMap;
 use std::str::FromStr;
 
-use crate::core::graph_node::GraphNode;
-use crate::core::props::{Prop, PropComponentMeta, PropValue};
-use crate::core::render::{ChildQueryObject, ComponentChildren};
+use crate::core::props::{Prop, PropComponentMeta, PropProfile, PropValue};
 use crate::dast::Position as DastPosition;
 
 use super::_error::_Error;
@@ -16,7 +14,7 @@ use super::prelude::{ComponentIdx, FlatAttribute};
 use super::types::{LocalPropIdx, PropPointer};
 use super::{
     ActionsEnum, ComponentActions, ComponentAttributes, ComponentNode, ComponentOnAction,
-    ComponentProps, ComponentVariantProps, PropProfile,
+    ComponentProps, ComponentVariantProps,
 };
 
 /// A DoenetML component. A component is a collection of props combined with render information.
@@ -168,12 +166,6 @@ impl ComponentAttributes for Component {
 impl ComponentCommon for Component {
     fn get_common_data(&self) -> &ComponentCommonData {
         &self.common
-    }
-}
-
-impl ComponentChildren for Component {
-    fn get_rendered_children(&self, child_query_object: ChildQueryObject) -> Vec<GraphNode> {
-        self.variant.get_rendered_children(child_query_object)
     }
 }
 

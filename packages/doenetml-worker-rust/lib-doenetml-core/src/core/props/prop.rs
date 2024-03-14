@@ -1,6 +1,6 @@
-use crate::components::{types::PropPointer, Boolean, PropProfile, Text};
+use crate::components::{types::PropPointer, Boolean, Text};
 
-use super::{PropUpdater, PropValueDiscriminants};
+use super::{PropProfile, PropUpdater, PropValueDiscriminants};
 
 /// Data associated with a prop that is "owned" by a component.
 #[derive(Debug, Clone)]
@@ -42,8 +42,13 @@ impl Prop {
             PropValueDiscriminants::String => Text::NAME,
             PropValueDiscriminants::Boolean => Boolean::NAME,
             PropValueDiscriminants::Math => "math",
+            // TODO: starting to accumulate these "no preferred" panics.
+            // Maybe a sign that we need to rethink how this `preferred_component_type()` works?
             PropValueDiscriminants::ElementRefs => {
                 panic!("No preferred component type for an ElementRefs PropValue")
+            }
+            PropValueDiscriminants::GraphNodes => {
+                panic!("No preferred component type for an GraphNodes PropValue")
             }
         }
     }

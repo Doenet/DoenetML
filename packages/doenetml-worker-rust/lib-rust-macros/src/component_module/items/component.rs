@@ -2,7 +2,7 @@ use convert_case::{Case, Casing};
 use proc_macro2::TokenStream;
 use quote::quote;
 
-use super::component_module::{ComponentModule, RenderedChildren};
+use super::component_module::ComponentModule;
 
 impl ComponentModule {
     /// Generate the `struct Component` and all the associated impls for required traits.
@@ -14,7 +14,6 @@ impl ComponentModule {
         let impl_component_attributes_trait = self.impl_component_attributes_trait();
         let impl_component_actions_trait = self.impl_component_actions_trait();
         let impl_component_on_action_trait = self.impl_component_on_action_trait();
-        let impl_component_children_trait = self.impl_component_children_trait();
 
         quote! {
             #component
@@ -24,7 +23,6 @@ impl ComponentModule {
             #impl_component_variant_props_trait
             #impl_component_actions_trait
             #impl_component_on_action_trait
-            #impl_component_children_trait
         }
     }
 
@@ -102,7 +100,7 @@ impl ComponentModule {
 
                 const PROPS: &'static [Props] = &[#(#props),*];
 
-                const PROP_NAMES: &'static [&'static str] = &[#(#prop_names),*];
+                pub const PROP_NAMES: &'static [&'static str] = &[#(#prop_names),*];
 
                 const PROP_PROFILES: &'static [Option<PropProfile>] = &[#(#prop_profiles),*];
 
@@ -208,38 +206,6 @@ impl ComponentModule {
             }
         } else {
             quote! {}
-        }
-    }
-
-    /// Implement the `ComponentChildren` trait for the component.
-    /// The implementation chosen is based on `self.children` which specifies
-    /// `Passthrough`, `None`, or `Handle`. If `Handle` is specified, the component
-    /// author must implement the trait themselves so an empty token stream is returned.
-    pub fn impl_component_children_trait(&self) -> TokenStream {
-        match self.rendered_children {
-            RenderedChildren::Handle => {
-                quote! {}
-            }
-            RenderedChildren::None => {
-                quote! {
-                    impl ComponentChildren for Component {
-                        fn get_rendered_children(&self, _: ChildQueryObject) -> Vec<GraphNode> {
-                            // Return no children
-                            Vec::new()
-                        }
-                    }
-                }
-            }
-            RenderedChildren::Passthrough => {
-                quote! {
-                    impl ComponentChildren for Component {
-                        fn get_rendered_children(&self, child_query_object: ChildQueryObject) -> Vec<GraphNode> {
-                            // Return the children passed through without modification
-                            child_query_object.child_iter().collect()
-                        }
-                    }
-                }
-            }
         }
     }
 }

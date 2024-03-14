@@ -4,6 +4,7 @@ use crate::{
     components::{prelude::ComponentIdx, types::PropPointer, Component},
     dast::{flat_dast::FlatRoot, ref_expand::Expander, DastRoot},
     graph::directed_graph::DirectedGraph,
+    props::DataQuery,
 };
 
 use super::{
@@ -31,12 +32,12 @@ pub struct Core {
     pub strings: StringCache,
     /// A counter for the number of virtual nodes created. Every virtual node needs to be unique (so that
     /// it can be referenced), but we don't store any information about virtual nodes themselves.
-    virtual_node_count: usize,
+    pub virtual_node_count: usize,
     /// Information about a prop used to resolve dependencies in a `DataQuery`.
     pub props: Vec<Prop>,
     // XXX: fill these in
     pub states: StateCache,
-    pub queries: Vec<()>,
+    pub queries: Vec<DataQuery>,
     pub processing_state: CoreProcessingState,
     /// Cache of prop values. The only way core should ever access prop values is through the cache.
     pub prop_cache: PropCache,
@@ -63,7 +64,7 @@ impl Core {
             strings: StringCache::new(),
             props: Vec::new(),
             states: StateCache::new(),
-            queries: vec![()],
+            queries: vec![DataQuery::Null],
             virtual_node_count: 0,
             processing_state: CoreProcessingState {
                 stale_renderers,
@@ -71,7 +72,7 @@ impl Core {
                 mark_stale_stack: Vec::new(),
             },
             prop_cache: PropCache::new(),
-            for_render_query_node: GraphNode::Query(0),
+            for_render_query_node: GraphNode::Query(0), // the DataQuery::Null added in queries, above
         }
     }
 

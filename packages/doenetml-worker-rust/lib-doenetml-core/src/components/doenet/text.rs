@@ -3,7 +3,7 @@ use crate::general_prop::StringProp;
 
 /// The `<text>` component displays its contents as text. It is one of the simplest
 /// DoenetML components.
-#[component(name = Text, rendered_children = "none", extend_via_default_prop)]
+#[component(name = Text, extend_via_default_prop)]
 mod component {
 
     use crate::general_prop::BooleanProp;

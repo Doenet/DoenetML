@@ -3,7 +3,10 @@ use tsify::Tsify;
 #[cfg(feature = "web")]
 use wasm_bindgen::prelude::*;
 
-use crate::state::types::{element_refs::ElementRefs, math_expr::MathExpr};
+use crate::{
+    graph_node::GraphNode,
+    state::types::{element_refs::ElementRefs, math_expr::MathExpr},
+};
 
 ///////////////////////////////////////////////////////////////////////
 // prop enum views that allow one to refer to props
@@ -34,6 +37,9 @@ pub enum PropValue {
     // TODO: when create array props, convert this to use the general array mechanism
     // Created a vector type for now.
     ElementRefs(ElementRefs),
+    // TODO: when create array props, convert this to use the general array mechanism
+    // Created a vector type for now.
+    GraphNodes(Vec<GraphNode>),
 }
 
 /// The discriminating type of a `PropValue`.
@@ -47,4 +53,5 @@ pub mod prop_type {
     pub struct Boolean;
     pub struct Math;
     pub struct ElementRefs;
+    pub struct GraphNodes;
 }

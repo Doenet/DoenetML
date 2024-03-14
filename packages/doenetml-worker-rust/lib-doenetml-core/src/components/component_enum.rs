@@ -6,7 +6,7 @@ pub use super::_external::_External;
 pub use super::doenet::boolean::Boolean;
 pub use super::doenet::document::Document;
 //pub use super::doenet::math::Math;
-//pub use super::doenet::p::P;
+pub use super::doenet::p::P;
 pub use super::doenet::section::Section;
 pub use super::doenet::text::Text;
 pub use super::doenet::title::Title;
@@ -24,8 +24,7 @@ pub use super::doenet::title::Title;
     ComponentVariantProps,
     ComponentAttributes,
     ComponentActions,
-    ComponentOnAction,
-    ComponentChildren
+    ComponentOnAction
 )]
 #[strum(ascii_case_insensitive)]
 // Components vary in size. It is unclear if we want to `Box` all of them,
@@ -39,7 +38,7 @@ pub enum ComponentEnum {
     Boolean(Boolean),
     Section(Section),
     Title(Title),
-    //    P(P),
+    P(P),
     Document(Document),
     _Error(_Error),
     _External(_External),

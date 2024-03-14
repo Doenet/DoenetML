@@ -1,6 +1,7 @@
 use crate::{
     components::prelude::*,
     core::props::{DataQueryResult, PropUpdater},
+    props::{ComponentTypeDataQueryFilter, DataQueryFilter, DataQueryFilterComparison},
     state::types::element_refs::ElementRefs,
 };
 
@@ -23,7 +24,15 @@ impl ElementRefsProp {
     /// Creates a ElementRefs prop that returns the last child with component_type
     pub fn new_from_last_matching_child(component_type: &'static str) -> Self {
         ElementRefsProp {
-            data_query: DataQuery::ChildElementRefs { component_type },
+            data_query: DataQuery::FilteredChildren {
+                filters: vec![DataQueryFilter::ComponentType(
+                    ComponentTypeDataQueryFilter {
+                        component_type,
+                        comparison: DataQueryFilterComparison::Equal,
+                    },
+                )],
+                include_if_missing_profile: true,
+            },
             elements_to_select: ElementsToSelect::Last,
         }
     }
@@ -31,7 +40,15 @@ impl ElementRefsProp {
     /// Creates a ElementRefs prop that returns the first child with component_type
     pub fn new_from_first_matching_child(component_type: &'static str) -> Self {
         ElementRefsProp {
-            data_query: DataQuery::ChildElementRefs { component_type },
+            data_query: DataQuery::FilteredChildren {
+                filters: vec![DataQueryFilter::ComponentType(
+                    ComponentTypeDataQueryFilter {
+                        component_type,
+                        comparison: DataQueryFilterComparison::Equal,
+                    },
+                )],
+                include_if_missing_profile: true,
+            },
             elements_to_select: ElementsToSelect::First,
         }
     }
@@ -39,7 +56,15 @@ impl ElementRefsProp {
     /// Creates a ElementRefs prop that returns all children with component_type
     pub fn new_from_all_matching_children(component_type: &'static str) -> Self {
         ElementRefsProp {
-            data_query: DataQuery::ChildElementRefs { component_type },
+            data_query: DataQuery::FilteredChildren {
+                filters: vec![DataQueryFilter::ComponentType(
+                    ComponentTypeDataQueryFilter {
+                        component_type,
+                        comparison: DataQueryFilterComparison::Equal,
+                    },
+                )],
+                include_if_missing_profile: true,
+            },
             elements_to_select: ElementsToSelect::All,
         }
     }
@@ -64,19 +89,22 @@ impl PropUpdater for ElementRefsProp {
                 let elements = elements_found
                     .iter()
                     .flat_map(|elt| match &*elt.value {
-                        PropValue::ElementRefs(e_refs) => e_refs.iter().map(|i| *i),
+                        PropValue::GraphNodes(graph_nodes) => graph_nodes.iter().map(|node| match node {
+                            GraphNode::Component(idx) => *idx,
+                            _ => unreachable!("data queries for element refs prop should return component graph nodes, found {:?}", node)
+                        }),
                         _ => panic!(
-                            "Should get ElementRefs dependencies for ElementRef query, found {:?}",
+                            "Should get GraphNodes dependencies for FilteredChildren query, found {:?}",
                             elt
                         ),
                     })
                     .collect::<Vec<_>>();
                 PropCalcResult::Calculated(match self.elements_to_select {
                     ElementsToSelect::First => {
-                        PropValue::ElementRefs(ElementRefs(vec![elements[0]]))
+                        PropValue::ElementRefs(ElementRefs(vec![*elements.first().unwrap()]))
                     }
                     ElementsToSelect::Last => {
-                        PropValue::ElementRefs(ElementRefs(vec![elements[elements.len() - 1]]))
+                        PropValue::ElementRefs(ElementRefs(vec![*elements.last().unwrap()]))
                     }
                     ElementsToSelect::All => PropValue::ElementRefs(ElementRefs(elements)),
                 })

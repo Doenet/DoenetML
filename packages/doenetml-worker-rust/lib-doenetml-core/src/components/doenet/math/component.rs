@@ -13,7 +13,6 @@ pub enum MathAttribute {
 
 /// Definition of the `<math>` DoenetML component
 #[derive(Debug, Default, ComponentNode, ComponentProps, ComponentActions, ComponentChildrenOld)]
-#[no_rendered_children]
 #[component(extend_via_default_prop)]
 pub struct Math {
     /// The common component data needed to derive the `ComponentNode` trait
@@ -26,12 +25,5 @@ pub struct Math {
 impl ComponentAttributes for Math {
     fn get_attribute_names(&self) -> Vec<AttributeName> {
         MathAttribute::VARIANTS.into()
-    }
-}
-
-impl ComponentChildren for Math {
-    fn get_rendered_children(&self, _child_query_object: ChildQueryObject) -> Vec<GraphNode> {
-        // Return no children
-        Vec::new()
     }
 }

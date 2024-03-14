@@ -4,7 +4,6 @@
 use crate::components::prelude::*;
 
 #[derive(Debug, Default)]
-//#[pass_through_children]
 pub struct _Error {
     pub common: ComponentCommonData,
     pub message: String,
@@ -30,13 +29,6 @@ impl ComponentOnAction for _Error {}
 impl ComponentAttributes for _Error {}
 
 impl ComponentVariantProps for _Error {}
-
-impl ComponentChildren for _Error {
-    fn get_rendered_children(&self, _child_query_object: ChildQueryObject) -> Vec<GraphNode> {
-        // Return no children
-        Vec::new()
-    }
-}
 
 #[derive(Debug, Default)]
 pub struct _ErrorProps {}

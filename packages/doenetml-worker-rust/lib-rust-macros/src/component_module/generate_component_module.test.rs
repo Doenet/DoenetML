@@ -40,7 +40,7 @@ fn test_preserves_pub_decorator_on_module() {
 fn test_can_parse_module() {
     let input = r#"
         /// XXX
-        #[component(name = Document, ref_transmutes_to = Text, rendered_children = "passthrough")]
+        #[component(name = Document, ref_transmutes_to = Text)]
         mod component {
             use super::ActionBody;
 
@@ -92,7 +92,7 @@ fn test_can_parse_empty_module() {
 #[test]
 fn test_can_parse_module3() {
     let input = r#"
-#[component(name = Text, rendered_children = "none", extend_via_default_prop)]
+#[component(name = Text, extend_via_default_prop)]
 mod component {
     use crate::general_prop::BooleanProp;
 

@@ -18,13 +18,11 @@ pub mod component;
 pub mod component_enum;
 pub mod doenet;
 pub mod prelude;
-pub mod prop_profile;
 pub mod special;
 pub mod traits;
 pub mod types;
 
 pub use component::*;
 pub use component_enum::*;
-pub use prop_profile::*;
 pub use special::*;
 pub use traits::*;

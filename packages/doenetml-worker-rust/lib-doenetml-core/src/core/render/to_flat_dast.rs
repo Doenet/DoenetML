@@ -12,12 +12,10 @@ use crate::{
         flat_dast::UntaggedContent, DastAttribute, DastText, DastTextRefContent,
         FlatDastElementUpdate, FlatDastRoot,
     },
+    props::{PropProfile, PropValue},
 };
 
-use super::{
-    super::{core::Core, graph_node::GraphNode},
-    ChildQueryObject, ComponentChildren,
-};
+use super::super::{core::Core, graph_node::GraphNode};
 
 impl Core {
     /// Output all components as a flat dast,
@@ -109,9 +107,30 @@ impl Core {
 
     /// Convert a component to a `FlatDastElement`.
     pub fn component_to_flat_dast(&mut self, component_idx: ComponentIdx) -> FlatDastElement {
-        let component = &self.components[component_idx];
-        let children = component
-            .get_rendered_children(ChildQueryObject::new_from_core(component_idx, self))
+        let child_nodes = self.components[component_idx]
+            .provided_profiles()
+            .into_iter()
+            .find_map(|(profile, local_prop_idx)| {
+                if profile == PropProfile::RenderedChildren {
+                    let prop_node = self.prop_pointer_to_prop_node(PropPointer {
+                        component_idx,
+                        local_prop_idx,
+                    });
+                    let rendered_children_value = &*self.get_prop_for_render(prop_node).value;
+                    match rendered_children_value {
+                        PropValue::GraphNodes(graph_nodes) => Some(graph_nodes.clone()),
+                        _ => unreachable!(
+                            "RenderedChildren prop must return GraphNodes, found {:?}",
+                            rendered_children_value
+                        ),
+                    }
+                } else {
+                    None
+                }
+            })
+            .unwrap_or_default();
+
+        let children = child_nodes
             .into_iter()
             .flat_map(|child| match child {
                 GraphNode::Component(idx) => Some(FlatDastElementContent::Element(idx)),
