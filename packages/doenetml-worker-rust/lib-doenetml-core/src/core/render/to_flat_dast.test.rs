@@ -9,6 +9,7 @@ fn test_can_make_flat_dast_for_component() {
     let mut core = Core::new();
     core.init_from_dast_root(&dast_root);
 
-    let flat_dast = core.component_to_flat_dast2(&core.components[0]);
+    //let flat_dast = core.component_to_flat_dast2(&core.components[0]);
+    let flat_dast = core.component_to_flat_dast(0);
     dbg!(flat_dast);
 }

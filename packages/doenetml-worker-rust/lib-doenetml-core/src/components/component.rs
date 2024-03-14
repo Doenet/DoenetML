@@ -4,7 +4,7 @@
 use std::collections::HashMap;
 use std::str::FromStr;
 
-use crate::core::props::{Prop, PropComponentMeta, PropProfile, PropValue};
+use crate::core::props::{PropComponentMeta, PropDefinition, PropProfile, PropValue};
 use crate::dast::Position as DastPosition;
 
 use super::_error::_Error;
@@ -68,12 +68,12 @@ pub trait ComponentCommon {
 }
 
 impl ComponentProps for Component {
-    fn generate_props(&self) -> Vec<crate::core::props::Prop> {
+    fn generate_props(&self) -> Vec<crate::core::props::PropDefinition> {
         let component_idx = self.get_idx();
         (0..self.variant.get_num_props())
             .map(|local_prop_idx| {
                 let local_prop_idx = LocalPropIdx(local_prop_idx);
-                Prop {
+                PropDefinition {
                     meta: PropComponentMeta {
                         name: self.variant.get_prop_name(local_prop_idx),
                         for_renderer: self.variant.get_prop_is_for_render(local_prop_idx),
@@ -96,7 +96,7 @@ impl ComponentProps for Component {
             .get_prop_names()
             .iter()
             .position(|&x| x == name)
-            .map(|idx| LocalPropIdx(idx))
+            .map(LocalPropIdx::new)
     }
 
     fn get_public_local_prop_index_from_name_case_insensitive(
@@ -107,7 +107,7 @@ impl ComponentProps for Component {
             .get_prop_names()
             .iter()
             .position(|&x| x.eq_ignore_ascii_case(name))
-            .map(|idx| LocalPropIdx(idx))
+            .map(LocalPropIdx::new)
     }
 
     fn get_prop_profile_local_prop_indices(&self) -> Vec<LocalPropIdx> {

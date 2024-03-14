@@ -41,6 +41,9 @@ impl Core {
         let component_node = GraphNode::Component(component.get_idx());
 
         // Children don't need any additional processing. They are directly converted into FlatDast.
+
+        //       let children = component.get_rendered_children(child_query_object);
+
         let children = self
             .structure_graph
             .get_component_children(component_node)

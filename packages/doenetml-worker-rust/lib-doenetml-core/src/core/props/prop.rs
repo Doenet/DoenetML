@@ -16,10 +16,11 @@ pub struct PropComponentMeta {
     pub public: bool,
 }
 
-/// A `Prop` is a piece of dynamically computed data associated with a component.
-/// Its value is lazily computed and can depend on other `Prop`s.
+/// A `PropDefinition` stores functions needed to compute a `PropValue` as required
+/// by a component.
+/// Its value is lazily computed and can depend on props coming from other components.
 #[derive(Debug)]
-pub struct Prop {
+pub struct PropDefinition {
     /// The updater holds all of the `calculate`, etc. functions for the prop.
     pub updater: Box<dyn PropUpdater>,
     pub variant: PropValueDiscriminants,
@@ -27,7 +28,7 @@ pub struct Prop {
     pub meta: PropComponentMeta,
 }
 
-impl Prop {
+impl PropDefinition {
     /// Sometimes we need to render a prop. Since only components can be rendered,
     /// the prop needs to be wrapped in a component. This function returns the component
     /// type that should be used to wrap the prop.

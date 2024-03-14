@@ -32,6 +32,7 @@ derive_more = { workspace = true }
 itertools = { workspace = true }
 assert-json-diff = "2.0"
 serde-wasm-bindgen = { workspace = true }
+genrc = { workspace = true }
 
 [dev-dependencies]
 criterion = "0.5"

@@ -1,6 +1,8 @@
 //! Allow for the caching of props (and state props and strings).
 
-use std::{borrow, cell::RefCell, collections::HashMap, rc::Rc};
+use std::{borrow, cell::RefCell, collections::HashMap};
+
+use genrc::Rc;
 
 use crate::{
     components::prelude::{GraphNode, PropCalcResult, PropValue},

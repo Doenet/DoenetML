@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use genrc::Rc;
 
 use crate::{
     props::{DataQuery, DataQueryFilter, DataQueryFilterComparison, PropValue},
@@ -155,7 +155,7 @@ impl Core {
                                     });
 
                                 let include_node = virtual_children[1..]
-                                    .into_iter()
+                                    .iter()
                                     .zip(prop_filters)
                                     .all(|(prop_node, prop_filter)| {
                                         let prop_value = self

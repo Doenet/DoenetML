@@ -1,11 +1,11 @@
-use crate::{components::types::LocalPropIdx, core::props::Prop};
+use crate::{components::types::LocalPropIdx, core::props::PropDefinition};
 
 /// The main `Component` struct, which wraps all component variants, implements
 /// `ComponentProps`. This is used by `Core` to initialize props.
 pub trait ComponentProps {
     /// Generate a vector of the props of this component.
     /// This function should be called only once, when the component is created.
-    fn generate_props(&self) -> Vec<Prop>;
+    fn generate_props(&self) -> Vec<PropDefinition>;
 
     // TODO: do we need get_prop_index_from_name?
     // Right now, we use it in the parent DataQuery, but maybe we can find a way

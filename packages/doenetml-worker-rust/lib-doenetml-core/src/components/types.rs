@@ -10,6 +10,12 @@ use super::ActionsEnum;
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct LocalPropIdx(pub usize);
 
+impl LocalPropIdx {
+    pub fn new(idx: usize) -> Self {
+        Self(idx)
+    }
+}
+
 impl Deref for LocalPropIdx {
     type Target = usize;
     fn deref(&self) -> &Self::Target {

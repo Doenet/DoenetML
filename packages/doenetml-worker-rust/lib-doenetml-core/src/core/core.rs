@@ -10,7 +10,7 @@ use crate::{
 use super::{
     component_builder::ComponentBuilder,
     graph_node::{DependencyGraph, GraphNode, StructureGraph},
-    props::{cache::PropCache, Prop, StateCache, StringCache},
+    props::{cache::PropCache, PropDefinition, StateCache, StringCache},
 };
 
 /// Core stores all hydrated components, keeps track of caching data, and tracks dependencies.
@@ -34,7 +34,7 @@ pub struct Core {
     /// it can be referenced), but we don't store any information about virtual nodes themselves.
     pub virtual_node_count: usize,
     /// Information about a prop used to resolve dependencies in a `DataQuery`.
-    pub props: Vec<Prop>,
+    pub props: Vec<PropDefinition>,
     // XXX: fill these in
     pub states: StateCache,
     pub queries: Vec<DataQuery>,

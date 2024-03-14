@@ -34,7 +34,7 @@ impl ComponentVariantProps for _Error {}
 pub struct _ErrorProps {}
 
 impl ComponentProps for _Error {
-    fn generate_props(&self) -> Vec<Prop> {
+    fn generate_props(&self) -> Vec<PropDefinition> {
         vec![]
     }
     fn get_prop_profile_local_prop_indices(&self) -> Vec<LocalPropIdx> {

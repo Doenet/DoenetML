@@ -47,11 +47,42 @@ pub type PropValueType = PropValueDiscriminants;
 
 pub mod prop_type {
     //! This module provides a type for each discriminant of `PropValue`.
+    //! Along with each of these types is also a tuple of the created type and the inner value of the type.
+    //! E.g., if there is a `PropValue::Foo(usize)`, then there will be a `Foo` struct and a `FooInner = (Foo, usize)` type.
+    //! These are used for typing tricks with macros and the API.
+
+    #[derive(Debug, Copy, Clone, PartialEq, Eq)]
     pub struct String;
+    #[derive(Debug, Copy, Clone, PartialEq, Eq)]
     pub struct Number;
+    #[derive(Debug, Copy, Clone, PartialEq, Eq)]
     pub struct Integer;
+    #[derive(Debug, Copy, Clone, PartialEq, Eq)]
     pub struct Boolean;
+    #[derive(Debug, Copy, Clone, PartialEq, Eq)]
     pub struct Math;
+    #[derive(Debug, Copy, Clone, PartialEq, Eq)]
     pub struct ElementRefs;
     pub struct GraphNodes;
+}
+
+impl<'a> TryFrom<&'a PropValue> for &'a String {
+    type Error = anyhow::Error;
+
+    fn try_from(value: &'a PropValue) -> Result<Self, Self::Error> {
+        match value {
+            PropValue::String(x) => Ok(x),
+            _ => Err(anyhow::anyhow!("Expected String")),
+        }
+    }
+}
+impl<'a> TryFrom<&'a PropValue> for &'a i64 {
+    type Error = anyhow::Error;
+
+    fn try_from(value: &'a PropValue) -> Result<Self, Self::Error> {
+        match value {
+            PropValue::Integer(x) => Ok(x),
+            _ => Err(anyhow::anyhow!("Expected Integer")),
+        }
+    }
 }

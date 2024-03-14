@@ -8,7 +8,7 @@ pub use std::collections::HashMap;
 pub use super::traits::*;
 pub use super::types::*;
 pub use crate::core::props::{
-    DataQuery, Prop, PropCalcResult, PropProfile, PropUpdater, PropValueType,
+    DataQuery, PropCalcResult, PropDefinition, PropProfile, PropUpdater, PropValueType,
 };
 pub use crate::dast::flat_dast::FlatAttribute;
 pub use crate::dast::flat_dast::UntaggedContent;

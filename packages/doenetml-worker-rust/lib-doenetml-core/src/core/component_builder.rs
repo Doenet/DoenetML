@@ -22,7 +22,7 @@ use crate::{
 
 use super::{
     graph_node::{GraphNode, GraphNodeLookup},
-    props::{Prop, StringCache},
+    props::{PropDefinition, StringCache},
 };
 
 /// Initialize `structure_graph` and `components` based on a provided `normalized_root`.
@@ -40,7 +40,7 @@ pub struct ComponentBuilder {
     /// it can be referenced), but we don't store any information about virtual nodes themselves.
     pub virtual_node_count: usize,
     // Information about each prop sufficient for resolving `DataQuery`s.
-    pub props: Vec<Prop>,
+    pub props: Vec<PropDefinition>,
 }
 
 impl Default for ComponentBuilder {

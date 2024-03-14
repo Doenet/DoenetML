@@ -3,7 +3,7 @@ use enum_dispatch::enum_dispatch;
 use crate::components::types::AttributeName;
 use crate::components::ComponentEnum;
 
-use crate::core::props::Prop;
+use crate::core::props::PropDefinition;
 
 /// The ComponentAttributes trait can be derived for a component,
 /// giving it the default implementation of ignoring all attributes.
@@ -51,5 +51,5 @@ pub trait ComponentAttributes {
 /// ```
 pub trait AttributeProp<T: Default + Clone> {
     /// Get a prop whose value is determined by the attribute.
-    fn prop(&self) -> Prop;
+    fn prop(&self) -> PropDefinition;
 }
