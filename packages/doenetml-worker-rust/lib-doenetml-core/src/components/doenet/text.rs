@@ -15,7 +15,8 @@ mod component {
             value_type = PropValueType::String,
             is_public,
             profile = PropProfile::String,
-            default
+            default,
+            for_render,
         )]
         Value,
 

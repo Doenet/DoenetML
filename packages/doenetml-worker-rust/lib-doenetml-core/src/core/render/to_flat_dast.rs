@@ -7,10 +7,11 @@ use crate::{
         },
         types::PropPointer,
         Component, ComponentActions, ComponentCommon, ComponentEnum, ComponentNode,
+        ComponentVariantProps,
     },
     dast::{
         flat_dast::UntaggedContent, DastAttribute, DastText, DastTextRefContent,
-        FlatDastElementUpdate, FlatDastRoot,
+        FlatDastElementUpdate, FlatDastRoot, ForRenderPropValue, ForRenderProps,
     },
     props::{PropProfile, PropValue},
 };
@@ -156,18 +157,9 @@ impl Core {
         &mut self,
         component_idx: ComponentIdx,
     ) -> FlatDastElement {
-        let _rendered_prop_pointers = self.components[component_idx]
-            .get_for_renderer_local_prop_indices()
-            .into_iter()
-            .map(|local_prop_idx| PropPointer {
-                component_idx,
-                local_prop_idx,
-            })
-            .collect::<Vec<_>>();
-
         // TODO: many components in the flat dast are not rendered
         // For efficiency, we should not calculate the rendered props for these components.
-        //self.freshen_props(&rendered_prop_pointers);
+        let rendered_props = Some(self.get_rendered_props(component_idx));
 
         let component = &self.components[component_idx];
         let message = if let ComponentEnum::_Error(error) = &component.variant {
@@ -175,10 +167,6 @@ impl Core {
         } else {
             None
         };
-
-        // XXX: implement getting rendered props
-        // let rendered_props = component.get_rendered_props();
-        let rendered_props = None;
 
         FlatDastElement {
             name: component.get_component_type().to_string(),
@@ -200,6 +188,45 @@ impl Core {
             },
             position: component.get_position().cloned(),
         }
+    }
+
+    /// Calculate the values of the for_render props of `component_idx` that have changed
+    /// since the last time they were calculated for rendering.
+    ///
+    /// Return: a `ForRenderProps` containing a `ForRenderPropValue` for each for_render prop that changed.
+    fn get_rendered_props(&mut self, component_idx: ComponentIdx) -> ForRenderProps {
+        // Note: collect into a vector so that stop borrowing from self.components
+        // (needed since self.get_prop_for_render() currently needs a mutable borrow of self)
+        let rendered_prop_pointers = self.components[component_idx]
+            .get_for_renderer_local_prop_indices()
+            .into_iter()
+            .map(|local_prop_idx| PropPointer {
+                component_idx,
+                local_prop_idx,
+            })
+            .collect::<Vec<_>>();
+
+        let rendered_prop_value_vec = rendered_prop_pointers
+            .into_iter()
+            .filter_map(|prop_pointer| {
+                let prop_node = self.prop_pointer_to_prop_node(prop_pointer);
+                let prop = self.get_prop_for_render(prop_node);
+                if prop.changed {
+                    let prop_value = (*prop.value).clone();
+                    let prop_name = self.components[prop_pointer.component_idx]
+                        .variant
+                        .get_prop_names()[*prop_pointer.local_prop_idx];
+                    Some(ForRenderPropValue {
+                        name: prop_name.to_string(),
+                        value: prop_value,
+                    })
+                } else {
+                    None
+                }
+            })
+            .collect::<Vec<_>>();
+
+        ForRenderProps(rendered_prop_value_vec)
     }
 
     /// XXX: need to implement this and determine what rendered state variables have changed

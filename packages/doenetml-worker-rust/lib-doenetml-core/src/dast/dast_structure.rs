@@ -1,4 +1,8 @@
-use serde::{ser::SerializeStruct, Deserialize, Serialize};
+use serde::{
+    ser::{SerializeMap, SerializeStruct},
+    Deserialize, Serialize,
+};
+
 use std::collections::HashMap;
 #[cfg(feature = "web")]
 use tsify::Tsify;
@@ -6,6 +10,8 @@ use tsify::Tsify;
 use wasm_bindgen::prelude::*;
 
 use thiserror::Error;
+
+use crate::props::PropValue;
 
 /// Dast root node
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -92,9 +98,34 @@ pub struct ElementData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub message: Option<String>,
 
-    #[serde(skip_serializing_if = "Option::is_none")]
-    // XXX This used to be `RenderedProps`
-    pub props: Option<()>,
+    #[serde(skip_serializing_if = "Option::is_none", skip_deserializing)]
+    pub props: Option<ForRenderProps>,
+}
+
+/// A struct containing values of props marked for_render
+/// that will serialize like a map.
+#[derive(Debug, Clone, Default, PartialEq)]
+pub struct ForRenderProps(pub Vec<ForRenderPropValue>);
+
+impl Serialize for ForRenderProps {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut map = serializer.serialize_map(Some(self.0.len()))?;
+
+        for rendered_value in self.0.iter() {
+            map.serialize_entry(&rendered_value.name, &rendered_value.value)?;
+        }
+        map.end()
+    }
+}
+
+/// The `value`` of the prop `name`.
+#[derive(Debug, Clone, PartialEq)]
+pub struct ForRenderPropValue {
+    pub name: String,
+    pub value: PropValue,
 }
 
 impl PartialEq for ElementData {
@@ -364,9 +395,8 @@ pub struct FlatDastElementUpdate {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub new_children: Option<Vec<FlatDastElementContent>>,
 
-    #[serde(skip_serializing_if = "Option::is_none")]
-    // XXX: This used to be `RenderedProps`
-    pub changed_state: Option<()>,
+    #[serde(skip_serializing_if = "Option::is_none", skip_deserializing)]
+    pub changed_state: Option<ForRenderProps>,
 }
 
 #[derive(Debug, Error)]

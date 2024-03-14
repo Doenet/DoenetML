@@ -1,5 +1,9 @@
 use super::*;
 
+use doenetml_core::{
+    dast::{ForRenderPropValue, ForRenderProps},
+    props::PropValue,
+};
 use test_helpers::*;
 
 #[test]
@@ -13,6 +17,17 @@ fn value_prop_from_string_child() {
     let text_idx = 1;
 
     assert_eq!(get_value_prop(text_idx, &mut core), "hello");
+
+    // verify that value is the rendered prop
+    let flat_dast = core.to_flat_dast();
+    let text_rendered_props = flat_dast.elements[text_idx].data.props.as_ref().unwrap();
+    assert_eq!(
+        text_rendered_props,
+        &ForRenderProps(vec![ForRenderPropValue {
+            name: "value".to_string(),
+            value: PropValue::String("hello".to_string())
+        }])
+    );
 }
 
 #[test]
@@ -141,21 +156,22 @@ fn text_hidden() {
 
 mod test_helpers {
 
+    use doenetml_core::components::Text;
+
     use super::*;
-
-    // const VALUE_IDX: LocalPropIdx = TextProps::get_value_prop_index();
-    // const TEXT_IDX: LocalPropIdx = TextProps::get_text_prop_index();
-
-    // XXX - get these indices from the component type
-    const VALUE_LOCAL_IDX: LocalPropIdx = LocalPropIdx(0);
-    const TEXT_LOCAL_IDX: LocalPropIdx = LocalPropIdx(1);
-    const HIDDEN_LOCAL_IDX: LocalPropIdx = LocalPropIdx(1); // XXX - this won't be the same ias TEXT!!!
 
     /// Resolves `value` from a `<text>` component and returns its value as a `String`
     pub fn get_value_prop(component_idx: ComponentIdx, core: &mut Core) -> String {
+        let value_local_idx = LocalPropIdx(
+            Text::PROP_NAMES
+                .into_iter()
+                .position(|name| name.eq(&"value"))
+                .unwrap(),
+        );
+
         let prop_node = core.prop_pointer_to_prop_node(PropPointer {
             component_idx,
-            local_prop_idx: VALUE_LOCAL_IDX,
+            local_prop_idx: value_local_idx,
         });
         let value = core.get_prop_for_render(prop_node).value;
 
@@ -164,9 +180,16 @@ mod test_helpers {
 
     /// Resolves `text` from a `<text>` component and returns its value as a `String`
     pub fn get_text_prop(component_idx: ComponentIdx, core: &mut Core) -> String {
+        let text_local_idx = LocalPropIdx(
+            Text::PROP_NAMES
+                .into_iter()
+                .position(|name| name.eq(&"text"))
+                .unwrap(),
+        );
+
         let prop_node = core.prop_pointer_to_prop_node(PropPointer {
             component_idx,
-            local_prop_idx: TEXT_LOCAL_IDX,
+            local_prop_idx: text_local_idx,
         });
         let value = core.get_prop_for_render(prop_node).value;
 
@@ -175,9 +198,16 @@ mod test_helpers {
 
     /// Resolves `hidden` from a `<text>` component and returns its value as a `bool`
     pub fn get_hidden_prop(component_idx: ComponentIdx, core: &mut Core) -> bool {
+        let hidden_local_idx = LocalPropIdx(
+            Text::PROP_NAMES
+                .into_iter()
+                .position(|name| name.eq(&"hidden"))
+                .unwrap(),
+        );
+
         let prop_node = core.prop_pointer_to_prop_node(PropPointer {
             component_idx,
-            local_prop_idx: HIDDEN_LOCAL_IDX,
+            local_prop_idx: hidden_local_idx,
         });
         let value = core.get_prop_for_render(prop_node).value;
 
