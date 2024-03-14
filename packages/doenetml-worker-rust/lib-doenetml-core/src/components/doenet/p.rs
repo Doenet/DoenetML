@@ -1,59 +1,37 @@
-use std::collections::HashMap;
-use strum::VariantNames;
-
 use crate::components::prelude::*;
+use crate::general_prop::RenderedChildrenPassthroughProp;
 
-use crate::general_prop::BooleanProp;
+/// The `<p>` component renders its children
+#[component(name = P, rendered_children = "passthrough")]
+mod component {
 
-#[derive(Debug, AttributeProp)]
-pub enum PAttribute {
-    /// Whether the `<p>` should be hidden.
-    #[attribute(prop = BooleanProp, default = false)]
-    Hide,
+    use crate::general_prop::BooleanProp;
+
+    enum Props {
+        /// Whether the `<p>` should be hidden.
+        #[prop(value_type = PropValueType::Boolean, profile = PropProfile::Hidden)]
+        Hidden,
+        #[prop(value_type = PropValueType::GraphNodes, profile = PropProfile::RenderedChildren)]
+        RenderedChildren,
+    }
+
+    enum Attributes {
+        /// Whether the `<p>` should be hidden.
+        #[attribute(prop = BooleanProp, default = false)]
+        Hide,
+    }
 }
 
-#[derive(Debug, Default, ComponentNode, ComponentChildrenOld, ComponentProps, ComponentActions)]
-#[pass_through_children]
-pub struct P {
-    pub common: ComponentCommonData,
+pub use component::PActions;
+pub use component::PAttributes;
+pub use component::PProps;
+pub use component::P;
 
-    pub props: PProps,
-}
-
-#[derive(Debug, ComponentProps)]
-pub struct PProps {
-    /// A variable that determines whether or not a p should be sent to the renderer (i.e., appear in the render tree).
-    ///
-    /// If `hidden` is true, then don't send the p to the renderer. (TODO: implement this)
-    ///
-    /// It is marked `is_public` so that it can be referenced in DoenetML via `.hidden`.
-    #[is_public]
-    hidden: Prop<bool>,
-}
-
-impl PProps {
-    fn new() -> Self {
-        PProps {
-            hidden: PAttribute::Hide.prop(),
+impl PropGetUpdater for PProps {
+    fn get_updater(&self) -> Box<dyn PropUpdater> {
+        match self {
+            PProps::Hidden => PAttributes::Hide.get_prop_updater(),
+            PProps::RenderedChildren => Box::new(RenderedChildrenPassthroughProp::new()),
         }
-    }
-}
-
-impl Default for PProps {
-    fn default() -> Self {
-        PProps::new()
-    }
-}
-
-impl ComponentAttributes for P {
-    fn get_attribute_names(&self) -> Vec<AttributeName> {
-        PAttribute::VARIANTS.into()
-    }
-}
-
-impl ComponentChildren for P {
-    fn get_rendered_children(&self, child_query_object: ChildQueryObject) -> Vec<GraphNode> {
-        // Return children without modification
-        child_query_object.child_iter().collect()
     }
 }

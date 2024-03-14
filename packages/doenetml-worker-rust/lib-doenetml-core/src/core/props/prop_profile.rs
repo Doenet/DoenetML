@@ -1,4 +1,4 @@
-use crate::state::types::math_expr::MathExpr;
+use crate::state::types::{element_refs::ElementRefs, math_expr::MathExpr};
 
 use super::PropValue;
 
@@ -35,6 +35,8 @@ pub enum PropProfile {
     Boolean,
     /// Matches the hidden prop
     Hidden,
+    /// Matches the RenderedChildren prop
+    RenderedChildren,
 }
 
 // TODO: implement with macro?
@@ -51,6 +53,7 @@ impl PropProfile {
                 PropValue::String(String::default())
             }
             PropProfile::Hidden => PropValue::Boolean(bool::default()),
+            PropProfile::RenderedChildren => PropValue::ElementRefs(ElementRefs::default()),
         }
     }
 }

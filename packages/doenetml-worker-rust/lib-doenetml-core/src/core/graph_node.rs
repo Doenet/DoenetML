@@ -15,6 +15,8 @@ use crate::graph::directed_graph::{DirectedGraph, Taggable};
     Hash,
     PartialEq,
     Eq,
+    serde::Serialize,
+    serde::Deserialize,
 )]
 pub enum GraphNode {
     /// A node that corresponds to a component stored by `Core`

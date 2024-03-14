@@ -1,5 +1,6 @@
 use crate::components::prelude::*;
 use crate::general_prop::ElementRefsProp;
+use crate::general_prop::RenderedChildrenPassthroughProp;
 
 /// The `<section>` component renders its children along with a title
 #[component(name = Section, rendered_children = "passthrough")]
@@ -20,7 +21,7 @@ mod component {
     }
 
     enum Attributes {
-        /// Whether the `<text>` should be hidden.
+        /// Whether the `<section>` should be hidden.
         #[attribute(prop = BooleanProp, default = false)]
         Hide,
     }
@@ -31,10 +32,14 @@ pub use component::SectionActions;
 pub use component::SectionAttributes;
 pub use component::SectionProps;
 
+use super::title::Title;
+
 impl PropGetUpdater for SectionProps {
     fn get_updater(&self) -> Box<dyn PropUpdater> {
         match self {
-            SectionProps::Title => Box::new(ElementRefsProp::new_from_last_matching_child("title")),
+            SectionProps::Title => {
+                Box::new(ElementRefsProp::new_from_last_matching_child(Title::NAME))
+            }
             SectionProps::Hidden => SectionAttributes::Hide.get_prop_updater(),
         }
     }

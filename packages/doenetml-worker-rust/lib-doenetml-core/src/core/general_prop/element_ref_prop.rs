@@ -73,10 +73,10 @@ impl PropUpdater for ElementRefsProp {
                     .collect::<Vec<_>>();
                 PropCalcResult::Calculated(match self.elements_to_select {
                     ElementsToSelect::First => {
-                        PropValue::ElementRefs(ElementRefs(vec![elements[0]]))
+                        PropValue::ElementRefs(ElementRefs(vec![*elements.first().unwrap()]))
                     }
                     ElementsToSelect::Last => {
-                        PropValue::ElementRefs(ElementRefs(vec![elements[elements.len() - 1]]))
+                        PropValue::ElementRefs(ElementRefs(vec![*elements.last().unwrap()]))
                     }
                     ElementsToSelect::All => PropValue::ElementRefs(ElementRefs(elements)),
                 })

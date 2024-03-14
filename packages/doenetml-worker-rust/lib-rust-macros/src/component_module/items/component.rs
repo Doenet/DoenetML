@@ -102,7 +102,7 @@ impl ComponentModule {
 
                 const PROPS: &'static [Props] = &[#(#props),*];
 
-                const PROP_NAMES: &'static [&'static str] = &[#(#prop_names),*];
+                pub const PROP_NAMES: &'static [&'static str] = &[#(#prop_names),*];
 
                 const PROP_PROFILES: &'static [Option<PropProfile>] = &[#(#prop_profiles),*];
 
