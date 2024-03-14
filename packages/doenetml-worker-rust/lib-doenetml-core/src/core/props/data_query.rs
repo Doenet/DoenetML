@@ -34,9 +34,6 @@ pub enum DataQuery {
         /// The data query will match child components that have at least one of these profiles
         match_profiles: Vec<PropProfile>,
     },
-    /// Query for all children with matching `component_type`.
-    /// Returns an ElementRefs with the indices of all match children
-    ChildElementRefs { component_type: &'static str },
     /// Query for all child GraphNodes,
     /// filtering element nodes for components which contain PropProfile props given specified values
     ///
@@ -55,7 +52,7 @@ pub enum DataQuery {
     ///   all component children that do not have a prop with the profile `Hidden` with value `false`
     ///   will be filtered out.
     FilteredChildren {
-        filters: Vec<(PropProfile, PropValue)>,
+        filters: Vec<DataQueryFilter>,
         include_if_missing_profile: bool,
     },
 
@@ -83,4 +80,29 @@ pub enum DataQuery {
     State,
     /// A data query that cannot be resolved. This is used as a dependency of other data queries.
     Null,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum DataQueryFilter {
+    PropProfile(PropProfileDataQueryFilter),
+    ComponentType(ComponentTypeDataQueryFilter),
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct PropProfileDataQueryFilter {
+    pub profile: PropProfile,
+    pub value: PropValue,
+    pub comparison: DataQueryFilterComparison,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct ComponentTypeDataQueryFilter {
+    pub component_type: &'static str,
+    pub comparison: DataQueryFilterComparison,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum DataQueryFilterComparison {
+    Equal,
+    NotEqual,
 }

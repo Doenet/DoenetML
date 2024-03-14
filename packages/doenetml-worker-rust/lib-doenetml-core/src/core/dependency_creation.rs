@@ -2,7 +2,7 @@ use crate::{
     components::{
         prelude::DataQuery, types::PropPointer, ComponentAttributes, ComponentCommon, ComponentNode,
     },
-    props::PropProfile,
+    props::{DataQueryFilter, DataQueryFilterComparison, PropProfile},
 };
 
 use super::{core::Core, graph_node::GraphNode, props::PropValue};
@@ -259,27 +259,6 @@ impl Core {
                     }
                 }
             }
-            // Create a dependency from all children with matching `component_type`
-            DataQuery::ChildElementRefs { component_type } => {
-                let children_virtual_node = self
-                    .structure_graph
-                    .get_component_children_virtual_node(GraphNode::Component(
-                        prop_pointer.component_idx,
-                    ));
-
-                for node in self
-                    .structure_graph
-                    .get_content_children(children_virtual_node)
-                {
-                    if let GraphNode::Component(component_idx) = node {
-                        let component = &self.components[component_idx];
-                        if component.get_component_type() == component_type {
-                            self.dependency_graph.add_edge(query_node, node);
-                            linked_nodes.push(node);
-                        }
-                    }
-                }
-            }
             DataQuery::FilteredChildren {
                 filters,
                 include_if_missing_profile,
@@ -297,17 +276,31 @@ impl Core {
                     .get_content_children(children_virtual_node)
                     .collect::<Vec<_>>();
 
+                // We will exclude children that are not components if there is a component type filter
+                // that restricts to a particular component type
+                let exclude_non_components = filters.iter().any(|filter| {
+                    if let DataQueryFilter::ComponentType(component_type_filter) = filter {
+                        component_type_filter.comparison == DataQueryFilterComparison::Equal
+                    } else {
+                        false
+                    }
+                });
+
                 for node in content_children {
                     match node {
                         GraphNode::Component(component_idx) => {
                             let component = &self.components[component_idx];
 
+                            let mut exclude_via_component_type = false;
+
                             let matching_props = filters
                                 .iter()
-                                .filter_map(|(filter_profile, _filter_value)| {
-                                    component.provided_profiles().into_iter().find_map(
-                                        |(prop_profile, local_prop_idx)| {
-                                            if prop_profile == *filter_profile {
+                                .filter_map(|filter| match filter {
+                                    DataQueryFilter::PropProfile(profile_filter) => component
+                                        .provided_profiles()
+                                        .into_iter()
+                                        .find_map(|(prop_profile, local_prop_idx)| {
+                                            if prop_profile == profile_filter.profile {
                                                 let prop_node = self
                                                     .structure_graph
                                                     .get_component_props(node)[*local_prop_idx];
@@ -315,36 +308,65 @@ impl Core {
                                             } else {
                                                 None
                                             }
-                                        },
-                                    )
+                                        }),
+                                    DataQueryFilter::ComponentType(component_type_filter) => {
+                                        let component_type = component.get_component_type();
+                                        if match component_type_filter.comparison {
+                                            DataQueryFilterComparison::Equal => {
+                                                component_type
+                                                    != component_type_filter.component_type
+                                            }
+                                            DataQueryFilterComparison::NotEqual => {
+                                                component_type
+                                                    == component_type_filter.component_type
+                                            }
+                                        } {
+                                            exclude_via_component_type = true;
+                                        }
+                                        // no matching profiles from component type filter
+                                        None
+                                    }
                                 })
                                 .collect::<Vec<_>>();
 
-                            // Include the component if found all matching components or
-                            // if `include_if_missing_profile` is true.
-                            // In these cases, it's possible the data query will return the component.
-                            if matching_props.len() == filters.len() || include_if_missing_profile {
-                                // add a virtual node for all the information for the component
-                                let virtual_node = self.add_virtual_node(query_node);
-                                self.dependency_graph.add_edge(query_node, virtual_node);
-                                linked_nodes.push(virtual_node);
+                            if !exclude_via_component_type {
+                                let n_prop_filters = filters
+                                    .iter()
+                                    .filter(|filter| {
+                                        matches!(filter, DataQueryFilter::PropProfile(_))
+                                    })
+                                    .count();
 
-                                // first child of virtual node is always the component itself
-                                self.dependency_graph.add_edge(virtual_node, node);
-                                linked_nodes.push(node);
+                                // Include the component if found all matching profiles or
+                                // if `include_if_missing_profile` is true.
+                                // In these cases, it's possible the data query will return the component.
+                                if matching_props.len() == n_prop_filters
+                                    || include_if_missing_profile
+                                {
+                                    // add a virtual node for all the information for the component
+                                    let virtual_node = self.add_virtual_node(query_node);
+                                    self.dependency_graph.add_edge(query_node, virtual_node);
+                                    linked_nodes.push(virtual_node);
 
-                                if matching_props.len() == filters.len() {
-                                    // we matched all filters, so add links to the props
-                                    for prop_node in matching_props {
-                                        self.dependency_graph.add_edge(virtual_node, prop_node);
-                                        linked_nodes.push(prop_node);
+                                    // first child of virtual node is always the component itself
+                                    self.dependency_graph.add_edge(virtual_node, node);
+                                    linked_nodes.push(node);
+
+                                    if matching_props.len() == n_prop_filters {
+                                        // we matched all filters, so add links to the props
+                                        for prop_node in matching_props {
+                                            self.dependency_graph.add_edge(virtual_node, prop_node);
+                                            linked_nodes.push(prop_node);
+                                        }
                                     }
                                 }
                             }
                         }
                         _ => {
-                            self.dependency_graph.add_edge(query_node, node);
-                            linked_nodes.push(node);
+                            if !exclude_non_components {
+                                self.dependency_graph.add_edge(query_node, node);
+                                linked_nodes.push(node);
+                            }
                         }
                     }
                 }

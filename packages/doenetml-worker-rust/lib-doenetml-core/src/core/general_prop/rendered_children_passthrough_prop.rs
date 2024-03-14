@@ -1,7 +1,7 @@
 use crate::{
     components::prelude::*,
     core::props::{DataQueryResult, PropUpdater},
-    state::types::element_refs::ElementRefs,
+    props::{DataQueryFilter, DataQueryFilterComparison, PropProfileDataQueryFilter},
 };
 
 #[derive(Debug)]
@@ -14,7 +14,11 @@ impl RenderedChildrenPassthroughProp {
     pub fn new() -> Self {
         RenderedChildrenPassthroughProp {
             data_query: DataQuery::FilteredChildren {
-                filters: vec![(PropProfile::Hidden, PropValue::Boolean(false))],
+                filters: vec![DataQueryFilter::PropProfile(PropProfileDataQueryFilter {
+                    profile: PropProfile::Hidden,
+                    value: PropValue::Boolean(true),
+                    comparison: DataQueryFilterComparison::NotEqual,
+                })],
                 include_if_missing_profile: true,
             },
         }
@@ -22,10 +26,6 @@ impl RenderedChildrenPassthroughProp {
 }
 
 impl PropUpdater for RenderedChildrenPassthroughProp {
-    fn default(&self) -> PropValue {
-        PropValue::ElementRefs(ElementRefs::default())
-    }
-
     fn data_queries(&self) -> Vec<DataQuery> {
         vec![self.data_query.clone()]
     }

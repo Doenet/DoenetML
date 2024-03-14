@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
 use crate::{
-    props::{DataQuery, PropValue},
+    props::{DataQuery, DataQueryFilter, DataQueryFilterComparison, PropValue},
     state::types::element_refs::ElementRefs,
 };
 
@@ -146,16 +146,31 @@ impl Core {
 
                                 let component_node = virtual_children[0];
 
+                                let prop_filters =
+                                    filters.iter().filter_map(|filter| match filter {
+                                        DataQueryFilter::PropProfile(prop_filter) => {
+                                            Some(prop_filter)
+                                        }
+                                        DataQueryFilter::ComponentType(_) => None,
+                                    });
+
                                 let include_node = virtual_children[1..]
                                     .into_iter()
-                                    .zip(filters.iter())
-                                    .all(|(prop_node, (_, required_prop_value))| {
+                                    .zip(prop_filters)
+                                    .all(|(prop_node, prop_filter)| {
                                         let prop_value = self
                                             .prop_cache
                                             .get_prop_unchecked(prop_node, query_node)
                                             .value;
 
-                                        &*prop_value == required_prop_value
+                                        match prop_filter.comparison {
+                                            DataQueryFilterComparison::Equal => {
+                                                *prop_value == prop_filter.value
+                                            }
+                                            DataQueryFilterComparison::NotEqual => {
+                                                *prop_value != prop_filter.value
+                                            }
+                                        }
                                     });
 
                                 if include_node {
