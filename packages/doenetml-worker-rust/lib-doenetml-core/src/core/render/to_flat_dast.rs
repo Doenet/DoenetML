@@ -213,11 +213,9 @@ impl Core {
                 let prop = self.get_prop_for_render(prop_node);
                 if prop.changed {
                     let prop_value = (*prop.value).clone();
-                    let prop_name = self.components[prop_pointer.component_idx]
-                        .variant
-                        .get_prop_names()[*prop_pointer.local_prop_idx];
+                    let prop_name = self.props[prop_node.prop_idx()].meta.name;
                     Some(ForRenderPropValue {
-                        name: prop_name.to_string(),
+                        name: prop_name,
                         value: prop_value,
                     })
                 } else {

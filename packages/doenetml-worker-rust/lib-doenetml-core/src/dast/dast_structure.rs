@@ -124,7 +124,7 @@ impl Serialize for ForRenderProps {
 /// The `value`` of the prop `name`.
 #[derive(Debug, Clone, PartialEq)]
 pub struct ForRenderPropValue {
-    pub name: String,
+    pub name: &'static str,
     pub value: PropValue,
 }
 

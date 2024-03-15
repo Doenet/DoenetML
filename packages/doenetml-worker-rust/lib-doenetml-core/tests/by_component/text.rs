@@ -24,7 +24,7 @@ fn value_prop_from_string_child() {
     assert_eq!(
         text_rendered_props,
         &ForRenderProps(vec![ForRenderPropValue {
-            name: "value".to_string(),
+            name: "value",
             value: PropValue::String("hello".to_string())
         }])
     );
@@ -173,7 +173,7 @@ mod test_helpers {
             component_idx,
             local_prop_idx: value_local_idx,
         });
-        let value = core.get_prop_for_render(prop_node).value;
+        let value = core.get_prop_for_render_untracked(prop_node).value;
 
         (*value).clone().try_into().unwrap()
     }
@@ -191,7 +191,7 @@ mod test_helpers {
             component_idx,
             local_prop_idx: text_local_idx,
         });
-        let value = core.get_prop_for_render(prop_node).value;
+        let value = core.get_prop_for_render_untracked(prop_node).value;
 
         (*value).clone().try_into().unwrap()
     }
@@ -209,7 +209,7 @@ mod test_helpers {
             component_idx,
             local_prop_idx: hidden_local_idx,
         });
-        let value = core.get_prop_for_render(prop_node).value;
+        let value = core.get_prop_for_render_untracked(prop_node).value;
 
         (*value).clone().try_into().unwrap()
     }
