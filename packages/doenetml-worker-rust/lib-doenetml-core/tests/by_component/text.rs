@@ -47,6 +47,47 @@ fn text_has_no_rendered_children() {
 }
 
 #[test]
+fn hidden_or_unrendered_text_dont_calculate_render_props() {
+    let dast_root =
+        dast_root_no_position(r#"<text>hello <text>there</text></text> <text hide>secret</text>"#);
+
+    let mut core = Core::new();
+    core.init_from_dast_root(&dast_root);
+
+    // the text will be index 1, as the document tag will be index 0.
+    let text1_idx = 1;
+    let text2_idx = 2;
+    let text3_idx = 3;
+
+    assert_eq!(get_value_prop(text1_idx, &mut core), "hello there");
+
+    // verify that value is the rendered prop
+    let flat_dast = core.to_flat_dast();
+    let text_rendered_props = flat_dast.elements[text1_idx].data.props.as_ref().unwrap();
+    assert_eq!(
+        text_rendered_props,
+        &ForRenderProps(vec![ForRenderPropValue {
+            name: "value",
+            value: PropValue::String("hello there".to_string())
+        }])
+    );
+
+    assert_eq!(get_value_prop(text2_idx, &mut core), "there");
+
+    // verify that have no rendered prop
+    let flat_dast = core.to_flat_dast();
+    let text_rendered_props = flat_dast.elements[text2_idx].data.props.as_ref();
+    assert!(text_rendered_props.is_none());
+
+    assert_eq!(get_value_prop(text3_idx, &mut core), "secret");
+
+    // verify that have no rendered prop
+    let flat_dast = core.to_flat_dast();
+    let text_rendered_props = flat_dast.elements[text3_idx].data.props.as_ref();
+    assert!(text_rendered_props.is_none());
+}
+
+#[test]
 fn text_prop_is_alias_of_value() {
     let dast_root = dast_root_no_position(r#"<text>hello</text>"#);
 

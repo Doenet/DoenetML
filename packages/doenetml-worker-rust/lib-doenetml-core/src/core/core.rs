@@ -4,6 +4,7 @@ use crate::{
     components::{prelude::ComponentIdx, types::PropPointer, Component},
     dast::{flat_dast::FlatRoot, ref_expand::Expander, DastRoot},
     graph::directed_graph::DirectedGraph,
+    graph_node::GraphNodeLookup,
     props::DataQuery,
 };
 
@@ -41,6 +42,11 @@ pub struct Core {
     pub processing_state: CoreProcessingState,
     /// Cache of prop values. The only way core should ever access prop values is through the cache.
     pub prop_cache: PropCache,
+    /// A map to look up if a component_node is in the render tree,
+    /// i.e., if it can be reached from the document root via rendered children.
+    /// For nodes in the render tree, we add their props marked for_render to the flat dast output,
+    /// and we need to send flat dast updates if those props change.
+    pub in_render_tree: GraphNodeLookup<bool>,
     // This graph node is used to figure out if any props have changed between renders.
     // It is a single fixed node and should always be related to the first entry of `self.queries`.
     pub(super) for_render_query_node: GraphNode,
@@ -66,12 +72,9 @@ impl Core {
             states: StateCache::new(),
             queries: vec![DataQuery::Null],
             virtual_node_count: 0,
-            processing_state: CoreProcessingState {
-                stale_renderers,
-                freshen_stack: Vec::new(),
-                mark_stale_stack: Vec::new(),
-            },
+            processing_state: CoreProcessingState { stale_renderers },
             prop_cache: PropCache::new(),
+            in_render_tree: GraphNodeLookup::new(),
             for_render_query_node: GraphNode::Query(0), // the DataQuery::Null added in queries, above
         }
     }
@@ -100,12 +103,6 @@ impl Core {
 pub struct CoreProcessingState {
     /// List of the rendered components that have stale `for_renderer` props.
     pub stale_renderers: Vec<ComponentIdx>,
-
-    // To prevent unnecessary reallocations of temporary vectors, like stacks,
-    // we store them on the DoenetMLCore struct so that they will stay allocated.
-    pub freshen_stack: Vec<PropPointer>,
-    pub mark_stale_stack: Vec<PropPointer>,
-    // pub update_stack: Vec<PropUpdateRequest>,
 }
 
 //#[cfg(test)]
