@@ -254,11 +254,32 @@ impl Core {
     /// Get the value of a prop for rendering. If the prop is stale or not resolved,
     /// this function will resolve the prop, calculate all its dependencies, and then
     /// return the result of `PropUpdater::calculate` applied to those dependencies.
+    /// Track that the prop has been viewed for rendering so that a second call will report it being unchanged.
     pub fn get_prop_for_render(&mut self, prop_node: GraphNode) -> PropWithMeta {
         self.resolve_prop(prop_node);
 
         self.prop_cache
             .get_prop(prop_node, self.for_render_query_node, || {
+                let required_data = self
+                    .get_data_query_nodes_for_prop(prop_node)
+                    .into_iter()
+                    .map(|query_node| self._execute_data_query_with_resolved_deps(query_node))
+                    .collect::<Vec<_>>();
+
+                let prop = &self.props[prop_node.prop_idx()];
+                prop.updater.calculate(required_data)
+            })
+    }
+
+    /// Get the value of a prop for rendering. If the prop is stale or not resolved,
+    /// this function will resolve the prop, calculate all its dependencies, and then
+    /// return the result of `PropUpdater::calculate` applied to those dependencies.
+    /// Do not track that the prop has been viewed for rendering so that its change state is unaltered.
+    pub fn get_prop_for_render_untracked(&mut self, prop_node: GraphNode) -> PropWithMeta {
+        self.resolve_prop(prop_node);
+
+        self.prop_cache
+            .get_prop_untracked(prop_node, self.for_render_query_node, || {
                 let required_data = self
                     .get_data_query_nodes_for_prop(prop_node)
                     .into_iter()

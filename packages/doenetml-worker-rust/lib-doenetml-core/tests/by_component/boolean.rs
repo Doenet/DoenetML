@@ -123,7 +123,7 @@ mod test_helpers {
             component_idx,
             local_prop_idx: VALUE_LOCAL_IDX,
         });
-        let value = core.get_prop_for_render(prop_node).value;
+        let value = core.get_prop_for_render_untracked(prop_node).value;
 
         (*value).clone().try_into().unwrap()
     }
@@ -134,7 +134,7 @@ mod test_helpers {
             component_idx,
             local_prop_idx: BOOLEAN_LOCAL_IDX,
         });
-        let value = core.get_prop_for_render(prop_node).value;
+        let value = core.get_prop_for_render_untracked(prop_node).value;
 
         (*value).clone().try_into().unwrap()
     }
@@ -145,7 +145,7 @@ mod test_helpers {
             component_idx,
             local_prop_idx: TEXT_LOCAL_IDX,
         });
-        let value = core.get_prop_for_render(prop_node).value;
+        let value = core.get_prop_for_render_untracked(prop_node).value;
 
         (*value).clone().try_into().unwrap()
     }
@@ -156,7 +156,7 @@ mod test_helpers {
             component_idx,
             local_prop_idx: HIDDEN_LOCAL_IDX,
         });
-        let value = core.get_prop_for_render(prop_node).value;
+        let value = core.get_prop_for_render_untracked(prop_node).value;
 
         (*value).clone().try_into().unwrap()
     }

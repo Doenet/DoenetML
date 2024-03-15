@@ -236,6 +236,23 @@ impl PropCache {
         self._get_prop(prop_node, origin, calculate, true)
     }
 
+    /// Get the value of a prop. `origin` is the `GraphNode::DataQuery` that requested the prop.
+    /// The cache reports if the value has changed since the last time it was queried
+    /// but does _not_ update the change tracker. The change state will be
+    /// the same as the last time the prop was queried.
+    pub fn get_prop_untracked<
+        CalculateFn: FnOnce() -> PropCalcResult<PropValue>,
+        A: borrow::Borrow<GraphNode>,
+        B: borrow::Borrow<GraphNode>,
+    >(
+        &self,
+        prop_node: A,
+        origin: B,
+        calculate: CalculateFn,
+    ) -> PropWithMeta {
+        self._get_prop(prop_node, origin, calculate, false)
+    }
+
     /// Get the cached value of a prop. An error is thrown if the prop is not `Fresh`.
     /// Retrieving a prop this way does _not_ update the change tracker. The change state will be
     /// the same as the last time the prop was queried.

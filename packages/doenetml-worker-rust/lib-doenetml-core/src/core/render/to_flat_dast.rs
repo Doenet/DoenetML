@@ -10,8 +10,9 @@ use crate::{
     },
     dast::{
         flat_dast::UntaggedContent, DastAttribute, DastText, DastTextRefContent,
-        FlatDastElementUpdate, FlatDastRoot,
+        FlatDastElementUpdate, FlatDastRoot, ForRenderPropValue, ForRenderProps,
     },
+    graph::directed_graph::Taggable,
     props::{PropProfile, PropValue},
 };
 
@@ -24,6 +25,7 @@ impl Core {
     ///
     /// Include warnings as a separate vector (errors are embedded in the tree as elements).
     pub fn to_flat_dast(&mut self) -> FlatDastRoot {
+        self.mark_component_in_render_tree(0);
         let n_components = self.components.len();
         let elements: Vec<FlatDastElement> = (0..n_components)
             .map(|comp_idx| self.component_to_flat_dast(comp_idx))
@@ -34,6 +36,15 @@ impl Core {
             elements,
             warnings: vec![],
             position: None,
+        }
+    }
+
+    fn mark_component_in_render_tree(&mut self, component_idx: ComponentIdx) {
+        let component_node = GraphNode::Component(component_idx);
+        self.in_render_tree.set_tag(component_node, true);
+
+        for child_node in self.get_rendered_child_nodes(component_idx) {
+            self.mark_component_in_render_tree(child_node.idx());
         }
     }
 
@@ -110,7 +121,29 @@ impl Core {
 
     /// Convert a component to a `FlatDastElement`.
     pub fn component_to_flat_dast(&mut self, component_idx: ComponentIdx) -> FlatDastElement {
-        let child_nodes = self.components[component_idx]
+        let child_nodes = self.get_rendered_child_nodes(component_idx);
+
+        let children = child_nodes
+            .into_iter()
+            .filter_map(|child| match child {
+                GraphNode::Component(idx) => Some(FlatDastElementContent::Element(idx)),
+                GraphNode::String(_) => Some(FlatDastElementContent::Text(
+                    self.strings.get_string_value(child),
+                )),
+                _ => None,
+            })
+            .collect::<Vec<_>>();
+
+        FlatDastElement {
+            children,
+            ..self.component_to_flat_dast_no_children(component_idx)
+        }
+    }
+
+    /// Get the vector of component nodes corresponding to the rendered children of `component_idx`.
+    /// Rendered children are the nodes from the prop with the `RenderedChildren` profile, if it exists
+    fn get_rendered_child_nodes(&mut self, component_idx: ComponentIdx) -> Vec<GraphNode> {
+        self.components[component_idx]
             .provided_profiles()
             .into_iter()
             .find_map(|(profile, local_prop_idx)| {
@@ -131,23 +164,7 @@ impl Core {
                     None
                 }
             })
-            .unwrap_or_default();
-
-        let children = child_nodes
-            .into_iter()
-            .flat_map(|child| match child {
-                GraphNode::Component(idx) => Some(FlatDastElementContent::Element(idx)),
-                GraphNode::String(_) => Some(FlatDastElementContent::Text(
-                    self.strings.get_string_value(child),
-                )),
-                _ => None,
-            })
-            .collect::<Vec<_>>();
-
-        FlatDastElement {
-            children,
-            ..self.component_to_flat_dast_no_children(component_idx)
-        }
+            .unwrap_or_default()
     }
 
     /// Convert a component to a `FlatDastElement` without its children. This is can be used
@@ -156,18 +173,12 @@ impl Core {
         &mut self,
         component_idx: ComponentIdx,
     ) -> FlatDastElement {
-        let _rendered_prop_pointers = self.components[component_idx]
-            .get_for_renderer_local_prop_indices()
-            .into_iter()
-            .map(|local_prop_idx| PropPointer {
-                component_idx,
-                local_prop_idx,
-            })
-            .collect::<Vec<_>>();
-
-        // TODO: many components in the flat dast are not rendered
-        // For efficiency, we should not calculate the rendered props for these components.
-        //self.freshen_props(&rendered_prop_pointers);
+        // For efficiency, calculate rendered props only if component_idx is in the render tree
+        let rendered_props = self
+            .in_render_tree
+            .get_tag(&GraphNode::Component(component_idx))
+            .copied()
+            .and_then(|in_tree| in_tree.then(|| self.get_rendered_props(component_idx)));
 
         let component = &self.components[component_idx];
         let message = if let ComponentEnum::_Error(error) = &component.variant {
@@ -175,10 +186,6 @@ impl Core {
         } else {
             None
         };
-
-        // XXX: implement getting rendered props
-        // let rendered_props = component.get_rendered_props();
-        let rendered_props = None;
 
         FlatDastElement {
             name: component.get_component_type().to_string(),
@@ -200,6 +207,43 @@ impl Core {
             },
             position: component.get_position().cloned(),
         }
+    }
+
+    /// Calculate the values of the for_render props of `component_idx` that have changed
+    /// since the last time they were calculated for rendering.
+    ///
+    /// Return: a `ForRenderProps` containing a `ForRenderPropValue` for each for_render prop that changed.
+    fn get_rendered_props(&mut self, component_idx: ComponentIdx) -> ForRenderProps {
+        // Note: collect into a vector so that stop borrowing from self.components
+        // (needed since self.get_prop_for_render() currently needs a mutable borrow of self)
+        let rendered_prop_pointers = self.components[component_idx]
+            .get_for_renderer_local_prop_indices()
+            .into_iter()
+            .map(|local_prop_idx| PropPointer {
+                component_idx,
+                local_prop_idx,
+            })
+            .collect::<Vec<_>>();
+
+        let rendered_prop_value_vec = rendered_prop_pointers
+            .into_iter()
+            .filter_map(|prop_pointer| {
+                let prop_node = self.prop_pointer_to_prop_node(prop_pointer);
+                let prop = self.get_prop_for_render(prop_node);
+                if prop.changed {
+                    let prop_value = (*prop.value).clone();
+                    let prop_name = self.props[prop_node.prop_idx()].meta.name;
+                    Some(ForRenderPropValue {
+                        name: prop_name,
+                        value: prop_value,
+                    })
+                } else {
+                    None
+                }
+            })
+            .collect::<Vec<_>>();
+
+        ForRenderProps(rendered_prop_value_vec)
     }
 
     /// XXX: need to implement this and determine what rendered state variables have changed
