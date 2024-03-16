@@ -3,6 +3,7 @@
 use std::collections::HashMap;
 
 use anyhow::anyhow;
+use typed_index_collections::TiVec;
 
 use crate::{
     components::{
@@ -33,7 +34,7 @@ pub struct ComponentBuilder {
     pub structure_graph: DirectedGraph<GraphNode, GraphNodeLookup<usize>>,
     /// The reified components. These can be queried for information about their attributes/props/state
     /// as well as asked to calculate/recalculate props.
-    pub components: Vec<Component>,
+    pub components: TiVec<ComponentIdx, Component>,
     /// A list of all strings in the document. Strings are stored here once and referenced when they appear as children.
     pub strings: StringCache,
     /// A counter for the number of virtual nodes created. Every virtual node needs to be unique (so that
@@ -53,7 +54,7 @@ impl ComponentBuilder {
     pub fn new() -> Self {
         ComponentBuilder {
             structure_graph: DirectedGraph::new(),
-            components: Vec::new(),
+            components: TiVec::new(),
             strings: StringCache::new(),
             props: Vec::new(),
             virtual_node_count: 0,
@@ -87,6 +88,7 @@ impl ComponentBuilder {
         self.init_normalized_root_without_extending(dast);
 
         for idx in 0..self.components.len() {
+            let component_idx = ComponentIdx::new(idx);
             let elm = match &dast.nodes[idx] {
                 NormalizedNode::Element(elm) => elm,
                 _ => continue,
@@ -96,23 +98,23 @@ impl ComponentBuilder {
             }
 
             let ref_source = elm.extending.clone().unwrap();
-            let component = &self.components[idx];
-            let referent = &self.components[ref_source.idx()];
+            let component = &self.components[component_idx];
+            let referent = &self.components[ComponentIdx::from(ref_source.idx())];
 
             match Self::determine_extending(ref_source, component, referent) {
                 Ok(extending) => {
                     match extending {
                         Extending::Component(referent_idx) => {
-                            self.add_component_extending_structure(idx, referent_idx);
+                            self.add_component_extending_structure(component_idx, referent_idx);
                         }
                         Extending::Prop(prop_source) => {
-                            self.add_prop_extending_structure(idx, prop_source);
+                            self.add_prop_extending_structure(component_idx, prop_source);
 
                             // Check if we are extending from prop where
                             // the reference was inside the `extend` attribute.
                             // In that case, prepend a child corresponding to that prop.
                             let new_child = self.create_implicit_child_from_prop_source(
-                                &self.components[idx],
+                                &self.components[component_idx],
                                 prop_source,
                             );
                             if let Some(new_child) = new_child {
@@ -121,7 +123,7 @@ impl ComponentBuilder {
 
                                 self.prepend_component_child(
                                     GraphNode::Component(idx),
-                                    GraphNode::Component(new_child_idx),
+                                    new_child_idx.as_graph_node(),
                                 );
                                 self.components.push(new_child);
 
@@ -135,11 +137,11 @@ impl ComponentBuilder {
                     }
                 }
                 Err(err) => {
-                    self.components[idx] = Component::new_error(
+                    self.components[component_idx] = Component::new_error(
                         format!("Error while extending: {}", err),
                         ComponentCommonData {
-                            idx,
-                            parent: elm.parent,
+                            idx: component_idx,
+                            parent: elm.parent.map(ComponentIdx::from),
                             position: elm.position.clone(),
                             unrecognized_attributes: HashMap::new(),
                         },
@@ -275,15 +277,14 @@ impl ComponentBuilder {
 
             let prop_idx = self
                 .structure_graph
-                .get_component_props(GraphNode::Component(prop_pointer.component_idx))
-                [prop_pointer.local_prop_idx]
+                .get_component_props(prop_pointer.component_idx)[prop_pointer.local_prop_idx]
                 .idx();
             let new_component_type = self.props[prop_idx].preferred_component_type();
 
             let new_child = Component::from_tag_name(
                 new_component_type,
                 ComponentCommonData {
-                    idx: self.components.len(),
+                    idx: self.components.len().into(),
                     parent: Some(component.get_idx()),
                     position: None,
                     unrecognized_attributes: HashMap::new(),
@@ -355,8 +356,8 @@ impl ComponentBuilder {
                 let mut component = Component::from_tag_name(
                     &elm.name,
                     ComponentCommonData {
-                        idx: elm.idx,
-                        parent: elm.parent,
+                        idx: elm.idx.into(),
+                        parent: elm.parent.map(ComponentIdx::from),
                         position: elm.position.clone(),
                         unrecognized_attributes: HashMap::new(),
                     },
@@ -391,11 +392,10 @@ impl ComponentBuilder {
                                     &path_part.name,
                                 );
                             if let Some(referent_local_prop_idx) = referent_local_prop_idx {
-                                let prop_idx = self
-                                    .structure_graph
-                                    .get_component_props(GraphNode::Component(referent.get_idx()))
-                                    [referent_local_prop_idx]
-                                    .idx();
+                                let prop_idx =
+                                    self.structure_graph.get_component_props(referent.get_idx())
+                                        [referent_local_prop_idx]
+                                        .idx();
 
                                 let new_component_type =
                                     self.props[prop_idx].preferred_component_type();
@@ -422,8 +422,8 @@ impl ComponentBuilder {
             NormalizedNode::Error(e) => Component::new_error(
                 e.message.clone(),
                 ComponentCommonData {
-                    idx: e.idx,
-                    parent: e.parent,
+                    idx: e.idx.into(),
+                    parent: e.parent.map(ComponentIdx::from),
                     position: e.position.clone(),
                     unrecognized_attributes: HashMap::new(),
                 },
@@ -440,7 +440,7 @@ impl ComponentBuilder {
         children: &[UntaggedContent],
         attributes: &[FlatAttribute],
     ) -> HashMap<String, FlatAttribute> {
-        let graph_component_node = GraphNode::Component(component.get_idx());
+        let graph_component_node = component.get_idx().as_graph_node();
         self.structure_graph.add_node(graph_component_node);
 
         //
@@ -555,17 +555,14 @@ impl ComponentBuilder {
         component_idx: ComponentIdx,
         referent_idx: ComponentIdx,
     ) {
-        let component_node = GraphNode::Component(component_idx);
-        let referent_node = GraphNode::Component(referent_idx);
-
         // The virtual node corresponding to `referent`'s children is the first child of `component`,
         // so that `referent`'s children will be the first children of `component`.
         let component_children_virtual_node = self
             .structure_graph
-            .get_component_children_virtual_node(component_node);
+            .get_component_children_virtual_node(component_idx);
         let referent_children_virtual_node = self
             .structure_graph
-            .get_component_children_virtual_node(referent_node);
+            .get_component_children_virtual_node(referent_idx);
         self.structure_graph.prepend_edge(
             component_children_virtual_node,
             referent_children_virtual_node,
@@ -575,10 +572,8 @@ impl ComponentBuilder {
         // are added as dependency of the attribute from `component`
         // so that they will be used as a fallback if component doesn't have those attributes.
 
-        let component_attributes = self
-            .structure_graph
-            .get_component_attributes(component_node);
-        let referent_attributes = self.structure_graph.get_component_attributes(referent_node);
+        let component_attributes = self.structure_graph.get_component_attributes(component_idx);
+        let referent_attributes = self.structure_graph.get_component_attributes(referent_idx);
 
         let referent_attribute_names = self.components[referent_idx].get_attribute_names();
 
@@ -616,8 +611,8 @@ impl ComponentBuilder {
             // This dependency indicates that any state props requested by each prop of `component`
             // should be the corresponding state prop of `referent`.
 
-            let component_props = self.structure_graph.get_component_props(component_node);
-            let referent_props = self.structure_graph.get_component_props(referent_node);
+            let component_props = self.structure_graph.get_component_props(component_idx);
+            let referent_props = self.structure_graph.get_component_props(referent_idx);
 
             for (comp_prop, ref_prop) in component_props.iter().zip(referent_props.iter()) {
                 self.structure_graph.add_edge(comp_prop, ref_prop);
@@ -651,13 +646,8 @@ impl ComponentBuilder {
     ) {
         let referent_idx = prop_source.prop_pointer.component_idx;
 
-        let component_node = GraphNode::Component(component_idx);
-        let referent_node = GraphNode::Component(referent_idx);
-
-        let component_attributes = self
-            .structure_graph
-            .get_component_attributes(component_node);
-        let referent_attributes = self.structure_graph.get_component_attributes(referent_node);
+        let component_attributes = self.structure_graph.get_component_attributes(component_idx);
+        let referent_attributes = self.structure_graph.get_component_attributes(referent_idx);
 
         let referent_attributes_names = self.components[referent_idx].get_attribute_names();
 
@@ -680,9 +670,9 @@ impl ComponentBuilder {
         if prop_source.from_direct_ref {
             let component_children_virtual_node = self
                 .structure_graph
-                .get_component_children_virtual_node(component_node);
+                .get_component_children_virtual_node(component_idx);
 
-            let referent_prop_node = self.structure_graph.get_component_props(referent_node)
+            let referent_prop_node = self.structure_graph.get_component_props(referent_idx)
                 [prop_source.prop_pointer.local_prop_idx];
 
             self.structure_graph

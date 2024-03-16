@@ -1,6 +1,8 @@
 use crate::{
     components::{
-        prelude::DataQuery, types::PropPointer, ComponentAttributes, ComponentCommon, ComponentNode,
+        prelude::DataQuery,
+        types::{ComponentIdx, PropPointer},
+        ComponentAttributes, ComponentCommon, ComponentNode,
     },
     props::{DataQueryFilter, DataQueryFilterComparison, PropProfile},
 };
@@ -158,16 +160,15 @@ impl Core {
                     });
                 let attr_node = self
                     .structure_graph
-                    .get_component_attributes(GraphNode::Component(prop_pointer.component_idx))
-                    [local_attr_idx];
+                    .get_component_attributes(prop_pointer.component_idx)[local_attr_idx];
                 // We may be extending another attribute. If so, find the "origin" node (i.e., the one with relevant children).
                 let attr_node = self.attribute_node_origin(attr_node);
 
                 for node in self.structure_graph.get_content_children(attr_node) {
                     match node {
-                        GraphNode::Component(component_idx) => {
+                        GraphNode::Component(_) => {
                             // Check the component. We want to link to the first prop that matches one of the profiles.
-                            let component = &self.components[component_idx];
+                            let component = &self.components[ComponentIdx::from(node)];
                             let matching_prop = component.provided_profiles().into_iter().find_map(
                                 |(prop_profile, local_prop_idx)| {
                                     if match_profiles.contains(&prop_profile) {
@@ -207,18 +208,16 @@ impl Core {
             DataQuery::ChildPropProfile { match_profiles } => {
                 let children_virtual_node = self
                     .structure_graph
-                    .get_component_children_virtual_node(GraphNode::Component(
-                        prop_pointer.component_idx,
-                    ));
+                    .get_component_children_virtual_node(prop_pointer.component_idx);
 
                 for node in self
                     .structure_graph
                     .get_content_children(children_virtual_node)
                 {
                     match node {
-                        GraphNode::Component(component_idx) => {
+                        GraphNode::Component(_) => {
                             // Check the component. We want to link to the first prop that matches one of the profiles.
-                            let component = &self.components[component_idx];
+                            let component = &self.components[ComponentIdx::from(node)];
                             let matching_prop = component.provided_profiles().into_iter().find_map(
                                 |(prop_profile, local_prop_idx)| {
                                     if match_profiles.contains(&prop_profile) {
@@ -265,9 +264,7 @@ impl Core {
             } => {
                 let children_virtual_node = self
                     .structure_graph
-                    .get_component_children_virtual_node(GraphNode::Component(
-                        prop_pointer.component_idx,
-                    ));
+                    .get_component_children_virtual_node(prop_pointer.component_idx);
 
                 // create vector of content children so that we don't borrow core in loop
                 // and can make a mutable borrow of core to create a virtual node
@@ -288,8 +285,8 @@ impl Core {
 
                 for node in content_children {
                     match node {
-                        GraphNode::Component(component_idx) => {
-                            let component = &self.components[component_idx];
+                        GraphNode::Component(_) => {
+                            let component = &self.components[ComponentIdx::from(node)];
 
                             let mut exclude_via_component_type = false;
 
@@ -410,8 +407,7 @@ impl Core {
     /// Convert a `PropPointer` to a `GraphNode::Prop`.
     pub fn prop_pointer_to_prop_node(&self, prop_pointer: PropPointer) -> GraphNode {
         self.structure_graph
-            .get_component_props(GraphNode::Component(prop_pointer.component_idx))
-            [prop_pointer.local_prop_idx]
+            .get_component_props(prop_pointer.component_idx)[prop_pointer.local_prop_idx]
     }
 
     /// Find the "origin" of a `GraphNode::Virtual` corresponding to an attribute. That is, if an attribute

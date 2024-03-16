@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::core::props::PropValue;
+use crate::{core::props::PropValue, graph_node::GraphNode};
 
 use super::ActionsEnum;
 
@@ -19,8 +19,52 @@ impl LocalPropIdx {
 }
 
 /// The index of the component in `Core.components`
-#[cfg_attr(feature = "web", tsify::declare)]
-pub type ComponentIdx = usize;
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    derive_more::From,
+    derive_more::Into,
+    Serialize,
+    Deserialize,
+    Default,
+)]
+#[serde(transparent)]
+pub struct ComponentIdx(usize);
+
+impl ComponentIdx {
+    pub const fn new(idx: usize) -> Self {
+        Self(idx)
+    }
+    #[inline(always)]
+    pub fn as_usize(self) -> usize {
+        self.0
+    }
+    pub fn as_graph_node(self) -> GraphNode {
+        GraphNode::Component(self.0)
+    }
+}
+
+impl From<ComponentIdx> for GraphNode {
+    fn from(idx: ComponentIdx) -> Self {
+        Self::Component(idx.into())
+    }
+}
+// Helper trait
+pub trait IntoGraphNode: Into<GraphNode> + Copy {}
+impl IntoGraphNode for GraphNode {}
+impl IntoGraphNode for &GraphNode {}
+
+impl<T: IntoGraphNode> From<T> for ComponentIdx {
+    fn from(node: T) -> Self {
+        match node.into() {
+            GraphNode::Component(idx) => idx.into(),
+            node => panic!("Expected GraphNode::Component, not {:?}", node),
+        }
+    }
+}
 
 /// Information of the source that a component is extending, which is currently
 /// either another component or a prop.

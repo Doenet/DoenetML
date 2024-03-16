@@ -230,7 +230,7 @@ impl Core {
                             GraphNode::Component(component_idx) => Some(PropWithMeta {
                                 // TODO: once we have a singular `ElementRef` we can remove the vector
                                 value: Rc::new(PropValue::ElementRefs(ElementRefs(vec![
-                                    component_idx,
+                                    component_idx.into(),
                                 ]))),
                                 came_from_default: false,
                                 // Note: a component reference can't change like a prop can change,

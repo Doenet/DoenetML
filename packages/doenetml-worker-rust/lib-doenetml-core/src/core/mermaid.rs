@@ -1,7 +1,9 @@
 //! Utilities for generating `mermaid` diagrams from `doenetml` data.
 
 use crate::{
-    components::{prelude::UntaggedContent, ComponentAttributes, ComponentNode},
+    components::{
+        prelude::UntaggedContent, types::ComponentIdx, ComponentAttributes, ComponentNode,
+    },
     dast::flat_dast::{NormalizedNode, NormalizedRoot},
     graph::directed_graph::DirectedGraph,
 };
@@ -190,7 +192,7 @@ impl Core {
         for graph_node in graph.get_nodes().iter() {
             match graph_node {
                 GraphNode::Component(idx) => {
-                    let component = &self.components[*idx];
+                    let component = &self.components[ComponentIdx::from(graph_node)];
                     mermaid.push_str(&format!(
                         "{}{{{{\"&lt;{}><sub>id={}</sub>\"}}}}\n",
                         graph_node.to_mermaid_id(),
@@ -221,10 +223,7 @@ impl Core {
             .iter()
             .filter(|n| matches!(n, GraphNode::Component(_)))
         {
-            let component_idx = match component_node {
-                GraphNode::Component(idx) => idx,
-                _ => unreachable!(),
-            };
+            let component_idx = ComponentIdx::from(component_node);
             let component = &self.components[component_idx];
             // Children
             if let Some(children_virtual_node) = graph.get_nth_child(&component_node, 0) {

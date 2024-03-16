@@ -90,7 +90,7 @@ impl PropUpdater for ElementRefsProp {
                     .iter()
                     .flat_map(|elt| match &*elt.value {
                         PropValue::GraphNodes(graph_nodes) => graph_nodes.iter().map(|node| match node {
-                            GraphNode::Component(idx) => *idx,
+                            GraphNode::Component(_) => node.into(),
                             _ => unreachable!("data queries for element refs prop should return component graph nodes, found {:?}", node)
                         }),
                         _ => panic!(

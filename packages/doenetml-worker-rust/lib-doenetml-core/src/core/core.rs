@@ -1,5 +1,7 @@
 //! A version of `Core` based on `DirectedGraph`
 
+use typed_index_collections::TiVec;
+
 use crate::{
     components::{prelude::ComponentIdx, Component},
     dast::{flat_dast::FlatRoot, ref_expand::Expander, DastRoot},
@@ -28,7 +30,7 @@ pub struct Core {
     pub dependency_graph: DependencyGraph,
     /// The reified components. These can be queried for information about their attributes/props/state
     /// as well as asked to calculate/recalculate props.
-    pub components: Vec<Component>,
+    pub components: TiVec<ComponentIdx, Component>,
     /// A list of all strings in the document. Strings are stored here once and referenced when they appear as children.
     pub strings: StringCache,
     /// A counter for the number of virtual nodes created. Every virtual node needs to be unique (so that
@@ -61,12 +63,12 @@ impl Default for Core {
 impl Core {
     pub fn new() -> Self {
         // Initialize with the document element being stale.
-        let stale_renderers = Vec::from([0]);
+        let stale_renderers = Vec::from([0.into()]);
 
         Core {
             structure_graph: DirectedGraph::new(),
             dependency_graph: DirectedGraph::new(),
-            components: Vec::new(),
+            components: TiVec::new(),
             strings: StringCache::new(),
             props: Vec::new(),
             states: StateCache::new(),

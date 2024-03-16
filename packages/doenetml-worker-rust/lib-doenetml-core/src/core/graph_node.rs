@@ -66,6 +66,12 @@ impl GraphNode {
     }
 }
 
+impl From<&GraphNode> for GraphNode {
+    fn from(node: &GraphNode) -> Self {
+        *node
+    }
+}
+
 /// Data structure on which a `Taggable<GraphNode, _>` can be implemented.
 #[derive(Clone, Debug)]
 pub struct GraphNodeLookup<T> {
@@ -134,7 +140,8 @@ impl StructureGraph {
     ///
     /// `node` must be a `GraphNode::Component`, otherwise this function will
     /// panic.
-    pub fn get_component_children_virtual_node(&self, node: GraphNode) -> GraphNode {
+    pub fn get_component_children_virtual_node<T: Into<GraphNode>>(&self, node: T) -> GraphNode {
+        let node: GraphNode = node.into();
         assert!(
             matches!(node, GraphNode::Component(_)),
             "Expected a GraphNode::Component"
@@ -147,7 +154,8 @@ impl StructureGraph {
     /// component's attributes. Each node will be a `GraphNode::Virtual` and
     /// the children of each virtual node will be the content of the attribute.
     /// The order is the same as that returned by `Component::get_attribute_names()`.
-    pub fn get_component_attributes(&self, node: GraphNode) -> Vec<GraphNode> {
+    pub fn get_component_attributes<T: Into<GraphNode>>(&self, node: T) -> Vec<GraphNode> {
+        let node: GraphNode = node.into();
         assert!(
             matches!(node, GraphNode::Component(_)),
             "Expected a GraphNode::Component"
@@ -162,7 +170,11 @@ impl StructureGraph {
     /// component's props. Each node will be a `GraphNode::Virtual` and
     /// the children of each virtual node will be the content of the attribute.
     /// The order is the same as that returned by `Component::get_attribute_names()`.
-    pub fn get_component_props(&self, node: GraphNode) -> TiVec<LocalPropIdx, GraphNode> {
+    pub fn get_component_props<T: Into<GraphNode>>(
+        &self,
+        node: T,
+    ) -> TiVec<LocalPropIdx, GraphNode> {
+        let node: GraphNode = node.into();
         assert!(
             matches!(node, GraphNode::Component(_)),
             "Expected a GraphNode::Component"

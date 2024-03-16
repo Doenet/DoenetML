@@ -110,7 +110,7 @@ impl PropUpdater for SectionRenderedChildren {
                 if element_refs.is_empty() {
                     vec![]
                 } else {
-                    vec![GraphNode::Component(element_refs[0])]
+                    vec![element_refs[0].as_graph_node()]
                 }
             }
             _ => unreachable!("title prop should be an ElementRefs"),

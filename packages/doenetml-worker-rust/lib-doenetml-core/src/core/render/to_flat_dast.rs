@@ -25,10 +25,10 @@ impl Core {
     ///
     /// Include warnings as a separate vector (errors are embedded in the tree as elements).
     pub fn to_flat_dast(&mut self) -> FlatDastRoot {
-        self.mark_component_in_render_tree(0);
+        self.mark_component_in_render_tree(ComponentIdx::new(0));
         let n_components = self.components.len();
         let elements: Vec<FlatDastElement> = (0..n_components)
-            .map(|comp_idx| self.component_to_flat_dast(comp_idx))
+            .map(|comp_idx| self.component_to_flat_dast(comp_idx.into()))
             .collect();
 
         FlatDastRoot {
@@ -40,21 +40,21 @@ impl Core {
     }
 
     fn mark_component_in_render_tree(&mut self, component_idx: ComponentIdx) {
-        let component_node = GraphNode::Component(component_idx);
+        let component_node = component_idx.as_graph_node();
         if let Some(true) = self.in_render_tree.get_tag(&component_node) {
             return;
         }
         self.in_render_tree.set_tag(component_node, true);
 
         for child_node in self.get_rendered_child_nodes(component_idx) {
-            if let GraphNode::Component(child_idx) = child_node {
-                self.mark_component_in_render_tree(child_idx);
+            if let GraphNode::Component(_) = child_node {
+                self.mark_component_in_render_tree(child_node.into());
             }
         }
     }
 
     pub fn component_to_flat_dast2(&self, component: &Component) -> FlatDastElement {
-        let component_node = GraphNode::Component(component.get_idx());
+        let component_node = component.get_idx().as_graph_node();
 
         // Children don't need any additional processing. They are directly converted into FlatDast.
 
@@ -109,7 +109,7 @@ impl Core {
             attributes,
             children,
             data: ElementData {
-                id: component.get_idx(),
+                id: component.get_idx().as_usize(),
                 action_names: Some(
                     component
                         .get_action_names()
@@ -181,7 +181,7 @@ impl Core {
         // For efficiency, calculate rendered props only if component_idx is in the render tree
         let rendered_props = self
             .in_render_tree
-            .get_tag(&GraphNode::Component(component_idx))
+            .get_tag(&component_idx.as_graph_node())
             .copied()
             .and_then(|in_tree| in_tree.then(|| self.get_rendered_props(component_idx, false)));
 
@@ -199,7 +199,7 @@ impl Core {
             attributes: HashMap::new(),
             children: Vec::new(),
             data: ElementData {
-                id: component.get_idx(),
+                id: component.get_idx().as_usize(),
                 action_names: Some(
                     component
                         .get_action_names()
