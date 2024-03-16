@@ -101,9 +101,11 @@ impl ActionsEnum {
             .map(|(i, variant)| {
                 let doc_comment = self.generate_variant_doc_comment(i);
                 let ident = &variant.ident;
+                let fields = &variant.fields;
+
                 parse_quote! (
                     #[doc = #doc_comment]
-                    #ident
+                    #ident #fields
                 )
             })
             .collect()
@@ -115,11 +117,11 @@ impl ActionsEnum {
 #[darling(forward_attrs)]
 pub struct ActionsVariant {
     /// The name of the attribute (before it is turned into camelCase)
-    pub ident: Ident,
-    pub fields: ast::Fields<syn::Field>,
-    pub attrs: Vec<syn::Attribute>,
+    ident: Ident,
+    fields: ast::Fields<syn::Field>,
+    attrs: Vec<syn::Attribute>,
     #[darling(default)]
-    pub doc: Option<String>,
+    doc: Option<String>,
 }
 
 //
@@ -147,8 +149,9 @@ impl ComponentModule {
             #[derive(Debug, Clone, Copy)]
             #[derive(serde::Serialize, serde::Deserialize)]
             #[serde(tag = "actionName", rename_all = "camelCase")]
-            #[cfg_attr(feature = "web", derive(tsify::Tsify))]
-            #[cfg_attr(feature = "web", tsify(from_wasm_abi))]
+            // XXX: why aren't these types exporting?
+            //#[cfg_attr(feature = "web", derive(tsify::Tsify))]
+            //#[cfg_attr(feature = "web", tsify(from_wasm_abi))]
             pub enum #actions_name {
                 #(#action_idents_with_doc_comments,)*
             }

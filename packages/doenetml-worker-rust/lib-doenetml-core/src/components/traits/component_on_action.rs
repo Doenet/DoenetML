@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     components::{
+        doenet::text::TextActions,
         types::{LocalPropIdx, UpdateFromAction},
         ComponentEnum,
     },
@@ -20,7 +21,7 @@ use super::{ComponentActions, ComponentNode};
 #[cfg_attr(feature = "web", serde(rename_all = "camelCase"))]
 #[cfg_attr(feature = "web", tsify(from_wasm_abi))]
 pub enum ActionsEnum {
-    //   TextInput(TextInputAction),
+    Text(TextActions), //   TextInput(TextInputAction),
 }
 
 /// The `ComponentOnAction` trait allows a component to handle actions sent to the component.
