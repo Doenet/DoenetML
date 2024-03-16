@@ -269,7 +269,7 @@ impl Core {
                         prop_pointer.component_idx,
                     ));
 
-                // create vector of content children so that don't borrow core in loop
+                // create vector of content children so that we don't borrow core in loop
                 // and can make a mutable borrow of core to create a virtual node
                 let content_children = self
                     .structure_graph
