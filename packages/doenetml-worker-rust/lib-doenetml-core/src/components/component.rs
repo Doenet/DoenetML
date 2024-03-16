@@ -184,7 +184,6 @@ impl Component {
             // If we didn't find a match, then create a component of type external
             ComponentEnum::_External(_External {
                 name: tag_name.to_string(),
-                ..Default::default()
             })
         });
         Self { common, variant }
@@ -192,10 +191,7 @@ impl Component {
 
     /// Create a new `_Error` component instance.
     pub fn new_error(message: String, common: ComponentCommonData) -> Self {
-        let variant = ComponentEnum::_Error(_Error {
-            message,
-            ..Default::default()
-        });
+        let variant = ComponentEnum::_Error(_Error { message });
         Self { common, variant }
     }
 

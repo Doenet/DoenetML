@@ -4,6 +4,7 @@
 //! It can be queried for information about the document and its components.
 
 mod dependency_creation;
+#[allow(clippy::module_inception)]
 mod document_model;
 mod prop_calculation;
 

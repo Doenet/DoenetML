@@ -119,12 +119,14 @@ impl DocumentModel {
                     .expect("Component asks for parent but there is none.");
                 let local_prop_idx = self
                     .document_structure
-                    .get_component_prop_by_profile(parent_idx, &vec![prop_profile])
-                    .expect(&format!(
-                        "Cannot find prop with profile `{:?}` on component `{}`",
-                        prop_profile,
-                        self.document_structure.components[parent_idx].get_component_type()
-                    ))
+                    .get_component_prop_by_profile(parent_idx, &[prop_profile])
+                    .unwrap_or_else(|| {
+                        panic!(
+                            "Cannot find prop with profile `{:?}` on component `{}`",
+                            prop_profile,
+                            self.document_structure.components[parent_idx].get_component_type()
+                        )
+                    })
                     .local_prop_idx;
 
                 // Now that we have the component and prop index, this is the same as a `DataQuery::Prop`.
@@ -151,12 +153,14 @@ impl DocumentModel {
                 let attr_node = self
                     .document_structure
                     .get_attr_node(prop_pointer.component_idx, attribute_name)
-                    .expect(&format!(
-                        "Cannot find attribute `{}` on component `{}`",
-                        attribute_name,
-                        self.document_structure.components[prop_pointer.component_idx]
-                            .get_component_type()
-                    ));
+                    .unwrap_or_else(|| {
+                        panic!(
+                            "Cannot find attribute `{}` on component `{}`",
+                            attribute_name,
+                            self.document_structure.components[prop_pointer.component_idx]
+                                .get_component_type()
+                        )
+                    });
 
                 for node in self
                     .document_structure
@@ -277,7 +281,7 @@ impl DocumentModel {
                                         .document_structure
                                         .get_component_prop_by_profile(
                                             ComponentIdx::from(node),
-                                            &vec![profile_filter.profile],
+                                            &[profile_filter.profile],
                                         )
                                         .map(|prop_pointer| {
                                             prop_pointer.into_prop_node(&self.document_structure)
