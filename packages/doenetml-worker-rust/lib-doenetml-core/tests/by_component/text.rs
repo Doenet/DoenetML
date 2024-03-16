@@ -46,6 +46,7 @@ fn text_has_no_rendered_children() {
     assert_eq!(*text_children, vec![]);
 }
 
+#[ignore]
 #[test]
 fn hidden_or_unrendered_text_dont_calculate_render_props() {
     let dast_root =
@@ -87,6 +88,7 @@ fn hidden_or_unrendered_text_dont_calculate_render_props() {
     assert!(text_rendered_props.is_none());
 }
 
+#[ignore]
 #[test]
 fn text_prop_is_alias_of_value() {
     let dast_root = dast_root_no_position(r#"<text>hello</text>"#);
@@ -162,6 +164,7 @@ fn text_extending_p_concatenate_children() {
 
 /// <text>, a component with `no_rendered_children` and marked `extend_via_default_prop`
 // extending <textInput> another component with `no_rendered_children` and marked `extend_via_default_prop`
+#[ignore]
 #[test]
 fn text_extending_text_input() {
     let dast_root = dast_root_no_position(

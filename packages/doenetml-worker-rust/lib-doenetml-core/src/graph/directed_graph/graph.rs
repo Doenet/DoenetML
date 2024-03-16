@@ -18,7 +18,7 @@ use std::{borrow::Borrow, collections::HashMap, fmt::Debug, hash::Hash};
 /// graph.add_edge(&"a".into(), &"b".into());
 /// graph.add_edge(&"a".into(), &"c".into());
 /// graph.add_edge(&"b".into(), &"c".into());
-/// assert_eq!(graph.walk_descendants(&"a".into()).collect::<Vec<_>>(), vec!["b", "c"]);
+/// assert_eq!(graph.descendants_topological(&"a".into()).collect::<Vec<_>>(), vec!["b", "c"]);
 /// ```
 #[derive(Debug)]
 pub struct DirectedGraph<Node: Clone + Debug, IndexLookup: Taggable<Node, usize>> {

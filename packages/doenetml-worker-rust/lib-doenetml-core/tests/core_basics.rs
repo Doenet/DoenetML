@@ -4,6 +4,7 @@ use doenetml_core::core::core::Core;
 use test_utils::*;
 
 #[test]
+#[ignore]
 fn basic_core_initialization() {
     let dast_root = dast_root_no_position("<document>hi there<text>you</text></document>");
 

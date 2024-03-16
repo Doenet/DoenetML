@@ -52,6 +52,15 @@ impl GraphNode {
             _ => panic!("`prop_idx` expected a GraphNode::Prop"),
         }
     }
+
+    /// Get the wrapped `index` value. This is the same as `idx()`
+    /// except it will panic if `self` is not `GraphNode::Component`.
+    pub fn component_idx(&self) -> usize {
+        match self {
+            GraphNode::Component(idx) => *idx,
+            _ => panic!("`component_idx` expected a GraphNode::Component"),
+        }
+    }
 }
 
 /// Data structure on which a `Taggable<GraphNode, _>` can be implemented.

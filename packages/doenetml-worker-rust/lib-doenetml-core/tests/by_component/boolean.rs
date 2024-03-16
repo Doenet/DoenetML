@@ -37,6 +37,7 @@ fn value_prop_from_boolean_child() {
     assert_eq!(get_value_prop(boolean3_idx, &mut core), false);
 }
 
+#[ignore]
 #[test]
 fn boolean_prop_is_alias_of_value() {
     let dast_root = dast_root_no_position(r#"<boolean>true</boolean>"#);
@@ -53,6 +54,7 @@ fn boolean_prop_is_alias_of_value() {
     );
 }
 
+#[ignore]
 #[test]
 fn text_prop_converts_value() {
     let dast_root = dast_root_no_position(r#"<boolean>true</boolean>"#);

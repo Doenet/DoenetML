@@ -139,3 +139,22 @@ impl FlatRoot {
         String::from_iter(self.children.iter().map(|c| node_to_xml(nodes, c)))
     }
 }
+
+/// If the `codelldb` extension is installed in VSCode,
+/// add this function to your test and set a breakpoint to debug a rust test.
+///
+/// You may need to run `sudo sysctl -w kernel.yama.ptrace_scope=0` on linux
+/// to allow vscode to attach to the process.
+#[allow(unused)]
+pub fn activate_codelldb_debugger() {
+    let url = format!(
+        "vscode://vadimcn.vscode-lldb/launch/config?{{'request':'attach','pid':{}}}",
+        std::process::id()
+    );
+    std::process::Command::new("code")
+        .arg("--open-url")
+        .arg(url)
+        .output()
+        .unwrap();
+    std::thread::sleep(std::time::Duration::from_millis(1000)); // Wait for debugger to attach
+}

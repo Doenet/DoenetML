@@ -1,7 +1,7 @@
 //! A version of `Core` based on `DirectedGraph`
 
 use crate::{
-    components::{prelude::ComponentIdx, types::PropPointer, Component},
+    components::{prelude::ComponentIdx, Component},
     dast::{flat_dast::FlatRoot, ref_expand::Expander, DastRoot},
     graph::directed_graph::DirectedGraph,
     graph_node::GraphNodeLookup,

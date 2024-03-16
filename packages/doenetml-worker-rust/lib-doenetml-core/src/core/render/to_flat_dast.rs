@@ -41,10 +41,13 @@ impl Core {
 
     fn mark_component_in_render_tree(&mut self, component_idx: ComponentIdx) {
         let component_node = GraphNode::Component(component_idx);
+        if let Some(true) = self.in_render_tree.get_tag(&component_node) {
+            return;
+        }
         self.in_render_tree.set_tag(component_node, true);
 
         for child_node in self.get_rendered_child_nodes(component_idx) {
-            self.mark_component_in_render_tree(child_node.idx());
+            self.mark_component_in_render_tree(child_node.component_idx());
         }
     }
 
