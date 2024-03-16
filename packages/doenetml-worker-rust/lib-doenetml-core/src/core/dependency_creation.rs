@@ -173,7 +173,7 @@ impl Core {
                                     if match_profiles.contains(&prop_profile) {
                                         let prop_node = self
                                             .structure_graph
-                                            .get_component_props(node)[*local_prop_idx];
+                                            .get_component_props(node)[local_prop_idx];
                                         Some(prop_node)
                                     } else {
                                         None
@@ -224,7 +224,7 @@ impl Core {
                                     if match_profiles.contains(&prop_profile) {
                                         let prop_node = self
                                             .structure_graph
-                                            .get_component_props(node)[*local_prop_idx];
+                                            .get_component_props(node)[local_prop_idx];
                                         Some(prop_node)
                                     } else {
                                         None
@@ -303,7 +303,7 @@ impl Core {
                                             if prop_profile == profile_filter.profile {
                                                 let prop_node = self
                                                     .structure_graph
-                                                    .get_component_props(node)[*local_prop_idx];
+                                                    .get_component_props(node)[local_prop_idx];
                                                 Some(prop_node)
                                             } else {
                                                 None
@@ -411,7 +411,7 @@ impl Core {
     pub fn prop_pointer_to_prop_node(&self, prop_pointer: PropPointer) -> GraphNode {
         self.structure_graph
             .get_component_props(GraphNode::Component(prop_pointer.component_idx))
-            [*prop_pointer.local_prop_idx]
+            [prop_pointer.local_prop_idx]
     }
 
     /// Find the "origin" of a `GraphNode::Virtual` corresponding to an attribute. That is, if an attribute

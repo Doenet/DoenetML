@@ -206,7 +206,7 @@ mod test_helpers {
 
     /// Resolves `value` from a `<text>` component and returns its value as a `String`
     pub fn get_value_prop(component_idx: ComponentIdx, core: &mut Core) -> String {
-        let value_local_idx = LocalPropIdx(
+        let value_local_idx = LocalPropIdx::new(
             Text::PROP_NAMES
                 .into_iter()
                 .position(|name| name.eq(&"value"))
@@ -224,7 +224,7 @@ mod test_helpers {
 
     /// Resolves `text` from a `<text>` component and returns its value as a `String`
     pub fn get_text_prop(component_idx: ComponentIdx, core: &mut Core) -> String {
-        let text_local_idx = LocalPropIdx(
+        let text_local_idx = LocalPropIdx::new(
             Text::PROP_NAMES
                 .into_iter()
                 .position(|name| name.eq(&"text"))
@@ -242,7 +242,7 @@ mod test_helpers {
 
     /// Resolves `hidden` from a `<text>` component and returns its value as a `bool`
     pub fn get_hidden_prop(component_idx: ComponentIdx, core: &mut Core) -> bool {
-        let hidden_local_idx = LocalPropIdx(
+        let hidden_local_idx = LocalPropIdx::new(
             Text::PROP_NAMES
                 .into_iter()
                 .position(|name| name.eq(&"hidden"))

@@ -150,7 +150,7 @@ mod test_helpers {
 
     /// Resolves `title` from a `<section>` component and returns its value as a `ComponentIdx`
     pub fn get_title_prop(component_idx: ComponentIdx, core: &mut Core) -> ComponentIdx {
-        let title_local_idx = LocalPropIdx(
+        let title_local_idx = LocalPropIdx::new(
             Section::PROP_NAMES
                 .into_iter()
                 .position(|name| name.eq(&"title"))
@@ -173,7 +173,7 @@ mod test_helpers {
         component_idx: ComponentIdx,
         core: &mut Core,
     ) -> Vec<GraphNode> {
-        let rendered_children_local_idx = LocalPropIdx(
+        let rendered_children_local_idx = LocalPropIdx::new(
             Section::PROP_NAMES
                 .into_iter()
                 .position(|name| name.eq(&"renderedChildren"))

@@ -68,7 +68,7 @@ impl Default for SectionRenderedChildren {
 
 impl PropUpdater for SectionRenderedChildren {
     fn data_queries(&self) -> Vec<DataQuery> {
-        let title_local_idx = LocalPropIdx(
+        let title_local_idx = LocalPropIdx::new(
             Section::PROP_NAMES
                 .iter()
                 .position(|name| name.eq(&"title"))

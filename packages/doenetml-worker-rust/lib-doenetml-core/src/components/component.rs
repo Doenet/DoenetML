@@ -72,7 +72,7 @@ impl ComponentProps for Component {
         let component_idx = self.get_idx();
         (0..self.variant.get_num_props())
             .map(|local_prop_idx| {
-                let local_prop_idx = LocalPropIdx(local_prop_idx);
+                let local_prop_idx = LocalPropIdx::new(local_prop_idx);
                 PropDefinition {
                     meta: PropComponentMeta {
                         name: self.variant.get_prop_name(local_prop_idx),
@@ -114,8 +114,8 @@ impl ComponentProps for Component {
         (0..self.variant.get_num_props())
             .filter_map(|i| {
                 self.variant
-                    .get_prop_profile(LocalPropIdx(i))
-                    .map(|_| LocalPropIdx(i))
+                    .get_prop_profile(LocalPropIdx::new(i))
+                    .map(|_| LocalPropIdx::new(i))
             })
             .collect()
     }
@@ -128,8 +128,8 @@ impl ComponentProps for Component {
         (0..self.variant.get_num_props())
             .filter_map(|i| {
                 self.variant
-                    .get_prop_is_for_render(LocalPropIdx(i))
-                    .then_some(LocalPropIdx(i))
+                    .get_prop_is_for_render(LocalPropIdx::new(i))
+                    .then_some(LocalPropIdx::new(i))
             })
             .collect()
     }
@@ -148,7 +148,7 @@ impl ComponentNode for Component {
     fn provided_profiles(&self) -> Vec<(PropProfile, LocalPropIdx)> {
         (0..self.variant.get_num_props())
             .flat_map(|local_prop_idx| {
-                let local_prop_idx = LocalPropIdx(local_prop_idx);
+                let local_prop_idx = LocalPropIdx::new(local_prop_idx);
                 self.variant
                     .get_prop_profile(local_prop_idx)
                     .map(|profile| (profile, local_prop_idx))

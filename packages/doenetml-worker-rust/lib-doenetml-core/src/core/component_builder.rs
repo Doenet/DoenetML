@@ -276,7 +276,7 @@ impl ComponentBuilder {
             let prop_idx = self
                 .structure_graph
                 .get_component_props(GraphNode::Component(prop_pointer.component_idx))
-                [*prop_pointer.local_prop_idx]
+                [prop_pointer.local_prop_idx]
                 .idx();
             let new_component_type = self.props[prop_idx].preferred_component_type();
 
@@ -394,7 +394,7 @@ impl ComponentBuilder {
                                 let prop_idx = self
                                     .structure_graph
                                     .get_component_props(GraphNode::Component(referent.get_idx()))
-                                    [*referent_local_prop_idx]
+                                    [referent_local_prop_idx]
                                     .idx();
 
                                 let new_component_type =
@@ -683,7 +683,7 @@ impl ComponentBuilder {
                 .get_component_children_virtual_node(component_node);
 
             let referent_prop_node = self.structure_graph.get_component_props(referent_node)
-                [*prop_source.prop_pointer.local_prop_idx];
+                [prop_source.prop_pointer.local_prop_idx];
 
             self.structure_graph
                 .prepend_edge(component_children_virtual_node, referent_prop_node);

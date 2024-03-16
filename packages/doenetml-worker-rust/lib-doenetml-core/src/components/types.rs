@@ -1,5 +1,3 @@
-use std::ops::Deref;
-
 use serde::{Deserialize, Serialize};
 
 use crate::core::props::PropValue;
@@ -7,19 +5,16 @@ use crate::core::props::PropValue;
 use super::ActionsEnum;
 
 /// The local index of a prop relative to the component to which it belongs.
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub struct LocalPropIdx(pub usize);
+#[derive(Debug, Clone, Copy, PartialEq, Eq, derive_more::From, derive_more::Into)]
+pub struct LocalPropIdx(usize);
 
 impl LocalPropIdx {
-    pub fn new(idx: usize) -> Self {
+    pub const fn new(idx: usize) -> Self {
         Self(idx)
     }
-}
-
-impl Deref for LocalPropIdx {
-    type Target = usize;
-    fn deref(&self) -> &Self::Target {
-        &self.0
+    #[inline(always)]
+    pub fn as_usize(&self) -> usize {
+        self.0
     }
 }
 

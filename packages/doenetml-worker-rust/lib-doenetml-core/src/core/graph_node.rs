@@ -1,6 +1,9 @@
 use std::collections::HashMap;
 
-use crate::graph::directed_graph::{DirectedGraph, Taggable};
+use crate::{
+    components::types::LocalPropIdx,
+    graph::directed_graph::{DirectedGraph, Taggable},
+};
 
 /// A node in `Core`'s `structure_graph` or `dependency_graph`. `GraphNode` don't store
 /// any data themselves, but serve as pointers to data that is stored by `Core`. This enables
@@ -159,7 +162,7 @@ impl StructureGraph {
     /// component's props. Each node will be a `GraphNode::Virtual` and
     /// the children of each virtual node will be the content of the attribute.
     /// The order is the same as that returned by `Component::get_attribute_names()`.
-    pub fn get_component_props(&self, node: GraphNode) -> Vec<GraphNode> {
+    pub fn get_component_props(&self, node: GraphNode) -> TiVec<LocalPropIdx, GraphNode> {
         assert!(
             matches!(node, GraphNode::Component(_)),
             "Expected a GraphNode::Component"
@@ -167,7 +170,7 @@ impl StructureGraph {
         let attributes_virtual_node = self
             .get_nth_child(node, 2)
             .expect("A component node should always have attributes in the structure graph");
-        self.get_children(attributes_virtual_node)
+        self.get_children(attributes_virtual_node).into()
     }
 
     /// Iterate through the "content" children of a node. That is,
@@ -182,6 +185,7 @@ impl StructureGraph {
 }
 
 use iterators::*;
+use typed_index_collections::TiVec;
 mod iterators {
     //! Utility iterators
 

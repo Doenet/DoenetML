@@ -199,7 +199,7 @@ mod test_helpers {
         component_idx: ComponentIdx,
         core: &mut Core,
     ) -> Vec<GraphNode> {
-        let rendered_children_local_idx = LocalPropIdx(
+        let rendered_children_local_idx = LocalPropIdx::new(
             P::PROP_NAMES
                 .into_iter()
                 .position(|name| name.eq(&"renderedChildren"))
