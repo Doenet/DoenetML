@@ -11,7 +11,7 @@ fn p_rendered_children() {
     core.init_from_dast_root(&dast_root);
 
     // the document tag will be index 0.
-    let p_idx = 1;
+    let p_idx = 1.into();
 
     // check the rendered children prop
     assert_eq!(
@@ -27,7 +27,7 @@ fn p_rendered_children() {
     // check the flat dast
     let flat_dast = core.to_flat_dast();
 
-    let p_children = &flat_dast.elements[p_idx].children;
+    let p_children = &flat_dast.elements[p_idx.as_usize()].children;
 
     // TODO: when have rendered props, change to check the actual result with text values
     assert_eq!(
@@ -50,7 +50,7 @@ fn p_hidden_children_not_rendered() {
     core.init_from_dast_root(&dast_root);
 
     // the document tag will be index 0.
-    let p_idx = 1;
+    let p_idx = 1.into();
 
     assert_eq!(
         get_rendered_children_prop(p_idx, &mut core),
@@ -64,7 +64,7 @@ fn p_hidden_children_not_rendered() {
     // check the flat dast
     let flat_dast = core.to_flat_dast();
 
-    let p_children = &flat_dast.elements[p_idx].children;
+    let p_children = &flat_dast.elements[p_idx.as_usize()].children;
 
     // TODO: when have rendered props, change to check the actual result with text values
     assert_eq!(

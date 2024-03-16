@@ -12,9 +12,9 @@ fn section_finds_beginning_title_tag() {
     core.init_from_dast_root(&dast_root);
 
     // the document tag will be index 0.
-    let section_idx = 1;
+    let section_idx = 1.into();
 
-    assert_eq!(get_title_prop(section_idx, &mut core), 2);
+    assert_eq!(get_title_prop(section_idx, &mut core), 2.into());
 
     assert_eq!(
         get_rendered_children_prop(section_idx, &mut core),
@@ -23,7 +23,7 @@ fn section_finds_beginning_title_tag() {
 
     // check the flat dast
     let flat_dast = core.to_flat_dast();
-    let section_children = &flat_dast.elements[section_idx].children;
+    let section_children = &flat_dast.elements[section_idx.as_usize()].children;
 
     assert_eq!(
         *section_children,
@@ -48,9 +48,9 @@ fn section_finds_title_tag_in_middle() {
     core.init_from_dast_root(&dast_root);
 
     // the document tag will be index 0.
-    let section_idx = 1;
+    let section_idx = 1.into();
 
-    assert_eq!(get_title_prop(section_idx, &mut core), 3);
+    assert_eq!(get_title_prop(section_idx, &mut core), 3.into());
 
     // Note we have blank string children between all the component children.
     // When title child gets moved up, we have multiple strings between component children
@@ -69,7 +69,7 @@ fn section_finds_title_tag_in_middle() {
 
     // check the flat dast
     let flat_dast = core.to_flat_dast();
-    let section_children = &flat_dast.elements[section_idx].children;
+    let section_children = &flat_dast.elements[section_idx.as_usize()].children;
 
     assert_eq!(
         *section_children,
@@ -100,9 +100,9 @@ fn section_with_multiple_title_tags_picks_last() {
     core.init_from_dast_root(&dast_root);
 
     // the document tag will be index 0.
-    let section_idx = 1;
+    let section_idx = 1.into();
 
-    assert_eq!(get_title_prop(section_idx, &mut core), 4);
+    assert_eq!(get_title_prop(section_idx, &mut core), 4.into());
 
     // Note we have blank string children between all the component children.
     // When title children get removed and moved up, we have multiple strings between component children
@@ -122,7 +122,7 @@ fn section_with_multiple_title_tags_picks_last() {
 
     // check the flat dast
     let flat_dast = core.to_flat_dast();
-    let section_children = &flat_dast.elements[section_idx].children;
+    let section_children = &flat_dast.elements[section_idx.as_usize()].children;
 
     assert_eq!(
         *section_children,

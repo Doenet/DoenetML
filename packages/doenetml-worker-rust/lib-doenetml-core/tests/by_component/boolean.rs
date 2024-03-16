@@ -10,8 +10,8 @@ fn value_prop_from_string_child() {
     core.init_from_dast_root(&dast_root);
 
     // the document tag will be index 0
-    let boolean1_idx = 1;
-    let boolean2_idx = 2;
+    let boolean1_idx = 1.into();
+    let boolean2_idx = 2.into();
 
     assert_eq!(get_value_prop(boolean1_idx, &mut core), true);
     assert_eq!(get_value_prop(boolean2_idx, &mut core), false);
@@ -30,8 +30,8 @@ fn value_prop_from_boolean_child() {
     core.init_from_dast_root(&dast_root);
 
     // the document tag will be index 0
-    let boolean1_idx = 1;
-    let boolean3_idx = 3;
+    let boolean1_idx = 1.into();
+    let boolean3_idx = 3.into();
 
     assert_eq!(get_value_prop(boolean1_idx, &mut core), true);
     assert_eq!(get_value_prop(boolean3_idx, &mut core), false);
@@ -46,7 +46,7 @@ fn boolean_prop_is_alias_of_value() {
     core.init_from_dast_root(&dast_root);
 
     // the boolean will be index 1, as the document tag will be index 0.
-    let boolean_idx = 1;
+    let boolean_idx = 1.into();
 
     assert_eq!(
         get_value_prop(boolean_idx, &mut core),
@@ -63,7 +63,7 @@ fn text_prop_converts_value() {
     core.init_from_dast_root(&dast_root);
 
     // the boolean will be index 1, as the document tag will be index 0.
-    let boolean_idx = 1;
+    let boolean_idx = 1.into();
 
     assert_eq!(get_value_prop(boolean_idx, &mut core), true);
     assert_eq!(get_text_prop(boolean_idx, &mut core), "true");
@@ -80,8 +80,8 @@ fn boolean_extending_texts_concatenate_values() {
     core.init_from_dast_root(&dast_root);
 
     // the document tag will be index 0
-    let boolean1_idx = 2;
-    let boolean2_idx = 3;
+    let boolean1_idx = 2.into();
+    let boolean2_idx = 3.into();
 
     assert_eq!(get_value_prop(boolean1_idx, &mut core), true);
     assert_eq!(get_value_prop(boolean2_idx, &mut core), false);
@@ -98,8 +98,8 @@ fn boolean_hidden() {
     core.init_from_dast_root(&dast_root);
 
     // indices start at 1, as the document tag will be index 0.
-    let boolean1_idx = 1;
-    let boolean2_idx = 2;
+    let boolean1_idx = 1.into();
+    let boolean2_idx = 2.into();
 
     assert_eq!(get_hidden_prop(boolean1_idx, &mut core), false);
     assert_eq!(get_hidden_prop(boolean2_idx, &mut core), true);

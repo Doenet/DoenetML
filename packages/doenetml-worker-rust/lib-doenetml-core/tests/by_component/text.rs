@@ -14,13 +14,17 @@ fn value_prop_from_string_child() {
     core.init_from_dast_root(&dast_root);
 
     // the text will be index 1, as the document tag will be index 0.
-    let text_idx = 1;
+    let text_idx = 1.into();
 
     assert_eq!(get_value_prop(text_idx, &mut core), "hello");
 
     // verify that value is the rendered prop
     let flat_dast = core.to_flat_dast();
-    let text_rendered_props = flat_dast.elements[text_idx].data.props.as_ref().unwrap();
+    let text_rendered_props = flat_dast.elements[text_idx.as_usize()]
+        .data
+        .props
+        .as_ref()
+        .unwrap();
     assert_eq!(
         text_rendered_props,
         &ForRenderProps(vec![ForRenderPropValue {
@@ -32,7 +36,11 @@ fn value_prop_from_string_child() {
     // calling `to_flat_dast` a second time still includes the value prop
     // even though it didn't change since last to call to `to_flat_dast`
     let flat_dast = core.to_flat_dast();
-    let text_rendered_props = flat_dast.elements[text_idx].data.props.as_ref().unwrap();
+    let text_rendered_props = flat_dast.elements[text_idx.as_usize()]
+        .data
+        .props
+        .as_ref()
+        .unwrap();
     assert_eq!(
         text_rendered_props,
         &ForRenderProps(vec![ForRenderPropValue {
@@ -67,15 +75,19 @@ fn hidden_or_unrendered_text_dont_calculate_render_props() {
     core.init_from_dast_root(&dast_root);
 
     // the text will be index 1, as the document tag will be index 0.
-    let text1_idx = 1;
-    let text2_idx = 2;
-    let text3_idx = 3;
+    let text1_idx = 1.into();
+    let text2_idx = 2.into();
+    let text3_idx = 3.into();
 
     assert_eq!(get_value_prop(text1_idx, &mut core), "hello there");
 
     // verify that value is the rendered prop
     let flat_dast = core.to_flat_dast();
-    let text_rendered_props = flat_dast.elements[text1_idx].data.props.as_ref().unwrap();
+    let text_rendered_props = flat_dast.elements[text1_idx.as_usize()]
+        .data
+        .props
+        .as_ref()
+        .unwrap();
     assert_eq!(
         text_rendered_props,
         &ForRenderProps(vec![ForRenderPropValue {
@@ -88,14 +100,14 @@ fn hidden_or_unrendered_text_dont_calculate_render_props() {
 
     // verify that have no rendered prop
     let flat_dast = core.to_flat_dast();
-    let text_rendered_props = flat_dast.elements[text2_idx].data.props.as_ref();
+    let text_rendered_props = flat_dast.elements[text2_idx.as_usize()].data.props.as_ref();
     assert!(text_rendered_props.is_none());
 
     assert_eq!(get_value_prop(text3_idx, &mut core), "secret");
 
     // verify that have no rendered prop
     let flat_dast = core.to_flat_dast();
-    let text_rendered_props = flat_dast.elements[text3_idx].data.props.as_ref();
+    let text_rendered_props = flat_dast.elements[text3_idx.as_usize()].data.props.as_ref();
     assert!(text_rendered_props.is_none());
 }
 
@@ -108,7 +120,7 @@ fn text_prop_is_alias_of_value() {
     core.init_from_dast_root(&dast_root);
 
     // the text will be index 1, as the document tag will be index 0.
-    let text_idx = 1;
+    let text_idx = 1.into();
 
     assert_eq!(
         get_value_prop(text_idx, &mut core),
@@ -128,9 +140,9 @@ fn texts_extending_texts_concatenate_values() {
     core.init_from_dast_root(&dast_root);
 
     // indices start at 1, as the document tag will be index 0.
-    let text1_idx = 1;
-    let text2_idx = 2;
-    let text3_idx = 3;
+    let text1_idx = 1.into();
+    let text2_idx = 2.into();
+    let text3_idx = 3.into();
 
     assert_eq!(get_value_prop(text1_idx, &mut core), "One");
     assert_eq!(get_value_prop(text2_idx, &mut core), "OneTwo");
@@ -149,9 +161,9 @@ fn texts_extending_text_values_concatenate_values() {
     core.init_from_dast_root(&dast_root);
 
     // indices start at 1, as the document tag will be index 0.
-    let text1_idx = 1;
-    let text2_idx = 2;
-    let text3_idx = 3;
+    let text1_idx = 1.into();
+    let text2_idx = 2.into();
+    let text3_idx = 3.into();
 
     assert_eq!(get_value_prop(text1_idx, &mut core), "One");
     assert_eq!(get_value_prop(text2_idx, &mut core), "OneTwo");
@@ -168,7 +180,7 @@ fn text_extending_p_concatenate_children() {
     core.init_from_dast_root(&dast_root);
 
     // indices start at 1, as the document tag will be index 0.
-    let text_idx = 2;
+    let text_idx = 2.into();
 
     assert_eq!(get_value_prop(text_idx, &mut core), "OneTwo");
 }
@@ -186,7 +198,7 @@ fn text_extending_text_input() {
     core.init_from_dast_root(&dast_root);
 
     // indices start at 1, as the document tag will be index 0.
-    let text_idx = 2;
+    let text_idx = 2.into();
 
     assert_eq!(get_value_prop(text_idx, &mut core), "OneTwo");
 }
@@ -202,8 +214,8 @@ fn text_hidden() {
     core.init_from_dast_root(&dast_root);
 
     // indices start at 1, as the document tag will be index 0.
-    let text1_idx = 1;
-    let text2_idx = 2;
+    let text1_idx = 1.into();
+    let text2_idx = 2.into();
 
     assert_eq!(get_hidden_prop(text1_idx, &mut core), false);
     assert_eq!(get_hidden_prop(text2_idx, &mut core), true);
