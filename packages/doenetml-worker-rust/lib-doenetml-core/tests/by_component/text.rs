@@ -28,6 +28,18 @@ fn value_prop_from_string_child() {
             value: PropValue::String("hello".to_string())
         }])
     );
+
+    // calling `to_flat_dast` a second time still includes the value prop
+    // even though it didn't change since last to call to `to_flat_dast`
+    let flat_dast = core.to_flat_dast();
+    let text_rendered_props = flat_dast.elements[text_idx].data.props.as_ref().unwrap();
+    assert_eq!(
+        text_rendered_props,
+        &ForRenderProps(vec![ForRenderPropValue {
+            name: "value",
+            value: PropValue::String("hello".to_string())
+        }])
+    );
 }
 
 #[test]
@@ -46,7 +58,6 @@ fn text_has_no_rendered_children() {
     assert_eq!(*text_children, vec![]);
 }
 
-#[ignore]
 #[test]
 fn hidden_or_unrendered_text_dont_calculate_render_props() {
     let dast_root =

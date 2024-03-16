@@ -3,7 +3,6 @@ use super::*;
 use doenetml_core::{dast::FlatDastElementContent, graph_node::GraphNode};
 use test_helpers::*;
 
-#[ignore]
 #[test]
 fn p_rendered_children() {
     let dast_root = dast_root_no_position(r#"<p><text>Hello</text> and <text>bye</text>!</p>"#);
@@ -43,7 +42,6 @@ fn p_rendered_children() {
 }
 
 #[test]
-#[ignore]
 fn p_hidden_children_not_rendered() {
     let dast_root =
         dast_root_no_position(r#"<p><text>Hello</text> and <text hide>bye</text>!</p>"#);
@@ -81,7 +79,6 @@ fn p_hidden_children_not_rendered() {
 
 /// <p>, a component with `pass_through_children` extending itself
 #[test]
-#[ignore]
 fn ps_extending_ps_concatenate_children() {
     let dast_root = dast_root_no_position(
         r#"<p name="p1">one</p><p name="p2" extend="$p1">two</p><p extend="$p2">three</p>"#,
@@ -115,7 +112,6 @@ fn ps_extending_ps_concatenate_children() {
 
 /// <p>, a component with `pass_through_children` extending
 /// <text>, a component marked `extend_via_default_prop`
-#[ignore]
 #[test]
 fn p_extending_text() {
     let dast_root =
@@ -139,7 +135,6 @@ fn p_extending_text() {
 
 /// <p>, a component with `pass_through_children` extending a prop
 #[test]
-#[ignore]
 fn p_extending_text_value() {
     let dast_root =
         dast_root_no_position(r#"<text name="t">one</text><p extend="$t.value">two</p>"#);
@@ -163,7 +158,6 @@ fn p_extending_text_value() {
 /// <p>, a component with `pass_through_children` extending
 /// <section>, a component that is not marked `extend_via_default_prop`
 #[test]
-#[ignore]
 fn p_extending_section() {
     let dast_root =
         dast_root_no_position(r#"<section name="s">one</section><p name="p2" extend="$s">two</p>"#);

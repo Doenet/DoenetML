@@ -47,7 +47,9 @@ impl Core {
         self.in_render_tree.set_tag(component_node, true);
 
         for child_node in self.get_rendered_child_nodes(component_idx) {
-            self.mark_component_in_render_tree(child_node.component_idx());
+            if let GraphNode::Component(child_idx) = child_node {
+                self.mark_component_in_render_tree(child_idx);
+            }
         }
     }
 
@@ -143,7 +145,7 @@ impl Core {
         }
     }
 
-    /// Get the vector of component nodes corresponding to the rendered children of `component_idx`.
+    /// Get the vector of graph nodes corresponding to the rendered children of `component_idx`.
     /// Rendered children are the nodes from the prop with the `RenderedChildren` profile, if it exists
     fn get_rendered_child_nodes(&mut self, component_idx: ComponentIdx) -> Vec<GraphNode> {
         self.components[component_idx]
@@ -181,7 +183,7 @@ impl Core {
             .in_render_tree
             .get_tag(&GraphNode::Component(component_idx))
             .copied()
-            .and_then(|in_tree| in_tree.then(|| self.get_rendered_props(component_idx)));
+            .and_then(|in_tree| in_tree.then(|| self.get_rendered_props(component_idx, false)));
 
         let component = &self.components[component_idx];
         let message = if let ComponentEnum::_Error(error) = &component.variant {
@@ -212,11 +214,16 @@ impl Core {
         }
     }
 
-    /// Calculate the values of the for_render props of `component_idx` that have changed
+    /// Calculate the values of the `for_render` props of `component_idx`.
+    /// If `only_changed_props` is `true`, then calculate only the props that have changed
     /// since the last time they were calculated for rendering.
     ///
-    /// Return: a `ForRenderProps` containing a `ForRenderPropValue` for each for_render prop that changed.
-    fn get_rendered_props(&mut self, component_idx: ComponentIdx) -> ForRenderProps {
+    /// Return: a `ForRenderProps` containing a `ForRenderPropValue` for each `for_render` prop that changed.
+    fn get_rendered_props(
+        &mut self,
+        component_idx: ComponentIdx,
+        only_changed_props: bool,
+    ) -> ForRenderProps {
         // Note: collect into a vector so that stop borrowing from self.components
         // (needed since self.get_prop_for_render() currently needs a mutable borrow of self)
         let rendered_prop_pointers = self.components[component_idx]
@@ -233,7 +240,7 @@ impl Core {
             .filter_map(|prop_pointer| {
                 let prop_node = self.prop_pointer_to_prop_node(prop_pointer);
                 let prop = self.get_prop_for_render(prop_node);
-                if prop.changed {
+                if !only_changed_props || prop.changed {
                     let prop_value = (*prop.value).clone();
                     let prop_name = self.props[prop_node.prop_idx()].meta.name;
                     Some(ForRenderPropValue {
