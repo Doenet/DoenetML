@@ -146,7 +146,7 @@ impl FlatRoot {
 /// You may need to run `sudo sysctl -w kernel.yama.ptrace_scope=0` on linux
 /// to allow vscode to attach to the process.
 #[allow(unused)]
-pub fn activate_codelldb_debugger() {
+pub fn attach_codelldb_debugger() {
     let url = format!(
         "vscode://vadimcn.vscode-lldb/launch/config?{{'request':'attach','pid':{}}}",
         std::process::id()
