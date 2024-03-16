@@ -206,6 +206,19 @@ impl Component {
     ) {
         self.common.unrecognized_attributes = unused_attributes;
     }
+
+    /// Returns the first prop that matches a profile in `profiles`.
+    pub fn get_prop_by_profile(&self, profiles: &[PropProfile]) -> Option<LocalPropIdx> {
+        self.provided_profiles()
+            .into_iter()
+            .find_map(|(profile, local_prop_idx)| {
+                if profiles.contains(&profile) {
+                    Some(local_prop_idx)
+                } else {
+                    None
+                }
+            })
+    }
 }
 
 impl ComponentOnAction for Component {

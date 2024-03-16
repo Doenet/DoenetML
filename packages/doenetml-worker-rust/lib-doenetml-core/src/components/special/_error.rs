@@ -5,9 +5,7 @@ use crate::components::prelude::*;
 
 #[derive(Debug, Default)]
 pub struct _Error {
-    pub common: ComponentCommonData,
     pub message: String,
-    pub props: _ErrorProps,
 }
 
 impl _Error {
@@ -27,7 +25,6 @@ impl ComponentNode for _Error {
 impl ComponentActions for _Error {}
 impl ComponentOnAction for _Error {}
 impl ComponentAttributes for _Error {}
-
 impl ComponentVariantProps for _Error {}
 
 #[derive(Debug, Default)]

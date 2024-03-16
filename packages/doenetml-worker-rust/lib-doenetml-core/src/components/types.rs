@@ -18,6 +18,35 @@ impl LocalPropIdx {
     }
 }
 
+/// The index of a PropDefinition in `DocumentStructure.prop_definitions`
+#[derive(Debug, Clone, Copy, PartialEq, Eq, derive_more::From, derive_more::Into)]
+pub struct PropDefinitionIdx(usize);
+
+impl PropDefinitionIdx {
+    pub const fn new(idx: usize) -> Self {
+        Self(idx)
+    }
+    #[inline(always)]
+    pub fn as_usize(&self) -> usize {
+        self.0
+    }
+}
+
+impl From<PropDefinitionIdx> for GraphNode {
+    fn from(idx: PropDefinitionIdx) -> Self {
+        GraphNode::Prop(idx.into())
+    }
+}
+
+impl<T: IntoGraphNode> From<T> for PropDefinitionIdx {
+    fn from(node: T) -> Self {
+        match node.into() {
+            GraphNode::Prop(idx) => idx.into(),
+            node => panic!("Expected GraphNode::Component, not {:?}", node),
+        }
+    }
+}
+
 /// The index of the component in `Core.components`
 #[derive(
     Debug,

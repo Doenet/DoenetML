@@ -121,10 +121,11 @@ mod test_helpers {
 
     /// Resolves `value` from a `<boolean>` component and returns its value as a `bool`
     pub fn get_value_prop(component_idx: ComponentIdx, core: &mut Core) -> bool {
-        let prop_node = core.prop_pointer_to_prop_node(PropPointer {
+        let prop_node = PropPointer {
             component_idx,
             local_prop_idx: VALUE_LOCAL_IDX,
-        });
+        }
+        .into_prop_node(&core.document_model.document_structure);
         let value = core.get_prop_for_render_untracked(prop_node).value;
 
         (*value).clone().try_into().unwrap()
@@ -132,10 +133,11 @@ mod test_helpers {
 
     /// Resolves `boolean` from a `<boolean>` component and returns its value as a `bool`
     pub fn get_boolean_prop(component_idx: ComponentIdx, core: &mut Core) -> bool {
-        let prop_node = core.prop_pointer_to_prop_node(PropPointer {
+        let prop_node = PropPointer {
             component_idx,
             local_prop_idx: BOOLEAN_LOCAL_IDX,
-        });
+        }
+        .into_prop_node(&core.document_model.document_structure);
         let value = core.get_prop_for_render_untracked(prop_node).value;
 
         (*value).clone().try_into().unwrap()
@@ -143,10 +145,11 @@ mod test_helpers {
 
     /// Resolves `text` from a `<boolean>` component and returns its value as a `String`
     pub fn get_text_prop(component_idx: ComponentIdx, core: &mut Core) -> String {
-        let prop_node = core.prop_pointer_to_prop_node(PropPointer {
+        let prop_node = PropPointer {
             component_idx,
             local_prop_idx: TEXT_LOCAL_IDX,
-        });
+        }
+        .into_prop_node(&core.document_model.document_structure);
         let value = core.get_prop_for_render_untracked(prop_node).value;
 
         (*value).clone().try_into().unwrap()
@@ -154,10 +157,11 @@ mod test_helpers {
 
     /// Resolves `hidden` from a `<text>` component and returns its value as a `bool`
     pub fn get_hidden_prop(component_idx: ComponentIdx, core: &mut Core) -> bool {
-        let prop_node = core.prop_pointer_to_prop_node(PropPointer {
+        let prop_node = PropPointer {
             component_idx,
             local_prop_idx: HIDDEN_LOCAL_IDX,
-        });
+        }
+        .into_prop_node(&core.document_model.document_structure);
         let value = core.get_prop_for_render_untracked(prop_node).value;
 
         (*value).clone().try_into().unwrap()

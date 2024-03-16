@@ -13,7 +13,7 @@ use crate::{
         FlatDastElementUpdate, FlatDastRoot, ForRenderPropValue, ForRenderProps,
     },
     graph::directed_graph::Taggable,
-    props::{PropProfile, PropValue},
+    props::{cache::PropWithMeta, PropProfile, PropValue},
 };
 
 use super::super::{core::Core, graph_node::GraphNode};
@@ -26,7 +26,7 @@ impl Core {
     /// Include warnings as a separate vector (errors are embedded in the tree as elements).
     pub fn to_flat_dast(&mut self) -> FlatDastRoot {
         self.mark_component_in_render_tree(ComponentIdx::new(0));
-        let n_components = self.components.len();
+        let n_components = self.document_model.document_structure.components.len();
         let elements: Vec<FlatDastElement> = (0..n_components)
             .map(|comp_idx| self.component_to_flat_dast(comp_idx.into()))
             .collect();
@@ -61,13 +61,18 @@ impl Core {
         //       let children = component.get_rendered_children(child_query_object);
 
         let children = self
+            .document_model
+            .document_structure
             .structure_graph
             .get_component_children(component_node)
             .map(|node| match node {
                 GraphNode::Component(idx) => FlatDastElementContent::Element(idx),
-                GraphNode::String(_) => {
-                    FlatDastElementContent::Text(self.strings.get_string_value(node))
-                }
+                GraphNode::String(_) => FlatDastElementContent::Text(
+                    self.document_model
+                        .document_structure
+                        .strings
+                        .get_string_value(node),
+                ),
                 _ => panic!("Unexpected node type in component children {:?}", node),
             })
             .collect::<Vec<_>>();
@@ -133,7 +138,10 @@ impl Core {
             .filter_map(|child| match child {
                 GraphNode::Component(idx) => Some(FlatDastElementContent::Element(idx)),
                 GraphNode::String(_) => Some(FlatDastElementContent::Text(
-                    self.strings.get_string_value(child),
+                    self.document_model
+                        .document_structure
+                        .strings
+                        .get_string_value(child),
                 )),
                 _ => None,
             })
@@ -148,15 +156,16 @@ impl Core {
     /// Get the vector of graph nodes corresponding to the rendered children of `component_idx`.
     /// Rendered children are the nodes from the prop with the `RenderedChildren` profile, if it exists
     fn get_rendered_child_nodes(&mut self, component_idx: ComponentIdx) -> Vec<GraphNode> {
-        self.components[component_idx]
+        self.document_model.document_structure.components[component_idx]
             .provided_profiles()
             .into_iter()
             .find_map(|(profile, local_prop_idx)| {
                 if profile == PropProfile::RenderedChildren {
-                    let prop_node = self.prop_pointer_to_prop_node(PropPointer {
+                    let prop_node = PropPointer {
                         component_idx,
                         local_prop_idx,
-                    });
+                    }
+                    .into_prop_node(&self.document_model.document_structure);
                     let rendered_children_value = &*self.get_prop_for_render(prop_node).value;
                     match rendered_children_value {
                         PropValue::GraphNodes(graph_nodes) => Some(graph_nodes.clone()),
@@ -185,7 +194,10 @@ impl Core {
             .copied()
             .and_then(|in_tree| in_tree.then(|| self.get_rendered_props(component_idx, false)));
 
-        let component = &self.components[component_idx];
+        let component = self
+            .document_model
+            .document_structure
+            .get_component(component_idx);
         let message = if let ComponentEnum::_Error(error) = &component.variant {
             Some(error.message.clone())
         } else {
@@ -226,7 +238,10 @@ impl Core {
     ) -> ForRenderProps {
         // Note: collect into a vector so that stop borrowing from self.components
         // (needed since self.get_prop_for_render() currently needs a mutable borrow of self)
-        let rendered_prop_pointers = self.components[component_idx]
+        let rendered_prop_pointers = self
+            .document_model
+            .document_structure
+            .get_component(component_idx)
             .get_for_renderer_local_prop_indices()
             .into_iter()
             .map(|local_prop_idx| PropPointer {
@@ -238,11 +253,17 @@ impl Core {
         let rendered_prop_value_vec = rendered_prop_pointers
             .into_iter()
             .filter_map(|prop_pointer| {
-                let prop_node = self.prop_pointer_to_prop_node(prop_pointer);
+                let prop_node =
+                    prop_pointer.into_prop_node(&self.document_model.document_structure);
                 let prop = self.get_prop_for_render(prop_node);
                 if !only_changed_props || prop.changed {
                     let prop_value = (*prop.value).clone();
-                    let prop_name = self.props[prop_node.prop_idx()].meta.name;
+                    let prop_name = self
+                        .document_model
+                        .document_structure
+                        .get_prop_definition(prop_node)
+                        .meta
+                        .name;
                     Some(ForRenderPropValue {
                         name: prop_name,
                         value: prop_value,
@@ -269,6 +290,64 @@ impl Core {
         // }
         // flat_dast_updates
         HashMap::new()
+    }
+
+    /// Get the value of a prop for rendering. If the prop is stale or not resolved,
+    /// this function will resolve the prop, calculate all its dependencies, and then
+    /// return the result of `PropUpdater::calculate` applied to those dependencies.
+    /// Track that the prop has been viewed for rendering so that a second call will report it being unchanged.
+    pub fn get_prop_for_render(&mut self, prop_node: GraphNode) -> PropWithMeta {
+        self.document_model.resolve_prop(prop_node);
+
+        self.document_model
+            .prop_cache
+            .get_prop(prop_node, self.for_render_query_node, || {
+                let required_data = self
+                    .document_model
+                    .get_data_query_nodes_for_prop(prop_node)
+                    .into_iter()
+                    .map(|query_node| {
+                        self.document_model
+                            ._execute_data_query_with_resolved_deps(query_node)
+                    })
+                    .collect::<Vec<_>>();
+
+                let prop = &self
+                    .document_model
+                    .document_structure
+                    .get_prop_definition(prop_node.prop_idx());
+                prop.updater.calculate(required_data)
+            })
+    }
+
+    /// Get the value of a prop for rendering. If the prop is stale or not resolved,
+    /// this function will resolve the prop, calculate all its dependencies, and then
+    /// return the result of `PropUpdater::calculate` applied to those dependencies.
+    /// Do not track that the prop has been viewed for rendering so that its change state is unaltered.
+    pub fn get_prop_for_render_untracked(&mut self, prop_node: GraphNode) -> PropWithMeta {
+        self.document_model.resolve_prop(prop_node);
+
+        self.document_model.prop_cache.get_prop_untracked(
+            prop_node,
+            self.for_render_query_node,
+            || {
+                let required_data = self
+                    .document_model
+                    .get_data_query_nodes_for_prop(prop_node)
+                    .into_iter()
+                    .map(|query_node| {
+                        self.document_model
+                            ._execute_data_query_with_resolved_deps(query_node)
+                    })
+                    .collect::<Vec<_>>();
+
+                let prop = self
+                    .document_model
+                    .document_structure
+                    .get_prop_definition(prop_node);
+                prop.updater.calculate(required_data)
+            },
+        )
     }
 }
 

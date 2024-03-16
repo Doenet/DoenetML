@@ -10,7 +10,7 @@ use crate::{
         prelude::{
             ComponentIdx, Extending, FlatAttribute, KeyValueIgnoreCase, PropSource, UntaggedContent,
         },
-        types::PropPointer,
+        types::{PropDefinitionIdx, PropPointer},
         Component, ComponentAttributes, ComponentCommon, ComponentCommonData, ComponentEnum,
         ComponentNode, ComponentProps,
     },
@@ -41,7 +41,7 @@ pub struct ComponentBuilder {
     /// it can be referenced), but we don't store any information about virtual nodes themselves.
     pub virtual_node_count: usize,
     // Information about each prop sufficient for resolving `DataQuery`s.
-    pub props: Vec<PropDefinition>,
+    pub props: TiVec<PropDefinitionIdx, PropDefinition>,
 }
 
 impl Default for ComponentBuilder {
@@ -56,7 +56,7 @@ impl ComponentBuilder {
             structure_graph: DirectedGraph::new(),
             components: TiVec::new(),
             strings: StringCache::new(),
-            props: Vec::new(),
+            props: TiVec::new(),
             virtual_node_count: 0,
         }
     }
@@ -278,7 +278,7 @@ impl ComponentBuilder {
             let prop_idx = self
                 .structure_graph
                 .get_component_props(prop_pointer.component_idx)[prop_pointer.local_prop_idx]
-                .idx();
+                .prop_idx();
             let new_component_type = self.props[prop_idx].preferred_component_type();
 
             let new_child = Component::from_tag_name(
@@ -395,7 +395,7 @@ impl ComponentBuilder {
                                 let prop_idx =
                                     self.structure_graph.get_component_props(referent.get_idx())
                                         [referent_local_prop_idx]
-                                        .idx();
+                                        .prop_idx();
 
                                 let new_component_type =
                                     self.props[prop_idx].preferred_component_type();

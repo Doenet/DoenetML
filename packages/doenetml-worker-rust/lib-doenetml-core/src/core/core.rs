@@ -1,19 +1,13 @@
 //! A version of `Core` based on `DirectedGraph`
 
-use typed_index_collections::TiVec;
-
 use crate::{
-    components::{prelude::ComponentIdx, Component},
+    components::prelude::ComponentIdx,
     dast::{flat_dast::FlatRoot, ref_expand::Expander, DastRoot},
-    graph::directed_graph::DirectedGraph,
     graph_node::GraphNodeLookup,
-    props::DataQuery,
 };
 
 use super::{
-    component_builder::ComponentBuilder,
-    graph_node::{DependencyGraph, GraphNode, StructureGraph},
-    props::{cache::PropCache, PropDefinition, StateCache, StringCache},
+    component_builder::ComponentBuilder, document_model::DocumentModel, graph_node::GraphNode,
 };
 
 /// Core stores all hydrated components, keeps track of caching data, and tracks dependencies.
@@ -21,29 +15,8 @@ use super::{
 /// functions to recalculate in the appropriate order.
 #[derive(Debug)]
 pub struct Core {
-    /// A graph that stores the structure of the document. This graph keeps
-    /// track of children, attributes, props, and state.
-    pub structure_graph: StructureGraph,
-    /// A graph that stores the active dependencies between nodes. The nodes
-    /// of this graph are the same as the nodes of `structure_graph`, but edges
-    /// are only added to this graph if if one node must be updated when another changes.
-    pub dependency_graph: DependencyGraph,
-    /// The reified components. These can be queried for information about their attributes/props/state
-    /// as well as asked to calculate/recalculate props.
-    pub components: TiVec<ComponentIdx, Component>,
-    /// A list of all strings in the document. Strings are stored here once and referenced when they appear as children.
-    pub strings: StringCache,
-    /// A counter for the number of virtual nodes created. Every virtual node needs to be unique (so that
-    /// it can be referenced), but we don't store any information about virtual nodes themselves.
-    pub virtual_node_count: usize,
-    /// Information about a prop used to resolve dependencies in a `DataQuery`.
-    pub props: Vec<PropDefinition>,
-    // XXX: fill these in
-    pub states: StateCache,
-    pub queries: Vec<DataQuery>,
+    pub document_model: DocumentModel,
     pub processing_state: CoreProcessingState,
-    /// Cache of prop values. The only way core should ever access prop values is through the cache.
-    pub prop_cache: PropCache,
     /// A map to look up if a component_node is in the render tree,
     /// i.e., if it can be reached from the document root via rendered children.
     /// For nodes in the render tree, we add their props marked for_render to the flat dast output,
@@ -66,16 +39,8 @@ impl Core {
         let stale_renderers = Vec::from([0.into()]);
 
         Core {
-            structure_graph: DirectedGraph::new(),
-            dependency_graph: DirectedGraph::new(),
-            components: TiVec::new(),
-            strings: StringCache::new(),
-            props: Vec::new(),
-            states: StateCache::new(),
-            queries: vec![DataQuery::Null],
-            virtual_node_count: 0,
+            document_model: DocumentModel::new_with_root_data_query(),
             processing_state: CoreProcessingState { stale_renderers },
-            prop_cache: PropCache::new(),
             in_render_tree: GraphNodeLookup::new(),
             for_render_query_node: GraphNode::Query(0), // the DataQuery::Null added in queries, above
         }
@@ -93,11 +58,7 @@ impl Core {
         let normalized_flat_root = flat_root.into_normalized_root();
 
         let component_builder = ComponentBuilder::from_normalized_root(&normalized_flat_root);
-        self.components = component_builder.components;
-        self.strings = component_builder.strings;
-        self.structure_graph = component_builder.structure_graph;
-        self.virtual_node_count = component_builder.virtual_node_count;
-        self.props = component_builder.props;
+        self.document_model.init_from_builder(component_builder);
     }
 }
 

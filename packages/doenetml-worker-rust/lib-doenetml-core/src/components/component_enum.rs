@@ -27,10 +27,6 @@ pub use super::doenet::title::Title;
     ComponentOnAction
 )]
 #[strum(ascii_case_insensitive)]
-// Components vary in size. It is unclear if we want to `Box` all of them,
-// or accept a size-inefficient data structure for simplicity.
-// Revisit when we have more components.
-#[allow(clippy::large_enum_variant)]
 pub enum ComponentEnum {
     Text(Text),
     //    TextInput(TextInput),

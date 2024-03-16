@@ -5,10 +5,7 @@ use crate::components::prelude::*;
 
 #[derive(Debug, Default)]
 pub struct _External {
-    pub common: ComponentCommonData,
-
     pub name: String,
-    pub props: _ExternalProps,
 }
 
 #[derive(Debug, Default)]

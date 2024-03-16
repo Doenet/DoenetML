@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::{
-    components::types::LocalPropIdx,
+    components::types::{LocalPropIdx, PropDefinitionIdx},
     graph::directed_graph::{DirectedGraph, Taggable},
 };
 
@@ -49,9 +49,9 @@ impl GraphNode {
     }
     /// Get the wrapped `index` value. This is the same as `idx()`
     /// except it will panic if `self` is not `GraphNode::Prop`.
-    pub fn prop_idx(&self) -> usize {
+    pub fn prop_idx(&self) -> PropDefinitionIdx {
         match self {
-            GraphNode::Prop(idx) => *idx,
+            GraphNode::Prop(idx) => (*idx).into(),
             _ => panic!("`prop_idx` expected a GraphNode::Prop"),
         }
     }

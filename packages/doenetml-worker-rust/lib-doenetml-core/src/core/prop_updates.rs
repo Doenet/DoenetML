@@ -49,8 +49,11 @@ impl Core {
         {
             // A call to on_action from a component processes the arguments and returns a vector
             // of component props with requested new values
-            let props_to_update =
-                self.components[component_idx].on_action(action.action, &mut prop_resolver)?;
+            let props_to_update = self
+                .document_model
+                .document_structure
+                .get_component(component_idx)
+                .on_action(action.action, &mut prop_resolver)?;
 
             for UpdateFromAction(local_prop_idx, _requested_value) in props_to_update {
                 let prop_pointer = PropPointer {
@@ -65,15 +68,16 @@ impl Core {
                 // which will look up this requested value.
                 // prop.set_requested_value(requested_value);
 
-                let prop_node = self.prop_pointer_to_prop_node(prop_pointer);
+                let prop_node =
+                    prop_pointer.into_prop_node(&self.document_model.document_structure);
 
-                let status = self.prop_cache.get_prop_status(prop_node);
+                let status = self.document_model.prop_cache.get_prop_status(prop_node);
 
                 // If prop is unresolved, then resolve it.
                 // This could occur only once, but actions are free to seek to modify any prop,
                 // even if it hasn't been accessed before.
                 if status == PropStatus::Unresolved {
-                    self.resolve_prop(prop_node);
+                    self.document_model.resolve_prop(prop_node);
                 }
 
                 // Recurse in the inverse direction along to dependency graph

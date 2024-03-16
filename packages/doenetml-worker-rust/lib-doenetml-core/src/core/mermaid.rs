@@ -167,15 +167,15 @@ impl DirectedGraph<GraphNode, GraphNodeLookup<usize>> {
 impl Core {
     /// Output a mermaid graph of the dependency graph.
     pub fn to_mermaid_dependency_graph(&self) -> String {
-        self.to_mermaid_from_graph(&self.dependency_graph)
+        self.to_mermaid_from_graph(&self.document_model.dependency_graph)
     }
     /// Output a mermaid graph of the structure graph.
     pub fn to_mermaid_structure_graph(&self) -> String {
-        self.to_mermaid_from_graph(&self.structure_graph)
+        self.to_mermaid_from_graph(&self.document_model.document_structure.structure_graph)
     }
     /// Output a mermaid graph of the structure graph.
     pub fn to_mermaid(&self) -> String {
-        self.to_mermaid_from_graph(&self.structure_graph)
+        self.to_mermaid_from_graph(&self.document_model.document_structure.structure_graph)
     }
     pub fn to_mermaid_from_graph(
         &self,
@@ -192,7 +192,8 @@ impl Core {
         for graph_node in graph.get_nodes().iter() {
             match graph_node {
                 GraphNode::Component(idx) => {
-                    let component = &self.components[ComponentIdx::from(graph_node)];
+                    let component = &self.document_model.document_structure.components
+                        [ComponentIdx::from(graph_node)];
                     mermaid.push_str(&format!(
                         "{}{{{{\"&lt;{}><sub>id={}</sub>\"}}}}\n",
                         graph_node.to_mermaid_id(),
@@ -208,7 +209,10 @@ impl Core {
                     mermaid.push_str(&format!(
                         "{}[\"&quot;{}&quot;\"]:::text\n",
                         graph_node.to_mermaid_id(),
-                        self.strings.get_string_value(graph_node)
+                        self.document_model
+                            .document_structure
+                            .strings
+                            .get_string_value(graph_node)
                     ));
                 }
                 _ => {}
@@ -224,7 +228,7 @@ impl Core {
             .filter(|n| matches!(n, GraphNode::Component(_)))
         {
             let component_idx = ComponentIdx::from(component_node);
-            let component = &self.components[component_idx];
+            let component = &self.document_model.document_structure.components[component_idx];
             // Children
             if let Some(children_virtual_node) = graph.get_nth_child(&component_node, 0) {
                 mermaid.push_str(&format!(

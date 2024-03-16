@@ -6,15 +6,17 @@ use crate::{
 };
 
 use super::{
-    core::Core,
-    graph_node::GraphNode,
-    props::{
-        cache::{PropStatus, PropWithMeta},
-        DataQueryResult,
+    super::{
+        graph_node::GraphNode,
+        props::{
+            cache::{PropStatus, PropWithMeta},
+            DataQueryResult,
+        },
     },
+    DocumentModel,
 };
 
-impl Core {
+impl DocumentModel {
     /// Props are created lazily so they start as `Unresolved`.
     /// They need to be resolved to be used.
     ///
@@ -37,7 +39,7 @@ impl Core {
                 continue;
             }
 
-            let prop = &self.props[prop_node.idx()];
+            let prop = &self.document_structure.get_prop_definition(prop_node);
             let data_queries = prop.updater.data_queries();
 
             for data_query in data_queries {
@@ -72,7 +74,7 @@ impl Core {
     /// compute any dependencies required to call the prop's `calculate` function.
     ///
     /// If `prop_node` is not resolved, this function will panic.
-    fn _execute_data_query_with_resolved_deps(&self, query_node: GraphNode) -> DataQueryResult {
+    pub fn _execute_data_query_with_resolved_deps(&self, query_node: GraphNode) -> DataQueryResult {
         let skip_fn = |prop_node: &GraphNode| {
             if matches!(prop_node, GraphNode::Prop(_)) {
                 self.prop_cache.get_prop_status(prop_node) == PropStatus::Fresh
@@ -87,7 +89,7 @@ impl Core {
             .descendants_reverse_topological_multiroot_with_skip(&[query_node], skip_fn)
         {
             match *node {
-                GraphNode::Prop(prop_idx) => {
+                GraphNode::Prop(_) => {
                     // This refers to a dependency of the current prop we're trying to calculate
                     let dependency_prop_node = *node;
 
@@ -107,7 +109,7 @@ impl Core {
                             self._execute_data_query_with_fresh_deps(dependency_query_node)
                         })
                         .collect::<Vec<_>>();
-                    let prop = &self.props[prop_idx];
+                    let prop = &self.document_structure.get_prop_definition(node);
                     self.prop_cache
                         .set_prop(node, prop.updater.calculate(required_data));
                 }
@@ -225,7 +227,9 @@ impl Core {
                                 )
                             }
                             GraphNode::State(_) => Some(self.states.get_state(node, query_node)),
-                            GraphNode::String(_) => Some(self.strings.get_string(node, query_node)),
+                            GraphNode::String(_) => {
+                                Some(self.document_structure.strings.get_string(node, query_node))
+                            }
                             // TODO: do we want to references to elements somewhere so we don't have to recreate each time?
                             GraphNode::Component(component_idx) => Some(PropWithMeta {
                                 // TODO: once we have a singular `ElementRef` we can remove the vector
@@ -251,47 +255,7 @@ impl Core {
         }
     }
 
-    /// Get the value of a prop for rendering. If the prop is stale or not resolved,
-    /// this function will resolve the prop, calculate all its dependencies, and then
-    /// return the result of `PropUpdater::calculate` applied to those dependencies.
-    /// Track that the prop has been viewed for rendering so that a second call will report it being unchanged.
-    pub fn get_prop_for_render(&mut self, prop_node: GraphNode) -> PropWithMeta {
-        self.resolve_prop(prop_node);
-
-        self.prop_cache
-            .get_prop(prop_node, self.for_render_query_node, || {
-                let required_data = self
-                    .get_data_query_nodes_for_prop(prop_node)
-                    .into_iter()
-                    .map(|query_node| self._execute_data_query_with_resolved_deps(query_node))
-                    .collect::<Vec<_>>();
-
-                let prop = &self.props[prop_node.prop_idx()];
-                prop.updater.calculate(required_data)
-            })
-    }
-
-    /// Get the value of a prop for rendering. If the prop is stale or not resolved,
-    /// this function will resolve the prop, calculate all its dependencies, and then
-    /// return the result of `PropUpdater::calculate` applied to those dependencies.
-    /// Do not track that the prop has been viewed for rendering so that its change state is unaltered.
-    pub fn get_prop_for_render_untracked(&mut self, prop_node: GraphNode) -> PropWithMeta {
-        self.resolve_prop(prop_node);
-
-        self.prop_cache
-            .get_prop_untracked(prop_node, self.for_render_query_node, || {
-                let required_data = self
-                    .get_data_query_nodes_for_prop(prop_node)
-                    .into_iter()
-                    .map(|query_node| self._execute_data_query_with_resolved_deps(query_node))
-                    .collect::<Vec<_>>();
-
-                let prop = &self.props[prop_node.prop_idx()];
-                prop.updater.calculate(required_data)
-            })
-    }
-
-    fn get_data_query_nodes_for_prop(&self, prop_node: GraphNode) -> Vec<GraphNode> {
+    pub fn get_data_query_nodes_for_prop(&self, prop_node: GraphNode) -> Vec<GraphNode> {
         self.dependency_graph.get_children(prop_node).into_iter().inspect(|n| {
             if !matches!(n, GraphNode::Query(_)) {
                 panic!("Dependency graph should only have DataQuery nodes as children of Prop nodes!");
