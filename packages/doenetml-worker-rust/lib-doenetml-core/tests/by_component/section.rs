@@ -4,7 +4,6 @@ use doenetml_core::{dast::FlatDastElementContent, graph_node::GraphNode};
 use test_helpers::*;
 
 #[test]
-#[ignore]
 fn section_finds_beginning_title_tag() {
     let dast_root =
         dast_root_no_position(r#"<section><title>Hello</title><text>content</text></section>"#);
@@ -35,7 +34,6 @@ fn section_finds_beginning_title_tag() {
     );
 }
 
-#[ignore]
 #[test]
 fn section_finds_title_tag_in_middle() {
     let dast_root = dast_root_no_position(
@@ -87,7 +85,6 @@ fn section_finds_title_tag_in_middle() {
     );
 }
 
-#[ignore]
 #[test]
 fn section_with_multiple_title_tags_picks_last() {
     let dast_root = dast_root_no_position(

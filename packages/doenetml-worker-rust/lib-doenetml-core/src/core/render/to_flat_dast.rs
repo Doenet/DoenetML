@@ -47,7 +47,9 @@ impl Core {
         self.in_render_tree.set_tag(component_node, true);
 
         for child_node in self.get_rendered_child_nodes(component_idx) {
-            self.mark_component_in_render_tree(child_node.component_idx());
+            if let GraphNode::Component(child_idx) = child_node {
+                self.mark_component_in_render_tree(child_idx);
+            }
         }
     }
 
@@ -143,7 +145,7 @@ impl Core {
         }
     }
 
-    /// Get the vector of component nodes corresponding to the rendered children of `component_idx`.
+    /// Get the vector of graph nodes corresponding to the rendered children of `component_idx`.
     /// Rendered children are the nodes from the prop with the `RenderedChildren` profile, if it exists
     fn get_rendered_child_nodes(&mut self, component_idx: ComponentIdx) -> Vec<GraphNode> {
         self.components[component_idx]

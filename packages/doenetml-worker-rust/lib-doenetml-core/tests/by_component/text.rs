@@ -46,7 +46,6 @@ fn text_has_no_rendered_children() {
     assert_eq!(*text_children, vec![]);
 }
 
-#[ignore]
 #[test]
 fn hidden_or_unrendered_text_dont_calculate_render_props() {
     let dast_root =
