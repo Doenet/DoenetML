@@ -4,7 +4,6 @@ use crate::{
         types::{ComponentIdx, PropPointer},
         ComponentNode,
     },
-    core::document_structure::DocumentStructure,
     props::{DataQueryFilter, DataQueryFilterComparison, PropProfile},
 };
 
@@ -44,9 +43,7 @@ impl DocumentModel {
 
                         let state_node: GraphNode =
                             self.add_state_node(prop_node, default_value, came_from_default);
-                        self.document_structure
-                            .structure_graph
-                            .add_edge(leaf_node, state_node);
+                        self.document_structure.add_edge(leaf_node, state_node);
                     }
                     _ => {
                         unreachable!(
@@ -124,7 +121,9 @@ impl DocumentModel {
                         panic!(
                             "Cannot find prop with profile `{:?}` on component `{}`",
                             prop_profile,
-                            self.document_structure.components[parent_idx].get_component_type()
+                            self.document_structure
+                                .get_component(parent_idx)
+                                .get_component_type()
                         )
                     })
                     .local_prop_idx;
@@ -157,15 +156,15 @@ impl DocumentModel {
                         panic!(
                             "Cannot find attribute `{}` on component `{}`",
                             attribute_name,
-                            self.document_structure.components[prop_pointer.component_idx]
+                            self.document_structure
+                                .get_component(prop_pointer.component_idx)
                                 .get_component_type()
                         )
                     });
 
                 for node in self
                     .document_structure
-                    .structure_graph
-                    .get_content_children(attr_node)
+                    .get_attribute_content_children(attr_node)
                 {
                     match node {
                         GraphNode::Component(_) => {
@@ -363,9 +362,7 @@ impl DocumentModel {
     ) -> GraphNode {
         let idx = self.states.add_state(value, came_from_default);
 
-        let new_node = GraphNode::State(idx);
-        self.document_structure.structure_graph.add_node(new_node);
-        new_node
+        GraphNode::State(idx)
     }
 
     /// Creates a `GraphNode::Query` node and saves information about the query to `self.queries`.
@@ -380,19 +377,10 @@ impl DocumentModel {
 
     /// Creates a `GraphNode::Virtual` node adds it to the `dependency_graph`.
     fn add_virtual_node(&mut self, _origin_node: GraphNode) -> GraphNode {
-        let new_node = GraphNode::Virtual(self.document_structure.virtual_node_count);
-        self.document_structure.virtual_node_count += 1;
+        let new_node = GraphNode::Virtual(self.virtual_node_count);
+        self.virtual_node_count += 1;
         self.dependency_graph.add_node(new_node);
         new_node
-    }
-}
-
-impl PropPointer {
-    /// Convert a `PropPointer` to a `GraphNode::Prop`.
-    pub fn into_prop_node(self, document_structure: &DocumentStructure) -> GraphNode {
-        document_structure
-            .structure_graph
-            .get_component_props(self.component_idx)[self.local_prop_idx]
     }
 }
 

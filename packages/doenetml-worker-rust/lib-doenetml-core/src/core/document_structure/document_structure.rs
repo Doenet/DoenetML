@@ -3,6 +3,8 @@
 //! This module holds information about the structure of the document: the components, props,
 //! and the (structural) relations to each other.
 
+use std::borrow;
+
 use typed_index_collections::TiVec;
 
 use crate::{
@@ -12,7 +14,7 @@ use crate::{
         Component, ComponentAttributes, ComponentCommon,
     },
     graph_node::{GraphNode, StructureGraph},
-    props::{PropDefinition, PropProfile, StringCache},
+    props::{cache::PropWithMeta, PropDefinition, PropProfile, StringCache},
 };
 
 /// Stores information about the _structure_ of a document. This includes components, props, and children.
@@ -22,17 +24,17 @@ use crate::{
 pub struct DocumentStructure {
     /// A graph that stores the structure of the document. This graph keeps
     /// track of children, attributes, props, and state.
-    pub structure_graph: StructureGraph,
+    structure_graph: StructureGraph,
     /// The reified components. These can be queried for information about their attributes/props/state
     /// as well as asked to calculate/recalculate props.
-    pub components: TiVec<ComponentIdx, Component>,
+    components: TiVec<ComponentIdx, Component>,
     /// A list of all strings in the document. Strings are stored here once and referenced when they appear as children.
-    pub strings: StringCache,
+    strings: StringCache,
     /// A counter for the number of virtual nodes created. Every virtual node needs to be unique (so that
     /// it can be referenced), but we don't store any information about virtual nodes themselves.
-    pub virtual_node_count: usize,
+    virtual_node_count: usize,
     /// Information about a prop used to resolve dependencies in a `DataQuery`.
-    pub prop_definitions: TiVec<PropDefinitionIdx, PropDefinition>,
+    prop_definitions: TiVec<PropDefinitionIdx, PropDefinition>,
 }
 
 impl DocumentStructure {
@@ -54,6 +56,15 @@ impl DocumentStructure {
         self.strings = builder.strings;
         self.virtual_node_count = builder.virtual_node_count;
         self.prop_definitions = builder.props;
+    }
+
+    /// Add an edge to the structure graph.
+    pub fn add_edge(&mut self, from: GraphNode, to: GraphNode) {
+        self.structure_graph.add_edge(from, to);
+    }
+
+    pub fn get_structure_graph(&self) -> &StructureGraph {
+        &self.structure_graph
     }
 
     /// Find the "origin" of a `GraphNode::Virtual` corresponding to an attribute. That is, if an attribute
@@ -141,6 +152,14 @@ impl DocumentStructure {
         content_children
     }
 
+    pub fn get_attribute_content_children<T: Into<GraphNode>>(
+        &self,
+        pointer: T,
+    ) -> impl Iterator<Item = GraphNode> + '_ {
+        let attribute_node: GraphNode = pointer.into();
+        self.structure_graph.get_content_children(attribute_node)
+    }
+
     /// Get the first prop that matches a profile in `profiles` for a given component.
     pub fn get_component_prop_by_profile(
         &self,
@@ -154,10 +173,40 @@ impl DocumentStructure {
                 local_prop_idx,
             })
     }
+
+    /// Returns an iterator over all component indices
+    pub fn get_component_indices(&self) -> impl Iterator<Item = ComponentIdx> {
+        (0..self.components.len()).map(ComponentIdx::new)
+    }
+
+    /// Get the value of a string node. `origin` affects the metadata returned,
+    /// and is used to track whether the string has changed since hte last time its value
+    /// was requested.
+    pub fn get_string<A: borrow::Borrow<GraphNode>, B: borrow::Borrow<GraphNode>>(
+        &self,
+        string_node: A,
+        origin: B,
+    ) -> PropWithMeta {
+        self.strings.get_string(string_node, origin)
+    }
+
+    /// Returns the value of a string node as a string without tracking whether it changed since the last request.
+    pub fn get_string_value<A: borrow::Borrow<GraphNode>>(&self, string_node: A) -> String {
+        self.strings.get_string_value(string_node)
+    }
 }
 
 impl Default for DocumentStructure {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+impl PropPointer {
+    /// Convert a `PropPointer` to a `GraphNode::Prop`.
+    pub fn into_prop_node(self, document_structure: &DocumentStructure) -> GraphNode {
+        document_structure
+            .structure_graph
+            .get_component_props(self.component_idx)[self.local_prop_idx]
     }
 }

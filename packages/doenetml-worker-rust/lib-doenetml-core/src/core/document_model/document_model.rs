@@ -26,6 +26,8 @@ pub struct DocumentModel {
     pub queries: Vec<DataQuery>,
     /// Cache of prop values. The only way core should ever access prop values is through the cache.
     pub prop_cache: PropCache,
+
+    pub virtual_node_count: usize,
 }
 
 impl DocumentModel {
@@ -37,6 +39,7 @@ impl DocumentModel {
             states: StateCache::new(),
             queries: Vec::new(),
             prop_cache: PropCache::new(),
+            virtual_node_count: 0,
         }
     }
 

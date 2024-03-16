@@ -26,9 +26,11 @@ impl Core {
     /// Include warnings as a separate vector (errors are embedded in the tree as elements).
     pub fn to_flat_dast(&mut self) -> FlatDastRoot {
         self.mark_component_in_render_tree(ComponentIdx::new(0));
-        let n_components = self.document_model.document_structure.components.len();
-        let elements: Vec<FlatDastElement> = (0..n_components)
-            .map(|comp_idx| self.component_to_flat_dast(comp_idx.into()))
+        let elements: Vec<FlatDastElement> = self
+            .document_model
+            .document_structure
+            .get_component_indices()
+            .map(|comp_idx| self.component_to_flat_dast(comp_idx))
             .collect();
 
         FlatDastRoot {
@@ -63,14 +65,13 @@ impl Core {
         let children = self
             .document_model
             .document_structure
-            .structure_graph
-            .get_component_children(component_node)
+            .get_component_content_children(component_node)
+            .iter()
             .map(|node| match node {
-                GraphNode::Component(idx) => FlatDastElementContent::Element(idx),
+                GraphNode::Component(idx) => FlatDastElementContent::Element(*idx),
                 GraphNode::String(_) => FlatDastElementContent::Text(
                     self.document_model
                         .document_structure
-                        .strings
                         .get_string_value(node),
                 ),
                 _ => panic!("Unexpected node type in component children {:?}", node),
@@ -140,7 +141,6 @@ impl Core {
                 GraphNode::String(_) => Some(FlatDastElementContent::Text(
                     self.document_model
                         .document_structure
-                        .strings
                         .get_string_value(child),
                 )),
                 _ => None,
@@ -156,7 +156,9 @@ impl Core {
     /// Get the vector of graph nodes corresponding to the rendered children of `component_idx`.
     /// Rendered children are the nodes from the prop with the `RenderedChildren` profile, if it exists
     fn get_rendered_child_nodes(&mut self, component_idx: ComponentIdx) -> Vec<GraphNode> {
-        self.document_model.document_structure.components[component_idx]
+        self.document_model
+            .document_structure
+            .get_component(component_idx)
             .provided_profiles()
             .into_iter()
             .find_map(|(profile, local_prop_idx)| {

@@ -228,7 +228,7 @@ impl DocumentModel {
                             }
                             GraphNode::State(_) => Some(self.states.get_state(node, query_node)),
                             GraphNode::String(_) => {
-                                Some(self.document_structure.strings.get_string(node, query_node))
+                                Some(self.document_structure.get_string(node, query_node))
                             }
                             // TODO: do we want to references to elements somewhere so we don't have to recreate each time?
                             GraphNode::Component(component_idx) => Some(PropWithMeta {
