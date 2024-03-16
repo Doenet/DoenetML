@@ -71,7 +71,7 @@ impl Core {
                 let prop_node =
                     prop_pointer.into_prop_node(&self.document_model.document_structure);
 
-                let status = self.document_model.prop_cache.get_prop_status(prop_node);
+                let status = self.document_model.get_prop_status(prop_node);
 
                 // If prop is unresolved, then resolve it.
                 // This could occur only once, but actions are free to seek to modify any prop,

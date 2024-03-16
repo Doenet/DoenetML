@@ -167,7 +167,7 @@ impl DirectedGraph<GraphNode, GraphNodeLookup<usize>> {
 impl Core {
     /// Output a mermaid graph of the dependency graph.
     pub fn to_mermaid_dependency_graph(&self) -> String {
-        self.to_mermaid_from_graph(&self.document_model.dependency_graph)
+        self.to_mermaid_from_graph(&self.document_model.get_dependency_graph())
     }
     /// Output a mermaid graph of the structure graph.
     pub fn to_mermaid_structure_graph(&self) -> String {

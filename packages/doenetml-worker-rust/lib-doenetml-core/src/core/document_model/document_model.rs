@@ -5,8 +5,11 @@
 
 use crate::{
     component_builder::ComponentBuilder,
-    graph_node::DependencyGraph,
-    props::{cache::PropCache, DataQuery, StateCache},
+    graph_node::{DependencyGraph, GraphNode},
+    props::{
+        cache::{PropCache, PropStatus, PropWithMeta},
+        DataQuery, StateCache,
+    },
 };
 
 use super::super::document_structure::DocumentStructure;
@@ -18,16 +21,17 @@ pub struct DocumentModel {
     /// A graph that stores the active dependencies between nodes. The nodes
     /// of this graph are the same as the nodes of `structure_graph`, but edges
     /// are only added to this graph if if one node must be updated when another changes.
-    pub dependency_graph: DependencyGraph,
+    pub(super) dependency_graph: DependencyGraph,
     /// States that are stored for the document. States are the roots/leaves of when computing the value
     /// of props.
-    pub states: StateCache,
+    pub(super) states: StateCache,
     /// DataQueries that have been made by props.
-    pub queries: Vec<DataQuery>,
+    pub(super) queries: Vec<DataQuery>,
     /// Cache of prop values. The only way core should ever access prop values is through the cache.
-    pub prop_cache: PropCache,
-
-    pub virtual_node_count: usize,
+    pub(super) prop_cache: PropCache,
+    /// A counter for the number of virtual nodes created. Every virtual node needs to be unique (so that
+    /// it can be referenced), but we don't store any information about virtual nodes themselves.
+    pub(super) virtual_node_count: usize,
 }
 
 impl DocumentModel {
@@ -55,6 +59,54 @@ impl DocumentModel {
     /// Initialize Self based on the values from a `ComponentBuilder`
     pub fn init_from_builder(&mut self, builder: ComponentBuilder) {
         self.document_structure.init_from_builder(builder);
+    }
+
+    pub fn get_dependency_graph(&self) -> &DependencyGraph {
+        &self.dependency_graph
+    }
+
+    /// Get the value of a prop. If the prop is stale or not resolved,
+    /// this function will resolve the prop, calculate all its dependencies, and then
+    /// return the result of `PropUpdater::calculate` applied to those dependencies.
+    /// Track that the prop has been viewed for rendering so that a second call will report it being unchanged.
+    pub fn get_prop(&mut self, prop_node: GraphNode, origin: GraphNode) -> PropWithMeta {
+        self.resolve_prop(prop_node);
+
+        self.prop_cache.get_prop(prop_node, origin, || {
+            let required_data = self
+                .get_data_query_nodes_for_prop(prop_node)
+                .into_iter()
+                .map(|query_node| self._execute_data_query_with_resolved_deps(query_node))
+                .collect::<Vec<_>>();
+
+            let prop = &self
+                .document_structure
+                .get_prop_definition(prop_node.prop_idx());
+            prop.updater.calculate(required_data)
+        })
+    }
+
+    /// Get the value of a prop for rendering. If the prop is stale or not resolved,
+    /// this function will resolve the prop, calculate all its dependencies, and then
+    /// return the result of `PropUpdater::calculate` applied to those dependencies.
+    /// Do not track that the prop has been viewed for rendering so that its change state is unaltered.
+    pub fn get_prop_untracked(&mut self, prop_node: GraphNode, origin: GraphNode) -> PropWithMeta {
+        self.resolve_prop(prop_node);
+
+        self.prop_cache.get_prop_untracked(prop_node, origin, || {
+            let required_data = self
+                .get_data_query_nodes_for_prop(prop_node)
+                .into_iter()
+                .map(|query_node| self._execute_data_query_with_resolved_deps(query_node))
+                .collect::<Vec<_>>();
+
+            let prop = self.document_structure.get_prop_definition(prop_node);
+            prop.updater.calculate(required_data)
+        })
+    }
+
+    pub fn get_prop_status(&self, prop_node: GraphNode) -> PropStatus {
+        self.prop_cache.get_prop_status(prop_node)
     }
 }
 
