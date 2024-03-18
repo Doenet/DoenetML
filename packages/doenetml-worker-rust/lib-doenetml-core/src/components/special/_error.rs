@@ -17,7 +17,7 @@ impl _Error {
 impl ComponentNode for _Error {
     // The main reason we customize the implementation of ComponentNode
     // is to use this custom component type coming from name
-    fn get_component_type(&self) -> &str {
+    fn get_component_type(&self) -> &'static str {
         "_error"
     }
 }

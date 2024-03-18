@@ -1,10 +1,12 @@
+use std::rc::Rc;
+
 use crate::components::{types::PropPointer, Boolean, Text};
 
 use super::{PropProfile, PropUpdater, PropValueDiscriminants};
 
 /// Data associated with a prop that is "owned" by a component.
 #[derive(Debug, Clone)]
-pub struct PropComponentMeta {
+pub struct PropDefinitionMeta {
     // Name of the prop
     pub name: &'static str,
     /// PropPointer to this prop.
@@ -16,16 +18,19 @@ pub struct PropComponentMeta {
     pub public: bool,
 }
 
+/// Type of a boxed `PropUpdater`.
+pub type BoxedUpdater = Rc<dyn PropUpdater>;
+
 /// A `PropDefinition` stores functions needed to compute a `PropValue` as required
 /// by a component.
 /// Its value is lazily computed and can depend on props coming from other components.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct PropDefinition {
     /// The updater holds all of the `calculate`, etc. functions for the prop.
-    pub updater: Box<dyn PropUpdater>,
+    pub updater: BoxedUpdater,
     pub variant: PropValueDiscriminants,
     /// Information about the prop that can only be determined from the parent component.
-    pub meta: PropComponentMeta,
+    pub meta: PropDefinitionMeta,
 }
 
 impl PropDefinition {

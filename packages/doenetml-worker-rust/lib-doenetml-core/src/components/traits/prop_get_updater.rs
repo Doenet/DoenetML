@@ -1,4 +1,4 @@
-use crate::core::props::PropUpdater;
+use crate::props::BoxedUpdater;
 
 /// Trait to be implemented on the `Props` **enum** of a component.
 ///
@@ -10,7 +10,7 @@ use crate::core::props::PropUpdater;
 /// }
 ///
 /// impl PropGetUpdater for Props {
-///   fn get_updater(&self) -> Box<dyn PropUpdater> {
+///   fn get_updater(&self) -> BoxedUpdater {
 ///     match self {
 ///       Props::Foo => StringProp::new_from_children("".to_string()).into_updater(),
 ///       Props::Bar => StringProp::new_from_children("".to_string()).into_updater(),
@@ -19,7 +19,7 @@ use crate::core::props::PropUpdater;
 /// ```
 pub trait PropGetUpdater {
     /// Get the updater for a specific prop on a Props enum.
-    fn get_updater(&self) -> Box<dyn PropUpdater>;
+    fn get_updater(&self) -> BoxedUpdater;
 }
 
 /// A function that asserts, at compile time, that a type implements `PropGetUpdater`.

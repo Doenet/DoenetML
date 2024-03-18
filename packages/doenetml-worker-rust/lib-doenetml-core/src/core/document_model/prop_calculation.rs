@@ -21,7 +21,7 @@ impl DocumentModel {
     /// They need to be resolved to be used.
     ///
     /// We resolve the prop by adding its data query to the dependency graph.
-    pub fn resolve_prop(&mut self, prop_node: GraphNode) {
+    pub fn resolve_prop(&self, prop_node: GraphNode) {
         // Short-circuit if the prop is already resolved
         if self.prop_cache.get_prop_status(prop_node) != PropStatus::Unresolved {
             return;
@@ -39,7 +39,7 @@ impl DocumentModel {
                 continue;
             }
 
-            let prop = &self.document_structure.get_prop_definition(prop_node);
+            let prop = self.get_prop_definition(prop_node);
             let data_queries = prop.updater.data_queries();
 
             for data_query in data_queries {
@@ -61,6 +61,7 @@ impl DocumentModel {
     pub fn execute_data_query(&mut self, query_node: GraphNode) -> DataQueryResult {
         for prop_node in self
             .dependency_graph
+            .borrow()
             .get_children(query_node)
             .into_iter()
             .filter(|node| matches!(node, GraphNode::Prop(_)))
@@ -86,6 +87,7 @@ impl DocumentModel {
         // Compute all the prop values in topological order
         for node in self
             .dependency_graph
+            .borrow()
             .descendants_reverse_topological_multiroot_with_skip(&[query_node], skip_fn)
         {
             match *node {
@@ -109,9 +111,9 @@ impl DocumentModel {
                             self._execute_data_query_with_fresh_deps(dependency_query_node)
                         })
                         .collect::<Vec<_>>();
-                    let prop = &self.document_structure.get_prop_definition(node);
+                    let prop_definition = self.get_prop_definition(node);
                     self.prop_cache
-                        .set_prop(node, prop.updater.calculate(required_data));
+                        .set_prop(node, prop_definition.updater.calculate(required_data));
                 }
                 _ => {
                     // Only Prop nodes need to be recursively calculated.
@@ -128,7 +130,7 @@ impl DocumentModel {
     ///
     /// Will panic if any required prop is not fresh.
     fn _execute_data_query_with_fresh_deps(&self, query_node: GraphNode) -> DataQueryResult {
-        let query = &self.queries[query_node.idx()];
+        let query = &self.queries.borrow()[query_node.idx()];
 
         match query {
             DataQuery::FilteredChildren {
@@ -137,6 +139,7 @@ impl DocumentModel {
             } => {
                 let values = self
                     .dependency_graph
+                    .borrow()
                     .get_children(query_node)
                     .into_iter()
                     .filter_map(|node| {
@@ -144,7 +147,7 @@ impl DocumentModel {
                             GraphNode::Virtual(_) => {
                                 let virtual_node = node;
                                 let virtual_children =
-                                    self.dependency_graph.get_children(virtual_node);
+                                    self.dependency_graph.borrow().get_children(virtual_node);
 
                                 let component_node = virtual_children[0];
 
@@ -214,6 +217,7 @@ impl DocumentModel {
                 // The props for the data query should be the immediate children of the query node
                 let values = self
                     .dependency_graph
+                    .borrow()
                     .get_children(query_node)
                     .into_iter()
                     .filter_map(|node| {
@@ -227,9 +231,11 @@ impl DocumentModel {
                                 )
                             }
                             GraphNode::State(_) => Some(self.states.get_state(node, query_node)),
-                            GraphNode::String(_) => {
-                                Some(self.document_structure.get_string(node, query_node))
-                            }
+                            GraphNode::String(_) => Some(
+                                self.document_structure
+                                    .borrow()
+                                    .get_string(node, query_node),
+                            ),
                             // TODO: do we want to references to elements somewhere so we don't have to recreate each time?
                             GraphNode::Component(component_idx) => Some(PropWithMeta {
                                 // TODO: once we have a singular `ElementRef` we can remove the vector
@@ -256,7 +262,7 @@ impl DocumentModel {
     }
 
     pub fn get_data_query_nodes_for_prop(&self, prop_node: GraphNode) -> Vec<GraphNode> {
-        self.dependency_graph.get_children(prop_node).into_iter().inspect(|n| {
+        self.dependency_graph.borrow().get_children(prop_node).into_iter().inspect(|n| {
             if !matches!(n, GraphNode::Query(_)) {
                 panic!("Dependency graph should only have DataQuery nodes as children of Prop nodes!");
             }

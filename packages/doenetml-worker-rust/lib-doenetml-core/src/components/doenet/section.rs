@@ -1,5 +1,8 @@
+use std::rc::Rc;
+
 use crate::components::prelude::*;
 use crate::general_prop::ElementRefsProp;
+use crate::props::BoxedUpdater;
 use crate::props::ComponentTypeDataQueryFilter;
 use crate::props::DataQueryFilter;
 use crate::props::DataQueryFilterComparison;
@@ -41,13 +44,13 @@ pub use component::SectionProps;
 use super::title::Title;
 
 impl PropGetUpdater for SectionProps {
-    fn get_updater(&self) -> Box<dyn PropUpdater> {
+    fn get_updater(&self) -> BoxedUpdater {
         match self {
             SectionProps::Title => {
-                Box::new(ElementRefsProp::new_from_last_matching_child(Title::NAME))
+                Rc::new(ElementRefsProp::new_from_last_matching_child(Title::NAME))
             }
             SectionProps::Hidden => SectionAttributes::Hide.get_prop_updater(),
-            SectionProps::RenderedChildren => Box::new(SectionRenderedChildren::new()),
+            SectionProps::RenderedChildren => Rc::new(SectionRenderedChildren::new()),
         }
     }
 }

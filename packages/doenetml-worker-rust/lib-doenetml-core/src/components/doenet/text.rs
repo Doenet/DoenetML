@@ -1,5 +1,6 @@
 use crate::components::prelude::*;
 use crate::general_prop::StringProp;
+use crate::props::BoxedUpdater;
 
 /// The `<text>` component displays its contents as text. It is one of the simplest
 /// DoenetML components.
@@ -38,9 +39,9 @@ pub use component::TextAttributes;
 pub use component::TextProps;
 
 impl PropGetUpdater for TextProps {
-    fn get_updater(&self) -> Box<dyn PropUpdater> {
+    fn get_updater(&self) -> BoxedUpdater {
         match self {
-            TextProps::Value => Box::new(StringProp::new_from_children("".to_string())),
+            TextProps::Value => StringProp::new_from_children("".to_string()).into(),
             TextProps::Hidden => TextAttributes::Hide.get_prop_updater(),
         }
     }

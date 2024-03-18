@@ -52,6 +52,7 @@ impl Core {
             let props_to_update = self
                 .document_model
                 .document_structure
+                .borrow()
                 .get_component(component_idx)
                 .on_action(action.action, &mut prop_resolver)?;
 
@@ -69,7 +70,7 @@ impl Core {
                 // prop.set_requested_value(requested_value);
 
                 let prop_node =
-                    prop_pointer.into_prop_node(&self.document_model.document_structure);
+                    prop_pointer.into_prop_node(&self.document_model.document_structure.borrow());
 
                 let status = self.document_model.get_prop_status(prop_node);
 
@@ -88,6 +89,6 @@ impl Core {
                 // process_prop_update_request(PropUpdateRequest::SetProp(prop_ptr));
             }
         }
-        Ok(self.get_flat_dast_updates())
+        Ok(self.document_renderer.get_flat_dast_updates())
     }
 }

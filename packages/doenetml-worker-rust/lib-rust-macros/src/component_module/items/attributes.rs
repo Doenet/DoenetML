@@ -166,10 +166,10 @@ impl ComponentModule {
     /// The implementation should look like
     /// ```ignore
     /// impl PropFromAttributeVariant for Attributes {
-    ///   fn prop(&self) -> Box<dyn PropUpdater> {
+    ///   fn prop(&self) -> BoxedUpdater {
     ///     match self {
-    ///       Attributes::Foo => Box::new(FooProp::new_from_attribute("foo", default_value)),
-    ///       Attributes::Bar => Box::new(BarProp::new_from_attribute("bar", default_value)),
+    ///       Attributes::Foo => Rc::new(FooProp::new_from_attribute("foo", default_value)),
+    ///       Attributes::Bar => Rc::new(BarProp::new_from_attribute("bar", default_value)),
     ///     }
     ///   }
     /// }
@@ -197,7 +197,7 @@ impl ComponentModule {
                     }
                     (Some(prop), Some(default)) => {
                         quote! {
-                            Self::#variant_ident => Box::new(#prop::new_from_attribute(#attribute_name, #default)),
+                            Self::#variant_ident => std::rc::Rc::new(#prop::new_from_attribute(#attribute_name, #default)),
                         }
                     }
                 }
@@ -206,7 +206,7 @@ impl ComponentModule {
 
         quote! {
             impl PropFromAttributeVariant for Attributes {
-                fn get_prop_updater(&self) -> Box<dyn PropUpdater> {
+                fn get_prop_updater(&self) -> crate::props::BoxedUpdater {
                     match self {
                         #(#match_arms)*
                     }

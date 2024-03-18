@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 use super::{cache::PropWithMeta, PropValue};
 use anyhow::anyhow;
 use genrc::Rc;
@@ -92,6 +94,9 @@ where
 impl<T> TryFrom<&PropWithMeta> for PropView<T>
 where
     for<'a> &'a T: TryFrom<&'a PropValue>,
+    // TODO: these bounds should allow for `?` syntax and `.unwrap()` to work...but maybe `T` is too generic?
+    //  for<'a> <&'a T as TryFrom<&'a PropValue>>::Error: std::fmt::Debug,
+    //  anyhow::Error: for<'a> From<<&'a T as TryFrom<&'a PropValue>>::Error>,
 {
     type Error = anyhow::Error;
 

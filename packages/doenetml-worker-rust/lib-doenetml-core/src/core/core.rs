@@ -2,12 +2,12 @@
 
 use crate::{
     components::prelude::ComponentIdx,
-    dast::{flat_dast::FlatRoot, ref_expand::Expander, DastRoot},
-    graph_node::GraphNodeLookup,
+    dast::{flat_dast::FlatRoot, ref_expand::Expander, DastRoot, FlatDastRoot},
 };
 
 use super::{
-    component_builder::ComponentBuilder, document_model::DocumentModel, graph_node::GraphNode,
+    component_builder::ComponentBuilder, document_model::DocumentModel,
+    document_renderer::DocumentRenderer,
 };
 
 /// Core stores all hydrated components, keeps track of caching data, and tracks dependencies.
@@ -16,15 +16,7 @@ use super::{
 #[derive(Debug)]
 pub struct Core {
     pub document_model: DocumentModel,
-    pub processing_state: CoreProcessingState,
-    /// A map to look up if a component_node is in the render tree,
-    /// i.e., if it can be reached from the document root via rendered children.
-    /// For nodes in the render tree, we add their props marked for_render to the flat dast output,
-    /// and we need to send flat dast updates if those props change.
-    pub in_render_tree: GraphNodeLookup<bool>,
-    // This graph node is used to figure out if any props have changed between renders.
-    // It is a single fixed node and should always be related to the first entry of `self.queries`.
-    pub(super) for_render_query_node: GraphNode,
+    pub document_renderer: DocumentRenderer,
 }
 
 impl Default for Core {
@@ -35,14 +27,9 @@ impl Default for Core {
 
 impl Core {
     pub fn new() -> Self {
-        // Initialize with the document element being stale.
-        let stale_renderers = Vec::from([0.into()]);
-
         Core {
             document_model: DocumentModel::new_with_root_data_query(),
-            processing_state: CoreProcessingState { stale_renderers },
-            in_render_tree: GraphNodeLookup::new(),
-            for_render_query_node: GraphNode::Query(0), // the DataQuery::Null added in queries, above
+            document_renderer: DocumentRenderer::new(),
         }
     }
 
@@ -59,6 +46,27 @@ impl Core {
 
         let component_builder = ComponentBuilder::from_normalized_root(&normalized_flat_root);
         self.document_model.init_from_builder(component_builder);
+    }
+
+    pub fn to_flat_dast(&mut self) -> FlatDastRoot {
+        self.document_renderer
+            .render_flat_dast(&self.document_model)
+    }
+}
+
+///
+/// Functions used for testing
+///
+#[cfg(feature = "testing")]
+pub mod testing_features {
+    use super::*;
+    use crate::{graph_node::GraphNode, props::cache::PropWithMeta};
+
+    impl Core {
+        pub fn get_prop_for_render_untracked(&mut self, prop_node: GraphNode) -> PropWithMeta {
+            self.document_renderer
+                .get_prop_for_render_untracked(prop_node, &self.document_model)
+        }
     }
 }
 

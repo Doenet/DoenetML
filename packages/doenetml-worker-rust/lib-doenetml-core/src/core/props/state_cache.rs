@@ -1,6 +1,6 @@
 //! Storage and retrieval of state props
 
-use std::borrow;
+use std::{borrow, cell::Cell};
 
 use crate::core::graph_node::GraphNode;
 
@@ -16,22 +16,23 @@ pub struct StateCache {
     /// to give a nicer API.
     prop_cache: PropCache,
     /// The number of state items that have been created.
-    state_counter: usize,
+    state_counter: Cell<usize>,
 }
 
 impl StateCache {
     pub fn new() -> Self {
         StateCache {
             prop_cache: PropCache::new(),
-            state_counter: 0,
+            state_counter: Cell::new(0),
         }
     }
 
     /// Add a state prop to the store with given `value` and `came_from_default`.
     /// Returns the state prop's index.
-    pub fn add_state(&mut self, value: PropValue, came_from_default: bool) -> usize {
-        self.state_counter += 1;
-        let idx = self.state_counter;
+    pub fn add_state(&self, value: PropValue, came_from_default: bool) -> usize {
+        let mut idx = self.state_counter.get();
+        idx += 1;
+        self.state_counter.set(idx);
         let value = if came_from_default {
             PropCalcResult::FromDefault(value)
         } else {

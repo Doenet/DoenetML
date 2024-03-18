@@ -1,6 +1,8 @@
+use std::rc::Rc;
+
 use crate::{
     components::prelude::*,
-    props::{DataQueryResult, InvertError},
+    props::{BoxedUpdater, DataQueryResult, InvertError},
 };
 
 use super::util::{string_attr_to_boolean, string_to_boolean};
@@ -105,6 +107,12 @@ impl BooleanProp {
 
         self.propagate_came_from_default = false;
         self
+    }
+}
+
+impl From<BooleanProp> for BoxedUpdater {
+    fn from(prop: BooleanProp) -> BoxedUpdater {
+        Rc::new(prop)
     }
 }
 

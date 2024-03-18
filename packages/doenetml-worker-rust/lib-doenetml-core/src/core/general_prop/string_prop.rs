@@ -1,6 +1,9 @@
+use std::rc::Rc;
+
 use crate::{
     components::prelude::*,
     core::props::{DataQueryResult, InvertError, PropUpdater},
+    props::BoxedUpdater,
 };
 
 /// A string prop that calculates its value by concatenating all string dependencies.
@@ -94,6 +97,12 @@ impl StringProp {
 
         self.propagate_came_from_default = false;
         self
+    }
+}
+
+impl From<StringProp> for BoxedUpdater {
+    fn from(prop: StringProp) -> BoxedUpdater {
+        Rc::new(prop)
     }
 }
 

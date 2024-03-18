@@ -1,4 +1,4 @@
-use crate::props::PropUpdater;
+use crate::props::BoxedUpdater;
 
 /// Trait for creating a prop from an attribute. This is mainly used for
 /// general props.
@@ -14,5 +14,5 @@ pub trait PropFromAttributeVariant {
     /// Create a boxed instance of `PropUpdater`. The resulting prop will reference the value of
     /// the corresponding attribute. For example `MyAttributes::Foo.prop()` creates a prop
     /// that references the `"foo"` attribute.
-    fn get_prop_updater(&self) -> Box<dyn PropUpdater>;
+    fn get_prop_updater(&self) -> BoxedUpdater;
 }

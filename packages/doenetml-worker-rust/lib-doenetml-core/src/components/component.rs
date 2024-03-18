@@ -4,7 +4,7 @@
 use std::collections::HashMap;
 use std::str::FromStr;
 
-use crate::core::props::{PropComponentMeta, PropDefinition, PropProfile, PropValue};
+use crate::core::props::{PropDefinition, PropDefinitionMeta, PropProfile, PropValue};
 use crate::dast::Position as DastPosition;
 
 use super::_error::_Error;
@@ -74,7 +74,7 @@ impl ComponentProps for Component {
             .map(|local_prop_idx| {
                 let local_prop_idx = LocalPropIdx::new(local_prop_idx);
                 PropDefinition {
-                    meta: PropComponentMeta {
+                    meta: PropDefinitionMeta {
                         name: self.variant.get_prop_name(local_prop_idx),
                         for_renderer: self.variant.get_prop_is_for_render(local_prop_idx),
                         profile: self.variant.get_prop_profile(local_prop_idx),

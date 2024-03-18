@@ -2,7 +2,7 @@ use super::*;
 
 #[test]
 fn test_store_state_props_and_retrieve_them() {
-    let mut cache = StateCache::new();
+    let cache = StateCache::new();
 
     let idx = cache.add_state(PropValue::Integer(47), true);
 
@@ -17,7 +17,7 @@ fn test_store_state_props_and_retrieve_them() {
 
 #[test]
 fn test_state_props_can_detect_changes() {
-    let mut cache = StateCache::new();
+    let cache = StateCache::new();
 
     let idx = cache.add_state(PropValue::Integer(47), true);
 
@@ -55,7 +55,7 @@ fn test_state_props_can_detect_changes() {
 
 #[test]
 fn test_state_props_came_from_default_becomes_false() {
-    let mut cache = StateCache::new();
+    let cache = StateCache::new();
 
     let idx = cache.add_state(PropValue::Integer(0), true);
 

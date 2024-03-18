@@ -158,7 +158,7 @@ mod test_helpers {
             component_idx,
             local_prop_idx: title_local_idx,
         }
-        .into_prop_node(&core.document_model.document_structure);
+        .into_prop_node(&core.document_model.document_structure.borrow());
         let value = core.get_prop_for_render_untracked(prop_node).value;
 
         let element_refs: ElementRefs = (*value).clone().try_into().unwrap();
@@ -182,7 +182,7 @@ mod test_helpers {
             component_idx,
             local_prop_idx: rendered_children_local_idx,
         }
-        .into_prop_node(&core.document_model.document_structure);
+        .into_prop_node(&core.document_model.document_structure.borrow());
         let value = core.get_prop_for_render_untracked(prop_node).value;
 
         let graph_nodes: Vec<GraphNode> = (*value).clone().try_into().unwrap();

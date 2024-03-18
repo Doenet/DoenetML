@@ -12,7 +12,6 @@ pub mod graph_node;
 pub mod math_via_wasm;
 pub mod prop_updates;
 pub mod props;
-pub mod render;
 
 // Because of the use of #[enum_dispatch], the `state` module must be declared before the `general_prop` module.
 pub mod state;

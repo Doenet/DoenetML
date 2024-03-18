@@ -1,9 +1,7 @@
 //! Utilities for generating `mermaid` diagrams from `doenetml` data.
 
 use crate::{
-    components::{
-        prelude::UntaggedContent, types::ComponentIdx, ComponentAttributes, ComponentNode,
-    },
+    components::{prelude::UntaggedContent, types::ComponentIdx, ComponentAttributes},
     dast::flat_dast::{NormalizedNode, NormalizedRoot},
     graph::directed_graph::DirectedGraph,
 };
@@ -171,11 +169,21 @@ impl Core {
     }
     /// Output a mermaid graph of the structure graph.
     pub fn to_mermaid_structure_graph(&self) -> String {
-        self.to_mermaid_from_graph(self.document_model.document_structure.get_structure_graph())
+        self.to_mermaid_from_graph(
+            self.document_model
+                .document_structure
+                .borrow()
+                .get_structure_graph(),
+        )
     }
     /// Output a mermaid graph of the structure graph.
     pub fn to_mermaid(&self) -> String {
-        self.to_mermaid_from_graph(self.document_model.document_structure.get_structure_graph())
+        self.to_mermaid_from_graph(
+            self.document_model
+                .document_structure
+                .borrow()
+                .get_structure_graph(),
+        )
     }
     pub fn to_mermaid_from_graph(
         &self,
@@ -192,14 +200,10 @@ impl Core {
         for graph_node in graph.get_nodes().iter() {
             match graph_node {
                 GraphNode::Component(idx) => {
-                    let component = &self
-                        .document_model
-                        .document_structure
-                        .get_component(graph_node);
                     mermaid.push_str(&format!(
                         "{}{{{{\"&lt;{}><sub>id={}</sub>\"}}}}\n",
                         graph_node.to_mermaid_id(),
-                        component.get_component_type(),
+                        self.document_model.get_component_type(graph_node),
                         idx
                     ));
                 }
@@ -213,6 +217,7 @@ impl Core {
                         graph_node.to_mermaid_id(),
                         self.document_model
                             .document_structure
+                            .borrow()
                             .get_string_value(graph_node)
                     ));
                 }
@@ -229,10 +234,6 @@ impl Core {
             .filter(|n| matches!(n, GraphNode::Component(_)))
         {
             let component_idx = ComponentIdx::from(component_node);
-            let component = &self
-                .document_model
-                .document_structure
-                .get_component(component_idx);
             // Children
             if let Some(children_virtual_node) = graph.get_nth_child(&component_node, 0) {
                 mermaid.push_str(&format!(
@@ -249,6 +250,8 @@ impl Core {
                 ));
             }
 
+            let document_structure = self.document_model.document_structure.borrow();
+            let component = document_structure.get_component(component_idx);
             // Label the individual attributes
             for (i, attr_virtual_node) in graph
                 .get_component_attributes(component_node)
