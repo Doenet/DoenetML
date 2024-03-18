@@ -18,7 +18,7 @@ pub use super::doenet::title::Title;
 /// to allow easy access to the methods.
 ///
 /// Each component type added to `ComponentEnum` must implement that component node traits.
-#[derive(Debug, EnumString)]
+#[derive(Debug, EnumString, Clone)]
 #[enum_dispatch(
     ComponentNode,
     ComponentVariantProps,

@@ -3,7 +3,7 @@
 
 use crate::{components::prelude::*, props::BoxedUpdater};
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct _External {
     pub name: String,
 }
@@ -18,14 +18,14 @@ impl ComponentProps for _External {
     fn generate_props(&self) -> Vec<PropDefinition> {
         vec![]
     }
-    fn get_prop_profile_local_prop_indices(&self) -> Vec<LocalPropIdx> {
-        vec![]
+    fn get_prop_profile_local_prop_indices(&self) -> impl Iterator<Item = LocalPropIdx> {
+        vec![].into_iter()
     }
     fn get_default_prop_local_index(&self) -> Option<LocalPropIdx> {
         None
     }
-    fn get_for_renderer_local_prop_indices(&self) -> Vec<LocalPropIdx> {
-        vec![]
+    fn get_for_renderer_local_prop_indices(&self) -> impl Iterator<Item = LocalPropIdx> {
+        vec![].into_iter()
     }
     fn get_local_prop_index_from_name(&self, _name: &str) -> Option<LocalPropIdx> {
         None

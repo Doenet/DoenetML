@@ -7,11 +7,14 @@ use std::cell::{Cell, Ref, RefCell};
 
 use crate::{
     component_builder::ComponentBuilder,
-    components::ComponentNode,
+    components::{
+        types::{ComponentIdx, LocalPropIdx, PropPointer},
+        Component, ComponentNode, ComponentProps,
+    },
     graph_node::{DependencyGraph, GraphNode},
     props::{
         cache::{PropCache, PropStatus, PropWithMeta},
-        DataQuery, PropDefinition, StateCache,
+        DataQuery, PropDefinition, PropProfile, StateCache,
     },
 };
 
@@ -127,6 +130,74 @@ impl DocumentModel {
             .get_component(pointer)
             .get_component_type()
             .to_string()
+    }
+
+    /// An iterator that iterates over the indices of every component.
+    pub fn get_component_indices(&self) -> impl Iterator<Item = ComponentIdx> {
+        self.document_structure.borrow().get_component_indices()
+    }
+
+    /// Get prop pointers to all `for_render` props of a component.
+    pub fn get_for_render_prop_pointers(
+        &self,
+        component_idx: ComponentIdx,
+    ) -> impl Iterator<Item = PropPointer> {
+        let local_prop_indices = {
+            let document_structure = self.document_structure.borrow();
+            let iterator = document_structure
+                .get_component(component_idx)
+                .get_for_renderer_local_prop_indices();
+            // Note: collect into a vector so that stop borrowing from document_structure.components
+            iterator.collect::<Vec<_>>()
+        };
+        local_prop_indices
+            .into_iter()
+            .map(move |local_prop_idx| PropPointer {
+                component_idx,
+                local_prop_idx,
+            })
+    }
+
+    /// Convert a `PropPointer` into a `GraphNode::Prop`
+    pub fn prop_pointer_to_prop_node(&self, prop_pointer: PropPointer) -> GraphNode {
+        let document_structure = self.document_structure.borrow();
+        prop_pointer.into_prop_node(&document_structure)
+    }
+
+    /// Get the name of a prop
+    pub fn get_prop_name(&self, prop_pointer: PropPointer) -> &'static str {
+        let document_structure = self.document_structure.borrow();
+        let prop_node = prop_pointer.into_prop_node(&document_structure);
+        let prop_name = document_structure.get_prop_definition(prop_node).meta.name;
+        prop_name
+    }
+
+    /// Get the string value associated with a `GraphNode::String`
+    pub fn get_string_value(&self, string_node: GraphNode) -> String {
+        let document_structure = self.document_structure.borrow();
+        document_structure.get_string_value(string_node)
+    }
+
+    /// A vector of the possible profiles this component provides
+    /// along with the index of the prop that you should refer to
+    /// if you want data satisfying that profile.
+    pub fn get_provided_profiles(
+        &self,
+        component_idx: ComponentIdx,
+    ) -> Vec<(PropProfile, LocalPropIdx)> {
+        let document_structure = self.document_structure.borrow();
+        document_structure
+            .get_component(component_idx)
+            .provided_profiles()
+    }
+
+    /// Get a clone of the component at the given index. Since a clone is returned, the
+    /// caller can take ownership of the parts of the returned component.
+    pub fn get_component(&self, component_idx: ComponentIdx) -> Component {
+        self.document_structure
+            .borrow()
+            .get_component(component_idx)
+            .clone()
     }
 }
 

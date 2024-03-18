@@ -18,7 +18,7 @@ use super::{
 };
 
 /// A DoenetML component. A component is a collection of props combined with render information.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Component {
     /// Data common to all components.
     pub common: ComponentCommonData,
@@ -27,7 +27,7 @@ pub struct Component {
 }
 
 /// A set of fields that are common to all DoenetMLcomponents.
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct ComponentCommonData {
     /// The index of this component, which is its index
     /// in the `components` vector on core.
@@ -110,28 +110,24 @@ impl ComponentProps for Component {
             .map(LocalPropIdx::new)
     }
 
-    fn get_prop_profile_local_prop_indices(&self) -> Vec<LocalPropIdx> {
-        (0..self.variant.get_num_props())
-            .filter_map(|i| {
-                self.variant
-                    .get_prop_profile(LocalPropIdx::new(i))
-                    .map(|_| LocalPropIdx::new(i))
-            })
-            .collect()
+    fn get_prop_profile_local_prop_indices(&self) -> impl Iterator<Item = LocalPropIdx> {
+        (0..self.variant.get_num_props()).filter_map(|i| {
+            self.variant
+                .get_prop_profile(LocalPropIdx::new(i))
+                .map(|_| LocalPropIdx::new(i))
+        })
     }
 
     fn get_default_prop_local_index(&self) -> Option<LocalPropIdx> {
         self.variant.get_default_prop_local_index()
     }
 
-    fn get_for_renderer_local_prop_indices(&self) -> Vec<LocalPropIdx> {
-        (0..self.variant.get_num_props())
-            .filter_map(|i| {
-                self.variant
-                    .get_prop_is_for_render(LocalPropIdx::new(i))
-                    .then_some(LocalPropIdx::new(i))
-            })
-            .collect()
+    fn get_for_renderer_local_prop_indices(&self) -> impl Iterator<Item = LocalPropIdx> {
+        (0..self.variant.get_num_props()).filter_map(|i| {
+            self.variant
+                .get_prop_is_for_render(LocalPropIdx::new(i))
+                .then_some(LocalPropIdx::new(i))
+        })
     }
 }
 

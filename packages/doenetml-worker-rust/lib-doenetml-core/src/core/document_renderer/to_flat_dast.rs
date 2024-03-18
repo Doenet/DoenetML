@@ -4,7 +4,7 @@ use crate::{
     components::{
         prelude::{ComponentIdx, ElementData, FlatDastElement, FlatDastElementContent},
         types::PropPointer,
-        Component, ComponentActions, ComponentCommon, ComponentEnum, ComponentNode, ComponentProps,
+        ComponentActions, ComponentCommon, ComponentEnum, ComponentNode,
     },
     core::document_model::DocumentModel,
     dast::{
@@ -25,11 +25,8 @@ impl DocumentRenderer {
     /// Include warnings as a separate vector (errors are embedded in the tree as elements).
     pub fn render_flat_dast(&mut self, document_model: &DocumentModel) -> FlatDastRoot {
         self.mark_component_in_render_tree(ComponentIdx::new(0), document_model);
-        let indices = document_model
-            .document_structure
-            .borrow()
-            .get_component_indices();
-        let elements: Vec<FlatDastElement> = indices
+        let elements = document_model
+            .get_component_indices()
             .map(|comp_idx| self.component_to_flat_dast(comp_idx, document_model))
             .collect();
 
@@ -59,33 +56,85 @@ impl DocumentRenderer {
         }
     }
 
-    pub fn component_to_flat_dast2(
-        &self,
-        component: &Component,
+    /// Convert a component to a `FlatDastElement`.
+    pub fn component_to_flat_dast(
+        &mut self,
+        component_idx: ComponentIdx,
         document_model: &DocumentModel,
     ) -> FlatDastElement {
-        let component_node = component.get_idx().as_graph_node();
+        let child_nodes = self.get_rendered_child_nodes(component_idx, document_model);
 
-        // Children don't need any additional processing. They are directly converted into FlatDast.
-
-        //       let children = component.get_rendered_children(child_query_object);
-
-        let children = document_model
-            .document_structure
-            .borrow()
-            .get_component_content_children(component_node)
-            .iter()
-            .map(|node| match node {
-                GraphNode::Component(idx) => FlatDastElementContent::Element(*idx),
-                GraphNode::String(_) => FlatDastElementContent::Text(
-                    document_model
-                        .document_structure
-                        .borrow()
-                        .get_string_value(node),
-                ),
-                _ => panic!("Unexpected node type in component children {:?}", node),
+        let children = child_nodes
+            .into_iter()
+            .filter_map(|child| match child {
+                GraphNode::Component(idx) => Some(FlatDastElementContent::Element(idx)),
+                GraphNode::String(_) => Some(FlatDastElementContent::Text(
+                    document_model.get_string_value(child),
+                )),
+                _ => None,
             })
             .collect::<Vec<_>>();
+
+        FlatDastElement {
+            children,
+            ..self.component_to_flat_dast_no_children(component_idx, document_model)
+        }
+    }
+
+    /// Get the vector of graph nodes corresponding to the rendered children of `component_idx`.
+    /// Rendered children are the nodes from the prop with the `RenderedChildren` profile, if it exists
+    fn get_rendered_child_nodes(
+        &mut self,
+        component_idx: ComponentIdx,
+        document_model: &DocumentModel,
+    ) -> Vec<GraphNode> {
+        let profs = { document_model.get_provided_profiles(component_idx) };
+        profs
+            .into_iter()
+            .find_map(|(profile, local_prop_idx)| {
+                if profile == PropProfile::RenderedChildren {
+                    let prop_pointer = PropPointer {
+                        component_idx,
+                        local_prop_idx,
+                    };
+                    let rendered_children_value =
+                        &*self.get_prop_for_render(prop_pointer, document_model).value;
+                    match rendered_children_value {
+                        PropValue::GraphNodes(graph_nodes) => Some(graph_nodes.clone()),
+                        _ => unreachable!(
+                            "RenderedChildren prop must return GraphNodes, found {:?}",
+                            rendered_children_value
+                        ),
+                    }
+                } else {
+                    None
+                }
+            })
+            .unwrap_or_default()
+    }
+
+    /// Convert a component to a `FlatDastElement` without its children. This is can be used
+    /// as an intermediate step when producing flat dast elements.
+    fn component_to_flat_dast_no_children(
+        &mut self,
+        component_idx: ComponentIdx,
+        document_model: &DocumentModel,
+    ) -> FlatDastElement {
+        // For efficiency, calculate rendered props only if component_idx is in the render tree
+        let rendered_props = self
+            .in_render_tree
+            .get_tag(&component_idx.as_graph_node())
+            .copied()
+            .and_then(|in_tree| {
+                in_tree.then(|| self.get_rendered_props(component_idx, false, document_model))
+            });
+
+        let component = document_model.get_component(component_idx);
+        let message = if let ComponentEnum::_Error(error) = &component.variant {
+            Some(error.message.clone())
+        } else {
+            None
+        };
 
         // Only the unrecognized attributes remain ont he actual element. Convert them to a flat dast.
         let attributes = component.get_unrecognized_attributes();
@@ -121,120 +170,9 @@ impl DocumentRenderer {
 
         FlatDastElement {
             name: component.get_component_type().to_string(),
-            attributes,
-            children,
-            data: ElementData {
-                id: component.get_idx().as_usize(),
-                action_names: Some(
-                    component
-                        .get_action_names()
-                        .iter()
-                        .map(|x| x.to_string())
-                        .collect(),
-                ),
-                props: None,
-                message: None,
-            },
-            position: None,
-        }
-    }
-
-    /// Convert a component to a `FlatDastElement`.
-    pub fn component_to_flat_dast(
-        &mut self,
-        component_idx: ComponentIdx,
-        document_model: &DocumentModel,
-    ) -> FlatDastElement {
-        let child_nodes = self.get_rendered_child_nodes(component_idx, document_model);
-
-        let children = child_nodes
-            .into_iter()
-            .filter_map(|child| match child {
-                GraphNode::Component(idx) => Some(FlatDastElementContent::Element(idx)),
-                GraphNode::String(_) => Some(FlatDastElementContent::Text(
-                    document_model
-                        .document_structure
-                        .borrow()
-                        .get_string_value(child),
-                )),
-                _ => None,
-            })
-            .collect::<Vec<_>>();
-
-        FlatDastElement {
-            children,
-            ..self.component_to_flat_dast_no_children(component_idx, document_model)
-        }
-    }
-
-    /// Get the vector of graph nodes corresponding to the rendered children of `component_idx`.
-    /// Rendered children are the nodes from the prop with the `RenderedChildren` profile, if it exists
-    fn get_rendered_child_nodes(
-        &mut self,
-        component_idx: ComponentIdx,
-        document_model: &DocumentModel,
-    ) -> Vec<GraphNode> {
-        let profs = {
-            document_model
-                .document_structure
-                .borrow()
-                .get_component(component_idx)
-                .provided_profiles()
-        };
-        profs
-            .into_iter()
-            .find_map(|(profile, local_prop_idx)| {
-                if profile == PropProfile::RenderedChildren {
-                    let prop_node = PropPointer {
-                        component_idx,
-                        local_prop_idx,
-                    }
-                    .into_prop_node(&document_model.document_structure.borrow());
-                    let rendered_children_value =
-                        &*self.get_prop_for_render(prop_node, document_model).value;
-                    match rendered_children_value {
-                        PropValue::GraphNodes(graph_nodes) => Some(graph_nodes.clone()),
-                        _ => unreachable!(
-                            "RenderedChildren prop must return GraphNodes, found {:?}",
-                            rendered_children_value
-                        ),
-                    }
-                } else {
-                    None
-                }
-            })
-            .unwrap_or_default()
-    }
-
-    /// Convert a component to a `FlatDastElement` without its children. This is can be used
-    /// as an intermediate step when producing flat dast elements.
-    fn component_to_flat_dast_no_children(
-        &mut self,
-        component_idx: ComponentIdx,
-        document_model: &DocumentModel,
-    ) -> FlatDastElement {
-        // For efficiency, calculate rendered props only if component_idx is in the render tree
-        let rendered_props = self
-            .in_render_tree
-            .get_tag(&component_idx.as_graph_node())
-            .copied()
-            .and_then(|in_tree| {
-                in_tree.then(|| self.get_rendered_props(component_idx, false, document_model))
-            });
-
-        let document_structure = document_model.document_structure.borrow();
-        let component = document_structure.get_component(component_idx);
-        let message = if let ComponentEnum::_Error(error) = &component.variant {
-            Some(error.message.clone())
-        } else {
-            None
-        };
-
-        FlatDastElement {
-            name: component.get_component_type().to_string(),
             // TODO: We should return some version of component.get_unrecognized_attributes()
             // However, those attributes might not be expandable if they contain an expanded refs.
-            attributes: HashMap::new(),
+            attributes,
             children: Vec::new(),
             data: ElementData {
                 id: component.get_idx().as_usize(),
@@ -248,7 +186,7 @@ impl DocumentRenderer {
                 props: rendered_props,
                 message,
             },
-            position: component.get_position().cloned(),
+            position: component.common.position,
         }
     }
 
@@ -263,34 +201,14 @@ impl DocumentRenderer {
         only_changed_props: bool,
         document_model: &DocumentModel,
     ) -> ForRenderProps {
-        // Note: collect into a vector so that stop borrowing from self.components
-        // (needed since self.get_prop_for_render() currently needs a mutable borrow of self)
-        let rendered_prop_pointers = document_model
-            .document_structure
-            .borrow()
-            .get_component(component_idx)
-            .get_for_renderer_local_prop_indices()
-            .into_iter()
-            .map(|local_prop_idx| PropPointer {
-                component_idx,
-                local_prop_idx,
-            })
-            .collect::<Vec<_>>();
+        let rendered_prop_pointers = document_model.get_for_render_prop_pointers(component_idx);
 
         let rendered_prop_value_vec = rendered_prop_pointers
-            .into_iter()
             .filter_map(|prop_pointer| {
-                let prop_node =
-                    prop_pointer.into_prop_node(&document_model.document_structure.borrow());
-                let prop = self.get_prop_for_render(prop_node, document_model);
+                let prop = self.get_prop_for_render(prop_pointer, document_model);
                 if !only_changed_props || prop.changed {
                     let prop_value = (*prop.value).clone();
-                    let prop_name = document_model
-                        .document_structure
-                        .borrow()
-                        .get_prop_definition(prop_node)
-                        .meta
-                        .name;
+                    let prop_name = document_model.get_prop_name(prop_pointer);
                     Some(ForRenderPropValue {
                         name: prop_name,
                         value: prop_value,
@@ -325,10 +243,13 @@ impl DocumentRenderer {
     /// Track that the prop has been viewed for rendering so that a second call will report it being unchanged.
     pub fn get_prop_for_render(
         &mut self,
-        prop_node: GraphNode,
+        prop_pointer: PropPointer,
         document_model: &DocumentModel,
     ) -> PropWithMeta {
-        document_model.get_prop(prop_node, self.for_render_query_node)
+        document_model.get_prop(
+            document_model.prop_pointer_to_prop_node(prop_pointer),
+            self.for_render_query_node,
+        )
     }
 
     /// Get the value of a prop for rendering. If the prop is stale or not resolved,

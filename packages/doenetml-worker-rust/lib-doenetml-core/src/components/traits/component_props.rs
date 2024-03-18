@@ -21,11 +21,11 @@ pub trait ComponentProps {
 
     /// Return a vector of the indices of this component's props
     /// that have been given a `PropProfile`
-    fn get_prop_profile_local_prop_indices(&self) -> Vec<LocalPropIdx>;
+    fn get_prop_profile_local_prop_indices(&self) -> impl Iterator<Item = LocalPropIdx>;
 
     fn get_default_prop_local_index(&self) -> Option<LocalPropIdx>;
 
     /// Get the vector of the indices of all this component's props
     /// that have been marked `for_renderer`.
-    fn get_for_renderer_local_prop_indices(&self) -> Vec<LocalPropIdx>;
+    fn get_for_renderer_local_prop_indices(&self) -> impl Iterator<Item = LocalPropIdx>;
 }
