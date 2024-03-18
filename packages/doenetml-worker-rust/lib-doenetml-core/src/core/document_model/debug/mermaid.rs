@@ -4,13 +4,10 @@ use crate::{
     components::{prelude::UntaggedContent, types::ComponentIdx, ComponentAttributes},
     dast::flat_dast::{NormalizedNode, NormalizedRoot},
     graph::directed_graph::DirectedGraph,
+    graph_node::{GraphNode, GraphNodeLookup},
+    Core,
 };
 use itertools::Itertools;
-
-use super::{
-    core::Core,
-    graph_node::{GraphNode, GraphNodeLookup},
-};
 
 impl NormalizedRoot {
     /// Output a mermaid graph of the structure graph.

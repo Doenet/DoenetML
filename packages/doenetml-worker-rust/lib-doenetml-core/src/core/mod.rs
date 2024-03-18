@@ -23,6 +23,3 @@ pub mod general_prop;
 #[allow(clippy::module_inception)]
 pub mod core;
 pub use core::*;
-
-#[cfg(test)]
-pub mod mermaid;

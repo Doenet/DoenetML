@@ -51,8 +51,6 @@ impl Core {
             // of component props with requested new values
             let props_to_update = self
                 .document_model
-                .document_structure
-                .borrow()
                 .get_component(component_idx)
                 .on_action(action.action, &mut prop_resolver)?;
 
@@ -69,8 +67,7 @@ impl Core {
                 // which will look up this requested value.
                 // prop.set_requested_value(requested_value);
 
-                let prop_node =
-                    prop_pointer.into_prop_node(&self.document_model.document_structure.borrow());
+                let prop_node = self.document_model.prop_pointer_to_prop_node(prop_pointer);
 
                 let status = self.document_model.get_prop_status(prop_node);
 

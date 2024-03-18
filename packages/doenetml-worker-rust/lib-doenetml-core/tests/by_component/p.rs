@@ -200,11 +200,10 @@ mod test_helpers {
                 .unwrap(),
         );
 
-        let prop_node = PropPointer {
+        let prop_node = core.document_model.prop_pointer_to_prop_node(PropPointer {
             component_idx,
             local_prop_idx: rendered_children_local_idx,
-        }
-        .into_prop_node(&core.document_model.document_structure.borrow());
+        });
         let value = core.get_prop_for_render_untracked(prop_node).value;
 
         let graph_nodes: Vec<GraphNode> = (*value).clone().try_into().unwrap();

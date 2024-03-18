@@ -23,7 +23,7 @@ use super::super::document_structure::DocumentStructure;
 #[derive(Debug)]
 pub struct DocumentModel {
     /// Information about the structure of the document. This includes components, props, and children.
-    pub document_structure: RefCell<DocumentStructure>,
+    pub(super) document_structure: RefCell<DocumentStructure>,
     /// A graph that stores the active dependencies between nodes. The nodes
     /// of this graph are the same as the nodes of `structure_graph`, but edges
     /// are only added to this graph if if one node must be updated when another changes.

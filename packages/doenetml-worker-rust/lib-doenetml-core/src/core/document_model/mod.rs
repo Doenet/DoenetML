@@ -9,3 +9,6 @@ mod document_model;
 mod prop_calculation;
 
 pub use document_model::*;
+
+#[cfg(test)]
+mod debug;
