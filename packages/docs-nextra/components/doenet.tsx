@@ -1,6 +1,6 @@
 import React from "react";
 import dynamic from "next/dynamic";
 
-export const DynamicMyCounter = dynamic(() => import("./counter"), {
+export const DoenetML = dynamic(() => import("./doenetInternal"), {
     ssr: false,
 });
