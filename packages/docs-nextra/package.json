@@ -1,0 +1,25 @@
+{
+    "name": "@doenet/docs-nextra",
+    "type": "module",
+    "description": "Documentation for DoenetML using Nextra",
+    "version": "*",
+    "license": "AGPL-3.0-or-later",
+    "homepage": "https://github.com/Doenet/DoenetML#readme",
+    "private": true,
+    "repository": "github:Doenet/DoenetML",
+    "files": [
+        "/dist"
+    ],
+    "scripts": {
+        "dev": "next",
+        "build": "next build",
+        "start": "next start"
+    },
+    "dependencies": {
+        "next": "^14.1.4",
+        "nextra": "^2.13.4",
+        "nextra-theme-docs": "^2.13.4",
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0"
+    }
+}
