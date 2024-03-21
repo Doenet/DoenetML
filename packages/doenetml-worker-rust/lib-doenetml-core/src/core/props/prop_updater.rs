@@ -2,7 +2,7 @@ use thiserror::Error;
 
 use crate::components::prelude::DataQuery;
 
-use super::{data_query::DataQueryResult, PropValue};
+use super::{data_query::DataQueryResult, DataQueryResults, PropValue};
 
 /// The possible results of a call to `calculate`:
 /// - `Calculated(val)`: the value was calculated to be `val`
@@ -39,7 +39,7 @@ pub trait PropUpdater: std::fmt::Debug {
 
     /// Calculate the value of the prop from the passed in `data`.
     /// Results of this function will be cached, so local caching is not needed.
-    fn calculate(&self, data: Vec<DataQueryResult>) -> PropCalcResult<PropValue>;
+    fn calculate(&self, data: DataQueryResults) -> PropCalcResult<PropValue>;
 
     /// All props know how to calculate their value given their dependencies.
     /// Sometimes a prop is requested to take on a particular value. If the

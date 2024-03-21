@@ -1,7 +1,7 @@
 use genrc::Rc;
 
 use crate::{
-    props::{DataQuery, DataQueryFilter, DataQueryFilterComparison, PropValue},
+    props::{DataQuery, DataQueryFilter, DataQueryFilterComparison, DataQueryResults, PropValue},
     state::types::element_refs::ElementRefs,
 };
 
@@ -104,13 +104,14 @@ impl DocumentModel {
                         PropStatus::Resolved | PropStatus::Stale => {}
                     };
 
-                    let required_data = self
-                        .get_data_query_nodes_for_prop(dependency_prop_node)
-                        .into_iter()
-                        .map(|dependency_query_node| {
-                            self._execute_data_query_with_fresh_deps(dependency_query_node)
-                        })
-                        .collect::<Vec<_>>();
+                    let required_data = DataQueryResults::from_vec(
+                        self.get_data_query_nodes_for_prop(dependency_prop_node)
+                            .into_iter()
+                            .map(|dependency_query_node| {
+                                self._execute_data_query_with_fresh_deps(dependency_query_node)
+                            })
+                            .collect(),
+                    );
                     let prop_definition = self.get_prop_definition(node);
                     self.prop_cache
                         .set_prop(node, prop_definition.updater.calculate(required_data));

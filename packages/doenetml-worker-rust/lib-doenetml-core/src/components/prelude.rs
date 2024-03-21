@@ -14,6 +14,8 @@ pub use crate::dast::flat_dast::FlatAttribute;
 pub use crate::dast::flat_dast::UntaggedContent;
 pub use crate::dast::Position as DastPosition;
 pub use crate::props::traits::*;
+pub use crate::props::{DataQueryResult, DataQueryResults, FromDataQueryResults};
+pub use crate::props::{FromPropWithMeta, IntoPropView};
 pub use crate::utils::KeyValueIgnoreCase;
 
 pub use crate::components::{

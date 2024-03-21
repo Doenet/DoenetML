@@ -144,9 +144,9 @@ impl PropUpdater for BooleanProp {
     }
 
     #[allow(clippy::needless_return)]
-    fn calculate(&self, data: Vec<DataQueryResult>) -> PropCalcResult<PropValue> {
-        let independent_state = &data[0].values[0];
-        let booleans_and_strings = &data[1].values;
+    fn calculate(&self, data: DataQueryResults) -> PropCalcResult<PropValue> {
+        let independent_state = &data.vec[0].values[0];
+        let booleans_and_strings = &data.vec[1].values;
 
         match booleans_and_strings.len() {
             0 => {

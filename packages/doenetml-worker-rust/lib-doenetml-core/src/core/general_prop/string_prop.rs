@@ -132,9 +132,9 @@ impl PropUpdater for StringProp {
         vec![DataQuery::State, self.data_query.clone()]
     }
 
-    fn calculate(&self, data: Vec<DataQueryResult>) -> PropCalcResult<PropValue> {
-        let independent_state = &data[0].values[0];
-        let strings = &data[1].values;
+    fn calculate(&self, data: DataQueryResults) -> PropCalcResult<PropValue> {
+        let independent_state = &data.vec[0].values[0];
+        let strings = &data.vec[1].values;
 
         match strings.len() {
             0 => {

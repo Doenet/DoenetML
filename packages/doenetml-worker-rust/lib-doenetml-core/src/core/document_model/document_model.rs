@@ -14,7 +14,7 @@ use crate::{
     graph_node::{DependencyGraph, GraphNode},
     props::{
         cache::{PropCache, PropStatus, PropWithMeta},
-        DataQuery, PropDefinition, PropProfile, StateCache,
+        DataQuery, DataQueryResults, PropDefinition, PropProfile, StateCache,
     },
 };
 
@@ -81,11 +81,12 @@ impl DocumentModel {
         self.resolve_prop(prop_node);
 
         self.prop_cache.get_prop(prop_node, origin, || {
-            let required_data = self
-                .get_data_query_nodes_for_prop(prop_node)
-                .into_iter()
-                .map(|query_node| self._execute_data_query_with_resolved_deps(query_node))
-                .collect::<Vec<_>>();
+            let required_data = DataQueryResults::from_vec(
+                self.get_data_query_nodes_for_prop(prop_node)
+                    .into_iter()
+                    .map(|query_node| self._execute_data_query_with_resolved_deps(query_node))
+                    .collect(),
+            );
 
             let prop = &self.get_prop_definition(prop_node.prop_idx());
             prop.updater.calculate(required_data)
@@ -100,11 +101,12 @@ impl DocumentModel {
         self.resolve_prop(prop_node);
 
         self.prop_cache.get_prop_untracked(prop_node, origin, || {
-            let required_data = self
-                .get_data_query_nodes_for_prop(prop_node)
-                .into_iter()
-                .map(|query_node| self._execute_data_query_with_resolved_deps(query_node))
-                .collect::<Vec<_>>();
+            let required_data = DataQueryResults::from_vec(
+                self.get_data_query_nodes_for_prop(prop_node)
+                    .into_iter()
+                    .map(|query_node| self._execute_data_query_with_resolved_deps(query_node))
+                    .collect(),
+            );
 
             let prop_definition = self.get_prop_definition(prop_node);
             prop_definition.updater.calculate(required_data)

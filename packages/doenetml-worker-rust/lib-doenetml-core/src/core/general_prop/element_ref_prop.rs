@@ -1,6 +1,6 @@
 use crate::{
     components::prelude::*,
-    core::props::{DataQueryResult, PropUpdater},
+    core::props::PropUpdater,
     props::{ComponentTypeDataQueryFilter, DataQueryFilter, DataQueryFilterComparison},
     state::types::element_refs::ElementRefs,
 };
@@ -79,8 +79,8 @@ impl PropUpdater for ElementRefsProp {
         vec![self.data_query.clone()]
     }
 
-    fn calculate(&self, data: Vec<DataQueryResult>) -> PropCalcResult<PropValue> {
-        let elements_found = &data[0].values;
+    fn calculate(&self, data: DataQueryResults) -> PropCalcResult<PropValue> {
+        let elements_found = &data.vec[0].values;
 
         match elements_found.len() {
             // return an empty vector if nothing found

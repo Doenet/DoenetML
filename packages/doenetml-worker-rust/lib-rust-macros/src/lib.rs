@@ -3,8 +3,10 @@ extern crate proc_macro2;
 use component_module::generate_component_module;
 use proc_macro::TokenStream;
 use quote::quote;
+use structured_data::generate_structured_data;
 
 mod component_module;
+mod structured_data;
 mod try_from_ref;
 
 /// Create a _DoenetML_ _Component_ from a decorated module. This macro adds creates required structs/enums
@@ -139,6 +141,44 @@ pub fn component(attr: TokenStream, item: TokenStream) -> TokenStream {
     };
 
     match generate_component_module(combined) {
+        Ok(tokens) => tokens.into(),
+        Err(e) => e.to_compile_error().into(),
+    }
+}
+
+/// Allow a typed struct to be created from `DataQueryResults`.
+///
+/// You must specify the `query_trait = ...` attribute. If you specify
+/// `#[data_query(query_trait = Foo)]`, then a `Foo` trait will be created.
+/// You must implement this trait for your struct.
+///
+/// The trait will define a `*_query` function for each field of your struct,
+/// and your implementation must return a `DataQuery` corresponding to each field.
+///
+/// ## Example
+/// ```ignore
+/// #[derive(FromDataQueryResults)]
+/// #[data_query(query_trait = CreateDataQueries)]
+/// struct RequiredData {
+///     foo: PropView<String>,
+///     bar: PropView<f32>,
+/// }
+/// // You must implement the `CreateDataQueries` trait for the struct
+/// // to specify the data queries used for each field.
+/// impl CreateDataQueries for RequiredData {
+///     fn foo_query(&self) -> DataQuery {
+///         // The simplest `DataQuery`
+///         DataQuery::State
+///     }
+///     fn bar_query(&self) -> DataQuery {
+///         DataQuery::State
+///     }
+/// }
+/// ```
+///
+#[proc_macro_derive(FromDataQueryResults, attributes(data_query))]
+pub fn structured_data(input: TokenStream) -> TokenStream {
+    match generate_structured_data(input.into()) {
         Ok(tokens) => tokens.into(),
         Err(e) => e.to_compile_error().into(),
     }

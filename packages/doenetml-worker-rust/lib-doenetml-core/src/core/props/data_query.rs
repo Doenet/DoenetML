@@ -21,11 +21,34 @@ pub struct DataQueryResult {
 ///
 /// The type is wrapped so we can re-implement external traits like `std::ops::Index`.
 #[derive(Debug)]
-pub struct DataQueryResultVec {
+pub struct DataQueryResults {
     pub vec: Vec<DataQueryResult>,
 }
 
-/// A DataQuery is used to make a Dependency based on the input document structure
+impl Default for DataQueryResults {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl DataQueryResults {
+    pub fn new() -> Self {
+        Self { vec: Vec::new() }
+    }
+    pub fn from_vec(vec: Vec<DataQueryResult>) -> Self {
+        Self { vec }
+    }
+}
+
+/// A trait for converting `DataQueryResults` into the custom `RequiredData`
+/// types as used in the `calculate(...)` functions.
+pub trait FromDataQueryResults {
+    fn to_data_queries() -> Vec<DataQuery>;
+    fn from_data_query_results(data: DataQueryResults) -> Self;
+}
+
+/// A `DataQuery` a request for information from the document. It could be a request for a prop value,
+/// a request for a list of children, etc..
 #[derive(Debug, Clone, Default, PartialEq)]
 pub enum DataQuery {
     /// Query for all children that have a prop that matches the prescribed `PropProfile`s.
@@ -34,6 +57,7 @@ pub enum DataQuery {
         /// The data query will match child components that have at least one of these profiles
         match_profiles: Vec<PropProfile>,
     },
+
     /// Query for all child GraphNodes,
     /// filtering element nodes for components which contain PropProfile props given specified values
     ///
@@ -64,8 +88,10 @@ pub enum DataQuery {
         /// The prop from component_idx or component making the query.
         local_prop_idx: LocalPropIdx,
     },
+
     /// Query for a prop from a parent
     ParentProp { prop_profile: PropProfile },
+
     /// Query for all children of an attribute that match the prescribed `PropProfile`
     Attribute {
         /// The name of the attribute whose children will be matched.
@@ -74,10 +100,12 @@ pub enum DataQuery {
         /// The data query will match child components that have at least one of these profiles.
         match_profiles: Vec<PropProfile>,
     },
+
     #[default]
     /// Will be initialized with the default value of this prop
     /// and will accept any change when inverting.
     State,
+
     /// A data query that cannot be resolved. This is used as a dependency of other data queries.
     Null,
 }
