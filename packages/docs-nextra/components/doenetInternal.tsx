@@ -1,6 +1,6 @@
 import React from "react";
 
-import { renderDoenetToContainer } from "@doenet/standalone";
+import { renderDoenetToContainer } from "doenet-standalone-test";
 
 export function DoenetInternal({children}) {
 console.log(children)
