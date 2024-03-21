@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use crate::{
     components::prelude::*,
     core::props::PropUpdater,
@@ -72,7 +74,7 @@ impl ElementRefsProp {
 
 impl PropUpdater for ElementRefsProp {
     fn default(&self) -> PropValue {
-        PropValue::ElementRefs(ElementRefs::default())
+        PropValue::ElementRefs(Rc::new(ElementRefs::default()))
     }
 
     fn data_queries(&self) -> Vec<DataQuery> {
@@ -88,7 +90,7 @@ impl PropUpdater for ElementRefsProp {
             _ => {
                 let elements = elements_found
                     .iter()
-                    .flat_map(|elt| match &*elt.value {
+                    .flat_map(|elt| match &elt.value {
                         PropValue::GraphNodes(graph_nodes) => graph_nodes.iter().map(|node| match node {
                             GraphNode::Component(_) => node.into(),
                             _ => unreachable!("data queries for element refs prop should return component graph nodes, found {:?}", node)
@@ -101,12 +103,16 @@ impl PropUpdater for ElementRefsProp {
                     .collect::<Vec<_>>();
                 PropCalcResult::Calculated(match self.elements_to_select {
                     ElementsToSelect::First => {
-                        PropValue::ElementRefs(ElementRefs(vec![*elements.first().unwrap()]))
+                        PropValue::ElementRefs(Rc::new(ElementRefs(vec![*elements
+                            .first()
+                            .unwrap()])))
                     }
                     ElementsToSelect::Last => {
-                        PropValue::ElementRefs(ElementRefs(vec![*elements.last().unwrap()]))
+                        PropValue::ElementRefs(Rc::new(ElementRefs(vec![*elements
+                            .last()
+                            .unwrap()])))
                     }
-                    ElementsToSelect::All => PropValue::ElementRefs(ElementRefs(elements)),
+                    ElementsToSelect::All => PropValue::ElementRefs(Rc::new(ElementRefs(elements))),
                 })
             }
         }

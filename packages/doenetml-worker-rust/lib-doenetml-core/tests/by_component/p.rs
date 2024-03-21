@@ -179,6 +179,8 @@ fn p_extending_section() {
 }
 
 mod test_helpers {
+    use std::rc::Rc;
+
     use doenetml_core::{
         components::P,
         dast::{FlatDastElement, FlatDastElementContent},
@@ -206,9 +208,9 @@ mod test_helpers {
         });
         let value = core.get_prop_for_render_untracked(prop_node).value;
 
-        let graph_nodes: Vec<GraphNode> = (*value).clone().try_into().unwrap();
+        let graph_nodes: Rc<Vec<GraphNode>> = (value).clone().try_into().unwrap();
 
-        graph_nodes
+        (*graph_nodes).clone()
     }
 
     pub fn get_string_children(element: &FlatDastElement) -> Vec<Option<&str>> {

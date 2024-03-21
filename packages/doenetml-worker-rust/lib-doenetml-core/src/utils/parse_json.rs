@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::{collections::HashMap, rc::Rc};
 
 use crate::components::prelude::PropValue;
 
@@ -48,7 +48,7 @@ impl From<ArgValue> for Vec<PropValue> {
     fn from(value: ArgValue) -> Self {
         match value {
             ArgValue::Bool(v) => vec![PropValue::Boolean(v)],
-            ArgValue::String(v) => vec![PropValue::String(v)],
+            ArgValue::String(v) => vec![PropValue::String(Rc::new(v))],
             ArgValue::Number(v) => vec![v.into()],
             ArgValue::NumberArray(v) => v.into_iter().map(|v| v.into()).collect(),
         }

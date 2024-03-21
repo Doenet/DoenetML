@@ -2,21 +2,11 @@ use std::fmt::Debug;
 
 use super::{cache::PropWithMeta, PropValue};
 use anyhow::anyhow;
-use genrc::Rc;
 
 /// A view into the (typed) value of a prop. The value is a reference
 /// wrapped in an `Rc`.
 #[derive(Debug, Clone)]
 pub struct PropView<T> {
-    pub value: Rc<T>,
-    pub came_from_default: bool,
-    pub changed: bool,
-}
-/// A type version of a prop where the value has been cloned. This is more
-/// expensive than asking for `PropView` but allows you full ownership of the
-/// value.
-#[derive(Debug, Clone)]
-pub struct PropCloned<T: Clone> {
     pub value: T,
     pub came_from_default: bool,
     pub changed: bool,
@@ -26,46 +16,15 @@ mod try_from {
     //! `TryFrom` implementations for `PropWithMeta` to `PropView` and `PropCloned`.
     use super::*;
 
-    impl<T> TryFrom<PropWithMeta> for PropCloned<T>
-    where
-        for<'a> &'a T: TryFrom<&'a PropValue>,
-        T: Clone,
-    {
-        type Error = anyhow::Error;
-        fn try_from(prop: PropWithMeta) -> Result<Self, Self::Error> {
-            let prop_view: PropView<T> = prop.try_into()?;
-            Ok(PropCloned {
-                value: (*prop_view.value).clone(),
-                came_from_default: prop_view.came_from_default,
-                changed: prop_view.changed,
-            })
-        }
-    }
-
-    impl<T> TryFrom<&PropWithMeta> for PropCloned<T>
-    where
-        for<'a> &'a T: TryFrom<&'a PropValue>,
-        T: Clone,
-    {
-        type Error = anyhow::Error;
-        fn try_from(prop: &PropWithMeta) -> Result<Self, Self::Error> {
-            let prop_view: PropView<T> = prop.try_into()?;
-            Ok(PropCloned {
-                value: (*prop_view.value).clone(),
-                came_from_default: prop_view.came_from_default,
-                changed: prop_view.changed,
-            })
-        }
-    }
-
     impl<T> TryFrom<PropWithMeta> for PropView<T>
     where
         for<'a> &'a T: TryFrom<&'a PropValue>,
+        T: TryFrom<PropValue>,
     {
         type Error = anyhow::Error;
 
         fn try_from(prop: PropWithMeta) -> Result<Self, Self::Error> {
-            match <&PropValue as TryInto<&T>>::try_into(&*prop.value) {
+            match <&PropValue as TryInto<&T>>::try_into(&prop.value) {
                 Ok(_) => {}
                 // TODO: Destructuring the error here confuses Rust. Is there a way to get the actual error?
                 Err(_) => {
@@ -76,16 +35,14 @@ mod try_from {
                 }
             }
 
-            // Clone the Rc since we will be consuming it to `project()`.
-            let untyped_value = Rc::clone(&prop.value);
-            let value = Rc::project(untyped_value, |v| {
-                // This is safe because we already did a `try_into()?` above
-                // TODO: calling `.unwrap()` here confused Rust because it doesn't know the error type. Is there a way to fix this?
-                match v.try_into() {
-                    Ok(v) => v,
-                    Err(_) => unreachable!(),
-                }
-            });
+            let untyped_value: Result<T, _> = T::try_from(prop.value);
+
+            // This is safe because we already did a `try_into()?` above
+            // TODO: calling `.unwrap()` here confused Rust because it doesn't know the error type. Is there a way to fix this?
+            let value = match untyped_value {
+                Ok(v) => v,
+                Err(_) => unreachable!(),
+            };
 
             Ok(PropView {
                 value,
@@ -98,6 +55,7 @@ mod try_from {
     impl<T> TryFrom<&PropWithMeta> for PropView<T>
     where
         for<'a> &'a T: TryFrom<&'a PropValue>,
+        T: TryFrom<PropValue>,
         // TODO: these bounds should allow for `?` syntax and `.unwrap()` to work...but maybe `T` is too generic?
         //  for<'a> <&'a T as TryFrom<&'a PropValue>>::Error: std::fmt::Debug,
         //  anyhow::Error: for<'a> From<<&'a T as TryFrom<&'a PropValue>>::Error>,
@@ -105,7 +63,7 @@ mod try_from {
         type Error = anyhow::Error;
 
         fn try_from(prop: &PropWithMeta) -> Result<Self, Self::Error> {
-            match <&PropValue as TryInto<&T>>::try_into(&*prop.value) {
+            match <&PropValue as TryInto<&T>>::try_into(&prop.value) {
                 Ok(_) => {}
                 // TODO: Destructuring the error here confuses Rust. Is there a way to get the actual error?
                 Err(_) => {
@@ -116,16 +74,12 @@ mod try_from {
                 }
             }
 
-            // Clone the Rc since we will be consuming it to `project()`.
-            let untyped_value = Rc::clone(&prop.value);
-            let value = Rc::project(untyped_value, |v| {
-                // This is safe because we already did a `try_into()?` above
-                // TODO: calling `.unwrap()` here confused Rust because it doesn't know the error type. Is there a way to fix this?
-                match v.try_into() {
-                    Ok(v) => v,
-                    Err(_) => unreachable!(),
-                }
-            });
+            let untyped_value: Result<T, _> = T::try_from(prop.value.clone());
+            // TODO: calling `.unwrap()` here confused Rust because it doesn't know the error type. Is there a way to fix this?
+            let value = match untyped_value {
+                Ok(v) => v,
+                Err(_) => unreachable!(),
+            };
 
             Ok(PropView {
                 value,
@@ -172,19 +126,18 @@ mod custom_from_trait {
 
     impl<PropType> FromPropWithMeta<PropWithMeta, Self> for PropView<PropType>
     where
-        for<'a> &'a PropType: TryFrom<&'a PropValue>,
+        PropType: TryFrom<PropValue>,
     {
         fn from_prop_with_meta(val: PropWithMeta) -> Self {
-            val.try_into().unwrap()
-        }
-    }
-
-    impl<PropType> FromPropWithMeta<&PropWithMeta, Self> for PropView<PropType>
-    where
-        for<'a> &'a PropType: TryFrom<&'a PropValue>,
-    {
-        fn from_prop_with_meta(val: &PropWithMeta) -> Self {
-            val.try_into().unwrap()
+            let value: PropType = match val.value.try_into() {
+                Ok(v) => v,
+                Err(_e) => panic!("Error converting type"),
+            };
+            Self {
+                value,
+                came_from_default: val.came_from_default,
+                changed: val.changed,
+            }
         }
     }
 
@@ -239,40 +192,40 @@ mod custom_from_trait {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::convert::TryInto;
+    use std::{convert::TryInto, rc::Rc};
 
     #[test]
     fn test_from_prop_with_meta() {
         let prop = PropWithMeta {
-            value: Rc::new(PropValue::String("hello".to_string())),
+            value: "hello".into(),
             came_from_default: false,
             changed: false,
         };
-        let prop_view: PropView<String> = PropView::from_prop_with_meta(prop);
+        let prop_view: PropView<Rc<String>> = PropView::from_prop_with_meta(prop);
         // Value is in an Rc, so it needs to be dereferenced.
-        assert_eq!(&*prop_view.value, "hello");
+        assert_eq!(&**prop_view.value, "hello");
     }
 
     #[test]
     fn test_into_prop_view() {
         let prop = PropWithMeta {
-            value: Rc::new(PropValue::String("hello".to_string())),
+            value: "hello".into(),
             came_from_default: false,
             changed: false,
         };
-        let prop_view: PropView<String> = prop.into_prop_view();
+        let prop_view: PropView<Rc<String>> = prop.into_prop_view();
         // Value is in an Rc, so it needs to be dereferenced.
-        assert_eq!(&*prop_view.value, "hello");
+        assert_eq!(&**prop_view.value, "hello");
     }
 
     #[test]
     fn test_try_into() {
         let prop = PropWithMeta {
-            value: Rc::new(PropValue::String("hello".to_string())),
+            value: "hello".into(),
             came_from_default: false,
             changed: false,
         };
-        let prop_view_res: Result<PropView<String>, anyhow::Error> = prop.clone().try_into();
+        let prop_view_res: Result<PropView<Rc<String>>, anyhow::Error> = prop.clone().try_into();
         let prop_view = prop_view_res.unwrap();
         // Value is in an Rc, so it needs to be dereferenced.
         assert_eq!(&*prop_view.value, "hello");
@@ -280,20 +233,16 @@ mod tests {
         // Cannot convert to wrong type
         let prop_view_res: Result<PropView<i64>, anyhow::Error> = prop.clone().try_into();
         assert!(prop_view_res.is_err());
-
-        let prop_cloned: PropCloned<String> = prop.clone().try_into().unwrap();
-        // No need to dereference. Value is cloned.
-        assert_eq!(prop_cloned.value, "hello");
     }
 
     #[test]
     fn test_try_into_from_ref() {
         let prop = PropWithMeta {
-            value: Rc::new(PropValue::String("hello".to_string())),
+            value: "hello".into(),
             came_from_default: false,
             changed: false,
         };
-        let prop_view_res: Result<PropView<String>, anyhow::Error> = (&prop).try_into();
+        let prop_view_res: Result<PropView<Rc<String>>, anyhow::Error> = (&prop).try_into();
         let prop_view = prop_view_res.unwrap();
         // Value is in an Rc, so it needs to be dereferenced.
         assert_eq!(&*prop_view.value, "hello");
@@ -301,9 +250,5 @@ mod tests {
         // Cannot convert to wrong type
         let prop_view_res: Result<PropView<i64>, anyhow::Error> = (&prop).try_into();
         assert!(prop_view_res.is_err());
-
-        let prop_cloned: PropCloned<String> = (&prop).try_into().unwrap();
-        // No need to dereference. Value is cloned.
-        assert_eq!(prop_cloned.value, "hello");
     }
 }

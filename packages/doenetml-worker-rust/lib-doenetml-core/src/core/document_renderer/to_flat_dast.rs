@@ -88,7 +88,7 @@ impl DocumentRenderer {
         component_idx: ComponentIdx,
         document_model: &DocumentModel,
     ) -> Vec<GraphNode> {
-        let profs = { document_model.get_provided_profiles(component_idx) };
+        let profs = document_model.get_provided_profiles(component_idx);
         profs
             .into_iter()
             .find_map(|(profile, local_prop_idx)| {
@@ -98,9 +98,9 @@ impl DocumentRenderer {
                         local_prop_idx,
                     };
                     let rendered_children_value =
-                        &*self.get_prop_for_render(prop_pointer, document_model).value;
+                        &self.get_prop_for_render(prop_pointer, document_model).value;
                     match rendered_children_value {
-                        PropValue::GraphNodes(graph_nodes) => Some(graph_nodes.clone()),
+                        PropValue::GraphNodes(graph_nodes) => Some((**graph_nodes).clone()),
                         _ => unreachable!(
                             "RenderedChildren prop must return GraphNodes, found {:?}",
                             rendered_children_value
@@ -207,7 +207,7 @@ impl DocumentRenderer {
             .filter_map(|prop_pointer| {
                 let prop = self.get_prop_for_render(prop_pointer, document_model);
                 if !only_changed_props || prop.changed {
-                    let prop_value = (*prop.value).clone();
+                    let prop_value = (prop.value).clone();
                     let prop_name = document_model.get_prop_name(prop_pointer);
                     Some(ForRenderPropValue {
                         name: prop_name,

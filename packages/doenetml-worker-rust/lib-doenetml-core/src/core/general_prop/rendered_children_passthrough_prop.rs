@@ -48,7 +48,7 @@ impl PropUpdater for RenderedChildrenPassthroughProp {
         let nodes = data.vec[0]
             .values
             .iter()
-            .flat_map(|prop| match &*prop.value {
+            .flat_map(|prop| match &prop.value {
                 PropValue::GraphNodes(graph_nodes) => graph_nodes.iter().copied(),
                 _ => {
                     unreachable!("should only graph nodes from filtered children")
@@ -56,6 +56,6 @@ impl PropUpdater for RenderedChildrenPassthroughProp {
             })
             .collect::<Vec<_>>();
 
-        PropCalcResult::Calculated(PropValue::GraphNodes(nodes))
+        PropCalcResult::Calculated(PropValue::GraphNodes(Rc::new(nodes)))
     }
 }

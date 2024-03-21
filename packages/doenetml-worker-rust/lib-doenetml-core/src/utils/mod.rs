@@ -1,6 +1,7 @@
 pub mod keyvalue;
 pub mod logging;
 pub mod parse_json;
+pub mod rc_serde;
 
 // XXX: fix these for tests
 //#[cfg(test)]

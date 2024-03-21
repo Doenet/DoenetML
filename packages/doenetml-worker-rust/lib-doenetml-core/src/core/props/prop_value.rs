@@ -1,8 +1,11 @@
+use std::rc::Rc;
+
 #[cfg(feature = "web")]
 use tsify::Tsify;
 #[cfg(feature = "web")]
 use wasm_bindgen::prelude::*;
 
+use crate::utils::rc_serde;
 use crate::{
     graph_node::GraphNode,
     state::types::{element_refs::ElementRefs, math_expr::MathExpr},
@@ -30,39 +33,40 @@ use crate::{
 #[cfg_attr(feature = "web", derive(Tsify))]
 #[cfg_attr(feature = "web", tsify(from_wasm_abi))]
 pub enum PropValue {
-    String(String),
+    #[serde(with = "rc_serde")]
+    String(Rc<String>),
     Number(f64),
     Integer(i64),
     Boolean(bool),
-    Math(MathExpr),
+    #[serde(with = "rc_serde")]
+    Math(Rc<MathExpr>),
     // TODO: when create array props, convert this to use the general array mechanism
     // Created a vector type for now.
-    ElementRefs(ElementRefs),
+    #[serde(with = "rc_serde")]
+    ElementRefs(Rc<ElementRefs>),
     // TODO: when create array props, convert this to use the general array mechanism
     // Created a vector type for now.
-    GraphNodes(Vec<GraphNode>),
+    #[serde(with = "rc_serde")]
+    GraphNodes(Rc<Vec<GraphNode>>),
 }
 
 /// The discriminating type of a `PropValue`.
 pub type PropValueType = PropValueDiscriminants;
 
-pub mod prop_type {
-    //! This module provides a type for each discriminant of `PropValue`.
-    //! Along with each of these types is also a tuple of the created type and the inner value of the type.
-    //! E.g., if there is a `PropValue::Foo(usize)`, then there will be a `Foo` struct and a `FooInner = (Foo, usize)` type.
-    //! These are used for typing tricks with macros and the API.
+mod conversions {
+    //! Implementation of `From` traits for `PropValue`.
 
-    #[derive(Debug, Copy, Clone, PartialEq, Eq)]
-    pub struct String;
-    #[derive(Debug, Copy, Clone, PartialEq, Eq)]
-    pub struct Number;
-    #[derive(Debug, Copy, Clone, PartialEq, Eq)]
-    pub struct Integer;
-    #[derive(Debug, Copy, Clone, PartialEq, Eq)]
-    pub struct Boolean;
-    #[derive(Debug, Copy, Clone, PartialEq, Eq)]
-    pub struct Math;
-    #[derive(Debug, Copy, Clone, PartialEq, Eq)]
-    pub struct ElementRefs;
-    pub struct GraphNodes;
+    use super::*;
+
+    impl From<String> for PropValue {
+        fn from(v: String) -> Self {
+            PropValue::String(Rc::new(v))
+        }
+    }
+
+    impl From<&str> for PropValue {
+        fn from(v: &str) -> Self {
+            PropValue::String(Rc::new(v.to_string()))
+        }
+    }
 }

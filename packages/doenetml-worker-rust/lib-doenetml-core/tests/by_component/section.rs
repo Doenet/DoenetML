@@ -141,6 +141,8 @@ fn section_with_multiple_title_tags_picks_last() {
 
 mod test_helpers {
 
+    use std::rc::Rc;
+
     use doenetml_core::{components::Section, state::types::element_refs::ElementRefs};
 
     use super::*;
@@ -160,7 +162,7 @@ mod test_helpers {
         });
         let value = core.get_prop_for_render_untracked(prop_node).value;
 
-        let element_refs: ElementRefs = (*value).clone().try_into().unwrap();
+        let element_refs: Rc<ElementRefs> = (value).clone().try_into().unwrap();
 
         element_refs[0]
     }
@@ -183,8 +185,8 @@ mod test_helpers {
         });
         let value = core.get_prop_for_render_untracked(prop_node).value;
 
-        let graph_nodes: Vec<GraphNode> = (*value).clone().try_into().unwrap();
+        let graph_nodes: Rc<Vec<GraphNode>> = (value).clone().try_into().unwrap();
 
-        graph_nodes
+        (*graph_nodes).clone()
     }
 }

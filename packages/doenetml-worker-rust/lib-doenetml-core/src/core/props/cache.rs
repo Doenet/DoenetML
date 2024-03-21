@@ -2,8 +2,6 @@
 
 use std::{borrow, cell::RefCell, collections::HashMap};
 
-use genrc::Rc;
-
 use crate::{
     components::prelude::{GraphNode, PropCalcResult, PropValue},
     core::graph_node::GraphNodeLookup,
@@ -51,7 +49,7 @@ struct CachedPropMeta {
 #[derive(Debug)]
 struct CachedProp {
     /// Cached value of the prop. Will be `None` if the prop hasn't been computed.
-    value: RefCell<Option<Rc<PropValue>>>,
+    value: RefCell<Option<PropValue>>,
     meta: RefCell<CachedPropMeta>,
 }
 
@@ -70,7 +68,7 @@ impl CachedProp {
     /// Sets the value and marks it as fresh using internal mutability.
     /// **For internal use only.**
     fn _set_value(&self, value: PropValue) {
-        *self.value.borrow_mut() = Some(Rc::new(value));
+        *self.value.borrow_mut() = Some(value);
         self.meta.borrow_mut().status = PropStatus::Fresh;
         let change_counter = self.meta.borrow().change_counter;
         // A little bit of safety in case someone wiggles their mouse 4 billion times
@@ -101,7 +99,7 @@ impl CachedProp {
     pub fn get_value<CalculateFn: FnOnce() -> PropCalcResult<PropValue>>(
         &self,
         calculate: CalculateFn,
-    ) -> Rc<PropValue> {
+    ) -> PropValue {
         match self.get_status() {
             PropStatus::Fresh => self.get_cached_value().expect(
                 "Prop is marked as Fresh but no value is cached. This state should be unreachable",
@@ -138,7 +136,7 @@ impl CachedProp {
     }
 
     /// Get the cached value of the prop without any side computations.
-    fn get_cached_value(&self) -> Option<Rc<PropValue>> {
+    fn get_cached_value(&self) -> Option<PropValue> {
         self.value.borrow().clone()
     }
 
@@ -162,7 +160,7 @@ impl CachedProp {
 #[derive(Debug, Clone)]
 pub struct PropWithMeta {
     /// The value of the prop
-    pub value: Rc<PropValue>,
+    pub value: PropValue,
     /// `true` if this prop was set by using a default value.
     pub came_from_default: bool,
     /// `true` if this prop has changed since the last time it was queried from

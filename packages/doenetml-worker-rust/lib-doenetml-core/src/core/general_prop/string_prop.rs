@@ -125,7 +125,7 @@ impl<S: Into<String>> PropFromAttribute<S> for StringProp {
 
 impl PropUpdater for StringProp {
     fn default(&self) -> PropValue {
-        PropValue::String(self.default_value.clone())
+        self.default_value.clone().into()
     }
 
     fn data_queries(&self) -> Vec<DataQuery> {
@@ -141,13 +141,13 @@ impl PropUpdater for StringProp {
                 // If we reach here, then there were no dependencies returned from the data query.
                 // Use the value and came_from_default of `independent_state`
                 if independent_state.came_from_default {
-                    PropCalcResult::FromDefault((*independent_state.value).clone())
+                    PropCalcResult::FromDefault((independent_state.value).clone())
                 } else {
-                    PropCalcResult::Calculated((*independent_state.value).clone())
+                    PropCalcResult::Calculated((independent_state.value).clone())
                 }
             }
             1 => {
-                if !matches!(&*strings[0].value, PropValue::String(..)) {
+                if !matches!(&strings[0].value, PropValue::String(..)) {
                     panic!(
                         "Should get string dependency for string, found {:?}",
                         strings[0].value
@@ -157,12 +157,12 @@ impl PropUpdater for StringProp {
                 if self.propagate_came_from_default && strings[0].came_from_default {
                     // if we are basing it on a single variable and propagating `came_from_default`,
                     // then we propagate `came_from_default` as well as the value.
-                    PropCalcResult::FromDefault((*strings[0].value).clone())
+                    PropCalcResult::FromDefault(strings[0].value.clone())
                 } else {
                     // If we are not propagating `came_from_default`,
                     // then we set `came_from_default` to be false (by specifying `Calculated`)
                     // independent of the dependency's `came_from_default`
-                    PropCalcResult::Calculated((*strings[0].value).clone())
+                    PropCalcResult::Calculated(strings[0].value.clone())
                 }
             }
             _ => {
@@ -171,15 +171,15 @@ impl PropUpdater for StringProp {
                 if strings.iter().any(|view| view.changed) {
                     let mut value = String::new();
 
-                    value.extend(strings.iter().map(|v| match (*v.value).clone() {
-                        PropValue::String(str) => str,
+                    value.extend(strings.iter().map(|v| match (v.value).clone() {
+                        PropValue::String(str) => (*str).clone(),
                         _ => panic!(
                             "Should get string dependency for string, found {:?}",
                             v.value
                         ),
                     }));
 
-                    PropCalcResult::Calculated(PropValue::String(value))
+                    PropCalcResult::Calculated(value.into())
                 } else {
                     PropCalcResult::NoChange
                 }

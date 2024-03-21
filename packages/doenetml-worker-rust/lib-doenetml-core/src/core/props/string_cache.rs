@@ -32,10 +32,8 @@ impl StringCache {
     pub fn add_string(&mut self, s: String) -> usize {
         self.string_counter += 1;
         let idx = self.string_counter;
-        self.prop_cache.set_prop(
-            GraphNode::String(idx),
-            PropCalcResult::Calculated(PropValue::String(s)),
-        );
+        self.prop_cache
+            .set_prop(GraphNode::String(idx), PropCalcResult::Calculated(s.into()));
         idx
     }
 
@@ -63,9 +61,9 @@ impl StringCache {
         let fake_origin = GraphNode::Query(0);
         let prop = self.prop_cache.get_prop_unchecked(string_node, fake_origin);
 
-        match (*prop.value).clone() {
-            PropValue::String(s) => s,
-            _ => unreachable!("Expecting string prop, found {:?}", *prop.value),
+        match (prop.value).clone() {
+            PropValue::String(s) => (*s).clone(),
+            _ => unreachable!("Expecting string prop, found {:?}", prop.value),
         }
     }
 
@@ -73,10 +71,8 @@ impl StringCache {
     /// The store tracks and reports if the value has changed since the last time it was queried.
     pub fn set_string<A: borrow::Borrow<GraphNode>>(&self, string_node: A, s: String) {
         let string_node = string_node.borrow();
-        self.prop_cache.set_prop(
-            string_node,
-            PropCalcResult::Calculated(PropValue::String(s)),
-        );
+        self.prop_cache
+            .set_prop(string_node, PropCalcResult::Calculated(s.into()));
     }
 }
 

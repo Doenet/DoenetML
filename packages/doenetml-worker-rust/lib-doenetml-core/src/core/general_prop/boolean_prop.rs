@@ -153,22 +153,22 @@ impl PropUpdater for BooleanProp {
                 // If we reach here, then there were no dependencies returned from the data query.
                 // Use the value and came_from_default of `independent_state`
                 if independent_state.came_from_default {
-                    PropCalcResult::FromDefault((*independent_state.value).clone())
+                    PropCalcResult::FromDefault((independent_state.value).clone())
                 } else {
-                    PropCalcResult::Calculated((*independent_state.value).clone())
+                    PropCalcResult::Calculated((independent_state.value).clone())
                 }
             }
             1 => {
-                match &*booleans_and_strings[0].value {
+                match &booleans_and_strings[0].value {
                     PropValue::Boolean(..) => {
                         if self.propagate_came_from_default
                             && booleans_and_strings[0].came_from_default
                         {
                             // if we are basing it on a single variable and propagating came_from_default,
                             // then we propagate came_from_default as well as the value.
-                            PropCalcResult::FromDefault((*booleans_and_strings[0].value).clone())
+                            PropCalcResult::FromDefault((booleans_and_strings[0].value).clone())
                         } else {
-                            PropCalcResult::Calculated((*booleans_and_strings[0].value).clone())
+                            PropCalcResult::Calculated((booleans_and_strings[0].value).clone())
                         }
                     }
                     PropValue::String(string_value) => {
@@ -187,7 +187,7 @@ impl PropUpdater for BooleanProp {
             _ => {
                 if booleans_and_strings
                     .iter()
-                    .any(|prop| matches!(&*prop.value, PropValue::Boolean(_)))
+                    .any(|prop| matches!(&prop.value, PropValue::Boolean(_)))
                 {
                     // invalid combination. Haven't implemented boolean dependency with others
                     PropCalcResult::Calculated(PropValue::Boolean(false))
@@ -196,7 +196,7 @@ impl PropUpdater for BooleanProp {
 
                     if booleans_and_strings.iter().any(|prop| prop.changed) {
                         let mut value = String::new();
-                        value.extend(booleans_and_strings.iter().map(|prop| match &*prop.value {
+                        value.extend(booleans_and_strings.iter().map(|prop| match &prop.value {
                             PropValue::Boolean(boolean_val) => boolean_val.to_string(),
                             PropValue::String(string_value) => string_value.to_string(),
                             _ => {
@@ -241,13 +241,13 @@ impl PropUpdater for BooleanProp {
             }
             1 => {
                 // based on a single value, so we can invert
-                match &*booleans_and_strings[0].value {
+                match &booleans_and_strings[0].value {
                     PropValue::Boolean(..) => {
                         Ok(vec![None, Some(vec![Some(requested_value.clone())])])
                     }
                     PropValue::String(..) => Ok(vec![
                         None,
-                        Some(vec![Some(PropValue::String(requested_boolean.to_string()))]),
+                        Some(vec![Some(requested_boolean.to_string().into())]),
                     ]),
                     _ => panic!(
                         "Should get boolean or string dependency for boolean, found {:?}",

@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use super::*;
 
 use doenetml_core::{
@@ -29,7 +31,7 @@ fn value_prop_from_string_child() {
         text_rendered_props,
         &ForRenderProps(vec![ForRenderPropValue {
             name: "value",
-            value: PropValue::String("hello".to_string())
+            value: PropValue::from("hello")
         }])
     );
 
@@ -45,7 +47,7 @@ fn value_prop_from_string_child() {
         text_rendered_props,
         &ForRenderProps(vec![ForRenderPropValue {
             name: "value",
-            value: PropValue::String("hello".to_string())
+            value: PropValue::from("hello")
         }])
     );
 }
@@ -92,7 +94,7 @@ fn hidden_or_unrendered_text_dont_calculate_render_props() {
         text_rendered_props,
         &ForRenderProps(vec![ForRenderPropValue {
             name: "value",
-            value: PropValue::String("hello there".to_string())
+            value: PropValue::String(Rc::new("hello there".to_string()))
         }])
     );
 
@@ -242,7 +244,8 @@ mod test_helpers {
         });
         let value = core.get_prop_for_render_untracked(prop_node).value;
 
-        (*value).clone().try_into().unwrap()
+        let rc_value: Rc<String> = value.try_into().unwrap();
+        (*rc_value).clone()
     }
 
     /// Resolves `text` from a `<text>` component and returns its value as a `String`
@@ -260,7 +263,8 @@ mod test_helpers {
         });
         let value = core.get_prop_for_render_untracked(prop_node).value;
 
-        (*value).clone().try_into().unwrap()
+        let rc_value: Rc<String> = value.try_into().unwrap();
+        (*rc_value).clone()
     }
 
     /// Resolves `hidden` from a `<text>` component and returns its value as a `bool`
@@ -278,6 +282,6 @@ mod test_helpers {
         });
         let value = core.get_prop_for_render_untracked(prop_node).value;
 
-        (*value).clone().try_into().unwrap()
+        (value).clone().try_into().unwrap()
     }
 }

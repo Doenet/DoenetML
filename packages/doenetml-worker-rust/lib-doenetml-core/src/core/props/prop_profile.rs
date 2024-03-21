@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use crate::state::types::{element_refs::ElementRefs, math_expr::MathExpr};
 
 use super::PropValue;
@@ -48,12 +50,14 @@ impl PropProfile {
             PropProfile::Boolean => PropValue::Boolean(bool::default()),
             PropProfile::Integer => PropValue::Integer(i64::default()),
             PropProfile::Number => PropValue::Number(f64::default()),
-            PropProfile::Math => PropValue::Math(MathExpr::default()),
+            PropProfile::Math => PropValue::Math(Rc::new(MathExpr::default())),
             PropProfile::LiteralString | PropProfile::String => {
-                PropValue::String(String::default())
+                PropValue::String(Rc::new(String::default()))
             }
             PropProfile::Hidden => PropValue::Boolean(bool::default()),
-            PropProfile::RenderedChildren => PropValue::ElementRefs(ElementRefs::default()),
+            PropProfile::RenderedChildren => {
+                PropValue::ElementRefs(Rc::new(ElementRefs::default()))
+            }
         }
     }
 }

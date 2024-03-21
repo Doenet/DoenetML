@@ -107,6 +107,8 @@ fn boolean_hidden() {
 
 mod test_helpers {
 
+    use std::rc::Rc;
+
     use super::*;
 
     // const VALUE_IDX: LocalPropIdx = BooleanProps::get_value_prop_index();
@@ -127,7 +129,7 @@ mod test_helpers {
         });
         let value = core.get_prop_for_render_untracked(prop_node).value;
 
-        (*value).clone().try_into().unwrap()
+        (value).clone().try_into().unwrap()
     }
 
     /// Resolves `boolean` from a `<boolean>` component and returns its value as a `bool`
@@ -138,7 +140,7 @@ mod test_helpers {
         });
         let value = core.get_prop_for_render_untracked(prop_node).value;
 
-        (*value).clone().try_into().unwrap()
+        (value).clone().try_into().unwrap()
     }
 
     /// Resolves `text` from a `<boolean>` component and returns its value as a `String`
@@ -149,7 +151,8 @@ mod test_helpers {
         });
         let value = core.get_prop_for_render_untracked(prop_node).value;
 
-        (*value).clone().try_into().unwrap()
+        let rc_value: Rc<String> = (value).clone().try_into().unwrap();
+        (*rc_value).clone()
     }
 
     /// Resolves `hidden` from a `<text>` component and returns its value as a `bool`
@@ -160,6 +163,6 @@ mod test_helpers {
         });
         let value = core.get_prop_for_render_untracked(prop_node).value;
 
-        (*value).clone().try_into().unwrap()
+        (value).clone().try_into().unwrap()
     }
 }

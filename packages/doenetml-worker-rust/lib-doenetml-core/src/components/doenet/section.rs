@@ -73,12 +73,11 @@ impl Default for SectionRenderedChildren {
     }
 }
 
-//#[required_data(trait_name = RequiredDataFields)]
 #[derive(FromDataQueryResults)]
 #[data_query(query_trait = CreateDataQueries)]
 struct RequiredData {
-    filtered_children: Vec<PropView<Vec<GraphNode>>>,
-    title: PropView<ElementRefs>,
+    filtered_children: Vec<PropView<Rc<Vec<GraphNode>>>>,
+    title: PropView<Rc<ElementRefs>>,
 }
 
 impl CreateDataQueries for RequiredData {
@@ -113,19 +112,19 @@ impl PropUpdater for SectionRenderedChildren {
 
     fn calculate(&self, data: DataQueryResults) -> PropCalcResult<PropValue> {
         let required_data = RequiredData::from_data_query_results(data);
-        let title_element_refs = required_data.title.value.as_ref();
-        let title_node = match title_element_refs {
+        let title_element_refs = required_data.title.value;
+        let title_node = match &*title_element_refs {
             ElementRefs(element_refs) => element_refs.first().map(|x| vec![x.as_graph_node()]),
         };
 
         let non_title_nodes = required_data
             .filtered_children
             .iter()
-            .flat_map(|prop| prop.value.as_ref());
+            .flat_map(|prop| (*prop.value).clone());
 
         let mut child_nodes = title_node.unwrap_or(vec![]);
         child_nodes.extend(non_title_nodes);
 
-        PropCalcResult::Calculated(PropValue::GraphNodes(child_nodes))
+        PropCalcResult::Calculated(PropValue::GraphNodes(Rc::new(child_nodes)))
     }
 }

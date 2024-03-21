@@ -11,7 +11,7 @@ fn test_can_cache_props_and_retrieve_them() {
     let val = cache.get_prop(prop_node, query_node, || {
         PropCalcResult::Calculated(PropValue::Integer(10))
     });
-    assert_eq!(*val.value, PropValue::Integer(10));
+    assert_eq!(val.value, PropValue::Integer(10));
     assert_eq!(val.changed, true);
 }
 
@@ -48,7 +48,7 @@ fn test_can_cache_props_can_detect_changes() {
         PropCalcResult::Calculated(PropValue::Integer(10))
     });
 
-    assert_eq!(*val.value, PropValue::Integer(10));
+    assert_eq!(val.value, PropValue::Integer(10));
     assert_eq!(val.changed, false);
 }
 
@@ -73,9 +73,9 @@ fn test_can_query_for_prop_in_calculate_function() {
         PropCalcResult::Calculated(PropValue::Integer(10))
     });
 
-    assert_eq!(*val.value, PropValue::Integer(10));
+    assert_eq!(val.value, PropValue::Integer(10));
 
-    assert_eq!(*val2.value, PropValue::Integer(15));
+    assert_eq!(val2.value, PropValue::Integer(15));
 }
 
 #[test]
@@ -95,7 +95,7 @@ fn test_can_set_prop() {
         PropCalcResult::Calculated(PropValue::Integer(15))
     });
 
-    assert_eq!(*val.value, PropValue::Integer(10));
+    assert_eq!(val.value, PropValue::Integer(10));
 }
 
 #[test]
@@ -144,8 +144,8 @@ fn test_a_data_query_can_keep_track_of_changes_to_multiple_props() {
         PropCalcResult::Calculated(PropValue::Integer(10))
     });
 
-    assert_eq!(*val.value, PropValue::Integer(10));
-    assert_eq!(*val2.value, PropValue::Integer(15));
+    assert_eq!(val.value, PropValue::Integer(10));
+    assert_eq!(val2.value, PropValue::Integer(15));
 
     assert_eq!(val.changed, false);
     assert_eq!(val2.changed, false);
@@ -171,7 +171,7 @@ fn test_can_get_unchecked_prop_if_already_computed() {
     let _val3 = cache.get_prop_unchecked(prop_node, query_node);
     let val3 = cache.get_prop_unchecked(prop_node, query_node);
 
-    assert_eq!(*val.value, *val2.value);
+    assert_eq!(val.value, val2.value);
     assert_eq!(val.changed, true);
     assert_eq!(val3.changed, true);
 }

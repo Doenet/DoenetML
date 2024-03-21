@@ -1,4 +1,4 @@
-use genrc::Rc;
+use std::rc::Rc;
 
 use crate::{
     props::{DataQuery, DataQueryFilter, DataQueryFilterComparison, DataQueryResults, PropValue},
@@ -171,10 +171,10 @@ impl DocumentModel {
 
                                         match prop_filter.comparison {
                                             DataQueryFilterComparison::Equal => {
-                                                *prop_value == prop_filter.value
+                                                prop_value == prop_filter.value
                                             }
                                             DataQueryFilterComparison::NotEqual => {
-                                                *prop_value != prop_filter.value
+                                                prop_value != prop_filter.value
                                             }
                                         }
                                     });
@@ -182,7 +182,7 @@ impl DocumentModel {
                                 if include_node {
                                     Some(PropWithMeta {
                                         // TODO: once we have a singular `GraphNode` we can remove the vector
-                                        value: Rc::new(PropValue::GraphNodes(vec![component_node])),
+                                        value: PropValue::GraphNodes(Rc::new(vec![component_node])),
                                         came_from_default: false,
                                         // Note: a component reference can't change like a prop can change,
                                         // but we mark `changed` as `true` as we don't know if this is the first time it is queried
@@ -194,7 +194,7 @@ impl DocumentModel {
                             }
                             GraphNode::String(_) => Some(PropWithMeta {
                                 // TODO: once we have a singular `GraphNode` we can remove the vector
-                                value: Rc::new(PropValue::GraphNodes(vec![node])),
+                                value: PropValue::GraphNodes(Rc::new(vec![node])),
                                 came_from_default: false,
                                 // Note: a component reference can't change like a prop can change,
                                 // but we mark `changed` as `true` as we don't know if this is the first time it is queried
@@ -240,7 +240,7 @@ impl DocumentModel {
                             // TODO: do we want to references to elements somewhere so we don't have to recreate each time?
                             GraphNode::Component(component_idx) => Some(PropWithMeta {
                                 // TODO: once we have a singular `ElementRef` we can remove the vector
-                                value: Rc::new(PropValue::ElementRefs(ElementRefs(vec![
+                                value: PropValue::ElementRefs(Rc::new(ElementRefs(vec![
                                     component_idx.into(),
                                 ]))),
                                 came_from_default: false,

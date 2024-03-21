@@ -11,7 +11,7 @@ fn test_store_string_props_and_retrieve_them() {
 
     let val = cache.get_string(string_node, query_node);
 
-    assert_eq!(*val.value, PropValue::String("hello!".to_string()));
+    assert_eq!(val.value, "hello!".into());
     assert_eq!(val.changed, true);
 }
 
@@ -27,29 +27,29 @@ fn test_string_props_can_detect_changes() {
 
     // first query is changed
     let val = cache.get_string(string_node, query_node1);
-    assert_eq!(*val.value, PropValue::String("hello!".to_string()));
+    assert_eq!(val.value, "hello!".into());
     assert_eq!(val.changed, true);
 
     // repeat from same query is unchanged
     let val = cache.get_string(string_node, query_node1);
-    assert_eq!(*val.value, PropValue::String("hello!".to_string()));
+    assert_eq!(val.value, "hello!".into());
     assert_eq!(val.changed, false);
 
     // from different query is changed
     let val = cache.get_string(string_node, query_node2);
-    assert_eq!(*val.value, PropValue::String("hello!".to_string()));
+    assert_eq!(val.value, "hello!".into());
     assert_eq!(val.changed, true);
 
     // repeat from same query is unchanged
     let val = cache.get_string(string_node, query_node2);
-    assert_eq!(*val.value, PropValue::String("hello!".to_string()));
+    assert_eq!(val.value, "hello!".into());
     assert_eq!(val.changed, false);
 
     // change value
     cache.set_string(string_node, "bye".to_string());
 
     let val = cache.get_string(string_node, query_node1);
-    assert_eq!(*val.value, PropValue::String("bye".to_string()));
+    assert_eq!(val.value, "bye".into());
     assert_eq!(val.changed, true);
 }
 
@@ -64,7 +64,7 @@ fn test_string_props_came_from_default_is_always_false() {
 
     // first query is changed
     let val = cache.get_string(string_node, query_node);
-    assert_eq!(*val.value, PropValue::String("hello!".to_string()));
+    assert_eq!(val.value, "hello!".into());
     assert_eq!(val.came_from_default, false);
 }
 
@@ -84,6 +84,6 @@ fn test_get_string_value() {
 
     let query_node = GraphNode::Query(0);
     let val = cache.get_string(string_node, query_node);
-    assert_eq!(*val.value, PropValue::String("hello!".to_string()));
+    assert_eq!(val.value, "hello!".into());
     assert_eq!(val.changed, true);
 }
