@@ -8,6 +8,8 @@ use crate::props::DataQueryFilter;
 use crate::props::DataQueryFilterComparison;
 use crate::props::DataQueryResult;
 use crate::props::PropProfileDataQueryFilter;
+//use crate::props::prop_type::ElementRefs;
+//use crate::props::PropView;
 
 /// The `<section>` component renders its children along with a title
 #[component(name = Section)]
@@ -69,14 +71,53 @@ impl Default for SectionRenderedChildren {
     }
 }
 
+//struct RequiredData {
+//    filtered_children: PropView<Vec<GraphNode>>,
+//    title: PropView<ElementRefs>,
+//}
+//impl RequiredData {
+//    fn data_queries() -> Vec<DataQuery> {
+//        vec![
+//            DataQuery::FilteredChildren {
+//                filters: vec![
+//                    DataQueryFilter::PropProfile(PropProfileDataQueryFilter {
+//                        profile: PropProfile::Hidden,
+//                        value: PropValue::Boolean(true),
+//                        comparison: DataQueryFilterComparison::NotEqual,
+//                    }),
+//                    DataQueryFilter::ComponentType(ComponentTypeDataQueryFilter {
+//                        component_type: Title::NAME,
+//                        comparison: DataQueryFilterComparison::NotEqual,
+//                    }),
+//                ],
+//                include_if_missing_profile: true,
+//            },
+//            DataQuery::Prop {
+//                component_idx: None,
+//                local_prop_idx: SectionProps::Title.local_idx(),
+//            },
+//        ]
+//    }
+//
+//    fn from_data_query_results(data: Vec<DataQueryResult>) -> Self {
+//        if data.len() != 2 {
+//            panic!("Expected 2 data query results, got {}", data.len());
+//        }
+//        let x = data[0];
+//        let t: PropView<String> = x.values[0].try_into().unwrap();
+//
+//        //let filtered_children = data[0].try_into().unwrap();
+//        //let title = data[1].try_into().unwrap();
+//
+//        RequiredData {
+//            filtered_children,
+//            title,
+//        }
+//    }
+//}
+
 impl PropUpdater for SectionRenderedChildren {
     fn data_queries(&self) -> Vec<DataQuery> {
-        let title_local_idx = LocalPropIdx::new(
-            Section::PROP_NAMES
-                .iter()
-                .position(|name| name.eq(&"title"))
-                .unwrap(),
-        );
         vec![
             // all non-hidden children except titles
             DataQuery::FilteredChildren {
@@ -95,7 +136,7 @@ impl PropUpdater for SectionRenderedChildren {
             },
             DataQuery::Prop {
                 component_idx: None,
-                local_prop_idx: title_local_idx,
+                local_prop_idx: SectionProps::Title.local_idx(),
             },
         ]
     }

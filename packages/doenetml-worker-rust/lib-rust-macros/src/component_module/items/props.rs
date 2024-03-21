@@ -191,6 +191,28 @@ impl PropsEnum {
             })
             .collect()
     }
+
+    /// Generate the `impl PropTrait {...}` trait
+    pub fn impl_prop_trait(&self) -> TokenStream {
+        let variant_names = self.get_prop_idents();
+
+        let match_arms = variant_names.iter().enumerate().map(|(i, variant_name)| {
+            quote! {
+                Props::#variant_name => LocalPropIdx::new(#i as usize)
+            }
+        });
+
+        quote! {
+            impl Props {
+                /// Get the local index of the prop.
+                pub const fn local_idx(&self) -> LocalPropIdx {
+                    match self {
+                        #( #match_arms, )*
+                    }
+                }
+            }
+        }
+    }
 }
 
 //
@@ -201,9 +223,12 @@ impl ComponentModule {
     /// Generate the `enum Props` and all the associated impls for required traits.
     pub fn generate_props_and_impls(&self) -> TokenStream {
         let enum_props = self.enum_props();
+        let impl_prop_trait = self.props.impl_prop_trait();
 
         quote! {
             #enum_props
+
+            #impl_prop_trait
         }
     }
 
