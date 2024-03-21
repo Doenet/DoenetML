@@ -1119,6 +1119,7 @@
                 "objectives",
                 "problem",
                 "exercise",
+                "question",
                 "activity",
                 "example",
                 "definition",
@@ -2154,6 +2155,7 @@
                 "objectives",
                 "problem",
                 "exercise",
+                "question",
                 "activity",
                 "example",
                 "definition",
@@ -2488,6 +2490,7 @@
                 "objectives",
                 "problem",
                 "exercise",
+                "question",
                 "activity",
                 "example",
                 "definition",
@@ -2822,6 +2825,7 @@
                 "objectives",
                 "problem",
                 "exercise",
+                "question",
                 "activity",
                 "example",
                 "definition",
@@ -24053,6 +24057,7 @@
                 "objectives",
                 "problem",
                 "exercise",
+                "question",
                 "activity",
                 "example",
                 "definition",
@@ -24555,6 +24560,7 @@
                 "objectives",
                 "problem",
                 "exercise",
+                "question",
                 "activity",
                 "example",
                 "definition",
@@ -25057,6 +25063,7 @@
                 "objectives",
                 "problem",
                 "exercise",
+                "question",
                 "activity",
                 "example",
                 "definition",
@@ -25559,6 +25566,7 @@
                 "objectives",
                 "problem",
                 "exercise",
+                "question",
                 "activity",
                 "example",
                 "definition",
@@ -26061,6 +26069,7 @@
                 "objectives",
                 "problem",
                 "exercise",
+                "question",
                 "activity",
                 "example",
                 "definition",
@@ -26582,6 +26591,7 @@
                 "objectives",
                 "problem",
                 "exercise",
+                "question",
                 "activity",
                 "example",
                 "definition",
@@ -27084,6 +27094,7 @@
                 "objectives",
                 "problem",
                 "exercise",
+                "question",
                 "activity",
                 "example",
                 "definition",
@@ -27586,6 +27597,510 @@
                 "objectives",
                 "problem",
                 "exercise",
+                "question",
+                "activity",
+                "example",
+                "definition",
+                "note",
+                "theorem",
+                "proof",
+                "problems",
+                "exercises",
+                "ol",
+                "ul",
+                "odesystem",
+                "cobwebPolyline",
+                "equilibriumPoint",
+                "equilibriumLine",
+                "equilibriumCurve",
+                "atom",
+                "ion",
+                "ionicCompound",
+                "electronConfiguration",
+                "orbitalDiagram",
+                "orbitalDiagramInput",
+                "sideBySide",
+                "sbsGroup",
+                "stack",
+                "h",
+                "idx",
+                "div",
+                "span",
+                "pre",
+                "displayDoenetML",
+                "paginator",
+                "paginatorControls",
+                "matrixInput",
+                "solution",
+                "document",
+                "text",
+                "textList",
+                "p",
+                "boolean",
+                "booleanList",
+                "math",
+                "mathList",
+                "tupleList",
+                "numberList",
+                "collect",
+                "ref",
+                "point",
+                "coords",
+                "line",
+                "lineSegment",
+                "ray",
+                "polyline",
+                "polygon",
+                "triangle",
+                "rectangle",
+                "regularPolygon",
+                "circle",
+                "parabola",
+                "curve",
+                "bezierControls",
+                "controlVectors",
+                "vector",
+                "angle",
+                "answer",
+                "award",
+                "when",
+                "mathInput",
+                "textInput",
+                "booleanInput",
+                "choiceInput",
+                "choice",
+                "number",
+                "integer",
+                "graph",
+                "function",
+                "piecewiseFunction",
+                "interval",
+                "sequence",
+                "slider",
+                "spreadsheet",
+                "cell",
+                "row",
+                "column",
+                "cellBlock",
+                "tabular",
+                "table",
+                "figure",
+                "markers",
+                "map",
+                "pegboard",
+                "intersection",
+                "conditionalContent",
+                "asList",
+                "selectFromSequence",
+                "select",
+                "group",
+                "animateFromSequence",
+                "evaluate",
+                "selectRandomNumbers",
+                "sampleRandomNumbers",
+                "selectPrimeNumbers",
+                "samplePrimeNumbers",
+                "substitute",
+                "periodicSet",
+                "image",
+                "video",
+                "hint",
+                "intcomma",
+                "pluralize",
+                "feedback",
+                "lorem",
+                "updateValue",
+                "callAction",
+                "triggerSet",
+                "functionIterates",
+                "module",
+                "footnote",
+                "caption",
+                "endpoint",
+                "sort",
+                "shuffle",
+                "solveEquations",
+                "subsetOfRealsInput",
+                "subsetOfReals",
+                "split",
+                "bestFitLine",
+                "regionBetweenCurveXAxis",
+                "regionHalfPlane",
+                "codeEditor",
+                "codeViewer",
+                "hasSameFactoring",
+                "dataFrame",
+                "summaryStatistics",
+                "chart",
+                "legend",
+                "label",
+                "matchesPattern",
+                "matrix",
+                "eigenDecomposition",
+                "latex",
+                "blockQuote",
+                "contentPicker"
+            ],
+            "attributes": [
+                {
+                    "name": "name"
+                },
+                {
+                    "name": "copySource"
+                },
+                {
+                    "name": "hide",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "disabled",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "fixed",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "fixLocation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "styleNumber"
+                },
+                {
+                    "name": "isResponse",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "newNamespace",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "aggregateScores",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "weight"
+                },
+                {
+                    "name": "sectionWideCheckWork",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "submitLabel"
+                },
+                {
+                    "name": "submitLabelNoCorrectness"
+                },
+                {
+                    "name": "displayDigitsForCreditAchieved"
+                },
+                {
+                    "name": "boxed",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "includeAutoName",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "includeAutoNumber",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "includeAutoNameIfNoTitle",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "includeAutoNumberIfNoTitle",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "asList",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "level"
+                },
+                {
+                    "name": "includeParentNumber",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                }
+            ],
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "modifyIndirectly",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "newNamespace",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "permid",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "aggregateScores",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "weight",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "sectionWideCheckWork",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "submitLabel",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "submitLabelNoCorrectness",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "displayDigitsForCreditAchieved",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "boxed",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "includeAutoName",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "includeAutoNumber",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "includeAutoNameIfNoTitle",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "includeAutoNumberIfNoTitle",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "asList",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "includeParentNumber",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "sectionNumber",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "title",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "creditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "percentCreditAchieved",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "open",
+                    "type": "boolean",
+                    "isArray": false
+                }
+            ],
+            "top": true,
+            "acceptsStringChildren": true
+        },
+        {
+            "name": "question",
+            "children": [
+                "variantControl",
+                "title",
+                "setup",
+                "rightHandSide",
+                "description",
+                "xlabel",
+                "ylabel",
+                "statement",
+                "introduction",
+                "conclusion",
+                "topic",
+                "m",
+                "me",
+                "men",
+                "md",
+                "mdn",
+                "mrow",
+                "not",
+                "and",
+                "or",
+                "xor",
+                "isInteger",
+                "isNumber",
+                "isBetween",
+                "sum",
+                "product",
+                "clampNumber",
+                "wrapNumberPeriodic",
+                "round",
+                "setSmallToZero",
+                "convertSetToList",
+                "ceil",
+                "floor",
+                "abs",
+                "sign",
+                "mean",
+                "median",
+                "variance",
+                "standardDeviation",
+                "count",
+                "min",
+                "max",
+                "mod",
+                "gcd",
+                "extractMath",
+                "clampFunction",
+                "wrapFunctionPeriodic",
+                "derivative",
+                "extractMathOperator",
+                "em",
+                "alert",
+                "q",
+                "sq",
+                "term",
+                "c",
+                "tag",
+                "tage",
+                "tagc",
+                "attr",
+                "ndash",
+                "mdash",
+                "nbsp",
+                "ellipsis",
+                "lq",
+                "rq",
+                "lsq",
+                "rsq",
+                "section",
+                "subsection",
+                "subsubsection",
+                "paragraphs",
+                "aside",
+                "objectives",
+                "problem",
+                "exercise",
+                "question",
                 "activity",
                 "example",
                 "definition",
@@ -28088,6 +28603,7 @@
                 "objectives",
                 "problem",
                 "exercise",
+                "question",
                 "activity",
                 "example",
                 "definition",
@@ -28590,6 +29106,7 @@
                 "objectives",
                 "problem",
                 "exercise",
+                "question",
                 "activity",
                 "example",
                 "definition",
@@ -29092,6 +29609,7 @@
                 "objectives",
                 "problem",
                 "exercise",
+                "question",
                 "activity",
                 "example",
                 "definition",
@@ -29594,6 +30112,7 @@
                 "objectives",
                 "problem",
                 "exercise",
+                "question",
                 "activity",
                 "example",
                 "definition",
@@ -30096,6 +30615,7 @@
                 "objectives",
                 "problem",
                 "exercise",
+                "question",
                 "activity",
                 "example",
                 "definition",
@@ -30598,6 +31118,7 @@
                 "objectives",
                 "problem",
                 "exercise",
+                "question",
                 "activity",
                 "example",
                 "definition",
@@ -31110,6 +31631,7 @@
                 "objectives",
                 "problem",
                 "exercise",
+                "question",
                 "activity",
                 "example",
                 "definition",
@@ -31603,6 +32125,7 @@
                 "objectives",
                 "problem",
                 "exercise",
+                "question",
                 "activity",
                 "example",
                 "definition",
@@ -32364,6 +32887,7 @@
                 "objectives",
                 "problem",
                 "exercise",
+                "question",
                 "activity",
                 "example",
                 "definition",
@@ -36901,6 +37425,7 @@
                 "objectives",
                 "problem",
                 "exercise",
+                "question",
                 "activity",
                 "example",
                 "definition",
@@ -37387,6 +37912,7 @@
                 "objectives",
                 "problem",
                 "exercise",
+                "question",
                 "activity",
                 "example",
                 "definition",
@@ -38208,6 +38734,7 @@
                 "objectives",
                 "problem",
                 "exercise",
+                "question",
                 "activity",
                 "example",
                 "definition",
@@ -38542,6 +39069,7 @@
                 "objectives",
                 "problem",
                 "exercise",
+                "question",
                 "activity",
                 "example",
                 "definition",
@@ -38876,6 +39404,7 @@
                 "objectives",
                 "problem",
                 "exercise",
+                "question",
                 "activity",
                 "example",
                 "definition",
@@ -39210,6 +39739,7 @@
                 "objectives",
                 "problem",
                 "exercise",
+                "question",
                 "activity",
                 "example",
                 "definition",
@@ -39564,6 +40094,7 @@
                 "objectives",
                 "problem",
                 "exercise",
+                "question",
                 "activity",
                 "example",
                 "definition",
@@ -40432,6 +40963,7 @@
                 "objectives",
                 "problem",
                 "exercise",
+                "question",
                 "activity",
                 "example",
                 "definition",
@@ -40672,6 +41204,7 @@
                 "objectives",
                 "problem",
                 "exercise",
+                "question",
                 "activity",
                 "example",
                 "definition",
@@ -44048,6 +44581,7 @@
                 "objectives",
                 "problem",
                 "exercise",
+                "question",
                 "activity",
                 "example",
                 "definition",
@@ -53411,6 +53945,7 @@
                 "objectives",
                 "problem",
                 "exercise",
+                "question",
                 "activity",
                 "example",
                 "definition",
@@ -56617,6 +57152,7 @@
                 "objectives",
                 "problem",
                 "exercise",
+                "question",
                 "activity",
                 "example",
                 "definition",
@@ -56970,6 +57506,7 @@
                 "objectives",
                 "problem",
                 "exercise",
+                "question",
                 "activity",
                 "example",
                 "definition",
@@ -58151,6 +58688,7 @@
                 "objectives",
                 "problem",
                 "exercise",
+                "question",
                 "activity",
                 "example",
                 "definition",
@@ -59285,6 +59823,7 @@
                 "objectives",
                 "problem",
                 "exercise",
+                "question",
                 "activity",
                 "example",
                 "definition",
@@ -59620,6 +60159,7 @@
                 "objectives",
                 "problem",
                 "exercise",
+                "question",
                 "activity",
                 "example",
                 "definition",
@@ -60209,6 +60749,7 @@
                 "objectives",
                 "problem",
                 "exercise",
+                "question",
                 "activity",
                 "example",
                 "definition",
@@ -62166,6 +62707,7 @@
                 "objectives",
                 "problem",
                 "exercise",
+                "question",
                 "activity",
                 "example",
                 "definition",
@@ -63273,6 +63815,7 @@
                 "objectives",
                 "problem",
                 "exercise",
+                "question",
                 "activity",
                 "example",
                 "definition",
@@ -65131,6 +65674,7 @@
                 "objectives",
                 "problem",
                 "exercise",
+                "question",
                 "activity",
                 "example",
                 "definition",
@@ -66541,6 +67085,7 @@
                 "objectives",
                 "problem",
                 "exercise",
+                "question",
                 "activity",
                 "example",
                 "definition",
@@ -67507,6 +68052,7 @@
                 "objectives",
                 "problem",
                 "exercise",
+                "question",
                 "activity",
                 "example",
                 "definition",
@@ -67839,6 +68385,7 @@
                 "objectives",
                 "problem",
                 "exercise",
+                "question",
                 "activity",
                 "example",
                 "definition",
@@ -68173,6 +68720,7 @@
                 "objectives",
                 "problem",
                 "exercise",
+                "question",
                 "activity",
                 "example",
                 "definition",
@@ -69565,6 +70113,7 @@
                 "objectives",
                 "problem",
                 "exercise",
+                "question",
                 "activity",
                 "example",
                 "definition",
@@ -70040,6 +70589,7 @@
                 "objectives",
                 "problem",
                 "exercise",
+                "question",
                 "activity",
                 "example",
                 "definition",
@@ -70718,6 +71268,7 @@
                 "objectives",
                 "problem",
                 "exercise",
+                "question",
                 "activity",
                 "example",
                 "definition",
@@ -71391,6 +71942,7 @@
                 "objectives",
                 "problem",
                 "exercise",
+                "question",
                 "activity",
                 "example",
                 "definition",
@@ -71764,6 +72316,7 @@
                 "objectives",
                 "problem",
                 "exercise",
+                "question",
                 "activity",
                 "example",
                 "definition",
@@ -73080,6 +73633,7 @@
                 "objectives",
                 "problem",
                 "exercise",
+                "question",
                 "activity",
                 "example",
                 "definition",
@@ -74142,6 +74696,7 @@
                 "objectives",
                 "problem",
                 "exercise",
+                "question",
                 "activity",
                 "example",
                 "definition",
@@ -77813,6 +78368,7 @@
                 "objectives",
                 "problem",
                 "exercise",
+                "question",
                 "activity",
                 "example",
                 "definition",
@@ -78147,6 +78703,7 @@
                 "objectives",
                 "problem",
                 "exercise",
+                "question",
                 "activity",
                 "example",
                 "definition",
