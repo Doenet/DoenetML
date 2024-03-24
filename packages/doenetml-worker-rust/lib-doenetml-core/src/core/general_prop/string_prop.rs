@@ -2,7 +2,7 @@ use std::rc::Rc;
 
 use crate::{
     components::prelude::*,
-    core::props::{DataQueryResult, InvertError, PropUpdater},
+    core::props::{DataQueryResult, InvertError, PropUpdaterUntyped},
     props::BoxedUpdater,
 };
 
@@ -123,7 +123,7 @@ impl<S: Into<String>> PropFromAttribute<S> for StringProp {
     }
 }
 
-impl PropUpdater for StringProp {
+impl PropUpdaterUntyped for StringProp {
     fn default(&self) -> PropValue {
         self.default_value.clone().into()
     }
@@ -132,7 +132,7 @@ impl PropUpdater for StringProp {
         vec![DataQuery::State, self.data_query.clone()]
     }
 
-    fn calculate(&self, data: DataQueryResults) -> PropCalcResult<PropValue> {
+    fn calculate_untyped(&self, data: DataQueryResults) -> PropCalcResult<PropValue> {
         let independent_state = &data.vec[0].values[0];
         let strings = &data.vec[1].values;
 
@@ -189,7 +189,7 @@ impl PropUpdater for StringProp {
 
     /// If the prop is determined by a single string variable,
     /// then request that variable take on the requested value for this variable.
-    fn invert(
+    fn invert_untyped(
         &self,
         data: Vec<DataQueryResult>,
         requested_value: PropValue,

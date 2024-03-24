@@ -6,10 +6,7 @@ use tsify::Tsify;
 use wasm_bindgen::prelude::*;
 
 use crate::utils::rc_serde;
-use crate::{
-    graph_node::GraphNode,
-    state::types::{element_refs::ElementRefs, math_expr::MathExpr},
-};
+use crate::{graph_node::GraphNode, state::types::math_expr::MathExpr};
 
 ///////////////////////////////////////////////////////////////////////
 // prop enum views that allow one to refer to props
@@ -34,24 +31,41 @@ use crate::{
 #[cfg_attr(feature = "web", tsify(from_wasm_abi))]
 pub enum PropValue {
     #[serde(with = "rc_serde")]
-    String(Rc<String>),
-    Number(f64),
-    Integer(i64),
-    Boolean(bool),
+    String(prop_type::String),
+    Number(prop_type::Number),
+    Integer(prop_type::Integer),
+    Boolean(prop_type::Boolean),
     #[serde(with = "rc_serde")]
-    Math(Rc<MathExpr>),
+    Math(prop_type::Math),
     // TODO: when create array props, convert this to use the general array mechanism
     // Created a vector type for now.
     #[serde(with = "rc_serde")]
-    ElementRefs(Rc<ElementRefs>),
+    ElementRefs(prop_type::ElementRefs),
     // TODO: when create array props, convert this to use the general array mechanism
     // Created a vector type for now.
     #[serde(with = "rc_serde")]
-    GraphNodes(Rc<Vec<GraphNode>>),
+    GraphNodes(prop_type::GraphNodes),
 }
 
 /// The discriminating type of a `PropValue`.
 pub type PropValueType = PropValueDiscriminants;
+
+pub mod prop_type {
+    //! Type aliases for the inner type of `PropValue`.
+    //! These are are named exactly the same as the discriminants of `PropValue`
+    //! so that they can be used in macros.
+
+    use super::*;
+    use crate::state::types::element_refs;
+
+    pub type String = Rc<std::string::String>;
+    pub type Number = f64;
+    pub type Integer = i64;
+    pub type Boolean = bool;
+    pub type Math = Rc<MathExpr>;
+    pub type ElementRefs = Rc<element_refs::ElementRefs>;
+    pub type GraphNodes = Rc<Vec<GraphNode>>;
+}
 
 mod conversions {
     //! Implementation of `From` traits for `PropValue`.

@@ -34,6 +34,7 @@ assert-json-diff = "2.0"
 serde-wasm-bindgen = { workspace = true }
 genrc = { workspace = true }
 typed-index-collections = { workspace = true }
+disjoint_impls = { workspace = true }
 
 [dev-dependencies]
 criterion = "0.5"

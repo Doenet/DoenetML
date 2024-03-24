@@ -191,8 +191,10 @@ mod custom_from_trait {
 
 #[cfg(test)]
 mod tests {
+    use crate::props::prop_type;
+
     use super::*;
-    use std::{convert::TryInto, rc::Rc};
+    use std::convert::TryInto;
 
     #[test]
     fn test_from_prop_with_meta() {
@@ -201,7 +203,7 @@ mod tests {
             came_from_default: false,
             changed: false,
         };
-        let prop_view: PropView<Rc<String>> = PropView::from_prop_with_meta(prop);
+        let prop_view: PropView<prop_type::String> = PropView::from_prop_with_meta(prop);
         // Value is in an Rc, so it needs to be dereferenced.
         assert_eq!(&**prop_view.value, "hello");
     }
@@ -213,7 +215,7 @@ mod tests {
             came_from_default: false,
             changed: false,
         };
-        let prop_view: PropView<Rc<String>> = prop.into_prop_view();
+        let prop_view: PropView<prop_type::String> = prop.into_prop_view();
         // Value is in an Rc, so it needs to be dereferenced.
         assert_eq!(&**prop_view.value, "hello");
     }
@@ -225,10 +227,11 @@ mod tests {
             came_from_default: false,
             changed: false,
         };
-        let prop_view_res: Result<PropView<Rc<String>>, anyhow::Error> = prop.clone().try_into();
+        let prop_view_res: Result<PropView<prop_type::String>, anyhow::Error> =
+            prop.clone().try_into();
         let prop_view = prop_view_res.unwrap();
         // Value is in an Rc, so it needs to be dereferenced.
-        assert_eq!(&*prop_view.value, "hello");
+        assert_eq!(&**prop_view.value, "hello");
 
         // Cannot convert to wrong type
         let prop_view_res: Result<PropView<i64>, anyhow::Error> = prop.clone().try_into();
@@ -242,10 +245,10 @@ mod tests {
             came_from_default: false,
             changed: false,
         };
-        let prop_view_res: Result<PropView<Rc<String>>, anyhow::Error> = (&prop).try_into();
+        let prop_view_res: Result<PropView<prop_type::String>, anyhow::Error> = (&prop).try_into();
         let prop_view = prop_view_res.unwrap();
         // Value is in an Rc, so it needs to be dereferenced.
-        assert_eq!(&*prop_view.value, "hello");
+        assert_eq!(&**prop_view.value, "hello");
 
         // Cannot convert to wrong type
         let prop_view_res: Result<PropView<i64>, anyhow::Error> = (&prop).try_into();

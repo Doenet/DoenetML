@@ -54,7 +54,10 @@ impl StringCache {
     }
 
     /// Get the value of a string prop as a string.
-    pub fn get_string_value<A: borrow::Borrow<GraphNode>>(&self, string_node: A) -> String {
+    pub fn get_string_value<A: borrow::Borrow<GraphNode>>(
+        &self,
+        string_node: A,
+    ) -> std::string::String {
         let string_node = string_node.borrow();
 
         // the origin doesn't matter as `qet_prop_unchecked` does not update change tracker

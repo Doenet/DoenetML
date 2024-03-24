@@ -25,10 +25,18 @@ mod component {
             is_public,
         )]
         Title,
+
         /// Whether the `<section>` should be hidden.
-        #[prop(value_type = PropValueType::Boolean, profile = PropProfile::Hidden)]
+        #[prop(
+            value_type = PropValueType::Boolean,
+            profile = PropProfile::Hidden
+        )]
         Hidden,
-        #[prop(value_type = PropValueType::GraphNodes, profile = PropProfile::RenderedChildren)]
+
+        #[prop(
+            value_type = PropValueType::GraphNodes,
+            profile = PropProfile::RenderedChildren
+        )]
         RenderedChildren,
     }
 
@@ -37,13 +45,23 @@ mod component {
         #[attribute(prop = BooleanProp, default = false)]
         Hide,
     }
+
+    pub mod prop_traits {
+        pub use super::*;
+
+        /// Implementing this trait will automatically implement the `PropUpdater` trait.
+        /// It will also required you to implement `PropUpdaterTyped` for the correct type.
+        ///
+        /// If you need full (untyped) control over `PropUpdater`, you can implement `PropUpdater` directly.
+        /// **Note**: Component authors should always implement `PropUpdaterTyped` instead of `PropUpdater`.
+        pub trait Hidden: PropUpdater<PropType = prop_type::Boolean> {}
+    }
 }
 
 pub use component::Section;
 pub use component::SectionActions;
 pub use component::SectionAttributes;
 pub use component::SectionProps;
-use doenetml_macros::FromDataQueryResults;
 
 use super::title::Title;
 
@@ -54,20 +72,49 @@ impl PropGetUpdater for SectionProps {
                 Rc::new(ElementRefsProp::new_from_last_matching_child(Title::NAME))
             }
             SectionProps::Hidden => SectionAttributes::Hide.get_prop_updater(),
-            SectionProps::RenderedChildren => Rc::new(SectionRenderedChildren::new()),
+            SectionProps::RenderedChildren => Rc::new(PropRenderedChildren::new()),
         }
     }
 }
 
-#[derive(Debug)]
-pub struct SectionRenderedChildren {}
+//macro_rules! last_path_segment {
+//    ($last:ident) => { stringify!($last) };
+//    ($head:ident::$($tail:tt)*) => { last_path_segment!($($tail)*) };
+//}
+//
+//macro_rules! assign_updater {
+//    ($prop:path, $updater:expr) => {
+//        {
+// //           let prop_type = concat!("prop_type::", $prop);
+//            convert::<_, prop_type:: $prop>($updater)
+//        }
+//    };
+//}
+//
+//fn foo(x: SectionProps) {
+//    match x {
+//        // input
+//        SectionProps::Hidden =>  assign_updater!(Hidden, SectionAttributes::Hide.get_prop_updater()),
+//        // output
+//       // SectionProps::Hidden => {
+//       //     convert::<_, prop_type::Hidden>(SectionAttributes::Hide.get_prop_updater())
+//       // }
+//       SectionProps::RenderedChildren => (),
+//         SectionProps::Title => (),
+//    }
+//
+//    todo!()
+//}
 
-impl SectionRenderedChildren {
+#[derive(Debug)]
+pub struct PropRenderedChildren {}
+
+impl PropRenderedChildren {
     pub fn new() -> Self {
-        SectionRenderedChildren {}
+        PropRenderedChildren {}
     }
 }
-impl Default for SectionRenderedChildren {
+impl Default for PropRenderedChildren {
     fn default() -> Self {
         Self::new()
     }
@@ -105,12 +152,12 @@ impl CreateDataQueries for RequiredData {
     }
 }
 
-impl PropUpdater for SectionRenderedChildren {
+impl PropUpdaterUntyped for PropRenderedChildren {
     fn data_queries(&self) -> Vec<DataQuery> {
         RequiredData::to_data_queries()
     }
 
-    fn calculate(&self, data: DataQueryResults) -> PropCalcResult<PropValue> {
+    fn calculate_untyped(&self, data: DataQueryResults) -> PropCalcResult<PropValue> {
         let required_data = RequiredData::from_data_query_results(data);
         let title_element_refs = required_data.title.value;
         let title_node = match &*title_element_refs {

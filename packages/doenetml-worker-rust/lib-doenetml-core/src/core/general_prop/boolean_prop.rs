@@ -135,8 +135,10 @@ impl PropFromAttribute<bool> for BooleanProp {
 }
 
 impl PropUpdater for BooleanProp {
-    fn default(&self) -> PropValue {
-        PropValue::Boolean(self.default_value)
+    type PropType = prop_type::Boolean;
+
+    fn default(&self) -> prop_type::Boolean {
+        self.default_value
     }
 
     fn data_queries(&self) -> Vec<DataQuery> {
@@ -144,7 +146,7 @@ impl PropUpdater for BooleanProp {
     }
 
     #[allow(clippy::needless_return)]
-    fn calculate(&self, data: DataQueryResults) -> PropCalcResult<PropValue> {
+    fn calculate(&self, data: DataQueryResults) -> PropCalcResult<prop_type::Boolean> {
         let independent_state = &data.vec[0].values[0];
         let booleans_and_strings = &data.vec[1].values;
 
@@ -153,9 +155,9 @@ impl PropUpdater for BooleanProp {
                 // If we reach here, then there were no dependencies returned from the data query.
                 // Use the value and came_from_default of `independent_state`
                 if independent_state.came_from_default {
-                    PropCalcResult::FromDefault((independent_state.value).clone())
+                    PropCalcResult::FromDefault(independent_state.value.clone().try_into().unwrap())
                 } else {
-                    PropCalcResult::Calculated((independent_state.value).clone())
+                    PropCalcResult::Calculated(independent_state.value.clone().try_into().unwrap())
                 }
             }
             1 => {
@@ -166,16 +168,20 @@ impl PropUpdater for BooleanProp {
                         {
                             // if we are basing it on a single variable and propagating came_from_default,
                             // then we propagate came_from_default as well as the value.
-                            PropCalcResult::FromDefault((booleans_and_strings[0].value).clone())
+                            PropCalcResult::FromDefault(
+                                (booleans_and_strings[0].value).clone().try_into().unwrap(),
+                            )
                         } else {
-                            PropCalcResult::Calculated((booleans_and_strings[0].value).clone())
+                            PropCalcResult::Calculated(
+                                (booleans_and_strings[0].value).clone().try_into().unwrap(),
+                            )
                         }
                     }
                     PropValue::String(string_value) => {
                         PropCalcResult::Calculated(if self.from_attribute {
-                            PropValue::Boolean(string_attr_to_boolean(&string_value.clone()))
+                            string_attr_to_boolean(&string_value.clone())
                         } else {
-                            PropValue::Boolean(string_to_boolean(&string_value.clone()))
+                            string_to_boolean(&string_value.clone())
                         })
                     }
                     _ => panic!(
@@ -190,7 +196,7 @@ impl PropUpdater for BooleanProp {
                     .any(|prop| matches!(&prop.value, PropValue::Boolean(_)))
                 {
                     // invalid combination. Haven't implemented boolean dependency with others
-                    PropCalcResult::Calculated(PropValue::Boolean(false))
+                    PropCalcResult::Calculated(false)
                 } else {
                     // Have multiple string variables. Concatenate the string values into a single string
 
@@ -205,9 +211,9 @@ impl PropUpdater for BooleanProp {
                         }));
 
                         PropCalcResult::Calculated(if self.from_attribute {
-                            PropValue::Boolean(string_attr_to_boolean(&value))
+                            string_attr_to_boolean(&value)
                         } else {
-                            PropValue::Boolean(string_to_boolean(&value))
+                            string_to_boolean(&value)
                         })
                     } else {
                         PropCalcResult::NoChange

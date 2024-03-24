@@ -2,7 +2,7 @@ use std::rc::Rc;
 
 use crate::{
     components::prelude::*,
-    core::props::PropUpdater,
+    core::props::PropUpdaterUntyped,
     props::{ComponentTypeDataQueryFilter, DataQueryFilter, DataQueryFilterComparison},
     state::types::element_refs::ElementRefs,
 };
@@ -72,7 +72,7 @@ impl ElementRefsProp {
     }
 }
 
-impl PropUpdater for ElementRefsProp {
+impl PropUpdaterUntyped for ElementRefsProp {
     fn default(&self) -> PropValue {
         PropValue::ElementRefs(Rc::new(ElementRefs::default()))
     }
@@ -81,7 +81,7 @@ impl PropUpdater for ElementRefsProp {
         vec![self.data_query.clone()]
     }
 
-    fn calculate(&self, data: DataQueryResults) -> PropCalcResult<PropValue> {
+    fn calculate_untyped(&self, data: DataQueryResults) -> PropCalcResult<PropValue> {
         let elements_found = &data.vec[0].values;
 
         match elements_found.len() {

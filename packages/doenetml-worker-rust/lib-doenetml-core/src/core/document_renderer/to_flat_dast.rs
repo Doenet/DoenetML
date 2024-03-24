@@ -239,7 +239,7 @@ impl DocumentRenderer {
 
     /// Get the value of a prop for rendering. If the prop is stale or not resolved,
     /// this function will resolve the prop, calculate all its dependencies, and then
-    /// return the result of `PropUpdater::calculate` applied to those dependencies.
+    /// return the result of `PropUpdaterUntyped::untyped_calculate` applied to those dependencies.
     /// Track that the prop has been viewed for rendering so that a second call will report it being unchanged.
     pub fn get_prop_for_render(
         &mut self,
@@ -254,7 +254,7 @@ impl DocumentRenderer {
 
     /// Get the value of a prop for rendering. If the prop is stale or not resolved,
     /// this function will resolve the prop, calculate all its dependencies, and then
-    /// return the result of `PropUpdater::calculate` applied to those dependencies.
+    /// return the result of `PropUpdaterUntyped::untyped_calculate` applied to those dependencies.
     /// Do not track that the prop has been viewed for rendering so that its change state is unaltered.
     pub fn get_prop_for_render_untracked(
         &mut self,

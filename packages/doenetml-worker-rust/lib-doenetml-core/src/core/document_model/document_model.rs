@@ -89,7 +89,7 @@ impl DocumentModel {
             );
 
             let prop = &self.get_prop_definition(prop_node.prop_idx());
-            prop.updater.calculate(required_data)
+            prop.updater.calculate_untyped(required_data)
         })
     }
 
@@ -109,7 +109,7 @@ impl DocumentModel {
             );
 
             let prop_definition = self.get_prop_definition(prop_node);
-            prop_definition.updater.calculate(required_data)
+            prop_definition.updater.calculate_untyped(required_data)
         })
     }
 

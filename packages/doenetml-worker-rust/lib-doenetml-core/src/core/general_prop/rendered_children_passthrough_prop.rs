@@ -2,7 +2,7 @@ use std::rc::Rc;
 
 use crate::{
     components::prelude::*,
-    core::props::PropUpdater,
+    core::props::PropUpdaterUntyped,
     props::{BoxedUpdater, DataQueryFilter, DataQueryFilterComparison, PropProfileDataQueryFilter},
 };
 
@@ -37,12 +37,12 @@ impl Default for RenderedChildrenPassthroughProp {
     }
 }
 
-impl PropUpdater for RenderedChildrenPassthroughProp {
+impl PropUpdaterUntyped for RenderedChildrenPassthroughProp {
     fn data_queries(&self) -> Vec<DataQuery> {
         vec![self.data_query.clone()]
     }
 
-    fn calculate(&self, data: DataQueryResults) -> PropCalcResult<PropValue> {
+    fn calculate_untyped(&self, data: DataQueryResults) -> PropCalcResult<PropValue> {
         // TODO: verify that data was in the right format.
         // For now, assuming that has just one value that is of type PropValue::GraphNodes
         let nodes = data.vec[0]

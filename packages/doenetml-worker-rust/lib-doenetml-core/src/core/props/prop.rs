@@ -2,7 +2,7 @@ use std::rc::Rc;
 
 use crate::components::{types::PropPointer, Boolean, Text};
 
-use super::{PropProfile, PropUpdater, PropValueDiscriminants};
+use super::{PropProfile, PropUpdaterUntyped, PropValueDiscriminants};
 
 /// Data associated with a prop that is "owned" by a component.
 #[derive(Debug, Clone)]
@@ -19,7 +19,7 @@ pub struct PropDefinitionMeta {
 }
 
 /// Type of a boxed `PropUpdater`.
-pub type BoxedUpdater = Rc<dyn PropUpdater>;
+pub type BoxedUpdater = Rc<dyn PropUpdaterUntyped>;
 
 /// A `PropDefinition` stores functions needed to compute a `PropValue` as required
 /// by a component.

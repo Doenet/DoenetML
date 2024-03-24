@@ -113,11 +113,26 @@ impl PropsEnum {
         self.get_variants().iter().map(|x| x.is_public).collect()
     }
 
-    /// The `is_public` property of all props defined on this component
+    /// The `value_type` property of all props defined on this component
     pub fn get_prop_value_types(&self) -> Vec<Path> {
         self.get_variants()
             .iter()
             .map(|x| x.value_type.clone())
+            .collect()
+    }
+
+    /// Returns the types for each prop. This is different than the `PropValueType`,
+    /// which is an actual enum. Instead, a type alias `prop_types::Foo` is exported
+    /// for every `PropValueType::Foo`.
+    pub fn get_prop_types(&self) -> Vec<Path> {
+        self.get_variants()
+            .iter()
+            .map(|x| {
+                // Get the last part of the path.
+                let last_segment = x.value_type.segments.last().unwrap();
+                // Create a new path `prop_types::#(last_segment)`;
+                parse_quote! { prop_type::#last_segment }
+            })
             .collect()
     }
 
@@ -213,6 +228,68 @@ impl PropsEnum {
             }
         }
     }
+
+    /// Generates `pub mod props {...}` which stores
+    /// typed traits and types for each prop.
+    pub fn generate_props_module(&self) -> TokenStream {
+        let name_type_pairs = self
+            .get_prop_idents()
+            .iter()
+            .zip(self.get_prop_types().iter())
+            .map(|(name, ty)| (name.clone(), ty.clone()))
+            .collect::<Vec<_>>();
+        let prop_types: Vec<TokenStream> = name_type_pairs
+            .iter()
+            .map(|(name, ty)| parse_quote!(type #name = #ty;))
+            .collect::<Vec<_>>();
+        let prop_traits = name_type_pairs
+            .iter()
+            .map(|(name, ty)| {
+                quote! {
+                    /// Implementing this trait will automatically implement the `PropUpdater` trait.
+                    /// It will also required you to implement `PropUpdaterTyped` for the correct type.
+                    ///
+                    /// If you need full (untyped) control over `PropUpdater`, you can implement `PropUpdater` directly.
+                    /// **Note**: Component authors should always implement `PropUpdaterTyped` instead of `PropUpdater`.
+                    pub trait #name: PropUpdater<PropType = #ty> {}
+                }
+            })
+            .collect::<Vec<_>>();
+
+        quote! {
+            #[allow(unused)]
+            pub mod props {
+                //! # Props
+                //! This module contains information to be used in the implementation of each prop.
+                //! - [`traits`] contains typed traits that should be implemented for each prop.
+                //! - [`types`] contains type aliases for each prop.
+                //! This information is derived from the annotations on the `Props` enum.
+                use super::*;
+
+                #[allow(unused)]
+                pub mod traits {
+                    //! # Prop Traits
+                    //! There is one trait in this module per prop in the `Props` enum. These traits
+                    //! are used to ensure type consistency in the definition of each prop. If you
+                    //! define a prop yourself, you should `impl traits::PropName for YourPropStruct {}`
+                    //! and then make sure to implement `impl PropUpdater<Type> for YourPropStruct` where `Type`
+                    //! is the correct type (i.e., the type matching `types::PropName`).
+                    use super::*;
+
+                    #(#prop_traits)*
+                }
+
+                #[allow(unused)]
+                pub mod types {
+                    //! The type of each prop is re-exported in this module with a name identical to that of the prop.
+                    use super::*;
+
+                    #(#prop_types)*
+
+                }
+            }
+        }
+    }
 }
 
 //
@@ -224,11 +301,12 @@ impl ComponentModule {
     pub fn generate_props_and_impls(&self) -> TokenStream {
         let enum_props = self.enum_props();
         let impl_prop_trait = self.props.impl_prop_trait();
+        let props_module = self.props.generate_props_module();
 
         quote! {
             #enum_props
-
             #impl_prop_trait
+            #props_module
         }
     }
 

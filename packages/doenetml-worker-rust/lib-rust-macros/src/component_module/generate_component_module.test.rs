@@ -24,7 +24,7 @@ fn test_preserves_pub_decorator_on_module() {
     let result = generate_component_module(syn::parse_str(input).unwrap());
     let formatted = pretty_print_result(&result);
     // formatted should not have a `pub mod`
-    assert!(!formatted.contains("pub mod"));
+    assert!(!formatted.contains("pub mod my_mod"));
 
     let input = r#"
         #[component(name = Document, ref_transmutes_to = Text)]
@@ -33,7 +33,7 @@ fn test_preserves_pub_decorator_on_module() {
     let result = generate_component_module(syn::parse_str(input).unwrap());
     let formatted = pretty_print_result(&result);
     // formatted should have a `pub mod`
-    assert!(formatted.contains("pub mod"));
+    assert!(formatted.contains("pub mod my_mod"));
 }
 
 #[test]

@@ -2,18 +2,21 @@
 //! macros properly. Rather than repeat them each time, collect them and re-export them here.
 
 // These imports are required for the derive macros to work correctly
-pub use doenetml_macros::component;
+pub use doenetml_macros::{component, FromDataQueryResults};
 pub use std::collections::HashMap;
 
 pub use super::traits::*;
 pub use super::types::*;
 pub use crate::core::props::{
-    DataQuery, PropCalcResult, PropDefinition, PropProfile, PropUpdater, PropValueType,
+    DataQuery, PropCalcResult, PropDefinition, PropProfile, PropUpdater, PropUpdaterUntyped,
+    PropValueType,
 };
 pub use crate::dast::flat_dast::FlatAttribute;
 pub use crate::dast::flat_dast::UntaggedContent;
 pub use crate::dast::Position as DastPosition;
+pub use crate::props::prop_type;
 pub use crate::props::traits::*;
+pub use crate::props::InvertError;
 pub use crate::props::{DataQueryResult, DataQueryResults, FromDataQueryResults};
 pub use crate::props::{FromPropWithMeta, IntoPropView};
 pub use crate::utils::KeyValueIgnoreCase;
