@@ -3,6 +3,7 @@ use std::rc::Rc;
 use crate::components::prelude::*;
 use crate::general_prop::ElementRefsProp;
 
+use super::title::Title;
 use crate::props::as_boxed;
 use crate::props::BoxedUpdater;
 use crate::props::ComponentTypeDataQueryFilter;
@@ -69,92 +70,97 @@ pub use component::SectionActions;
 pub use component::SectionAttributes;
 pub use component::SectionProps;
 
-use super::title::Title;
-
 impl PropGetUpdater for SectionProps {
     fn get_updater(&self) -> BoxedUpdater {
         match self {
-            SectionProps::Title => {
-                Rc::new(ElementRefsProp::new_from_last_matching_child(Title::NAME))
-            }
-            //SectionProps::Hidden => SectionAttributes::Hide.get_boxed_prop_updater(),
+            SectionProps::Title => as_boxed::<_, props::types::Title>(
+                ElementRefsProp::new_from_last_matching_child(Title::NAME),
+            ),
             SectionProps::Hidden => {
                 as_boxed::<_, props::types::Hidden>(attrs::Hide::get_prop_updater())
             }
-            //SectionProps::Hidden => {
-            //    as_boxed::<_, props::types::Hidden>(StringProp::new_from_children("".into()))
-            //}
-            SectionProps::RenderedChildren => Rc::new(PropRenderedChildren::new()),
+            SectionProps::RenderedChildren => {
+                as_boxed::<_, props::types::RenderedChildren>(custom_props::RenderedChildren::new())
+            }
         }
     }
 }
 
-#[derive(Debug)]
-pub struct PropRenderedChildren {}
+mod custom_props {
+    use super::*;
 
-impl PropRenderedChildren {
-    pub fn new() -> Self {
-        PropRenderedChildren {}
-    }
-}
-impl Default for PropRenderedChildren {
-    fn default() -> Self {
-        Self::new()
-    }
-}
+    pub use rendered_children::*;
+    mod rendered_children {
+        use super::*;
 
-#[derive(FromDataQueryResults)]
-#[data_query(query_trait = CreateDataQueries)]
-struct RequiredData {
-    filtered_children: Vec<PropView<Rc<Vec<GraphNode>>>>,
-    title: PropView<Rc<ElementRefs>>,
-}
+        /// The children that this component renders.
+        #[derive(Debug, Default)]
+        pub struct RenderedChildren {}
 
-impl CreateDataQueries for RequiredData {
-    fn filtered_children_query() -> DataQuery {
-        DataQuery::FilteredChildren {
-            filters: vec![
-                DataQueryFilter::PropProfile(PropProfileDataQueryFilter {
-                    profile: PropProfile::Hidden,
-                    value: PropValue::Boolean(true),
-                    comparison: DataQueryFilterComparison::NotEqual,
-                }),
-                DataQueryFilter::ComponentType(ComponentTypeDataQueryFilter {
-                    component_type: Title::NAME,
-                    comparison: DataQueryFilterComparison::NotEqual,
-                }),
-            ],
-            include_if_missing_profile: true,
+        impl RenderedChildren {
+            pub fn new() -> Self {
+                RenderedChildren {}
+            }
         }
-    }
-    fn title_query() -> DataQuery {
-        DataQuery::Prop {
-            component_idx: None,
-            local_prop_idx: SectionProps::Title.local_idx(),
+
+        /// Structure to hold data generated from the data queries
+        #[derive(FromDataQueryResults)]
+        #[data_query(query_trait = DataQueries)]
+        struct RequiredData {
+            filtered_children: Vec<PropView<Rc<Vec<GraphNode>>>>,
+            title: PropView<Rc<ElementRefs>>,
         }
-    }
-}
 
-impl PropUpdaterUntyped for PropRenderedChildren {
-    fn data_queries(&self) -> Vec<DataQuery> {
-        RequiredData::to_data_queries()
-    }
+        impl DataQueries for RequiredData {
+            fn filtered_children_query() -> DataQuery {
+                DataQuery::FilteredChildren {
+                    filters: vec![
+                        DataQueryFilter::PropProfile(PropProfileDataQueryFilter {
+                            profile: PropProfile::Hidden,
+                            value: PropValue::Boolean(true),
+                            comparison: DataQueryFilterComparison::NotEqual,
+                        }),
+                        DataQueryFilter::ComponentType(ComponentTypeDataQueryFilter {
+                            component_type: Title::NAME,
+                            comparison: DataQueryFilterComparison::NotEqual,
+                        }),
+                    ],
+                    include_if_missing_profile: true,
+                }
+            }
+            fn title_query() -> DataQuery {
+                DataQuery::Prop {
+                    component_idx: None,
+                    local_prop_idx: SectionProps::Title.local_idx(),
+                }
+            }
+        }
 
-    fn calculate_untyped(&self, data: DataQueryResults) -> PropCalcResult<PropValue> {
-        let required_data = RequiredData::from_data_query_results(data);
-        let title_element_refs = required_data.title.value;
-        let title_node = match &*title_element_refs {
-            ElementRefs(element_refs) => element_refs.first().map(|x| vec![x.as_graph_node()]),
-        };
+        impl PropUpdater for RenderedChildren {
+            type PropType = prop_type::GraphNodes;
 
-        let non_title_nodes = required_data
-            .filtered_children
-            .iter()
-            .flat_map(|prop| (*prop.value).clone());
+            fn data_queries(&self) -> Vec<DataQuery> {
+                RequiredData::to_data_queries()
+            }
+            fn calculate(&self, data: DataQueryResults) -> PropCalcResult<Self::PropType> {
+                let required_data = RequiredData::from_data_query_results(data);
+                let title_element_refs = required_data.title.value;
+                let title_node = match &*title_element_refs {
+                    ElementRefs(element_refs) => {
+                        element_refs.first().map(|x| vec![x.as_graph_node()])
+                    }
+                };
 
-        let mut child_nodes = title_node.unwrap_or(vec![]);
-        child_nodes.extend(non_title_nodes);
+                let non_title_nodes = required_data
+                    .filtered_children
+                    .iter()
+                    .flat_map(|prop| (*prop.value).clone());
 
-        PropCalcResult::Calculated(PropValue::GraphNodes(Rc::new(child_nodes)))
+                let mut child_nodes = title_node.unwrap_or(vec![]);
+                child_nodes.extend(non_title_nodes);
+
+                PropCalcResult::Calculated(Rc::new(child_nodes))
+            }
+        }
     }
 }

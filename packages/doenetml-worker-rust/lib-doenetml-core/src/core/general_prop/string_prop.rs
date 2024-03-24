@@ -2,7 +2,7 @@ use std::rc::Rc;
 
 use crate::{
     components::prelude::*,
-    core::props::{DataQueryResult, InvertError, PropUpdaterUntyped},
+    core::props::{DataQueryResult, InvertError},
     props::BoxedUpdater,
 };
 
@@ -123,37 +123,54 @@ impl<S: Into<String>> PropFromAttribute<S> for StringProp {
     }
 }
 
-impl PropUpdaterUntyped for StringProp {
-    fn default(&self) -> PropValue {
+#[derive(FromDataQueryResults)]
+#[data_query(query_trait = DataQueries)]
+struct RequiredData {
+    independent_state: PropView<prop_type::String>,
+    strings: Vec<PropView<prop_type::String>>,
+}
+
+impl DataQueries for RequiredData {
+    fn independent_state_query() -> DataQuery {
+        DataQuery::State
+    }
+    fn strings_query() -> DataQuery {
+        // This data query will be replaced before being sent to core
+        DataQuery::Null
+    }
+}
+
+impl PropUpdater for StringProp {
+    type PropType = prop_type::String;
+
+    fn default(&self) -> Self::PropType {
         self.default_value.clone().into()
     }
 
     fn data_queries(&self) -> Vec<DataQuery> {
-        vec![DataQuery::State, self.data_query.clone()]
+        let mut queries = RequiredData::to_data_queries();
+        // Make sure the last element is the locally-stored data query
+        queries.pop();
+        queries.push(self.data_query.clone());
+        queries
     }
 
-    fn calculate_untyped(&self, data: DataQueryResults) -> PropCalcResult<PropValue> {
-        let independent_state = &data.vec[0].values[0];
-        let strings = &data.vec[1].values;
+    fn calculate(&self, data: DataQueryResults) -> PropCalcResult<Self::PropType> {
+        let required_data: RequiredData = RequiredData::from_data_query_results(data);
+        let independent_state = required_data.independent_state;
+        let strings = required_data.strings;
 
         match strings.len() {
             0 => {
                 // If we reach here, then there were no dependencies returned from the data query.
                 // Use the value and came_from_default of `independent_state`
                 if independent_state.came_from_default {
-                    PropCalcResult::FromDefault((independent_state.value).clone())
+                    PropCalcResult::FromDefault(independent_state.value.clone())
                 } else {
-                    PropCalcResult::Calculated((independent_state.value).clone())
+                    PropCalcResult::Calculated(independent_state.value.clone())
                 }
             }
             1 => {
-                if !matches!(&strings[0].value, PropValue::String(..)) {
-                    panic!(
-                        "Should get string dependency for string, found {:?}",
-                        strings[0].value
-                    );
-                }
-
                 if self.propagate_came_from_default && strings[0].came_from_default {
                     // if we are basing it on a single variable and propagating `came_from_default`,
                     // then we propagate `came_from_default` as well as the value.
@@ -169,15 +186,7 @@ impl PropUpdaterUntyped for StringProp {
                 // multiple string variables, so concatenate
 
                 if strings.iter().any(|view| view.changed) {
-                    let mut value = String::new();
-
-                    value.extend(strings.iter().map(|v| match (v.value).clone() {
-                        PropValue::String(str) => (*str).clone(),
-                        _ => panic!(
-                            "Should get string dependency for string, found {:?}",
-                            v.value
-                        ),
-                    }));
+                    let value = String::from_iter(strings.iter().map(|v| (*v.value).clone()));
 
                     PropCalcResult::Calculated(value.into())
                 } else {
@@ -189,7 +198,7 @@ impl PropUpdaterUntyped for StringProp {
 
     /// If the prop is determined by a single string variable,
     /// then request that variable take on the requested value for this variable.
-    fn invert_untyped(
+    fn invert(
         &self,
         data: Vec<DataQueryResult>,
         requested_value: PropValue,

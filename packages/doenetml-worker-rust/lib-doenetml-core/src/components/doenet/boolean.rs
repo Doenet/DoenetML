@@ -16,7 +16,11 @@ mod component {
             default
         )]
         Value,
-        #[prop(value_type = PropValueType::Boolean, profile = PropProfile::Hidden)]
+
+        #[prop(
+            value_type = PropValueType::Boolean,
+            profile = PropProfile::Hidden
+        )]
         Hidden,
     }
 
@@ -35,8 +39,12 @@ pub use component::BooleanProps;
 impl PropGetUpdater for BooleanProps {
     fn get_updater(&self) -> BoxedUpdater {
         match self {
-            BooleanProps::Value => BooleanProp::new_from_children(false).into(),
-            BooleanProps::Hidden => BooleanAttributes::Hide.get_boxed_prop_updater(),
+            BooleanProps::Value => {
+                as_boxed::<_, component::props::types::Value>(BooleanProp::new_from_children(false))
+            }
+            BooleanProps::Hidden => as_boxed::<_, component::props::types::Hidden>(
+                component::attrs::Hide::get_prop_updater(),
+            ),
         }
     }
 }

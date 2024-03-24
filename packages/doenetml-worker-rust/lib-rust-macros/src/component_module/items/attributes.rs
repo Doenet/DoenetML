@@ -134,14 +134,24 @@ impl AttributesEnum {
                     quote! {}
                 }
                 (Some(prop), Some(default)) => {
+                    let doc_comment = format!(
+                        "Get the prop updater for the `{}` attribute.",
+                        attribute_name
+                    );
+
                     quote! {
+                        #[doc = #doc_comment]
                         pub fn get_prop_updater() -> #prop {
                             #prop::new_from_attribute(#attribute_name, #default)
                         }
                     }
                 }
             };
+
+            let doc_comment = format!("Empty struct created as a placeholder for data associated with the `{}` attribute.", attribute_name);
+
             quote! {
+                #[doc = #doc_comment]
                 pub struct #ident;
                 impl #ident {
                     #prop_updater_impl

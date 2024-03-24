@@ -2,11 +2,10 @@ use std::rc::Rc;
 
 use crate::{
     components::prelude::*,
-    core::props::PropUpdaterUntyped,
     props::{BoxedUpdater, DataQueryFilter, DataQueryFilterComparison, PropProfileDataQueryFilter},
 };
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct RenderedChildrenPassthroughProp {
     /// The data query that indicates how the dependencies of this prop will be created.
     data_query: DataQuery,
@@ -31,18 +30,14 @@ impl RenderedChildrenPassthroughProp {
     }
 }
 
-impl Default for RenderedChildrenPassthroughProp {
-    fn default() -> Self {
-        Self::new()
-    }
-}
+impl PropUpdater for RenderedChildrenPassthroughProp {
+    type PropType = prop_type::GraphNodes;
 
-impl PropUpdaterUntyped for RenderedChildrenPassthroughProp {
     fn data_queries(&self) -> Vec<DataQuery> {
         vec![self.data_query.clone()]
     }
 
-    fn calculate_untyped(&self, data: DataQueryResults) -> PropCalcResult<PropValue> {
+    fn calculate(&self, data: DataQueryResults) -> PropCalcResult<Self::PropType> {
         // TODO: verify that data was in the right format.
         // For now, assuming that has just one value that is of type PropValue::GraphNodes
         let nodes = data.vec[0]
@@ -56,6 +51,6 @@ impl PropUpdaterUntyped for RenderedChildrenPassthroughProp {
             })
             .collect::<Vec<_>>();
 
-        PropCalcResult::Calculated(PropValue::GraphNodes(Rc::new(nodes)))
+        PropCalcResult::Calculated(Rc::new(nodes))
     }
 }

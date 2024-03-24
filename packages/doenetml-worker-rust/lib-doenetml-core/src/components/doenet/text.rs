@@ -41,8 +41,12 @@ pub use component::TextProps;
 impl PropGetUpdater for TextProps {
     fn get_updater(&self) -> BoxedUpdater {
         match self {
-            TextProps::Value => StringProp::new_from_children("".to_string()).into(),
-            TextProps::Hidden => TextAttributes::Hide.get_boxed_prop_updater(),
+            TextProps::Value => as_boxed::<_, component::props::types::Value>(
+                StringProp::new_from_children("".to_string()),
+            ),
+            TextProps::Hidden => as_boxed::<_, component::props::types::Hidden>(
+                component::attrs::Hide::get_prop_updater(),
+            ),
         }
     }
 }

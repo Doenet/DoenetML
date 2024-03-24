@@ -21,79 +21,10 @@ pub use component::DocumentProps;
 impl PropGetUpdater for DocumentProps {
     fn get_updater(&self) -> BoxedUpdater {
         match self {
-            DocumentProps::RenderedChildren => RenderedChildrenPassthroughProp::new_boxed(),
+            DocumentProps::RenderedChildren => as_boxed::<
+                _,
+                component::props::types::RenderedChildren,
+            >(RenderedChildrenPassthroughProp::new()),
         }
     }
 }
-
-//impl Props {
-//    fn get_updater(&self) {
-//         match self {
-//             Props::Value => (),
-//             Props::ImmediateValue => {
-//                StringProp::new_from_children("".to_string()).into_prop();
-//                todo!()
-//             },
-//        }
-//    }
-//}
-//}
-//
-////pub type Document = component::Component;
-////pub type DocumentProps = component::Props;
-////pub type DocumentActions = component::Actions;
-////pub type DocumentAttributes = component::Attributes;
-////pub type DocumentRenderedProps = component::RenderedProps;
-//
-
-//enum RequiredData {
-//    FooState,
-//    BarState
-//}
-//
-//
-//impl GetDataQueries for RequiredData {
-//    fn get_query(&self) -> DataQuery {
-//        match self {
-//            RequiredData::FooState => DataQuery::State,
-//            RequiredData::BarState => DataQuery::Prop{..Default::default()},
-//        }
-//    }
-//}
-//
-//trait GetProp<T> {
-//    fn get(&self, idx: T) -> DataQueryResult;
-//}
-//
-//
-//impl GetProp<RequiredData> for Vec<DataQueryResult> {
-//    fn get_vec(&self, idx: RequiredData) -> Vec<PropWithMeta> {
-//        match idx {
-//            RequiredData::FooState => self[0].values,
-//            RequiredData::BarState => self[1].values,
-//        }
-//    }
-//    fn get_single(&self, idx: RequiredData) -> PropWithMeta {
-//        match idx {
-//            RequiredData::FooState => self[0].values[0],
-//            RequiredData::BarState => self[1].values[0],
-//        }
-//    }
-//}
-//
-//fn updater(res: Vec<DataQueryResult>) {
-//    let foo_state = res.get_single(RequiredData::FooState);
-//    let foo_state_value: String = foo_state.try_into()?;
-//    let bar_state = res.get_vec(RequiredData::BarState);
-//
-//}
-
-//struct TypedPropWithMeta<T> {
-//    value: T,
-//    meta: ()
-//}
-
-//struct RequiredData {
-//    foo_state: TypedPropWithMeta<String>,
-//    bar_state: Vec<TypedPropWithMeta<bool>>,
-//}

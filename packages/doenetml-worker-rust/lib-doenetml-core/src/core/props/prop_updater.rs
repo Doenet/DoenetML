@@ -179,6 +179,7 @@ const _: () = {
     }
 
     implement_prop_updater_untyped!(prop_type::Boolean);
+    implement_prop_updater_untyped!(prop_type::ElementRefs);
     implement_prop_updater_untyped!(prop_type::GraphNodes);
     implement_prop_updater_untyped!(prop_type::Integer);
     implement_prop_updater_untyped!(prop_type::Math);
@@ -235,10 +236,14 @@ const _: () = {
 /// Turn a `PropUpdater<PropType>` in a `Box<dyn PropUpdaterUntyped>` while asserting
 /// `PropType`.
 ///
+/// ## Example
 /// ```ignore
 /// let bool_updater = MyBoolUpdater::new();
 /// let boxed_updater = as_boxed::<_, bool>(typed_updater);
 /// ```
+///
+/// If `MyBoolUpdater::new()` returned a `PropUpdater<PropType != bool>`, `as_boxed` would
+/// produce a type error.
 pub fn as_boxed<T, RequiredType>(typed_updater: T) -> BoxedUpdater
 where
     T: PropUpdater<PropType = RequiredType> + PropUpdaterUntyped + 'static,

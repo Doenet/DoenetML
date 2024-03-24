@@ -2,7 +2,6 @@ use std::rc::Rc;
 
 use crate::{
     components::prelude::*,
-    core::props::PropUpdaterUntyped,
     props::{ComponentTypeDataQueryFilter, DataQueryFilter, DataQueryFilterComparison},
     state::types::element_refs::ElementRefs,
 };
@@ -72,21 +71,19 @@ impl ElementRefsProp {
     }
 }
 
-impl PropUpdaterUntyped for ElementRefsProp {
-    fn default(&self) -> PropValue {
-        PropValue::ElementRefs(Rc::new(ElementRefs::default()))
-    }
+impl PropUpdater for ElementRefsProp {
+    type PropType = prop_type::ElementRefs;
 
     fn data_queries(&self) -> Vec<DataQuery> {
         vec![self.data_query.clone()]
     }
 
-    fn calculate_untyped(&self, data: DataQueryResults) -> PropCalcResult<PropValue> {
+    fn calculate(&self, data: DataQueryResults) -> PropCalcResult<Self::PropType> {
         let elements_found = &data.vec[0].values;
 
         match elements_found.len() {
             // return an empty vector if nothing found
-            0 => PropCalcResult::FromDefault(self.default()),
+            0 => PropCalcResult::FromDefault(<Self as PropUpdater>::default(self)),
             _ => {
                 let elements = elements_found
                     .iter()
@@ -103,16 +100,10 @@ impl PropUpdaterUntyped for ElementRefsProp {
                     .collect::<Vec<_>>();
                 PropCalcResult::Calculated(match self.elements_to_select {
                     ElementsToSelect::First => {
-                        PropValue::ElementRefs(Rc::new(ElementRefs(vec![*elements
-                            .first()
-                            .unwrap()])))
+                        Rc::new(ElementRefs(vec![*elements.first().unwrap()]))
                     }
-                    ElementsToSelect::Last => {
-                        PropValue::ElementRefs(Rc::new(ElementRefs(vec![*elements
-                            .last()
-                            .unwrap()])))
-                    }
-                    ElementsToSelect::All => PropValue::ElementRefs(Rc::new(ElementRefs(elements))),
+                    ElementsToSelect::Last => Rc::new(ElementRefs(vec![*elements.last().unwrap()])),
+                    ElementsToSelect::All => Rc::new(ElementRefs(elements)),
                 })
             }
         }
