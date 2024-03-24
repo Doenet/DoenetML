@@ -3,6 +3,7 @@ use std::rc::Rc;
 use crate::components::prelude::*;
 use crate::general_prop::ElementRefsProp;
 
+use crate::props::as_boxed;
 use crate::props::BoxedUpdater;
 use crate::props::ComponentTypeDataQueryFilter;
 use crate::props::DataQueryFilter;
@@ -42,7 +43,10 @@ mod component {
 
     enum Attributes {
         /// Whether the `<section>` should be hidden.
-        #[attribute(prop = BooleanProp, default = false)]
+        #[attribute(
+            prop = BooleanProp,
+            default = false
+        )]
         Hide,
     }
 
@@ -58,6 +62,8 @@ mod component {
     }
 }
 
+use component::attrs;
+use component::props;
 pub use component::Section;
 pub use component::SectionActions;
 pub use component::SectionAttributes;
@@ -71,40 +77,17 @@ impl PropGetUpdater for SectionProps {
             SectionProps::Title => {
                 Rc::new(ElementRefsProp::new_from_last_matching_child(Title::NAME))
             }
-            SectionProps::Hidden => SectionAttributes::Hide.get_prop_updater(),
+            //SectionProps::Hidden => SectionAttributes::Hide.get_boxed_prop_updater(),
+            SectionProps::Hidden => {
+                as_boxed::<_, props::types::Hidden>(attrs::Hide::get_prop_updater())
+            }
+            //SectionProps::Hidden => {
+            //    as_boxed::<_, props::types::Hidden>(StringProp::new_from_children("".into()))
+            //}
             SectionProps::RenderedChildren => Rc::new(PropRenderedChildren::new()),
         }
     }
 }
-
-//macro_rules! last_path_segment {
-//    ($last:ident) => { stringify!($last) };
-//    ($head:ident::$($tail:tt)*) => { last_path_segment!($($tail)*) };
-//}
-//
-//macro_rules! assign_updater {
-//    ($prop:path, $updater:expr) => {
-//        {
-// //           let prop_type = concat!("prop_type::", $prop);
-//            convert::<_, prop_type:: $prop>($updater)
-//        }
-//    };
-//}
-//
-//fn foo(x: SectionProps) {
-//    match x {
-//        // input
-//        SectionProps::Hidden =>  assign_updater!(Hidden, SectionAttributes::Hide.get_prop_updater()),
-//        // output
-//       // SectionProps::Hidden => {
-//       //     convert::<_, prop_type::Hidden>(SectionAttributes::Hide.get_prop_updater())
-//       // }
-//       SectionProps::RenderedChildren => (),
-//         SectionProps::Title => (),
-//    }
-//
-//    todo!()
-//}
 
 #[derive(Debug)]
 pub struct PropRenderedChildren {}

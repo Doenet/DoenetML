@@ -36,7 +36,7 @@ impl PropGetUpdater for BooleanProps {
     fn get_updater(&self) -> BoxedUpdater {
         match self {
             BooleanProps::Value => BooleanProp::new_from_children(false).into(),
-            BooleanProps::Hidden => BooleanAttributes::Hide.get_prop_updater(),
+            BooleanProps::Hidden => BooleanAttributes::Hide.get_boxed_prop_updater(),
         }
     }
 }

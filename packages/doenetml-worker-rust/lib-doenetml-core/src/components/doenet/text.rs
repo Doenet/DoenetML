@@ -42,7 +42,7 @@ impl PropGetUpdater for TextProps {
     fn get_updater(&self) -> BoxedUpdater {
         match self {
             TextProps::Value => StringProp::new_from_children("".to_string()).into(),
-            TextProps::Hidden => TextAttributes::Hide.get_prop_updater(),
+            TextProps::Hidden => TextAttributes::Hide.get_boxed_prop_updater(),
         }
     }
 }

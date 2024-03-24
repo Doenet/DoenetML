@@ -1,8 +1,9 @@
+use std::rc::Rc;
 use thiserror::Error;
 
 use crate::components::prelude::DataQuery;
 
-use super::{data_query::DataQueryResult, prop_type, DataQueryResults, PropValue};
+use super::{data_query::DataQueryResult, prop_type, BoxedUpdater, DataQueryResults, PropValue};
 
 /// The possible results of a call to `calculate`:
 /// - `Calculated(val)`: the value was calculated to be `val`
@@ -238,11 +239,11 @@ const _: () = {
 /// let bool_updater = MyBoolUpdater::new();
 /// let boxed_updater = as_boxed::<_, bool>(typed_updater);
 /// ```
-pub fn as_boxed<T, PropType>(typed_updater: T) -> Box<dyn PropUpdaterUntyped>
+pub fn as_boxed<T, RequiredType>(typed_updater: T) -> BoxedUpdater
 where
-    T: PropUpdater<PropType = PropType> + PropUpdaterUntyped + 'static,
-    PropType: Clone + std::fmt::Debug + Default,
-    PropValue: From<PropType>,
+    T: PropUpdater<PropType = RequiredType> + PropUpdaterUntyped + 'static,
+    RequiredType: Clone + std::fmt::Debug + Default,
+    PropValue: From<RequiredType>,
 {
-    Box::new(typed_updater)
+    Rc::new(typed_updater)
 }

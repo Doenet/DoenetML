@@ -142,7 +142,7 @@ impl ComponentModule {
     pub fn impl_component_variant_props_trait(&self) -> TokenStream {
         let ret = quote! {
             impl ComponentVariantProps for Component {
-                fn get_prop_updater(&self, local_prop_idx: LocalPropIdx) -> crate::props::BoxedUpdater {
+                fn get_boxed_prop_updater(&self, local_prop_idx: LocalPropIdx) -> crate::props::BoxedUpdater {
                     PropGetUpdater::get_updater(&Component::PROPS[local_prop_idx.as_usize()])
                 }
                 fn get_num_props(&self) -> usize {

@@ -3,7 +3,7 @@ use enum_dispatch::enum_dispatch;
 use crate::{
     components::{types::LocalPropIdx, ComponentEnum},
     core::props::{PropProfile, PropValueType},
-    props::BoxedUpdater,
+    props::{BoxedUpdater, PropUpdater, PropUpdaterUntyped},
 };
 
 // TODO: remove the default implementations for these methods. It should be a compiler
@@ -16,9 +16,18 @@ use crate::{
 #[allow(unused)]
 pub trait ComponentVariantProps {
     /// Get an updater for a specific prop.
-    fn get_prop_updater(&self, local_prop_idx: LocalPropIdx) -> BoxedUpdater {
+    fn get_boxed_prop_updater(&self, local_prop_idx: LocalPropIdx) -> BoxedUpdater {
         unimplemented!()
     }
+
+    /// Get the `PropUpdater` (with type information).
+    fn get_prop_updater<T: PropUpdater + PropUpdaterUntyped>(
+        &self,
+        local_prop_idx: LocalPropIdx,
+    ) -> T {
+        unimplemented!()
+    }
+
     /// Get the number of props for this component.
     fn get_num_props(&self) -> usize {
         unimplemented!()

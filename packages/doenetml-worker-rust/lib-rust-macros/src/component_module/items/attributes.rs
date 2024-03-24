@@ -59,6 +59,7 @@ impl AttributesEnum {
             variants.iter().map(|x| x.ident.clone()).collect()
         })
     }
+    /// Attribute names in `snake_case`
     pub fn get_attribute_names(&self) -> Vec<String> {
         self.get_attribute_idents()
             .iter()
@@ -109,6 +110,54 @@ impl AttributesEnum {
 
         format!("{}\n- Name: \"{}\"\n{}", existing_doc, name, default)
     }
+
+    /// Generate the `pub mod attrs { ... }` module.
+    fn generate_attrs_module(&self) -> TokenStream {
+        // For each attribute `Foo` we will create
+        // ```
+        // pub struct Foo;
+        // impl Foo {
+        //    pub fn get_prop_updater() -> PropUpdaterType {}
+        // }
+        // ```
+        // We make the impl block only if a `prop` is specified.
+
+        let attributes_name = self.get_attribute_names();
+
+        let attr_structs = self.get_variants().iter().enumerate().map(|(i, variant)| {
+            let ident = &variant.ident;
+            let general_prop = &variant.prop;
+            let default = &variant.default;
+            let attribute_name = &attributes_name[i];
+            let prop_updater_impl = match (general_prop, default) {
+                (None, _) | (_, None) => {
+                    quote! {}
+                }
+                (Some(prop), Some(default)) => {
+                    quote! {
+                        pub fn get_prop_updater() -> #prop {
+                            #prop::new_from_attribute(#attribute_name, #default)
+                        }
+                    }
+                }
+            };
+            quote! {
+                pub struct #ident;
+                impl #ident {
+                    #prop_updater_impl
+                }
+            }
+        });
+        quote! {
+            pub mod attrs {
+                //! # Attributes
+                //! This module contains type information and helper functions for implementing attributes.
+                use super::*;
+
+                #(#attr_structs)*
+            }
+        }
+    }
 }
 
 /// A variant on the `enum Attributes {...}` enum.
@@ -140,10 +189,12 @@ impl ComponentModule {
     pub fn generate_attributes_and_impls(&self) -> TokenStream {
         let enum_attributes = self.enum_attributes();
         let impl_prop_from_attribute_variant_trait = self.impl_prop_from_attribute_variant_trait();
+        let attrs_module = self.attributes.generate_attrs_module();
 
         quote! {
             #enum_attributes
             #impl_prop_from_attribute_variant_trait
+            #attrs_module
         }
     }
 
@@ -180,24 +231,22 @@ impl ComponentModule {
         if !self.attributes.is_present() {
             return quote! {};
         }
-        let attributes_name = self.attributes.get_attribute_names();
-        let match_arms = self.attributes.get_variants()
+        let boxed_match_arms = self.attributes.get_variants()
             .iter()
-            .enumerate()
-            .map(|(i, variant)| {
+            .map(|variant| {
                 let variant_ident = &variant.ident;
-                let prop = &variant.prop;
+                let general_prop = &variant.prop;
                 let default = &variant.default;
-                let attribute_name = &attributes_name[i];
-                match (prop, default) {
+                match (general_prop, default) {
                     (None, _) | (_, None) => {
                         quote!{
                             Self::#variant_ident => panic!("`prop` and `default` must be specified for each attribute"),
                         }
                     }
-                    (Some(prop), Some(default)) => {
+                    (Some(_prop), Some(_default)) => {
                         quote! {
-                            Self::#variant_ident => std::rc::Rc::new(#prop::new_from_attribute(#attribute_name, #default)),
+                            // If we have a prop and a default, the `attrs` module already implements what we need.
+                            Self::#variant_ident => std::rc::Rc::new(attrs::#variant_ident::get_prop_updater()),
                         }
                     }
                 }
@@ -206,9 +255,9 @@ impl ComponentModule {
 
         quote! {
             impl PropFromAttributeVariant for Attributes {
-                fn get_prop_updater(&self) -> crate::props::BoxedUpdater {
+                fn get_boxed_prop_updater(&self) -> crate::props::BoxedUpdater {
                     match self {
-                        #(#match_arms)*
+                        #(#boxed_match_arms)*
                     }
                 }
             }

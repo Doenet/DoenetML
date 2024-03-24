@@ -84,7 +84,7 @@ impl ComponentProps for Component {
                         },
                         public: self.variant.get_prop_is_public(local_prop_idx),
                     },
-                    updater: self.variant.get_prop_updater(local_prop_idx),
+                    updater: self.variant.get_boxed_prop_updater(local_prop_idx),
                     variant: self.variant.get_prop_value_type(local_prop_idx),
                 }
             })

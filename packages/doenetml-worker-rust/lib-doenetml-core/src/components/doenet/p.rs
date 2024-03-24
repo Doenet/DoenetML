@@ -31,7 +31,7 @@ pub use component::P;
 impl PropGetUpdater for PProps {
     fn get_updater(&self) -> BoxedUpdater {
         match self {
-            PProps::Hidden => PAttributes::Hide.get_prop_updater(),
+            PProps::Hidden => PAttributes::Hide.get_boxed_prop_updater(),
             PProps::RenderedChildren => RenderedChildrenPassthroughProp::new_boxed(),
         }
     }

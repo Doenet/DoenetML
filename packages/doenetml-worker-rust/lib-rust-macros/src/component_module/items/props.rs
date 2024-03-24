@@ -240,7 +240,7 @@ impl PropsEnum {
             .collect::<Vec<_>>();
         let prop_types: Vec<TokenStream> = name_type_pairs
             .iter()
-            .map(|(name, ty)| parse_quote!(type #name = #ty;))
+            .map(|(name, ty)| parse_quote!(pub type #name = #ty;))
             .collect::<Vec<_>>();
         let prop_traits = name_type_pairs
             .iter()

@@ -68,6 +68,7 @@ fn test_can_parse_module() {
                 /// The content that should prefill the `<textInput>`, giving it a default value before a user has interacted with the input.
                 #[attribute(prop = StringProp, default = String::new())]
                 Prefill,
+                Foo,
             }
         }
     "#;

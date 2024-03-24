@@ -71,7 +71,7 @@ impl ComponentVariantProps for _External {
     fn get_prop_names(&self) -> &'static [&'static str] {
         &[]
     }
-    fn get_prop_updater(&self, _local_prop_idx: LocalPropIdx) -> BoxedUpdater {
+    fn get_boxed_prop_updater(&self, _local_prop_idx: LocalPropIdx) -> BoxedUpdater {
         panic!("No props on _External")
     }
 }
