@@ -172,5 +172,5 @@ impl StructuredData {
 }
 
 #[cfg(test)]
-#[path = "generate_structured_data.test.rs"]
+#[path = "from_data_query_results.test.rs"]
 mod test;

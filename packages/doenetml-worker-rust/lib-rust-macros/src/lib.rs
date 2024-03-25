@@ -1,12 +1,12 @@
 extern crate proc_macro2;
 
 use component_module::generate_component_module;
+use data_query_results::generate_structured_data;
 use proc_macro::TokenStream;
 use quote::quote;
-use structured_data::generate_structured_data;
 
 mod component_module;
-mod structured_data;
+mod data_query_results;
 mod try_from_ref;
 
 /// Create a _DoenetML_ _Component_ from a decorated module. This macro adds creates required structs/enums
@@ -177,7 +177,7 @@ pub fn component(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// ```
 ///
 #[proc_macro_derive(FromDataQueryResults, attributes(data_query))]
-pub fn structured_data(input: TokenStream) -> TokenStream {
+pub fn from_data_query_results(input: TokenStream) -> TokenStream {
     match generate_structured_data(input.into()) {
         Ok(tokens) => tokens.into(),
         Err(e) => e.to_compile_error().into(),
