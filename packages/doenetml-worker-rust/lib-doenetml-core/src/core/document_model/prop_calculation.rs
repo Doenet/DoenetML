@@ -209,10 +209,7 @@ impl DocumentModel {
                     })
                     .collect::<Vec<_>>();
 
-                DataQueryResult {
-                    graph_node: query_node,
-                    values,
-                }
+                DataQueryResult { values }
             }
             _ => {
                 // default behavior
@@ -256,10 +253,7 @@ impl DocumentModel {
                     })
                     .collect::<Vec<_>>();
 
-                DataQueryResult {
-                    graph_node: query_node,
-                    values,
-                }
+                DataQueryResult { values }
             }
         }
     }

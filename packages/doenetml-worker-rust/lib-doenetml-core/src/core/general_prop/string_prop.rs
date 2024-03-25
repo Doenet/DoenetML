@@ -1,10 +1,6 @@
 use std::rc::Rc;
 
-use crate::{
-    components::prelude::*,
-    core::props::{DataQueryResult, InvertError},
-    props::BoxedUpdater,
-};
+use crate::{components::prelude::*, core::props::InvertError, props::BoxedUpdater};
 
 /// A string prop that calculates its value by concatenating all string dependencies.
 ///
@@ -195,11 +191,11 @@ impl PropUpdater for StringProp {
     /// then request that variable take on the requested value for this variable.
     fn invert(
         &self,
-        data: Vec<DataQueryResult>,
+        data: DataQueryResults,
         requested_value: Self::PropType,
         _is_direct_change_from_action: bool,
     ) -> Result<Vec<Option<Vec<Option<PropValue>>>>, InvertError> {
-        let strings = &data[1].values;
+        let strings = &data.vec[1].values;
 
         match strings.len() {
             0 => {

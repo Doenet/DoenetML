@@ -3,7 +3,7 @@ use thiserror::Error;
 
 use crate::components::prelude::DataQuery;
 
-use super::{data_query::DataQueryResult, prop_type, BoxedUpdater, DataQueryResults, PropValue};
+use super::{prop_type, BoxedUpdater, DataQueryResults, PropValue};
 
 /// The possible results of a call to `calculate`:
 /// - `Calculated(val)`: the value was calculated to be `val`
@@ -74,7 +74,7 @@ pub trait PropUpdaterUntyped: std::fmt::Debug {
     #[allow(unused)]
     fn invert_untyped(
         &self,
-        data: Vec<DataQueryResult>,
+        data: DataQueryResults,
         requested_value: PropValue,
         is_direct_change_from_action: bool,
     ) -> Result<Vec<Option<Vec<Option<PropValue>>>>, InvertError> {
@@ -128,7 +128,7 @@ pub trait PropUpdater {
     #[allow(unused)]
     fn invert(
         &self,
-        data: Vec<DataQueryResult>,
+        data: DataQueryResults,
         requested_value: Self::PropType,
         is_direct_change_from_action: bool,
     ) -> Result<Vec<Option<Vec<Option<PropValue>>>>, InvertError> {
@@ -168,7 +168,7 @@ const _: () = {
                 }
                 fn invert_untyped(
                     &self,
-                    data: Vec<DataQueryResult>,
+                    data: DataQueryResults,
                     requested_value: PropValue,
                     is_direct_change_from_action: bool,
                 ) -> Result<Vec<Option<Vec<Option<PropValue>>>>, InvertError> {
@@ -199,7 +199,7 @@ const _: () = {
         fn calculate_untyped(&self, data: DataQueryResults) -> PropCalcResult<PropValue>;
         fn invert_untyped(
             &self,
-            data: Vec<DataQueryResult>,
+            data: DataQueryResults,
             requested_value: PropValue,
             is_direct_change_from_action: bool,
         ) -> Result<Vec<Option<Vec<Option<PropValue>>>>, InvertError>;
@@ -224,7 +224,7 @@ const _: () = {
         }
         fn invert_untyped(
             &self,
-            data: Vec<DataQueryResult>,
+            data: DataQueryResults,
             requested_value: PropValue,
             is_direct_change_from_action: bool,
         ) -> Result<Vec<Option<Vec<Option<PropValue>>>>, InvertError> {

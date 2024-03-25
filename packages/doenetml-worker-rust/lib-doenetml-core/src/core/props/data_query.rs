@@ -2,7 +2,7 @@
 //! is lazily computed and can depend on other Props.
 
 use crate::components::{
-    prelude::{ComponentIdx, GraphNode, LocalPropIdx},
+    prelude::{ComponentIdx, LocalPropIdx},
     types::AttributeName,
 };
 
@@ -11,8 +11,6 @@ use super::{cache::PropWithMeta, PropProfile, PropValue};
 /// Data resulting from a `DataQuery`
 #[derive(Debug)]
 pub struct DataQueryResult {
-    /// The graph `GraphNode::Query` on the dependency graph that specified what data is needed.
-    pub graph_node: GraphNode,
     /// The value of the data that was queried for.
     pub values: Vec<PropWithMeta>,
 }
@@ -38,13 +36,6 @@ impl DataQueryResults {
     pub fn from_vec(vec: Vec<DataQueryResult>) -> Self {
         Self { vec }
     }
-}
-
-/// A trait for converting `DataQueryResults` into the custom `RequiredData`
-/// types as used in the `calculate(...)` functions.
-pub trait FromDataQueryResults {
-    fn to_data_queries() -> Vec<DataQuery>;
-    fn from_data_query_results(data: DataQueryResults) -> Self;
 }
 
 /// A `DataQuery` a request for information from the document. It could be a request for a prop value,

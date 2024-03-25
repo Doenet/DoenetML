@@ -2,7 +2,7 @@ use std::rc::Rc;
 
 use crate::{
     components::prelude::*,
-    props::{BoxedUpdater, DataQueryResult, InvertError},
+    props::{BoxedUpdater, InvertError},
 };
 
 use super::util::{string_attr_to_boolean, string_to_boolean};
@@ -160,7 +160,6 @@ impl PropUpdater for BooleanProp {
         RequiredData::data_queries_vec(&self.data_query)
     }
 
-    #[allow(clippy::needless_return)]
     fn calculate(&self, data: DataQueryResults) -> PropCalcResult<prop_type::Boolean> {
         let required_data = RequiredData::from_data_query_results(data);
         let independent_state = required_data.independent_state;
@@ -241,11 +240,11 @@ impl PropUpdater for BooleanProp {
 
     fn invert(
         &self,
-        data: Vec<DataQueryResult>,
+        data: DataQueryResults,
         requested_value: Self::PropType,
         _is_direct_change_from_action: bool,
     ) -> Result<Vec<Option<Vec<Option<PropValue>>>>, InvertError> {
-        let booleans_and_strings = &data[1].values;
+        let booleans_and_strings = &data.vec[1].values;
 
         let requested_boolean = requested_value;
 

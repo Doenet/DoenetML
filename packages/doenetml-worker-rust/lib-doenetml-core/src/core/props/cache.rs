@@ -157,7 +157,7 @@ impl CachedProp {
 
 /// A prop with metadata about whether it has changed
 /// and how it was last set.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct PropWithMeta {
     /// The value of the prop
     pub value: PropValue,
