@@ -227,29 +227,23 @@ impl PropUpdater for BooleanProp {
     fn invert(
         &self,
         data: Vec<DataQueryResult>,
-        requested_value: PropValue,
+        requested_value: Self::PropType,
         _is_direct_change_from_action: bool,
     ) -> Result<Vec<Option<Vec<Option<PropValue>>>>, InvertError> {
         let booleans_and_strings = &data[1].values;
 
-        let requested_boolean = match requested_value {
-            PropValue::Boolean(boolean_value) => boolean_value,
-            _ => panic!(
-                "requested value for in invert for boolean must be Boolean, found {:?}",
-                requested_value
-            ),
-        };
+        let requested_boolean = requested_value;
 
         match booleans_and_strings.len() {
             0 => {
                 // We had no dependencies, so change the independent state variable
-                Ok(vec![Some(vec![Some(requested_value.clone())]), None])
+                Ok(vec![Some(vec![Some(requested_value.into())]), None])
             }
             1 => {
                 // based on a single value, so we can invert
                 match &booleans_and_strings[0].value {
                     PropValue::Boolean(..) => {
-                        Ok(vec![None, Some(vec![Some(requested_value.clone())])])
+                        Ok(vec![None, Some(vec![Some(requested_value.into())])])
                     }
                     PropValue::String(..) => Ok(vec![
                         None,

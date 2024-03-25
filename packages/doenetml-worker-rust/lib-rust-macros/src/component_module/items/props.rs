@@ -178,7 +178,7 @@ impl PropsEnum {
         match &variant.profile {
             Some(profile) => descriptions.push(format!(
                 "- Profile: [`{}`]",
-                quote! {#profile}.to_string().replace(" ", "")
+                quote! {#profile}.to_string().replace(' ', "")
             )),
             None => descriptions.push("- No profile set for this prop".to_string()),
         }
@@ -192,7 +192,7 @@ impl PropsEnum {
         let value_type = &variant.value_type;
         descriptions.push(format!(
             "- Type: [`{}`]",
-            quote! {#value_type}.to_string().replace(" ", "")
+            quote! {#value_type}.to_string().replace(' ', "")
         ));
 
         format!("{}\n{}", existing_doc, descriptions.join("\n"))

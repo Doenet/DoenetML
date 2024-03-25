@@ -129,7 +129,7 @@ pub trait PropUpdater {
     fn invert(
         &self,
         data: Vec<DataQueryResult>,
-        requested_value: PropValue,
+        requested_value: Self::PropType,
         is_direct_change_from_action: bool,
     ) -> Result<Vec<Option<Vec<Option<PropValue>>>>, InvertError> {
         Err(InvertError::NotImplemented)
@@ -172,7 +172,12 @@ const _: () = {
                     requested_value: PropValue,
                     is_direct_change_from_action: bool,
                 ) -> Result<Vec<Option<Vec<Option<PropValue>>>>, InvertError> {
-                    Self::invert(self, data, requested_value, is_direct_change_from_action)
+                    Self::invert(
+                        self,
+                        data,
+                        requested_value.try_into().unwrap(),
+                        is_direct_change_from_action,
+                    )
                 }
             }
         };

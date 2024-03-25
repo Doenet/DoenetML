@@ -201,29 +201,21 @@ impl PropUpdater for StringProp {
     fn invert(
         &self,
         data: Vec<DataQueryResult>,
-        requested_value: PropValue,
+        requested_value: Self::PropType,
         _is_direct_change_from_action: bool,
     ) -> Result<Vec<Option<Vec<Option<PropValue>>>>, InvertError> {
         let strings = &data[1].values;
-
-        match &requested_value {
-            PropValue::String(string_value) => string_value,
-            _ => panic!(
-                "requested value for in invert for string must be String, found {:?}",
-                requested_value
-            ),
-        };
 
         match strings.len() {
             0 => {
                 // We had no dependencies, so change the independent state variable
 
-                Ok(vec![Some(vec![Some(requested_value.clone())]), None])
+                Ok(vec![Some(vec![Some(requested_value.into())]), None])
             }
             1 => {
                 // based on a single string value, so we can invert
 
-                Ok(vec![None, Some(vec![Some(requested_value.clone())])])
+                Ok(vec![None, Some(vec![Some(requested_value.into())])])
             }
             _ => Err(InvertError::CouldNotUpdate),
         }
