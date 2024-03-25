@@ -161,7 +161,7 @@ impl PropsEnum {
         let variant = &self.get_variants()[variant_idx];
         let existing_doc = variant.doc.clone().unwrap_or_default();
         let name = &self.get_prop_names()[variant_idx];
-        let mut descriptions = vec![format!("- Name: \"{}\"", name)];
+        let mut descriptions = vec![format!("- Name: `\"{}\"`", name)];
         match variant.is_public {
             true => descriptions
                 .push("- Public: this prop can be accessed from a DoenetML document.".to_string()),
@@ -176,7 +176,10 @@ impl PropsEnum {
             false => descriptions.push("- NotForRender: this prop is not rendered.".to_string()),
         }
         match &variant.profile {
-            Some(profile) => descriptions.push(format!("- Profile: `{}`", quote! {#profile})),
+            Some(profile) => descriptions.push(format!(
+                "- Profile: [`{}`]",
+                quote! {#profile}.to_string().replace(" ", "")
+            )),
             None => descriptions.push("- No profile set for this prop".to_string()),
         }
         match variant.default {
@@ -187,7 +190,10 @@ impl PropsEnum {
         }
         // Add a description of variant.value_type
         let value_type = &variant.value_type;
-        descriptions.push(format!("- Type: `{}`", quote! {#value_type}));
+        descriptions.push(format!(
+            "- Type: [`{}`]",
+            quote! {#value_type}.to_string().replace(" ", "")
+        ));
 
         format!("{}\n{}", existing_doc, descriptions.join("\n"))
     }

@@ -16,6 +16,7 @@ use crate::props::BoxedUpdater;
 ///       Props::Bar => StringProp::new_from_children("".to_string()).into_updater(),
 ///     }
 ///   }
+/// }
 /// ```
 pub trait PropGetUpdater {
     /// Get the updater for a specific prop on a Props enum.

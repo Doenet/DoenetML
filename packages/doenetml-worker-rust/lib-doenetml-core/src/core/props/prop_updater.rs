@@ -86,7 +86,7 @@ pub trait PropUpdaterUntyped: std::fmt::Debug {
 /// should implement.
 ///
 /// Core uses `PropUpdater`, which is an untyped version of this trait that can be automatically
-/// derived from a [`PropUpdaterTyped`] implementation via [`PropUpdaterDefaults`].
+/// derived from a [`PropUpdater`] implementation.
 pub trait PropUpdater {
     /// The type of this prop. It must be one of the types listed in `prop_type::*`.
     type PropType: Clone + std::fmt::Debug + Default + Into<PropValue>;
