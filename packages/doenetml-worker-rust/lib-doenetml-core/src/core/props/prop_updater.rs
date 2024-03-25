@@ -77,7 +77,7 @@ pub trait PropUpdaterUntyped: std::fmt::Debug {
         data: DataQueryResults,
         requested_value: PropValue,
         is_direct_change_from_action: bool,
-    ) -> Result<Vec<Option<Vec<Option<PropValue>>>>, InvertError> {
+    ) -> Result<DataQueryResults, InvertError> {
         Err(InvertError::NotImplemented)
     }
 }
@@ -131,7 +131,7 @@ pub trait PropUpdater {
         data: DataQueryResults,
         requested_value: Self::PropType,
         is_direct_change_from_action: bool,
-    ) -> Result<Vec<Option<Vec<Option<PropValue>>>>, InvertError> {
+    ) -> Result<DataQueryResults, InvertError> {
         Err(InvertError::NotImplemented)
     }
 }
@@ -171,7 +171,7 @@ const _: () = {
                     data: DataQueryResults,
                     requested_value: PropValue,
                     is_direct_change_from_action: bool,
-                ) -> Result<Vec<Option<Vec<Option<PropValue>>>>, InvertError> {
+                ) -> Result<DataQueryResults, InvertError> {
                     Self::invert(
                         self,
                         data,
@@ -202,7 +202,7 @@ const _: () = {
             data: DataQueryResults,
             requested_value: PropValue,
             is_direct_change_from_action: bool,
-        ) -> Result<Vec<Option<Vec<Option<PropValue>>>>, InvertError>;
+        ) -> Result<DataQueryResults, InvertError>;
     }
 
     /// The generic implementation for `PropUpdaterUntyped`.
@@ -227,7 +227,7 @@ const _: () = {
             data: DataQueryResults,
             requested_value: PropValue,
             is_direct_change_from_action: bool,
-        ) -> Result<Vec<Option<Vec<Option<PropValue>>>>, InvertError> {
+        ) -> Result<DataQueryResults, InvertError> {
             <Self as _PropUpdaterUntyped<<T as PropUpdater>::PropType>>::invert_untyped(
                 self,
                 data,

@@ -119,7 +119,7 @@ impl<S: Into<String>> PropFromAttribute<S> for StringProp {
     }
 }
 
-#[derive(FromDataQueryResults)]
+#[derive(FromDataQueryResults, IntoDataQueryResults)]
 #[data_query(query_trait = DataQueries, pass_data = &DataQuery)]
 struct RequiredData {
     independent_state: PropView<prop_type::String>,
@@ -194,22 +194,24 @@ impl PropUpdater for StringProp {
         data: DataQueryResults,
         requested_value: Self::PropType,
         _is_direct_change_from_action: bool,
-    ) -> Result<Vec<Option<Vec<Option<PropValue>>>>, InvertError> {
-        let strings = &data.vec[1].values;
+    ) -> Result<DataQueryResults, InvertError> {
+        let mut return_data = RequiredData::new_with_reset_meta(&data);
+        let required_data = RequiredData::from_data_query_results(data);
+        //let strings = &data.vec[1].values;
 
-        match strings.len() {
+        match required_data.strings.len() {
             0 => {
                 // We had no dependencies, so change the independent state variable
-
-                Ok(vec![Some(vec![Some(requested_value.into())]), None])
+                return_data.independent_state.change_to(requested_value);
             }
             1 => {
                 // based on a single string value, so we can invert
-
-                Ok(vec![None, Some(vec![Some(requested_value.into())])])
+                return_data.strings[0].change_to(requested_value);
             }
-            _ => Err(InvertError::CouldNotUpdate),
+            _ => return Err(InvertError::CouldNotUpdate),
         }
+
+        Ok(return_data.into_data_query_results())
     }
 }
 

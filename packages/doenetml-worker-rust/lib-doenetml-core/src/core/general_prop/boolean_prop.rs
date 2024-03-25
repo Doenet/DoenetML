@@ -134,7 +134,7 @@ impl PropFromAttribute<bool> for BooleanProp {
     }
 }
 
-#[derive(FromDataQueryResults)]
+#[derive(FromDataQueryResults, IntoDataQueryResults)]
 #[data_query(query_trait = DataQueries, pass_data = &DataQuery)]
 struct RequiredData {
     independent_state: PropView<prop_type::Boolean>,
@@ -243,34 +243,37 @@ impl PropUpdater for BooleanProp {
         data: DataQueryResults,
         requested_value: Self::PropType,
         _is_direct_change_from_action: bool,
-    ) -> Result<Vec<Option<Vec<Option<PropValue>>>>, InvertError> {
-        let booleans_and_strings = &data.vec[1].values;
+    ) -> Result<DataQueryResults, InvertError> {
+        let mut return_data = RequiredData::new_with_reset_meta(&data);
+        let required_data = RequiredData::from_data_query_results(data);
 
-        let requested_boolean = requested_value;
+        let booleans_and_strings = required_data.booleans_and_strings;
 
         match booleans_and_strings.len() {
             0 => {
                 // We had no dependencies, so change the independent state variable
-                Ok(vec![Some(vec![Some(requested_value.into())]), None])
+                return_data.independent_state.change_to(requested_value);
             }
             1 => {
                 // based on a single value, so we can invert
                 match &booleans_and_strings[0].value {
                     PropValue::Boolean(..) => {
-                        Ok(vec![None, Some(vec![Some(requested_value.into())])])
+                        return_data.booleans_and_strings[0].change_to(requested_value.into());
                     }
-                    PropValue::String(..) => Ok(vec![
-                        None,
-                        Some(vec![Some(requested_boolean.to_string().into())]),
-                    ]),
+                    PropValue::String(..) => {
+                        return_data.booleans_and_strings[0]
+                            .change_to(requested_value.to_string().into());
+                    }
                     _ => panic!(
                         "Should get boolean or string dependency for boolean, found {:?}",
                         booleans_and_strings[0].value
                     ),
-                }
+                };
             }
-            _ => Err(InvertError::CouldNotUpdate),
+            _ => return Err(InvertError::CouldNotUpdate),
         }
+
+        Ok(return_data.into_data_query_results())
     }
 }
 

@@ -1,7 +1,7 @@
 extern crate proc_macro2;
 
 use component_module::generate_component_module;
-use data_query_results::generate_structured_data;
+use data_query_results::{generate_from_data_query_results, generate_into_data_query_results};
 use proc_macro::TokenStream;
 use quote::quote;
 
@@ -146,7 +146,7 @@ pub fn component(attr: TokenStream, item: TokenStream) -> TokenStream {
     }
 }
 
-/// Allow a typed struct to be created from `DataQueryResults`.
+/// Allow a typed struct to be created from [`DataQueryResults`].
 ///
 /// You must specify the `query_trait = ...` attribute. If you specify
 /// `#[data_query(query_trait = Foo)]`, then a `Foo` trait will be created.
@@ -184,7 +184,46 @@ pub fn component(attr: TokenStream, item: TokenStream) -> TokenStream {
 ///
 #[proc_macro_derive(FromDataQueryResults, attributes(data_query))]
 pub fn from_data_query_results(input: TokenStream) -> TokenStream {
-    match generate_structured_data(input.into()) {
+    match generate_from_data_query_results(input.into()) {
+        Ok(tokens) => tokens.into(),
+        Err(e) => e.to_compile_error().into(),
+    }
+}
+
+/// Allow a typed struct to be converted into [`DataQueryResults`].
+/// The struct should have been created with [`FromDataQueryResults::from_data_query_results`].
+///
+///
+/// ## Example
+/// ```ignore
+/// #[derive(IntoDataQueryResults, FromDataQueryResults)]
+/// #[data_query(query_trait = CreateDataQueries)]
+/// struct RequiredData {
+///     foo: PropView<String>,
+///     bar: PropView<f32>,
+/// }
+/// // You must implement the `CreateDataQueries` trait for the struct
+/// // to specify the data queries used for each field.
+/// impl CreateDataQueries for RequiredData {
+///     fn foo_query(&self) -> DataQuery {
+///         // The simplest `DataQuery`
+///         DataQuery::State
+///     }
+///     fn bar_query(&self) -> DataQuery {
+///         DataQuery::State
+///     }
+/// }
+///
+/// fn main(d: DataQueryResults) {
+///     let required_data = RequiredData::from_data_query_results(d);
+///     // You can convert back to `DataQueryResults`.
+///     let data_query_results = required_data.into_data_query_results();
+/// }
+/// ```
+///
+#[proc_macro_derive(IntoDataQueryResults)]
+pub fn into_data_query_results(input: TokenStream) -> TokenStream {
+    match generate_into_data_query_results(input.into()) {
         Ok(tokens) => tokens.into(),
         Err(e) => e.to_compile_error().into(),
     }

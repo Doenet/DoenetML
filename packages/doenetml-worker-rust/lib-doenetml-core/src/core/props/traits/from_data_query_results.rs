@@ -12,4 +12,13 @@ pub trait FromDataQueryResults {
     /// `data` is a result of executing the queries coming from `to_data_queries()`
     /// in the same _order_ as listed by `to_data_queries()`.
     fn from_data_query_results(data: DataQueryResults) -> Self;
+
+    /// Create a new instance of `Self` with all metadata reset.
+    /// This is useful when deciding what props to change for an `invert` operation.
+    fn new_with_reset_meta(data: &DataQueryResults) -> Self
+    where
+        Self: Sized,
+    {
+        Self::from_data_query_results(data.clone().with_reset_meta())
+    }
 }

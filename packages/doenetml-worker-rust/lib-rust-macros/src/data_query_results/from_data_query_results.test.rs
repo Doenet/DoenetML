@@ -11,7 +11,7 @@ fn test_can_parse_struct() {
             title: PropView<ElementRefs>,
         }
     "#;
-    let result = generate_structured_data(syn::parse_str(input).unwrap());
+    let result = generate_from_data_query_results(syn::parse_str(input).unwrap());
     println!("\n{}\n", pretty_print_result(&result));
 }
 
@@ -24,6 +24,6 @@ fn test_can_parse_struct_with_pass_data() {
             title: PropView<ElementRefs>,
         }
     "#;
-    let result = generate_structured_data(syn::parse_str(input).unwrap());
+    let result = generate_from_data_query_results(syn::parse_str(input).unwrap());
     println!("\n{}\n", pretty_print_result(&result));
 }

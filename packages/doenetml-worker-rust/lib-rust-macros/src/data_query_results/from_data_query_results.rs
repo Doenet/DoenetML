@@ -23,7 +23,7 @@ pub struct StructuredData {
 /// struct RequiredData { ... }
 /// ```
 /// struct and generate a resulting module containing all required structs.
-pub fn generate_structured_data(input: TokenStream) -> syn::Result<TokenStream> {
+pub fn generate_from_data_query_results(input: TokenStream) -> syn::Result<TokenStream> {
     let struct_source: DeriveInput = syn::parse2(input).unwrap();
     let structured_data = StructuredData::from_derive_input(&struct_source)?;
 

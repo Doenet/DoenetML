@@ -9,7 +9,7 @@ use crate::components::{
 use super::{cache::PropWithMeta, PropProfile, PropValue};
 
 /// Data resulting from a `DataQuery`
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct DataQueryResult {
     /// The value of the data that was queried for.
     pub values: Vec<PropWithMeta>,
@@ -18,7 +18,7 @@ pub struct DataQueryResult {
 /// A vector of `DataQueryResult`s implemented as a wrapped type.
 ///
 /// The type is wrapped so we can re-implement external traits like `std::ops::Index`.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct DataQueryResults {
     pub vec: Vec<DataQueryResult>,
 }
@@ -35,6 +35,16 @@ impl DataQueryResults {
     }
     pub fn from_vec(vec: Vec<DataQueryResult>) -> Self {
         Self { vec }
+    }
+    /// Set all metadata to the defaults (e.g., `changed == false` and `came_from_default == false`)
+    pub fn with_reset_meta(mut self) -> Self {
+        for result in &mut self.vec {
+            for prop in &mut result.values {
+                prop.changed = false;
+                prop.came_from_default = false;
+            }
+        }
+        self
     }
 }
 

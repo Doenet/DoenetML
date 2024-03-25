@@ -12,6 +12,14 @@ pub struct PropView<T> {
     pub changed: bool,
 }
 
+impl<T> PropView<T> {
+    /// Set `self.value` to `value` and mark the prop as changed.
+    pub fn change_to(&mut self, value: T) {
+        self.value = value;
+        self.changed = true;
+    }
+}
+
 mod try_from {
     //! `TryFrom` implementations for `PropWithMeta` to `PropView` and `PropCloned`.
     use super::*;
