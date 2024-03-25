@@ -155,6 +155,12 @@ pub fn component(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// The trait will define a `*_query` function for each field of your struct,
 /// and your implementation must return a `DataQuery` corresponding to each field.
 ///
+/// ### Options
+/// - `query_trait = ...` - Required; the name of the trait that will be created.
+/// - `pass_data = ...` - Optional; the type of data that should be passed to each `*_query` functions.
+/// If provided, the `*_query` functions will have the signature `*_query(&self, arg: <PassDataType>)`,
+/// and you must pass in the specified data when calling `to_data_queries(...)`.
+///
 /// ## Example
 /// ```ignore
 /// #[derive(FromDataQueryResults)]

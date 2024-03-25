@@ -13,6 +13,8 @@ pub struct StructuredData {
     ident: Ident,
     data: ast::Data<(), syn::Field>,
     query_trait: syn::Ident,
+    #[darling(default)]
+    pass_data: Option<syn::Expr>,
 }
 
 /// Parse a
@@ -45,18 +47,32 @@ impl StructuredData {
         let query_fns = fields.iter().map(|(ident, _)| {
             let ident = format_ident!("{}_query", ident);
             let doc_comment = format!(" Get the query for the `{}` field.", ident);
+            let arg = match self.pass_data {
+                Some(ref pass_data) => quote! { arg: #pass_data },
+                None => quote! {},
+            };
+
             quote! {
                 #[doc = #doc_comment]
-                fn #ident() -> DataQuery;
+                fn #ident(#arg) -> DataQuery;
             }
         });
 
         let data_queries_fn_calls = fields.iter().map(|(ident, _)| {
             let ident = format_ident!("{}_query", ident);
+            let arg = match self.pass_data {
+                Some(_) => quote! { arg },
+                None => quote! {},
+            };
             quote! {
-                Self::#ident()
+                Self::#ident(#arg)
             }
         });
+
+        let arg = match self.pass_data {
+            Some(ref pass_data) => quote! { arg: #pass_data },
+            None => quote! {},
+        };
 
         quote! {
             /// A custom trait to make defining data queries easier. This trait was
@@ -72,7 +88,7 @@ impl StructuredData {
 
                 /// Get data queries for every field in the struct. These are created as a `Vec`
                 /// whose order matches the order of the struct.
-                fn data_queries_vec() -> Vec<DataQuery> {
+                fn data_queries_vec(#arg) -> Vec<DataQuery> {
                     vec![
                         #(#data_queries_fn_calls),*
                     ]
@@ -120,17 +136,31 @@ impl StructuredData {
             })
             .collect::<Vec<_>>();
 
+        // We cannot pass arguments to `to_data_queries()`, so if `pass_data` is specified,
+        // we throw an error and suggest an alternative.
+        let func_body = if self.pass_data.is_none() {
+            quote! {
+                // We know this exists because of the `Self: #query_trait` bound
+                // This will cause an error to be thrown if the trait is not implemented,
+                // and importantly, the error will refer to a missing trait impl rather than
+                // a missing method.
+                Self::data_queries_vec()
+            }
+        } else {
+            quote! {
+                panic!(
+                   "A `pass_data` type was specified for this object. Since `to_data_queries()` cannot be passed any data, you must instead call `data_queries_vec(arg)` directly."
+                )
+            }
+        };
+
         quote! {
             impl FromDataQueryResults for #struct_ident
             where
                 Self: #query_trait,
             {
                 fn to_data_queries() -> Vec<DataQuery> {
-                    // We know this exists because of the `Self: #query_trait` bound
-                    // This will cause an error to be thrown if the trait is not implemented,
-                    // and importantly, the error will refer to a missing trait impl rather than
-                    // a missing method.
-                    Self::data_queries_vec()
+                    #func_body
                 }
                 fn from_data_query_results(data: DataQueryResults) -> Self {
                     let data = data.vec;

@@ -134,6 +134,21 @@ impl PropFromAttribute<bool> for BooleanProp {
     }
 }
 
+#[derive(FromDataQueryResults)]
+#[data_query(query_trait = DataQueries, pass_data = &DataQuery)]
+struct RequiredData {
+    independent_state: PropView<prop_type::Boolean>,
+    booleans_and_strings: Vec<PropView<PropValue>>,
+}
+impl DataQueries for RequiredData {
+    fn independent_state_query(_: &DataQuery) -> DataQuery {
+        DataQuery::State
+    }
+    fn booleans_and_strings_query(arg: &DataQuery) -> DataQuery {
+        arg.clone()
+    }
+}
+
 impl PropUpdater for BooleanProp {
     type PropType = prop_type::Boolean;
 
@@ -142,22 +157,23 @@ impl PropUpdater for BooleanProp {
     }
 
     fn data_queries(&self) -> Vec<DataQuery> {
-        vec![DataQuery::State, self.data_query.clone()]
+        RequiredData::data_queries_vec(&self.data_query)
     }
 
     #[allow(clippy::needless_return)]
     fn calculate(&self, data: DataQueryResults) -> PropCalcResult<prop_type::Boolean> {
-        let independent_state = &data.vec[0].values[0];
-        let booleans_and_strings = &data.vec[1].values;
+        let required_data = RequiredData::from_data_query_results(data);
+        let independent_state = required_data.independent_state;
+        let booleans_and_strings = required_data.booleans_and_strings;
 
         match booleans_and_strings.len() {
             0 => {
                 // If we reach here, then there were no dependencies returned from the data query.
                 // Use the value and came_from_default of `independent_state`
                 if independent_state.came_from_default {
-                    PropCalcResult::FromDefault(independent_state.value.clone().try_into().unwrap())
+                    PropCalcResult::FromDefault(independent_state.value)
                 } else {
-                    PropCalcResult::Calculated(independent_state.value.clone().try_into().unwrap())
+                    PropCalcResult::Calculated(independent_state.value)
                 }
             }
             1 => {
@@ -223,7 +239,6 @@ impl PropUpdater for BooleanProp {
         }
     }
 
-    #[allow(clippy::needless_return)]
     fn invert(
         &self,
         data: Vec<DataQueryResult>,

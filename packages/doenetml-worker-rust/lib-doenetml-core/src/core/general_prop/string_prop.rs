@@ -124,19 +124,18 @@ impl<S: Into<String>> PropFromAttribute<S> for StringProp {
 }
 
 #[derive(FromDataQueryResults)]
-#[data_query(query_trait = DataQueries)]
+#[data_query(query_trait = DataQueries, pass_data = &DataQuery)]
 struct RequiredData {
     independent_state: PropView<prop_type::String>,
     strings: Vec<PropView<prop_type::String>>,
 }
 
 impl DataQueries for RequiredData {
-    fn independent_state_query() -> DataQuery {
+    fn independent_state_query(_: &DataQuery) -> DataQuery {
         DataQuery::State
     }
-    fn strings_query() -> DataQuery {
-        // This data query will be replaced before being sent to core
-        DataQuery::Null
+    fn strings_query(query: &DataQuery) -> DataQuery {
+        query.clone()
     }
 }
 
@@ -148,11 +147,7 @@ impl PropUpdater for StringProp {
     }
 
     fn data_queries(&self) -> Vec<DataQuery> {
-        let mut queries = RequiredData::to_data_queries();
-        // Make sure the last element is the locally-stored data query
-        queries.pop();
-        queries.push(self.data_query.clone());
-        queries
+        RequiredData::data_queries_vec(&self.data_query)
     }
 
     fn calculate(&self, data: DataQueryResults) -> PropCalcResult<Self::PropType> {
