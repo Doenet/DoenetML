@@ -1,6 +1,6 @@
 import React from "react";
 
-import { renderDoenetToContainer } from "doenet-standalone-test";
+//import { renderDoenetToContainer } from "doenet-standalone-test";
 
 export function DoenetInternal({children}) {
 console.log(children)
@@ -9,7 +9,7 @@ console.log(children)
             ref={(domNode) => {
                 if (domNode) {
                     console.log("rendering the doenet");
-                    renderDoenetToContainer(domNode, children || "");
+                    window.renderDoenetToContainer(domNode, children || "");
                 }
             }}
         >
