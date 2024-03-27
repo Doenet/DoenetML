@@ -13,6 +13,7 @@ pub struct StructuredData {
     ident: Ident,
     data: ast::Data<(), syn::Field>,
     query_trait: syn::Ident,
+    generics: syn::Generics,
     #[darling(default)]
     pass_data: Option<syn::Expr>,
 }
@@ -126,6 +127,8 @@ impl StructuredData {
         let query_trait = &self.query_trait;
         let fields = self.get_fields();
         let num_fields = fields.len();
+        let generics = &self.generics;
+        let where_clause_predicates = self.generics.where_clause.as_ref().map(|wc| &wc.predicates);
 
         let struct_body = fields
             .iter()
@@ -155,9 +158,9 @@ impl StructuredData {
         };
 
         quote! {
-            impl FromDataQueryResults for #struct_ident
+            impl #generics FromDataQueryResults for #struct_ident #generics
             where
-                Self: #query_trait,
+                Self: #query_trait, #where_clause_predicates
             {
                 fn to_data_queries() -> Vec<DataQuery> {
                     #func_body

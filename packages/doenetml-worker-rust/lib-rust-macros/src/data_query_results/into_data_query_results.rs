@@ -1,7 +1,7 @@
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::Type;
 use syn::{self, DeriveInput};
+use syn::{Generics, Type};
 
 use darling::ast;
 use darling::FromDeriveInput;
@@ -12,6 +12,7 @@ use syn::Ident;
 pub struct StructuredData {
     ident: Ident,
     data: ast::Data<(), syn::Field>,
+    generics: Generics,
 }
 
 /// Parse a
@@ -54,6 +55,8 @@ impl StructuredData {
     fn generate_into_data_query_results_impl(&self) -> TokenStream {
         let struct_ident = &self.ident;
         let fields = self.get_fields();
+        let generics = &self.generics;
+        let where_clause = &self.generics.where_clause;
 
         let results_body = fields
             .iter()
@@ -67,7 +70,8 @@ impl StructuredData {
             .collect::<Vec<_>>();
 
         quote! {
-            impl IntoDataQueryResults for #struct_ident
+            impl #generics IntoDataQueryResults for #struct_ident #generics
+            #where_clause
             {
                 fn into_data_query_results(self) -> DataQueryResults {
                     DataQueryResults {

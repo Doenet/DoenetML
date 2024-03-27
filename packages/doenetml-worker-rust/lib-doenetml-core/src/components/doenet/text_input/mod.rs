@@ -1,5 +1,4 @@
 mod component;
-mod props;
+mod custom_props;
 
 pub use component::*;
-pub use props::*;

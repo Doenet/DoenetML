@@ -14,3 +14,5 @@ fn test_can_parse_struct() {
     let result = generate_into_data_query_results(syn::parse_str(input).unwrap());
     println!("\n{}\n", pretty_print_result(&result));
 }
+
+// TODO: test that pass through generics
