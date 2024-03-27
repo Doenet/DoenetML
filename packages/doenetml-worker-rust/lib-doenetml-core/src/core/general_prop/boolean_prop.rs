@@ -2,7 +2,7 @@ use std::rc::Rc;
 
 use crate::{
     components::prelude::*,
-    props::{BoxedUpdater, InvertError},
+    props::{InvertError, UpdaterObject},
 };
 
 use super::util::{string_attr_to_boolean, string_to_boolean};
@@ -110,8 +110,8 @@ impl BooleanProp {
     }
 }
 
-impl From<BooleanProp> for BoxedUpdater {
-    fn from(prop: BooleanProp) -> BoxedUpdater {
+impl From<BooleanProp> for UpdaterObject {
+    fn from(prop: BooleanProp) -> UpdaterObject {
         Rc::new(prop)
     }
 }
@@ -144,8 +144,8 @@ impl DataQueries for RequiredData {
     fn independent_state_query(_: &DataQuery) -> DataQuery {
         DataQuery::State
     }
-    fn booleans_and_strings_query(arg: &DataQuery) -> DataQuery {
-        arg.clone()
+    fn booleans_and_strings_query(query: &DataQuery) -> DataQuery {
+        query.clone()
     }
 }
 
@@ -177,26 +177,22 @@ impl PropUpdater for BooleanProp {
             }
             1 => {
                 match &booleans_and_strings[0].value {
-                    PropValue::Boolean(..) => {
+                    PropValue::Boolean(bool_value) => {
                         if self.propagate_came_from_default
                             && booleans_and_strings[0].came_from_default
                         {
                             // if we are basing it on a single variable and propagating came_from_default,
                             // then we propagate came_from_default as well as the value.
-                            PropCalcResult::FromDefault(
-                                (booleans_and_strings[0].value).clone().try_into().unwrap(),
-                            )
+                            PropCalcResult::FromDefault(*bool_value)
                         } else {
-                            PropCalcResult::Calculated(
-                                (booleans_and_strings[0].value).clone().try_into().unwrap(),
-                            )
+                            PropCalcResult::Calculated(*bool_value)
                         }
                     }
                     PropValue::String(string_value) => {
                         PropCalcResult::Calculated(if self.from_attribute {
-                            string_attr_to_boolean(&string_value.clone())
+                            string_attr_to_boolean(&string_value)
                         } else {
-                            string_to_boolean(&string_value.clone())
+                            string_to_boolean(&string_value)
                         })
                     }
                     _ => panic!(
@@ -217,13 +213,21 @@ impl PropUpdater for BooleanProp {
 
                     if booleans_and_strings.iter().any(|prop| prop.changed) {
                         let mut value = String::new();
-                        value.extend(booleans_and_strings.iter().map(|prop| match &prop.value {
-                            PropValue::Boolean(boolean_val) => boolean_val.to_string(),
-                            PropValue::String(string_value) => string_value.to_string(),
-                            _ => {
-                                panic!("Should get boolean or string for boolean, found {:?}", prop)
+
+                        for prop in booleans_and_strings {
+                            match &prop.value {
+                                PropValue::Boolean(boolean_val) => {
+                                    value += &boolean_val.to_string()
+                                }
+                                PropValue::String(string_value) => value += string_value,
+                                _ => {
+                                    panic!(
+                                        "Should get boolean or string for boolean, found {:?}",
+                                        prop
+                                    )
+                                }
                             }
-                        }));
+                        }
 
                         PropCalcResult::Calculated(if self.from_attribute {
                             string_attr_to_boolean(&value)
@@ -244,7 +248,7 @@ impl PropUpdater for BooleanProp {
         requested_value: Self::PropType,
         _is_direct_change_from_action: bool,
     ) -> Result<DataQueryResults, InvertError> {
-        let mut return_data = RequiredData::new_with_reset_meta(&data);
+        let mut desired = RequiredData::new_desired(&data);
         let required_data = RequiredData::from_data_query_results(data);
 
         let booleans_and_strings = required_data.booleans_and_strings;
@@ -252,16 +256,16 @@ impl PropUpdater for BooleanProp {
         match booleans_and_strings.len() {
             0 => {
                 // We had no dependencies, so change the independent state variable
-                return_data.independent_state.change_to(requested_value);
+                desired.independent_state.change_to(requested_value);
             }
             1 => {
                 // based on a single value, so we can invert
                 match &booleans_and_strings[0].value {
                     PropValue::Boolean(..) => {
-                        return_data.booleans_and_strings[0].change_to(requested_value.into());
+                        desired.booleans_and_strings[0].change_to(requested_value.into());
                     }
                     PropValue::String(..) => {
-                        return_data.booleans_and_strings[0]
+                        desired.booleans_and_strings[0]
                             .change_to(requested_value.to_string().into());
                     }
                     _ => panic!(
@@ -273,7 +277,7 @@ impl PropUpdater for BooleanProp {
             _ => return Err(InvertError::CouldNotUpdate),
         }
 
-        Ok(return_data.into_data_query_results())
+        Ok(desired.into_data_query_results())
     }
 }
 

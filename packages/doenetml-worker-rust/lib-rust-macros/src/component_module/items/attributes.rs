@@ -227,7 +227,7 @@ impl ComponentModule {
     /// The implementation should look like
     /// ```ignore
     /// impl PropFromAttributeVariant for Attributes {
-    ///   fn prop(&self) -> BoxedUpdater {
+    ///   fn prop(&self) -> UpdaterObject {
     ///     match self {
     ///       Attributes::Foo => Rc::new(FooProp::new_from_attribute("foo", default_value)),
     ///       Attributes::Bar => Rc::new(BarProp::new_from_attribute("bar", default_value)),
@@ -241,7 +241,7 @@ impl ComponentModule {
         if !self.attributes.is_present() {
             return quote! {};
         }
-        let boxed_match_arms = self.attributes.get_variants()
+        let updater_object_match_arms = self.attributes.get_variants()
             .iter()
             .map(|variant| {
                 let variant_ident = &variant.ident;
@@ -265,9 +265,9 @@ impl ComponentModule {
 
         quote! {
             impl PropFromAttributeVariant for Attributes {
-                fn get_boxed_prop_updater(&self) -> crate::props::BoxedUpdater {
+                fn get_prop_updater_object(&self) -> crate::props::UpdaterObject {
                     match self {
-                        #(#boxed_match_arms)*
+                        #(#updater_object_match_arms)*
                     }
                 }
             }

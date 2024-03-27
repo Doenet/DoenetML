@@ -1,4 +1,4 @@
-use crate::props::{BoxedUpdater, PropUpdater, PropUpdaterUntyped};
+use crate::props::{PropUpdater, PropUpdaterUntyped, UpdaterObject};
 
 /// Trait for creating a prop from an attribute. This is mainly used for
 /// general props.
@@ -11,10 +11,10 @@ pub trait PropFromAttribute<T> {
 /// Create a prop from an attribute variant. This is meant to be implemented on
 /// a component's `Attributes` enum.
 pub trait PropFromAttributeVariant {
-    /// Create a boxed instance of `PropUpdater`. The resulting prop will reference the value of
+    /// Create a trait object instance of `PropUpdater`. The resulting prop will reference the value of
     /// the corresponding attribute. For example `MyAttributes::Foo.prop()` creates a prop
     /// that references the `"foo"` attribute.
-    fn get_boxed_prop_updater(&self) -> BoxedUpdater;
+    fn get_prop_updater_object(&self) -> UpdaterObject;
 
     /// Get the `PropUpdater` (with type information).
     fn get_prop_updater<T: PropUpdater + PropUpdaterUntyped>(&self) -> T {

@@ -2,7 +2,9 @@ use std::rc::Rc;
 
 use crate::{
     components::prelude::*,
-    props::{BoxedUpdater, DataQueryFilter, DataQueryFilterComparison, PropProfileDataQueryFilter},
+    props::{
+        DataQueryFilter, DataQueryFilterComparison, PropProfileDataQueryFilter, UpdaterObject,
+    },
 };
 
 #[derive(Debug, Default)]
@@ -25,7 +27,8 @@ impl RenderedChildrenPassthroughProp {
         }
     }
 
-    pub fn new_boxed() -> BoxedUpdater {
+    // Note: this is currently unused
+    pub fn new_updater_object() -> UpdaterObject {
         Rc::new(Self::new())
     }
 }

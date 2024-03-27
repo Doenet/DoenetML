@@ -1,6 +1,6 @@
 use crate::components::prelude::*;
 use crate::general_prop::RenderedChildrenPassthroughProp;
-use crate::props::BoxedUpdater;
+use crate::props::UpdaterObject;
 
 /// The `Document` component is the root of every _DoenetML_ document.
 #[component(name = Document)]
@@ -19,9 +19,9 @@ pub use component::DocumentAttributes;
 pub use component::DocumentProps;
 
 impl PropGetUpdater for DocumentProps {
-    fn get_updater(&self) -> BoxedUpdater {
+    fn get_updater(&self) -> UpdaterObject {
         match self {
-            DocumentProps::RenderedChildren => as_boxed::<
+            DocumentProps::RenderedChildren => as_updater_object::<
                 _,
                 component::props::types::RenderedChildren,
             >(RenderedChildrenPassthroughProp::new()),
