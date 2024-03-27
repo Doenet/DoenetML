@@ -190,9 +190,9 @@ impl PropUpdater for BooleanProp {
                     }
                     PropValue::String(string_value) => {
                         PropCalcResult::Calculated(if self.from_attribute {
-                            string_attr_to_boolean(&string_value)
+                            string_attr_to_boolean(string_value)
                         } else {
-                            string_to_boolean(&string_value)
+                            string_to_boolean(string_value)
                         })
                     }
                     _ => panic!(
