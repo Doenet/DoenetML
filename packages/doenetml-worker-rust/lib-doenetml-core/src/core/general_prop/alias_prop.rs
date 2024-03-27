@@ -20,13 +20,13 @@ where
 ///   the variable with the index `aliased_prop_idx`.
 #[derive(Debug, Default)]
 pub struct PropAlias {
-    aliased_prop_idx: PropIdx,
+    aliased_prop_idx: LocalPropIdx,
 }
 
 impl PropAlias {
     /// Create a prop that aliases
     /// the variable with the index `aliased_prop_idx`.
-    pub fn new(aliased_prop_idx: PropIdx) -> Self {
+    pub fn new(aliased_prop_idx: LocalPropIdx) -> Self {
         PropAlias { aliased_prop_idx }
     }
 }
@@ -34,8 +34,8 @@ impl PropAlias {
 impl<T> PropUpdater<T, RequiredData<T>> for PropAlias
 where
     T: Default + Clone + std::fmt::Debug,
-    PropView<T>: TryFromState<PropViewEnum>,
-    <PropView<T> as TryFromState<PropViewEnum>>::Error: std::fmt::Debug,
+    PropView<T>: TryFromProp<PropViewEnum>,
+    <PropView<T> as TryFromProp<PropViewEnum>>::Error: std::fmt::Debug,
 {
     fn return_data_queries(&self) -> Vec<DataQuery> {
         RequiredDataQueries {
@@ -47,7 +47,7 @@ where
         .into()
     }
 
-    fn calculate(&mut self, data: &RequiredData<T>) -> PropCalcResult<T> {
+    fn calculate_old(&mut self, data: &RequiredData<T>) -> PropCalcResult<T> {
         // take on the value from `aliased_value`, propagating `came_from_default`.
         if data.aliased_value.came_from_default() {
             PropCalcResult::FromDefault(data.aliased_value.get().clone())

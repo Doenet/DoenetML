@@ -15,6 +15,15 @@
             "outFiles": [
                 "${workspaceRoot}/packages/vscode-extension//extension/build/**/*.js"
             ]
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug",
+            "program": "${workspaceRoot}/target/debug/${workspaceRootFolderName}",
+            "args": [],
+            "cwd": "${workspaceRoot}/target/debug/",
+            "sourceLanguages": ["rust"]
         }
     ]
 }

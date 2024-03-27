@@ -9,7 +9,7 @@ use super::util::string_to_boolean;
 ///   the boolean variable with the index `boolean_prop_idx`.
 #[derive(Debug, Default)]
 pub struct BooleanToStringProp {
-    boolean_prop_idx: PropIdx,
+    boolean_prop_idx: LocalPropIdx,
 }
 
 /// The data required to compute the value of this prop.
@@ -21,7 +21,7 @@ pub struct RequiredData {
 
 impl BooleanToStringProp {
     /// Creates a string prop by converting the boolean prop of `boolean_prop_idx`
-    pub fn new(boolean_prop_idx: PropIdx) -> Self {
+    pub fn new(boolean_prop_idx: LocalPropIdx) -> Self {
         BooleanToStringProp { boolean_prop_idx }
     }
 }
@@ -37,7 +37,7 @@ impl PropUpdater<String, RequiredData> for BooleanToStringProp {
         .into()
     }
 
-    fn calculate(&mut self, data: &RequiredData) -> PropCalcResult<String> {
+    fn calculate_old(&mut self, data: &RequiredData) -> PropCalcResult<String> {
         PropCalcResult::Calculated(data.boolean.get().to_string())
     }
 

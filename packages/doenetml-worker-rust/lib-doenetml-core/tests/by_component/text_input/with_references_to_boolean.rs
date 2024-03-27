@@ -6,7 +6,9 @@ use super::*;
 fn text_input_referencing_boolean() {
     let dast_root =
         dast_root_no_position(r#"<textInput>$b</textInput><boolean name="b">true</boolean>"#);
-    let mut core = DoenetMLCore::new(dast_root, "", "", None);
+
+    let mut core = Core::new();
+    core.init_from_dast_root(&dast_root);
 
     // the text input will be index 1, as the document tag will be index 0.
     let text_input_idx = 1;

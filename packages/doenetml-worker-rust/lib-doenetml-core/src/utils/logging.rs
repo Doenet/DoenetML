@@ -46,6 +46,9 @@ macro_rules! log_debug {
     }
 }
 
+#[allow(unused)]
 pub(crate) use log;
+#[allow(unused)]
 pub(crate) use log_debug;
+#[allow(unused)]
 pub(crate) use log_json;

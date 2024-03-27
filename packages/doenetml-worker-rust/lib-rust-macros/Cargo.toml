@@ -1,6 +1,6 @@
 [package]
-name = "doenetml-derive"
-description = "Derive macros for use in Rust for DoenetMLCore"
+name = "doenetml-macros"
+description = "Macros used in the Rust implementation of DoenetML's _Core_"
 version = { workspace = true }
 edition = { workspace = true }
 
@@ -11,7 +11,10 @@ proc-macro = true
 [dependencies]
 quote = { workspace = true }
 proc-macro2 = { workspace = true }
-syn = { workspace = true }
+syn = { workspace = true, features = ["visit", "visit-mut", "full"] }
 convert_case = { workspace = true }
 regex = { workspace = true }
+strum_macros = { workspace = true }
+strum = { workspace = true }
 darling = "0.20.5"
+prettyplease = "0.2.16"

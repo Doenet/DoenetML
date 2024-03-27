@@ -17,8 +17,7 @@ fn boolean_prop_from_children_gives_correct_data_queries() {
         vec![
             DataQuery::State,
             DataQuery::ChildPropProfile {
-                match_profiles: vec![ComponentProfile::String, ComponentProfile::Boolean],
-                always_return_value: true,
+                match_profiles: vec![PropProfile::String, PropProfile::Boolean],
             },
         ]
     );
@@ -208,8 +207,7 @@ fn boolean_prop_from_attribute_gives_correct_data_queries() {
             DataQuery::State,
             DataQuery::Attribute {
                 attribute_name: "my_attr",
-                match_profiles: vec![ComponentProfile::String, ComponentProfile::Boolean],
-                always_return_value: true
+                match_profiles: vec![PropProfile::String, PropProfile::Boolean],
             },
         ]
     );
@@ -269,7 +267,7 @@ mod setup_functions {
     )
     where
         T: Default + Clone,
-        PropView<T>: TryFromState<PropViewEnum>,
+        PropView<T>: TryFromProp<PropViewEnum>,
         PropViewEnum: From<PropView<T>>,
     {
         let mut prop: Prop<bool> = BooleanProp::new_from_children(false).into_prop();
@@ -309,7 +307,7 @@ mod setup_functions {
     )
     where
         T: Default + Clone,
-        PropView<T>: TryFromState<PropViewEnum>,
+        PropView<T>: TryFromProp<PropViewEnum>,
         PropViewEnum: From<PropView<T>>,
     {
         let mut prop: Prop<bool> = BooleanProp::new_from_children(false).into_prop();
@@ -352,7 +350,7 @@ mod setup_functions {
     )
     where
         T: Default + Clone,
-        PropView<T>: TryFromState<PropViewEnum>,
+        PropView<T>: TryFromProp<PropViewEnum>,
         PropViewEnum: From<PropView<T>>,
     {
         let mut prop: Prop<bool> = BooleanProp::new_from_attribute(attr_name, false).into_prop();

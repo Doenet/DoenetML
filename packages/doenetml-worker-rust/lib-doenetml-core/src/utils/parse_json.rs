@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::{collections::HashMap, rc::Rc};
 
-use crate::state::PropValue;
+use crate::components::prelude::PropValue;
 
 /// The structure of the json argument in a call to dispatch_action.
 #[derive(Debug, Serialize, Deserialize)]
@@ -48,7 +48,7 @@ impl From<ArgValue> for Vec<PropValue> {
     fn from(value: ArgValue) -> Self {
         match value {
             ArgValue::Bool(v) => vec![PropValue::Boolean(v)],
-            ArgValue::String(v) => vec![PropValue::String(v)],
+            ArgValue::String(v) => vec![PropValue::String(Rc::new(v))],
             ArgValue::Number(v) => vec![v.into()],
             ArgValue::NumberArray(v) => v.into_iter().map(|v| v.into()).collect(),
         }
