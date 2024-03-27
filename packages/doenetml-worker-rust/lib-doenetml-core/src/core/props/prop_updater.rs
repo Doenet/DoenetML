@@ -3,7 +3,7 @@ use thiserror::Error;
 
 use crate::components::prelude::DataQuery;
 
-use super::{prop_type, DataQueryResults, PropValue, UpdaterObject};
+use super::{DataQueryResults, PropValue, UpdaterObject};
 
 /// The possible results of a call to `calculate`:
 /// - `Calculated(val)`: the value was calculated to be `val`
@@ -151,45 +151,36 @@ pub trait PropUpdater {
 const _: () = {
     /// Implement `_PropUpdaterUntyped` from a typed `PropUpdater` for the specified
     /// type. This cannot be implemented using generics because of limitations in Rust.
-    macro_rules! implement_prop_updater_untyped {
-        ($type:ty) => {
-            impl<T> _PropUpdaterUntyped<$type> for T
-            where
-                T: PropUpdater<PropType = $type> + std::fmt::Debug,
-            {
-                fn default(&self) -> PropValue {
-                    PropValue::from(Self::default(self))
-                }
-                fn data_queries(&self) -> Vec<DataQuery> {
-                    Self::data_queries(self)
-                }
-                fn calculate_untyped(&self, data: DataQueryResults) -> PropCalcResult<PropValue> {
-                    Self::calculate(self, data).map(PropValue::from)
-                }
-                fn invert_untyped(
-                    &self,
-                    data: DataQueryResults,
-                    requested_value: PropValue,
-                    is_direct_change_from_action: bool,
-                ) -> Result<DataQueryResults, InvertError> {
-                    Self::invert(
-                        self,
-                        data,
-                        requested_value.try_into().unwrap(),
-                        is_direct_change_from_action,
-                    )
-                }
-            }
-        };
+    impl<T, S> _PropUpdaterUntyped<S> for T
+    where
+        T: PropUpdater<PropType = S> + std::fmt::Debug,
+        S: Clone + TryFrom<PropValue>,
+        PropValue: From<S> + TryInto<S>,
+        <PropValue as TryInto<S>>::Error: std::fmt::Debug,
+    {
+        fn default(&self) -> PropValue {
+            PropValue::from(Self::default(self))
+        }
+        fn data_queries(&self) -> Vec<DataQuery> {
+            Self::data_queries(self)
+        }
+        fn calculate_untyped(&self, data: DataQueryResults) -> PropCalcResult<PropValue> {
+            Self::calculate(self, data).map(PropValue::from)
+        }
+        fn invert_untyped(
+            &self,
+            data: DataQueryResults,
+            requested_value: PropValue,
+            is_direct_change_from_action: bool,
+        ) -> Result<DataQueryResults, InvertError> {
+            Self::invert(
+                self,
+                data,
+                requested_value.try_into().unwrap(),
+                is_direct_change_from_action,
+            )
+        }
     }
-
-    implement_prop_updater_untyped!(prop_type::Boolean);
-    implement_prop_updater_untyped!(prop_type::ElementRefs);
-    implement_prop_updater_untyped!(prop_type::GraphNodes);
-    implement_prop_updater_untyped!(prop_type::Integer);
-    implement_prop_updater_untyped!(prop_type::Math);
-    implement_prop_updater_untyped!(prop_type::Number);
-    implement_prop_updater_untyped!(prop_type::String);
 
     /// Anonymous trait to implement `PropUpdaterUntyped` for types that implement `PropUpdater`.
     /// Modeled after the `disjoint_impls` crate.
