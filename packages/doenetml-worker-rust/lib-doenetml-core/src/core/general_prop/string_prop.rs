@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use crate::{components::prelude::*, core::props::InvertError, props::BoxedUpdater};
+use crate::{components::prelude::*, core::props::InvertError, props::UpdaterObject};
 
 /// A string prop that calculates its value by concatenating all string dependencies.
 ///
@@ -96,8 +96,8 @@ impl StringProp {
     }
 }
 
-impl From<StringProp> for BoxedUpdater {
-    fn from(prop: StringProp) -> BoxedUpdater {
+impl From<StringProp> for UpdaterObject {
+    fn from(prop: StringProp) -> UpdaterObject {
         Rc::new(prop)
     }
 }
@@ -147,7 +147,7 @@ impl PropUpdater for StringProp {
     }
 
     fn calculate(&self, data: DataQueryResults) -> PropCalcResult<Self::PropType> {
-        let required_data: RequiredData = RequiredData::from_data_query_results(data);
+        let required_data = RequiredData::from_data_query_results(data);
         let independent_state = required_data.independent_state;
         let strings = required_data.strings;
 
@@ -156,33 +156,31 @@ impl PropUpdater for StringProp {
                 // If we reach here, then there were no dependencies returned from the data query.
                 // Use the value and came_from_default of `independent_state`
                 if independent_state.came_from_default {
-                    PropCalcResult::FromDefault(independent_state.value.clone())
+                    PropCalcResult::FromDefault(Rc::clone(&independent_state.value))
                 } else {
-                    PropCalcResult::Calculated(independent_state.value.clone())
+                    PropCalcResult::Calculated(Rc::clone(&independent_state.value))
                 }
             }
             1 => {
                 if self.propagate_came_from_default && strings[0].came_from_default {
                     // if we are basing it on a single variable and propagating `came_from_default`,
                     // then we propagate `came_from_default` as well as the value.
-                    PropCalcResult::FromDefault(strings[0].value.clone())
+                    PropCalcResult::FromDefault(Rc::clone(&strings[0].value))
                 } else {
                     // If we are not propagating `came_from_default`,
                     // then we set `came_from_default` to be false (by specifying `Calculated`)
                     // independent of the dependency's `came_from_default`
-                    PropCalcResult::Calculated(strings[0].value.clone())
+                    PropCalcResult::Calculated(Rc::clone(&strings[0].value))
                 }
             }
             _ => {
                 // multiple string variables, so concatenate
-
-                if strings.iter().any(|view| view.changed) {
-                    let value = String::from_iter(strings.iter().map(|v| (*v.value).clone()));
-
-                    PropCalcResult::Calculated(value.into())
-                } else {
-                    PropCalcResult::NoChange
+                let mut value = String::new();
+                for v in strings {
+                    value += &v.value;
                 }
+
+                PropCalcResult::Calculated(value.into())
             }
         }
     }
@@ -195,23 +193,23 @@ impl PropUpdater for StringProp {
         requested_value: Self::PropType,
         _is_direct_change_from_action: bool,
     ) -> Result<DataQueryResults, InvertError> {
-        let mut return_data = RequiredData::new_with_reset_meta(&data);
+        let mut desired = RequiredData::new_desired(&data);
         let required_data = RequiredData::from_data_query_results(data);
         //let strings = &data.vec[1].values;
 
         match required_data.strings.len() {
             0 => {
                 // We had no dependencies, so change the independent state variable
-                return_data.independent_state.change_to(requested_value);
+                desired.independent_state.change_to(requested_value);
             }
             1 => {
                 // based on a single string value, so we can invert
-                return_data.strings[0].change_to(requested_value);
+                desired.strings[0].change_to(requested_value);
             }
             _ => return Err(InvertError::CouldNotUpdate),
         }
 
-        Ok(return_data.into_data_query_results())
+        Ok(desired.into_data_query_results())
     }
 }
 

@@ -3,7 +3,7 @@ use thiserror::Error;
 
 use crate::components::prelude::DataQuery;
 
-use super::{prop_type, BoxedUpdater, DataQueryResults, PropValue};
+use super::{prop_type, DataQueryResults, PropValue, UpdaterObject};
 
 /// The possible results of a call to `calculate`:
 /// - `Calculated(val)`: the value was calculated to be `val`
@@ -238,18 +238,18 @@ const _: () = {
     }
 };
 
-/// Turn a `PropUpdater<PropType>` in a `Box<dyn PropUpdaterUntyped>` while asserting
+/// Turn a `PropUpdater<PropType>` in a trait object `Rc<dyn PropUpdaterUntyped>` while asserting
 /// `PropType`.
 ///
 /// ## Example
 /// ```ignore
 /// let bool_updater = MyBoolUpdater::new();
-/// let boxed_updater = as_boxed::<_, bool>(typed_updater);
+/// let updater_object = as_updater_object::<_, bool>(bool_updater);
 /// ```
 ///
-/// If `MyBoolUpdater::new()` returned a `PropUpdater<PropType != bool>`, `as_boxed` would
+/// If `MyBoolUpdater::new()` returned a `PropUpdater<PropType != bool>`, `as_updater_object` would
 /// produce a type error.
-pub fn as_boxed<T, RequiredType>(typed_updater: T) -> BoxedUpdater
+pub fn as_updater_object<T, RequiredType>(typed_updater: T) -> UpdaterObject
 where
     T: PropUpdater<PropType = RequiredType> + PropUpdaterUntyped + 'static,
     RequiredType: Clone + std::fmt::Debug + Default,

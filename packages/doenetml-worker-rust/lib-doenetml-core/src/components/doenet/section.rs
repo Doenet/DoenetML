@@ -4,14 +4,14 @@ use crate::components::prelude::*;
 use crate::general_prop::ElementRefsProp;
 
 use super::title::Title;
-use crate::props::as_boxed;
-use crate::props::BoxedUpdater;
+use crate::props::as_updater_object;
 use crate::props::ComponentTypeDataQueryFilter;
 use crate::props::DataQueryFilter;
 use crate::props::DataQueryFilterComparison;
 use crate::props::DataQueryResults;
 use crate::props::PropProfileDataQueryFilter;
 use crate::props::PropView;
+use crate::props::UpdaterObject;
 use crate::state::types::element_refs::ElementRefs;
 
 /// The `<section>` component renders its children along with a title
@@ -71,16 +71,18 @@ pub use component::SectionAttributes;
 pub use component::SectionProps;
 
 impl PropGetUpdater for SectionProps {
-    fn get_updater(&self) -> BoxedUpdater {
+    fn get_updater(&self) -> UpdaterObject {
         match self {
-            SectionProps::Title => as_boxed::<_, props::types::Title>(
+            SectionProps::Title => as_updater_object::<_, props::types::Title>(
                 ElementRefsProp::new_from_last_matching_child(Title::NAME),
             ),
             SectionProps::Hidden => {
-                as_boxed::<_, props::types::Hidden>(attrs::Hide::get_prop_updater())
+                as_updater_object::<_, props::types::Hidden>(attrs::Hide::get_prop_updater())
             }
             SectionProps::RenderedChildren => {
-                as_boxed::<_, props::types::RenderedChildren>(custom_props::RenderedChildren::new())
+                as_updater_object::<_, props::types::RenderedChildren>(
+                    custom_props::RenderedChildren::new(),
+                )
             }
         }
     }

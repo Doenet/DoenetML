@@ -15,7 +15,7 @@ pub trait FromDataQueryResults {
 
     /// Create a new instance of `Self` with all metadata reset.
     /// This is useful when deciding what props to change for an `invert` operation.
-    fn new_with_reset_meta(data: &DataQueryResults) -> Self
+    fn new_desired(data: &DataQueryResults) -> Self
     where
         Self: Sized,
     {

@@ -18,8 +18,8 @@ pub struct PropDefinitionMeta {
     pub public: bool,
 }
 
-/// Type of a boxed `PropUpdater`.
-pub type BoxedUpdater = Rc<dyn PropUpdaterUntyped>;
+/// Type of `PropUpdater` trait object.
+pub type UpdaterObject = Rc<dyn PropUpdaterUntyped>;
 
 /// A `PropDefinition` stores functions needed to compute a `PropValue` as required
 /// by a component.
@@ -27,7 +27,7 @@ pub type BoxedUpdater = Rc<dyn PropUpdaterUntyped>;
 #[derive(Debug, Clone)]
 pub struct PropDefinition {
     /// The updater holds all of the `calculate`, etc. functions for the prop.
-    pub updater: BoxedUpdater,
+    pub updater: UpdaterObject,
     pub variant: PropValueDiscriminants,
     /// Information about the prop that can only be determined from the parent component.
     pub meta: PropDefinitionMeta,

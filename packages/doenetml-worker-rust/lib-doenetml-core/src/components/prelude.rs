@@ -14,7 +14,7 @@ pub use crate::core::props::{
 pub use crate::dast::flat_dast::FlatAttribute;
 pub use crate::dast::flat_dast::UntaggedContent;
 pub use crate::dast::Position as DastPosition;
-pub use crate::props::as_boxed;
+pub use crate::props::as_updater_object;
 pub use crate::props::prop_type;
 pub use crate::props::traits::*;
 pub use crate::props::InvertError;

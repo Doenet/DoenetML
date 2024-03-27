@@ -1,6 +1,6 @@
 use crate::components::prelude::*;
 use crate::general_prop::RenderedChildrenPassthroughProp;
-use crate::props::BoxedUpdater;
+use crate::props::UpdaterObject;
 
 /// The `<title>` component renders its children
 #[component(name = Title)]
@@ -18,13 +18,12 @@ pub use component::TitleAttributes;
 pub use component::TitleProps;
 
 impl PropGetUpdater for TitleProps {
-    fn get_updater(&self) -> BoxedUpdater {
+    fn get_updater(&self) -> UpdaterObject {
         match self {
-            TitleProps::RenderedChildren => {
-                as_boxed::<_, component::props::types::RenderedChildren>(
-                    RenderedChildrenPassthroughProp::new(),
-                )
-            }
+            TitleProps::RenderedChildren => as_updater_object::<
+                _,
+                component::props::types::RenderedChildren,
+            >(RenderedChildrenPassthroughProp::new()),
         }
     }
 }

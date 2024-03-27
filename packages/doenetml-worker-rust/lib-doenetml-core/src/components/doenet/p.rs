@@ -1,6 +1,6 @@
 use crate::components::prelude::*;
 use crate::general_prop::RenderedChildrenPassthroughProp;
-use crate::props::BoxedUpdater;
+use crate::props::UpdaterObject;
 
 /// The `<p>` component renders its children
 #[component(name = P)]
@@ -29,14 +29,15 @@ pub use component::PProps;
 pub use component::P;
 
 impl PropGetUpdater for PProps {
-    fn get_updater(&self) -> BoxedUpdater {
+    fn get_updater(&self) -> UpdaterObject {
         match self {
-            PProps::Hidden => as_boxed::<_, component::props::types::Hidden>(
+            PProps::Hidden => as_updater_object::<_, component::props::types::Hidden>(
                 component::attrs::Hide::get_prop_updater(),
             ),
-            PProps::RenderedChildren => as_boxed::<_, component::props::types::RenderedChildren>(
-                RenderedChildrenPassthroughProp::new(),
-            ),
+            PProps::RenderedChildren => as_updater_object::<
+                _,
+                component::props::types::RenderedChildren,
+            >(RenderedChildrenPassthroughProp::new()),
         }
     }
 }

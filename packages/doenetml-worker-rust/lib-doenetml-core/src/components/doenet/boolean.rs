@@ -1,6 +1,6 @@
 use crate::components::prelude::*;
 use crate::general_prop::BooleanProp;
-use crate::props::BoxedUpdater;
+use crate::props::UpdaterObject;
 
 #[component(name = Boolean, extend_via_default_prop)]
 mod component {
@@ -37,12 +37,12 @@ pub use component::BooleanAttributes;
 pub use component::BooleanProps;
 
 impl PropGetUpdater for BooleanProps {
-    fn get_updater(&self) -> BoxedUpdater {
+    fn get_updater(&self) -> UpdaterObject {
         match self {
-            BooleanProps::Value => {
-                as_boxed::<_, component::props::types::Value>(BooleanProp::new_from_children(false))
-            }
-            BooleanProps::Hidden => as_boxed::<_, component::props::types::Hidden>(
+            BooleanProps::Value => as_updater_object::<_, component::props::types::Value>(
+                BooleanProp::new_from_children(false),
+            ),
+            BooleanProps::Hidden => as_updater_object::<_, component::props::types::Hidden>(
                 component::attrs::Hide::get_prop_updater(),
             ),
         }

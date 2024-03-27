@@ -1,7 +1,7 @@
 //! An external component is a component not recognized by DoenetML. It is left untouched by the DoenetML processor and returned (mostly)
 //! as-is when converted into `FlatDast`.
 
-use crate::{components::prelude::*, props::BoxedUpdater};
+use crate::{components::prelude::*, props::UpdaterObject};
 
 #[derive(Debug, Default, Clone)]
 pub struct _External {
@@ -71,7 +71,7 @@ impl ComponentVariantProps for _External {
     fn get_prop_names(&self) -> &'static [&'static str] {
         &[]
     }
-    fn get_boxed_prop_updater(&self, _local_prop_idx: LocalPropIdx) -> BoxedUpdater {
+    fn get_prop_updater_object(&self, _local_prop_idx: LocalPropIdx) -> UpdaterObject {
         panic!("No props on _External")
     }
 }
