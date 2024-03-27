@@ -244,7 +244,7 @@ const _: () = {
 /// ## Example
 /// ```ignore
 /// let bool_updater = MyBoolUpdater::new();
-/// let updater_object = as_updater_object::<_, bool>(typed_updater);
+/// let updater_object = as_updater_object::<_, bool>(bool_updater);
 /// ```
 ///
 /// If `MyBoolUpdater::new()` returned a `PropUpdater<PropType != bool>`, `as_updater_object` would
