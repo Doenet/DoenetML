@@ -213,6 +213,6 @@ impl PropUpdater for StringProp {
     }
 }
 
-// #[cfg(test)]
-// #[path = "string_prop.test.rs"]
-// mod tests;
+#[cfg(test)]
+#[path = "string_prop.test.rs"]
+mod tests;
