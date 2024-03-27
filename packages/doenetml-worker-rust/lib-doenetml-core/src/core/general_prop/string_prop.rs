@@ -156,9 +156,9 @@ impl PropUpdater for StringProp {
                 // If we reach here, then there were no dependencies returned from the data query.
                 // Use the value and came_from_default of `independent_state`
                 if independent_state.came_from_default {
-                    PropCalcResult::FromDefault(Rc::clone(&independent_state.value))
+                    PropCalcResult::FromDefault(independent_state.value)
                 } else {
-                    PropCalcResult::Calculated(Rc::clone(&independent_state.value))
+                    PropCalcResult::Calculated(independent_state.value)
                 }
             }
             1 => {
@@ -195,7 +195,6 @@ impl PropUpdater for StringProp {
     ) -> Result<DataQueryResults, InvertError> {
         let mut desired = RequiredData::new_desired(&data);
         let required_data = RequiredData::from_data_query_results(data);
-        //let strings = &data.vec[1].values;
 
         match required_data.strings.len() {
             0 => {

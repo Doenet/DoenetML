@@ -1,93 +1,178 @@
-use serde::{Deserialize, Serialize};
-use strum::VariantNames;
-use strum_macros::EnumVariantNames;
+use crate::components::prelude::*;
+use crate::general_prop::{BooleanProp, IndependentProp, StringProp};
+use crate::props::UpdaterObject;
 
-use crate::{
-    components::prelude::*,
-    general_prop::{BooleanProp, StringProp},
-};
+#[component(name = TextInput, extend_via_default_prop)]
+pub(super) mod component {
 
-use super::TextInputProps;
+    use super::*;
 
-#[derive(Debug, AttributeProp)]
-pub enum TextInputAttribute {
-    /// Whether the `<textInput>` should be hidden.
-    #[attribute(prop = BooleanProp, default = false)]
-    Hide,
-    /// Whether the `<textInput>` should be editable.
-    #[attribute(prop = BooleanProp, default = false)]
-    Disabled,
-    /// The content that should prefill the `<textInput>`, giving it a default value before a user has interacted with the input.
-    #[attribute(prop = StringProp, default = String::new())]
-    Prefill,
-}
+    enum Props {
+        /// The value of the `<text>`. This is the content that will be displayed inside
+        /// the `<text>` component.
+        ///
+        /// The value of the `<textInput>` component.
+        ///
+        /// It is updated when a user presses Enter or blurs away from the input box.
+        /// (See the `immediate_value` prop for the current value of the input box.)
+        #[prop(
+            value_type = PropValueType::String,
+            is_public,
+            profile = PropProfile::String,
+            default,
+        )]
+        Value,
 
-#[derive(Debug, Deserialize, Serialize)]
-#[cfg_attr(feature = "web", derive(tsify::Tsify))]
-#[cfg_attr(feature = "web", tsify(from_wasm_abi))]
-#[serde(expecting = "`text` must be a string")]
-pub struct TextInputActionArgs {
-    pub text: String,
-}
+        /// The current value of the text inside the input box of the `<textInput>` component.
+        ///
+        /// It is updated every time a user presses a key so that should represent that actual text shown
+        /// in the input box.
+        #[prop(
+            value_type = PropValueType::String,
+            is_public,
+            for_render,
+        )]
+        ImmediateValue,
 
-#[derive(Debug, Deserialize, Serialize, EnumVariantNames)]
-#[serde(tag = "actionName", rename_all = "camelCase")]
-#[strum(serialize_all = "camelCase")]
-#[cfg_attr(feature = "web", derive(tsify::Tsify))]
-#[cfg_attr(feature = "web", tsify(from_wasm_abi))]
-pub enum TextInputAction {
-    UpdateImmediateValue(ActionBody<TextInputActionArgs>),
-    UpdateValue,
-}
-/// Definition of the `<textInput>` DoenetML component
-#[derive(Debug, Default, ComponentNode, ComponentProps, ComponentChildrenOld)]
-#[component(ref_transmutes_to = "Text", extend_via_default_prop)]
-pub struct TextInput {
-    /// The common component data needed to derive the `ComponentNode` trait
-    pub common: ComponentCommonData,
+        /// If `true`, then `value` is synchronized to `immediate_value`.
+        ///
+        /// When a user is typing into a text input, it will be `false`,
+        /// allowing `immediate_value` and `value` to diverge.
+        ///
+        /// When a user presses enter or the text input loses focus, it will be `true`,
+        /// so that `immediate_value` and `value` will be synchronized.
+        #[prop(value_type = PropValueType::Boolean)]
+        SyncValueToImmediateValue,
 
-    /// The props that underlie the `<textInput>` component.
-    pub props: TextInputProps,
-}
+        /// The string value computed from any children to the textInput.
+        /// If the textInput has children, then this prop will not be marked `came_from_default`,
+        /// and the `value` and `immediate_value` prop will use these children,
+        /// rather than their preliminary value variable when calculating.
+        #[prop(value_type = PropValueType::String)]
+        ValueFromChildren,
 
-impl ComponentAttributes for TextInput {
-    fn get_attribute_names(&self) -> Vec<AttributeName> {
-        TextInputAttribute::VARIANTS.into()
+        /// The content that should prefill the `<textInput>`, giving it a default value before a user has interacted with the input.
+        ///
+        /// It is ignored if `value_from_children` is specified.
+        #[prop(value_type = PropValueType::String)]
+        Prefill,
+
+        /// A variable that determines whether or not a text input should be sent to the renderer (i.e., appear in the render tree).
+        ///
+        /// If `hidden` is true, then don't send the text input to the renderer. (TODO: implement this)
+        #[prop(value_type = PropValueType::Boolean, profile = PropProfile::Hidden)]
+        Hidden,
+
+        /// A variable that determines whether or not a text input can be interacted with.
+        ///
+        /// If `disabled`, then a user cannot interact with the text input,
+        /// and the input box should display as disabled (e.g., grayed out)
+        #[prop(value_type = PropValueType::Boolean)]
+        Disabled,
+    }
+
+    enum Attributes {
+        /// Whether the `<textInput>` should be hidden.
+        #[attribute(prop = BooleanProp, default = false)]
+        Hide,
+        /// Whether the `<textInput>` should be disabled.
+        #[attribute(prop = BooleanProp, default = false)]
+        Disabled,
+        /// The content that should prefill the `<textInput>`, giving it a default value before a user has interacted with the input.
+        #[attribute(prop = StringProp, default = String::new())]
+        Prefill,
     }
 }
 
-impl ComponentActions for TextInput {
-    fn get_action_names(&self) -> Vec<String> {
-        TextInputAction::VARIANTS
-            .iter()
-            .map(|s| s.to_string())
-            .collect()
-    }
+use component::attrs;
+pub(super) use component::props;
+pub use component::TextInput;
+pub use component::TextInputActions;
+pub use component::TextInputAttributes;
+pub use component::TextInputProps;
 
-    fn on_action(
-        &self,
-        action: ActionsEnum,
-        resolve_and_retrieve_prop: &mut dyn FnMut(LocalPropIdx) -> PropValue,
-    ) -> Result<Vec<UpdateFromAction>, String> {
-        // The type of `action` should have already been verified, so an
-        // error here is a programming logic error, not an API error.
-        let action: TextInputAction = action.try_into()?;
+use super::custom_props::{ImmediateValueProp, ValueProp};
 
-        match action {
-            TextInputAction::UpdateImmediateValue(ActionBody { args }) => {
-                Ok(vec![TextInputProps::update_immediate_value_from_action(
-                    args.text,
-                )])
+impl PropGetUpdater for TextInputProps {
+    fn get_updater(&self) -> UpdaterObject {
+        match self {
+            TextInputProps::Value => as_updater_object::<_, props::types::Value>(ValueProp::new()),
+            TextInputProps::ImmediateValue => {
+                as_updater_object::<_, props::types::ImmediateValue>(ImmediateValueProp::new())
             }
+            TextInputProps::SyncValueToImmediateValue => as_updater_object::<
+                _,
+                props::types::SyncValueToImmediateValue,
+            >(IndependentProp::new(true)),
 
-            TextInputAction::UpdateValue => {
-                let new_val =
-                    resolve_and_retrieve_prop(TextInputProps::get_immediate_value_prop_index());
-
-                Ok(vec![TextInputProps::update_value_from_action(
-                    new_val.try_into().unwrap(),
-                )])
+            TextInputProps::ValueFromChildren => {
+                as_updater_object::<_, props::types::ValueFromChildren>(
+                    StringProp::new_from_children("").dont_propagate_came_from_default(),
+                )
+            }
+            TextInputProps::Prefill => {
+                as_updater_object::<_, props::types::Prefill>(attrs::Prefill::get_prop_updater())
+            }
+            TextInputProps::Hidden => {
+                as_updater_object::<_, props::types::Hidden>(attrs::Hide::get_prop_updater())
+            }
+            TextInputProps::Disabled => {
+                as_updater_object::<_, props::types::Disabled>(attrs::Disabled::get_prop_updater())
             }
         }
     }
 }
+
+// #[derive(Debug, Deserialize, Serialize)]
+// #[cfg_attr(feature = "web", derive(tsify::Tsify))]
+// #[cfg_attr(feature = "web", tsify(from_wasm_abi))]
+// #[serde(expecting = "`text` must be a string")]
+// pub struct TextInputActionArgs {
+//     pub text: String,
+// }
+
+// #[derive(Debug, Deserialize, Serialize, EnumVariantNames)]
+// #[serde(tag = "actionName", rename_all = "camelCase")]
+// #[strum(serialize_all = "camelCase")]
+// #[cfg_attr(feature = "web", derive(tsify::Tsify))]
+// #[cfg_attr(feature = "web", tsify(from_wasm_abi))]
+// pub enum TextInputAction {
+//     UpdateImmediateValue(ActionBody<TextInputActionArgs>),
+//     UpdateValue,
+// }
+
+// impl ComponentActions for TextInput {
+//     fn get_action_names(&self) -> Vec<String> {
+//         TextInputAction::VARIANTS
+//             .iter()
+//             .map(|s| s.to_string())
+//             .collect()
+//     }
+
+//     fn on_action(
+//         &self,
+//         action: ActionsEnum,
+//         resolve_and_retrieve_prop: &mut dyn FnMut(LocalPropIdx) -> PropValue,
+//     ) -> Result<Vec<UpdateFromAction>, String> {
+//         // The type of `action` should have already been verified, so an
+//         // error here is a programming logic error, not an API error.
+//         let action: TextInputAction = action.try_into()?;
+
+//         match action {
+//             TextInputAction::UpdateImmediateValue(ActionBody { args }) => {
+//                 Ok(vec![TextInputProps::update_immediate_value_from_action(
+//                     args.text,
+//                 )])
+//             }
+
+//             TextInputAction::UpdateValue => {
+//                 let new_val =
+//                     resolve_and_retrieve_prop(TextInputProps::get_immediate_value_prop_index());
+
+//                 Ok(vec![TextInputProps::update_value_from_action(
+//                     new_val.try_into().unwrap(),
+//                 )])
+//             }
+//         }
+//     }
+// }
